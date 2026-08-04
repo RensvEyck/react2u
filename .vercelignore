@@ -1,3 +1,7 @@
 node_modules
 .next
 _to_delete
+
+# Env-waarden komen uit de Vercel-projectinstellingen, niet uit de upload.
+.env
+.env.local
