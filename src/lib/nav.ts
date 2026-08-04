@@ -19,6 +19,7 @@ export const MAIN_NAV: NavItem[] = [
     href: "/werknemers",
     children: [{ label: "Verzuimprotocol", href: "/verzuimprotocol" }],
   },
+  { label: "Blog", href: "/blog" },
   { label: "Vacatures", href: "/vacatures" },
   { label: "Over React2u", href: "/over-react2u" },
   { label: "Contact", href: "/contact" },

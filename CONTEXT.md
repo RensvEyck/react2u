@@ -16,6 +16,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Blok** (`blocks`) | Eén sectie binnen een pagina. Heeft een `type` (welk component) en `data` (jsonb, vorm hangt af van het type). Volgorde via `sort`. |
 | **Bloktype** | De sleutel die een blok aan een React-component koppelt, bv. `hero`, `ctaBanner`. Zie *Valkuilen*. |
 | **Vacature** (`vacancies`) | Statussen: `draft`, `published`, `closed`. Alleen `published` is publiek. |
+| **Artikel** (`posts`) | Blogartikel op `/blog/<slug>`. Markdown-body, statussen `draft` en `published`. `published_at` wordt bij de eerste publicatie gezet en blijft daarna staan, zodat een latere correctie de datum niet verzet. |
 | **Sollicitatie** (`applications`) | Inzending op een vacature of open sollicitatie. Cv gaat naar de private `cvs`-bucket. |
 | **Bericht** (`contact_messages`) | Inzending van het contactformulier. |
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
@@ -126,8 +127,26 @@ van het hoofddomein met rust.
 - **Toegang.** Het adminwachtwoord en een Vercel-token zijn buiten de repo gedeeld;
   het wachtwoord moet gewijzigd en het token ingetrokken worden.
 
+## SEO
+
+De basis staat: elke route heeft eigen metadata en een canonical, er is een
+sitemap en een robots.txt, en de fonts komen via `next/font` (niet via een
+render-blocking `<link>` naar Google Fonts — dat kost Core Web Vitals).
+
+Structured data per paginasoort: `Organization` op de home, `JobPosting` op een
+vacature, `BlogPosting` + `BreadcrumbList` op een artikel.
+
+OpenGraph- en Twitter-defaults staan in [`src/app/layout.tsx`](src/app/layout.tsx);
+pagina's die hun eigen `openGraph` zetten winnen daarvan. De standaard
+deelafbeelding is nu het logo — geen echte 1200×630-afbeelding. Wie link-previews
+serieus neemt, maakt daar een eigen beeld voor.
+
+`sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
+Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld
+niets zegt.
+
 ## Database
 
-Eén migratie: [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
-— tabellen, RLS-policies en de twee storage-buckets. Supabase-project
-`tumwtappyegkjabtmold`.
+Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`
+(tabellen, RLS-policies, de twee storage-buckets) en `0002_posts.sql`
+(blogartikelen). Supabase-project `tumwtappyegkjabtmold`.

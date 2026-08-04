@@ -103,6 +103,54 @@ export async function deleteVacancy(id: string) {
   revalidatePath("/admin/vacatures");
 }
 
+function slugify(raw: string) {
+  return raw.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+export async function savePost(formData: FormData) {
+  const { sb } = await requireAdmin();
+  const id = String(formData.get("id") || "");
+  const status = String(formData.get("status") || "draft");
+  const payload = {
+    title: String(formData.get("title") || "").trim(),
+    slug: slugify(String(formData.get("slug") || "")),
+    excerpt: String(formData.get("excerpt") || "") || null,
+    body_md: String(formData.get("body_md") || "") || null,
+    cover_image: String(formData.get("cover_image") || "") || null,
+    author: String(formData.get("author") || "") || null,
+    status,
+    seo_title: String(formData.get("seo_title") || "") || null,
+    seo_description: String(formData.get("seo_description") || "") || null,
+    og_image: String(formData.get("og_image") || "") || null,
+  };
+  if (!payload.title || !payload.slug) redirect("/admin/blog?fout=titel-of-slug");
+
+  if (id) {
+    // published_at markeert de eerste publicatie en blijft daarna staan, zodat
+    // een latere correctie de datum in het overzicht en de sitemap niet verzet.
+    const { data: existing } = await sb.from("posts").select("published_at").eq("id", id).single();
+    const published_at =
+      status === "published" && !existing?.published_at ? new Date().toISOString() : existing?.published_at || null;
+    const { error } = await sb.from("posts").update({ ...payload, published_at }).eq("id", id);
+    if (error) redirect(`/admin/blog/${id}?fout=opslaan`);
+  } else {
+    const { error } = await sb.from("posts").insert({
+      ...payload,
+      published_at: status === "published" ? new Date().toISOString() : null,
+    });
+    if (error) redirect("/admin/blog?fout=slug-bestaat-al");
+  }
+  revalidateSite();
+  redirect("/admin/blog?opgeslagen=1");
+}
+
+export async function deletePost(id: string) {
+  const { sb } = await requireAdmin();
+  await sb.from("posts").delete().eq("id", id);
+  revalidateSite();
+  revalidatePath("/admin/blog");
+}
+
 export async function setApplicationStatus(id: string, formData: FormData) {
   const { sb } = await requireAdmin();
   const status = String(formData.get("status") || "nieuw");

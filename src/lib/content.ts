@@ -1,5 +1,5 @@
 import { supabasePublic } from "./supabase/public";
-import type { Block, Page, Vacancy } from "./types";
+import type { Block, Page, Post, Vacancy } from "./types";
 
 export async function getPage(slug: string): Promise<{ page: Page; blocks: Block[] } | null> {
   const sb = supabasePublic();
@@ -35,6 +35,22 @@ export async function getVacancy(slug: string): Promise<Vacancy | null> {
   const sb = supabasePublic();
   const { data } = await sb.from("vacancies").select("*").eq("slug", slug).eq("status", "published").maybeSingle();
   return (data as Vacancy) || null;
+}
+
+export async function getPublishedPosts(): Promise<Post[]> {
+  const sb = supabasePublic();
+  const { data } = await sb
+    .from("posts")
+    .select("*")
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+  return (data as Post[]) || [];
+}
+
+export async function getPost(slug: string): Promise<Post | null> {
+  const sb = supabasePublic();
+  const { data } = await sb.from("posts").select("*").eq("slug", slug).eq("status", "published").maybeSingle();
+  return (data as Post) || null;
 }
 
 export const CONTACT_FALLBACK = {

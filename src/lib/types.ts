@@ -39,6 +39,23 @@ export type Vacancy = {
   updated_at: string;
 };
 
+export type Post = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body_md: string | null;
+  cover_image: string | null;
+  author: string | null;
+  status: "draft" | "published";
+  published_at: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  og_image: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Application = {
   id: string;
   vacancy_id: string | null;
