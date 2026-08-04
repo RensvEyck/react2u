@@ -1,9 +1,15 @@
 import Link from "next/link";
-import { LOGO_URL, FOOTER_DOC_LABELS, type FooterDocs } from "@/lib/nav";
+import { LOGO_URL, type FooterDoc, type Certificate } from "@/lib/nav";
 import type { ContactInfo } from "@/lib/content";
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 
-export default function Footer({ contact, docs }: { contact: ContactInfo; docs: FooterDocs }) {
+export default function Footer({
+  contact, docs, certificates,
+}: {
+  contact: ContactInfo;
+  docs: FooterDoc[];
+  certificates: Certificate[];
+}) {
   const cols = [
     { title: "Werkgever", links: [
       { label: "Diensten", href: "/diensten" },
@@ -62,15 +68,33 @@ export default function Footer({ contact, docs }: { contact: ContactInfo; docs: 
           </ul>
         </div>
       </div>
+      {certificates.length > 0 && (
+        <div className="border-t border-black/10">
+          <div className="container-site flex flex-wrap items-center justify-center gap-x-10 gap-y-6 py-8">
+            {certificates.map((c, i) => {
+              /* eslint-disable-next-line @next/next/no-img-element */
+              const logo = <img src={c.image} alt={c.alt} className="h-14 w-auto max-w-[160px] object-contain" loading="lazy" />;
+              return c.href ? (
+                <a key={i} href={c.href} target="_blank" rel="noopener" className="transition-opacity hover:opacity-70">
+                  {logo}
+                </a>
+              ) : (
+                <span key={i}>{logo}</span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="border-t border-black/10">
         <div className="container-site py-4 text-[15px] text-primary/70 flex flex-wrap gap-x-2 gap-y-1">
-          {FOOTER_DOC_LABELS.map((d, i) => (
-            <span key={d.key}>
+          {docs.map((d, i) => (
+            <span key={`${d.label}-${i}`}>
               {i > 0 && <span className="mr-2">|</span>}
-              <a href={docs[d.key]} target="_blank" rel="noopener" className="hover:text-accent">{d.label}</a>
+              <a href={d.href} target="_blank" rel="noopener" className="hover:text-accent">{d.label}</a>
             </span>
           ))}
-          <span>| © {new Date().getFullYear()} React2u</span>
+          <span>{docs.length > 0 && "| "}© {new Date().getFullYear()} React2u</span>
         </div>
       </div>
     </footer>

@@ -20,7 +20,9 @@ Gebruik deze termen; de code doet dat ook.
 | **Bericht** (`contact_messages`) | Inzending van het contactformulier. |
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
 | **Onbehandeld** | Wat in het Postvak IN als ongelezen telt. Per soort verschillend: een bericht heeft `read = false`, een sollicitatie heeft `status = 'nieuw'`. |
-| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact` en `documents`. |
+| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents` en `certificates`. |
+| **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
+| **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
 | **Beheerder** (`admins`) | Rij die een Supabase-auth-gebruiker toegang tot `/admin` geeft. Een auth-account zonder rij hier heeft géén toegang. |
 
 ## Architectuur
@@ -56,6 +58,14 @@ toe te voegen is.
 **Het menu volgt de database niet.** `MAIN_NAV` in [`src/lib/nav.ts`](src/lib/nav.ts)
 is een hardgecodeerde lijst. Een nieuwe pagina in het adminpaneel verschijnt dus
 wél op zijn URL, maar niet in de navigatie tot je `nav.ts` bijwerkt.
+
+**`site_settings.documents` bestaat in twee vormen.** Oorspronkelijk een vast
+object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure`,
+`privacy_reglement`), inmiddels een vrije lijst `{label, href}[]`. Rijen die
+sinds de omzetting niet opnieuw zijn opgeslagen bevatten nog de oude vorm. Lees
+deze instelling daarom altijd via `normalizeDocs()` in `nav.ts` — die accepteert
+beide en valt terug op de standaardlinks. Hetzelfde geldt voor
+`normalizeCertificates()`, al bestaat daar nog geen oude vorm van.
 
 **`.gitignore` geldt niet voor Vercel-uploads.** Een `vercel --prod` vanaf je
 laptop stuurt alles mee wat niet in `.vercelignore` staat — inclusief `.env`.

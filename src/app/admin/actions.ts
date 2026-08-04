@@ -163,14 +163,34 @@ export async function deletePage(slug: string) {
   redirect("/admin/paginas");
 }
 
+// De lijst-editor stuurt genummerde velden mee (label.0, href.0, label.1, …).
+// De nummers hoeven niet aaneengesloten te zijn: verwijder je een regel in het
+// midden, dan ontbreekt die index gewoon. Daarom lopen we over de aanwezige
+// sleutels in plaats van over een teller.
+function collectRows(formData: FormData, fields: string[]): Record<string, string>[] {
+  const indices = new Set<number>();
+  for (const key of formData.keys()) {
+    const m = key.match(/^(?:.+)\.(\d+)$/);
+    if (m) indices.add(Number(m[1]));
+  }
+  return [...indices]
+    .sort((a, b) => a - b)
+    .map((i) => Object.fromEntries(fields.map((f) => [f, String(formData.get(`${f}.${i}`) || "").trim()])));
+}
+
 export async function saveDocumentsSettings(formData: FormData) {
   const { sb } = await requireAdmin();
-  const value = {
-    algemene_voorwaarden: String(formData.get("algemene_voorwaarden") || ""),
-    klachtenprocedure: String(formData.get("klachtenprocedure") || ""),
-    privacy_reglement: String(formData.get("privacy_reglement") || ""),
-  };
+  const value = collectRows(formData, ["label", "href"]).filter((r) => r.label && r.href);
   await sb.from("site_settings").upsert({ key: "documents", value });
+  revalidateSite();
+  redirect("/admin/instellingen?opgeslagen=1");
+}
+
+export async function saveCertificatesSettings(formData: FormData) {
+  const { sb } = await requireAdmin();
+  // Zonder afbeelding valt er niets te tonen; alt en href mogen leeg blijven.
+  const value = collectRows(formData, ["image", "alt", "href"]).filter((r) => r.image);
+  await sb.from("site_settings").upsert({ key: "certificates", value });
   revalidateSite();
   redirect("/admin/instellingen?opgeslagen=1");
 }

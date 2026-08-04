@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
-import { saveContactSettings, saveDocumentsSettings } from "@/app/admin/actions";
+import { saveContactSettings, saveDocumentsSettings, saveCertificatesSettings } from "@/app/admin/actions";
 import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
-import { FOOTER_DOCS_FALLBACK, FOOTER_DOC_LABELS, type FooterDocs } from "@/lib/nav";
+import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
+import ListEditor from "@/components/admin/ListEditor";
 
 const FIELDS: { name: keyof ContactInfo; label: string }[] = [
   { name: "phoneDisplay", label: "Telefoonnummer (weergave)" },
@@ -17,12 +18,14 @@ const FIELDS: { name: keyof ContactInfo; label: string }[] = [
 
 export default async function SettingsAdmin() {
   const { sb } = await requireAdmin();
-  const [{ data }, { data: docsData }] = await Promise.all([
+  const [{ data }, { data: docsData }, { data: certsData }] = await Promise.all([
     sb.from("site_settings").select("value").eq("key", "contact").maybeSingle(),
     sb.from("site_settings").select("value").eq("key", "documents").maybeSingle(),
+    sb.from("site_settings").select("value").eq("key", "certificates").maybeSingle(),
   ]);
   const contact = { ...CONTACT_FALLBACK, ...((data?.value as Partial<ContactInfo>) || {}) };
-  const docs = { ...FOOTER_DOCS_FALLBACK, ...((docsData?.value as Partial<FooterDocs>) || {}) };
+  const docs = normalizeDocs(docsData?.value);
+  const certificates = normalizeCertificates(certsData?.value);
   return (
     <div className="max-w-[720px] space-y-6">
       <div>
@@ -48,16 +51,40 @@ export default async function SettingsAdmin() {
       <form action={saveDocumentsSettings} className="acard p-6">
         <h2 className="mb-1 font-heading text-[16px] font-bold text-[#312e82]">Documenten (footer)</h2>
         <p className="mb-4 text-[13px] text-black/45">
-          Nieuw PDF? Upload het via <Link href="/admin/media" className="font-semibold text-[#e75387] hover:underline">Media</Link> en plak de URL hier.
+          Verschijnen als links onderaan elke pagina. Nieuw PDF? Upload het via{" "}
+          <Link href="/admin/media" className="font-semibold text-[#e75387] hover:underline">Media</Link> en kies de URL hier.
         </p>
-        <div className="space-y-4">
-          {FOOTER_DOC_LABELS.map((d) => (
-            <div key={d.key}>
-              <label className="alabel">{d.label}</label>
-              <input className="ainput" name={d.key} defaultValue={docs[d.key]} />
-            </div>
-          ))}
+        <ListEditor
+          initial={docs}
+          fields={[
+            { name: "label", label: "Naam", placeholder: "Algemene voorwaarden" },
+            { name: "href", label: "Link naar het document", placeholder: "https://…/document.pdf", media: true },
+          ]}
+          addLabel="Document toevoegen"
+          emptyLabel="Nog geen documenten."
+        />
+        <div className="mt-5 flex justify-end">
+          <button className="abtn">Opslaan</button>
         </div>
+      </form>
+
+      <form action={saveCertificatesSettings} className="acard p-6">
+        <h2 className="mb-1 font-heading text-[16px] font-bold text-[#312e82]">Certificaten &amp; keurmerken (footer)</h2>
+        <p className="mb-4 text-[13px] text-black/45">
+          Logo&apos;s die als rij onderaan elke pagina staan. Upload het logo eerst via{" "}
+          <Link href="/admin/media" className="font-semibold text-[#e75387] hover:underline">Media</Link>.
+          Een link is optioneel — zonder link toont het logo zich zonder doorklik.
+        </p>
+        <ListEditor
+          initial={certificates}
+          fields={[
+            { name: "image", label: "Logo", placeholder: "https://…/logo.png", media: true, preview: true },
+            { name: "alt", label: "Omschrijving (voor schermlezers)", placeholder: "ISO 9001 gecertificeerd" },
+            { name: "href", label: "Link (optioneel)", placeholder: "https://…" },
+          ]}
+          addLabel="Certificaat toevoegen"
+          emptyLabel="Nog geen certificaten."
+        />
         <div className="mt-5 flex justify-end">
           <button className="abtn">Opslaan</button>
         </div>
