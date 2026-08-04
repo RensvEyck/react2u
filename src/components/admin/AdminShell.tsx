@@ -4,27 +4,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
-  LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut,
+  LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
-type Counts = { apps: number; msgs: number };
+type Counts = { apps: number; msgs: number; inbox: number };
 
 const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }[] = [
   { label: "Dashboard", href: "/admin", icon: LuLayoutDashboard },
+  { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox" },
   { label: "Pagina's", href: "/admin/paginas", icon: LuFileText },
   { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase },
   { label: "Sollicitaties", href: "/admin/sollicitaties", icon: LuUsers, badge: "apps" },
-  { label: "Berichten", href: "/admin/berichten", icon: LuInbox, badge: "msgs" },
+  { label: "Berichten", href: "/admin/berichten", icon: LuMessageSquare, badge: "msgs" },
   { label: "Media", href: "/admin/media", icon: LuImage },
   { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings },
   { label: "Account", href: "/admin/account", icon: LuUserRound },
 ];
 
 const CRUMBS: Record<string, string> = {
-  admin: "Dashboard", paginas: "Pagina's", vacatures: "Vacatures", sollicitaties: "Sollicitaties",
-  berichten: "Berichten", media: "Media", instellingen: "Instellingen", account: "Account",
-  nieuw: "Nieuw", blok: "Blok",
+  admin: "Dashboard", "postvak-in": "Postvak IN", paginas: "Pagina's", vacatures: "Vacatures",
+  sollicitaties: "Sollicitaties", berichten: "Berichten", media: "Media",
+  instellingen: "Instellingen", account: "Account", nieuw: "Nieuw", blok: "Blok",
 };
 
 export default function AdminShell({

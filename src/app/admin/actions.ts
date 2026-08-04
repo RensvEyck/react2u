@@ -108,12 +108,14 @@ export async function setApplicationStatus(id: string, formData: FormData) {
   const status = String(formData.get("status") || "nieuw");
   await sb.from("applications").update({ status }).eq("id", id);
   revalidatePath("/admin/sollicitaties");
+  revalidatePath("/admin/postvak-in");
 }
 
 export async function toggleMessageRead(id: string, read: boolean) {
   const { sb } = await requireAdmin();
   await sb.from("contact_messages").update({ read }).eq("id", id);
   revalidatePath("/admin/berichten");
+  revalidatePath("/admin/postvak-in");
 }
 
 export async function addBlock(pageSlug: string, formData: FormData) {

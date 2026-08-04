@@ -12,10 +12,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     sb.from("applications").select("id", { count: "exact", head: true }).eq("status", "nieuw"),
     sb.from("contact_messages").select("id", { count: "exact", head: true }).eq("read", false),
   ]);
+  const appCount = apps.count ?? 0;
+  const msgCount = msgs.count ?? 0;
   return (
     <AdminShell
       email={user.email || ""}
-      counts={{ apps: apps.count ?? 0, msgs: msgs.count ?? 0 }}
+      counts={{ apps: appCount, msgs: msgCount, inbox: appCount + msgCount }}
       signOut={signOutAction}
     >
       {children}
