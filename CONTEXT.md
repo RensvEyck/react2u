@@ -105,13 +105,14 @@ van het hoofddomein met rust.
 ## Openstaand
 
 - **DNS staat nog op WordPress.** `react2u.nl` wijst naar `35.204.120.88` en
-  antwoordt met `x-powered-by: WP.one`; nameservers bij Hostnet. Vercel verwacht
-  `A react2u.nl 76.76.21.21` (of zijn nameservers). Het domein is in Vercel al
-  aan het project gekoppeld, dus de omzetting is puur een DNS-handeling — let bij
-  Hostnet op de MX- en TXT-records, die moeten blijven staan.
-- **Geen e-mailnotificaties.** Contactberichten en sollicitaties komen alleen in
-  Supabase terecht en zijn zichtbaar in het adminpaneel. Er is geen mailkoppeling
-  (geen Resend/SendGrid/SMTP in `src`). Wie niet inlogt, mist inzendingen.
+  antwoordt met `x-powered-by: WP.one`; nameservers bij Hostnet. Het domein is in
+  Vercel al aan het project gekoppeld, dus het is puur een DNS-handeling.
+  Stappen, wat je met rust moet laten en het terugrolpad staan in
+  [`docs/dns-omzetting.md`](docs/dns-omzetting.md).
+- **E-mailnotificaties zijn gebouwd maar staan uit.** De code staat er
+  (zie *Notificatiemail*); zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
+  niet in Vercel staan, wordt er niets verstuurd en mist wie niet inlogt nog
+  steeds inzendingen.
 - **Toegang.** Het adminwachtwoord en een Vercel-token zijn buiten de repo gedeeld;
   het wachtwoord moet gewijzigd en het token ingetrokken worden.
 
