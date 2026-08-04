@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #312e82;
+  --color-secondary: #00aa98;
+  --color-accent: #e75387;
+  --color-accent-blue: #39a5dd;
+  --color-accent-pink: #e51673;
+  --color-accent-orange: #f19000;
+  --color-body: rgba(0, 0, 0, 0.61);
+  --color-soft: #f6f5fb;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Figtree", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-body);
+  font-size: 18px;
+  line-height: 1.56;
+  background: #fff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.btn {
+  display: inline-block;
+  border-radius: 100px;
+  padding: 14px 32px;
+  font-size: 17px;
+  line-height: 1.5;
+  background: var(--color-accent);
+  color: #fff;
+  border: 1px solid var(--color-accent);
+  transition: all 0.25s ease;
+  text-align: center;
+}
+.btn:hover {
+  background: transparent;
+  color: var(--color-accent);
+}
+.btn-indigo {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.btn-indigo:hover {
+  background: transparent;
+  color: var(--color-primary);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--color-accent);
+}
+.btn-outline:hover {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.eyebrow {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--color-secondary);
+  font-size: 15px;
+}
+
+.container-site {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+/* Flip cards */
+.flip-card {
+  perspective: 1200px;
+}
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+.flip-card:hover .flip-inner,
+.flip-card:focus-within .flip-inner {
+  transform: rotateX(180deg);
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+}
+.flip-back {
+  transform: rotateX(180deg);
+}
+
+/* Typing headline */
+.typing-word {
+  color: var(--color-accent);
+  border-right: 2px solid var(--color-accent);
+  padding-right: 2px;
+  white-space: nowrap;
+}
+
+/* Prose (mini markdown) */
+.prose-r2u p { margin-bottom: 1em; }
+.prose-r2u ul { list-style: disc; padding-left: 1.4em; margin-bottom: 1em; }
+.prose-r2u li { margin-bottom: 0.35em; }
+.prose-r2u strong { color: var(--color-primary); font-weight: 700; }
+.prose-r2u h3 { margin-top: 1.4em; margin-bottom: 0.5em; font-size: 24px; }
