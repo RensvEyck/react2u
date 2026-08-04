@@ -1,5 +1,6 @@
 "use server";
 import { supabasePublic } from "@/lib/supabase/public";
+import { notifyContactMessage, notifyApplication } from "@/lib/mail";
 
 export type FormState = { ok: boolean; error?: string } | null;
 
@@ -15,6 +16,7 @@ export async function submitContact(_prev: FormState, formData: FormData): Promi
   const sb = supabasePublic();
   const { error } = await sb.from("contact_messages").insert({ name, email, subject, message });
   if (error) return { ok: false, error: "Er ging iets mis. Probeer het later opnieuw." };
+  await notifyContactMessage({ name, email, subject, message });
   return { ok: true };
 }
 
@@ -57,5 +59,12 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     cv_path: cvPath,
   });
   if (error) return { ok: false, error: "Er ging iets mis bij het versturen. Probeer het later opnieuw." };
+  await notifyApplication({
+    name, email,
+    phone: phone || null,
+    vacancyTitle: vacancyTitle || null,
+    motivation: motivation || null,
+    hasCv: Boolean(cvPath),
+  });
   return { ok: true };
 }

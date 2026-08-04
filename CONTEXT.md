@@ -72,6 +72,36 @@ meer nodig en levert een deploy op die niet aan een commit vastzit.
 **`next build` heeft de Supabase-variabelen nodig**, want de statische generatie
 haalt pagina-inhoud op tijdens de build. Zonder `.env` faalt de build lokaal.
 
+**Mail namens react2u.nl wordt geweigerd, niet gefilterd.** Het domein staat op
+`DMARC p=reject; sp=reject` — ook voor subdomeinen. Verstuur je vanaf een
+(sub)domein waarvoor de verstuurder geen geldige SPF/DKIM heeft, dan komt de
+mail helemaal niet aan; je ziet het alleen in de logs. Mail voor react2u.nl
+loopt via Microsoft 365 (`MX react2u-nl.mail.protection.outlook.com`), met
+Sophos-filtering ervoor en `-all` in de SPF.
+
+## Notificatiemail
+
+[`src/lib/mail.ts`](src/lib/mail.ts) stuurt een melding bij een nieuw
+contactbericht of een nieuwe sollicitatie, via de REST-API van Resend (geen SDK).
+
+Drie variabelen, alle drie verplicht — ontbreekt er één, dan slaat de module
+**stil** over en gebeurt er verder niets:
+
+| Variabele | Voorbeeld |
+|---|---|
+| `RESEND_API_KEY` | `re_…` |
+| `NOTIFY_TO` | `info@react2u.nl` (meerdere: komma-gescheiden) |
+| `NOTIFY_FROM` | `Website <geen-antwoord@send.react2u.nl>` |
+
+Dat stil overslaan is opzet: de inzending staat dan al in Supabase en is
+zichtbaar in het Postvak IN. De mail is een extra, geen voorwaarde — en een
+mailstoring mag een bezoeker nooit een foutmelding geven voor iets wat wél
+gelukt is. Om dezelfde reden vangt de module al zijn eigen fouten af.
+
+Kies voor `NOTIFY_FROM` het (sub)domein dat je in Resend hebt geverifieerd; zie
+de DMARC-valkuil hierboven. Een apart subdomein (`send.react2u.nl`) laat de SPF
+van het hoofddomein met rust.
+
 ## Openstaand
 
 - **DNS staat nog op WordPress.** `react2u.nl` wijst naar `35.204.120.88` en
