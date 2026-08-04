@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
+import VisitTracker from "@/components/site/VisitTracker";
 import { getSetting, CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
 import { normalizeSeoSettings } from "@/lib/seo";
@@ -49,6 +51,10 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         docs={normalizeDocs(docs)}
         certificates={normalizeCertificates(certificates)}
       />
+      {/* Alleen op de publieke site: adminverkeer is jouw eigen verkeer en
+          hoort niet in de statistieken. */}
+      <VisitTracker />
+      <Analytics />
     </>
   );
 }

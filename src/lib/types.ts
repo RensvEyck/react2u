@@ -56,6 +56,17 @@ export type Post = {
   updated_at: string;
 };
 
+export type PageView = {
+  id: string;
+  path: string;
+  referrer_host: string | null;
+  country: string | null;
+  company: string | null;
+  is_company: boolean;
+  visitor_hash: string;
+  created_at: string;
+};
+
 export type LeadStatus =
   | "te_bellen"
   | "gebeld"

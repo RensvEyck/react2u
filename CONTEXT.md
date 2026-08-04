@@ -26,6 +26,8 @@ Gebruik deze termen; de code doet dat ook.
 | **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
 | **Lead** (`leads`) | Iemand die gebeld moet worden, met belstatus, notities en een terugbeldatum. Staat op `/admin/bellijst`. Interne data — zie de RLS-uitzondering hieronder. |
 | **Te bellen** | Wat vandaag op de bellijst staat: status `te_bellen`, of `terugbellen` waarvan de datum is bereikt of ontbreekt. Bepaald door `needsCall()` in [`src/lib/leads.ts`](src/lib/leads.ts). |
+| **Bezoek** (`page_views`) | Eén paginaweergave. Bevat géén IP-adres: alleen de afgeleide organisatie en een bezoekershash die dagelijks roteert. Zie `/admin/bezoek`. |
+| **Bedrijfsbezoek** | Een bezoek waarvan het IP naar een bedrijfsnetwerk herleidt (`is_company`). Providers en datacenters vallen af — zie `isCompanyOrg()` in [`src/lib/analytics.ts`](src/lib/analytics.ts). |
 | **Beheerder** (`admins`) | Rij die een Supabase-auth-gebruiker toegang tot `/admin` geeft. Een auth-account zonder rij hier heeft géén toegang. |
 
 ## Architectuur
@@ -38,13 +40,23 @@ niet te komen.
 - [`src/lib/supabase/server.ts`](src/lib/supabase/server.ts) — cookie-gebaseerd, voor het ingelogde adminpaneel.
 - [`src/lib/supabase/client.ts`](src/lib/supabase/client.ts) — browserclient, voor client components in de admin.
 
-**`leads` is de enige tabel zonder publieke leesrechten.** `pages`, `posts` en
-`vacancies` hebben een `public read`-policy omdat ze op de site horen. Leads
-niet: dat zijn namen, telefoonnummers en gespreksnotities. Er is bewust géén
-policy voor `anon`, dus de publieke sleutel — die in elke browser meekomt —
-komt er niet bij. Voeg daar dus nooit "voor de consistentie" een public
-read-policy aan toe. Te controleren met de anon-sleutel: een `select` op
-`leads` hoort `[]` te geven terwijl er rijen staan.
+**Bezoekregistratie bewaart geen IP-adressen.** [`src/lib/analytics.ts`](src/lib/analytics.ts)
+maakt van IP + user-agent + datum + zout een hash van 32 tekens. Omdat de datum
+erin zit roteert die elke nacht: binnen één dag herken je herhaalbezoek, over
+dagen heen valt niemand te volgen. Voer hier geen IP-kolom in — dat verandert
+de aard van de gegevens en daarmee wat je privacyreglement moet vermelden.
+Bedrijfsherkenning vraagt `IPINFO_TOKEN`; zonder die sleutel wordt het bezoek
+gewoon zonder bedrijfsnaam vastgelegd.
+
+**`leads` en `page_views` hebben geen publieke leesrechten.** `pages`, `posts` en
+`vacancies` hebben een `public read`-policy omdat ze op de site horen. Leads en
+bezoekgegevens niet: dat zijn namen, telefoonnummers, gespreksnotities en wie
+wanneer op de site was. Er is bewust géén select-policy voor `anon`, dus de
+publieke sleutel — die in elke browser meekomt — komt er niet bij. Voeg daar
+dus nooit "voor de consistentie" een public read-policy aan toe. Te
+controleren met de anon-sleutel: een `select` op `leads` of `page_views` hoort
+`[]` te geven terwijl er rijen staan. (`page_views` mag anon wél *inserten* —
+de tracker-route schrijft met die sleutel, net als het contactformulier.)
 
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
 zijn is niet genoeg, er moet ook een rij in `admins` staan.
@@ -183,5 +195,5 @@ niets zegt.
 
 Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`
 (tabellen, RLS-policies, de twee storage-buckets), `0002_posts.sql`
-(blogartikelen) en `0003_leads.sql` (bellijst). Supabase-project
-`tumwtappyegkjabtmold`.
+(blogartikelen), `0003_leads.sql` (bellijst) en `0004_page_views.sql`
+(bezoekregistratie). Supabase-project `tumwtappyegkjabtmold`.
