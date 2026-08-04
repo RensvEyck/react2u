@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPublishedPosts, getPost } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
+import SiteImage from "@/components/site/SiteImage";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -95,8 +96,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
       {p.cover_image && (
         <div className="container-site max-w-[900px] -mt-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={p.cover_image} alt="" className="w-full rounded-2xl object-cover" />
+          <SiteImage src={p.cover_image} alt="" priority sizes="(min-width: 900px) 900px, 100vw"
+            className="w-full rounded-2xl object-cover" />
         </div>
       )}
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LOGO_URL, type FooterDoc, type Certificate } from "@/lib/nav";
 import type { ContactInfo } from "@/lib/content";
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import SiteImage from "./SiteImage";
 
 export default function Footer({
   contact, docs, certificates,
@@ -72,8 +73,10 @@ export default function Footer({
         <div className="border-t border-black/10">
           <div className="container-site flex flex-wrap items-center justify-center gap-x-10 gap-y-6 py-8">
             {certificates.map((c, i) => {
-              /* eslint-disable-next-line @next/next/no-img-element */
-              const logo = <img src={c.image} alt={c.alt} className="h-14 w-auto max-w-[160px] object-contain" loading="lazy" />;
+              const logo = (
+                <SiteImage src={c.image} alt={c.alt} sizes="160px" widths={[160, 320]}
+                  className="h-14 w-auto max-w-[160px] object-contain" />
+              );
               return c.href ? (
                 <a key={i} href={c.href} target="_blank" rel="noopener" className="transition-opacity hover:opacity-70">
                   {logo}

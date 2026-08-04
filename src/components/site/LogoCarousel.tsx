@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import SiteImage from "./SiteImage";
 
 export default function LogoCarousel({ logos }: { logos: { image: string; alt?: string }[] }) {
   const [offset, setOffset] = useState(0);
@@ -19,8 +20,8 @@ export default function LogoCarousel({ logos }: { logos: { image: string; alt?: 
       onMouseLeave={() => (paused.current = false)}
     >
       {visible.map((l, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={`${l.image}-${i}`} src={l.image} alt={l.alt || ""} className="mx-auto max-h-24 w-auto object-contain transition-opacity duration-500" />
+        <SiteImage key={`${l.image}-${i}`} src={l.image} alt={l.alt || ""} sizes="240px" widths={[240, 480]}
+          className="mx-auto max-h-24 w-auto object-contain transition-opacity duration-500" />
       ))}
     </div>
   );

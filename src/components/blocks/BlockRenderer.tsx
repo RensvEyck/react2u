@@ -6,10 +6,34 @@ import Accordion, { type FaqItem } from "@/components/site/Accordion";
 import TypingHeadline from "@/components/site/TypingHeadline";
 import LogoCarousel from "@/components/site/LogoCarousel";
 import ContactForm from "@/components/site/ContactForm";
+import SiteImage from "@/components/site/SiteImage";
 
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 type Btn = { label: string; href: string; style?: "accent" | "indigo" | "outline" };
+
+type BlockProps = { d: any; asH1?: boolean };
+
+/**
+ * Kop van een blok.
+ *
+ * Welk niveau een kop krijgt hangt af van de *positie* op de pagina, niet van
+ * het bloktype: het eerste blok met een kop wordt de `<h1>`, de rest `<h2>`.
+ * Zou alleen `hero` een h1 renderen, dan heeft een pagina die met een intro of
+ * een tekstblok begint helemaal geen h1 — en dan weet een zoekmachine niet
+ * waar de pagina over gaat. Visueel verandert er niets; de opmaak zit in de
+ * className, niet in het element.
+ */
+function PageHeading({
+  asH1, className, children,
+}: {
+  asH1?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const Tag = asH1 ? "h1" : "h2";
+  return <Tag className={className}>{children}</Tag>;
+}
 
 function BtnLink({ b }: { b?: Btn }) {
   if (!b?.label) return null;
@@ -20,13 +44,13 @@ function BtnLink({ b }: { b?: Btn }) {
   return <Link href={b.href || "#"} className={cls}>{b.label}</Link>;
 }
 
-function Hero({ d }: { d: any }) {
+function Hero({ d, asH1 }: BlockProps) {
   return (
     <section className="bg-gradient-to-br from-soft via-white to-secondary/10">
       <div className="container-site grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
         <div>
           {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
-          <h1 className="text-4xl md:text-5xl mb-6 whitespace-pre-line">{d.heading}</h1>
+          <PageHeading asH1={asH1} className="text-4xl md:text-5xl mb-6 whitespace-pre-line">{d.heading}</PageHeading>
           {d.text && <MiniMarkdown text={d.text} className="mb-8" />}
           <div className="flex flex-wrap gap-3">
             <BtnLink b={d.button} />
@@ -36,7 +60,8 @@ function Hero({ d }: { d: any }) {
         {d.image && (
           <div className="relative">
             <div className="absolute -inset-6 rounded-[48px] bg-secondary/10 rotate-3" aria-hidden />
-            <img src={d.image} alt={d.imageAlt || ""} className="relative rounded-[40px] w-full object-cover shadow-lg" />
+            <SiteImage src={d.image} alt={d.imageAlt || ""} priority sizes="(min-width: 1024px) 50vw, 100vw"
+              className="relative rounded-[40px] w-full object-cover shadow-lg" />
           </div>
         )}
       </div>
@@ -44,13 +69,13 @@ function Hero({ d }: { d: any }) {
   );
 }
 
-function Intro({ d }: { d: any }) {
+function Intro({ d, asH1 }: BlockProps) {
   return (
     <section className="py-14">
       <div className="container-site max-w-[820px] text-center">
         <hr className="mx-auto mb-10 w-24 border-accent" />
         {d.eyebrow && <p className="eyebrow mb-3">{d.eyebrow}</p>}
-        {d.heading && <h2 className="text-3xl md:text-4xl mb-6">{d.heading}</h2>}
+        {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-6">{d.heading}</PageHeading>}
         {d.text && <MiniMarkdown text={d.text} className="text-left md:text-center" />}
         {d.button?.label && <div className="mt-8"><BtnLink b={d.button} /></div>}
         <hr className="mx-auto mt-10 w-24 border-accent" />
@@ -59,7 +84,7 @@ function Intro({ d }: { d: any }) {
   );
 }
 
-function AnimatedHeadline({ d }: { d: any }) {
+function AnimatedHeadline({ d }: BlockProps) {
   return (
     <section className="py-10">
       <div className="container-site">
@@ -69,20 +94,21 @@ function AnimatedHeadline({ d }: { d: any }) {
   );
 }
 
-function ImageText({ d }: { d: any }) {
+function ImageText({ d, asH1 }: BlockProps) {
   const imgLeft = d.imagePosition === "left";
   return (
     <section className="py-14">
       <div className="container-site grid items-center gap-10 lg:grid-cols-2">
         <div className={imgLeft ? "lg:order-2" : ""}>
           {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
-          {d.heading && <h2 className="text-3xl md:text-4xl mb-6">{d.heading}</h2>}
+          {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-6">{d.heading}</PageHeading>}
           {d.text && <MiniMarkdown text={d.text} />}
           {d.button?.label && <div className="mt-8"><BtnLink b={d.button} /></div>}
         </div>
         {d.image && (
           <div className={imgLeft ? "lg:order-1" : ""}>
-            <img src={d.image} alt={d.imageAlt || ""} className="mx-auto w-full max-w-[520px] rounded-[32px]" />
+            <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 520px, 100vw"
+              className="mx-auto w-full max-w-[520px] rounded-[32px]" />
           </div>
         )}
       </div>
@@ -90,7 +116,7 @@ function ImageText({ d }: { d: any }) {
   );
 }
 
-function ServicesGrid({ d }: { d: any }) {
+function ServicesGrid({ d }: BlockProps) {
   const cards = (d.cards as any[]) || [];
   return (
     <section className="py-10">
@@ -103,9 +129,20 @@ function ServicesGrid({ d }: { d: any }) {
                 <h3 className="text-2xl text-primary">{c.title}</h3>
               </div>
               <div className="flip-face flip-back bg-primary text-white">
-                <h3 className="text-2xl !text-white mb-3">{c.title}</h3>
+                {/* De titel staat hier alleen om de achterkant van de kaart
+                    visueel af te maken; hij is een letterlijke herhaling van de
+                    voorkant. Zonder aria-hidden leest een schermlezer elke
+                    dienst twee keer voor. */}
+                <h3 className="text-2xl !text-white mb-3" aria-hidden="true">{c.title}</h3>
                 <p className="text-white/85 text-[16px] mb-5">{c.description}</p>
-                <Link href={c.href || "#"} className="btn !py-2 !px-6 text-[15px]">MEER INFO</Link>
+                {/* "MEER INFO" zegt zonder context niets in een linklijst. */}
+                <Link
+                  href={c.href || "#"}
+                  aria-label={`Meer info over ${c.title}`}
+                  className="btn !py-2 !px-6 text-[15px]"
+                >
+                  MEER INFO
+                </Link>
               </div>
             </div>
           </div>
@@ -115,13 +152,13 @@ function ServicesGrid({ d }: { d: any }) {
   );
 }
 
-function CtaBanner({ d }: { d: any }) {
+function CtaBanner({ d, asH1 }: BlockProps) {
   return (
     <section className="py-14">
       <div className="container-site">
         <div className="rounded-[32px] bg-gradient-to-r from-primary to-[#4a46b0] px-8 py-12 text-center text-white md:px-16">
           {d.eyebrow && <p className="eyebrow !text-secondary mb-3">{d.eyebrow}</p>}
-          {d.heading && <h2 className="text-3xl md:text-4xl !text-white mb-4">{d.heading}</h2>}
+          {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl !text-white mb-4">{d.heading}</PageHeading>}
           {d.text && <MiniMarkdown text={d.text} className="mx-auto max-w-[700px] text-white/85 mb-2" />}
           <div className="mt-6 flex flex-wrap justify-center gap-4">
             {((d.buttons as Btn[]) || []).map((b, i) => <BtnLink key={i} b={b} />)}
@@ -132,14 +169,14 @@ function CtaBanner({ d }: { d: any }) {
   );
 }
 
-function SubSections({ d }: { d: any }) {
+function SubSections({ d, asH1 }: BlockProps) {
   const items = (d.items as any[]) || [];
   return (
     <section className="py-14 bg-soft">
       <div className="container-site">
         <div className="max-w-[820px]">
           {d.eyebrow && <p className="eyebrow mb-3">{d.eyebrow}</p>}
-          {d.heading && <h2 className="text-3xl md:text-4xl mb-5">{d.heading}</h2>}
+          {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-5">{d.heading}</PageHeading>}
           {d.intro && <MiniMarkdown text={d.intro} className="mb-4" />}
         </div>
         <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -155,12 +192,12 @@ function SubSections({ d }: { d: any }) {
   );
 }
 
-function TwoColumnLists({ d }: { d: any }) {
+function TwoColumnLists({ d, asH1 }: BlockProps) {
   const cols = (d.columns as any[]) || [];
   return (
     <section className="py-14">
       <div className="container-site">
-        {d.heading && <h2 className="text-3xl md:text-4xl mb-8 text-center">{d.heading}</h2>}
+        {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-8 text-center">{d.heading}</PageHeading>}
         <div className="grid gap-6 md:grid-cols-2">
           {cols.map((c, i) => (
             <div key={i} className={`rounded-2xl p-8 ${i % 2 === 0 ? "bg-soft" : "bg-secondary/10"}`}>
@@ -181,7 +218,7 @@ function TwoColumnLists({ d }: { d: any }) {
   );
 }
 
-function ValueCards({ d }: { d: any }) {
+function ValueCards({ d }: BlockProps) {
   const cards = (d.cards as any[]) || [];
   return (
     <section className="py-14">
@@ -198,12 +235,12 @@ function ValueCards({ d }: { d: any }) {
   );
 }
 
-function ContactFaq({ d }: { d: any }) {
+function ContactFaq({ d, asH1 }: BlockProps) {
   return (
     <section className="py-14 bg-soft">
       <div className="container-site grid gap-12 lg:grid-cols-2">
         <div>
-          {d.heading && <h2 className="text-3xl md:text-4xl mb-4">{d.heading}</h2>}
+          {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-4">{d.heading}</PageHeading>}
           {d.text && <MiniMarkdown text={d.text} className="mb-6" />}
           <ContactForm />
         </div>
@@ -215,18 +252,18 @@ function ContactFaq({ d }: { d: any }) {
   );
 }
 
-function FaqBlock({ d }: { d: any }) {
+function FaqBlock({ d, asH1 }: BlockProps) {
   return (
     <section className="py-14">
       <div className="container-site max-w-[860px]">
-        {d.heading && <h2 className="text-3xl md:text-4xl mb-8 text-center">{d.heading}</h2>}
+        {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-8 text-center">{d.heading}</PageHeading>}
         <Accordion items={((d.items as FaqItem[]) || [])} />
       </div>
     </section>
   );
 }
 
-function LogoCarouselBlock({ d }: { d: any }) {
+function LogoCarouselBlock({ d }: BlockProps) {
   return (
     <section className="py-14">
       <div className="container-site">
@@ -237,12 +274,12 @@ function LogoCarouselBlock({ d }: { d: any }) {
   );
 }
 
-function RichText({ d }: { d: any }) {
+function RichText({ d, asH1 }: BlockProps) {
   return (
     <section className="py-14">
       <div className="container-site max-w-[860px]">
         {d.eyebrow && <p className="eyebrow mb-3">{d.eyebrow}</p>}
-        {d.heading && <h2 className="text-3xl md:text-4xl mb-6">{d.heading}</h2>}
+        {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-6">{d.heading}</PageHeading>}
         <MiniMarkdown text={d.body || ""} />
         {d.button?.label && <div className="mt-8"><BtnLink b={d.button} /></div>}
       </div>
@@ -250,25 +287,26 @@ function RichText({ d }: { d: any }) {
   );
 }
 
-function ImagesBlock({ d }: { d: any }) {
+function ImagesBlock({ d }: BlockProps) {
   const images = (d.images as any[]) || [];
   return (
     <section className="py-10">
       <div className="container-site space-y-8">
         {images.map((im, i) => (
-          <img key={i} src={im.image} alt={im.alt || ""} className="mx-auto w-full max-w-[900px] rounded-2xl" />
+          <SiteImage key={i} src={im.image} alt={im.alt || ""} sizes="(min-width: 900px) 900px, 100vw"
+            className="mx-auto w-full max-w-[900px] rounded-2xl" />
         ))}
       </div>
     </section>
   );
 }
 
-function ContactDetails({ d }: { d: any }) {
+function ContactDetails({ d, asH1 }: BlockProps) {
   return (
     <section className="py-14">
       <div className="container-site grid gap-10 lg:grid-cols-2">
         <div>
-          {d.heading && <h2 className="text-3xl md:text-4xl mb-4">{d.heading}</h2>}
+          {d.heading && <PageHeading asH1={asH1} className="text-3xl md:text-4xl mb-4">{d.heading}</PageHeading>}
           {d.text && <MiniMarkdown text={d.text} className="mb-6" />}
           <ul className="space-y-3 text-primary font-medium">
             {d.phoneDisplay && <li><a href={`tel:${d.phone}`} className="hover:text-accent">📞 {d.phoneDisplay}</a></li>}
@@ -285,7 +323,7 @@ function ContactDetails({ d }: { d: any }) {
   );
 }
 
-const REGISTRY: Record<string, (p: { d: any }) => React.ReactNode> = {
+const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   hero: Hero,
   intro: Intro,
   animatedHeadline: AnimatedHeadline,
@@ -312,13 +350,28 @@ export function RenderBlockBody({ type, data }: { type: string; data: unknown })
   return <Cmp d={data} />;
 }
 
+// Bloktypes die een kop op paginaniveau renderen. Alleen deze komen in
+// aanmerking voor de h1; kaartjes en lijstitems gebruiken h3 en tellen niet mee.
+const HEADING_BLOCKS = new Set([
+  "hero", "intro", "imageText", "ctaBanner", "subSections",
+  "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
+]);
+
+function rendersPageHeading(b: Block): boolean {
+  return HEADING_BLOCKS.has(b.type) && Boolean((b.data as { heading?: string })?.heading);
+}
+
 export default function BlockRenderer({ blocks }: { blocks: Block[] }) {
+  // Precies één h1 per pagina: het eerste blok dát een kop heeft. Een blok van
+  // het juiste type maar met een lege kop slaan we over, anders zou de h1 op
+  // een pagina zonder hero stilletjes verdwijnen.
+  const h1Index = blocks.findIndex(rendersPageHeading);
   return (
     <>
-      {blocks.map((b) => {
+      {blocks.map((b, i) => {
         const Cmp = REGISTRY[b.type];
         if (!Cmp) return null;
-        return <Cmp key={b.id} d={b.data} />;
+        return <Cmp key={b.id} d={b.data} asH1={i === h1Index} />;
       })}
     </>
   );

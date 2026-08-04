@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedPosts } from "@/lib/content";
 import { LuCalendar, LuUserRound } from "react-icons/lu";
+import SiteImage from "@/components/site/SiteImage";
 
 export const revalidate = 300;
 
@@ -42,12 +43,12 @@ export default async function BlogIndex() {
                 <article key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-black/5 bg-white transition hover:shadow-lg">
                   <Link href={`/blog/${p.slug}`} className="block overflow-hidden bg-soft">
                     {p.cover_image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <SiteImage
                         src={p.cover_image}
                         alt=""
+                        sizes="(min-width: 1024px) 360px, (min-width: 768px) 50vw, 100vw"
+                        widths={[480, 800]}
                         className="h-48 w-full object-cover transition duration-500 group-hover:scale-105"
-                        loading="lazy"
                       />
                     ) : (
                       <div className="h-48 w-full bg-gradient-to-br from-soft to-secondary/20" />
