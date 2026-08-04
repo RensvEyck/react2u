@@ -6,6 +6,13 @@ const COLORS: Record<string, string> = {
   in_behandeling: "border-[#c77700]/30 text-[#c77700] bg-[#fff4e5]",
   afgewezen: "border-black/15 text-black/55 bg-black/[0.04]",
   aangenomen: "border-[#0e9f8a]/30 text-[#0e9f8a] bg-[#e6f7f4]",
+  // Bellijst
+  te_bellen: "border-[#e0356b]/30 text-[#e0356b] bg-[#fdeef4]",
+  terugbellen: "border-[#c77700]/30 text-[#c77700] bg-[#fff4e5]",
+  niet_bereikt: "border-[#c77700]/30 text-[#c77700] bg-[#fff4e5]",
+  gebeld: "border-[#312e82]/25 text-[#312e82] bg-[#eef0ff]",
+  klant: "border-[#0e9f8a]/30 text-[#0e9f8a] bg-[#e6f7f4]",
+  geen_interesse: "border-black/15 text-black/55 bg-black/[0.04]",
 };
 
 export default function StatusSelect({

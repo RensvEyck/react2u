@@ -103,6 +103,60 @@ export async function deleteVacancy(id: string) {
   revalidatePath("/admin/vacatures");
 }
 
+/* ---------- bellijst ---------- */
+
+export async function createLead(formData: FormData) {
+  const { sb } = await requireAdmin();
+  const name = String(formData.get("name") || "").trim();
+  if (!name) redirect("/admin/bellijst?fout=naam");
+  await sb.from("leads").insert({
+    name,
+    company: String(formData.get("company") || "").trim() || null,
+    phone: String(formData.get("phone") || "").trim() || null,
+    email: String(formData.get("email") || "").trim() || null,
+    source: String(formData.get("source") || "").trim() || null,
+    status: "te_bellen",
+  });
+  revalidatePath("/admin/bellijst");
+  redirect("/admin/bellijst?opgeslagen=1");
+}
+
+export async function setLeadStatus(id: string, formData: FormData) {
+  const { sb } = await requireAdmin();
+  const status = String(formData.get("status") || "te_bellen");
+  // Een poging telt als contactmoment, ook als er niet werd opgenomen — zo zie
+  // je later of een lead al benaderd is en wanneer voor het laatst.
+  const attempted = status === "gebeld" || status === "niet_bereikt";
+  await sb
+    .from("leads")
+    .update({ status, ...(attempted ? { last_called_at: new Date().toISOString() } : {}) })
+    .eq("id", id);
+  revalidatePath("/admin/bellijst");
+}
+
+export async function updateLead(id: string, formData: FormData) {
+  const { sb } = await requireAdmin();
+  await sb
+    .from("leads")
+    .update({
+      name: String(formData.get("name") || "").trim(),
+      company: String(formData.get("company") || "").trim() || null,
+      phone: String(formData.get("phone") || "").trim() || null,
+      email: String(formData.get("email") || "").trim() || null,
+      notes: String(formData.get("notes") || "").trim() || null,
+      follow_up_on: String(formData.get("follow_up_on") || "") || null,
+    })
+    .eq("id", id);
+  revalidatePath("/admin/bellijst");
+  redirect("/admin/bellijst?opgeslagen=1");
+}
+
+export async function deleteLead(id: string) {
+  const { sb } = await requireAdmin();
+  await sb.from("leads").delete().eq("id", id);
+  revalidatePath("/admin/bellijst");
+}
+
 function slugify(raw: string) {
   return raw.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)/g, "");
 }

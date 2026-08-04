@@ -4,15 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
-  LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare, LuNewspaper, LuSearch,
+  LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare, LuNewspaper,
+  LuSearch, LuPhone,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
-type Counts = { apps: number; msgs: number; inbox: number };
+type Counts = { apps: number; msgs: number; inbox: number; leads: number };
 
 const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }[] = [
   { label: "Dashboard", href: "/admin", icon: LuLayoutDashboard },
   { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox" },
+  { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads" },
   { label: "Pagina's", href: "/admin/paginas", icon: LuFileText },
   { label: "Blog", href: "/admin/blog", icon: LuNewspaper },
   { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase },
@@ -25,7 +27,7 @@ const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }
 ];
 
 const CRUMBS: Record<string, string> = {
-  admin: "Dashboard", "postvak-in": "Postvak IN", paginas: "Pagina's", blog: "Blog",
+  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", paginas: "Pagina's", blog: "Blog",
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   media: "Media", seo: "SEO", instellingen: "Instellingen", account: "Account",
   nieuw: "Nieuw", blok: "Blok",

@@ -24,6 +24,8 @@ Gebruik deze termen; de code doet dat ook.
 | **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents` en `certificates`. |
 | **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
 | **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
+| **Lead** (`leads`) | Iemand die gebeld moet worden, met belstatus, notities en een terugbeldatum. Staat op `/admin/bellijst`. Interne data — zie de RLS-uitzondering hieronder. |
+| **Te bellen** | Wat vandaag op de bellijst staat: status `te_bellen`, of `terugbellen` waarvan de datum is bereikt of ontbreekt. Bepaald door `needsCall()` in [`src/lib/leads.ts`](src/lib/leads.ts). |
 | **Beheerder** (`admins`) | Rij die een Supabase-auth-gebruiker toegang tot `/admin` geeft. Een auth-account zonder rij hier heeft géén toegang. |
 
 ## Architectuur
@@ -35,6 +37,14 @@ niet te komen.
 - [`src/lib/supabase/public.ts`](src/lib/supabase/public.ts) — anoniem, voor publieke reads en formulierinzendingen.
 - [`src/lib/supabase/server.ts`](src/lib/supabase/server.ts) — cookie-gebaseerd, voor het ingelogde adminpaneel.
 - [`src/lib/supabase/client.ts`](src/lib/supabase/client.ts) — browserclient, voor client components in de admin.
+
+**`leads` is de enige tabel zonder publieke leesrechten.** `pages`, `posts` en
+`vacancies` hebben een `public read`-policy omdat ze op de site horen. Leads
+niet: dat zijn namen, telefoonnummers en gespreksnotities. Er is bewust géén
+policy voor `anon`, dus de publieke sleutel — die in elke browser meekomt —
+komt er niet bij. Voeg daar dus nooit "voor de consistentie" een public
+read-policy aan toe. Te controleren met de anon-sleutel: een `select` op
+`leads` hoort `[]` te geven terwijl er rijen staan.
 
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
 zijn is niet genoeg, er moet ook een rij in `admins` staan.
@@ -172,5 +182,6 @@ niets zegt.
 ## Database
 
 Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`
-(tabellen, RLS-policies, de twee storage-buckets) en `0002_posts.sql`
-(blogartikelen). Supabase-project `tumwtappyegkjabtmold`.
+(tabellen, RLS-policies, de twee storage-buckets), `0002_posts.sql`
+(blogartikelen) en `0003_leads.sql` (bellijst). Supabase-project
+`tumwtappyegkjabtmold`.

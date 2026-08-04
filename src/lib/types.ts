@@ -56,6 +56,29 @@ export type Post = {
   updated_at: string;
 };
 
+export type LeadStatus =
+  | "te_bellen"
+  | "gebeld"
+  | "niet_bereikt"
+  | "terugbellen"
+  | "klant"
+  | "geen_interesse";
+
+export type Lead = {
+  id: string;
+  name: string;
+  company: string | null;
+  phone: string | null;
+  email: string | null;
+  status: LeadStatus;
+  notes: string | null;
+  follow_up_on: string | null;
+  last_called_at: string | null;
+  source: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Application = {
   id: string;
   vacancy_id: string | null;
