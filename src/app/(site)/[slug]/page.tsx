@@ -15,11 +15,29 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const res = await getPage(slug);
   if (!res) return {};
+  const title = res.page.seo_title || `${res.page.title} • React2u`;
   return {
-    title: { absolute: res.page.seo_title || `${res.page.title} • React2u` },
+    title: { absolute: title },
     description: res.page.seo_description || undefined,
-    openGraph: res.page.og_image ? { images: [res.page.og_image] } : undefined,
     alternates: { canonical: `/${slug}` },
+    // Alleen meesturen als er echt een eigen afbeelding is. `openGraph: undefined`
+    // is niet hetzelfde als weglaten: de sleutel bestaat dan, en overschrijft de
+    // defaults uit (site)/layout.tsx — waardoor de pagina hélemaal geen og-tags
+    // krijgt. Zetten we hem wel, dan vervangt hij het hele object, dus type,
+    // siteName en locale moeten mee.
+    ...(res.page.og_image
+      ? {
+          openGraph: {
+            type: "website" as const,
+            siteName: "React2u",
+            locale: "nl_NL",
+            url: `/${slug}`,
+            title,
+            description: res.page.seo_description || undefined,
+            images: [res.page.og_image],
+          },
+        }
+      : {}),
   };
 }
 

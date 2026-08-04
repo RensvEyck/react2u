@@ -22,31 +22,15 @@ const figtree = Figtree({
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
 const MEDIA = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
-const SHARE_IMAGE = `${MEDIA}/2023/07/cropped-cropped-Logo_react2u.png`;
 
+// Alleen wat voor élke route geldt. De omschrijving en de deelafbeelding zijn
+// instelbaar en staan daarom in app/(site)/layout.tsx — die haalt toch al
+// instellingen op, en zo blijft het adminpaneel vrij van die query.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: { default: "React2u", template: "%s • React2u" },
-  description: "Jouw mensen, onze aandacht! React2u is een moderne arbodienst.",
   icons: {
     icon: `${MEDIA}/2023/05/cropped-favicon-react2u-32x32.png`,
-  },
-  // Zonder deze defaults tonen LinkedIn, WhatsApp en X een kale link zonder
-  // titel of afbeelding. Pagina's die hun eigen openGraph zetten winnen.
-  openGraph: {
-    type: "website",
-    siteName: "React2u",
-    locale: "nl_NL",
-    url: SITE,
-    title: "React2u",
-    description: "Jouw mensen, onze aandacht! React2u is een moderne arbodienst.",
-    images: [SHARE_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "React2u",
-    description: "Jouw mensen, onze aandacht! React2u is een moderne arbodienst.",
-    images: [SHARE_IMAGE],
   },
   robots: {
     index: true,

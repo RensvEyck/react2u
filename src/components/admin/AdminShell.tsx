@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
-  LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare, LuNewspaper,
+  LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare, LuNewspaper, LuSearch,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -19,6 +19,7 @@ const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }
   { label: "Sollicitaties", href: "/admin/sollicitaties", icon: LuUsers, badge: "apps" },
   { label: "Berichten", href: "/admin/berichten", icon: LuMessageSquare, badge: "msgs" },
   { label: "Media", href: "/admin/media", icon: LuImage },
+  { label: "SEO", href: "/admin/seo", icon: LuSearch },
   { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings },
   { label: "Account", href: "/admin/account", icon: LuUserRound },
 ];
@@ -26,7 +27,8 @@ const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }
 const CRUMBS: Record<string, string> = {
   admin: "Dashboard", "postvak-in": "Postvak IN", paginas: "Pagina's", blog: "Blog",
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
-  media: "Media", instellingen: "Instellingen", account: "Account", nieuw: "Nieuw", blok: "Blok",
+  media: "Media", seo: "SEO", instellingen: "Instellingen", account: "Account",
+  nieuw: "Nieuw", blok: "Blok",
 };
 
 export default function AdminShell({

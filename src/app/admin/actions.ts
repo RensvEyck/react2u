@@ -234,6 +234,17 @@ export async function saveDocumentsSettings(formData: FormData) {
   redirect("/admin/instellingen?opgeslagen=1");
 }
 
+export async function saveSeoSettings(formData: FormData) {
+  const { sb } = await requireAdmin();
+  const value = {
+    description: String(formData.get("description") || "").trim(),
+    share_image: String(formData.get("share_image") || "").trim(),
+  };
+  await sb.from("site_settings").upsert({ key: "seo", value });
+  revalidateSite();
+  redirect("/admin/seo?opgeslagen=1");
+}
+
 export async function saveCertificatesSettings(formData: FormData) {
   const { sb } = await requireAdmin();
   // Zonder afbeelding valt er niets te tonen; alt en href mogen leeg blijven.

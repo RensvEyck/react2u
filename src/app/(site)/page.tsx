@@ -6,11 +6,25 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const res = await getPage("home");
+  const title = res?.page.seo_title || "Home • React2u";
   return {
-    title: { absolute: res?.page.seo_title || "Home • React2u" },
+    title: { absolute: title },
     description: res?.page.seo_description || undefined,
-    openGraph: res?.page.og_image ? { images: [res.page.og_image] } : undefined,
     alternates: { canonical: "/" },
+    // Zie (site)/[slug]/page.tsx: weglaten erft de defaults, `undefined` wist ze.
+    ...(res?.page.og_image
+      ? {
+          openGraph: {
+            type: "website" as const,
+            siteName: "React2u",
+            locale: "nl_NL",
+            url: "/",
+            title,
+            description: res.page.seo_description || undefined,
+            images: [res.page.og_image],
+          },
+        }
+      : {}),
   };
 }
 

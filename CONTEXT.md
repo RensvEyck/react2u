@@ -136,10 +136,34 @@ render-blocking `<link>` naar Google Fonts — dat kost Core Web Vitals).
 Structured data per paginasoort: `Organization` op de home, `JobPosting` op een
 vacature, `BlogPosting` + `BreadcrumbList` op een artikel.
 
-OpenGraph- en Twitter-defaults staan in [`src/app/layout.tsx`](src/app/layout.tsx);
-pagina's die hun eigen `openGraph` zetten winnen daarvan. De standaard
-deelafbeelding is nu het logo — geen echte 1200×630-afbeelding. Wie link-previews
-serieus neemt, maakt daar een eigen beeld voor.
+**`/admin/seo`** toont per pagina, artikel en vacature wat Google straks écht
+ziet — dus mét de fallbacks — plus de lengte en waar iets ontbreekt of afkapt.
+De logica staat in [`src/lib/seo.ts`](src/lib/seo.ts) en **spiegelt de
+`generateMetadata` van de betreffende route**. Verander je daar een fallback,
+pas dan ook `seo.ts` aan; anders toont het overzicht iets anders dan de site.
+Concepten tellen niet mee in de aandachtspunten — die staan niet in Google.
+
+Site-brede standaardomschrijving en deelafbeelding zijn instelbaar
+(`site_settings.seo`) en worden toegepast in
+[`src/app/(site)/layout.tsx`](src/app/(site)/layout.tsx) — niet in de
+root-layout, zodat het adminpaneel die query niet draait.
+
+> **`openGraph: undefined` is niet hetzelfde als weglaten.** Next voegt metadata
+> van layout en pagina samen als een shallow merge. Zet een pagina de sleutel
+> expliciet op `undefined`, dan bestáát hij en overschrijft hij de waarde van de
+> layout — de pagina krijgt dan hélemaal geen og-tags. Zo hadden alle
+> contentpagina's op één na er nul. Neem de sleutel dus alleen op als er echt
+> iets te zetten valt (`...(x ? { openGraph: … } : {})`).
+>
+> En zet je hem, dan **vervangt** hij het hele object: `type`, `siteName` en
+> `locale` moeten dan mee, anders verdwijnen die.
+>
+> Zet in de layout geen `openGraph.title`/`description`. Next leidt die anders
+> netjes af uit de titel en omschrijving van de pagina zelf; hard zetten geeft
+> élke pagina dezelfde deeltitel.
+
+De standaard deelafbeelding is het logo — geen echte 1200×630-afbeelding. Wie
+link-previews serieus neemt, stelt er een eigen beeld voor in.
 
 `sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld
