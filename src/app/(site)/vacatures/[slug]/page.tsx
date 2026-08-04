@@ -41,7 +41,7 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
       "@type": "Organization",
       name: "React2u",
       sameAs: process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl",
-      logo: "https://react2u.nl/wp-content/uploads/2023/05/Logo-kleur.svg",
+      logo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp/2023/05/Logo-kleur.svg`,
     },
     jobLocation: {
       "@type": "Place",

@@ -116,6 +116,63 @@ export async function toggleMessageRead(id: string, read: boolean) {
   revalidatePath("/admin/berichten");
 }
 
+export async function addBlock(pageSlug: string, formData: FormData) {
+  const { sb } = await requireAdmin();
+  const type = String(formData.get("type") || "richText");
+  const { BLOCK_TEMPLATES } = await import("@/lib/blockTemplates");
+  const template = BLOCK_TEMPLATES[type] || BLOCK_TEMPLATES.richText;
+  const { data: page } = await sb.from("pages").select("id").eq("slug", pageSlug).single();
+  if (!page) return;
+  const { data: last } = await sb
+    .from("blocks").select("sort").eq("page_id", page.id).order("sort", { ascending: false }).limit(1).maybeSingle();
+  const { data: inserted } = await sb
+    .from("blocks")
+    .insert({ page_id: page.id, type, label: template.label, sort: (last?.sort ?? -1) + 1, data: template.data })
+    .select("id").single();
+  revalidateSite();
+  if (inserted) redirect(`/admin/paginas/${pageSlug}/blok/${inserted.id}`);
+  redirect(`/admin/paginas/${pageSlug}`);
+}
+
+export async function deleteBlock(blockId: string, pageSlug: string) {
+  const { sb } = await requireAdmin();
+  await sb.from("blocks").delete().eq("id", blockId);
+  revalidateSite();
+  revalidatePath(`/admin/paginas/${pageSlug}`);
+}
+
+export async function createPage(formData: FormData) {
+  const { sb } = await requireAdmin();
+  const title = String(formData.get("title") || "").trim();
+  const slug = String(formData.get("slug") || "")
+    .toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)/g, "");
+  if (!title || !slug) redirect("/admin/paginas?fout=titel-of-slug");
+  const { data: last } = await sb.from("pages").select("sort").order("sort", { ascending: false }).limit(1).maybeSingle();
+  const { error } = await sb.from("pages").insert({ slug, title, published: false, sort: (last?.sort ?? 0) + 1 });
+  if (error) redirect("/admin/paginas?fout=slug-bestaat-al");
+  revalidateSite();
+  redirect(`/admin/paginas/${slug}`);
+}
+
+export async function deletePage(slug: string) {
+  const { sb } = await requireAdmin();
+  await sb.from("pages").delete().eq("slug", slug);
+  revalidateSite();
+  redirect("/admin/paginas");
+}
+
+export async function saveDocumentsSettings(formData: FormData) {
+  const { sb } = await requireAdmin();
+  const value = {
+    algemene_voorwaarden: String(formData.get("algemene_voorwaarden") || ""),
+    klachtenprocedure: String(formData.get("klachtenprocedure") || ""),
+    privacy_reglement: String(formData.get("privacy_reglement") || ""),
+  };
+  await sb.from("site_settings").upsert({ key: "documents", value });
+  revalidateSite();
+  redirect("/admin/instellingen?opgeslagen=1");
+}
+
 export async function saveContactSettings(formData: FormData) {
   const { sb } = await requireAdmin();
   const value = {

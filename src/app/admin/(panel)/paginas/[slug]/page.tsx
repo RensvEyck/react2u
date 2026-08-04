@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
-import { updatePageMeta, moveBlock } from "@/app/admin/actions";
+import { updatePageMeta, moveBlock, addBlock, deleteBlock, deletePage } from "@/app/admin/actions";
+import { BLOCK_TEMPLATES } from "@/lib/blockTemplates";
 import type { Block, Page } from "@/lib/types";
 
 const input =
@@ -104,10 +105,28 @@ export default async function PageAdmin({
               <Link href={`/admin/paginas/${slug}/blok/${b.id}`} className="text-[#e75387] font-medium hover:underline">
                 Bewerken
               </Link>
+              <form action={deleteBlock.bind(null, b.id, slug)}>
+                <button className="text-black/30 hover:text-[#e51673] text-sm">✕</button>
+              </form>
             </div>
           </div>
         ))}
       </div>
+
+      <form action={addBlock.bind(null, slug)} className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-black/20 bg-white/60 px-5 py-4">
+        <select name="type" className="rounded-xl border border-black/15 bg-white px-3 py-2 text-[15px] outline-none">
+          {Object.entries(BLOCK_TEMPLATES).map(([key, t]) => (
+            <option key={key} value={key}>{t.label}</option>
+          ))}
+        </select>
+        <button className="btn !py-2 !px-5 text-[15px]">+ Blok toevoegen</button>
+      </form>
+
+      <form action={deletePage.bind(null, slug)} className="mt-10 border-t border-black/10 pt-6">
+        <button className="text-sm text-black/40 hover:text-[#e51673] underline">
+          Pagina verwijderen (inclusief alle blokken)
+        </button>
+      </form>
     </div>
   );
 }

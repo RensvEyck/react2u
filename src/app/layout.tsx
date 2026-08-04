@@ -5,7 +5,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl"),
   title: { default: "React2u", template: "%s • React2u" },
   description: "Jouw mensen, onze aandacht! React2u is een moderne arbodienst.",
-  icons: { icon: "https://react2u.nl/wp-content/uploads/2023/05/cropped-favicon-react2u-32x32.png" },
+  icons: {
+    icon: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp/2023/05/cropped-favicon-react2u-32x32.png`,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

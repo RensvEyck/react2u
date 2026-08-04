@@ -24,19 +24,26 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Contact", href: "/contact" },
 ];
 
-export const FOOTER_DOCS = [
-  {
-    label: "Algemene voorwaarden",
-    href: "https://react2u.nl/wp-content/uploads/2025/05/Algemene%20voorwaarden%20r2u.pdf",
-  },
-  {
-    label: "Klachtenprocedure",
-    href: "https://react2u.nl/wp-content/uploads/2025/05/Klachtenprocedure%20r2u.pdf",
-  },
-  {
-    label: "Privacy regelement",
-    href: "https://react2u.nl/wp-content/uploads/2025/05/Privacy%20reglement%20r2u.pdf",
-  },
-];
+const MEDIA = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 
-export const LOGO_URL = "https://react2u.nl/wp-content/uploads/2023/07/cropped-cropped-Logo_react2u.png";
+export const LOGO_URL = `${MEDIA}/2023/07/cropped-cropped-Logo_react2u.png`;
+export const FAVICON_URL = `${MEDIA}/2023/05/cropped-favicon-react2u-32x32.png`;
+export const LOGO_SVG_URL = `${MEDIA}/2023/05/Logo-kleur.svg`;
+
+export type FooterDocs = {
+  algemene_voorwaarden: string;
+  klachtenprocedure: string;
+  privacy_reglement: string;
+};
+
+export const FOOTER_DOCS_FALLBACK: FooterDocs = {
+  algemene_voorwaarden: `${MEDIA}/2025/05/Algemene-voorwaarden-r2u.pdf`,
+  klachtenprocedure: `${MEDIA}/2025/05/Klachtenprocedure-r2u.pdf`,
+  privacy_reglement: `${MEDIA}/2025/05/Privacy-reglement-r2u.pdf`,
+};
+
+export const FOOTER_DOC_LABELS: { key: keyof FooterDocs; label: string }[] = [
+  { key: "algemene_voorwaarden", label: "Algemene voorwaarden" },
+  { key: "klachtenprocedure", label: "Klachtenprocedure" },
+  { key: "privacy_reglement", label: "Privacy regelement" },
+];

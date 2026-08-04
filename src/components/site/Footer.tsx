@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { FOOTER_DOCS, LOGO_URL } from "@/lib/nav";
+import { LOGO_URL, FOOTER_DOC_LABELS, type FooterDocs } from "@/lib/nav";
 import type { ContactInfo } from "@/lib/content";
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 
-export default function Footer({ contact }: { contact: ContactInfo }) {
+export default function Footer({ contact, docs }: { contact: ContactInfo; docs: FooterDocs }) {
   const cols = [
     { title: "Werkgever", links: [
       { label: "Diensten", href: "/diensten" },
@@ -64,10 +64,10 @@ export default function Footer({ contact }: { contact: ContactInfo }) {
       </div>
       <div className="border-t border-black/10">
         <div className="container-site py-4 text-[15px] text-primary/70 flex flex-wrap gap-x-2 gap-y-1">
-          {FOOTER_DOCS.map((d, i) => (
-            <span key={d.label}>
+          {FOOTER_DOC_LABELS.map((d, i) => (
+            <span key={d.key}>
               {i > 0 && <span className="mr-2">|</span>}
-              <a href={d.href} target="_blank" rel="noopener" className="hover:text-accent">{d.label}</a>
+              <a href={docs[d.key]} target="_blank" rel="noopener" className="hover:text-accent">{d.label}</a>
             </span>
           ))}
           <span>| © {new Date().getFullYear()} React2u</span>
