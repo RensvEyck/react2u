@@ -55,18 +55,13 @@ export default function Header({ contact }: { contact: ContactInfo }) {
             </div>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
-          <a href="https://react2u.nl" target="_blank" rel="noopener" className="btn btn-indigo hidden md:inline-block !py-2 !px-6 text-[16px]">
-            Inloggen
-          </a>
-          <button
-            className="lg:hidden text-primary text-2xl p-2"
-            onClick={() => setOpen(!open)}
-            aria-label={open ? "Menu sluiten" : "Menu openen"}
-          >
-            {open ? <FaTimes /> : <FaBars />}
-          </button>
-        </div>
+        <button
+          className="lg:hidden text-primary text-2xl p-2"
+          onClick={() => setOpen(!open)}
+          aria-label={open ? "Menu sluiten" : "Menu openen"}
+        >
+          {open ? <FaTimes /> : <FaBars />}
+        </button>
       </div>
       {/* Mobile menu */}
       {open && (
@@ -93,9 +88,6 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                 ))}
               </div>
             ))}
-            <a href="https://react2u.nl" target="_blank" rel="noopener" className="btn btn-indigo mt-3 self-start">
-              Inloggen
-            </a>
           </div>
         </div>
       )}
