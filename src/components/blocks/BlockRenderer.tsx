@@ -305,6 +305,13 @@ const REGISTRY: Record<string, (p: { d: any }) => React.ReactNode> = {
 
 export const BLOCK_TYPES = Object.keys(REGISTRY);
 
+// Used by the admin block editor to render a live preview of a single block.
+export function RenderBlockBody({ type, data }: { type: string; data: unknown }) {
+  const Cmp = REGISTRY[type];
+  if (!Cmp) return null;
+  return <Cmp d={data} />;
+}
+
 export default function BlockRenderer({ blocks }: { blocks: Block[] }) {
   return (
     <>

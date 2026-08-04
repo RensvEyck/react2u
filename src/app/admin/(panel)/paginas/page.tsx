@@ -2,64 +2,57 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { createPage } from "@/app/admin/actions";
 import type { Page } from "@/lib/types";
+import { LuPlus, LuExternalLink, LuPencil } from "react-icons/lu";
 
-const input =
-  "rounded-xl border border-black/15 bg-white px-4 py-2.5 text-[15px] outline-none focus:border-[#e75387]";
-
-export default async function PagesAdmin({ searchParams }: { searchParams: Promise<{ fout?: string }> }) {
-  const { fout } = await searchParams;
+export default async function PagesAdmin() {
   const { sb } = await requireAdmin();
   const { data } = await sb.from("pages").select("*").order("sort");
   const pages = (data as Page[]) || [];
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-[#312e82] mb-8">Pagina&apos;s</h1>
-      {fout && (
-        <div className="mb-6 rounded-xl bg-[#e51673]/10 border border-[#e51673]/30 px-4 py-3 text-[#e51673]">
-          {fout === "slug-bestaat-al" ? "Er bestaat al een pagina met deze URL-slug." : "Vul een titel en URL-slug in."}
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Pagina&apos;s</h1>
+          <p className="text-[14.5px] text-black/50">Klik op een pagina om teksten, blokken en SEO aan te passen.</p>
         </div>
-      )}
-      <form action={createPage} className="mb-8 flex flex-wrap items-end gap-3 rounded-2xl bg-white p-5 shadow-sm">
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-black/60">Titel</span>
-          <input className={input} name="title" placeholder="Bijv. Werken bij" required />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-black/60">URL-slug</span>
-          <input className={input} name="slug" placeholder="bijv. werken-bij" required />
-        </label>
-        <button className="btn !py-2.5 !px-6 text-[15px]">+ Nieuwe pagina</button>
-        <span className="text-sm text-black/40">Nieuwe pagina&apos;s starten als concept.</span>
+      </div>
+
+      <form action={createPage} className="acard flex flex-wrap items-end gap-3 p-5">
+        <div className="min-w-[200px] flex-1">
+          <label className="alabel">Titel</label>
+          <input className="ainput" name="title" placeholder="Bijv. Werken bij" required />
+        </div>
+        <div className="min-w-[200px] flex-1">
+          <label className="alabel">URL-slug</label>
+          <input className="ainput" name="slug" placeholder="bijv. werken-bij" required />
+        </div>
+        <button className="abtn"><LuPlus /> Nieuwe pagina</button>
       </form>
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-        <table className="w-full text-left">
-          <thead className="bg-[#312e82]/5 text-sm text-black/60">
-            <tr>
-              <th className="px-5 py-3">Pagina</th>
-              <th className="px-5 py-3">URL</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {pages.map((p) => (
-              <tr key={p.id} className="hover:bg-black/[0.02]">
-                <td className="px-5 py-3.5 font-medium text-[#312e82]">{p.title}</td>
-                <td className="px-5 py-3.5 text-black/60">/{p.slug === "home" ? "" : p.slug}</td>
-                <td className="px-5 py-3.5">
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${p.published ? "bg-[#00aa98]/15 text-[#00806f]" : "bg-black/10 text-black/60"}`}>
-                    {p.published ? "Gepubliceerd" : "Concept"}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  <Link href={`/admin/paginas/${p.slug}`} className="text-[#e75387] font-medium hover:underline">
-                    Bewerken
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      <div className="acard overflow-hidden">
+        <div className="divide-y divide-black/[0.05]">
+          {pages.map((p) => (
+            <div key={p.id} className="flex items-center gap-4 px-6 py-4 transition hover:bg-[#fafafd]">
+              <div className="min-w-0 flex-1">
+                <Link href={`/admin/paginas/${p.slug}`} className="text-[15px] font-semibold text-[#1c1a4e] hover:text-[#e75387]">
+                  {p.title}
+                </Link>
+                <p className="text-[12.5px] text-black/40">/{p.slug === "home" ? "" : p.slug}</p>
+              </div>
+              <span className={`apill ${p.published ? "bg-[#e6f7f4] text-[#0e9f8a]" : "bg-black/[0.06] text-black/50"}`}>
+                {p.published ? "Live" : "Concept"}
+              </span>
+              <a href={`/${p.slug === "home" ? "" : p.slug}`} target="_blank"
+                className="rounded-lg p-2 text-black/35 transition hover:bg-black/5 hover:text-[#312e82]" title="Bekijk pagina">
+                <LuExternalLink />
+              </a>
+              <Link href={`/admin/paginas/${p.slug}`}
+                className="rounded-lg p-2 text-black/35 transition hover:bg-black/5 hover:text-[#e75387]" title="Bewerken">
+                <LuPencil />
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

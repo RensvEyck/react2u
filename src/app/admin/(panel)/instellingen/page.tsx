@@ -1,14 +1,12 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { saveContactSettings, saveDocumentsSettings } from "@/app/admin/actions";
 import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { FOOTER_DOCS_FALLBACK, FOOTER_DOC_LABELS, type FooterDocs } from "@/lib/nav";
 
-const input =
-  "w-full rounded-xl border border-black/15 bg-white px-4 py-2.5 text-[15px] outline-none focus:border-[#e75387]";
-
 const FIELDS: { name: keyof ContactInfo; label: string }[] = [
   { name: "phoneDisplay", label: "Telefoonnummer (weergave)" },
-  { name: "phone", label: "Telefoonnummer (voor tel:-links, zonder spaties)" },
+  { name: "phone", label: "Telefoonnummer (tel:-links, zonder spaties)" },
   { name: "email", label: "E-mailadres" },
   { name: "addressLine1", label: "Adresregel 1" },
   { name: "addressLine2", label: "Adresregel 2" },
@@ -17,8 +15,7 @@ const FIELDS: { name: keyof ContactInfo; label: string }[] = [
   { name: "iban", label: "IBAN" },
 ];
 
-export default async function SettingsAdmin({ searchParams }: { searchParams: Promise<{ opgeslagen?: string }> }) {
-  const { opgeslagen } = await searchParams;
+export default async function SettingsAdmin() {
   const { sb } = await requireAdmin();
   const [{ data }, { data: docsData }] = await Promise.all([
     sb.from("site_settings").select("value").eq("key", "contact").maybeSingle(),
@@ -27,40 +24,43 @@ export default async function SettingsAdmin({ searchParams }: { searchParams: Pr
   const contact = { ...CONTACT_FALLBACK, ...((data?.value as Partial<ContactInfo>) || {}) };
   const docs = { ...FOOTER_DOCS_FALLBACK, ...((docsData?.value as Partial<FooterDocs>) || {}) };
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-[#312e82] mb-8">Instellingen</h1>
-      {opgeslagen && (
-        <div className="mb-6 rounded-xl bg-[#00aa98]/10 border border-[#00aa98]/30 px-4 py-3 text-[#00806f]">
-          Instellingen opgeslagen — de site is bijgewerkt.
-        </div>
-      )}
-      <form action={saveContactSettings} className="rounded-2xl bg-white p-6 shadow-sm max-w-[640px]">
-        <h2 className="text-xl font-bold text-[#312e82] mb-4">Contactgegevens (header &amp; footer)</h2>
+    <div className="max-w-[720px] space-y-6">
+      <div>
+        <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Instellingen</h1>
+        <p className="text-[14.5px] text-black/50">Deze gegevens worden site-breed gebruikt in de header en footer.</p>
+      </div>
+
+      <form action={saveContactSettings} className="acard p-6">
+        <h2 className="mb-4 font-heading text-[16px] font-bold text-[#312e82]">Contactgegevens</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {FIELDS.map((f) => (
-            <label key={f.name} className="block">
-              <span className="mb-1 block text-sm font-medium text-black/60">{f.label}</span>
-              <input className={input} name={f.name} defaultValue={contact[f.name]} />
-            </label>
+            <div key={f.name}>
+              <label className="alabel">{f.label}</label>
+              <input className="ainput" name={f.name} defaultValue={contact[f.name]} />
+            </div>
           ))}
         </div>
-        <button className="btn mt-6 !py-2.5 !px-6 text-[15px]">Opslaan</button>
+        <div className="mt-5 flex justify-end">
+          <button className="abtn">Opslaan</button>
+        </div>
       </form>
 
-      <form action={saveDocumentsSettings} className="mt-8 rounded-2xl bg-white p-6 shadow-sm max-w-[640px]">
-        <h2 className="text-xl font-bold text-[#312e82] mb-1">Documenten (footer)</h2>
-        <p className="mb-4 text-sm text-black/50">
-          Upload een nieuw PDF via <a href="/admin/media" className="text-[#e75387] hover:underline">Media</a> en plak de URL hier.
+      <form action={saveDocumentsSettings} className="acard p-6">
+        <h2 className="mb-1 font-heading text-[16px] font-bold text-[#312e82]">Documenten (footer)</h2>
+        <p className="mb-4 text-[13px] text-black/45">
+          Nieuw PDF? Upload het via <Link href="/admin/media" className="font-semibold text-[#e75387] hover:underline">Media</Link> en plak de URL hier.
         </p>
         <div className="space-y-4">
           {FOOTER_DOC_LABELS.map((d) => (
-            <label key={d.key} className="block">
-              <span className="mb-1 block text-sm font-medium text-black/60">{d.label}</span>
-              <input className={input} name={d.key} defaultValue={docs[d.key]} />
-            </label>
+            <div key={d.key}>
+              <label className="alabel">{d.label}</label>
+              <input className="ainput" name={d.key} defaultValue={docs[d.key]} />
+            </div>
           ))}
         </div>
-        <button className="btn mt-6 !py-2.5 !px-6 text-[15px]">Opslaan</button>
+        <div className="mt-5 flex justify-end">
+          <button className="abtn">Opslaan</button>
+        </div>
       </form>
     </div>
   );

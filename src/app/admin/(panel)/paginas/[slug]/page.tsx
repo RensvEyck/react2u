@@ -3,37 +3,19 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { updatePageMeta, moveBlock, addBlock, deleteBlock, deletePage } from "@/app/admin/actions";
 import { BLOCK_TEMPLATES } from "@/lib/blockTemplates";
+import ConfirmButton from "@/components/admin/ConfirmButton";
 import type { Block, Page } from "@/lib/types";
+import { LuArrowLeft, LuExternalLink, LuChevronUp, LuChevronDown, LuPencil, LuTrash2, LuPlus } from "react-icons/lu";
 
-const input =
-  "w-full rounded-xl border border-black/15 bg-white px-4 py-2.5 text-[15px] outline-none focus:border-[#e75387]";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-const TYPE_LABELS: Record<string, string> = {
-  hero: "Hero (kop + afbeelding)",
-  intro: "Introtekst (gecentreerd)",
-  animatedHeadline: "Typende kop",
-  imageText: "Tekst + afbeelding",
-  servicesGrid: "Dienstenkaarten",
-  ctaBanner: "Call-to-action banner",
-  subSections: "Subsecties (verwachtingen)",
-  twoColumnLists: "Twee kolommen met lijsten",
-  valueCards: "Waardenkaarten",
-  contactFaq: "Contactformulier + FAQ",
-  faqAccordion: "FAQ (uitklapbaar)",
-  logoCarousel: "Logocarrousel",
-  richText: "Tekstsectie",
-  imagesBlock: "Afbeelding(en)",
-  contactDetails: "Contactgegevens + formulier",
-};
+function blockSnippet(data: any): string {
+  const d = data || {};
+  return d.heading || d.text?.slice?.(0, 80) || d.body?.slice?.(0, 80) || d.before || "";
+}
 
-export default async function PageAdmin({
-  params, searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ opgeslagen?: string }>;
-}) {
+export default async function PageAdmin({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { opgeslagen } = await searchParams;
   const { sb } = await requireAdmin();
   const { data: page } = await sb.from("pages").select("*").eq("slug", slug).maybeSingle();
   if (!page) notFound();
@@ -43,90 +25,112 @@ export default async function PageAdmin({
   const updateAction = updatePageMeta.bind(null, slug);
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link href="/admin/paginas" className="text-sm text-black/50 hover:text-[#e75387]">← Alle pagina&apos;s</Link>
-          <h1 className="text-3xl font-bold text-[#312e82]">{p.title}</h1>
+          <Link href="/admin/paginas" className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-black/45 hover:text-[#e75387]">
+            <LuArrowLeft className="text-[12px]" /> Alle pagina&apos;s
+          </Link>
+          <div className="flex items-center gap-3">
+            <h1 className="font-heading text-[26px] font-bold text-[#312e82]">{p.title}</h1>
+            <span className={`apill ${p.published ? "bg-[#e6f7f4] text-[#0e9f8a]" : "bg-black/[0.06] text-black/50"}`}>
+              {p.published ? "Live" : "Concept"}
+            </span>
+          </div>
         </div>
-        <a href={`/${slug === "home" ? "" : slug}`} target="_blank" className="text-[#e75387] font-medium hover:underline">
-          Bekijk pagina ↗
+        <a href={`/${slug === "home" ? "" : slug}`} target="_blank" className="abtn-ghost">
+          Bekijk pagina <LuExternalLink className="text-[13px]" />
         </a>
       </div>
 
-      {opgeslagen && (
-        <div className="mb-6 rounded-xl bg-[#00aa98]/10 border border-[#00aa98]/30 px-4 py-3 text-[#00806f]">
-          Wijzigingen opgeslagen — de site is bijgewerkt.
-        </div>
-      )}
-
-      <form action={updateAction} className="rounded-2xl bg-white p-6 shadow-sm mb-8">
-        <h2 className="text-xl font-bold text-[#312e82] mb-4">SEO &amp; instellingen</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-black/60">Paginanaam</span>
-            <input className={input} name="title" defaultValue={p.title} required />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-black/60">SEO-titel (browsertab &amp; Google)</span>
-            <input className={input} name="seo_title" defaultValue={p.seo_title || ""} />
-          </label>
-          <label className="block md:col-span-2">
-            <span className="mb-1 block text-sm font-medium text-black/60">Meta-omschrijving (Google-snippet)</span>
-            <textarea className={input} name="seo_description" rows={2} defaultValue={p.seo_description || ""} />
-          </label>
-          <label className="block md:col-span-2">
-            <span className="mb-1 block text-sm font-medium text-black/60">Social share afbeelding (URL)</span>
-            <input className={input} name="og_image" defaultValue={p.og_image || ""} />
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="checkbox" name="published" defaultChecked={p.published} className="h-4 w-4 accent-[#e75387]" />
-            <span className="text-sm font-medium text-black/70">Gepubliceerd</span>
-          </label>
-        </div>
-        <button className="btn mt-5 !py-2.5 !px-6 text-[15px]">Opslaan</button>
-      </form>
-
-      <h2 className="text-xl font-bold text-[#312e82] mb-4">Contentblokken</h2>
-      <div className="space-y-3">
-        {blocks.map((b, i) => (
-          <div key={b.id} className="flex items-center justify-between rounded-2xl bg-white px-5 py-4 shadow-sm">
-            <div>
-              <p className="font-medium text-[#312e82]">{b.label || TYPE_LABELS[b.type] || b.type}</p>
-              <p className="text-sm text-black/50">{TYPE_LABELS[b.type] || b.type}</p>
+      <div>
+        <h2 className="mb-3 font-heading text-[16px] font-bold text-[#312e82]">Contentblokken</h2>
+        <div className="space-y-2.5">
+          {blocks.map((b, i) => (
+            <div key={b.id} className="acard group flex items-center gap-4 px-5 py-3.5 transition hover:shadow-md">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef0ff] text-[13px] font-bold text-[#312e82]">
+                {i + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <Link href={`/admin/paginas/${slug}/blok/${b.id}`} className="text-[14.5px] font-semibold text-[#1c1a4e] hover:text-[#e75387]">
+                  {b.label || BLOCK_TEMPLATES[b.type]?.label || b.type}
+                </Link>
+                <p className="truncate text-[12.5px] text-black/40">{blockSnippet(b.data)}</p>
+              </div>
+              <div className="flex items-center gap-1 opacity-40 transition group-hover:opacity-100">
+                <form action={moveBlock.bind(null, b.id, slug, "up")}>
+                  <button className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 disabled:opacity-25" disabled={i === 0} aria-label="Omhoog">
+                    <LuChevronUp />
+                  </button>
+                </form>
+                <form action={moveBlock.bind(null, b.id, slug, "down")}>
+                  <button className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 disabled:opacity-25" disabled={i === blocks.length - 1} aria-label="Omlaag">
+                    <LuChevronDown />
+                  </button>
+                </form>
+                <Link href={`/admin/paginas/${slug}/blok/${b.id}`} className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-[#e75387]" aria-label="Bewerken">
+                  <LuPencil />
+                </Link>
+                <ConfirmButton
+                  action={deleteBlock.bind(null, b.id, slug)}
+                  message="Dit blok definitief verwijderen?"
+                  className="rounded-lg p-1.5 text-black/50 hover:bg-[#fdeef4] hover:text-[#e0356b]"
+                >
+                  <LuTrash2 />
+                </ConfirmButton>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <form action={moveBlock.bind(null, b.id, slug, "up")}>
-                <button className="rounded-lg border border-black/10 px-2.5 py-1 text-sm hover:bg-black/5" disabled={i === 0}>↑</button>
-              </form>
-              <form action={moveBlock.bind(null, b.id, slug, "down")}>
-                <button className="rounded-lg border border-black/10 px-2.5 py-1 text-sm hover:bg-black/5" disabled={i === blocks.length - 1}>↓</button>
-              </form>
-              <Link href={`/admin/paginas/${slug}/blok/${b.id}`} className="text-[#e75387] font-medium hover:underline">
-                Bewerken
-              </Link>
-              <form action={deleteBlock.bind(null, b.id, slug)}>
-                <button className="text-black/30 hover:text-[#e51673] text-sm">✕</button>
-              </form>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <form action={addBlock.bind(null, slug)} className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-black/15 bg-white/50 px-5 py-4">
+          <select name="type" className="ainput !w-auto min-w-[240px]">
+            {Object.entries(BLOCK_TEMPLATES).map(([key, t]) => (
+              <option key={key} value={key}>{t.label}</option>
+            ))}
+          </select>
+          <button className="abtn"><LuPlus /> Blok toevoegen</button>
+        </form>
       </div>
 
-      <form action={addBlock.bind(null, slug)} className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-black/20 bg-white/60 px-5 py-4">
-        <select name="type" className="rounded-xl border border-black/15 bg-white px-3 py-2 text-[15px] outline-none">
-          {Object.entries(BLOCK_TEMPLATES).map(([key, t]) => (
-            <option key={key} value={key}>{t.label}</option>
-          ))}
-        </select>
-        <button className="btn !py-2 !px-5 text-[15px]">+ Blok toevoegen</button>
+      <form action={updateAction} className="acard p-6">
+        <h2 className="mb-4 font-heading text-[16px] font-bold text-[#312e82]">SEO &amp; instellingen</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="alabel">Paginanaam</label>
+            <input className="ainput" name="title" defaultValue={p.title} required />
+          </div>
+          <div>
+            <label className="alabel">SEO-titel (browsertab &amp; Google)</label>
+            <input className="ainput" name="seo_title" defaultValue={p.seo_title || ""} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="alabel">Meta-omschrijving (Google-snippet, ±155 tekens)</label>
+            <textarea className="ainput" name="seo_description" rows={2} defaultValue={p.seo_description || ""} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="alabel">Social share afbeelding (URL)</label>
+            <input className="ainput" name="og_image" defaultValue={p.og_image || ""} />
+          </div>
+        </div>
+        <div className="mt-5 flex items-center justify-between">
+          <label className="flex items-center gap-2.5 text-[14px] font-medium text-black/70">
+            <input type="checkbox" name="published" defaultChecked={p.published} className="h-4 w-4 accent-[#e75387]" />
+            Gepubliceerd
+          </label>
+          <button className="abtn">Opslaan</button>
+        </div>
       </form>
 
-      <form action={deletePage.bind(null, slug)} className="mt-10 border-t border-black/10 pt-6">
-        <button className="text-sm text-black/40 hover:text-[#e51673] underline">
-          Pagina verwijderen (inclusief alle blokken)
-        </button>
-      </form>
+      <div className="flex justify-end">
+        <ConfirmButton
+          action={deletePage.bind(null, slug)}
+          message={`Pagina "${p.title}" inclusief alle blokken definitief verwijderen?`}
+          className="text-[13px] text-black/35 underline hover:text-[#e0356b]"
+        >
+          Pagina verwijderen
+        </ConfirmButton>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,7 @@
 "use client";
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-
-const input =
-  "w-full rounded-xl border border-black/15 bg-white px-4 py-2.5 text-[15px] outline-none focus:border-[#e75387]";
+import { LuLock } from "react-icons/lu";
 
 export default function AccountAdmin() {
   const [password, setPassword] = useState("");
@@ -21,27 +19,38 @@ export default function AccountAdmin() {
     setBusy(false);
     if (error) setMsg({ ok: false, text: "Wijzigen mislukt: " + error.message });
     else {
-      setMsg({ ok: true, text: "Wachtwoord gewijzigd." });
+      setMsg({ ok: true, text: "Wachtwoord gewijzigd — gebruik voortaan je nieuwe wachtwoord." });
       setPassword("");
       setConfirm("");
     }
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-[#312e82] mb-8">Account</h1>
-      <form onSubmit={onSubmit} className="max-w-[420px] rounded-2xl bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-xl font-bold text-[#312e82]">Wachtwoord wijzigen</h2>
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-black/60">Nieuw wachtwoord</span>
-          <input className={input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-black/60">Herhaal nieuw wachtwoord</span>
-          <input className={input} type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
-        </label>
-        {msg && <p className={`text-sm ${msg.ok ? "text-[#00806f]" : "text-[#e51673]"}`}>{msg.text}</p>}
-        <button className="btn !py-2.5 !px-6 text-[15px]" disabled={busy}>{busy ? "Opslaan…" : "Opslaan"}</button>
+    <div className="max-w-[480px] space-y-6">
+      <div>
+        <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Account</h1>
+        <p className="text-[14.5px] text-black/50">Beheer je inloggegevens.</p>
+      </div>
+      <form onSubmit={onSubmit} className="acard space-y-4 p-6">
+        <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]">
+          <LuLock className="text-[15px]" /> Wachtwoord wijzigen
+        </h2>
+        <div>
+          <label className="alabel">Nieuw wachtwoord (min. 10 tekens)</label>
+          <input className="ainput" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        </div>
+        <div>
+          <label className="alabel">Herhaal nieuw wachtwoord</label>
+          <input className="ainput" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+        </div>
+        {msg && (
+          <p className={`rounded-xl px-4 py-3 text-[13.5px] font-medium ${msg.ok ? "bg-[#e6f7f4] text-[#0e9f8a]" : "bg-[#fdeef4] text-[#e0356b]"}`}>
+            {msg.text}
+          </p>
+        )}
+        <div className="flex justify-end">
+          <button className="abtn" disabled={busy}>{busy ? "Opslaan…" : "Opslaan"}</button>
+        </div>
       </form>
     </div>
   );
