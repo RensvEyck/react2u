@@ -1,4 +1,4 @@
-import type { Lead, LeadStatus } from "./types";
+import type { Application, ContactMessage, Lead, LeadStatus } from "./types";
 
 export const LEAD_STATUS: Record<LeadStatus, { label: string; cls: string }> = {
   te_bellen: { label: "Te bellen", cls: "bg-[#fdeef4] text-[#e0356b]" },
@@ -62,4 +62,51 @@ export function sortLeads(leads: Lead[], day = today()): Lead[] {
 
 export function countToCall(leads: Lead[], day = today()): number {
   return leads.filter((l) => needsCall(l, day)).length;
+}
+
+/* ---------- van Postvak IN naar bellijst ---------- */
+
+/** Wat een inzending uit het Postvak IN als lead meekrijgt. */
+export type NewLead = {
+  name: string;
+  email: string | null;
+  phone: string | null;
+  source: string;
+  notes: string | null;
+};
+
+/**
+ * Vertaalt een contactbericht naar een lead.
+ *
+ * Het bericht gaat mee in de notities: de bellijst linkt niet terug naar het
+ * Postvak IN, dus zonder die tekst bel je iemand zonder te weten waarover.
+ */
+export function leadFromMessage(
+  m: Pick<ContactMessage, "name" | "email" | "phone" | "subject" | "message">
+): NewLead {
+  return {
+    name: m.name,
+    email: m.email || null,
+    phone: m.phone || null,
+    source: "contactformulier",
+    notes: `Bericht via de website${m.subject ? ` — ${m.subject}` : ""}:\n${m.message}`,
+  };
+}
+
+/**
+ * Vertaalt een sollicitatie naar een lead.
+ *
+ * De vacaturetitel zit in `source` en niet in `company`: dat is de vacature
+ * waar iemand op reageerde, niet het bedrijf waar hij werkt.
+ */
+export function leadFromApplication(
+  a: Pick<Application, "name" | "email" | "phone" | "vacancy_title" | "motivation">
+): NewLead {
+  return {
+    name: a.name,
+    email: a.email || null,
+    phone: a.phone || null,
+    source: a.vacancy_title ? `sollicitatie op ${a.vacancy_title}` : "open sollicitatie",
+    notes: a.motivation ? `Motivatie:\n${a.motivation}` : null,
+  };
 }

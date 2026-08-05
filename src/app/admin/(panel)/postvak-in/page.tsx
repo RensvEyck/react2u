@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
-import { toggleMessageRead, setApplicationStatus } from "@/app/admin/actions";
+import { toggleMessageRead, setApplicationStatus, addLeadFromInbox } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application, ContactMessage } from "@/lib/types";
 import {
-  LuMail, LuMailOpen, LuPhone, LuFileText, LuInbox, LuUsers, LuMessageSquare,
+  LuMail, LuMailOpen, LuPhone, LuPhoneCall, LuFileText, LuInbox, LuUsers, LuMessageSquare,
 } from "react-icons/lu";
 
 const STATUS_OPTIONS: [string, string][] = [
@@ -45,10 +45,15 @@ export default async function InboxAdmin({
   const filter: Filter = FILTERS.some((f) => f.key === raw) ? (raw as Filter) : "alles";
 
   const { sb } = await requireAdmin();
-  const [msgsRes, appsRes] = await Promise.all([
+  const [msgsRes, appsRes, leadsRes] = await Promise.all([
     sb.from("contact_messages").select("*").order("created_at", { ascending: false }),
     sb.from("applications").select("*").order("created_at", { ascending: false }),
+    // Alleen de herkomst — genoeg om per kaart te weten of hij al op de bellijst staat.
+    sb.from("leads").select("source_id").not("source_id", "is", null),
   ]);
+  const onList = new Set(
+    ((leadsRes.data as { source_id: string }[]) || []).map((l) => l.source_id)
+  );
 
   const items: InboxItem[] = [
     ...(((msgsRes.data as ContactMessage[]) || []).map((m) => ({
@@ -116,9 +121,9 @@ export default async function InboxAdmin({
       <div className="space-y-3">
         {shown.map((item) =>
           item.kind === "bericht" ? (
-            <MessageCard key={`m-${item.id}`} m={item.msg} />
+            <MessageCard key={`m-${item.id}`} m={item.msg} onList={onList.has(item.id)} />
           ) : (
-            <ApplicationCard key={`a-${item.id}`} a={item.app} />
+            <ApplicationCard key={`a-${item.id}`} a={item.app} onList={onList.has(item.id)} />
           )
         )}
       </div>
@@ -138,7 +143,32 @@ function TypeTag({ kind }: { kind: "bericht" | "sollicitatie" }) {
   );
 }
 
-function MessageCard({ m }: { m: ContactMessage }) {
+/**
+ * Zet deze inzending op de bellijst, of laat zien dat dat al gebeurd is.
+ *
+ * Staat hij er eenmaal op, dan verdwijnt de knop. Twee keer indrukken kán geen
+ * kwaad — de unieke index op `source_id` vangt het af — maar een knop die er
+ * nog staat suggereert dat er nog iets te doen valt.
+ */
+function CallListButton({
+  kind, id, onList,
+}: { kind: "bericht" | "sollicitatie"; id: string; onList: boolean }) {
+  if (onList)
+    return (
+      <Link href="/admin/bellijst" className="apill bg-[#e6f7f4] text-[#0e9f8a] hover:underline">
+        <LuPhoneCall className="text-[12px]" /> Staat op de bellijst
+      </Link>
+    );
+  return (
+    <form action={addLeadFromInbox.bind(null, kind, id)}>
+      <button className="abtn-ghost !py-1.5 text-[13px]">
+        <LuPhoneCall className="text-[13px]" /> Op bellijst
+      </button>
+    </form>
+  );
+}
+
+function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
   return (
     <div className={`acard p-6 ${m.read ? "opacity-75" : "border-l-[3px] border-l-[#e75387]"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -150,22 +180,33 @@ function MessageCard({ m }: { m: ContactMessage }) {
           </div>
           <p className="mt-1 text-[13px] text-black/45">
             {m.name} ·{" "}
-            <a href={`mailto:${m.email}`} className="font-medium text-[#e75387] hover:underline">{m.email}</a> ·{" "}
-            {fmt(m.created_at)}
+            <a href={`mailto:${m.email}`} className="font-medium text-[#e75387] hover:underline">{m.email}</a>
+            {m.phone && (
+              <>
+                {" · "}
+                <a href={`tel:${m.phone.replace(/\s/g, "")}`} className="font-semibold text-[#e75387] hover:underline">
+                  {m.phone}
+                </a>
+              </>
+            )}{" "}
+            · {fmt(m.created_at)}
           </p>
         </div>
-        <form action={toggleMessageRead.bind(null, m.id, !m.read)}>
-          <button className="abtn-ghost !py-1.5 text-[13px]">
-            {m.read ? <><LuMail className="text-[13px]" /> Markeer ongelezen</> : <><LuMailOpen className="text-[13px]" /> Markeer gelezen</>}
-          </button>
-        </form>
+        <div className="flex flex-wrap items-center gap-2">
+          <CallListButton kind="bericht" id={m.id} onList={onList} />
+          <form action={toggleMessageRead.bind(null, m.id, !m.read)}>
+            <button className="abtn-ghost !py-1.5 text-[13px]">
+              {m.read ? <><LuMail className="text-[13px]" /> Markeer ongelezen</> : <><LuMailOpen className="text-[13px]" /> Markeer gelezen</>}
+            </button>
+          </form>
+        </div>
       </div>
       <p className="mt-3 whitespace-pre-line text-[14px] leading-relaxed text-black/70">{m.message}</p>
     </div>
   );
 }
 
-function ApplicationCard({ a }: { a: Application }) {
+function ApplicationCard({ a, onList }: { a: Application; onList: boolean }) {
   return (
     <div className={`acard p-6 ${a.status === "nieuw" ? "border-l-[3px] border-l-[#312e82]" : "opacity-75"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -193,7 +234,8 @@ function ApplicationCard({ a }: { a: Application }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <CallListButton kind="sollicitatie" id={a.id} onList={onList} />
           {a.cv_path && (
             <a href={`/admin/cv?path=${encodeURIComponent(a.cv_path)}`} target="_blank" className="abtn-ghost !py-1.5 text-[13px]">
               <LuFileText className="text-[13px]" /> CV bekijken

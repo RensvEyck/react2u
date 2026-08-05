@@ -28,8 +28,16 @@ export default async function MessagesAdmin() {
                   <p className="text-[15.5px] font-bold text-[#1c1a4e]">{m.subject || "(geen onderwerp)"}</p>
                 </div>
                 <p className="mt-0.5 text-[13px] text-black/45">
-                  {m.name} · <a href={`mailto:${m.email}`} className="font-medium text-[#e75387] hover:underline">{m.email}</a> ·{" "}
-                  {new Date(m.created_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+                  {m.name} · <a href={`mailto:${m.email}`} className="font-medium text-[#e75387] hover:underline">{m.email}</a>
+                  {m.phone && (
+                    <>
+                      {" · "}
+                      <a href={`tel:${m.phone.replace(/\s/g, "")}`} className="font-semibold text-[#e75387] hover:underline">
+                        {m.phone}
+                      </a>
+                    </>
+                  )}{" "}
+                  · {new Date(m.created_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
                 </p>
               </div>
               <form action={toggleMessageRead.bind(null, m.id, !m.read)}>

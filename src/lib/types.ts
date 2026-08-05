@@ -86,6 +86,8 @@ export type Lead = {
   follow_up_on: string | null;
   last_called_at: string | null;
   source: string | null;
+  /** Id van het bericht of de sollicitatie waar deze lead uit komt; null bij handmatig toegevoegd. */
+  source_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -107,6 +109,8 @@ export type ContactMessage = {
   id: string;
   name: string;
   email: string;
+  /** Null bij berichten van vóór migratie 0005; het formulier vraagt er nu om. */
+  phone: string | null;
   subject: string | null;
   message: string;
   read: boolean;

@@ -81,13 +81,14 @@ async function send(subject: string, html: string) {
 }
 
 export async function notifyContactMessage(m: {
-  name: string; email: string; subject: string; message: string;
+  name: string; email: string; phone: string; subject: string; message: string;
 }) {
   await send(
     `Nieuw bericht via de website${m.subject ? `: ${m.subject}` : ""}`,
     render("Nieuw contactbericht", "Binnengekomen via het contactformulier op de website.", [
       { label: "Naam", value: m.name },
       { label: "E-mail", value: m.email },
+      { label: "Telefoon", value: m.phone },
       { label: "Onderwerp", value: m.subject || "(geen onderwerp)" },
     ], m.message)
   );

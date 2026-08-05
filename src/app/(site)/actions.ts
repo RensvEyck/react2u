@@ -7,16 +7,18 @@ export type FormState = { ok: boolean; error?: string } | null;
 export async function submitContact(_prev: FormState, formData: FormData): Promise<FormState> {
   const name = String(formData.get("name") || "").trim();
   const email = String(formData.get("email") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
   const subject = String(formData.get("subject") || "").trim();
   const message = String(formData.get("message") || "").trim();
   const honeypot = String(formData.get("website") || "");
   if (honeypot) return { ok: true };
-  if (!name || !email || !message) return { ok: false, error: "Vul naam, e-mailadres en bericht in." };
+  if (!name || !email || !phone || !message)
+    return { ok: false, error: "Vul naam, e-mailadres, telefoonnummer en bericht in." };
 
   const sb = supabasePublic();
-  const { error } = await sb.from("contact_messages").insert({ name, email, subject, message });
+  const { error } = await sb.from("contact_messages").insert({ name, email, phone, subject, message });
   if (error) return { ok: false, error: "Er ging iets mis. Probeer het later opnieuw." };
-  await notifyContactMessage({ name, email, subject, message });
+  await notifyContactMessage({ name, email, phone, subject, message });
   return { ok: true };
 }
 

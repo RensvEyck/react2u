@@ -17,6 +17,7 @@ export default function ContactForm() {
     <form action={action} className="space-y-3">
       <input className={input} name="name" placeholder="Naam" required maxLength={200} />
       <input className={input} name="email" type="email" placeholder="E-mailadres" required maxLength={200} />
+      <input className={input} name="phone" type="tel" placeholder="Telefoonnummer" required maxLength={40} />
       <input className={input} name="subject" placeholder="Onderwerp" maxLength={200} />
       <textarea className={input} name="message" placeholder="Bericht" rows={4} required maxLength={4000} />
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />

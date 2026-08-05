@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { supabaseServer } from "@/lib/supabase/server";
+import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads";
 
 function revalidateSite() {
   revalidatePath("/", "layout");
@@ -154,6 +155,48 @@ export async function updateLead(id: string, formData: FormData) {
 export async function deleteLead(id: string) {
   const { sb } = await requireAdmin();
   await sb.from("leads").delete().eq("id", id);
+  revalidatePath("/admin/bellijst");
+}
+
+/**
+ * Zet een bericht of sollicitatie uit het Postvak IN op de bellijst.
+ *
+ * Idempotent dankzij de unieke index op `leads.source_id`: een tweede klik
+ * levert een uniekheidsfout op die we hier inslikken, want wat gevraagd werd —
+ * deze inzending staat op de bellijst — is dan al waar. Een controle vooraf zou
+ * dat niet dichttimmeren; tussen lezen en schrijven past nog een tweede klik.
+ *
+ * De inzending zelf blijft onaangeraakt: gelezen/onbehandeld gaat over of je
+ * hem hebt gezien, de bellijst over of je hem nog moet spreken. Dat zijn twee
+ * dingen, en het Postvak IN moet ongelezen kunnen blijven tot je hem afhandelt.
+ */
+export async function addLeadFromInbox(kind: "bericht" | "sollicitatie", id: string) {
+  const { sb } = await requireAdmin();
+
+  let lead: NewLead;
+  if (kind === "bericht") {
+    const { data } = await sb
+      .from("contact_messages")
+      .select("name, email, phone, subject, message")
+      .eq("id", id)
+      .single();
+    if (!data) return;
+    lead = leadFromMessage(data);
+  } else {
+    const { data } = await sb
+      .from("applications")
+      .select("name, email, phone, vacancy_title, motivation")
+      .eq("id", id)
+      .single();
+    if (!data) return;
+    lead = leadFromApplication(data);
+  }
+
+  const { error } = await sb.from("leads").insert({ ...lead, source_id: id, status: "te_bellen" });
+  // 23505 = staat er al; dat is geen fout. Al het andere wil je wél zien.
+  if (error && error.code !== "23505") console.error("[bellijst] toevoegen mislukt:", error.message);
+
+  revalidatePath("/admin/postvak-in");
   revalidatePath("/admin/bellijst");
 }
 

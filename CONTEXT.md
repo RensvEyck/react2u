@@ -18,13 +18,13 @@ Gebruik deze termen; de code doet dat ook.
 | **Vacature** (`vacancies`) | Statussen: `draft`, `published`, `closed`. Alleen `published` is publiek. |
 | **Artikel** (`posts`) | Blogartikel op `/blog/<slug>`. Markdown-body, statussen `draft` en `published`. `published_at` wordt bij de eerste publicatie gezet en blijft daarna staan, zodat een latere correctie de datum niet verzet. |
 | **Sollicitatie** (`applications`) | Inzending op een vacature of open sollicitatie. Cv gaat naar de private `cvs`-bucket. |
-| **Bericht** (`contact_messages`) | Inzending van het contactformulier. |
+| **Bericht** (`contact_messages`) | Inzending van het contactformulier. Bevat sinds `0005` een telefoonnummer: het formulier vraagt er verplicht om, zodat een bericht een belbare lead oplevert. Berichten van vóór die migratie hebben er geen — de kolom is nullable. |
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
 | **Onbehandeld** | Wat in het Postvak IN als ongelezen telt. Per soort verschillend: een bericht heeft `read = false`, een sollicitatie heeft `status = 'nieuw'`. |
 | **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents` en `certificates`. |
 | **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
 | **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
-| **Lead** (`leads`) | Iemand die gebeld moet worden, met belstatus, notities en een terugbeldatum. Staat op `/admin/bellijst`. Interne data — zie de RLS-uitzondering hieronder. |
+| **Lead** (`leads`) | Iemand die gebeld moet worden, met belstatus, notities en een terugbeldatum. Staat op `/admin/bellijst`. Handmatig toe te voegen of vanuit het Postvak IN — zie *Van Postvak IN naar bellijst*. Interne data, zie de RLS-uitzondering hieronder. |
 | **Te bellen** | Wat vandaag op de bellijst staat: status `te_bellen`, of `terugbellen` waarvan de datum is bereikt of ontbreekt. Bepaald door `needsCall()` in [`src/lib/leads.ts`](src/lib/leads.ts). |
 | **Bezoek** (`page_views`) | Eén paginaweergave. Bevat géén IP-adres: alleen de afgeleide organisatie en een bezoekershash die dagelijks roteert. Zie `/admin/bezoek`. |
 | **Bedrijfsbezoek** | Een bezoek waarvan het IP naar een bedrijfsnetwerk herleidt (`is_company`). Providers en datacenters vallen af — zie `isCompanyOrg()` in [`src/lib/analytics.ts`](src/lib/analytics.ts). |
@@ -135,6 +135,26 @@ Kies voor `NOTIFY_FROM` het (sub)domein dat je in Resend hebt geverifieerd; zie
 de DMARC-valkuil hierboven. Een apart subdomein (`send.react2u.nl`) laat de SPF
 van het hoofddomein met rust.
 
+## Van Postvak IN naar bellijst
+
+Elke kaart in het Postvak IN heeft een knop **Op bellijst**. Die maakt een lead
+van de inzending: naam, e-mail, telefoon, een herkomst in `source` en de vraag
+of motivatie in `notes` — de bellijst linkt niet terug, dus zonder die tekst bel
+je iemand zonder te weten waarover. De vertaalslag staat als pure functie in
+[`src/lib/leads.ts`](src/lib/leads.ts) (`leadFromMessage`, `leadFromApplication`),
+de actie eromheen is `addLeadFromInbox` in `src/app/admin/actions.ts`.
+
+**`leads.source_id` houdt bij uit welke inzending een lead komt.** Daar staat een
+unieke index op (partieel: alleen waar de kolom gevuld is, want handmatige leads
+hebben er geen). Dát is wat de knop idempotent maakt — niet een controle vooraf,
+want tussen lezen en schrijven past een tweede klik. De actie slikt daarom
+foutcode `23505` in en laat elke andere fout wél zien.
+
+**De knop raakt de inzending zelf niet aan.** Gelezen/onbehandeld gaat over of je
+iets hebt gezien, de bellijst over of je iemand nog moet spreken. Een bericht mag
+ongelezen blijven terwijl de lead al op de lijst staat. Verwijder je de lead, dan
+komt de knop terug.
+
 ## Openstaand
 
 - **DNS staat nog op WordPress.** `react2u.nl` wijst naar `35.204.120.88` en
@@ -195,5 +215,6 @@ niets zegt.
 
 Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`
 (tabellen, RLS-policies, de twee storage-buckets), `0002_posts.sql`
-(blogartikelen), `0003_leads.sql` (bellijst) en `0004_page_views.sql`
-(bezoekregistratie). Supabase-project `tumwtappyegkjabtmold`.
+(blogartikelen), `0003_leads.sql` (bellijst), `0004_page_views.sql`
+(bezoekregistratie) en `0005_leads_uit_postvak.sql` (telefoon op berichten,
+`leads.source_id`). Supabase-project `tumwtappyegkjabtmold`.
