@@ -37,8 +37,16 @@ export const ALL_PERMISSIONS: Permission[] = PERMISSIONS.map((p) => p.key);
  */
 export const ADMIN_PERMISSION: Permission = "gebruikers";
 
-/** Sleutel van de rol die niet uitgekleed of verwijderd mag worden. */
-export const OWNER_ROLE_KEY = "beheerder";
+/**
+ * De rol die niet uitgekleed of verwijderd mag worden.
+ *
+ * Dit is `superadmin`, niet `beheerder`. Beheerder heeft sinds migratie 0006
+ * alles behalve `gebruikers`: uitnodigen en rollen verdelen is voorbehouden aan
+ * de super admin. Zou deze constante nog naar `beheerder` wijzen, dan kreeg die
+ * rol bij elke opslag stilzwijgend alle rechten terug — en was het onderscheid
+ * tussen de twee weg zonder dat iemand het merkt.
+ */
+export const OWNER_ROLE_KEY = "superadmin";
 
 export function isPermission(value: unknown): value is Permission {
   return typeof value === "string" && (ALL_PERMISSIONS as string[]).includes(value);
