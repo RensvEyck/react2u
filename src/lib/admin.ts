@@ -23,6 +23,16 @@ export async function requireAdmin() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/admin/login");
 
+  // Tweestapsverificatie afdwingen. Wie een authenticator heeft ingesteld maar
+  // in deze sessie alleen zijn wachtwoord gaf, staat op aal1 terwijl aal2
+  // haalbaar is. Zonder deze controle kun je de codestap overslaan door na het
+  // inloggen rechtstreeks een adminpagina te openen — dan is de hele tweede
+  // stap niet meer dan een schermpje.
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+    redirect("/admin/login?stap=code");
+  }
+
   const { data } = await sb
     .from("admins")
     .select("user_id, email, role_id, roles(id, key, label, permissions)")
