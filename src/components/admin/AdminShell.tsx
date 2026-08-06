@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
   LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare, LuNewspaper,
-  LuSearch, LuPhone, LuChartNoAxesColumn,
+  LuSearch, LuPhone, LuChartNoAxesColumn, LuUserCog,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
+import { permissionForPath, type Permission } from "@/lib/permissions";
 
 type Counts = { apps: number; msgs: number; inbox: number; leads: number };
 
@@ -23,6 +24,7 @@ const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }
   { label: "Bezoek", href: "/admin/bezoek", icon: LuChartNoAxesColumn },
   { label: "Media", href: "/admin/media", icon: LuImage },
   { label: "SEO", href: "/admin/seo", icon: LuSearch },
+  { label: "Gebruikers", href: "/admin/gebruikers", icon: LuUserCog },
   { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings },
   { label: "Account", href: "/admin/account", icon: LuUserRound },
 ];
@@ -30,14 +32,17 @@ const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }
 const CRUMBS: Record<string, string> = {
   admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", paginas: "Pagina's", blog: "Blog",
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
-  bezoek: "Bezoek", media: "Media", seo: "SEO", instellingen: "Instellingen", account: "Account",
+  bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
+  instellingen: "Instellingen", account: "Account",
   nieuw: "Nieuw", blok: "Blok",
 };
 
 export default function AdminShell({
-  email, counts, signOut, children,
+  email, roleLabel, permissions, counts, signOut, children,
 }: {
   email: string;
+  roleLabel: string;
+  permissions: Permission[];
   counts: Counts;
   signOut: () => Promise<void>;
   children: React.ReactNode;
@@ -45,12 +50,20 @@ export default function AdminShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  // Onderdelen waar je geen recht op hebt verdwijnen uit het menu. Dit is
+  // gemak, geen beveiliging: de pagina's controleren zelf via requirePerm() en
+  // de database via has_perm(). Wie de URL intikt komt hier gewoon langs.
+  const visible = NAV.filter((n) => {
+    const perm = permissionForPath(n.href);
+    return !perm || permissions.includes(perm);
+  });
+
   const crumbs = pathname.split("/").filter(Boolean);
   const crumbLabels = crumbs.map((c) => CRUMBS[c] || decodeURIComponent(c));
 
   const nav = (
     <nav className="flex-1 space-y-0.5 px-3 py-4">
-      {NAV.map((n) => {
+      {visible.map((n) => {
         const active = n.href === "/admin" ? pathname === "/admin" : pathname.startsWith(n.href);
         const badge = n.badge ? counts[n.badge] : 0;
         return (
@@ -87,6 +100,7 @@ export default function AdminShell({
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-medium text-white/85">{email}</p>
+            <p className="truncate text-[11.5px] text-white/40">{roleLabel}</p>
             <form action={signOut}>
               <button className="flex items-center gap-1.5 text-[12.5px] text-white/50 hover:text-white">
                 <LuLogOut className="text-[12px]" /> Uitloggen

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import type { PageView } from "@/lib/types";
 import {
   totals, byDay, lastDays, topPaths, topReferrers, topCountries, companyVisits,
@@ -48,7 +48,7 @@ export default async function BezoekAdmin({
   const { dagen } = await searchParams;
   const range = RANGES.some((r) => r.key === dagen) ? Number(dagen) : 7;
 
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("bezoek");
   const days = lastDays(range);
   const since = `${days[0]}T00:00:00Z`;
 

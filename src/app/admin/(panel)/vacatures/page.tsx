@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { deleteVacancy } from "@/app/admin/actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import type { Vacancy } from "@/lib/types";
@@ -12,7 +12,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export default async function VacanciesAdmin() {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("vacatures");
   const { data } = await sb.from("vacancies").select("*").order("created_at", { ascending: false });
   const vacancies = (data as Vacancy[]) || [];
   return (

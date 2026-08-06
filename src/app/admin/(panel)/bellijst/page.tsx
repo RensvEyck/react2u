@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { createLead, setLeadStatus, updateLead, deleteLead } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
 import ConfirmButton from "@/components/admin/ConfirmButton";
@@ -30,7 +30,7 @@ export default async function BellijstAdmin({
   const { filter: raw } = await searchParams;
   const filter: Filter = FILTERS.some((f) => f.key === raw) ? (raw as Filter) : "bellen";
 
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("bellijst");
   const { data } = await sb.from("leads").select("*");
   const all = (data as Lead[]) || [];
   const day = today();

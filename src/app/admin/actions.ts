@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads";
 
@@ -16,7 +16,7 @@ export async function signOutAction() {
 }
 
 export async function updatePageMeta(slug: string, formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   await sb
     .from("pages")
     .update({
@@ -32,7 +32,7 @@ export async function updatePageMeta(slug: string, formData: FormData) {
 }
 
 export async function updateBlockData(blockId: string, pageSlug: string, formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   let data: unknown;
   try {
     data = JSON.parse(String(formData.get("json") || "{}"));
@@ -45,7 +45,7 @@ export async function updateBlockData(blockId: string, pageSlug: string, formDat
 }
 
 export async function moveBlock(blockId: string, pageSlug: string, direction: "up" | "down") {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   const { data: block } = await sb.from("blocks").select("*").eq("id", blockId).single();
   if (!block) return;
   const { data: siblings } = await sb.from("blocks").select("id, sort").eq("page_id", block.page_id).order("sort");
@@ -60,7 +60,7 @@ export async function moveBlock(blockId: string, pageSlug: string, direction: "u
 }
 
 export async function saveVacancy(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("vacatures");
   const id = String(formData.get("id") || "");
   const status = String(formData.get("status") || "draft");
   const payload = {
@@ -98,7 +98,7 @@ export async function saveVacancy(formData: FormData) {
 }
 
 export async function deleteVacancy(id: string) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("vacatures");
   await sb.from("vacancies").delete().eq("id", id);
   revalidateSite();
   revalidatePath("/admin/vacatures");
@@ -107,7 +107,7 @@ export async function deleteVacancy(id: string) {
 /* ---------- bellijst ---------- */
 
 export async function createLead(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("bellijst");
   const name = String(formData.get("name") || "").trim();
   if (!name) redirect("/admin/bellijst?fout=naam");
   await sb.from("leads").insert({
@@ -123,7 +123,7 @@ export async function createLead(formData: FormData) {
 }
 
 export async function setLeadStatus(id: string, formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("bellijst");
   const status = String(formData.get("status") || "te_bellen");
   // Een poging telt als contactmoment, ook als er niet werd opgenomen — zo zie
   // je later of een lead al benaderd is en wanneer voor het laatst.
@@ -136,7 +136,7 @@ export async function setLeadStatus(id: string, formData: FormData) {
 }
 
 export async function updateLead(id: string, formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("bellijst");
   await sb
     .from("leads")
     .update({
@@ -153,7 +153,7 @@ export async function updateLead(id: string, formData: FormData) {
 }
 
 export async function deleteLead(id: string) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("bellijst");
   await sb.from("leads").delete().eq("id", id);
   revalidatePath("/admin/bellijst");
 }
@@ -171,7 +171,7 @@ export async function deleteLead(id: string) {
  * dingen, en het Postvak IN moet ongelezen kunnen blijven tot je hem afhandelt.
  */
 export async function addLeadFromInbox(kind: "bericht" | "sollicitatie", id: string) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("bellijst");
 
   let lead: NewLead;
   if (kind === "bericht") {
@@ -205,7 +205,7 @@ function slugify(raw: string) {
 }
 
 export async function savePost(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("blog");
   const id = String(formData.get("id") || "");
   const status = String(formData.get("status") || "draft");
   const payload = {
@@ -242,14 +242,14 @@ export async function savePost(formData: FormData) {
 }
 
 export async function deletePost(id: string) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("blog");
   await sb.from("posts").delete().eq("id", id);
   revalidateSite();
   revalidatePath("/admin/blog");
 }
 
 export async function setApplicationStatus(id: string, formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("postvak");
   const status = String(formData.get("status") || "nieuw");
   await sb.from("applications").update({ status }).eq("id", id);
   revalidatePath("/admin/sollicitaties");
@@ -257,14 +257,14 @@ export async function setApplicationStatus(id: string, formData: FormData) {
 }
 
 export async function toggleMessageRead(id: string, read: boolean) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("postvak");
   await sb.from("contact_messages").update({ read }).eq("id", id);
   revalidatePath("/admin/berichten");
   revalidatePath("/admin/postvak-in");
 }
 
 export async function addBlock(pageSlug: string, formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   const type = String(formData.get("type") || "richText");
   const { BLOCK_TEMPLATES } = await import("@/lib/blockTemplates");
   const template = BLOCK_TEMPLATES[type] || BLOCK_TEMPLATES.richText;
@@ -282,14 +282,14 @@ export async function addBlock(pageSlug: string, formData: FormData) {
 }
 
 export async function deleteBlock(blockId: string, pageSlug: string) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   await sb.from("blocks").delete().eq("id", blockId);
   revalidateSite();
   revalidatePath(`/admin/paginas/${pageSlug}`);
 }
 
 export async function createPage(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   const title = String(formData.get("title") || "").trim();
   const slug = String(formData.get("slug") || "")
     .toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)/g, "");
@@ -302,7 +302,7 @@ export async function createPage(formData: FormData) {
 }
 
 export async function deletePage(slug: string) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   await sb.from("pages").delete().eq("slug", slug);
   revalidateSite();
   redirect("/admin/paginas");
@@ -324,7 +324,7 @@ function collectRows(formData: FormData, fields: string[]): Record<string, strin
 }
 
 export async function saveDocumentsSettings(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("instellingen");
   const value = collectRows(formData, ["label", "href"]).filter((r) => r.label && r.href);
   await sb.from("site_settings").upsert({ key: "documents", value });
   revalidateSite();
@@ -332,7 +332,7 @@ export async function saveDocumentsSettings(formData: FormData) {
 }
 
 export async function saveSeoSettings(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("seo");
   const value = {
     description: String(formData.get("description") || "").trim(),
     share_image: String(formData.get("share_image") || "").trim(),
@@ -343,7 +343,7 @@ export async function saveSeoSettings(formData: FormData) {
 }
 
 export async function saveCertificatesSettings(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("instellingen");
   // Zonder afbeelding valt er niets te tonen; alt en href mogen leeg blijven.
   const value = collectRows(formData, ["image", "alt", "href"]).filter((r) => r.image);
   await sb.from("site_settings").upsert({ key: "certificates", value });
@@ -352,7 +352,7 @@ export async function saveCertificatesSettings(formData: FormData) {
 }
 
 export async function saveContactSettings(formData: FormData) {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("instellingen");
   const value = {
     phone: String(formData.get("phone") || ""),
     phoneDisplay: String(formData.get("phoneDisplay") || ""),
@@ -366,4 +366,125 @@ export async function saveContactSettings(formData: FormData) {
   await sb.from("site_settings").upsert({ key: "contact", value });
   revalidateSite();
   redirect("/admin/instellingen?opgeslagen=1");
+}
+
+/* ---------- gebruikers en rollen ---------- */
+
+/**
+ * Nodigt een collega uit.
+ *
+ * Supabase maakt het account aan en verstuurt zelf de mail, inclusief
+ * vervaltermijn. De genodigde landt op /admin/uitnodiging en kiest daar een
+ * wachtwoord. Daarna volgt de rij in `admins` — pas dán heeft hij toegang;
+ * een auth-account op zichzelf geeft niets.
+ */
+export async function inviteUser(formData: FormData) {
+  const { admin } = await requirePerm("gebruikers");
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const roleId = String(formData.get("role_id") || "");
+  if (!email || !roleId) redirect("/admin/gebruikers?fout=onvolledig");
+
+  const { supabaseAdmin, canInvite } = await import("@/lib/supabase/admin");
+  if (!canInvite()) redirect("/admin/gebruikers?fout=geen-sleutel");
+
+  const site =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
+    "https://react2u.nl";
+
+  const sa = supabaseAdmin();
+  const { data, error } = await sa.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${site.replace(/\/$/, "")}/admin/uitnodiging`,
+  });
+
+  if (error || !data?.user) {
+    // Bestaat het account al, dan alleen de adminrij toevoegen — dat is precies
+    // het geval "collega had al een account maar geen toegang".
+    const already = /already|registered|exists/i.test(error?.message || "");
+    if (!already) redirect(`/admin/gebruikers?fout=uitnodigen`);
+    const { data: found } = await sa.auth.admin.listUsers();
+    const existing = found?.users.find((u) => u.email?.toLowerCase() === email);
+    if (!existing) redirect("/admin/gebruikers?fout=uitnodigen");
+    await addAdminRow(existing.id, email, roleId, admin.userId);
+    redirect("/admin/gebruikers?opgeslagen=1");
+  }
+
+  await addAdminRow(data.user.id, email, roleId, admin.userId);
+  redirect("/admin/gebruikers?opgeslagen=1");
+}
+
+async function addAdminRow(userId: string, email: string, roleId: string, invitedBy: string) {
+  const { sb } = await requirePerm("gebruikers");
+  await sb.from("admins").upsert(
+    { user_id: userId, email, role_id: roleId, invited_at: new Date().toISOString(), invited_by: invitedBy },
+    { onConflict: "user_id" }
+  );
+  revalidatePath("/admin/gebruikers");
+}
+
+export async function setUserRole(userId: string, formData: FormData) {
+  const { sb } = await requirePerm("gebruikers");
+  const roleId = String(formData.get("role_id") || "");
+  if (!roleId) return;
+  const { error } = await sb.from("admins").update({ role_id: roleId }).eq("user_id", userId);
+  // De databasetrigger weigert het degraderen van de laatste beheerder. Die
+  // fout is geen bug maar de bedoeling — toon hem in plaats van hem te slikken.
+  if (error) redirect("/admin/gebruikers?fout=laatste-beheerder");
+  revalidatePath("/admin/gebruikers");
+}
+
+/**
+ * Haalt iemands toegang weg.
+ *
+ * Alleen de rij in `admins`; het auth-account blijft bestaan. Zo raakt niemand
+ * per ongeluk een account kwijt dat elders nog gebruikt wordt, en is toegang
+ * teruggeven een kwestie van opnieuw uitnodigen.
+ */
+export async function removeUser(userId: string) {
+  const { sb, admin } = await requirePerm("gebruikers");
+  if (userId === admin.userId) redirect("/admin/gebruikers?fout=jezelf");
+  const { error } = await sb.from("admins").delete().eq("user_id", userId);
+  if (error) redirect("/admin/gebruikers?fout=laatste-beheerder");
+  revalidatePath("/admin/gebruikers");
+}
+
+export async function saveRole(formData: FormData) {
+  const { sb } = await requirePerm("gebruikers");
+  const { normalizePermissions, ALL_PERMISSIONS, OWNER_ROLE_KEY } = await import("@/lib/permissions");
+
+  const id = String(formData.get("id") || "");
+  const label = String(formData.get("label") || "").trim();
+  if (!label) redirect("/admin/gebruikers?fout=naam");
+
+  const chosen = normalizePermissions(ALL_PERMISSIONS.filter((p) => formData.get(`perm.${p}`) === "on"));
+
+  if (id) {
+    const { data: existing } = await sb.from("roles").select("key, is_system").eq("id", id).maybeSingle();
+    // De systeemrol houdt altijd alles. Zonder die regel kun je met twee
+    // klikken de rol uitkleden waar je eigen toegang aan hangt.
+    const permissions =
+      (existing as { key?: string })?.key === OWNER_ROLE_KEY ? ALL_PERMISSIONS : chosen;
+    const { error } = await sb.from("roles").update({ label, permissions }).eq("id", id);
+    if (error) redirect("/admin/gebruikers?fout=laatste-beheerder");
+  } else {
+    const key = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    if (!key) redirect("/admin/gebruikers?fout=naam");
+    const { error } = await sb.from("roles").insert({ key, label, permissions: chosen });
+    if (error) redirect("/admin/gebruikers?fout=rol-bestaat-al");
+  }
+  revalidatePath("/admin/gebruikers");
+  redirect("/admin/gebruikers?opgeslagen=1");
+}
+
+export async function deleteRole(id: string) {
+  const { sb } = await requirePerm("gebruikers");
+  const { data: role } = await sb.from("roles").select("is_system").eq("id", id).maybeSingle();
+  if ((role as { is_system?: boolean })?.is_system) redirect("/admin/gebruikers?fout=systeemrol");
+  // Rollen met gebruikers eraan laten we staan: die gebruikers zouden anders
+  // in het niets belanden. Verplaats ze eerst.
+  const { count } = await sb.from("admins").select("user_id", { count: "exact", head: true }).eq("role_id", id);
+  if ((count ?? 0) > 0) redirect("/admin/gebruikers?fout=rol-in-gebruik");
+  const { error } = await sb.from("roles").delete().eq("id", id);
+  if (error) redirect("/admin/gebruikers?fout=laatste-beheerder");
+  revalidatePath("/admin/gebruikers");
 }

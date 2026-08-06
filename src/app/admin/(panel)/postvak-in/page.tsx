@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { toggleMessageRead, setApplicationStatus, addLeadFromInbox } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application, ContactMessage } from "@/lib/types";
@@ -44,7 +44,7 @@ export default async function InboxAdmin({
   const { filter: raw } = await searchParams;
   const filter: Filter = FILTERS.some((f) => f.key === raw) ? (raw as Filter) : "alles";
 
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("postvak");
   const [msgsRes, appsRes, leadsRes] = await Promise.all([
     sb.from("contact_messages").select("*").order("created_at", { ascending: false }),
     sb.from("applications").select("*").order("created_at", { ascending: false }),

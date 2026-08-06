@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { updatePageMeta, moveBlock, addBlock, deleteBlock, deletePage } from "@/app/admin/actions";
 import { BLOCK_TEMPLATES } from "@/lib/blockTemplates";
 import ConfirmButton from "@/components/admin/ConfirmButton";
@@ -16,7 +16,7 @@ function blockSnippet(data: any): string {
 
 export default async function PageAdmin({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   const { data: page } = await sb.from("pages").select("*").eq("slug", slug).maybeSingle();
   if (!page) notFound();
   const { data: blocksData } = await sb.from("blocks").select("*").eq("page_id", page.id).order("sort");

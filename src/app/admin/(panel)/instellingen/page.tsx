@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { saveContactSettings, saveDocumentsSettings, saveCertificatesSettings } from "@/app/admin/actions";
 import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
@@ -17,7 +17,7 @@ const FIELDS: { name: keyof ContactInfo; label: string }[] = [
 ];
 
 export default async function SettingsAdmin() {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("instellingen");
   const [{ data }, { data: docsData }, { data: certsData }] = await Promise.all([
     sb.from("site_settings").select("value").eq("key", "contact").maybeSingle(),
     sb.from("site_settings").select("value").eq("key", "documents").maybeSingle(),

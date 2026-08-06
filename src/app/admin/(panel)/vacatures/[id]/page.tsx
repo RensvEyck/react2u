@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { saveVacancy } from "@/app/admin/actions";
 import VacancyFields from "@/components/admin/VacancyFields";
 import type { Vacancy } from "@/lib/types";
@@ -8,7 +8,7 @@ import { LuArrowLeft, LuExternalLink } from "react-icons/lu";
 
 export default async function EditVacancy({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("vacatures");
   const { data } = await sb.from("vacancies").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   const v = data as Vacancy;

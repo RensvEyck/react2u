@@ -1,10 +1,10 @@
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { toggleMessageRead } from "@/app/admin/actions";
 import type { ContactMessage } from "@/lib/types";
 import { LuMailOpen, LuMail } from "react-icons/lu";
 
 export default async function MessagesAdmin() {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("postvak");
   const { data } = await sb.from("contact_messages").select("*").order("created_at", { ascending: false });
   const msgs = (data as ContactMessage[]) || [];
   return (

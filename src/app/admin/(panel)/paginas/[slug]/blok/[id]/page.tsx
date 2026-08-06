@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { updateBlockData } from "@/app/admin/actions";
 import { BLOCK_TEMPLATES } from "@/lib/blockTemplates";
 import BlockEditor from "@/components/admin/BlockEditor";
@@ -8,7 +8,7 @@ import { LuArrowLeft } from "react-icons/lu";
 
 export default async function BlockEditorPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = await params;
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   const { data: block } = await sb.from("blocks").select("*").eq("id", id).maybeSingle();
   if (!block) notFound();
   const action = updateBlockData.bind(null, id, slug);

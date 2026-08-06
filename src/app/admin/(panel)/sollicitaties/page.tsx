@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { setApplicationStatus } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application } from "@/lib/types";
@@ -12,7 +12,7 @@ const STATUS_OPTIONS: [string, string][] = [
 ];
 
 export default async function ApplicationsAdmin() {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("postvak");
   const { data } = await sb.from("applications").select("*").order("created_at", { ascending: false });
   const apps = (data as Application[]) || [];
   return (

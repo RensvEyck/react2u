@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { createPage } from "@/app/admin/actions";
 import type { Page } from "@/lib/types";
 import { LuPlus, LuExternalLink, LuPencil } from "react-icons/lu";
 
 export default async function PagesAdmin() {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("paginas");
   const { data } = await sb.from("pages").select("*").order("sort");
   const pages = (data as Page[]) || [];
   return (

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { saveSeoSettings } from "@/app/admin/actions";
 import ImageField from "@/components/admin/ImageField";
 import type { Page, Post, Vacancy } from "@/lib/types";
@@ -61,7 +61,7 @@ function Row({ r }: { r: SeoRow }) {
 }
 
 export default async function SeoAdmin() {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("seo");
   const [pagesRes, postsRes, vacanciesRes, seoRes] = await Promise.all([
     sb.from("pages").select("*").order("sort"),
     sb.from("posts").select("*").order("created_at", { ascending: false }),

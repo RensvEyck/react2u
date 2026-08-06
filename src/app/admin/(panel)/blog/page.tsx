@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { deletePost } from "@/app/admin/actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import type { Post } from "@/lib/types";
@@ -11,7 +11,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export default async function BlogAdmin() {
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("blog");
   const { data } = await sb.from("posts").select("*").order("created_at", { ascending: false });
   const posts = (data as Post[]) || [];
   return (

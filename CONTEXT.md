@@ -28,7 +28,9 @@ Gebruik deze termen; de code doet dat ook.
 | **Te bellen** | Wat vandaag op de bellijst staat: status `te_bellen`, of `terugbellen` waarvan de datum is bereikt of ontbreekt. Bepaald door `needsCall()` in [`src/lib/leads.ts`](src/lib/leads.ts). |
 | **Bezoek** (`page_views`) | Eén paginaweergave. Bevat géén IP-adres: alleen de afgeleide organisatie en een bezoekershash die dagelijks roteert. Zie `/admin/bezoek`. |
 | **Bedrijfsbezoek** | Een bezoek waarvan het IP naar een bedrijfsnetwerk herleidt (`is_company`). Providers en datacenters vallen af — zie `isCompanyOrg()` in [`src/lib/analytics.ts`](src/lib/analytics.ts). |
-| **Beheerder** (`admins`) | Rij die een Supabase-auth-gebruiker toegang tot `/admin` geeft. Een auth-account zonder rij hier heeft géén toegang. |
+| **Beheerder** (`admins`) | Rij die een Supabase-auth-gebruiker toegang tot `/admin` geeft. Een auth-account zonder rij hier heeft géén toegang. Elke rij heeft precies één rol. |
+| **Rol** (`roles`) | Een naam met een lijst rechten. Bewerkbaar op `/admin/gebruikers`. De rol `beheerder` is een systeemrol: houdt altijd alle rechten en is niet te verwijderen. |
+| **Recht** | Toegang tot één onderdeel van het paneel, bv. `bellijst` of `paginas`. De sleutels staan in [`src/lib/permissions.ts`](src/lib/permissions.ts) én in de RLS-policies — hernoemen vraagt dus een migratie. |
 
 ## Architectuur
 
@@ -58,8 +60,33 @@ controleren met de anon-sleutel: een `select` op `leads` of `page_views` hoort
 `[]` te geven terwijl er rijen staan. (`page_views` mag anon wél *inserten* —
 de tracker-route schrijft met die sleutel, net als het contactformulier.)
 
+**Autorisatie ligt in de database, niet in het menu.** Elke policy hangt aan
+`has_perm('<recht>')` (migratie `0005_roles.sql`). Het menu verbergt onderdelen
+waar je geen recht op hebt, en `requirePerm()` stuurt je weg als je de URL
+intikt — maar beide zijn comfort. Wie de anon-sleutel uit zijn browser haalt
+praat rechtstreeks met de API, en dáár is `has_perm()` de grens. Voeg een nieuw
+scherm dus nooit toe zonder bijbehorende policy.
+
+Te controleren zonder de app: zet in SQL `request.jwt.claims` op de gebruiker
+die je wilt simuleren en tel de rijen. Een redacteur hoort 0 leads te zien.
+
+**De laatste beheerder is beschermd door de database.** Een trigger weigert elke
+wijziging waarna niemand meer het recht `gebruikers` heeft — of dat nu komt door
+een verwijderde gebruiker, een gewijzigde rol of een uitgeklede rechtenlijst.
+Zonder dat slot is één verkeerde klik genoeg om iedereen buiten te sluiten, en
+is alleen een ingreep in de database nog een uitweg.
+
+**Er is nu wél een service-role-sleutel**, maar alleen voor één ding: een
+auth-account aanmaken voor iemand anders bij het uitnodigen. Zie
+[`src/lib/supabase/admin.ts`](src/lib/supabase/admin.ts) — die importeert
+`server-only`, zodat de build faalt als het bestand ooit in een client component
+belandt. Gebruik hem nooit voor gewone tabellen: die sleutel omzeilt alle RLS,
+en daarmee elke rolcontrole in dit project. Ontbreekt `SUPABASE_SERVICE_ROLE_KEY`,
+dan werkt alles behalve uitnodigen.
+
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
-zijn is niet genoeg, er moet ook een rij in `admins` staan.
+zijn is niet genoeg, er moet ook een rij in `admins` staan. Schermen achter een
+recht gebruiken `requirePerm('<recht>')`.
 [`src/middleware.ts`](src/middleware.ts) ververst alleen de sessie op `/admin/:path*`
 — het is géén autorisatiepoort. De echte controle staat in de pagina's zelf.
 

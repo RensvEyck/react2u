@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin";
+import { requirePerm } from "@/lib/admin";
 import { savePost } from "@/app/admin/actions";
 import PostFields from "@/components/admin/PostFields";
 import type { Post } from "@/lib/types";
@@ -8,7 +8,7 @@ import { LuArrowLeft, LuExternalLink } from "react-icons/lu";
 
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { sb } = await requireAdmin();
+  const { sb } = await requirePerm("blog");
   const { data } = await sb.from("posts").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   const p = data as Post;
