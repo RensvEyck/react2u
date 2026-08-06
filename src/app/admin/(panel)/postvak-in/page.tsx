@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
-import { toggleMessageRead, setApplicationStatus, addLeadFromInbox } from "@/app/admin/actions";
+import { toggleMessageRead, setApplicationStatus, addLeadFromInbox, deleteMessage, deleteApplication } from "@/app/admin/actions";
+import ConfirmButton from "@/components/admin/ConfirmButton";
 import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application, ContactMessage } from "@/lib/types";
 import {
-  LuMail, LuMailOpen, LuPhone, LuPhoneCall, LuFileText, LuInbox, LuUsers, LuMessageSquare,
+  LuMail, LuMailOpen, LuPhone, LuPhoneCall, LuFileText, LuInbox, LuUsers, LuMessageSquare, LuTrash2,
 } from "react-icons/lu";
 
 const STATUS_OPTIONS: [string, string][] = [
@@ -194,6 +195,13 @@ function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <CallListButton kind="bericht" id={m.id} onList={onList} />
+          <ConfirmButton
+            action={deleteMessage.bind(null, m.id)}
+            message={`Bericht van ${m.name} definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+            className="rounded-lg p-2 text-black/40 hover:bg-[#fdeef4] hover:text-[#e0356b]"
+          >
+            <LuTrash2 className="text-[15px]" />
+          </ConfirmButton>
           <form action={toggleMessageRead.bind(null, m.id, !m.read)}>
             <button className="abtn-ghost !py-1.5 text-[13px]">
               {m.read ? <><LuMail className="text-[13px]" /> Markeer ongelezen</> : <><LuMailOpen className="text-[13px]" /> Markeer gelezen</>}
@@ -242,6 +250,13 @@ function ApplicationCard({ a, onList }: { a: Application; onList: boolean }) {
             </a>
           )}
           <StatusSelect action={setApplicationStatus.bind(null, a.id)} current={a.status} options={STATUS_OPTIONS} />
+          <ConfirmButton
+            action={deleteApplication.bind(null, a.id)}
+            message={`Sollicitatie van ${a.name} definitief verwijderen, inclusief het cv? Dit kan niet ongedaan worden gemaakt.`}
+            className="rounded-lg p-2 text-black/40 hover:bg-[#fdeef4] hover:text-[#e0356b]"
+          >
+            <LuTrash2 className="text-[15px]" />
+          </ConfirmButton>
         </div>
       </div>
       {a.motivation && (

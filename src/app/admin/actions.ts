@@ -488,3 +488,40 @@ export async function deleteRole(id: string) {
   if (error) redirect("/admin/gebruikers?fout=laatste-beheerder");
   revalidatePath("/admin/gebruikers");
 }
+
+/* ---------- verwijderen van inzendingen ---------- */
+
+/**
+ * Verwijdert een sollicitatie inclusief het cv.
+ *
+ * Volgorde is niet vrijblijvend: eerst het pad ophalen, dan het bestand, dan
+ * de rij. Andersom houd je een wees over in de opslag waar niets meer naar
+ * verwijst — en die is via de applicatie niet meer te vinden.
+ *
+ * Zonder deze actie bestond er geen enkele manier om een cv te verwijderen,
+ * ook niet voor de superadmin. Voor een organisatie die zich aan een
+ * bewaartermijn moet houden is dat geen detail.
+ */
+export async function deleteApplication(id: string) {
+  const { sb } = await requirePerm("postvak");
+  const { data } = await sb.from("applications").select("cv_path").eq("id", id).maybeSingle();
+  const cvPath = (data as { cv_path?: string | null })?.cv_path;
+  if (cvPath) {
+    const { error } = await sb.storage.from("cvs").remove([cvPath]);
+    // Bestand weg maar rij nog niet: dat is een halve verwijdering en juist
+    // gevaarlijk, want het cv lijkt dan nog te bestaan in het overzicht.
+    if (error) redirect("/admin/postvak-in?fout=cv-verwijderen");
+  }
+  await sb.from("applications").delete().eq("id", id);
+  revalidatePath("/admin/postvak-in");
+  revalidatePath("/admin/sollicitaties");
+  redirect("/admin/postvak-in?opgeslagen=1");
+}
+
+export async function deleteMessage(id: string) {
+  const { sb } = await requirePerm("postvak");
+  await sb.from("contact_messages").delete().eq("id", id);
+  revalidatePath("/admin/postvak-in");
+  revalidatePath("/admin/berichten");
+  redirect("/admin/postvak-in?opgeslagen=1");
+}
