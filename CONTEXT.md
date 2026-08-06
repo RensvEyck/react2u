@@ -234,6 +234,15 @@ root-layout, zodat het adminpaneel die query niet draait.
 De standaard deelafbeelding is het logo — geen echte 1200×630-afbeelding. Wie
 link-previews serieus neemt, stelt er een eigen beeld voor in.
 
+`next.config.ts` bevat de permanente redirects van de oude WordPress-site.
+Die lijst komt uit `wp-sitemap.xml` van react2u.nl en is opgehaald toen die
+site nog live was — na de DNS-omzetting is die bron weg. Voeg een pad hier toe
+zodra je een oude URL tegenkomt die 404 geeft.
+
+FAQ-blokken (`faqAccordion` en `contactFaq`) leveren samen één
+`FAQPage`-structured-data per pagina, samengesteld in `BlockRenderer`. Google
+wil er één per pagina, niet één per blok.
+
 `sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld
 niets zegt.

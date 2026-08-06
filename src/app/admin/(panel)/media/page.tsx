@@ -13,18 +13,30 @@ export default function MediaAdmin() {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const load = useCallback(async () => {
+  // Ophalen en wegschrijven zijn gescheiden. Zo staat er geen setState meer in
+  // het effect zelf, en kunnen we na het verlaten van de pagina stoppen met
+  // wegschrijven — anders zet een trage lijst-aanroep alsnog state op een
+  // component die er niet meer is.
+  const fetchFiles = useCallback(async (): Promise<FileEntry[]> => {
     const sb = supabaseBrowser();
     const base = process.env.NEXT_PUBLIC_SUPABASE_URL + "/storage/v1/object/public/media/";
     const { data } = await sb.storage.from("media").list("uploads", { limit: 200, sortBy: { column: "created_at", order: "desc" } });
-    setFiles(
-      (data || [])
-        .filter((f) => f.id)
-        .map((f) => ({ name: f.name, path: "uploads/" + f.name, url: base + "uploads/" + f.name }))
-    );
+    return (data || [])
+      .filter((f) => f.id)
+      .map((f) => ({ name: f.name, path: "uploads/" + f.name, url: base + "uploads/" + f.name }));
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback(async () => {
+    setFiles(await fetchFiles());
+  }, [fetchFiles]);
+
+  useEffect(() => {
+    let alive = true;
+    fetchFiles().then((entries) => {
+      if (alive) setFiles(entries);
+    });
+    return () => { alive = false; };
+  }, [fetchFiles]);
 
   async function upload(file: File) {
     setBusy(true);

@@ -361,11 +361,41 @@ function rendersPageHeading(b: Block): boolean {
   return HEADING_BLOCKS.has(b.type) && Boolean((b.data as { heading?: string })?.heading);
 }
 
+
+/**
+ * Verzamelt de FAQ-vragen van een pagina voor `FAQPage`-structured-data.
+ *
+ * Twee bloktypes bevatten vragen — `faqAccordion` onder `items`, `contactFaq`
+ * onder `faq` — en Google wil er één FAQPage per pagina, niet één per blok.
+ * Vandaar het samenvoegen hier in plaats van in de blokken zelf.
+ */
+function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
+  const out: { question: string; answer: string }[] = [];
+  for (const b of blocks) {
+    const d = b.data as { items?: unknown; faq?: unknown };
+    const raw = b.type === "faqAccordion" ? d.items : b.type === "contactFaq" ? d.faq : null;
+    if (!Array.isArray(raw)) continue;
+    for (const item of raw) {
+      const q = String((item as { question?: string })?.question ?? "").trim();
+      // De opmaaktekens uit het antwoord halen: JSON-LD hoort platte tekst te
+      // bevatten, geen markdown.
+      const a = String((item as { answer?: string })?.answer ?? "")
+        .replace(/\*\*(.+?)\*\*/g, "$1")
+        .replace(/^###\s+/gm, "")
+        .replace(/^-\s+/gm, "")
+        .trim();
+      if (q && a) out.push({ question: q, answer: a });
+    }
+  }
+  return out;
+}
+
 export default function BlockRenderer({ blocks }: { blocks: Block[] }) {
   // Precies één h1 per pagina: het eerste blok dát een kop heeft. Een blok van
   // het juiste type maar met een lege kop slaan we over, anders zou de h1 op
   // een pagina zonder hero stilletjes verdwijnen.
   const h1Index = blocks.findIndex(rendersPageHeading);
+  const faq = collectFaq(blocks);
   return (
     <>
       {blocks.map((b, i) => {
@@ -373,6 +403,22 @@ export default function BlockRenderer({ blocks }: { blocks: Block[] }) {
         if (!Cmp) return null;
         return <Cmp key={b.id} d={b.data} asH1={i === h1Index} />;
       })}
+      {faq.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faq.map((f) => ({
+                "@type": "Question",
+                name: f.question,
+                acceptedAnswer: { "@type": "Answer", text: f.answer },
+              })),
+            }),
+          }}
+        />
+      )}
     </>
   );
 }

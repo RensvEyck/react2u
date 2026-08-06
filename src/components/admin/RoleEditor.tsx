@@ -16,12 +16,11 @@ type Role = { id: string; label: string; permissions: Permission[]; isSystem: bo
  * dwingt dat nog een keer af — dit veld uitschakelen is comfort, geen grens.
  */
 export default function RoleEditor({
-  role, save, remove, ownerKey,
+  role, save, remove,
 }: {
   role?: Role;
   save: (formData: FormData) => Promise<void>;
   remove?: () => Promise<void>;
-  ownerKey: string;
 }) {
   const isNew = !role;
   const [open, setOpen] = useState(false);
@@ -115,7 +114,6 @@ export default function RoleEditor({
           </div>
         </div>
       )}
-      <input type="hidden" name="owner_key" value={ownerKey} />
     </form>
   );
 }

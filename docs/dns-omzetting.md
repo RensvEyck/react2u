@@ -96,9 +96,16 @@ WordPress-site er weer. Laat de oude hosting daarom nog een tijd staan.
 ## Daarna
 
 - Pas als de nieuwe site een paar dagen goed draait: WordPress-hosting opzeggen.
-- Controleer of de oude site geen URL's had die de nieuwe niet kent — een 404 op
-  een pagina die goed scoorde in Google kost posities. `vercel.json` bevat al
-  vangnet-redirects voor trailing slashes.
+- De oude URL's zijn al afgevangen: `next.config.ts` bevat ruim dertig
+  permanente redirects, samengesteld uit `wp-sitemap.xml` van de WordPress-site
+  toen die nog live was. Daarin zitten de hele `/werkgever/`- en
+  `/werknemer/`-structuur, `/adviseurs/`, de themarestanten (`/team/`,
+  `/category/`, `/author/`, acht Engelstalige demo-artikelen) en de
+  `/wp-content/`-verzoeken die crawlers nog jaren blijven doen. Trailing
+  slashes handelt Next zelf af.
+- **Kom je na de omzetting alsnog een 404 tegen in Search Console**, voeg het
+  pad dan toe aan die lijst. De bron — de oude sitemap — is dan niet meer
+  bereikbaar, dus dat gaat op signaal in plaats van vooraf.
 - `NEXT_PUBLIC_SITE_URL` hoeft niet: sitemap, robots, canonicals en de link in
   de notificatiemail vallen al terug op `https://react2u.nl`. Zet hem alleen als
   je preview-deploys naar zichzelf wilt laten verwijzen in plaats van naar

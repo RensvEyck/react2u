@@ -4,7 +4,7 @@ import StatusSelect from "@/components/admin/StatusSelect";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import RoleEditor from "@/components/admin/RoleEditor";
 import { canInvite } from "@/lib/supabase/admin";
-import { PERMISSIONS, normalizePermissions, OWNER_ROLE_KEY, type Permission } from "@/lib/permissions";
+import { PERMISSIONS, normalizePermissions, type Permission } from "@/lib/permissions";
 import { LuUserPlus, LuTrash2, LuShieldCheck, LuTriangleAlert, LuCheck, LuMinus } from "react-icons/lu";
 
 type RoleRow = {
@@ -171,10 +171,9 @@ export default async function GebruikersAdmin() {
               role={{ id: r.id, label: r.label, permissions: normalizePermissions(r.permissions), isSystem: r.is_system }}
               save={saveRole}
               remove={r.is_system ? undefined : deleteRole.bind(null, r.id)}
-              ownerKey={OWNER_ROLE_KEY}
             />
           ))}
-          <RoleEditor save={saveRole} ownerKey={OWNER_ROLE_KEY} />
+          <RoleEditor save={saveRole} />
         </div>
       </div>
     </div>

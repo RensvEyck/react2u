@@ -13,15 +13,19 @@ export default function Toast() {
   const params = useSearchParams();
   const ok = params.get("opgeslagen");
   const fout = params.get("fout");
-  const [visible, setVisible] = useState(false);
+  // Zichtbaarheid wordt afgeleid, niet gezet. Zou een effect hier setState
+  // doen, dan volgt er een tweede render op elke navigatie — en flikkert de
+  // melding bij het terugkomen op dezelfde pagina. Nu onthouden we alleen
+  // wélke melding is weggetikt; alles daarbuiten volgt daaruit.
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const key = ok || fout ? `${ok ?? ""}|${fout ?? ""}` : null;
+  const visible = key !== null && dismissed !== key;
 
   useEffect(() => {
-    if (ok || fout) {
-      setVisible(true);
-      const t = setTimeout(() => setVisible(false), 3800);
-      return () => clearTimeout(t);
-    }
-  }, [ok, fout]);
+    if (!key) return;
+    const t = setTimeout(() => setDismissed(key), 3800);
+    return () => clearTimeout(t);
+  }, [key]);
 
   if (!visible) return null;
   const isOk = !!ok && !fout;
