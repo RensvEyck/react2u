@@ -4,8 +4,10 @@
 -- opgeslagen. Wat blijft staan is de afgeleide organisatienaam (uit een
 -- reverse-lookup) en een bezoekershash die dagelijks roteert. Die hash is
 -- alleen bruikbaar om binnen één dag herhaalbezoek te herkennen; over dagen
--- heen valt er geen persoon mee te volgen, en terugrekenen naar een IP kan
--- niet.
+-- heen valt er geen persoon mee te volgen. Terugrekenen naar een IP kan alleen
+-- niet zolang ANALYTICS_SALT gezet is én geheim blijft: met een bekend zout is
+-- een lijst van Nederlandse IP-reeksen genoeg om elke hash te kraken. De
+-- tracker-route registreert daarom niets als die variabele ontbreekt.
 --
 -- Lezen mag alleen een beheerder. Schrijven mag anon, omdat de tracker-route
 -- met de publieke sleutel werkt — net als bij contact_messages.

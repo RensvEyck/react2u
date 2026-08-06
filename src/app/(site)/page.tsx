@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getPage } from "@/lib/content";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
+import { jsonLd } from "@/lib/jsonld";
 
 export const revalidate = 300;
 
@@ -37,7 +38,7 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLd({
             "@context": "https://schema.org",
             "@type": "Organization",
             name: "React2u",

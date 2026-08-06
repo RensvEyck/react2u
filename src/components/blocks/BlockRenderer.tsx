@@ -6,6 +6,7 @@ import Accordion, { type FaqItem } from "@/components/site/Accordion";
 import TypingHeadline from "@/components/site/TypingHeadline";
 import LogoCarousel from "@/components/site/LogoCarousel";
 import ContactForm from "@/components/site/ContactForm";
+import { jsonLd } from "@/lib/jsonld";
 import SiteImage from "@/components/site/SiteImage";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -407,7 +408,7 @@ export default function BlockRenderer({ blocks }: { blocks: Block[] }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: jsonLd({
               "@context": "https://schema.org",
               "@type": "FAQPage",
               mainEntity: faq.map((f) => ({

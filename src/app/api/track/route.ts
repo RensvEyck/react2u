@@ -45,10 +45,18 @@ export async function POST(req: NextRequest) {
     const ip = clientIp(req.headers);
     if (!ip) return ok();
 
+    // Zonder geheim zout registreren we niets.
+    //
+    // Dit viel eerder terug op de anon-sleutel en daarna op een vaste string.
+    // Beide zijn publiek, en daarmee was de hash terug te rekenen naar een IP:
+    // je hoeft alleen de IP-reeks van een provider af te lopen. De opslag heette
+    // dan wel anoniem, maar was het niet. Stil doorgaan met een waardeloos zout
+    // is erger dan niet meten — dan denk je dat je aan dataminimalisatie doet
+    // terwijl je pseudonieme persoonsgegevens bewaart.
+    const salt = process.env.ANALYTICS_SALT;
+    if (!salt) return ok();
+
     const day = new Date().toISOString().slice(0, 10);
-    // Zonder eigen zout valt het terug op de anon-sleutel: die is niet geheim,
-    // maar wel projectspecifiek — beter dan geen zout.
-    const salt = process.env.ANALYTICS_SALT || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "react2u";
     const hash = visitorHash(ip, req.headers.get("user-agent") || "", day, salt);
 
     const org = await lookupOrg(ip);

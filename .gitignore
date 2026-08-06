@@ -42,3 +42,6 @@ next-env.d.ts
 
 # lokale rommel (oude site-export e.d.)
 /_to_delete
+
+# artefacten van browsertests
+/.playwright-mcp

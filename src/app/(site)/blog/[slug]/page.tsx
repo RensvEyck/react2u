@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublishedPosts, getPost } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
+import { jsonLd } from "@/lib/jsonld";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 
@@ -49,7 +50,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     ? new Date(p.published_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })
     : null;
 
-  const jsonLd = {
+  const articleLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: p.title,
@@ -108,8 +109,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} />
     </>
   );
 }

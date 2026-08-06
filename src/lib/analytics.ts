@@ -15,9 +15,10 @@ import type { PageView } from "./types";
  *
  * De hash bevat de datum, dus hij verandert elke nacht. Daardoor kun je binnen
  * één dag herhaalbezoek herkennen, maar iemand niet over dagen heen volgen.
- * Het zout maakt terugrekenen naar een IP onmogelijk voor wie de database in
- * handen krijgt; zonder zout zou een lijst van alle Nederlandse IP's genoeg
- * zijn om de hashes te kraken.
+ * Het zout moet gehéim zijn: is het publiek, dan is een lijst van alle
+ * Nederlandse IP-reeksen genoeg om elke hash terug te rekenen. Daarom slaat
+ * de tracker-route niets op als ANALYTICS_SALT ontbreekt, in plaats van terug
+ * te vallen op een bekende waarde.
  */
 export function visitorHash(ip: string, userAgent: string, day: string, salt: string): string {
   return createHash("sha256").update(`${ip}|${userAgent}|${day}|${salt}`).digest("hex").slice(0, 32);

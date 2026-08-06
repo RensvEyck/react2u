@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedVacancies, getVacancy } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
+import { jsonLd } from "@/lib/jsonld";
 import ApplicationForm from "@/components/site/ApplicationForm";
 import { FaMapMarkerAlt, FaClock, FaEuroSign } from "react-icons/fa";
 
@@ -29,11 +30,11 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
   const v = await getVacancy(slug);
   if (!v) notFound();
 
-  const jsonLd = {
+  const jobLd = {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: v.title,
-    description: (v.description_md || v.intro || "").replace(/\n/g, "<br/>"),
+    description: (v.description_md || v.intro || ""),
     datePosted: v.published_at || v.created_at,
     ...(v.valid_through ? { validThrough: v.valid_through } : {}),
     employmentType: v.employment_type,
@@ -81,7 +82,7 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
           </div>
         </div>
       </section>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(jobLd) }} />
     </>
   );
 }

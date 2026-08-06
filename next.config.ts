@@ -68,9 +68,54 @@ const OLD_SITE_REDIRECTS = [
   { source: "/comments/feed", destination: "/blog" },
 ];
 
+const SUPABASE = "https://tumwtappyegkjabtmold.supabase.co";
+
+/**
+ * Beveiligingsheaders.
+ *
+ * Bewust géén `script-src` met nonce: dat dwingt dynamische rendering af en
+ * sloopt de ISR-cache waar de hele publieke site op draait (`revalidate = 300`).
+ * De directives hieronder zijn allemaal statisch en breken niets.
+ *
+ * Dit is een vangnet, geen oplossing. De echte verdediging tegen XSS is dat
+ * inhoud veilig geserialiseerd wordt — zie src/lib/jsonld.ts.
+ */
+const SECURITY_HEADERS = [
+  // Voorkomt dat een geüpload bestand met een verkeerd content-type alsnog als
+  // HTML of script wordt uitgevoerd.
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  // Clickjacking: de site hoort nergens in een frame te staan.
+  { key: "X-Frame-Options", value: "DENY" },
+  // Lekt geen paden of querystrings naar externe sites.
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // De site vraagt geen van deze rechten; expliciet dichtzetten scheelt een
+  // aanvaller een opening als er ooit vreemde inhoud wordt ingevoegd.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      `img-src 'self' data: blob: ${SUPABASE}`,
+      `connect-src 'self' ${SUPABASE} https://*.supabase.co`,
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
+      // Formulieren mogen alleen naar de eigen site posten.
+      "form-action 'self'",
+      // Geen <base>-injectie die relatieve URL's kan omleiden.
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+  },
+];
+
 const nextConfig: NextConfig = {
   async redirects() {
     return OLD_SITE_REDIRECTS.map((r) => ({ ...r, permanent: true }));
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
 };
 
