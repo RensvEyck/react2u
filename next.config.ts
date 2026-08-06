@@ -95,6 +95,19 @@ const SECURITY_HEADERS = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
+      // 'unsafe-inline' is hier onvermijdelijk. Next zet de hydratatiedata in
+      // inline scripts (self.__next_f.push), en zonder deze regel valt
+      // script-src terug op default-src 'self' — dan blokkeert de browser die
+      // scripts en werkt er niets meer: geen menu, geen formulieren, geen
+      // inloggen. Precies dat is hier één keer misgegaan.
+      //
+      // Het alternatief, een nonce per verzoek, dwingt dynamische rendering af
+      // en sloopt de ISR-cache waar de publieke site op draait. Die ruil is het
+      // niet waard: de echte verdediging tegen XSS is dat inhoud veilig
+      // geserialiseerd wordt (src/lib/jsonld.ts). Wat deze CSP wél afdekt staat
+      // hieronder — exfiltratie naar vreemde domeinen, gekaapte formulieren,
+      // clickjacking en base-tag-injectie.
+      "script-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: ${SUPABASE}`,
       `connect-src 'self' ${SUPABASE} https://*.supabase.co`,
       "style-src 'self' 'unsafe-inline'",
