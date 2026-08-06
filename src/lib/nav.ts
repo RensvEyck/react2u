@@ -94,13 +94,37 @@ export function normalizeDocs(value: unknown): FooterDoc[] {
 // href is optioneel: een keurmerk zonder doorklik toont alleen het logo.
 export type Certificate = { image: string; alt: string; href: string };
 
+/** Herkent of een URL naar een afbeelding wijst die een browser kan tonen. */
+export function isAfbeelding(url: string): boolean {
+  return /\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(url.trim());
+}
+
+/**
+ * Certificaten voor de footer.
+ *
+ * Een certificaat telt mee zodra er íets te tonen valt: een logo, of anders een
+ * omschrijving met een link. Dat laatste is er bewust bij: certificaten worden
+ * vaak als PDF aangeleverd, en een PDF kun je niet in een `<img>` zetten. Zonder
+ * die uitzondering verdween zo'n regel spoorloos — hij werd wél opgeslagen, maar
+ * verscheen nergens, wat niet te onderscheiden is van "opslaan werkt niet".
+ *
+ * Een niet-toonbaar bestand in `image` (zoals een PDF) schuift daarom door naar
+ * `href`, zodat het als link bruikbaar blijft.
+ */
 export function normalizeCertificates(value: unknown): Certificate[] {
   if (!Array.isArray(value)) return [];
   return value
-    .map((c) => ({
-      image: String((c as Certificate)?.image ?? "").trim(),
-      alt: String((c as Certificate)?.alt ?? "").trim(),
-      href: String((c as Certificate)?.href ?? "").trim(),
-    }))
-    .filter((c) => c.image);
+    .map((c) => {
+      const ruw = String((c as Certificate)?.image ?? "").trim();
+      const alt = String((c as Certificate)?.alt ?? "").trim();
+      const href = String((c as Certificate)?.href ?? "").trim();
+      const toonbaar = isAfbeelding(ruw);
+      return {
+        image: toonbaar ? ruw : "",
+        alt,
+        // Staat er een PDF in het logoveld en is er geen link, dan wordt dat de link.
+        href: href || (!toonbaar && ruw ? ruw : ""),
+      };
+    })
+    .filter((c) => c.image || (c.alt && c.href));
 }

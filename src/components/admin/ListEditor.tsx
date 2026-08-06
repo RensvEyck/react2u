@@ -9,6 +9,8 @@ export type FieldSpec = {
   placeholder?: string;
   /** Toont een knop om uit de mediabibliotheek te kiezen. */
   media?: boolean;
+  /** Beperkt die keuze tot afbeeldingen. Zet dit waar het veld een <img> vult. */
+  alleenAfbeeldingen?: boolean;
   /** Laat de waarde als miniatuur zien (voor logo's). */
   preview?: boolean;
 };
@@ -135,6 +137,7 @@ export default function ListEditor({
 
       {picking && (
         <MediaPicker
+          alleenAfbeeldingen={fields.find((f) => f.name === picking.field)?.alleenAfbeeldingen}
           onClose={() => setPicking(null)}
           onSelect={(url) => {
             update(picking.row, picking.field, url);

@@ -73,14 +73,14 @@ export default async function SettingsAdmin() {
         <p className="mb-4 text-[13px] text-black/45">
           Logo&apos;s die als rij onderaan elke pagina staan. Upload het logo eerst via{" "}
           <Link href="/admin/media" className="font-semibold text-[#e75387] hover:underline">Media</Link>.
-          Een link is optioneel — zonder link toont het logo zich zonder doorklik.
+          Het logo moet een afbeelding zijn; een PDF kan een browser niet als plaatje tonen. Zet het certificaat zelf bij <em>Link</em>. Vul je alleen een omschrijving en een link in, dan verschijnt het certificaat als tekstlink in plaats van als logo.
         </p>
         <ListEditor
           initial={certificates}
           fields={[
-            { name: "image", label: "Logo", placeholder: "https://…/logo.png", media: true, preview: true },
+            { name: "image", label: "Logo (afbeelding — geen PDF)", placeholder: "https://…/logo.png", media: true, preview: true, alleenAfbeeldingen: true },
             { name: "alt", label: "Omschrijving (voor schermlezers)", placeholder: "ISO 9001 gecertificeerd" },
-            { name: "href", label: "Link (optioneel)", placeholder: "https://…" },
+            { name: "href", label: "Link (optioneel) — hier hoort het certificaat als PDF", placeholder: "https://…/certificaat.pdf", media: true },
           ]}
           addLabel="Certificaat toevoegen"
           emptyLabel="Nog geen certificaten."

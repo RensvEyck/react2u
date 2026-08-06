@@ -40,6 +40,7 @@ export default function ImageField({
       </div>
       {picking && (
         <MediaPicker
+          alleenAfbeeldingen
           onClose={() => setPicking(false)}
           onSelect={(url) => { setValue(url); setPicking(false); }}
         />

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LOGO_URL, type FooterDoc, type Certificate } from "@/lib/nav";
 import type { ContactInfo } from "@/lib/content";
-import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaCertificate } from "react-icons/fa";
 import SiteImage from "./SiteImage";
 
 export default function Footer({
@@ -73,16 +73,25 @@ export default function Footer({
         <div className="border-t border-black/10">
           <div className="container-site flex flex-wrap items-center justify-center gap-x-10 gap-y-6 py-8">
             {certificates.map((c, i) => {
-              const logo = (
+              // Zonder logo tonen we de omschrijving als link. Certificaten
+              // komen vaak als PDF binnen, en die kan geen <img> zijn — dan is
+              // een leesbare link beter dan niets laten zien.
+              const inhoud = c.image ? (
                 <SiteImage src={c.image} alt={c.alt} sizes="160px" widths={[160, 320]}
                   className="h-14 w-auto max-w-[160px] object-contain" />
+              ) : (
+                <span className="inline-flex items-center gap-2 text-[15px] font-medium">
+                  <FaCertificate className="shrink-0 text-secondary" aria-hidden />
+                  {c.alt}
+                </span>
               );
               return c.href ? (
-                <a key={i} href={c.href} target="_blank" rel="noopener" className="transition-opacity hover:opacity-70">
-                  {logo}
+                <a key={i} href={c.href} target="_blank" rel="noopener"
+                   className="text-primary/80 transition-opacity hover:text-accent hover:opacity-70">
+                  {inhoud}
                 </a>
               ) : (
-                <span key={i}>{logo}</span>
+                <span key={i}>{inhoud}</span>
               );
             })}
           </div>

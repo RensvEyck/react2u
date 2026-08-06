@@ -17,7 +17,16 @@ async function walk(prefix: string, depth: number): Promise<string[]> {
   return out;
 }
 
-export default function MediaPicker({ onSelect, onClose }: { onSelect: (url: string) => void; onClose: () => void }) {
+/**
+ * @param alleenAfbeeldingen verbergt PDF's en andere bestanden. Nodig waar het
+ * doelveld een <img> vult: een PDF kiezen leverde daar een lege plek op de site
+ * op, zonder enige melding — niet te onderscheiden van "opslaan werkt niet".
+ */
+export default function MediaPicker({ onSelect, onClose, alleenAfbeeldingen = false }: {
+  onSelect: (url: string) => void;
+  onClose: () => void;
+  alleenAfbeeldingen?: boolean;
+}) {
   const [entries, setEntries] = useState<Entry[] | null>(null);
 
   useEffect(() => {
@@ -28,10 +37,11 @@ export default function MediaPicker({ onSelect, onClose }: { onSelect: (url: str
         paths
           .filter((p) => !p.endsWith(".emptyFolderPlaceholder"))
           .map((p) => ({ path: p, url: base + p, isImage: /\.(png|jpe?g|webp|gif|svg|avif)$/i.test(p) }))
+          .filter((e) => !alleenAfbeeldingen || e.isImage)
           .sort((a, b) => a.path.localeCompare(b.path))
       );
     })();
-  }, []);
+  }, [alleenAfbeeldingen]);
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -39,13 +49,13 @@ export default function MediaPicker({ onSelect, onClose }: { onSelect: (url: str
       <div className="relative flex max-h-[80vh] w-full max-w-[860px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-black/[0.06] px-6 py-4">
           <h3 className="flex items-center gap-2 text-lg font-bold text-[#312e82]">
-            <LuImage /> Kies uit media
+            <LuImage /> {alleenAfbeeldingen ? "Kies een afbeelding" : "Kies uit media"}
           </h3>
           <button onClick={onClose} className="rounded-lg p-2 text-black/40 hover:bg-black/5" aria-label="Sluiten"><LuX /></button>
         </div>
         <div className="overflow-y-auto p-6">
           {!entries && <p className="text-black/50">Laden…</p>}
-          {entries && entries.length === 0 && <p className="text-black/50">Geen bestanden gevonden.</p>}
+          {entries && entries.length === 0 && <p className="text-black/50">{alleenAfbeeldingen ? "Nog geen afbeeldingen geüpload." : "Geen bestanden gevonden."}</p>}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
             {(entries || []).map((e) => (
               <button
