@@ -30,11 +30,19 @@ export function isOptimizable(url: string): boolean {
   return true;
 }
 
-/** Bouwt de URL voor één breedte. Geeft het origineel terug als dat niet kan. */
+/**
+ * Bouwt de URL voor één breedte. Geeft het origineel terug als dat niet kan.
+ *
+ * `resize=contain` is niet optioneel. Zonder die parameter schaalt Supabase
+ * alleen de breedte en laat hij de oorspronkelijke hoogte staan: een logo van
+ * 6000×3375 werd met `?width=240` een afbeelding van 240×3375 — platgedrukt tot
+ * een streepje. Met `contain` past de afbeelding binnen de gevraagde breedte
+ * met behoud van verhouding.
+ */
 export function optimized(url: string, width: number, quality = 75): string {
   if (!isOptimizable(url)) return url;
   const [path] = url.split("?");
-  return `${path.replace(OBJECT_PATH, RENDER_PATH)}?width=${width}&quality=${quality}`;
+  return `${path.replace(OBJECT_PATH, RENDER_PATH)}?width=${width}&resize=contain&quality=${quality}`;
 }
 
 /** srcSet-waarde: "…?width=480 480w, …?width=800 800w, …" */
