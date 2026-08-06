@@ -249,6 +249,28 @@ wil er één per pagina, niet één per blok.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld
 niets zegt.
 
+## Bewaartermijnen en privacy
+
+`pg_cron` draait dagelijks om 03:30 de functie
+`public.opruimen_verlopen_gegevens()`. Die verwijdert contactberichten na 12
+maanden, leads na 24 maanden en bezoekgegevens na 12 maanden.
+
+**Sollicitaties staan er bewust niet in.** Daar hangt een cv-bestand aan, en dat
+moet via de Storage-API weg. Alleen de databaserij verwijderen laat de bytes in
+de bucket staan — het lijkt dan gewist terwijl het er nog is, en dat is voor de
+AVG slechter dan niets doen. De functie telt ze wel, zodat er zicht op blijft;
+verwijderen gaat via de knop in het Postvak IN. Volledige automatisering vraagt
+`SUPABASE_SERVICE_ROLE_KEY`.
+
+De **privacyverklaring** staat als gewone pagina in het CMS (`/privacyverklaring`),
+gelinkt in de footer en onder beide formulieren. Hij beschrijft precies wat de
+site nu doet. **Zet je `IPINFO_TOKEN` of Resend aan, dan moet die verklaring
+mee**: er komt dan een verwerker bij (ipinfo.io, Resend) die er nu niet in staat.
+
+Het privacyreglement (PDF, verzuimdossiers) belooft tweefactorauthenticatie voor
+toegang tot digitale bestanden. Het adminpaneel heeft dat niet. Los dat op door
+MFA aan te zetten in Supabase, of pas de tekst aan.
+
 ## Database
 
 Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`

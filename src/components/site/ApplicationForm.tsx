@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
+import Link from "next/link";
 
 const input =
   "w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-[16px] outline-none focus:border-accent";
@@ -32,6 +33,9 @@ export default function ApplicationForm({ vacancyId, vacancyTitle }: { vacancyId
       <button className="btn" disabled={pending}>
         {pending ? "Versturen…" : "Solliciteer direct"}
       </button>
+      <p className="text-[13.5px] text-primary/55">
+        Zie onze <Link href="/privacyverklaring" className="underline hover:text-accent">privacyverklaring</Link> voor wat we met je gegevens doen en je cv.
+      </p>
     </form>
   );
 }
