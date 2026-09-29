@@ -10,11 +10,13 @@ import { optimized, srcSet, DEFAULT_WIDTHS, isOptimizable } from "@/lib/image";
  * next/image loopt.
  */
 export default function SiteImage({
-  src, alt, className, sizes = "100vw", widths = DEFAULT_WIDTHS, priority = false,
+  src, alt, className, style, sizes = "100vw", widths = DEFAULT_WIDTHS, priority = false,
 }: {
   src: string;
   alt: string;
   className?: string;
+  /** Bijvoorbeeld `objectPosition`, om bij het bijsnijden het gezicht in beeld te houden. */
+  style?: React.CSSProperties;
   /** Hoe breed de afbeelding op het scherm staat — stuurt welke srcSet-variant de browser kiest. */
   sizes?: string;
   widths?: number[];
@@ -30,6 +32,7 @@ export default function SiteImage({
       sizes={canScale ? sizes : undefined}
       alt={alt}
       className={className}
+      style={style}
       loading={priority ? "eager" : "lazy"}
       decoding={priority ? "sync" : "async"}
       {...(priority ? { fetchPriority: "high" as const } : {})}

@@ -280,84 +280,94 @@ function Hero(p: BlockProps) {
 }
 
 /**
- * Het startscherm. Links wie React2u is, rechts de keuze: werkgever of
- * werknemer, als twee rustige, even zware routekaarten. Zo staat de keuze
- * meteen in beeld, zonder dat hij schreeuwt.
+ * Het startscherm: een splitscreen. Werkgever en werknemer zoeken iets heel
+ * anders, dus het scherm is in tweeën gedeeld — elk een paginavullende foto met
+ * de keuze erop. Daarboven alleen een smalle kopregel met de h1.
  *
- * `choices` (twee) met { doelgroep, label, title, text, image, href }. `trust`
- * is een lijstje vertrouwen onder de tekst: [{ icon, text, href }].
+ * `choices` (twee) met { doelgroep, title, text, button, image, focus, href };
+ * `focus` is de object-position van de foto (bv. "30% 25%"). De foto is sfeer
+ * (alt=""); de link heet naar zijn tekst. `text` valt op de telefoon weg. `trust` is één regel vertrouwen eronder: [{ icon, text, href }].
  */
 function AudienceChoice({ d, asH1 }: BlockProps) {
   const choices = ((d.choices as any[]) || []).filter((c) => c?.title && c?.href).slice(0, 2);
   const trust = ((d.trust as any[]) || []).filter((t) => t?.text);
-  // Drie rasteritems: tekst, keuze, vertrouwen. Op een telefoon in die
-  // volgorde onder elkaar (de keuze direct na de intro); vanaf lg staat de
-  // keuze rechts over de volle hoogte en het vertrouwen onder de tekst.
   return (
-    <section data-tone="band" className="border-b border-line bg-soft">
-      <div className="container-site grid gap-x-8 gap-y-10 pb-14 pt-10 md:pb-20 md:pt-14 lg:grid-cols-12 lg:gap-y-8">
-        <div className="lg:col-span-6 lg:row-start-1 lg:self-end">
-          {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
-          <PageHeading asH1={asH1} className={H1}>
+    <section data-tone="band" className="bg-soft">
+      <div className="container-site flex flex-col gap-3 pb-7 pt-7 md:flex-row md:items-end md:justify-between md:gap-12 md:pb-8 md:pt-9">
+        <div>
+          {d.eyebrow && <p className="eyebrow mb-2">{d.eyebrow}</p>}
+          <PageHeading asH1={asH1} className="text-[1.9rem] font-bold leading-[1.1] tracking-[-0.022em] sm:text-[2.3rem] lg:text-[2.6rem]">
             <Highlighted text={d.heading || ""} highlight={d.highlight} />
           </PageHeading>
-          {d.text && <MiniMarkdown text={d.text} className={`mt-6 max-w-[520px] ${LEAD}`} />}
         </div>
-
-        <div className="lg:col-span-6 lg:col-start-7 lg:row-span-2 lg:row-start-1 lg:self-center">
-          {d.choicesLabel && <p className="mb-4 text-[15px] font-semibold text-primary">{d.choicesLabel}</p>}
-          <ul className="space-y-4">
-            {choices.map((c, i) => (
-              <li key={i}>
-                <Link href={c.href}
-                  className="group flex items-stretch gap-5 rounded-2xl border border-line bg-white p-3 pr-5 transition-[border-color,box-shadow] duration-300 hover:border-primary hover:shadow-[0_16px_32px_-24px_rgba(34,32,90,0.4)] sm:p-4 sm:pr-6">
-                  {c.image && (
-                    <div className="relative hidden w-[132px] shrink-0 overflow-hidden rounded-xl bg-soft sm:block">
-                      <SiteImage src={c.image} alt="" sizes="132px" widths={[264, 400]} className="absolute inset-0 h-full w-full object-cover" />
-                    </div>
-                  )}
-                  <div className="flex min-w-0 flex-1 flex-col justify-center py-2 sm:py-3">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span className="eyebrow">{c.label}</span>
-                      <VorigeKeuze doelgroep={c.doelgroep} />
-                    </div>
-                    <span className="mt-1.5 block font-heading text-[22px] font-bold leading-tight text-primary sm:text-[24px]">{c.title}</span>
-                    {c.text && <span className="mt-1.5 block text-[15.5px] leading-snug">{c.text}</span>}
-                  </div>
-                  <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center self-center rounded-full border border-line text-primary transition-colors duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-white">
-                    <Arrow />
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {trust.length > 0 && (
-          <ul className="space-y-2.5 text-[15.5px] text-primary lg:col-span-6 lg:row-start-2 lg:self-start">
-            {trust.map((t, i) => {
-              const inner = (
-                <>
-                  <Icon name={t.icon} className="shrink-0 text-[18px]" />
-                  <span>{t.text}</span>
-                </>
-              );
-              const cls = "inline-flex items-center gap-3";
-              return (
-                <li key={i}>
-                  {t.href ? (
-                    isExternal(t.href)
-                      ? <a href={t.href} className={`${cls} underline-offset-4 hover:underline`}>{inner}</a>
-                      : <Link href={t.href} className={`${cls} underline-offset-4 hover:underline`}>{inner}</Link>
-                  ) : (
-                    <span className={cls}>{inner}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        {d.text && <MiniMarkdown text={d.text} className="max-w-[440px] text-[16.5px] leading-relaxed md:pb-1 lg:text-[17px]" />}
       </div>
+
+      {/* De twee helften, van rand tot rand en ook op de telefoon naast elkaar: zo
+          ziet iedereen beide keuzes meteen. De hoogte vult het scherm tot de vouw
+          (min de kopregel), met een onder- en bovengrens. De smalle naad
+          ertussen is de zandkleur van de sectie. */}
+      <div className="split flex h-[clamp(300px,calc(100svh-372px),560px)] gap-1 md:h-[clamp(440px,calc(100svh-280px),720px)]">
+        {choices.map((c, i) => (
+          <Link key={i} href={c.href}
+            className="split-half group relative isolate flex flex-1 basis-0 flex-col justify-end overflow-hidden bg-primary-deep text-white">
+            {c.image && (
+              <SiteImage src={c.image} alt="" priority sizes="(min-width: 768px) 60vw, 100vw" widths={[640, 960, 1280, 1600]}
+                className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-[1200ms] ease-[var(--ease-out-soft)] group-hover:scale-[1.04]"
+                style={c.focus ? { objectPosition: c.focus } : undefined} />
+            )}
+            {/* Dimt de andere helft zodra je er één aanwijst (zie .split in globals.css). */}
+            <div aria-hidden className="split-dim absolute inset-0 -z-10 bg-primary-deep/25 opacity-0 transition-opacity duration-500" />
+
+            <div className="absolute left-3 top-3 sm:left-5 sm:top-5 md:left-10 md:top-8">
+              <VorigeKeuze doelgroep={c.doelgroep} />
+            </div>
+
+            {/* Op brede schermen lijnt de linkertekst uit met de inhoud van de pagina (container-site, 1240px). */}
+            <div className={`relative p-4 sm:p-8 md:p-10 xl:px-14 xl:pb-12 ${i === 0 ? "xl:pl-[max(3.5rem,calc(50vw-620px+2rem))]" : ""}`}>
+              {/* Donker verloop alleen achter de tekst, zodat de foto zelf warm en helder blijft.
+                  Grote kop: 3:1 is genoeg, dus bovenin mag het licht zijn; achter de
+                  kleinere regel eronder is het zo donker dat wit er ook op een witte
+                  foto ruim 4,5:1 haalt. */}
+              <div aria-hidden className="absolute inset-x-0 -top-16 bottom-0 -z-10 bg-[linear-gradient(to_top,rgb(34_32_90/0.9),rgb(34_32_90/0.78)_40%,rgb(34_32_90/0.5)_72%,rgb(34_32_90/0))]" />
+              <h2 className="text-[1.6rem] font-bold leading-[1.05] tracking-[-0.025em] !text-white sm:text-[2.2rem] lg:text-[2.6rem] xl:text-[3.1rem]">
+                {c.title}
+              </h2>
+              {c.text && <p className="mt-3 hidden max-w-[420px] text-[16.5px] leading-snug text-white sm:block md:text-[18px]">{c.text}</p>}
+              {/* Op de telefoon alleen een ronde pijl; de knoptekst blijft voor schermlezers. */}
+              <span className="mt-4 inline-grid h-11 w-11 place-items-center rounded-full bg-white text-primary transition-colors duration-300 group-hover:bg-accent group-hover:text-white group-focus-visible:bg-accent group-focus-visible:text-white sm:mt-6 sm:inline-flex sm:h-auto sm:w-auto sm:items-center sm:gap-2 sm:rounded-lg sm:px-5 sm:py-3 sm:text-[15.5px] sm:font-semibold">
+                <span className="sr-only sm:not-sr-only">{c.button || "Verder"}</span>
+                <Arrow className="transition-transform duration-300 group-hover:translate-x-1 group-focus-visible:translate-x-1" />
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {trust.length > 0 && (
+        <ul className="container-site flex flex-wrap items-center justify-center gap-x-8 gap-y-2 py-5 text-[15px] text-primary">
+          {trust.map((t, i) => {
+            const inner = (
+              <>
+                <Icon name={t.icon} className="shrink-0 text-[17px]" />
+                <span>{t.text}</span>
+              </>
+            );
+            const cls = "inline-flex items-center gap-2.5";
+            return (
+              <li key={i}>
+                {t.href ? (
+                  isExternal(t.href)
+                    ? <a href={t.href} className={`${cls} underline-offset-4 hover:underline`}>{inner}</a>
+                    : <Link href={t.href} className={`${cls} underline-offset-4 hover:underline`}>{inner}</Link>
+                ) : (
+                  <span className={cls}>{inner}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

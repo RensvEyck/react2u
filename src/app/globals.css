@@ -18,10 +18,11 @@
   --color-accent-orange: #f19000;
   /* Grijs met een zweem indigo, zodat het bij de rest past: 6,85:1 op wit. */
   --color-body: #5a5870;
-  /* Het neutrale vlak dat met wit afwisselt. Bijna grijs, een zweem indigo. */
-  --color-soft: #f5f5f8;
-  /* Lijnen en kaartranden. */
-  --color-line: #e4e3ee;
+  /* Het warme, zandkleurige vlak dat met wit afwisselt: warm en menselijk,
+     naast het indigo. Indigo erop 10,2:1, lopende tekst 6,1:1. */
+  --color-soft: #f6f2ec;
+  /* Lijnen en kaartranden, in dezelfde warme tint. */
+  --color-line: #e6e0d6;
   /* Gedempte indigo voor bovenkopjes en bijschriften: 6,0:1 op wit. */
   --color-muted: #5f5c9c;
   /* Gevuld door next/font in app/layout.tsx; de fallback geldt zolang het
@@ -265,6 +266,29 @@ h1, h2, h3 {
     opacity 0.8s var(--ease-out-soft),
     transform 0.8s var(--ease-out-soft);
   transition-delay: calc(var(--ri, 0) * 80ms);
+}
+
+/* Splitscreen op het startscherm: de helft onder de muis (of met de
+   toetsenbordfocus) wordt breder, de andere wijkt en dimt iets. Alleen met een
+   muis (hover: hover) en zonder verminderde beweging; anders blijven beide
+   helften gewoon even breed. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  .split > .split-half {
+    transition: flex-grow 0.7s var(--ease-out-soft);
+  }
+  .split > .split-half:is(:hover, :focus-visible) {
+    flex-grow: 1.22;
+  }
+  .split:has(> .split-half:is(:hover, :focus-visible)) > .split-half:not(:hover, :focus-visible) .split-dim {
+    opacity: 1;
+  }
+}
+/* De gewone focusring valt buiten de link en verdwijnt dan in de naad of
+   tegen de rand van het scherm. Hier een lijst binnen het vlak, in accent: op
+   de lichte bovenkant van de foto 4,6:1, op het donkere verloop meer. */
+.split-half:focus-visible {
+  outline: 4px solid var(--color-accent);
+  outline-offset: -4px;
 }
 
 /* Megamenu en uitklapmenu's */

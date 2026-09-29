@@ -10,23 +10,24 @@
         "eyebrow": "Arbodienst in Eindhoven",
         "heading": "Jouw mensen, onze aandacht",
         "highlight": "",
-        "text": "React2u is de persoonlijke arbodienst voor werkgevers én werknemers. We begeleiden bij verzuim en re-integratie, preventief én curatief — met aandacht en duidelijke structuur.",
-        "choicesLabel": "Waarmee kunnen we je helpen?",
+        "text": "De persoonlijke arbodienst voor werkgevers én werknemers. Vertel ons wie je bent, dan laten we zien wat we voor je doen.",
         "choices": [
           {
             "doelgroep": "werkgever",
-            "label": "Voor werkgevers",
             "title": "Ik ben werkgever",
-            "text": "Verzuimbegeleiding, preventie en advies voor je organisatie.",
+            "text": "Grip op verzuim, van preventie tot re-integratie.",
+            "button": "Bekijk onze diensten",
             "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/RIE_-Risicomanagement-1.png",
+            "focus": "25% 55%",
             "href": "/werkgevers"
           },
           {
             "doelgroep": "werknemer",
-            "label": "Voor werknemers",
             "title": "Ik ben werknemer",
-            "text": "Ziek of vastgelopen? Lees wat je moet doen en hoe wij je helpen.",
+            "text": "Ziek of vastgelopen? We helpen je weer op weg.",
+            "button": "Lees wat je kunt doen",
             "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png",
+            "focus": "55% 45%",
             "href": "/werknemers"
           }
         ],

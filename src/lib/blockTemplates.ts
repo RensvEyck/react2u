@@ -75,13 +75,15 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     },
   },
   audienceChoice: {
-    label: "Startscherm: kies werkgever of werknemer",
-    // tone: "indigo" of "warm". doelgroep: werkgever of werknemer (voor "Je vorige keuze").
+    label: "Startscherm: splitscreen werkgever | werknemer",
+    // Twee helften met elk een paginavullende foto. doelgroep: werkgever of
+    // werknemer (voor "Je vorige keuze"). focus: welk deel van de foto in beeld
+    // blijft bij het bijsnijden, bv. "30% 25%" (links, bovenin).
     data: {
       eyebrow: "Welkom bij React2u", heading: "Kop", highlight: "", text: "",
       choices: [
-        { doelgroep: "werkgever", tone: "indigo", label: "Ik ben", title: "werkgever", text: "Belofte", image: "", href: "/werkgevers", links: [{ label: "Link", href: "/" }] },
-        { doelgroep: "werknemer", tone: "warm", label: "Ik ben", title: "werknemer", text: "Belofte", image: "", href: "/werknemers", links: [{ label: "Link", href: "/" }] },
+        { doelgroep: "werkgever", title: "Ik ben werkgever", text: "Belofte", button: "Bekijk", image: "", focus: "center", href: "/werkgevers" },
+        { doelgroep: "werknemer", title: "Ik ben werknemer", text: "Belofte", button: "Bekijk", image: "", focus: "center", href: "/werknemers" },
       ],
       trust: [{ icon: "award", text: "Tekst", href: "" }],
     },

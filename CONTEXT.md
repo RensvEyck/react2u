@@ -234,8 +234,12 @@ eerdere versie met stippenpatronen, ronde foto's, gloed en een kleur per
 dienst werd als druk en onprofessioneel ervaren; die is bewust verlaten. De
 regels:
 
-- **Kleur**: indigo (`primary`) en wit, met één neutraal vlak (`bg-soft`,
-  `#f5f5f8`) en lijnen in `border-line`. Roze (`accent`) alleen voor de
+- **Warm en menselijk**: een eerste strakke versie was correct maar koud en
+  standaard. Daarom: warme, lachende mensen op grote foto's, en het vlak dat
+  met wit afwisselt is zand (`bg-soft`, `#f6f2ec`, lijnen `#e6e0d6`) in plaats
+  van grijs.
+- **Kleur**: indigo (`primary`) en wit, met het zandkleurige vlak (`bg-soft`)
+  en lijnen in `border-line`. Roze (`accent`) alleen voor de
   hoofdactie: de knop. Geen kleur per dienst, geen verloop, geen gloed. De
   stippen van het logo staan alleen in het logo (en op de onderhoudspagina).
 - **Foto's**: rechthoekig, `rounded-2xl`, `object-cover`. Elke dienst heeft
@@ -267,7 +271,7 @@ werkwijze (blok `method`) en de drie waarden met een feit erbij (blok
 
 | Bloktype | Wat |
 |---|---|
-| `audienceChoice` | Het startscherm: links de belofte en een paar vertrouwensregels (`trust`: `icon`, `text`, `href`), rechts twee even zware routekaarten (`choices`: `doelgroep`, `label`, `title`, `text`, `image`, `href`). Op een telefoon komt de keuze direct na de intro. Een terugkerende bezoeker ziet "Je vorige keuze". |
+| `audienceChoice` | Het startscherm, een splitscreen: een smalle kopregel met de h1, daaronder werkgever \| werknemer als twee paginavullende foto's van rand tot rand (`choices`: `doelgroep`, `title`, `text`, `button`, `image`, `focus`, `href`; `focus` is de `object-position`). Ook op de telefoon naast elkaar, zodat beide keuzes boven de vouw staan; daar vallen `text` en de knoptekst weg (ronde pijl). De helft onder de muis wordt breder (`.split` in `globals.css`). Het donkere verloop zit alleen achter de tekst; wit haalt daarop gemeten 3,2:1+ (kop) en 6:1+ (tekst). Eronder één regel vertrouwen (`trust`). Een terugkerende bezoeker ziet "Je vorige keuze". |
 | `heroStatement` | Paginakop met foto: tekst en knoppen links, foto rechts, eventueel een keurmerkregel (`badge`). Hetzelfde ontwerp als `hero`. |
 | `pillars` | "Waar kunnen we je mee helpen?": de zes diensten per stap (voorkomen, begeleiden, versterken), elk met foto en situatie. Inhoud uit `PIJLERS`; het blok zelf heeft alleen de kop. |
 | `steps` | Genummerde stappen met scheidingslijnen, zoals het verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge`, `title`, `text`; `anchor` maakt er een #-doel van. |
