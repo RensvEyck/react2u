@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
+import { hasVersions } from "@/lib/revisionsDb";
 import { deletePost } from "@/app/admin/actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import type { Post } from "@/lib/types";
@@ -12,6 +13,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 
 export default async function BlogAdmin() {
   const { sb } = await requirePerm("blog");
+  const versionsOn = await hasVersions(sb);
   const { data } = await sb.from("posts").select("*").order("created_at", { ascending: false });
   const posts = (data as Post[]) || [];
   return (
@@ -23,7 +25,10 @@ export default async function BlogAdmin() {
             Gepubliceerde artikelen verschijnen op /blog en in de sitemap.
           </p>
         </div>
-        <Link href="/admin/blog/nieuw" className="abtn"><LuPlus /> Nieuw artikel</Link>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/prullenbak" className="abtn-ghost !px-3" title="Prullenbak" aria-label="Prullenbak"><LuTrash2 className="text-[15px]" /></Link>
+          <Link href="/admin/blog/nieuw" className="abtn"><LuPlus /> Nieuw artikel</Link>
+        </div>
       </div>
 
       <div className="space-y-2.5">
@@ -69,7 +74,9 @@ export default async function BlogAdmin() {
               </Link>
               <ConfirmButton
                 action={deletePost.bind(null, p.id)}
-                message={`Artikel "${p.title}" definitief verwijderen?`}
+                message={versionsOn
+                  ? `Artikel "${p.title}" verwijderen? Je kunt het terughalen uit de prullenbak.`
+                  : `Artikel "${p.title}" definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
                 className="rounded-lg p-2 text-black/50 hover:bg-[#fdeef4] hover:text-[#e0356b]"
               >
                 <LuTrash2 />

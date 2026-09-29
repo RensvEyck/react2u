@@ -42,11 +42,18 @@ const FOUT_TEKST: Record<string, string> = {
   zelfde: "Het oude en het nieuwe adres zijn hetzelfde.",
   lus: "Dat zou een lus maken: het nieuwe adres stuurt zelf weer terug.",
   migratie: "Doorverwijzingen staan nog niet aan: migratie 0007 moet eerst in Supabase worden uitgevoerd.",
+  // Versies
+  "versie-weg": "Die versie bestaat niet meer.",
+  "pagina-eerst": "De pagina van dit blok is ook verwijderd — zet eerst de pagina terug.",
+  terugzetten: "Terugzetten mislukt.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
 const OK_TEKST: Record<string, string> = {
   doorverwijzing: "Doorverwijzing staat — binnen een halve minuut overal actief.",
+  verwijderd: "Verwijderd — terug te halen uit de prullenbak.",
+  "definitief-weg": "Verwijderd.",
+  teruggezet: "Teruggezet — de site is bijgewerkt.",
 };
 
 export default function Toast() {

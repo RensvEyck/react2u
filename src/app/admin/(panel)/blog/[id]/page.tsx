@@ -3,14 +3,17 @@ import { notFound } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import { savePost } from "@/app/admin/actions";
 import PostFields from "@/components/admin/PostFields";
+import VersionHistory from "@/components/admin/VersionHistory";
+import { loadVersions } from "@/lib/revisionsDb";
 import type { Post } from "@/lib/types";
 import { LuArrowLeft, LuExternalLink } from "react-icons/lu";
 
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { sb } = await requirePerm("blog");
+  const { sb, admin } = await requirePerm("blog");
   const { data } = await sb.from("posts").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
+  const history = await loadVersions(sb, "posts", id);
   const p = data as Post;
   return (
     <div className="space-y-6">
@@ -34,6 +37,12 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
           <button className="abtn">Opslaan</button>
         </div>
       </form>
+      <VersionHistory
+        versions={history}
+        currentUserId={admin.userId}
+        back={`/admin/blog/${id}`}
+        canRestore
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requirePerm } from "@/lib/admin";
+import { requireAdmin, requirePerm } from "@/lib/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads";
 
@@ -44,22 +44,29 @@ export async function updateBlockData(blockId: string, pageSlug: string, formDat
   } catch {
     redirect(`/admin/paginas/${pageSlug}/blok/${blockId}?fout=json`);
   }
-  await sb.from("blocks").update({ data }).eq("id", blockId);
+  const { error } = await sb.from("blocks").update({ data }).eq("id", blockId);
+  if (error) redirect(`/admin/paginas/${pageSlug}/blok/${blockId}?fout=opslaan`);
   revalidateSite();
-  redirect(`/admin/paginas/${pageSlug}?opgeslagen=1`);
+  // In de editor blijven: met ⌘S sla je tussendoor op en werk je verder.
+  redirect(`/admin/paginas/${pageSlug}/blok/${blockId}?opgeslagen=1`);
 }
 
-export async function moveBlock(blockId: string, pageSlug: string, direction: "up" | "down") {
+/**
+ * Slaat de volgorde van de blokken op, zoals de gebruiker ze sleepte.
+ *
+ * Alleen ids die echt bij deze pagina horen tellen mee; wat de browser verder
+ * meestuurt wordt genegeerd. De versiegeschiedenis slaat pure
+ * volgordewijzigingen over (zie migratie 0008) — slepen is geen inhoud.
+ */
+export async function reorderBlocks(pageSlug: string, ids: string[]) {
   const { sb } = await requirePerm("paginas");
-  const { data: block } = await sb.from("blocks").select("*").eq("id", blockId).single();
-  if (!block) return;
-  const { data: siblings } = await sb.from("blocks").select("id, sort").eq("page_id", block.page_id).order("sort");
-  if (!siblings) return;
-  const idx = siblings.findIndex((b) => b.id === blockId);
-  const swapWith = direction === "up" ? siblings[idx - 1] : siblings[idx + 1];
-  if (!swapWith) return;
-  await sb.from("blocks").update({ sort: swapWith.sort }).eq("id", blockId);
-  await sb.from("blocks").update({ sort: block.sort }).eq("id", swapWith.id);
+  const { data: page } = await sb.from("pages").select("id").eq("slug", pageSlug).single();
+  if (!page) throw new Error("Pagina niet gevonden");
+  const { data: blocks } = await sb.from("blocks").select("id").eq("page_id", page.id);
+  const own = new Set(((blocks as { id: string }[]) || []).map((b) => b.id));
+  const order = ids.filter((id) => own.has(id));
+  const results = await Promise.all(order.map((id, i) => sb.from("blocks").update({ sort: i }).eq("id", id)));
+  if (results.some((r) => r.error)) throw new Error("Volgorde opslaan mislukt");
   revalidateSite();
   revalidatePath(`/admin/paginas/${pageSlug}`);
 }
@@ -307,6 +314,32 @@ export async function deleteBlock(blockId: string, pageSlug: string) {
   revalidatePath(`/admin/paginas/${pageSlug}`);
 }
 
+/**
+ * "Ongedaan maken" direct na het verwijderen van een blok: haalt de laatste
+ * stand terug uit de versiegeschiedenis. Server actions van één browser lopen
+ * na elkaar, dus de verwijdering (en de revisie die de trigger daarvan maakt)
+ * is altijd klaar als deze begint.
+ */
+export async function undoDeleteBlock(blockId: string, pageSlug: string): Promise<boolean> {
+  const { sb } = await requirePerm("paginas");
+  const { data: rev } = await sb
+    .from("revisions")
+    .select("data")
+    .eq("table_name", "blocks")
+    .eq("row_id", blockId)
+    .eq("action", "delete")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!rev) return false;
+  const { restorableFields } = await import("@/lib/revisions");
+  const { error } = await sb.from("blocks").upsert(restorableFields("blocks", rev.data, false), { onConflict: "id" });
+  if (error) return false;
+  revalidateSite();
+  revalidatePath(`/admin/paginas/${pageSlug}`);
+  return true;
+}
+
 export async function createPage(formData: FormData) {
   const { sb } = await requirePerm("paginas");
   const title = String(formData.get("title") || "").trim();
@@ -326,7 +359,8 @@ export async function deletePage(slug: string) {
   await sb.from("pages").delete().eq("slug", slug);
   revalidateSite();
   if (page?.published) offerRedirect(admin.permissions, `/${slug}`, "pagina");
-  redirect("/admin/paginas");
+  const { hasVersions } = await import("@/lib/revisionsDb");
+  redirect(`/admin/paginas?opgeslagen=${(await hasVersions(sb)) ? "verwijderd" : "definitief-weg"}`);
 }
 
 // De lijst-editor stuurt genummerde velden mee (label.0, href.0, label.1, …).
@@ -682,4 +716,71 @@ export async function setMissingIgnored(path: string, ignored: boolean) {
   const { sb } = await requirePerm("seo");
   await sb.from("missing_paths").update({ ignored }).eq("path", path);
   revalidatePath("/admin/seo/doorverwijzingen");
+}
+
+/* ---------- versies en prullenbak ---------- */
+
+/**
+ * Zet een versie terug, of haalt iets uit de prullenbak.
+ *
+ * Het terugschrijven is een gewone upsert met de rechten van de gebruiker, dus
+ * RLS geldt gewoon en de trigger maakt er weer een versie van: terugzetten is
+ * zelf ook ongedaan te maken.
+ *
+ * Een pagina komt terug met de blokken die met haar verdwenen. Die herkennen we
+ * aan hetzelfde moment: de database verwijdert ze in dezelfde transactie, en
+ * now() is binnen een transactie overal gelijk.
+ */
+export async function restoreRevision(id: number, back: string) {
+  const { sb, admin } = await requireAdmin();
+  const { mayRestore, primaryKey, restorableFields } = await import("@/lib/revisions");
+  // Alleen terug naar een adminscherm; een open doorverwijzing is een phishingkans.
+  const target = back.startsWith("/admin") ? back.split("#")[0] : "/admin";
+  const withParam = (k: string, v: string) => `${target}${target.includes("?") ? "&" : "?"}${k}=${v}`;
+
+  const { data: rev } = await sb.from("revisions").select("*").eq("id", id).maybeSingle();
+  if (!rev) redirect(withParam("fout", "versie-weg"));
+  const table = rev.table_name as import("@/lib/revisions").RevisionTable;
+  if (!mayRestore(table, admin.permissions)) redirect(withParam("fout", "geen-rechten"));
+
+  // Bestaat de rij nog, dan blijft een blok op zijn huidige plek staan.
+  const pk = primaryKey(table);
+  const { data: existing } = await sb.from(table).select(pk).eq(pk, rev.row_id).maybeSingle();
+  const fields = restorableFields(table, rev.data, Boolean(existing));
+
+  const { error } = await sb.from(table).upsert(fields, { onConflict: pk });
+  if (error) {
+    // 23505: het adres (slug) is intussen door iets anders in gebruik.
+    // 23503: een blok waarvan de pagina ook weg is.
+    const fout = error.code === "23505" ? "slug-bestaat-al" : error.code === "23503" ? "pagina-eerst" : "terugzetten";
+    redirect(withParam("fout", fout));
+  }
+
+  if (table === "pages" && rev.action === "delete") {
+    const { data: blocks } = await sb
+      .from("revisions")
+      .select("data")
+      .eq("table_name", "blocks")
+      .eq("action", "delete")
+      .eq("created_at", rev.created_at)
+      .filter("data->>page_id", "eq", rev.row_id);
+    const rows = ((blocks as { data: Record<string, unknown> }[]) || []).map((b) => restorableFields("blocks", b.data, false));
+    if (rows.length) await sb.from("blocks").upsert(rows, { onConflict: "id" });
+  }
+
+  // Staat het teruggezette weer live, dan mag een oude doorverwijzing op zijn
+  // adres (bijvoorbeeld aangemaakt na het verwijderen) het niet wegsturen.
+  const d = rev.data as { slug?: string; published?: boolean; status?: string };
+  const live = table === "pages" ? d.published : d.status === "published";
+  if (live && d.slug) {
+    const path = table === "pages" ? (d.slug === "home" ? "/" : `/${d.slug}`)
+      : table === "posts" ? `/blog/${d.slug}`
+      : table === "vacancies" ? `/vacatures/${d.slug}`
+      : null;
+    if (path) await clearRedirect(sb, path);
+  }
+
+  revalidateSite();
+  revalidatePath("/admin", "layout");
+  redirect(withParam("opgeslagen", "teruggezet"));
 }
