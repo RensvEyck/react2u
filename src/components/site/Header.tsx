@@ -6,12 +6,10 @@ import {
   NAV, PIJLERS, HEADER_CTA, STARTPAGINA, dienstVoor, doelgroepVoorPad, type Doelgroep, type NavItem,
 } from "@/lib/nav";
 import { bewaarDoelgroep, useBewaardeDoelgroep } from "@/lib/doelgroep";
-import { kleurVars } from "@/lib/brand";
 import type { ContactInfo } from "@/lib/content";
 import { LuPhone, LuMail, LuMenu, LuX, LuChevronDown } from "react-icons/lu";
 import Logo from "./Logo";
-import { Arrow } from "./DotCloud";
-import Icon from "./Icon";
+import { Arrow } from "./Arrow";
 
 // Hoe lang een menu openblijft nadat de muis het verlaat. Zonder die marge klapt
 // het dicht op weg van de menuknop naar het paneel eronder.
@@ -119,31 +117,26 @@ export default function Header({ contact }: { contact: ContactInfo }) {
   const megaPanel = megaItem && open === megaItem.label && (
     <div
       id={panelId(megaItem.label)}
-      className="menu-panel absolute inset-x-0 top-full hidden border-b border-black/[0.06] bg-white shadow-[0_30px_50px_-30px_rgba(34,32,90,0.35)] lg:block"
+      className="menu-panel absolute inset-x-0 top-full hidden border-b border-line bg-white shadow-[0_24px_40px_-32px_rgba(34,32,90,0.35)] lg:block"
       onClick={closeOnLink}
     >
-      <div className="container-site grid grid-cols-3 gap-10 py-10">
+      <div className="container-site grid grid-cols-3 gap-8 py-9">
         {PIJLERS.map((p, i) => (
-          <div key={p.key} style={kleurVars(p.kleur)}>
-            <p className="mb-5 flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-[var(--k-zacht)] text-[18px] text-[var(--k)]">
-                <Icon name={p.icon} />
-              </span>
-              <span>
-                <span className="block text-[12.5px] font-bold uppercase tracking-[0.14em] text-[var(--k)]">{i + 1} · {p.stap}</span>
-                <span className="block font-heading text-[18px] font-bold text-primary">{p.title}</span>
-              </span>
+          <div key={p.key}>
+            <p className="mb-3 border-b border-line pb-3">
+              <span className="eyebrow block">Stap {i + 1} · {p.stap}</span>
+              <span className="block font-heading text-[18px] font-bold text-primary">{p.title}</span>
             </p>
-            <ul className="space-y-1">
+            <ul>
               {p.diensten.map((d) => (
-                <li key={d.href} style={kleurVars(d.kleur)}>
+                <li key={d.href}>
                   <Link href={d.href} aria-current={current(d.href)}
-                    className="group -mx-3 block rounded-2xl px-3 py-3 transition-colors hover:bg-[var(--k-zacht)] aria-[current=page]:bg-[var(--k-zacht)]">
-                    <span className="block text-[14px] text-body">{d.situatie}</span>
-                    <span className="mt-0.5 flex items-center gap-2 font-semibold text-primary">
-                      {d.label}
-                      <Arrow className="shrink-0 text-[var(--k)] transition-transform duration-300 group-hover:translate-x-1" />
+                    className="group -mx-3 flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-soft aria-[current=page]:bg-soft">
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-primary">{d.label}</span>
+                      <span className="block text-[14px] leading-snug text-body">{d.situatie}</span>
                     </span>
+                    <Arrow className="shrink-0 text-primary opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </Link>
                 </li>
               ))}
@@ -151,11 +144,11 @@ export default function Header({ contact }: { contact: ContactInfo }) {
           </div>
         ))}
       </div>
-      <div className="border-t border-black/[0.06] bg-soft/70">
-        <div className="container-site flex items-center justify-between py-4">
+      <div className="border-t border-line bg-soft">
+        <div className="container-site flex items-center justify-between py-3.5">
           <p className="flex items-center gap-2 text-[15px] text-primary">
             Liever meteen iemand spreken?
-            <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-1.5 font-semibold hover:text-accent">
+            <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-1.5 font-semibold underline-offset-4 hover:underline">
               <LuPhone className="text-[14px]" aria-hidden /> {contact.phoneDisplay}
             </a>
           </p>
@@ -169,35 +162,36 @@ export default function Header({ contact }: { contact: ContactInfo }) {
 
   return (
     <>
-      {/* Topbalk: de keuze werkgever/werknemer als tabbladen (zoals banken
-          particulier en zakelijk scheiden), rechts bellen en mailen. Een
-          <aside>, zodat hij een eigen gebied is voor schermlezers; de
-          overslaglink staat erin als allereerste element. */}
-      <aside aria-label="Doelgroep en contact" className="on-dark bg-primary text-[14px] text-white/85">
+      {/* Topbalk: de keuze werkgever/werknemer als tabbladen, zoals de grote
+          arbodiensten dat doen; rechts bellen en mailen. Een <aside>, zodat
+          hij een eigen gebied is voor schermlezers; de overslaglink staat erin
+          als allereerste element. */}
+      <aside aria-label="Doelgroep en contact" className="border-b border-line bg-soft text-[14px]">
         <a href="#inhoud"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-5 focus:py-3 focus:text-primary">
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-5 focus:py-3 focus:text-white">
           Naar de inhoud
         </a>
-        <div className="container-site flex h-11 items-end justify-between gap-4">
-          <nav aria-label="Kies je route" className="flex h-full items-end gap-1">
+        <div className="container-site flex h-10 items-stretch justify-between gap-4">
+          <nav aria-label="Kies je route" className="flex items-stretch gap-6">
             {(["werkgever", "werknemer"] as const).map((g) => {
               const actief = doelgroep === g;
               return (
                 <Link key={g} href={STARTPAGINA[g].href} aria-current={actief ? "true" : undefined}
-                  className={`flex h-9 items-center rounded-t-xl px-4 font-semibold transition-colors ${
-                    actief ? "bg-white text-primary" : "text-white/80 hover:bg-white/10 hover:text-white"
+                  className={`relative flex items-center font-semibold transition-colors ${
+                    actief ? "text-primary" : "text-body hover:text-primary"
                   }`}>
                   {STARTPAGINA[g].label}
+                  {actief && <span aria-hidden className="absolute inset-x-0 bottom-0 h-[2px] bg-primary" />}
                 </Link>
               );
             })}
           </nav>
-          <div className="flex h-full items-center gap-6">
-            <a href={`tel:${contact.phone}`} className="flex items-center gap-2 hover:text-white">
+          <div className="flex items-center gap-6 text-primary">
+            <a href={`tel:${contact.phone}`} className="flex items-center gap-2 underline-offset-4 hover:underline">
               <LuPhone className="text-[13px]" aria-hidden /> <span className="hidden sm:inline">{contact.phoneDisplay}</span>
               <span className="sr-only sm:hidden">Bel ons: {contact.phoneDisplay}</span>
             </a>
-            <a href={`mailto:${contact.email}`} className="hidden items-center gap-2 hover:text-white md:flex">
+            <a href={`mailto:${contact.email}`} className="hidden items-center gap-2 underline-offset-4 hover:underline md:flex">
               <LuMail className="text-[13px]" aria-hidden /> {contact.email}
             </a>
           </div>
@@ -206,13 +200,13 @@ export default function Header({ contact }: { contact: ContactInfo }) {
 
       <header
         ref={barRef}
-        className={`sticky top-0 z-50 border-b bg-white/95 backdrop-blur-xl transition-[box-shadow,border-color] duration-300 ${
-          scrolled || open || mobile ? "border-transparent shadow-[0_10px_30px_-18px_rgba(34,32,90,0.35)]" : "border-black/[0.06]"
+        className={`sticky top-0 z-50 border-b border-line bg-white transition-shadow duration-300 ${
+          scrolled || open || mobile ? "shadow-[0_8px_24px_-20px_rgba(34,32,90,0.35)]" : ""
         }`}
       >
         <div className="container-site flex h-[72px] items-center justify-between gap-6 lg:h-[84px]">
           <Link href="/" className="shrink-0" onClick={closeAll} aria-label="React2u, naar de homepage">
-            <Logo title="" className="h-[44px] w-auto lg:h-[50px]" />
+            <Logo title="" className="h-[42px] w-auto lg:h-[46px]" />
           </Link>
 
           {/* Desktop */}
@@ -240,7 +234,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
             </Link>
             <button
               type="button"
-              className="grid h-11 w-11 place-items-center rounded-full text-[22px] text-primary transition-colors hover:bg-soft lg:hidden"
+              className="grid h-11 w-11 place-items-center rounded-lg text-[22px] text-primary transition-colors hover:bg-soft lg:hidden"
               onClick={() => setMobile(!mobile)}
               aria-expanded={mobile}
               aria-controls={`${ids}-mobiel`}
@@ -253,12 +247,12 @@ export default function Header({ contact }: { contact: ContactInfo }) {
 
         {/* Mobiel: klapt uit onder de balk */}
         {mobile && (
-          <div id={`${ids}-mobiel`} className="menu-panel max-h-[calc(100dvh-72px)] overflow-y-auto border-t border-black/[0.06] bg-white lg:hidden"
+          <div id={`${ids}-mobiel`} className="menu-panel max-h-[calc(100dvh-72px)] overflow-y-auto border-t border-line bg-white lg:hidden"
                onClick={closeOnLink}>
             <nav aria-label="Hoofdmenu mobiel" className="container-site flex flex-col pb-6 pt-2">
               {nav.map((item) =>
                 item.mega || item.children ? (
-                  <details key={item.label} className="group border-b border-black/[0.06]" open={!!item.mega}>
+                  <details key={item.label} className="group border-b border-line" open={!!item.mega}>
                     <summary className="flex cursor-pointer list-none items-center justify-between py-3.5 text-[18px] font-semibold text-primary [&::-webkit-details-marker]:hidden">
                       {item.label}
                       <LuChevronDown className="text-[18px] opacity-60 transition-transform duration-300 group-open:rotate-180" aria-hidden />
@@ -267,12 +261,11 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                       {item.mega ? (
                         <div className="space-y-4">
                           {PIJLERS.map((p) => (
-                            <div key={p.key} style={kleurVars(p.kleur)}>
-                              <p className="mb-1 text-[12.5px] font-bold uppercase tracking-[0.14em] text-[var(--k)]">{p.stap} · {p.title}</p>
+                            <div key={p.key}>
+                              <p className="eyebrow mb-1">{p.stap} · {p.title}</p>
                               {p.diensten.map((d) => (
-                                <Link key={d.href} href={d.href} style={kleurVars(d.kleur)} aria-current={current(d.href)}
-                                  className="flex items-center gap-2.5 py-2 text-[16.5px] text-primary aria-[current=page]:font-semibold">
-                                  <span className="h-2 w-2 rounded-full bg-[var(--k-vlak)]" aria-hidden />
+                                <Link key={d.href} href={d.href} aria-current={current(d.href)}
+                                  className="block py-2 text-[16.5px] text-primary aria-[current=page]:font-semibold">
                                   {d.label}
                                 </Link>
                               ))}
@@ -292,7 +285,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                   </details>
                 ) : (
                   <Link key={item.href} href={item.href} aria-current={current(item.href)}
-                    className="border-b border-black/[0.06] py-3.5 text-[18px] font-semibold text-primary">
+                    className="border-b border-line py-3.5 text-[18px] font-semibold text-primary">
                     {item.label}
                   </Link>
                 )
@@ -323,12 +316,10 @@ function DesktopItem({
   /** Het dienstenmenu, al opgebouwd door Header; komt direct achter de knop. */
   panel?: React.ReactNode;
 }) {
-  // Het actieve item krijgt een streep onderaan de balk, in de accentkleur.
-  const base = `relative flex h-full items-center gap-1.5 px-3.5 text-[16px] font-medium transition-colors hover:text-accent ${
-    active ? "text-accent" : "text-primary"
-  }`;
+  // Het actieve item krijgt een streep onderaan de balk.
+  const base = "relative flex h-full items-center gap-1.5 px-3.5 text-[16px] font-medium text-primary transition-colors hover:text-primary-deep";
   const marker = active && (
-    <span className="absolute inset-x-3.5 bottom-0 h-[3px] rounded-t-full bg-accent" aria-hidden />
+    <span className="absolute inset-x-3.5 bottom-0 h-[2px] bg-primary" aria-hidden />
   );
 
   if (!item.mega && !item.children) {
@@ -346,7 +337,7 @@ function DesktopItem({
     <div className={`flex h-full ${item.mega ? "" : "relative"}`} onMouseEnter={onEnter} onMouseLeave={onLeave}>
       <button
         type="button"
-        className={`${base} ${isOpen ? "text-accent" : ""}`}
+        className={`${base} ${isOpen ? "bg-soft" : ""}`}
         aria-expanded={isOpen}
         aria-controls={panelId}
         onClick={onToggle}
@@ -358,10 +349,10 @@ function DesktopItem({
       {panel}
       {item.children && isOpen && (
         <div id={panelId} onClick={onNavigate} className="menu-panel absolute left-0 top-full min-w-[250px] pt-2">
-          <div className="rounded-[18px] border border-black/[0.06] bg-white p-2 shadow-[0_24px_48px_-24px_rgba(34,32,90,0.4)]">
+          <div className="rounded-xl border border-line bg-white p-2 shadow-[0_24px_40px_-28px_rgba(34,32,90,0.4)]">
             {item.children.map((c) => (
               <Link key={c.href + c.label} href={c.href} aria-current={path === c.href ? "page" : undefined}
-                className="block rounded-xl px-4 py-2.5 text-[16px] text-primary transition-colors hover:bg-soft aria-[current=page]:font-semibold">
+                className="block rounded-lg px-4 py-2.5 text-[16px] text-primary transition-colors hover:bg-soft aria-[current=page]:font-semibold">
                 {c.label}
               </Link>
             ))}

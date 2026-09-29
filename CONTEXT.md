@@ -143,14 +143,10 @@ Zet een nieuwe klasse die met utilities gecombineerd wordt daar ook in.
 rechtstreeks naartoe kunt linken. Hernoem je zo'n titel, dan landt zo'n link
 nog wel op de pagina maar niet meer op het onderdeel.
 
-**Kleur hoort bij de pijler, en gaat op naam.** Preventie is blauw, Verzuim
-rood, Ontwikkeling teal — drie kleuren uit het logo. Eerder had elke dienst
-een eigen kleur; dat werd een regenboog waarin kleur niets meer zei over wat
-bij elkaar hoort. De kleuren staan in [`src/lib/brand.ts`](src/lib/brand.ts)
-(`KLEUREN`). In blokdata en `nav.ts` staat de naam, `kleurVars()` maakt er
-CSS-variabelen van (`--k`, `--k-vlak`, `--k-zacht`, `--k-donker`). Een
-onbekende naam valt terug op indigo. Roze is geen pijlerkleur maar de
-actiekleur van knoppen — houd die twee gescheiden.
+**Diensten hebben een foto, geen kleur.** `PIJLERS` in `nav.ts` geeft per
+dienst een `image`; die komt terug in overzichten en menu's. De velden `kleur`
+en `KLEUREN` in `brand.ts` bestaan nog, maar de site gebruikt ze niet meer:
+kleur per dienst maakte de site onrustig. Zet ze niet terug zonder reden.
 
 **Tekst uit het CMS wordt bij het tonen netjes gemaakt, niet in de database.**
 Knoppen en keurmerken die in hoofdletters zijn ingevoerd ("NEEM CONTACT OP")
@@ -231,85 +227,78 @@ Sophos-filtering ervoor en `-all` in de SPF.
 
 ## Vormgeving
 
-Acture.nl en arboned.nl waren de inspiratiebronnen, geen voorbeelden om na te
-maken. Van Acture komt de aanpak: rust en ruimte, diensten overzichtelijk
-gegroepeerd, één duidelijke vervolgstap, sociaal bewijs en veelgestelde vragen.
-Van ArboNed: bezoekers meteen hun eigen route geven (werkgever of werknemer),
-de wettelijke plicht van de werkgever uitleggen, en contact via meerdere wegen
-naast elkaar. Vorm, woorden en concepten komen uit React2u zelf:
+**Strak en rustig, naar het voorbeeld van de markt.** De grote arbodiensten
+(Perspectief, Arbo Unie, Sazas, ArboNed) doen hetzelfde: echte foto's, één
+accentkleur, een neutraal vlak dat met wit afwisselt, weinig decoratie. Een
+eerdere versie met stippenpatronen, ronde foto's, gloed en een kleur per
+dienst werd als druk en onprofessioneel ervaren; die is bewust verlaten. De
+regels:
 
-- **Vormtaal: stippen en cirkels**, uit het logo en het REACT-wiel. Foto's
-  staan rond (`RondeFoto` in `BlockRenderer`), met de stippenwolk ernaast;
-  de afsluitende oproep toont de stippenwolk groot, net als de
-  onderhoudspagina.
-- **Eigen woorden**: "Jouw mensen, onze aandacht", "Daar zorgen wij voor",
-  "Dit is React2u!", "Voor iedereen gezond, menselijk en duidelijk", "Er is
-  altijd een oplossing", "Maak een afspraak". Neem geen formuleringen van
-  Acture of ArboNed over ("in één oogopslag", "adviesgesprek", "gingen je
-  voor", "voor lekker werkend Nederland", "wij helpen je graag verder").
-- **Eigen concepten**: diensten vanuit de situatie van de werkgever
-  (`situatie` in `nav.ts`), het REACT-model als werkwijze (blok `method`) en
-  de drie waarden met de feiten erbij (blok `values`).
-- **Werkgever en werknemer** krijgen elk een eigen site-deel — zie
-  *Werkgever en werknemer* hieronder.
-- **"Daar zorgen wij voor"** gebruikt React2u's eigen tweedeling van de
-  dienstpagina's: "Wat doet de werkgever? / Wat neemt React2u uit handen?"
-  (`twoColumnLists` met `text` en `button`).
-- **Header** met de topbalk van de oude site; **footer** op indigo met "Er is
-  altijd een oplossing."
+- **Kleur**: indigo (`primary`) en wit, met één neutraal vlak (`bg-soft`,
+  `#f5f5f8`) en lijnen in `border-line`. Roze (`accent`) alleen voor de
+  hoofdactie: de knop. Geen kleur per dienst, geen verloop, geen gloed. De
+  stippen van het logo staan alleen in het logo (en op de onderhoudspagina).
+- **Foto's**: rechthoekig, `rounded-2xl`, `object-cover`. Elke dienst heeft
+  een eigen foto (`image` in `PIJLERS`, `nav.ts`), die in menu-overzichten,
+  dienstkaarten en "Meer van React2u" terugkomt. De oude illustraties met
+  witte achtergrond (bv. het REACT-wiel) staan heel, niet bijgesneden.
+- **Kaarten**: wit met een dunne rand (`KAART` in `BlockRenderer`); schaduw
+  pas bij hover (`.lift`).
+- **Typografie**: één h1-maat (`H1`) en één h2-maat (`H2`), vet (700), links
+  uitgelijnd. Bovenkopjes klein en gedempt (`.eyebrow`, `--color-muted`).
+- **Knoppen**: afgerond op 10px, 48px hoog, zonder schaduw.
+- **Pictogrammen**: Lucide-lijniconen in indigo, in een vierkant vlak van 48px
+  (`IconTegel`).
 
-**Contrast is doorgerekend, niet geschat.** Het roze van de knoppen is
-`#c8306a` (5,1:1 met witte tekst); het oude `#e75387` haalde 3,5:1. Tekst in
-teal is `--color-secondary-ink` (`#007a6d`); het teal uit het logo is te licht
-voor tekst. De dienstkleuren in `brand.ts` hebben een aparte `tekst`-tint die
-ook op de eigen lichte tint AA haalt. Gebruik voor grijze tekst niet minder
-dan `text-primary/70` of `text-body`.
+**Contrast is doorgerekend, niet geschat.** Roze knop met witte tekst 5,1:1;
+gedempte bovenkopjes 6,0:1 op wit; lopende tekst (`--color-body`) 6,9:1; de
+rand van invoervelden 3,7:1 (WCAG vraagt 3:1 voor randen van bedieningselementen).
 
-**Nieuwe bloktypes** naast de bestaande:
+**Eigen woorden en concepten.** Acture en ArboNed waren inspiratie, geen
+voorbeeld. De woorden komen van React2u zelf ("Jouw mensen, onze aandacht",
+"Daar zorgen wij voor", "Dit is React2u!", "Voor iedereen gezond, menselijk en
+duidelijk", "Er is altijd een oplossing", "Maak een afspraak"); neem geen
+formuleringen van concurrenten over. Eigen concepten: diensten vanuit de
+situatie van de werkgever (`situatie` in `nav.ts`), het REACT-model als
+werkwijze (blok `method`) en de drie waarden met een feit erbij (blok
+`values`).
+
+**Bloktypes** naast de bestaande:
 
 | Bloktype | Wat |
 |---|---|
-| `heroStatement` | De belofte (met `highlight` in de accentkleur), twee knoppen, een keurmerkregel (`badge`) en de ronde foto met de stippenwolk. |
-| `audienceChoice` | Het startscherm: kies werkgever of werknemer. Twee `choices` met `doelgroep`, `tone` (`indigo` of `warm`), `label` ("Ik ben"), `title` (het grote woord), `text`, `image`, `href` en hooguit drie `links`; daaronder `trust` (`icon`, `text`, `href`). Het hele vlak is klikbaar; de links liggen erbovenop. Het grote woord schaalt met het vlak (`cqw`) en blijft op één regel. Een terugkerende bezoeker ziet "Je vorige keuze". |
-| `steps` | Stappen onder elkaar met een stippellijn, zoals het visuele verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge` (wat in de cirkel staat), `title`, `text`, `kleur`; `anchor` maakt er een #-doel van. |
-| `pillars` | "Waar kunnen we je mee helpen?": drie stappen (voorkomen, begeleiden, versterken) met per dienst de situatie. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
-| `method` | De werkwijze: het REACT-model. `steps` met `title`, `text` en `kleur`; de letter is de eerste letter van de titel. Met het wiel en een citaat. |
-| `values` | De drie waarden (`cards` met `title`, `text`, `value`, `valueLabel`, `kleur`). Een feit onderbouwt elke waarde. |
+| `audienceChoice` | Het startscherm: links de belofte en een paar vertrouwensregels (`trust`: `icon`, `text`, `href`), rechts twee even zware routekaarten (`choices`: `doelgroep`, `label`, `title`, `text`, `image`, `href`). Op een telefoon komt de keuze direct na de intro. Een terugkerende bezoeker ziet "Je vorige keuze". |
+| `heroStatement` | Paginakop met foto: tekst en knoppen links, foto rechts, eventueel een keurmerkregel (`badge`). Hetzelfde ontwerp als `hero`. |
+| `pillars` | "Waar kunnen we je mee helpen?": de zes diensten per stap (voorkomen, begeleiden, versterken), elk met foto en situatie. Inhoud uit `PIJLERS`; het blok zelf heeft alleen de kop. |
+| `steps` | Genummerde stappen met scheidingslijnen, zoals het verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge`, `title`, `text`; `anchor` maakt er een #-doel van. |
+| `method` | Het REACT-model: vijf letters met uitleg naast het wiel, en een citaat. |
+| `values` | De drie waarden, elk met een feit (`value`, `valueLabel`). |
 | `latestPosts` | De nieuwste blogartikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
 
 Bestaande blokken kregen optionele varianten: `intro` met `layout: "center"`,
-`valueCards` met een `heading`, `twoColumnLists` met `eyebrow`, `text` en
-`button`, en `ctaBanner` met `routes` (contactroutes rechts: `icon`, `label`,
-`sub`, `href`). `routes` staat bewust niet in het sjabloon: de blokeditor voegt
-aan een lege lijst een tekstregel toe in plaats van een route — begin een
-nieuwe lijst dus door het blok van de homepage als voorbeeld te nemen. De blokeditor toont alleen velden die al in
-de data staan — wil je een bestaand blok omzetten, voeg het opnieuw toe.
+`imageText` met `imageFit: "cover"` (foto bijsnijden in plaats van heel
+tonen), `valueCards` met een `heading`, `twoColumnLists` met `eyebrow`, `text`
+en `button`, en `ctaBanner` met `routes` (contactroutes rechts: `icon`,
+`label`, `sub`, `href`). `routes` staat bewust niet in het sjabloon: de
+blokeditor voegt aan een lege lijst een tekstregel toe in plaats van een route.
+De blokeditor toont alleen velden die al in de data staan — wil je een
+bestaand blok omzetten, voeg het opnieuw toe.
 
-**Ritme en raster.** Elke sectie zet `data-tone` (`white`, `soft`, `dark`,
-`hero`, `band`). Volgen twee secties met dezelfde toon elkaar op, dan haalt
-`globals.css` de bovenruimte van de tweede weg — anders verdubbelt de witruimte.
-Een nieuw blok hoort dus een `data-tone` te hebben. Tweekoloms-secties gebruiken
-`SPLIT`/`LINKS`/`RECHTS` in `BlockRenderer` (5 + 6 van 12 kolommen), zodat de
+**Ritme en raster.** Elke sectie zet `data-tone` (`white`, `soft`, `band`,
+`logos`). Volgen twee secties met dezelfde toon elkaar op, dan haalt
+`globals.css` de bovenruimte van de tweede weg — anders verdubbelt de
+witruimte. Een nieuw blok hoort dus een `data-tone` te hebben. Tweekoloms-
+secties gebruiken `SPLIT`/`LINKS`/`RECHTS` (5 + 6 van 12 kolommen), zodat de
 rechterkolom op elke pagina op dezelfde lijn begint. In een groep knoppen is
 alleen de eerste een volle knop; de rest wordt outline tenzij de data anders
 zegt.
 
 **Het eerste blok is de paginakop.** Begint een pagina met `intro` of
-`richText`, dan wordt dat een lichte band met kruimelpad en h1 (`HeaderBand`);
-een `hero` toont het kruimelpad in zijn tekstpaneel. Het kruimelpad komt uit
-`crumbsVoor()` in `nav.ts` en wordt ook als `BreadcrumbList` uitgegeven.
-
-**Dienstpagina's kleuren mee.** `[slug]/page.tsx` zet `kleurVars()` van de
-dienst op een wrapper; het heropaneel, bovenkopjes, nummering, vinkjes en
-opsommingstekens lezen `--k` en `--k-zacht` (met een terugval voor gewone
-pagina's). Onder elke dienstpagina staat automatisch "Meer van React2u" met
-de vijf andere diensten.
-
-**Een lichte paginakop schuift onder de header.** De menubalk plakt bovenaan
-(de topbalk erboven scrolt weg). `.hero-pull` trekt een paginakop `--hh`
-omhoog zodat zijn lavendel achtergrond doorloopt tot onder de balk. `--hh` in
-`globals.css` moet gelijk zijn aan de hoogte van die balk (72px mobiel, 84px
-desktop). Maak je de balk hoger, verhoog dan `--hh` mee.
+`richText`, dan wordt dat een band met kruimelpad en h1 (`HeaderBand`); een
+`hero` toont het kruimelpad boven zijn kop. Het kruimelpad komt uit
+`crumbsVoor()` in `nav.ts` en wordt ook als `BreadcrumbList` uitgegeven. Onder
+elke dienstpagina staat automatisch "Meer van React2u" met de vijf andere
+diensten.
 
 **Onthullen bij scrollen is veilig voor als JavaScript faalt.** Elementen met
 `data-reveal` komen zacht in beeld. `Reveal.tsx` markeert eerst alles wat al
@@ -435,8 +424,7 @@ HTML ([`src/lib/maintenance.ts`](src/lib/maintenance.ts)), met `503`,
 stylesheet heeft een gehashte naam. Om dezelfde reden staan de lettertypes
 (Figtree, DM Sans) los in `public/fonts/` — byte voor byte dezelfde bestanden
 die next/font voor de site bundelt, maar op een vaste naam. Het beeld is de stippenwolk uit het logo, als
-cirkels overgenomen (`LOGO_DOTS` in `src/lib/brand.ts`, dezelfde bron als
-`DotCloud` op de site), met de kop op de plek van het woord "React2u".
+cirkels overgenomen (`LOGO_DOTS` in `src/lib/brand.ts`), met de kop op de plek van het woord "React2u".
 
 **De pagina's zelf veranderen niet.** Aan- of uitzetten revalideert niets; de
 statische pagina's blijven in de cache staan en zijn meteen terug zodra de

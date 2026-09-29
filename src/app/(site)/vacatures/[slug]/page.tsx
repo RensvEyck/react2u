@@ -63,9 +63,9 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
       <PageHeader crumbs={[{ label: "Werken bij React2u", href: "/vacatures" }, { label: v.title, href: `/vacatures/${v.slug}` }]}
         eyebrow="Vacature" title={v.title}>
         <div className="flex flex-wrap gap-2 text-[15px] font-medium text-primary">
-          <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuMapPin aria-hidden /> {v.location}</span>
-          {v.hours && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
-          {v.salary && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
+          <span className="flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5"><LuMapPin aria-hidden /> {v.location}</span>
+          {v.hours && <span className="flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
+          {v.salary && <span className="flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
         </div>
       </PageHeader>
       <section className="py-16 md:py-24">
@@ -74,7 +74,7 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
             {v.intro && <p className="mb-8 text-[21px] leading-relaxed text-primary/85">{v.intro}</p>}
             <MiniMarkdown text={v.description_md || ""} className="text-[18px]" />
           </div>
-          <div className="h-fit rounded-[28px] border border-black/[0.06] bg-white p-7 shadow-[0_30px_60px_-40px_rgba(34,32,90,0.5)] md:p-9 lg:sticky lg:top-[calc(var(--hh)+1.5rem)]">
+          <div className="h-fit rounded-2xl border border-line bg-white p-7 md:p-9 lg:sticky lg:top-[calc(var(--hh)+1.5rem)]">
             <h2 className="mb-6 text-[26px]">Solliciteer op deze vacature</h2>
             <ApplicationForm vacancyId={v.id} vacancyTitle={v.title} />
           </div>

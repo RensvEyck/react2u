@@ -4,7 +4,7 @@ import { getPublishedPosts } from "@/lib/content";
 import { LuCalendar, LuUserRound } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
-import DotCloud, { Arrow } from "@/components/site/DotCloud";
+import { Arrow } from "@/components/site/Arrow";
 
 export const revalidate = 300;
 
@@ -32,9 +32,8 @@ export default async function BlogIndex() {
       <section className="py-16 md:py-24">
         <div className="container-site">
           {posts.length === 0 ? (
-            <div className="mx-auto max-w-[640px] rounded-[28px] bg-soft p-10 text-center" data-reveal>
-              <DotCloud className="mx-auto mb-6 w-20" />
-              <h2 className="text-[26px]">Binnenkort verschijnen hier onze eerste artikelen</h2>
+            <div className="max-w-[640px] rounded-2xl border border-line p-10" data-reveal>
+              <h2 className="text-[24px]">Binnenkort verschijnen hier onze eerste artikelen</h2>
               <p className="mt-3">Tot die tijd beantwoorden we je vragen graag persoonlijk.</p>
               <Link href="/contact" className="btn mt-7">Stel je vraag <Arrow /></Link>
             </div>
@@ -42,8 +41,8 @@ export default async function BlogIndex() {
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((p, i) => (
                 <article key={p.id} data-reveal style={{ "--ri": i % 3 } as React.CSSProperties}
-                  className="lift group relative flex flex-col overflow-hidden rounded-[28px] bg-soft">
-                  <div className="aspect-[16/10] overflow-hidden bg-[#e9e7f5]">
+                  className="lift group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-white">
+                  <div className="aspect-[16/10] overflow-hidden bg-soft">
                     {p.cover_image ? (
                       <SiteImage
                         src={p.cover_image}
@@ -53,7 +52,7 @@ export default async function BlogIndex() {
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
                       />
                     ) : (
-                      <div className="grid h-full place-items-center"><DotCloud className="w-24 opacity-60" /></div>
+                      null
                     )}
                   </div>
                   <div className="flex flex-1 flex-col p-7">

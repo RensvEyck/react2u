@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getPublishedVacancies } from "@/lib/content";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
-import { Arrow } from "@/components/site/DotCloud";
+import { Arrow } from "@/components/site/Arrow";
 
 export const revalidate = 300;
 
@@ -27,7 +27,7 @@ export default async function VacaturesPage() {
       <section className="py-16 md:py-24">
         <div className="container-site max-w-[980px]">
           {vacancies.length === 0 ? (
-            <div className="rounded-[28px] bg-soft p-10 text-center" data-reveal>
+            <div className="rounded-2xl border border-line p-10" data-reveal>
               <h2 className="text-[26px]">Op dit moment geen openstaande vacatures</h2>
               <p className="mx-auto mt-3 max-w-[520px]">
                 Maar we komen altijd graag in contact met talent. Stuur gerust een open sollicitatie!
@@ -42,18 +42,18 @@ export default async function VacaturesPage() {
                   href={`/vacatures/${v.slug}`}
                   data-reveal
                   style={{ "--ri": i } as React.CSSProperties}
-                  className="lift group flex flex-col gap-5 rounded-[28px] border border-black/[0.06] bg-white p-7 md:flex-row md:items-center md:justify-between md:p-9"
+                  className="lift group flex flex-col gap-5 rounded-2xl border border-line bg-white p-7 md:flex-row md:items-center md:justify-between md:p-9"
                 >
                   <div>
                     <h2 className="text-[26px] leading-tight">{v.title}</h2>
                     {v.intro && <p className="mt-2 max-w-[620px] text-[16.5px]">{v.intro}</p>}
                     <div className="mt-4 flex flex-wrap gap-2 text-[14.5px] font-medium text-primary">
-                      <span className="flex items-center gap-1.5 rounded-full bg-soft px-3.5 py-1.5"><LuMapPin aria-hidden /> {v.location}</span>
-                      {v.hours && <span className="flex items-center gap-1.5 rounded-full bg-soft px-3.5 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
-                      {v.salary && <span className="flex items-center gap-1.5 rounded-full bg-soft px-3.5 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
+                      <span className="flex items-center gap-1.5 rounded-md bg-soft px-3 py-1.5"><LuMapPin aria-hidden /> {v.location}</span>
+                      {v.hours && <span className="flex items-center gap-1.5 rounded-md bg-soft px-3 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
+                      {v.salary && <span className="flex items-center gap-1.5 rounded-md bg-soft px-3 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
                     </div>
                   </div>
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary text-white transition-transform duration-300 group-hover:translate-x-1">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-line text-primary transition-transform duration-300 group-hover:translate-x-1">
                     <Arrow />
                   </span>
                 </Link>

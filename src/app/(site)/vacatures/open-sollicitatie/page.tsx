@@ -20,7 +20,7 @@ export default function OpenSollicitatiePage() {
       </PageHeader>
       <section className="py-16 md:py-24">
         <div className="container-site max-w-[760px]">
-          <div className="rounded-[28px] border border-black/[0.06] bg-white p-7 shadow-[0_30px_60px_-40px_rgba(34,32,90,0.5)] md:p-10">
+          <div className="rounded-2xl border border-line bg-white p-7 md:p-10">
             <ApplicationForm vacancyTitle="Open sollicitatie" />
           </div>
         </div>

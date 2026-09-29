@@ -10,7 +10,7 @@
       "data": {
         "eyebrow": "Voor werknemers",
         "heading": "Dat voelt beter!",
-        "highlight": "beter",
+        "highlight": "",
         "text": "Bij React2u weten we waar je als werknemer mee te maken krijgt. We begrijpen hoe je je kunt voelen. Samen met jou en met andere betrokken partijen doen we er alles aan om je zo snel mogelijk weer gezond en onbezorgd op de werkvloer te krijgen.",
         "button": {
           "label": "Ziek, wat nu?",
@@ -21,8 +21,8 @@
           "href": "tel:0856205800",
           "style": "outline"
         },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/05/partnering-up-project-shot-two-coworkers-meeting-office.jpg",
-        "imageAlt": "Twee collega's in overleg op kantoor",
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Verzuimbegeleiding-WVP-Rood-2.png",
+        "imageAlt": "Een medewerker in gesprek met een begeleider",
         "badge": "Geheimhoudingsplicht: je kunt alles met ons delen"
       }
     },

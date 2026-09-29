@@ -1,12 +1,16 @@
 import type { Kleur } from "./brand";
 
+// Foto's uit de mediabibliotheek. Hier en niet onderaan het bestand: PIJLERS
+// hieronder gebruikt ze al bij het laden.
+const FOTO = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
+
 /* ---------- Diensten: drie stappen, zes diensten ---------- */
 
 /**
  * `situatie` beschrijft de dienst vanuit de werkgever: waar loop je tegenaan?
  * Zo kiest een bezoeker op herkenning in plaats van op vakjargon.
  */
-export type Dienst = { label: string; href: string; description: string; situatie: string; kleur: Kleur };
+export type Dienst = { label: string; href: string; description: string; situatie: string; kleur: Kleur; image: string };
 /** `stap` is de plek in de route van voorkomen naar versterken; `icon` een naam uit Icon.tsx. */
 export type Pijler = { key: string; stap: string; title: string; text: string; kleur: Kleur; icon: string; diensten: Dienst[] };
 
@@ -35,6 +39,7 @@ export const PIJLERS: Pijler[] = [
         description: "Preventief medisch onderzoek, consulten en tevredenheidsonderzoek.",
         situatie: "Je wilt verzuim voorkomen",
         kleur: "blauw",
+        image: `${FOTO}/2024/06/Preventie-Vitaliteit-2.png`,
       },
       {
         label: "Risicomanagement (RI&E)",
@@ -42,6 +47,7 @@ export const PIJLERS: Pijler[] = [
         description: "Samen met kerndeskundigen de risico's in je organisatie in kaart.",
         situatie: "Je wilt de risico's in je organisatie in kaart",
         kleur: "blauw",
+        image: `${FOTO}/2024/06/RIE_-Risicomanagement-1.png`,
       },
     ],
   },
@@ -59,6 +65,7 @@ export const PIJLERS: Pijler[] = [
         description: "Het volledige poortwachtertraject, van ziekmelding tot WIA-aanvraag.",
         situatie: "Een medewerker meldt zich ziek",
         kleur: "rood",
+        image: `${FOTO}/2024/06/Verzuimbegeleiding-WVP-Rood-2.png`,
       },
       {
         label: "Verzuimbegeleiding ERD/ZW",
@@ -66,6 +73,7 @@ export const PIJLERS: Pijler[] = [
         description: "Voor eigenrisicodragers Ziektewet, ook in de flexbranche.",
         situatie: "Je bent eigenrisicodrager voor de Ziektewet",
         kleur: "rood",
+        image: `${FOTO}/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png`,
       },
     ],
   },
@@ -83,6 +91,7 @@ export const PIJLERS: Pijler[] = [
         description: "Eén-op-één, burn-out- en loopbaancoaching op maat.",
         situatie: "Een medewerker loopt vast of dreigt uit te vallen",
         kleur: "teal",
+        image: `${FOTO}/2024/06/Begeleiding-Coaching-1.png`,
       },
       {
         label: "Trainingen & Workshops",
@@ -90,6 +99,7 @@ export const PIJLERS: Pijler[] = [
         description: "Verzuim-, management- en communicatietrainingen voor je team.",
         situatie: "Je wilt leidinggevenden en je team versterken",
         kleur: "teal",
+        image: `${FOTO}/2024/06/Trainingen-Cursussen-2.png`,
       },
     ],
   },
@@ -157,7 +167,14 @@ export const NAV: Record<Doelgroep | "algemeen", NavItem[]> = {
     OVER_ONS,
     { label: "Contact", href: "/contact" },
   ],
-  algemeen: [OVER_ONS, { label: "Blog", href: "/blog" }, { label: "Contact", href: "/contact" }],
+  // Op het startscherm is nog niet gekozen; de diensten staan er toch in, want
+  // wie direct zoekt, zoekt meestal een dienst.
+  algemeen: [
+    { label: "Diensten", href: "/diensten", mega: true },
+    OVER_ONS,
+    { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/contact" },
+  ],
 };
 
 /** De knop rechts in de header, per doelgroep. */

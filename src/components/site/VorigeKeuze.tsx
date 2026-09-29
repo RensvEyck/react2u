@@ -7,14 +7,11 @@ import type { Doelgroep } from "@/lib/nav";
  * keer koos. Leest alleen de browser (lib/doelgroep.ts); op de server en bij
  * een eerste bezoek toont hij niets.
  */
-export default function VorigeKeuze({ doelgroep, donker }: { doelgroep?: string; donker?: boolean }) {
+export default function VorigeKeuze({ doelgroep }: { doelgroep?: string }) {
   const bewaard = useBewaardeDoelgroep();
   if (!doelgroep || bewaard !== (doelgroep as Doelgroep)) return null;
   return (
-    <span className={`pointer-events-none relative z-10 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[13px] font-semibold ${
-      donker ? "bg-white/12 text-white" : "bg-white text-primary"
-    }`}>
-      <span className="h-1.5 w-1.5 rounded-full bg-secondary" aria-hidden />
+    <span className="inline-flex items-center rounded-md bg-soft px-2 py-0.5 text-[12.5px] font-semibold text-primary">
       Je vorige keuze
     </span>
   );

@@ -1,10 +1,8 @@
 import Breadcrumbs from "./Breadcrumbs";
-import DotCloud from "./DotCloud";
 
 /**
- * Kop voor pagina's die niet uit blokken bestaan (blog, vacatures, 404): een
- * lichte band die onder de zwevende header doorloopt, met kruimelpad, kop en
- * intro. Dezelfde vormtaal als het hero-blok, zonder beeld.
+ * Kop voor pagina's die niet uit blokken bestaan (blog, vacatures): kruimelpad,
+ * kop en intro op het neutrale vlak — dezelfde vormtaal als de hero-blokken.
  */
 export default function PageHeader({
   crumbs = [], eyebrow, title, children, narrow = false,
@@ -16,15 +14,14 @@ export default function PageHeader({
   narrow?: boolean;
 }) {
   return (
-    <section data-tone="band" className="hero-pull relative bg-soft">
-      <div className={`container-site relative pb-14 pt-8 md:pb-20 md:pt-12 ${narrow ? "max-w-[900px]" : ""}`}>
-        {!narrow && <DotCloud className="pointer-events-none absolute right-8 top-1/2 hidden w-[120px] -translate-y-1/2 lg:block" />}
+    <section data-tone="band" className="border-b border-line bg-soft">
+      <div className={`container-site pb-14 pt-8 md:pb-20 md:pt-10 ${narrow ? "max-w-[900px]" : ""}`}>
         <Breadcrumbs crumbs={crumbs} className="mb-8 text-primary" />
-        {eyebrow && <p className="eyebrow mb-4" data-reveal>{eyebrow}</p>}
-        <h1 className="max-w-[860px] text-[2.5rem] font-extrabold leading-[1.05] tracking-[-0.025em] md:text-[3.5rem]" data-reveal>
+        {eyebrow && <p className="eyebrow mb-4">{eyebrow}</p>}
+        <h1 className="max-w-[860px] text-[2.25rem] font-bold leading-[1.08] tracking-[-0.025em] sm:text-[2.9rem] lg:text-[3.5rem]">
           {title}
         </h1>
-        {children && <div className="mt-6 max-w-[680px] text-[19px] md:text-[20px]" data-reveal>{children}</div>}
+        {children && <div className="mt-6 max-w-[680px] text-[18px] leading-relaxed md:text-[19px]">{children}</div>}
       </div>
     </section>
   );
