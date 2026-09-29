@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import { createPage } from "@/app/admin/actions";
 import type { Page } from "@/lib/types";
-import { LuPlus, LuExternalLink, LuPencil } from "react-icons/lu";
+import { LuPlus, LuExternalLink, LuPencil, LuTrash2 } from "react-icons/lu";
 
 export default async function PagesAdmin() {
   const { sb } = await requirePerm("paginas");
@@ -15,9 +15,10 @@ export default async function PagesAdmin() {
           <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Pagina&apos;s</h1>
           <p className="text-[14.5px] text-black/50">Klik op een pagina om teksten, blokken en SEO aan te passen.</p>
         </div>
+        <Link href="/admin/prullenbak" className="abtn-ghost !py-2 text-[13.5px]"><LuTrash2 className="text-[14px]" /> Prullenbak</Link>
       </div>
 
-      <form action={createPage} className="acard flex flex-wrap items-end gap-3 p-5">
+      <form action={createPage} id="nieuw" className="acard flex flex-wrap items-end gap-3 p-5">
         <div className="min-w-[200px] flex-1">
           <label className="alabel">Titel</label>
           <input className="ainput" name="title" placeholder="Bijv. Werken bij" required />

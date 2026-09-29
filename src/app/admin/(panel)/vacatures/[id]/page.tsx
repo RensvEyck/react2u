@@ -3,14 +3,17 @@ import { notFound } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import { saveVacancy } from "@/app/admin/actions";
 import VacancyFields from "@/components/admin/VacancyFields";
+import VersionHistory from "@/components/admin/VersionHistory";
+import { loadVersions } from "@/lib/revisionsDb";
 import type { Vacancy } from "@/lib/types";
 import { LuArrowLeft, LuExternalLink } from "react-icons/lu";
 
 export default async function EditVacancy({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { sb } = await requirePerm("vacatures");
+  const { sb, admin } = await requirePerm("vacatures");
   const { data } = await sb.from("vacancies").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
+  const history = await loadVersions(sb, "vacancies", id);
   const v = data as Vacancy;
   return (
     <div className="space-y-6">
@@ -34,6 +37,12 @@ export default async function EditVacancy({ params }: { params: Promise<{ id: st
           <button className="abtn">Opslaan</button>
         </div>
       </form>
+      <VersionHistory
+        versions={history}
+        currentUserId={admin.userId}
+        back={`/admin/vacatures/${id}`}
+        canRestore
+      />
     </div>
   );
 }

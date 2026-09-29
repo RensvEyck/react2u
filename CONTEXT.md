@@ -35,6 +35,12 @@ Gebruik deze termen; de code doet dat ook.
 | **Super admin** | De toprol (`superadmin`, `sort` 0). Systeemrol: houdt altijd alle tien rechten en is niet te verwijderen. Als enige met het recht `gebruikers` — uitnodigen en rollen verdelen is hieraan voorbehouden. |
 | **Beheerder** | Alles behálve `gebruikers` (negen rechten). Kan de hele site en alle inzendingen beheren, maar niemand uitnodigen of van rol wisselen. |
 | **Recht** | Toegang tot één onderdeel van het paneel, bv. `bellijst` of `paginas`. De sleutels staan in [`src/lib/permissions.ts`](src/lib/permissions.ts) én in de RLS-policies — hernoemen vraagt dus een migratie. |
+| **Commandopalet** | Zoekveld over het hele paneel: ⌘K, Ctrl+K of `/`. Vindt schermen, acties, pagina's, tekst ín blokken, artikelen, vacatures, inzendingen, leads en gebruikers — alleen wat je mag zien. Zie *Commandopalet en dashboard*. |
+| **Doorverwijzing** (`redirects`) | Een oud adres dat naar een nieuw adres stuurt, beheerd onder SEO → Doorverwijzingen. Permanent (308) of tijdelijk (307). Zie *Doorverwijzingen en 404's*. |
+| **404** (`missing_paths`) | Een adres waarop een bezoeker "niet gevonden" kreeg, met een teller en waar de link stond. Geen persoonsgegevens. |
+| **Versie** (`revisions`) | Momentopname van een pagina, blok, artikel, vacature of instelling, gemaakt door een databasetrigger bij elke opslag. Zie *Versies en prullenbak*. |
+| **Prullenbak** | Wat verwijderd is en nog terug kan (`/admin/prullenbak`). Geen tabel: de laatste versie van rijen die niet meer bestaan. Inzendingen en leads komen er nooit in. |
+| **Bewaartermijn** | Voor sollicitaties: hoe lang ze mogen blijven staan. Bepaald in [`src/lib/retention.ts`](src/lib/retention.ts); het Postvak IN wijst aan wat erover is. |
 
 ## Architectuur
 
@@ -113,6 +119,47 @@ toe te voegen is.
 **Het menu volgt de database niet.** `MAIN_NAV` in [`src/lib/nav.ts`](src/lib/nav.ts)
 is een hardgecodeerde lijst. Een nieuwe pagina in het adminpaneel verschijnt dus
 wél op zijn URL, maar niet in de navigatie tot je `nav.ts` bijwerkt.
+
+**Een nieuw adminscherm moet op twee plekken bekend zijn.** `ADMIN_NAV` in
+[`src/lib/adminNav.ts`](src/lib/adminNav.ts) zet het in het menu én in het
+commandopalet (`paletteOnly: true` voor een tab binnen een scherm, zoals
+Doorverwijzingen onder SEO). `PATH_PERMISSIONS` in
+[`src/lib/permissions.ts`](src/lib/permissions.ts) zegt welk recht het vraagt;
+ontbreekt het daar, dan ziet iedereen met een account het in het menu.
+
+**`src/lib/redirects.ts` wordt ook door `next.config.ts` geladen.** Houd dat
+bestand vrij van `@/`-imports en van code die alleen op de server of alleen in
+de browser werkt — anders faalt de build al bij het lezen van de config.
+
+**Zoeken loopt via route handlers, niet via server actions.** Server actions uit
+één browser lopen na elkaar; bij snel typen zou elke toetsaanslag op de vorige
+wachten. `/admin/zoeken` en `/admin/zoeken/inhoud` zijn gewone GET-routes die de
+browser kan afbreken zodra er een nieuwere vraag is.
+
+**Klassen buiten een `@layer` winnen in Tailwind v4 altijd van utilities.**
+Daarom staan er in de admin `!py-1.5`-achtige uitroeptekens tegen `.abtn` en
+`.apill`. Nieuwe componentklassen horen in `@layer components` (zoals `.akbd`),
+dan werkt `hidden sm:inline-flex` er gewoon op.
+
+**Supabase Storage meldt geen fout als verwijderen niet mag.** Zonder
+DELETE-policy op de bucket geeft `remove()` een lege lijst terug en `error:
+null` — het bestand blijft staan. Controleer daarom altijd of de teruggegeven
+lijst de bestanden bevat (zie `removeCvs()` in
+[`src/app/admin/actions.ts`](src/app/admin/actions.ts)).
+
+**De live database loopt voor op `supabase/migrations/`.** Commit 2a27005
+(augustus 2026) paste wijzigingen rechtstreeks in de database toe, zonder
+migratiebestand: triggers die velden van anonieme inzendingen vastzetten,
+lengtegrenzen op vrije tekstvelden, gesplitste policies voor `site_settings`
+en `roles`, bucketlimieten, de verwijderpolicy op `cvs` en het opruimen van
+weesfuncties. Ook `opruimen_verlopen_gegevens()` staat nergens in de repo. Een
+nieuwe omgeving opbouwen uit alleen de migraties geeft dus een ándere
+database. Leg zo'n wijziging voortaan vast als migratie, en haal het verschil
+een keer binnen met `supabase db dump`.
+
+**Supabase geeft per query hooguit 1000 rijen terug**, ook met `.limit(20000)`,
+en zonder foutmelding. Tel je iets over veel rijen (bezoek), blader dan in
+blokken van 1000 — zie [`fetchPageViews()`](src/lib/analyticsDb.ts).
 
 **`site_settings.documents` bestaat in twee vormen.** Oorspronkelijk een vast
 object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure`,
@@ -233,6 +280,133 @@ iets hebt gezien, de bellijst over of je iemand nog moet spreken. Een bericht ma
 ongelezen blijven terwijl de lead al op de lijst staat. Verwijder je de lead, dan
 komt de knop terug.
 
+## Commandopalet en dashboard
+
+**⌘K** (of Ctrl+K, of `/` buiten een invoerveld) opent een zoekveld over het
+hele paneel. Twee bronnen, bewust verschillend behandeld
+([`src/lib/search.ts`](src/lib/search.ts)):
+
+- **Inhoud** — pagina's, de tekst in blokken, artikelen, vacatures. Klein en
+  weinig veranderlijk, dus bij openen in één keer opgehaald
+  (`/admin/zoeken/inhoud`, hooguit eens per minuut) en in de browser doorzocht:
+  resultaat bij elke toetsaanslag, zonder netwerk. Zoeken negeert accenten.
+- **Inzendingen, leads en gebruikers** — persoonsgegevens en groeiende tabellen.
+  Per zoekvraag op de server (`/admin/zoeken`, met limiet), nooit als geheel
+  naar de browser.
+
+Beide slaan onderdelen over waar de gebruiker geen recht op heeft; RLS zou ze
+anders toch leeg teruggeven.
+
+**Het dashboard** toont per rol wat vandaag aandacht vraagt: te behandelen
+inzendingen (oudste eerst), wie vandaag gebeld moet worden, bezoek deze week
+tegenover vorige week, SEO-problemen en 404's, concepten, vacatures die aflopen,
+de laatste wijzigingen, en voor wie instellingen beheert welke koppelingen uit
+staan (mail, bezoekregistratie, bedrijfsherkenning, uitnodigen — alleen óf ze
+gezet zijn, nooit de waarde). Wie geen tweestapsverificatie heeft, krijgt
+bovenaan een oproep. Tijden en de begroeting rekenen in Europe/Amsterdam; de
+server draait in UTC.
+
+## Doorverwijzingen en 404's
+
+Onder **SEO → Doorverwijzingen**. Twee lagen, en de volgorde telt:
+
+1. `WORDPRESS_REDIRECTS` (code, via `next.config.ts`) — Next voert die uit vóór
+   de middleware, dus die wint altijd. De admin toont de lijst en weigert een
+   bron die er al onder valt.
+2. De tabel `redirects` — toegepast door de middleware, met dezelfde
+   voorzorgen als de onderhoudsmodus: 15 seconden onthouden, 1 seconde timeout,
+   bij een storing de laatst bekende lijst. Faalt alleen die query (bijvoorbeeld
+   vóór migratie 0007), dan werkt de onderhoudsmodus gewoon door.
+
+Een bron is een pad zonder bestandsextensie (die ziet de middleware nooit),
+niet `/`, `/*`, `/admin` of `/api`, en geen adres waarop een bestaande pagina
+staat — de doorverwijzing zou die onbereikbaar maken. Eindigt de bron op `/*`,
+dan gaat alles eronder mee (en het pad zelf); zo'n wildcard mag geen bestaande
+pagina afvangen. Een `*` mag nergens anders staan. Lussen worden geweigerd, ook
+een wildcard die naar zichzelf wijst.
+
+**Komt er weer echte inhoud op een adres** — publiceren, terugzetten uit de
+prullenbak of een versie, een slug die terugkeert — dan verdwijnen de regels
+die dat adres afvangen (`clearRedirect()`, het pad zelf en elke wildcard
+erboven). Anders bleef de teruggezette pagina onbereikbaar.
+
+Met de publieke sleutel zijn alleen `source`, `destination` en `permanent` te
+lezen; de notitie en wie de regel maakte niet. De querystring van het verzoek gaat mee, zodat utm-parameters aankomen.
+Elke keer dat een regel gebruikt wordt telt `redirect_hit()` op, via
+`waitUntil`: de bezoeker wacht daar niet op.
+
+**404's** komen van de 404-pagina zelf. `data-niet-gevonden` op
+[`NotFound`](src/components/site/NotFound.tsx) vertelt de VisitTracker dat dit
+geen bezoek is; `/api/track` roept dan `log_missing_path()` aan in plaats van
+een `page_views`-rij te maken. Eén rij per pad met een teller, na 180 dagen
+zonder treffer opgeruimd. Hooguit 5000 open paden: is dat vol, dan wijkt het
+oudste pad met één treffer. Een script dat willekeurige URL's afloopt kan de
+lijst dus niet dichtzetten; echte 404's worden vaker geprobeerd en blijven. Van een externe verwijzer
+bewaren we de host, van een link op de eigen site het pad — dat is een kapotte
+interne link, en die staat in de lijst in het rood. Omdat het via JavaScript
+gaat, tellen bots die geen scripts draaien niet mee; dat is gewenst.
+
+Bij elke 404 stelt de admin een bestemming voor als een bestaande pagina er
+duidelijk op lijkt ([`suggestDestination()`](src/lib/redirects.ts)); één klik
+maakt de doorverwijzing. Geen duidelijke kandidaat, dan geen voorstel.
+
+**Automatisch:** wijzigt de slug van een gepubliceerd artikel of een
+gepubliceerde vacature, dan komt er vanzelf een doorverwijzing van het oude
+naar het nieuwe adres, zonder ketens (regels die naar het oude adres wezen,
+wijzen voortaan direct naar het nieuwe). Na het verwijderen van een
+gepubliceerde pagina of een gepubliceerd artikel opent de admin
+Doorverwijzingen met het oude adres ingevuld. Dit vraagt het recht `seo`; zonder
+dat blijft alleen de doorverwijzing uit.
+
+## Media: waar staat dit bestand?
+
+Er is geen koppeltabel tussen bestanden en inhoud: een afbeelding staat als
+volledige URL in blokdata, een artikel of een instelling. De mediabibliotheek
+zoekt daarom bij het openen alle inhoud door op URL's van de `media`-bucket
+([`src/lib/mediaUsage.ts`](src/lib/mediaUsage.ts)) en toont per bestand waar het
+gebruikt wordt, met een link. Verwijderen van een bestand dat nog in gebruik is
+noemt de plekken waar het daarna kapot is. Zonder rechten op pagina's, blog en
+vacatures ziet iemand geen concepten, dus gebruik daarin telt dan niet mee —
+dat staat er dan bij. Het logo en de favicon staan in de code en tellen apart
+mee. Afbeeldingen boven 600 KB krijgen het label *Zwaar*.
+
+## Versies en prullenbak
+
+Een trigger (`record_revision()`, migratie 0008) bewaart bij elke opslag van
+`pages`, `blocks`, `posts`, `vacancies` en `site_settings` een versie in
+`revisions`, en bij verwijderen de laatste stand. De eerste wijziging van een
+rij van vóór het versiebeheer bewaart eerst de oude stand als *beginversie*
+(zonder auteur). Alleen `sort` of `updated_at` veranderd, zoals bij slepen? Dan
+geen versie.
+
+**Inzendingen en leads krijgen bewust geen versies.** Dat zijn
+persoonsgegevens; verwijderd moet daar echt verwijderd zijn. Een kopie in
+`revisions` zou elke bewaartermijn en elk verwijderverzoek ondergraven. Voeg de
+trigger dus nooit "voor de volledigheid" aan die tabellen toe.
+
+Terugzetten ([`restoreRevision`](src/app/admin/actions.ts)) is een gewone upsert
+met de rechten van de gebruiker, dus RLS geldt, en het levert zelf ook weer een
+versie op: terugzetten is ongedaan te maken. Een blok dat nog bestaat houdt bij
+terugzetten zijn plek. Een pagina komt terug met de blokken die met haar
+verdwenen — die herkennen we aan hetzelfde tijdstip, want de cascade gebeurt in
+dezelfde transactie en `now()` is daarbinnen overal gelijk. RLS op `revisions`
+volgt de rechten per tabel: wie pagina's mag bewerken ziet hun geschiedenis.
+
+Waar het zichtbaar is: de blokeditor (versies bekijken in het voorbeeld en in
+de editor laden), de pagina-editor (titel/SEO en verwijderde blokken), artikel-
+en vacature-editor, `/admin/prullenbak`, en het wijzigingslog op het dashboard.
+Na verwijderen van een blok verschijnt "Ongedaan maken". Versies ouder dan een
+jaar ruimt `pg_cron` op.
+
+Vóór migratie 0008 is verwijderen definitief. De admin controleert daarom of
+`revisions` bestaat (`hasVersions()`) en belooft alleen dan een prullenbak of
+"ongedaan maken"; anders vraagt hij "definitief verwijderen?".
+
+Onopgeslagen werk in de blokeditor wordt bewaakt bij sluiten, bij klikken op
+een link én bij navigeren via het commandopalet
+([`src/lib/unsaved.ts`](src/lib/unsaved.ts)) — dat laatste gebruikt
+`router.push`, en dat zien `beforeunload` en een klik-luisteraar niet.
+
 ## Openstaand
 
 - **DNS is omgezet (29 september 2026)**, door Theiner ICT, die het
@@ -246,6 +420,14 @@ komt de knop terug.
   steeds inzendingen.
 - **Toegang.** Het adminwachtwoord en een Vercel-token zijn buiten de repo gedeeld;
   het wachtwoord moet gewijzigd en het token ingetrokken worden.
+- **Migraties 0007, 0008 en 0009 moeten in Supabase worden uitgevoerd**, vóór
+  of met de deploy van doorverwijzingen, versies en de cv-reparatie. Zonder
+  draait alles door, maar tonen die schermen een melding in plaats van inhoud,
+  en wordt er geen geschiedenis bewaard. 0009 legt de cv-verwijderpolicy vast
+  die live waarschijnlijk al bestaat.
+- **Schema binnenhalen.** De live database heeft wijzigingen die niet in de
+  migraties staan (zie *Valkuilen*). Eén keer `supabase db dump` naar de repo
+  maakt het weer één bron.
 
 ## SEO
 
@@ -285,10 +467,12 @@ root-layout, zodat het adminpaneel die query niet draait.
 De standaard deelafbeelding is het logo — geen echte 1200×630-afbeelding. Wie
 link-previews serieus neemt, stelt er een eigen beeld voor in.
 
-`next.config.ts` bevat de permanente redirects van de oude WordPress-site.
-Die lijst komt uit `wp-sitemap.xml` van react2u.nl en is opgehaald toen die
-site nog live was — na de DNS-omzetting is die bron weg. Voeg een pad hier toe
-zodra je een oude URL tegenkomt die 404 geeft.
+De permanente redirects van de oude WordPress-site staan als
+`WORDPRESS_REDIRECTS` in [`src/lib/redirects.ts`](src/lib/redirects.ts) en
+worden door `next.config.ts` toegepast. Die lijst komt uit `wp-sitemap.xml` van
+react2u.nl en is opgehaald toen die site nog live was — na de DNS-omzetting is
+die bron weg. Nieuwe doorverwijzingen horen niet meer in de code maar in de
+admin; zie *Doorverwijzingen en 404's*.
 
 FAQ-blokken (`faqAccordion` en `contactFaq`) leveren samen één
 `FAQPage`-structured-data per pagina, samengesteld in `BlockRenderer`. Google
@@ -308,8 +492,18 @@ maanden, leads na 24 maanden en bezoekgegevens na 12 maanden.
 moet via de Storage-API weg. Alleen de databaserij verwijderen laat de bytes in
 de bucket staan — het lijkt dan gewist terwijl het er nog is, en dat is voor de
 AVG slechter dan niets doen. De functie telt ze wel, zodat er zicht op blijft;
-verwijderen gaat via de knop in het Postvak IN. Volledige automatisering vraagt
+verwijderen gaat via het Postvak IN. Volledige automatisering vraagt
 `SUPABASE_SERVICE_ROLE_KEY`.
+
+Het Postvak IN wijst sollicitaties aan die **over hun bewaartermijn** zijn
+([`src/lib/retention.ts`](src/lib/retention.ts)): afgerond (afgewezen of
+aangenomen) na acht weken, nog open na drie maanden — volgens de richtlijn van
+de Autoriteit Persoonsgegevens (vier weken na afloop, langer alleen met
+toestemming). Er is geen datum van afronding, dus de termijn loopt vanaf
+binnenkomst met ruimte voor de procedure. Een melding bovenaan leidt naar het
+filter *Bewaartermijn verstreken*; daar selecteer je ze en verwijder je ze in
+één keer, cv's inbegrepen (`bulkInbox`). Ander beleid? Pas de getallen daar aan,
+en de privacyverklaring mee.
 
 De **privacyverklaring** staat als gewone pagina in het CMS (`/privacyverklaring`),
 gelinkt in de footer en onder beide formulieren. Hij beschrijft precies wat de
@@ -317,13 +511,23 @@ site nu doet. **Zet je `IPINFO_TOKEN` of Resend aan, dan moet die verklaring
 mee**: er komt dan een verwerker bij (ipinfo.io, Resend) die er nu niet in staat.
 
 Het privacyreglement (PDF, verzuimdossiers) belooft tweefactorauthenticatie voor
-toegang tot digitale bestanden. Het adminpaneel heeft dat niet. Los dat op door
-MFA aan te zetten in Supabase, of pas de tekst aan.
+toegang tot digitale bestanden. Het adminpaneel heeft dat: in te stellen onder
+Account, en afgedwongen door `requireAdmin()` voor wie hem heeft ingesteld.
+Verplicht voor iedereen is het (nog) niet; het dashboard vraagt wie hem niet
+heeft om hem aan te zetten.
 
 ## Database
 
 Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`
 (tabellen, RLS-policies, de twee storage-buckets), `0002_posts.sql`
 (blogartikelen), `0003_leads.sql` (bellijst), `0004_page_views.sql`
-(bezoekregistratie) en `0005_leads_uit_postvak.sql` (telefoon op berichten,
-`leads.source_id`). Supabase-project `tumwtappyegkjabtmold`.
+(bezoekregistratie), `0005_leads_uit_postvak.sql` (telefoon op berichten,
+`leads.source_id`), `0005_roles.sql` (rollen en rechten, `has_perm()`),
+`0006_superadmin.sql` (super admin boven beheerder),
+`0007_doorverwijzingen.sql` (`redirects`, `missing_paths`),
+`0008_versies.sql` (`revisions` en de trigger) en `0009_cv_verwijderen.sql`
+(verwijderpolicy op de bucket `cvs`). Supabase-project `tumwtappyegkjabtmold`.
+
+**Tests:** `npm test` draait Vitest over de pure modules in `src/lib`
+(zoeken, doorverwijzingen, versies, dashboard, bewaartermijn, mediagebruik). Die bevatten de
+regels waar het op aankomt; de schermen eromheen zijn dun.

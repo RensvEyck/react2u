@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { supabasePublic } from "@/lib/supabase/public";
 import type { ContactInfo } from "@/lib/content";
 import { maintenancePage, normalizeMaintenance, type Maintenance } from "@/lib/maintenance";
+import { matchRedirect, targetUrl, type RedirectRule } from "@/lib/redirects";
 
 function sessionClient(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -23,11 +24,15 @@ function sessionClient(request: NextRequest) {
   return { supabase, response: () => response };
 }
 
-/* ---------- onderhoudsmodus ---------- */
+/* ---------- instellingen voor de poort ---------- */
 
-type GateSettings = { maintenance: Maintenance; contact: Partial<ContactInfo> | null };
+type GateSettings = {
+  maintenance: Maintenance;
+  contact: Partial<ContactInfo> | null;
+  redirects: RedirectRule[];
+};
 
-const OFF: GateSettings = { maintenance: { enabled: false, message: "" }, contact: null };
+const OFF: GateSettings = { maintenance: { enabled: false, message: "" }, contact: null, redirects: [] };
 
 // Deze poort draait vóór elke publieke pagina, ook de statische. Daarom:
 // - kort onthouden per instantie, zodat niet elke paginaweergave een query kost
@@ -41,20 +46,33 @@ let cached: { at: number; settings: GateSettings } | null = null;
 
 async function gateSettings(): Promise<GateSettings> {
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.settings;
-  const { data, error } = await supabasePublic()
-    .from("site_settings")
-    .select("key, value")
-    .in("key", ["maintenance", "contact"])
-    .abortSignal(AbortSignal.timeout(TIMEOUT_MS));
+  const sb = supabasePublic();
+  const [settingsRes, redirectsRes] = await Promise.all([
+    sb.from("site_settings")
+      .select("key, value")
+      .in("key", ["maintenance", "contact"])
+      .abortSignal(AbortSignal.timeout(TIMEOUT_MS)),
+    sb.from("redirects")
+      .select("source, destination, permanent")
+      .abortSignal(AbortSignal.timeout(TIMEOUT_MS)),
+  ]);
+  const { data, error } = settingsRes;
   // Bij een fout de laatst bekende stand aanhouden, anders open. Ook die
   // uitkomst onthouden: tijdens een storing wacht dan niet élk verzoek de
-  // volle timeout af.
-  const settings = error
-    ? cached?.settings ?? OFF
-    : {
-        maintenance: normalizeMaintenance(data?.find((r) => r.key === "maintenance")?.value),
-        contact: (data?.find((r) => r.key === "contact")?.value as Partial<ContactInfo>) ?? null,
-      };
+  // volle timeout af. Doorverwijzingen staan los daarvan: faalt alleen die
+  // query (bijvoorbeeld omdat migratie 0007 nog niet gedraaid is), dan blijft
+  // de onderhoudsmodus gewoon werken.
+  const settings: GateSettings = {
+    ...(error
+      ? cached?.settings ?? OFF
+      : {
+          maintenance: normalizeMaintenance(data?.find((r) => r.key === "maintenance")?.value),
+          contact: (data?.find((r) => r.key === "contact")?.value as Partial<ContactInfo>) ?? null,
+        }),
+    redirects: redirectsRes.error
+      ? cached?.settings.redirects ?? []
+      : ((redirectsRes.data as RedirectRule[]) || []),
+  };
   cached = { at: Date.now(), settings };
   return settings;
 }
@@ -80,8 +98,21 @@ async function adminPassThrough(request: NextRequest): Promise<NextResponse | nu
   return data?.length ? response() : null;
 }
 
-async function maintenanceGate(request: NextRequest) {
-  const { maintenance, contact } = await gateSettings();
+async function publicGate(request: NextRequest, event: NextFetchEvent) {
+  const { maintenance, contact, redirects } = await gateSettings();
+
+  // Doorverwijzingen eerst, ook tijdens onderhoud: een 308 is informatie over
+  // waar iets woont, en die blijft waar als de site weer opengaat.
+  const rule = matchRedirect(request.nextUrl.pathname, redirects);
+  if (rule) {
+    // De teller mag de bezoeker niet ophouden; waitUntil laat hem na het
+    // antwoord afmaken. Mislukt hij, dan is er alleen een tel minder.
+    event.waitUntil(
+      Promise.resolve(supabasePublic().rpc("redirect_hit", { p_source: rule.source })).then(() => {}, () => {})
+    );
+    return NextResponse.redirect(targetUrl(rule.destination, request.nextUrl), rule.permanent ? 308 : 307);
+  }
+
   if (!maintenance.enabled) return NextResponse.next();
 
   const admin = await adminPassThrough(request);
@@ -102,7 +133,7 @@ async function maintenanceGate(request: NextRequest) {
 
 /* ---------- ingang ---------- */
 
-export async function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl;
   // Adminpaneel: alleen de sessie verversen. Dit is géén autorisatiepoort; die
   // staat in de pagina's zelf (requireAdmin/requirePerm).
@@ -111,7 +142,7 @@ export async function middleware(request: NextRequest) {
     await supabase.auth.getUser();
     return response();
   }
-  return maintenanceGate(request);
+  return publicGate(request, event);
 }
 
 // Alles behalve Next's eigen bestanden, de API (bezoekregistratie) en losse

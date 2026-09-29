@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
-import { toggleMessageRead, setApplicationStatus, addLeadFromInbox, deleteMessage, deleteApplication } from "@/app/admin/actions";
+import { toggleMessageRead, setApplicationStatus, addLeadFromInbox, deleteMessage, deleteApplication, bulkInbox } from "@/app/admin/actions";
+import InboxBulkBar from "@/components/admin/InboxBulkBar";
+import { daysLeft, isExpired } from "@/lib/retention";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application, ContactMessage } from "@/lib/types";
 import {
   LuMail, LuMailOpen, LuPhone, LuPhoneCall, LuFileText, LuInbox, LuUsers, LuMessageSquare, LuTrash2,
+  LuReply, LuHourglass,
 } from "react-icons/lu";
+
+// Het formulier waar de vinkjes in de kaarten naar verwijzen; zie InboxBulkBar.
+const BULK_FORM = "inbox-bulk";
 
 const STATUS_OPTIONS: [string, string][] = [
   ["nieuw", "Nieuw"],
@@ -20,6 +26,7 @@ const FILTERS = [
   { key: "ongelezen", label: "Ongelezen" },
   { key: "berichten", label: "Berichten" },
   { key: "sollicitaties", label: "Sollicitaties" },
+  { key: "verlopen", label: "Bewaartermijn verstreken" },
 ] as const;
 
 type Filter = (typeof FILTERS)[number]["key"];
@@ -70,14 +77,17 @@ export default async function InboxAdmin({
     ongelezen: items.filter((i) => i.unread).length,
     berichten: items.filter((i) => i.kind === "bericht").length,
     sollicitaties: items.filter((i) => i.kind === "sollicitatie").length,
+    verlopen: items.filter((i) => i.kind === "sollicitatie" && isExpired(i.app)).length,
   };
 
   const shown = items.filter((i) =>
     filter === "ongelezen" ? i.unread :
     filter === "berichten" ? i.kind === "bericht" :
     filter === "sollicitaties" ? i.kind === "sollicitatie" :
+    filter === "verlopen" ? i.kind === "sollicitatie" && isExpired(i.app) :
     true
   );
+  const here = filter === "alles" ? "/admin/postvak-in" : `/admin/postvak-in?filter=${filter}`;
 
   return (
     <div className="space-y-6">
@@ -89,7 +99,7 @@ export default async function InboxAdmin({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => {
+        {FILTERS.filter((f) => f.key !== "verlopen" || counts.verlopen > 0 || filter === "verlopen").map((f) => {
           const active = f.key === filter;
           return (
             <Link
@@ -110,6 +120,27 @@ export default async function InboxAdmin({
         })}
       </div>
 
+      {counts.verlopen > 0 && filter !== "verlopen" && (
+        <Link
+          href="/admin/postvak-in?filter=verlopen"
+          className="flex items-center gap-3 rounded-2xl border border-[#c77700]/20 bg-[#fff8ec] px-5 py-3.5 text-[14px] text-[#1c1a4e] transition hover:border-[#c77700]/40"
+        >
+          <LuHourglass className="shrink-0 text-[17px] text-[#c77700]" />
+          <span className="flex-1">
+            <strong>{counts.verlopen} {counts.verlopen === 1 ? "sollicitatie is" : "sollicitaties zijn"}</strong> over de
+            bewaartermijn. Selecteer ze en verwijder ze in één keer, cv inbegrepen.
+          </span>
+          <span className="shrink-0 font-semibold text-[#c77700]">Bekijken →</span>
+        </Link>
+      )}
+
+      {filter === "verlopen" && counts.verlopen > 0 && (
+        <p className="-mt-2 text-[13px] text-black/45">
+          Afgeronde sollicitaties (afgewezen of aangenomen) acht weken na binnenkomst, openstaande na drie maanden —
+          volgens de richtlijn van de Autoriteit Persoonsgegevens. Vink ze aan en kies Verwijderen.
+        </p>
+      )}
+
       {shown.length === 0 && (
         <div className="acard px-6 py-12 text-center">
           <LuInbox className="mx-auto text-[28px] text-black/20" />
@@ -128,8 +159,42 @@ export default async function InboxAdmin({
           )
         )}
       </div>
+
+      <form id={BULK_FORM} action={bulkInbox}>
+        <input type="hidden" name="terug" value={here} />
+        <InboxBulkBar />
+      </form>
     </div>
   );
+}
+
+function Select({ value, label }: { value: string; label: string }) {
+  return (
+    <input
+      type="checkbox"
+      name="sel"
+      value={value}
+      form={BULK_FORM}
+      aria-label={label}
+      className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[#e75387]"
+    />
+  );
+}
+
+/** Bewaartermijn: verstreken, of bijna. Pas vanaf twee weken van tevoren, anders is het ruis. */
+function Retention({ a }: { a: Application }) {
+  if (isExpired(a)) {
+    return (
+      <span className="apill bg-[#fff4e5] !text-[11.5px] text-[#c77700]" title="Over de bewaartermijn — verwijderen, cv inbegrepen">
+        <LuHourglass className="text-[11px]" /> Bewaartermijn verstreken
+      </span>
+    );
+  }
+  const left = daysLeft(a);
+  if (left !== null && left <= 14) {
+    return <span className="apill bg-black/[0.04] !text-[11.5px] text-black/45">Nog {left} dag{left === 1 ? "" : "en"} te bewaren</span>;
+  }
+  return null;
 }
 
 function TypeTag({ kind }: { kind: "bericht" | "sollicitatie" }) {
@@ -171,8 +236,10 @@ function CallListButton({
 
 function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
   return (
-    <div className={`acard p-6 ${m.read ? "opacity-75" : "border-l-[3px] border-l-[#e75387]"}`}>
+    <div id={`bericht-${m.id}`} className={`acard p-6 ${m.read ? "opacity-75" : "border-l-[3px] border-l-[#e75387]"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3.5">
+        <Select value={`bericht:${m.id}`} label={`Selecteer bericht van ${m.name}`} />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             {!m.read && <span className="h-2 w-2 shrink-0 rounded-full bg-[#e75387]" />}
@@ -193,7 +260,14 @@ function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
             · {fmt(m.created_at)}
           </p>
         </div>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`mailto:${m.email}?subject=${encodeURIComponent(`Re: ${m.subject || "je bericht aan React2u"}`)}`}
+            className="abtn-ghost !py-1.5 text-[13px]"
+          >
+            <LuReply className="text-[13px]" /> Beantwoorden
+          </a>
           <CallListButton kind="bericht" id={m.id} onList={onList} />
           <ConfirmButton
             action={deleteMessage.bind(null, m.id)}
@@ -216,9 +290,10 @@ function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
 
 function ApplicationCard({ a, onList }: { a: Application; onList: boolean }) {
   return (
-    <div className={`acard p-6 ${a.status === "nieuw" ? "border-l-[3px] border-l-[#312e82]" : "opacity-75"}`}>
+    <div id={`sollicitatie-${a.id}`} className={`acard p-6 ${a.status === "nieuw" ? "border-l-[3px] border-l-[#312e82]" : "opacity-75"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3.5">
+          <Select value={`sollicitatie:${a.id}`} label={`Selecteer sollicitatie van ${a.name}`} />
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[16px] font-bold text-[#312e82]">
             {(a.name[0] || "?").toUpperCase()}
           </div>
@@ -226,12 +301,16 @@ function ApplicationCard({ a, onList }: { a: Application; onList: boolean }) {
             <div className="flex flex-wrap items-center gap-2.5">
               <TypeTag kind="sollicitatie" />
               <p className="text-[16px] font-bold text-[#1c1a4e]">{a.name}</p>
+              <Retention a={a} />
             </div>
             <p className="mt-1 text-[13px] text-black/45">
               {a.vacancy_title || "Open sollicitatie"} · {fmt(a.created_at)}
             </p>
             <div className="mt-2 flex flex-wrap gap-4 text-[13.5px]">
-              <a href={`mailto:${a.email}`} className="flex items-center gap-1.5 font-medium text-[#e75387] hover:underline">
+              <a
+                href={`mailto:${a.email}?subject=${encodeURIComponent(`Je sollicitatie${a.vacancy_title ? ` als ${a.vacancy_title}` : ""} bij React2u`)}`}
+                className="flex items-center gap-1.5 font-medium text-[#e75387] hover:underline"
+              >
                 <LuMail className="text-[13px]" /> {a.email}
               </a>
               {a.phone && (

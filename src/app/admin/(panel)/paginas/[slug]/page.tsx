@@ -1,28 +1,43 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
-import { updatePageMeta, moveBlock, addBlock, deleteBlock, deletePage } from "@/app/admin/actions";
+import { updatePageMeta, addBlock, deletePage, restoreRevision } from "@/app/admin/actions";
 import { BLOCK_TEMPLATES } from "@/lib/blockTemplates";
 import ConfirmButton from "@/components/admin/ConfirmButton";
+import BlockList from "@/components/admin/BlockList";
+import VersionHistory from "@/components/admin/VersionHistory";
+import { hasVersions, loadVersions } from "@/lib/revisionsDb";
+import { trash, type Revision } from "@/lib/revisions";
+import { blockText } from "@/lib/search";
+import { when } from "@/lib/dashboard";
 import type { Block, Page } from "@/lib/types";
-import { LuArrowLeft, LuExternalLink, LuChevronUp, LuChevronDown, LuPencil, LuTrash2, LuPlus } from "react-icons/lu";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-function blockSnippet(data: any): string {
-  const d = data || {};
-  return d.heading || d.text?.slice?.(0, 80) || d.body?.slice?.(0, 80) || d.before || "";
-}
+import { LuArrowLeft, LuExternalLink, LuPlus, LuChevronDown, LuRotateCcw, LuTrash2 } from "react-icons/lu";
 
 export default async function PageAdmin({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { sb } = await requirePerm("paginas");
+  const { sb, admin } = await requirePerm("paginas");
   const { data: page } = await sb.from("pages").select("*").eq("slug", slug).maybeSingle();
   if (!page) notFound();
-  const { data: blocksData } = await sb.from("blocks").select("*").eq("page_id", page.id).order("sort");
-  const blocks = (blocksData as Block[]) || [];
   const p = page as Page;
+
+  const [{ data: blocksData }, history, { data: deletedData }, versionsOn] = await Promise.all([
+    sb.from("blocks").select("*").eq("page_id", p.id).order("sort"),
+    loadVersions(sb, "pages", p.id),
+    // Verwijderde blokken van deze pagina. Zonder migratie 0008 geeft dit een
+    // fout en blijft de lijst leeg.
+    sb.from("revisions")
+      .select("*")
+      .eq("table_name", "blocks")
+      .filter("data->>page_id", "eq", p.id)
+      .order("created_at", { ascending: false })
+      .limit(100),
+    hasVersions(sb),
+  ]);
+  const blocks = (blocksData as Block[]) || [];
+  const deleted = trash((deletedData as Revision[]) || [], new Set(blocks.map((b) => `blocks:${b.id}`))).slice(0, 8);
   const updateAction = updatePageMeta.bind(null, slug);
+  const back = `/admin/paginas/${slug}`;
+  const path = slug === "home" ? "/" : `/${slug}`;
 
   return (
     <div className="space-y-6">
@@ -37,60 +52,44 @@ export default async function PageAdmin({ params }: { params: Promise<{ slug: st
               {p.published ? "Live" : "Concept"}
             </span>
           </div>
+          <p className="font-mono text-[12.5px] text-black/35">{path}</p>
         </div>
-        <a href={`/${slug === "home" ? "" : slug}`} target="_blank" className="abtn-ghost">
+        <a href={path} target="_blank" className="abtn-ghost">
           Bekijk pagina <LuExternalLink className="text-[13px]" />
         </a>
       </div>
 
       <div>
-        <h2 className="mb-3 font-heading text-[16px] font-bold text-[#312e82]">Contentblokken</h2>
-        <div className="space-y-2.5">
-          {blocks.map((b, i) => (
-            <div key={b.id} className="acard group flex items-center gap-4 px-5 py-3.5 transition hover:shadow-md">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef0ff] text-[13px] font-bold text-[#312e82]">
-                {i + 1}
-              </span>
-              <div className="min-w-0 flex-1">
-                <Link href={`/admin/paginas/${slug}/blok/${b.id}`} className="text-[14.5px] font-semibold text-[#1c1a4e] hover:text-[#e75387]">
-                  {b.label || BLOCK_TEMPLATES[b.type]?.label || b.type}
-                </Link>
-                <p className="truncate text-[12.5px] text-black/40">{blockSnippet(b.data)}</p>
-              </div>
-              <div className="flex items-center gap-1 opacity-40 transition group-hover:opacity-100">
-                <form action={moveBlock.bind(null, b.id, slug, "up")}>
-                  <button className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 disabled:opacity-25" disabled={i === 0} aria-label="Omhoog">
-                    <LuChevronUp />
-                  </button>
-                </form>
-                <form action={moveBlock.bind(null, b.id, slug, "down")}>
-                  <button className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 disabled:opacity-25" disabled={i === blocks.length - 1} aria-label="Omlaag">
-                    <LuChevronDown />
-                  </button>
-                </form>
-                <Link href={`/admin/paginas/${slug}/blok/${b.id}`} className="rounded-lg p-1.5 text-black/50 hover:bg-black/5 hover:text-[#e75387]" aria-label="Bewerken">
-                  <LuPencil />
-                </Link>
-                <ConfirmButton
-                  action={deleteBlock.bind(null, b.id, slug)}
-                  message="Dit blok definitief verwijderen?"
-                  className="rounded-lg p-1.5 text-black/50 hover:bg-[#fdeef4] hover:text-[#e0356b]"
-                >
-                  <LuTrash2 />
-                </ConfirmButton>
-              </div>
-            </div>
-          ))}
-        </div>
+        <BlockList
+          slug={slug}
+          canUndo={versionsOn}
+          blocks={blocks.map((b) => ({
+            id: b.id,
+            title: b.label || BLOCK_TEMPLATES[b.type]?.label || b.type,
+            snippet: blockText(b.data, 140),
+            href: `/admin/paginas/${slug}/blok/${b.id}`,
+          }))}
+        />
 
-        <form action={addBlock.bind(null, slug)} className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-black/15 bg-white/50 px-5 py-4">
-          <select name="type" className="ainput !w-auto min-w-[240px]">
+        <details className="group mt-3 rounded-2xl border border-dashed border-black/15 bg-white/50 open:border-solid open:bg-white">
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-3.5 text-[14px] font-semibold text-[#312e82] transition hover:text-[#e75387] [&::-webkit-details-marker]:hidden">
+            <LuPlus className="text-[16px]" /> Blok toevoegen
+            <LuChevronDown className="ml-auto text-[14px] text-black/30 transition group-open:rotate-180" />
+          </summary>
+          <form action={addBlock.bind(null, slug)} className="grid gap-2 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
             {Object.entries(BLOCK_TEMPLATES).map(([key, t]) => (
-              <option key={key} value={key}>{t.label}</option>
+              <button
+                key={key}
+                name="type"
+                value={key}
+                className="rounded-xl border border-black/[0.08] bg-[#fafafd] px-4 py-3 text-left text-[13.5px] font-semibold text-[#1c1a4e] transition hover:border-[#e75387]/50 hover:bg-white hover:text-[#e75387]"
+              >
+                {t.label}
+              </button>
             ))}
-          </select>
-          <button className="abtn"><LuPlus /> Blok toevoegen</button>
-        </form>
+          </form>
+        </details>
+        <p className="mt-2 text-[12.5px] text-black/35">Een nieuw blok komt onderaan; sleep het daarna naar de juiste plek.</p>
       </div>
 
       <form action={updateAction} className="acard p-6">
@@ -122,10 +121,52 @@ export default async function PageAdmin({ params }: { params: Promise<{ slug: st
         </div>
       </form>
 
+      {deleted.length > 0 && (
+        <section className="acard overflow-hidden">
+          <div className="flex items-center gap-2 border-b border-black/[0.06] px-6 py-4">
+            <LuTrash2 className="text-[15px] text-black/35" />
+            <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Verwijderde blokken</h2>
+          </div>
+          <ul className="divide-y divide-black/[0.05]">
+            {deleted.map((r) => {
+              const d = r.data as Partial<Block>;
+              const title = d.label || BLOCK_TEMPLATES[d.type || ""]?.label || d.type || "Blok";
+              return (
+                <li key={r.id} className="flex items-center gap-4 px-6 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] font-semibold text-[#1c1a4e]">{title}</p>
+                    <p className="truncate text-[12.5px] text-black/40">
+                      Verwijderd {when(r.created_at)} · {blockText(d.data, 100)}
+                    </p>
+                  </div>
+                  <form action={restoreRevision.bind(null, r.id, back)}>
+                    <button className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-semibold text-[#312e82] transition hover:bg-[#eef0ff]">
+                      <LuRotateCcw className="text-[13px]" /> Terugzetten
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      <VersionHistory
+        versions={history}
+        currentUserId={admin.userId}
+        back={back}
+        canRestore
+        title="Geschiedenis van titel en SEO"
+      />
+
       <div className="flex justify-end">
         <ConfirmButton
           action={deletePage.bind(null, slug)}
-          message={`Pagina "${p.title}" inclusief alle blokken definitief verwijderen?`}
+          message={
+            versionsOn
+              ? `Pagina "${p.title}" met alle blokken verwijderen? Je kunt hem terughalen uit de prullenbak.`
+              : `Pagina "${p.title}" met alle blokken definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`
+          }
           className="text-[13px] text-black/35 underline hover:text-[#e0356b]"
         >
           Pagina verwijderen
