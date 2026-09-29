@@ -411,7 +411,10 @@ VERCEL_ENV=preview npm run dev
 
 **Staging** is een preview-deploy van een branch: elke push naar een andere
 branch dan `master` krijgt van Vercel een eigen URL, plus een vaste per branch
-(`react2u-git-<branch>-….vercel.app`). Let op: staging praat met de
+(`react2u-git-<branch>-….vercel.app`). De redesign-branch
+`redesign-acture-opbouw` heeft daarnaast een korte vaste naam:
+**react2u-v5.vercel.app** (in Vercel als domein aan die branch gekoppeld, dus
+elke push komt daar vanzelf te staan). Staging vraagt om een Vercel-login. Let op: staging praat met de
 productiedatabase. Een contactformulier of sollicitatie die je daar invult komt
 echt binnen, en bezoeken tellen mee in `/admin/bezoek`.
 
