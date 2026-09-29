@@ -3,8 +3,9 @@
 De publieke website van React2u (verzuimbegeleiding, Eindhoven) met een eigen
 beheeromgeving. Next.js 16 (App Router) + Supabase + Tailwind v4, gehost op Vercel.
 
-Vervangt een WordPress-site. Zie **Openstaand** — die WordPress-site is op het
-moment van schrijven nog altijd wat bezoekers op `react2u.nl` te zien krijgen.
+Vervangt een WordPress-site. Sinds 29 september 2026 wijst `react2u.nl` naar
+Vercel; zie [`docs/dns-omzetting.md`](docs/dns-omzetting.md) voor hoe dat ging
+en hoe je terugrolt.
 
 ## Woordenlijst
 
@@ -234,12 +235,11 @@ komt de knop terug.
 
 ## Openstaand
 
-- **DNS staat nog op WordPress.** `react2u.nl` wijst naar `35.204.120.88` en
-  antwoordt met `x-powered-by: WP.one`; nameservers bij Hostnet, beheerd door
-  Theiner ICT — zij passen de records aan. Het domein is in
-  Vercel al aan het project gekoppeld, dus het is puur een DNS-handeling.
-  Stappen, wat je met rust moet laten en het terugrolpad staan in
-  [`docs/dns-omzetting.md`](docs/dns-omzetting.md).
+- **DNS is omgezet (29 september 2026)**, door Theiner ICT, die het
+  Hostnet-account beheert. Twee restpunten, zie *Na de omzetting* in
+  [`docs/dns-omzetting.md`](docs/dns-omzetting.md): het TXT-record
+  `MS=ms23148887` (Microsoft 365) is daarbij verdwenen, en de oude
+  WordPress-hosting kan pas weg als de nieuwe site een paar dagen goed draait.
 - **E-mailnotificaties zijn gebouwd maar staan uit.** De code staat er
   (zie *Notificatiemail*); zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
   niet in Vercel staan, wordt er niets verstuurd en mist wie niet inlogt nog

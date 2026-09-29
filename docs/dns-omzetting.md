@@ -67,10 +67,14 @@ aan bounces in je eigen inbox.
 1. Laat Theiner ICT de twee records uit de eerste tabel wijzigen in het
    Hostnet-paneel. Stuur de tabel *Wat je met rust laat* mee.
 2. Wacht tot de wijziging doorwerkt (~10 min).
-3. Vercel geeft automatisch een Let's Encrypt-certificaat uit zodra het domein
-   naar hun edge wijst. Tot dat klaar is kan HTTPS kortstondig een
-   certificaatwaarschuwing geven — dat lost zichzelf op, meestal binnen enkele
-   minuten.
+3. **Controleer HTTPS meteen.** In theorie vraagt Vercel zelf een
+   Let's Encrypt-certificaat aan zodra het domein naar hun edge wijst. Bij de
+   omzetting op 29 september gebeurde dat níet: een uur later brak Vercel elke
+   HTTPS-verbinding af tijdens de handshake (`SSL_ERROR_SYSCALL`), terwijl HTTP
+   gewoon werkte. De domeinen hingen al sinds juni aan het project; vermoedelijk
+   was Vercel gestopt met proberen. Handmatig aanvragen loste het binnen een
+   minuut op: in het dashboard onder *Domains* opnieuw laten controleren, of via
+   de API (`POST /v4/certs` met `cns: ["react2u.nl", "www.react2u.nl"]`).
 
 ## Verifiëren
 
@@ -100,6 +104,29 @@ Stuur voor de zekerheid een testmail naar een `@react2u.nl`-adres én vanaf een
 > dus er gaat niets stuk — maar stuurde de WordPress-server zelf mail (een
 > contactformulier bijvoorbeeld), dan is die nu niet meer gemachtigd. Dat is
 > precies de bedoeling. De `a` mag er later uit.
+
+## Na de omzetting (29 september 2026)
+
+Gecontroleerd een uur na de wijziging door Theiner ICT:
+
+- Apex `A 76.76.21.21` en `www CNAME cname.vercel-dns.com` — bij beide
+  Hostnet-nameservers en bij Cloudflare, Google en Quad9.
+- Certificaat Let's Encrypt voor `react2u.nl` en `www.react2u.nl`, na
+  handmatig aanvragen (zie hierboven); verlengt automatisch.
+- `http` → `https` en `www` → kaal domein met 308; de oude WordPress-paden
+  sturen door.
+- MX, SPF, DMARC, `autodiscover` en `selector1._domainkey` ongewijzigd.
+
+**Twee records zijn daarbij verdwenen die er vóór de omzetting wel stonden:**
+
+- **TXT `MS=ms23148887`** — de domeinverificatie van Microsoft 365. De
+  mailstroom hangt er niet aan (daarvoor zijn MX, SPF, DKIM en autodiscover),
+  maar Microsoft gebruikt het record om te bewijzen dat het domein van jullie
+  is, bijvoorbeeld bij opnieuw verifiëren. Het stond in de lijst "met rust
+  laten"; vraag Theiner ICT het terug te zetten.
+- **De wildcard `*.react2u.nl → 185.107.91.91`** (Hostnet-parkeerpagina). Er
+  hing niets aan — het waren geen echte subdomeinen — dus dit is eerder een
+  opruiming dan een probleem.
 
 ## Terugrollen
 
