@@ -412,9 +412,11 @@ Terugdraaien kan via het adminpaneel. Draai je het script twee keer op
 dezelfde dag, dan faalt de tweede keer op de bestaande `-oud-`-pagina en
 gebeurt er niets.
 
-**Volgorde bij livegang**: eerst de SQL, dan de branch naar `master`. Andersom
-verwijzen de tabbladen in de header naar `/werkgevers` voordat die pagina
-bestaat (een 404). De publieke pagina's zijn 5 minuten gecachet.
+**Een pagina die alleen als concept bestaat** (zoals `/werkgevers` vóór de
+SQL) toont ook in productie het concept, zodat de links ernaar niet op een 404
+uitkomen. Zodra de pagina in de database staat, wint de database. Bestaande
+pagina's (`/`, `/werknemers`) tonen in productie tot de SQL gewoon hun oude
+inhoud. De publieke pagina's zijn 5 minuten gecachet.
 
 ## Onderhoudsmodus
 

@@ -30,6 +30,20 @@ export type Concept = { slug: string; title: string; seo_title?: string; seo_des
 
 export function concept(slug: string): Concept | null {
   if (!conceptenActief) return null;
+  return uitBestand(slug);
+}
+
+/**
+ * Het concept, ook in productie — alleen voor een pagina die in de database
+ * (nog) niet bestaat. Zo geeft /werkgevers geen 404 in de tijd tussen het
+ * live zetten van de code en het draaien van de SQL. Staat de pagina eenmaal in
+ * de database, dan wint die en speelt dit bestand geen rol meer.
+ */
+export function reserveConcept(slug: string): Concept | null {
+  return uitBestand(slug);
+}
+
+function uitBestand(slug: string): Concept | null {
   const c = CONCEPTEN.find((x) => x.slug === slug);
   if (!c) return null;
   return {

@@ -8,17 +8,27 @@ import { Arrow } from "@/components/site/DotCloud";
 import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
 import { kleurVars } from "@/lib/brand";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
-import { concept, conceptSlugs } from "@/lib/concept";
+import { concept, conceptSlugs, reserveConcept, type Concept } from "@/lib/concept";
 import type { Block, Page } from "@/lib/types";
+
+type Inhoud = { page: Pick<Page, "title" | "seo_title" | "seo_description" | "og_image">; blocks: Block[] };
+
+function alsInhoud(c: Concept): Inhoud {
+  return { page: { title: c.title, seo_title: c.seo_title ?? null, seo_description: c.seo_description ?? null, og_image: null }, blocks: c.blocks };
+}
 
 /**
  * Pagina-inhoud: op staging het concept als dat er is (zie lib/concept.ts),
- * anders de gepubliceerde pagina uit de database.
+ * anders de gepubliceerde pagina uit de database, en bestaat die niet, het
+ * concept als reserve (zodat een nieuwe pagina als /werkgevers er meteen is).
  */
-async function inhoud(slug: string): Promise<{ page: Pick<Page, "title" | "seo_title" | "seo_description" | "og_image">; blocks: Block[] } | null> {
+async function inhoud(slug: string): Promise<Inhoud | null> {
   const c = concept(slug);
-  if (c) return { page: { title: c.title, seo_title: c.seo_title ?? null, seo_description: c.seo_description ?? null, og_image: null }, blocks: c.blocks };
-  return getPage(slug);
+  if (c) return alsInhoud(c);
+  const db = await getPage(slug);
+  if (db) return db;
+  const reserve = reserveConcept(slug);
+  return reserve ? alsInhoud(reserve) : null;
 }
 
 export const revalidate = 300;
