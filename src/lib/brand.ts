@@ -13,21 +13,21 @@ import type { CSSProperties } from "react";
 export type Kleur = "blauw" | "teal" | "rood" | "oranje" | "roze" | "indigo";
 
 /**
- * Per kleur drie tinten:
- * - `tekst`: donker genoeg voor AA-contrast op wit (de originele oranje en teal
- *   halen dat niet, vandaar de verdiepte variant);
- * - `vlak`: de originele stipkleur, voor vlakken en decoratie;
+ * Per kleur vier tinten:
+ * - `tekst`: voor tekst en iconen. Verdiept tot minstens 4,9:1 contrast, óók
+ *   op de eigen `zacht`-tint — de originele stipkleuren halen dat niet;
+ * - `vlak`: de originele stipkleur, voor stippen, balkjes en decoratie;
  * - `zacht`: een lichte achtergrondtint;
  * - `donker`: de stipkleur op een donkere (indigo) ondergrond. Alleen indigo
- *   wijkt af — die valt anders weg tegen de footer.
+ *   wijkt af — die valt anders weg tegen indigo.
  */
 export const KLEUREN: Record<Kleur, { tekst: string; vlak: string; zacht: string; donker: string }> = {
-  blauw: { tekst: "#1e7eb0", vlak: "#39a5dd", zacht: "#eaf5fb", donker: "#39a5dd" },
-  teal: { tekst: "#008577", vlak: "#00a098", zacht: "#e5f5f3", donker: "#00a098" },
+  blauw: { tekst: "#186c98", vlak: "#39a5dd", zacht: "#eaf5fb", donker: "#39a5dd" },
+  teal: { tekst: "#007166", vlak: "#00a098", zacht: "#e5f5f3", donker: "#00a098" },
   rood: { tekst: "#ca152a", vlak: "#ca152a", zacht: "#fbeaec", donker: "#e8455a" },
-  oranje: { tekst: "#ab6600", vlak: "#f19000", zacht: "#fef3e1", donker: "#f19000" },
-  roze: { tekst: "#d81570", vlak: "#e51673", zacht: "#fce9f2", donker: "#e51673" },
-  indigo: { tekst: "#312e82", vlak: "#312e82", zacht: "#efeef8", donker: "#8985d6" },
+  oranje: { tekst: "#955900", vlak: "#f19000", zacht: "#fef3e1", donker: "#f19000" },
+  roze: { tekst: "#c01263", vlak: "#e51673", zacht: "#fce9f2", donker: "#e51673" },
+  indigo: { tekst: "#312e82", vlak: "#312e82", zacht: "#efeef8", donker: "#a9a6ea" },
 };
 
 /** Onbekende of lege kleur valt terug op indigo, zodat een typefout in het CMS niets breekt. */

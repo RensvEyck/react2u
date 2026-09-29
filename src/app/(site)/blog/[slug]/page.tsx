@@ -6,6 +6,7 @@ import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
+import PageHeader from "@/components/site/PageHeader";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -75,39 +76,35 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE },
-      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE}/blog` },
+      { "@type": "ListItem", position: 2, name: "Inzichten", item: `${SITE}/blog` },
       { "@type": "ListItem", position: 3, name: p.title, item: `${SITE}/blog/${p.slug}` },
     ],
   };
 
   return (
     <>
-      <section className="bg-gradient-to-br from-soft via-white to-secondary/10">
-        <div className="container-site py-14 max-w-[820px]">
-          <Link href="/blog" className="mb-5 inline-flex items-center gap-1.5 text-[14px] font-medium text-primary/55 hover:text-accent">
-            <LuArrowLeft className="text-[13px]" /> Alle artikelen
-          </Link>
-          <h1 className="text-4xl md:text-5xl mb-5">{p.title}</h1>
-          <div className="flex flex-wrap gap-5 text-primary/70">
-            {date && <span className="flex items-center gap-2"><LuCalendar /> {date}</span>}
-            {p.author && <span className="flex items-center gap-2"><LuUserRound /> {p.author}</span>}
-          </div>
+      <PageHeader crumbs={[{ label: "Inzichten", href: "/blog" }, { label: p.title, href: `/blog/${p.slug}` }]}
+        eyebrow="Inzichten" title={p.title} narrow>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-[16px] text-primary/80">
+          {date && <span className="flex items-center gap-2"><LuCalendar aria-hidden /> {date}</span>}
+          {p.author && <span className="flex items-center gap-2"><LuUserRound aria-hidden /> {p.author}</span>}
         </div>
-      </section>
+      </PageHeader>
 
       {p.cover_image && (
-        <div className="container-site max-w-[900px] -mt-2">
-          <SiteImage src={p.cover_image} alt="" priority sizes="(min-width: 900px) 900px, 100vw"
-            className="w-full rounded-2xl object-cover" />
+        <div className="container-site -mt-6 max-w-[980px] md:-mt-10">
+          <SiteImage src={p.cover_image} alt="" priority sizes="(min-width: 980px) 980px, 100vw"
+            className="w-full rounded-[28px] object-cover shadow-[0_30px_60px_-40px_rgba(34,32,90,0.5)]" />
         </div>
       )}
 
-      <section className="py-14">
+      <article className="py-14 md:py-20">
         <div className="container-site max-w-[760px]">
-          {p.excerpt && <p className="text-xl text-primary/80 mb-6">{p.excerpt}</p>}
-          <MiniMarkdown text={p.body_md || ""} />
+          {p.excerpt && <p className="mb-8 text-[21px] leading-relaxed text-primary/85">{p.excerpt}</p>}
+          <MiniMarkdown text={p.body_md || ""} className="text-[18.5px]" />
+          <Link href="/blog" className="link-arrow mt-12"><LuArrowLeft aria-hidden /> Alle artikelen</Link>
         </div>
-      </section>
+      </article>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} />

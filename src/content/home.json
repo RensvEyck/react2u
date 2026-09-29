@@ -178,6 +178,7 @@
         },
         "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/GOEDE-VERSIE-1-1024x1024.png",
         "imageAlt": "Het REACT-model: Results, Expertise, Attention, Coaching en Together, met werknemer, leidinggevende en HR-functionaris in het midden",
+        "imageShape": "circle",
         "quote": "We denken in mogelijkheden, niet in belemmeringen of beperkingen. Er is altijd een passende oplossing.",
         "quoteName": "Team React2u",
         "quoteRole": ""
@@ -189,6 +190,7 @@
       "data": {
         "eyebrow": "Wat je van ons mag verwachten",
         "heading": "React2u in één oogopslag",
+        "highlight": "oogopslag",
         "text": "De ene werknemer is de andere niet. Arbodienstverlening is maatwerk en vraagt iedere keer om een persoonlijke benadering.",
         "items": [
           {
@@ -206,9 +208,9 @@
             "imageAlt": "Arts in gesprek met een medewerker"
           },
           {
-            "value": "1",
-            "title": "vaste casemanager",
-            "text": "Elke organisatie krijgt een vaste casemanager die het traject bewaakt en contact houdt met werknemer én werkgever.",
+            "value": "",
+            "title": "Eén dossier, altijd inzicht",
+            "text": "In ons gecertificeerde online verzuimregistratiesysteem vind je rapportages, afspraken en wettelijke deadlines op één plek.",
             "image": "",
             "imageAlt": ""
           },
@@ -227,16 +229,16 @@
             "imageAlt": "Coach die met een medewerker een model op papier doorneemt"
           },
           {
-            "value": "WVP + ERD",
-            "title": "beide trajecten",
-            "text": "Verzuimbegeleiding binnen de Wet verbetering poortwachter én voor eigenrisicodragers Ziektewet.",
+            "value": "1",
+            "title": "vaste casemanager",
+            "text": "Elke organisatie krijgt een vaste casemanager die het traject bewaakt en contact houdt met werknemer én werkgever.",
             "image": "",
             "imageAlt": ""
           },
           {
-            "value": "",
-            "title": "Eén dossier, altijd inzicht",
-            "text": "In ons gecertificeerde online verzuimregistratiesysteem vind je rapportages, afspraken en wettelijke deadlines op één plek.",
+            "value": "WVP + ERD",
+            "title": "beide trajecten",
+            "text": "Verzuimbegeleiding binnen de Wet verbetering poortwachter én voor eigenrisicodragers Ziektewet.",
             "image": "",
             "imageAlt": ""
           }

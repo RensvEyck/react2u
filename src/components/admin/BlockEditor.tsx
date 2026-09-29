@@ -17,10 +17,10 @@ const FIELD_LABELS: Record<string, string> = {
   columns: "Kolommen", words: "Woorden", before: "Tekst ervoor", after: "Tekst erna",
   style: "Stijl", phone: "Telefoon (tel:)", phoneDisplay: "Telefoon (weergave)", email: "E-mail",
   address: "Adres", formHeading: "Formulier-kop", images: "Afbeeldingen",
-  highlight: "Woord in accentkleur", badge: "Label op de foto", logosLabel: "Tekst bij de logo's",
+  highlight: "Woord met markeerstift", badge: "Label op de foto", logosLabel: "Tekst bij de logo's",
   layout: "Opmaak (center of split)", kleur: "Kleur (blauw, teal, rood, oranje, roze, indigo)",
   quote: "Citaat", quoteName: "Naam bij citaat", quoteRole: "Functie bij citaat",
-  value: "Cijfer of kernwoord", count: "Aantal artikelen",
+  value: "Cijfer of kernwoord", count: "Aantal artikelen", imageShape: "Beeldvorm (rounded of circle)",
 };
 
 const IMAGE_KEYS = new Set(["image", "og_image", "logo"]);

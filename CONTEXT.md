@@ -172,25 +172,68 @@ mail helemaal niet aan; je ziet het alleen in de logs. Mail voor react2u.nl
 loopt via Microsoft 365 (`MX react2u-nl.mail.protection.outlook.com`), met
 Sophos-filtering ervoor en `-all` in de SPF.
 
-## Bloktypes in de opbouw van acture.nl
+## Vormgeving
 
-De homepage volgt sinds september 2026 de opbouw van acture.nl, in de huisstijl
-van React2u. Daarvoor kwamen er zes bloktypes bij, naast de bestaande:
+De site volgt sinds september 2026 de opbouw van acture.nl, in de huisstijl
+van React2u: een zwevende, afgeronde header met megamenu, secties die
+afwisselen tussen wit, lavendel (`bg-soft`), lichtblauw (`bg-sky`) en indigo,
+en een lichte footer met een witte adreskaart. Alle bloktypes — ook de
+oudere — delen die vormtaal, dus een pagina uit het CMS ziet er vanzelf zo
+uit.
+
+**Contrast is doorgerekend, niet geschat.** Het roze van de knoppen is
+`#c8306a` (5,1:1 met witte tekst); het oude `#e75387` haalde 3,5:1. Tekst in
+teal is `--color-secondary-ink` (`#007a6d`); het teal uit het logo is te licht
+voor tekst. De dienstkleuren in `brand.ts` hebben een aparte `tekst`-tint die
+ook op de eigen lichte tint AA haalt. Gebruik voor grijze tekst niet minder
+dan `text-primary/70` of `text-body`.
+
+**Zes nieuwe bloktypes** naast de bestaande:
 
 | Bloktype | Wat |
 |---|---|
-| `heroStatement` | Belofte met één woord in accentkleur (`highlight`), twee knoppen, foto met de stippenwolk, en een strook klantlogo's. |
+| `heroStatement` | Twee panelen: de belofte op indigo (met `highlight` onder een markeerstift), de foto ernaast met de stippenwolk en een `badge`; eronder de klantlogo's. |
 | `pillars` | De drie pijlers als kaarten. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
-| `linkIndex` | Alle onderwerpen als tegels, elk in de kleur van zijn dienst. |
-| `about` | Beeld naast tekst, met een citaat. |
-| `facts` | "In één oogopslag": bento-raster op indigo. Een item met `value` wordt een cijferkaart, met `image` een beeldkaart over twee rijen, anders een tekstkaart. |
+| `linkIndex` | Alle onderwerpen als pil-tegels, elk in de kleur van zijn dienst. |
+| `about` | Donker vlak, tekst naast beeld met een citaatkaart. `imageShape: "circle"` snijdt het beeld rond bij. |
+| `facts` | "In één oogopslag": kaarten in drie verspringende kolommen, op volgorde verdeeld (de middelste kolom krijgt het eerste extra item). Met `value` een cijferkaart, met `image` een kaart met beeld. |
 | `latestPosts` | De nieuwste artikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
 
-Daarnaast kregen twee bestaande blokken een optionele variant: `intro` met
-`layout: "split"` (kop links, tekst rechts) en `valueCards` met een `heading`
-(tekst links, waarden als lijst rechts). Zonder die velden zien ze er uit als
-voorheen. De blokeditor toont alleen velden die al in de data staan — wil je
-een bestaand blok omzetten, voeg het blok dan opnieuw toe.
+Bestaande blokken kregen optionele varianten: `intro` met `layout: "split"`
+en `valueCards` met een `heading`. De blokeditor toont alleen velden die al in
+de data staan — wil je een bestaand blok omzetten, voeg het opnieuw toe.
+
+**Het eerste blok is de paginakop.** Begint een pagina met `intro` of
+`richText`, dan wordt dat een lichte band met kruimelpad en h1 (`HeaderBand`);
+een `hero` toont het kruimelpad in zijn tekstpaneel. Het kruimelpad komt uit
+`crumbsVoor()` in `nav.ts` en wordt ook als `BreadcrumbList` uitgegeven.
+
+**Dienstpagina's kleuren mee.** `[slug]/page.tsx` zet `kleurVars()` van de
+dienst op een wrapper; het heropaneel, bovenkopjes, nummering, vinkjes en
+opsommingstekens lezen `--k` en `--k-zacht` (met een terugval voor gewone
+pagina's). Onder elke dienstpagina staat automatisch "Meer van React2u" met
+de vijf andere diensten.
+
+**De hero schuift onder de header.** De header zweeft (`sticky`, met marge);
+`.hero-pull` trekt een hero `--hh` omhoog zodat zijn achtergrond doorloopt.
+`--hh` in `globals.css` moet minstens zo hoog zijn als de header (nu 78px
+mobiel, 88px desktop; `--hh` heeft een paar pixels marge). Maak je de header
+hoger, verhoog dan `--hh` mee — anders verschijnt er een witte streep.
+
+**Onthullen bij scrollen is veilig voor als JavaScript faalt.** Elementen met
+`data-reveal` komen zacht in beeld. `Reveal.tsx` markeert eerst alles wat al
+in beeld staat en zet pas daarna `js-reveal` op `<html>`: zonder JavaScript
+blijft alles gewoon zichtbaar. Het werkt alleen binnen `.site-root` (de
+`SiteShell`), zodat het voorbeeld in de blokeditor niet leeg blijft, en staat
+uit bij `prefers-reduced-motion`. Test je met een script dat met `scrollTo`
+springt, dan kunnen secties leeg lijken; scroll dan met het muiswiel.
+
+**Formulieren hebben zichtbare labels** (`FormField.tsx`), geen placeholders
+als enige aanduiding.
+
+**404.** `(site)/not-found.tsx` vangt `notFound()` binnen de site;
+`app/not-found.tsx` vangt adressen die op geen route passen en zet zelf de
+`SiteShell` eromheen.
 
 **Niet verzinnen.** Acture toont cijfers (650+ medewerkers, 6500+ organisaties)
 en een klantcitaat. Voor React2u stonden die nergens, dus `facts` gebruikt
@@ -210,7 +253,15 @@ Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken: [`src/content/home.json`](src/content/home.json) bevat de blokken van de
 nieuwe homepage, en `/concept` rendert die met de gewone `BlockRenderer`.
 Alleen lokaal en op preview-deploys — in productie (`VERCEL_ENV=production`)
-geeft `/concept` een 404, en de pagina staat op `noindex`.
+geeft `/concept` een 404, en de pagina staat op `noindex`. Op een preview-deploy
+staat het concept bovendien op `/` (`conceptOpHome` in `src/lib/concept.ts`),
+zodat staging de homepage toont zoals hij live komt.
+
+Lokaal staging nabootsen — geen onderhoudspagina, concept op `/`:
+
+```bash
+VERCEL_ENV=preview npm run dev
+```
 
 **Staging** is een preview-deploy van een branch: elke push naar een andere
 branch dan `master` krijgt van Vercel een eigen URL, plus een vaste per branch

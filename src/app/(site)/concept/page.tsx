@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
 import { getPublishedPosts } from "@/lib/content";
-import type { Block } from "@/lib/types";
-import home from "@/content/home.json";
+import { conceptBlocks } from "@/lib/concept";
 
 export const revalidate = 300;
 
@@ -22,16 +21,7 @@ export const metadata: Metadata = {
  */
 export default async function ConceptPage() {
   if (process.env.VERCEL_ENV === "production") notFound();
-
-  const blocks: Block[] = home.blocks.map((b, i) => ({
-    id: `concept-${i}`,
-    page_id: "concept",
-    type: b.type,
-    label: b.label,
-    sort: i,
-    data: b.data as Record<string, unknown>,
-    updated_at: "",
-  }));
+  const blocks = conceptBlocks();
   const posts = needsPosts(blocks) ? await getPublishedPosts() : [];
   return <BlockRenderer blocks={blocks} ctx={{ posts }} />;
 }

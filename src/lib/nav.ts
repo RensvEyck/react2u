@@ -110,6 +110,27 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Contact", href: "/contact" },
 ];
 
+/** De dienst achter een pad, met zijn pijler — of null als het geen dienstpagina is. */
+export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | null {
+  for (const pijler of PIJLERS) {
+    const dienst = pijler.diensten.find((d) => d.href === path);
+    if (dienst) return { dienst, pijler };
+  }
+  return null;
+}
+
+/**
+ * Het kruimelpad naar een pagina, zonder "Home" (dat zet de weergave ervoor).
+ * Een dienst hangt onder Oplossingen, een pagina uit een uitklapmenu onder zijn
+ * menu-item; de rest staat direct onder Home.
+ */
+export function crumbsVoor(path: string, title: string): NavLink[] {
+  if (dienstVoor(path)) return [{ label: "Oplossingen", href: "/diensten" }, { label: title, href: path }];
+  const ouder = MAIN_NAV.find((i) => i.href !== path && i.children?.some((c) => c.href === path));
+  if (ouder) return [{ label: ouder.label, href: ouder.href }, { label: title, href: path }];
+  return [{ label: title, href: path }];
+}
+
 /** De knop rechts in de header, zoals Acture's "Adviesgesprek". */
 export const HEADER_CTA: NavLink = { label: "Adviesgesprek", href: "/contact" };
 

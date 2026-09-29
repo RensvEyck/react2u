@@ -1,13 +1,10 @@
 /**
  * Het React2u-logo als inline SVG (bron: Logo-kleur.svg in de mediabibliotheek).
  *
- * Inline in plaats van de PNG, zodat het woordmerk de tekstkleur volgt: op een
- * donkere ondergrond (footer, CTA) wordt het wit zonder aparte lichte variant.
- * De indigo stip valt op indigo weg; `tone="light"` licht die op tot de
- * lichte merktint.
+ * Inline in plaats van de PNG: scherp op elk formaat, zonder extra verzoek. Het
+ * woordmerk volgt `currentColor`, dus een lichte variant is één `text-white`
+ * op de plek waar hij nodig is — let dan wel op de indigo stip.
  */
-
-type Tone = "dark" | "light";
 
 // [kleur, pad, transform] — de stippenwolk rond het woordmerk.
 const DOTS: [string, string, string][] = [
@@ -31,9 +28,8 @@ const WORD: [string, string][] = [
 ];
 
 export default function Logo({
-  tone = "dark", className, title = "React2u",
+  className, title = "React2u",
 }: {
-  tone?: Tone;
   className?: string;
   /** Leeg maken als het logo naast zichtbare tekst "React2u" staat. */
   title?: string;
@@ -45,10 +41,10 @@ export default function Logo({
       role={title ? "img" : undefined}
       aria-label={title || undefined}
       aria-hidden={title ? undefined : true}
-      style={{ color: tone === "light" ? "#fff" : "#12100b" }}
+      style={{ color: "#12100b" }}
     >
       {DOTS.map(([fill, d, t], i) => (
-        <path key={i} d={d} transform={t} fill={tone === "light" && fill === "#312e82" ? "#8985d6" : fill} />
+        <path key={i} d={d} transform={t} fill={fill} />
       ))}
       {WORD.map(([d, t], i) => (
         <path key={`w${i}`} d={d} transform={t} fill="currentColor" />

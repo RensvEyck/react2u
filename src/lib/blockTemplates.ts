@@ -84,12 +84,13 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   about: {
     label: "Over ons met citaat",
-    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, image: "", imageAlt: "", quote: "", quoteName: "", quoteRole: "" },
+    // imageShape: "rounded" of "circle" (rond bijgesneden, zoals het REACT-wiel).
+    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, image: "", imageAlt: "", imageShape: "rounded", quote: "", quoteName: "", quoteRole: "" },
   },
   facts: {
     label: "In één oogopslag (cijfers en feiten)",
     // Met `value` een cijferkaart, met `image` een beeldkaart, anders een tekstkaart.
-    data: { eyebrow: "", heading: "Kop", text: "", items: [{ value: "", title: "Titel", text: "Tekst", image: "", imageAlt: "" }] },
+    data: { eyebrow: "", heading: "Kop", highlight: "", text: "", items: [{ value: "", title: "Titel", text: "Tekst", image: "", imageAlt: "" }] },
   },
   latestPosts: {
     label: "Nieuwste artikelen",
