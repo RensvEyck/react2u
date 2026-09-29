@@ -1,5 +1,6 @@
 import { CONTACT_FALLBACK, type ContactInfo } from "./content";
 import { FAVICON_URL, LOGO_SVG_URL } from "./nav";
+import { DOT_R, LOGO_DOTS } from "./brand";
 
 /**
  * Onderhoudsmodus (`site_settings.maintenance`).
@@ -22,35 +23,6 @@ export function normalizeMaintenance(value: unknown): Maintenance {
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-/**
- * De stippenwolk uit het logo (Logo-kleur.svg), zonder het woordmerk: per stip
- * [kleur, cx, cy], straal 3,14, in de viewBox van het logo. Op de
- * onderhoudspagina staat de kop op de plek van het woord "React2u".
- *
- * Opgemeten uit de paden van het logo en omgezet naar cirkels. In het origineel
- * is de onderste blauwe stip afgevlakt waar hij de "t" raakt; op groot formaat
- * oogt dat als een fout, dus hier is hij rond.
- */
-const LOGO_DOTS: [string, number, number][] = [
-  ["#39a5dd", 47.84, 16.19],
-  ["#00a098", 57.78, 3.14],
-  ["#39a5dd", 58.21, 15.39],
-  ["#00a098", 67.96, 5.16],
-  ["#39a5dd", 68.11, 18.63],
-  ["#00a098", 76.62, 10.92],
-  ["#312e82", 91.69, 11.95],
-  ["#f19000", 37.72, 54.2],
-  ["#f19000", 41.23, 64],
-  ["#e51673", 51.54, 57.38],
-  ["#e51673", 57.52, 65.81],
-  ["#ca152a", 65.88, 57.91],
-  ["#e51673", 66.3, 71.38],
-  ["#ca152a", 75.82, 60.91],
-  ["#e51673", 76.55, 73.16],
-  ["#ca152a", 86.17, 59.88],
-  ["#ca152a", 95.33, 54.99],
-];
-
 const ICON_PHONE =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg>';
 const ICON_MAIL =
@@ -71,7 +43,7 @@ export function maintenancePage(m: Maintenance, contact: Partial<ContactInfo> | 
   const message = esc(m.message || MAINTENANCE_DEFAULT_MESSAGE);
   const address = [c.addressLine1, c.addressLine2].filter(Boolean).map(esc).join(", ");
   const dots = LOGO_DOTS.map(
-    ([fill, cx, cy], i) => `<circle class="d" style="--i:${i}" cx="${cx}" cy="${cy}" r="3.14" fill="${fill}"/>`
+    ([fill, cx, cy], i) => `<circle class="d" style="--i:${i}" cx="${cx}" cy="${cy}" r="${DOT_R}" fill="${fill}"/>`
   ).join("");
   return `<!doctype html>
 <html lang="nl">

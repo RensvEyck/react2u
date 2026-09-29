@@ -4,7 +4,8 @@ import { getPublishedVacancies, getVacancy } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
 import ApplicationForm from "@/components/site/ApplicationForm";
-import { FaMapMarkerAlt, FaClock, FaEuroSign } from "react-icons/fa";
+import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
+import PageHeader from "@/components/site/PageHeader";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -59,25 +60,22 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <section className="bg-gradient-to-br from-soft via-white to-secondary/10">
-        <div className="container-site py-14 max-w-[860px]">
-          <p className="eyebrow mb-4">VACATURE</p>
-          <h1 className="text-4xl md:text-5xl mb-5">{v.title}</h1>
-          <div className="flex flex-wrap gap-5 text-primary/80">
-            <span className="flex items-center gap-2"><FaMapMarkerAlt /> {v.location}</span>
-            {v.hours && <span className="flex items-center gap-2"><FaClock /> {v.hours}</span>}
-            {v.salary && <span className="flex items-center gap-2"><FaEuroSign /> {v.salary}</span>}
-          </div>
+      <PageHeader crumbs={[{ label: "Werken bij React2u", href: "/vacatures" }, { label: v.title, href: `/vacatures/${v.slug}` }]}
+        eyebrow="Vacature" title={v.title}>
+        <div className="flex flex-wrap gap-2 text-[15px] font-medium text-primary">
+          <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuMapPin aria-hidden /> {v.location}</span>
+          {v.hours && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
+          {v.salary && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
         </div>
-      </section>
-      <section className="py-14">
-        <div className="container-site grid gap-12 lg:grid-cols-[1fr_420px] max-w-[1100px]">
+      </PageHeader>
+      <section className="py-16 md:py-24">
+        <div className="container-site grid gap-12 lg:grid-cols-[1fr_440px] lg:gap-16">
           <div>
-            {v.intro && <p className="text-xl text-primary/80 mb-6">{v.intro}</p>}
-            <MiniMarkdown text={v.description_md || ""} />
+            {v.intro && <p className="mb-8 text-[21px] leading-relaxed text-primary/85">{v.intro}</p>}
+            <MiniMarkdown text={v.description_md || ""} className="text-[18px]" />
           </div>
-          <div className="lg:sticky lg:top-6 h-fit rounded-2xl border border-black/5 bg-soft p-7">
-            <h2 className="text-2xl mb-4">Solliciteer op deze vacature</h2>
+          <div className="h-fit rounded-[28px] border border-black/[0.06] bg-white p-7 shadow-[0_30px_60px_-40px_rgba(34,32,90,0.5)] md:p-9 lg:sticky lg:top-[calc(var(--hh)+1.5rem)]">
+            <h2 className="mb-6 text-[26px]">Solliciteer op deze vacature</h2>
             <ApplicationForm vacancyId={v.id} vacancyTitle={v.title} />
           </div>
         </div>

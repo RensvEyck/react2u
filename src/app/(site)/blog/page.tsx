@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getPublishedPosts } from "@/lib/content";
 import { LuCalendar, LuUserRound } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
+import PageHeader from "@/components/site/PageHeader";
+import DotCloud, { Arrow } from "@/components/site/DotCloud";
 
 export const revalidate = 300;
 
@@ -23,53 +25,52 @@ export default async function BlogIndex() {
 
   return (
     <>
-      <section className="bg-gradient-to-br from-soft via-white to-secondary/10">
-        <div className="container-site py-14 lg:py-20 max-w-[820px]">
-          <p className="eyebrow mb-4">BLOG</p>
-          <h1 className="text-4xl md:text-5xl mb-5">Kennis die je verder helpt</h1>
-          <p className="text-xl text-primary/80">
-            Artikelen over verzuim, preventie en vitaliteit — praktisch en zonder omhaal.
-          </p>
-        </div>
-      </section>
+      <PageHeader crumbs={[{ label: "Blog", href: "/blog" }]} eyebrow="Blog" title="Kennis die je verder helpt">
+        <p>Artikelen over verzuim, preventie en vitaliteit — praktisch en zonder omhaal.</p>
+      </PageHeader>
 
-      <section className="py-14">
-        <div className="container-site max-w-[1100px]">
+      <section className="py-16 md:py-24">
+        <div className="container-site">
           {posts.length === 0 ? (
-            <p className="text-primary/70">Er zijn nog geen artikelen gepubliceerd.</p>
+            <div className="mx-auto max-w-[640px] rounded-[28px] bg-soft p-10 text-center" data-reveal>
+              <DotCloud className="mx-auto mb-6 w-20" />
+              <h2 className="text-[26px]">Binnenkort verschijnen hier onze eerste artikelen</h2>
+              <p className="mt-3">Tot die tijd beantwoorden we je vragen graag persoonlijk.</p>
+              <Link href="/contact" className="btn mt-7">Stel je vraag <Arrow /></Link>
+            </div>
           ) : (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((p) => (
-                <article key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-black/5 bg-white transition hover:shadow-lg">
-                  <Link href={`/blog/${p.slug}`} className="block overflow-hidden bg-soft">
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {posts.map((p, i) => (
+                <article key={p.id} data-reveal style={{ "--ri": i % 3 } as React.CSSProperties}
+                  className="lift group relative flex flex-col overflow-hidden rounded-[28px] bg-soft">
+                  <div className="aspect-[16/10] overflow-hidden bg-[#e9e7f5]">
                     {p.cover_image ? (
                       <SiteImage
                         src={p.cover_image}
                         alt=""
-                        sizes="(min-width: 1024px) 360px, (min-width: 768px) 50vw, 100vw"
+                        sizes="(min-width: 1024px) 380px, (min-width: 768px) 50vw, 100vw"
                         widths={[480, 800]}
-                        className="h-48 w-full object-cover transition duration-500 group-hover:scale-105"
+                        className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
                       />
                     ) : (
-                      <div className="h-48 w-full bg-gradient-to-br from-soft to-secondary/20" />
+                      <div className="grid h-full place-items-center"><DotCloud className="w-24 opacity-60" /></div>
                     )}
-                  </Link>
-                  <div className="flex flex-1 flex-col p-6">
-                    <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-primary/50">
+                  </div>
+                  <div className="flex flex-1 flex-col p-7">
+                    <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-primary/75">
                       {p.published_at && (
-                        <span className="flex items-center gap-1.5"><LuCalendar className="text-[12px]" /> {fmt(p.published_at)}</span>
+                        <span className="flex items-center gap-1.5"><LuCalendar aria-hidden /> {fmt(p.published_at)}</span>
                       )}
                       {p.author && (
-                        <span className="flex items-center gap-1.5"><LuUserRound className="text-[12px]" /> {p.author}</span>
+                        <span className="flex items-center gap-1.5"><LuUserRound aria-hidden /> {p.author}</span>
                       )}
                     </div>
-                    <h2 className="text-2xl mb-2">
-                      <Link href={`/blog/${p.slug}`} className="hover:text-accent">{p.title}</Link>
+                    <h2 className="text-[22px] leading-snug">
+                      {/* De hele kaart is klikbaar via de ::after van deze link. */}
+                      <Link href={`/blog/${p.slug}`} className="after:absolute after:inset-0">{p.title}</Link>
                     </h2>
-                    {p.excerpt && <p className="text-primary/75 mb-4">{p.excerpt}</p>}
-                    <Link href={`/blog/${p.slug}`} className="mt-auto font-semibold text-accent hover:underline">
-                      Lees verder →
-                    </Link>
+                    {p.excerpt && <p className="mt-3 text-[16px]">{p.excerpt}</p>}
+                    <span className="link-arrow mt-auto pt-6 text-[15.5px]">Lees verder <Arrow /></span>
                   </div>
                 </article>
               ))}

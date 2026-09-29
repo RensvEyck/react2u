@@ -11,6 +11,14 @@ export const FIELD_LABELS: Record<string, string> = {
   columns: "Kolommen", words: "Woorden", before: "Tekst ervoor", after: "Tekst erna",
   style: "Stijl", phone: "Telefoon (tel:)", phoneDisplay: "Telefoon (weergave)", email: "E-mail",
   address: "Adres", formHeading: "Formulier-kop", images: "Afbeeldingen",
+  // Velden van de bloktypes uit de nieuwe vormgeving (zie CONTEXT.md, *Vormgeving*).
+  highlight: "Woord in accentkleur", badge: "Label (keurmerkregel, of wat in de cirkel staat)", logosLabel: "Tekst bij de logo's",
+  layout: "Opmaak (leeg of center)", kleur: "Kleur (blauw, teal, rood, oranje, roze, indigo)",
+  quote: "Citaat", quoteName: "Naam bij citaat", quoteRole: "Functie bij citaat",
+  value: "Cijfer of kernwoord", count: "Aantal artikelen",
+  steps: "Stappen", valueLabel: "Toelichting bij het cijfer",
+  links: "Links", routes: "Contactroutes", sub: "Tweede regel",
+  choices: "Keuzes", note: "Regel onderaan", anchor: "Anker (voor #-links)",
 };
 
 /** Welke velden van de blokdata verschillen tussen twee versies. */

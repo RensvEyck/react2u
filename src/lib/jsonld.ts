@@ -21,3 +21,20 @@ export function jsonLd(data: unknown): string {
     .replace(/\u2028/g, "\\u2028")
     .replace(/\u2029/g, "\\u2029");
 }
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
+
+/** `BreadcrumbList` voor een kruimelpad; "Home" komt er zelf voor. */
+export function breadcrumbLd(crumbs: { label: string; href: string }[]) {
+  const items = [{ label: "Home", href: "/" }, ...crumbs];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.label,
+      item: `${SITE}${c.href === "/" ? "" : c.href}`,
+    })),
+  };
+}

@@ -1,29 +1,197 @@
-export type NavItem = { label: string; href: string; children?: { label: string; href: string }[] };
+import type { Kleur } from "./brand";
 
-export const MAIN_NAV: NavItem[] = [
-  { label: "Home", href: "/" },
+/* ---------- Diensten: drie stappen, zes diensten ---------- */
+
+/**
+ * `situatie` beschrijft de dienst vanuit de werkgever: waar loop je tegenaan?
+ * Zo kiest een bezoeker op herkenning in plaats van op vakjargon.
+ */
+export type Dienst = { label: string; href: string; description: string; situatie: string; kleur: Kleur };
+/** `stap` is de plek in de route van voorkomen naar versterken; `icon` een naam uit Icon.tsx. */
+export type Pijler = { key: string; stap: string; title: string; text: string; kleur: Kleur; icon: string; diensten: Dienst[] };
+
+/**
+ * De zes diensten in drie stappen: voorkomen, begeleiden, versterken. Voedt het
+ * menu, de footer en het blok "Diensten per situatie" (`pillars`).
+ *
+ * Kleur hoort bij de pijler, niet bij de dienst: drie kleuren uit het logo,
+ * zodat je in menu, footer en overzichten in één oogopslag ziet wat bij
+ * elkaar hoort. Zes kleuren voor zes diensten werd een regenboog waarin kleur
+ * niets meer betekende. `kleur` staat per dienst zodat het later nog kan
+ * afwijken, maar is nu gelijk aan die van de pijler.
+ */
+export const PIJLERS: Pijler[] = [
   {
-    label: "Diensten",
-    href: "/diensten",
-    children: [
-      { label: "Verzuimbegeleiding WVP", href: "/verzuimbegeleiding-wvp" },
-      { label: "Verzuimbegeleiding ERD/ZW", href: "/verzuimbegeleiding-erd-zw" },
-      { label: "Preventie & Vitaliteit", href: "/preventie-en-vitaliteit" },
-      { label: "Begeleiding & Coaching", href: "/begeleiding-en-coaching" },
-      { label: "Trainingen & Workshops", href: "/trainingen-en-workshops" },
-      { label: "Risicomanagement", href: "/risicomanagement" },
+    key: "preventie",
+    stap: "Voorkomen",
+    title: "Preventie",
+    text: "Gezonde medewerkers vallen minder snel uit. We signaleren vroeg en pakken risico's aan voordat ze verzuim worden.",
+    kleur: "blauw",
+    icon: "shield",
+    diensten: [
+      {
+        label: "Preventie & Vitaliteit",
+        href: "/preventie-en-vitaliteit",
+        description: "Preventief medisch onderzoek, consulten en tevredenheidsonderzoek.",
+        situatie: "Je wilt verzuim voorkomen",
+        kleur: "blauw",
+      },
+      {
+        label: "Risicomanagement (RI&E)",
+        href: "/risicomanagement",
+        description: "Samen met kerndeskundigen de risico's in je organisatie in kaart.",
+        situatie: "Je wilt de risico's in je organisatie in kaart",
+        kleur: "blauw",
+      },
     ],
   },
   {
-    label: "Werknemers",
-    href: "/werknemers",
-    children: [{ label: "Verzuimprotocol", href: "/verzuimprotocol" }],
+    key: "verzuim",
+    stap: "Begeleiden",
+    title: "Verzuim",
+    text: "Valt er toch iemand uit? Dan begeleiden we je medewerker doelgericht terug naar werk, met een vaste casemanager en duidelijke stappen.",
+    kleur: "rood",
+    icon: "route",
+    diensten: [
+      {
+        label: "Verzuimbegeleiding WVP",
+        href: "/verzuimbegeleiding-wvp",
+        description: "Het volledige poortwachtertraject, van ziekmelding tot WIA-aanvraag.",
+        situatie: "Een medewerker meldt zich ziek",
+        kleur: "rood",
+      },
+      {
+        label: "Verzuimbegeleiding ERD/ZW",
+        href: "/verzuimbegeleiding-erd-zw",
+        description: "Voor eigenrisicodragers Ziektewet, ook in de flexbranche.",
+        situatie: "Je bent eigenrisicodrager voor de Ziektewet",
+        kleur: "rood",
+      },
+    ],
   },
-  { label: "Blog", href: "/blog" },
-  { label: "Vacatures", href: "/vacatures" },
-  { label: "Over React2u", href: "/over-react2u" },
-  { label: "Contact", href: "/contact" },
+  {
+    key: "ontwikkeling",
+    stap: "Versterken",
+    title: "Ontwikkeling",
+    text: "Soms is er meer nodig dan een plan van aanpak. Met coaching en training brengen we mensen en teams weer in beweging.",
+    kleur: "teal",
+    icon: "leaf",
+    diensten: [
+      {
+        label: "Begeleiding & Coaching",
+        href: "/begeleiding-en-coaching",
+        description: "Eén-op-één, burn-out- en loopbaancoaching op maat.",
+        situatie: "Een medewerker loopt vast of dreigt uit te vallen",
+        kleur: "teal",
+      },
+      {
+        label: "Trainingen & Workshops",
+        href: "/trainingen-en-workshops",
+        description: "Verzuim-, management- en communicatietrainingen voor je team.",
+        situatie: "Je wilt leidinggevenden en je team versterken",
+        kleur: "teal",
+      },
+    ],
+  },
 ];
+
+/* ---------- Werkgever en werknemer ---------- */
+
+/**
+ * De site kent twee doelgroepen met elk een eigen startpagina en een eigen
+ * menu. Een werkgever zoekt diensten en een partner; een zieke werknemer wil
+ * weten wat hij moet doen. Het startscherm op `/` laat kiezen.
+ */
+export type Doelgroep = "werkgever" | "werknemer";
+
+export const STARTPAGINA: Record<Doelgroep, NavLink> = {
+  werkgever: { label: "Werkgevers", href: "/werkgevers" },
+  werknemer: { label: "Werknemers", href: "/werknemers" },
+};
+
+const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol"];
+
+/**
+ * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
+ * gedeelde pagina's (contact, blog, over ons): daar geldt de laatste keuze
+ * van de bezoeker (zie lib/doelgroep.ts).
+ */
+export function doelgroepVoorPad(path: string): Doelgroep | null {
+  if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
+  if (path === "/werkgevers" || path === "/diensten" || dienstVoor(path)) return "werkgever";
+  return null;
+}
+
+/* ---------- Hoofdmenu ---------- */
+
+export type NavLink = { label: string; href: string };
+/**
+ * Een menu-item is een gewone link, een uitklapmenu (`children`) of het
+ * dienstenmenu met de pijlers (`mega`). Het dienstenmenu leest uit PIJLERS.
+ */
+export type NavItem = NavLink & { children?: NavLink[]; mega?: true };
+
+const OVER_ONS: NavItem = {
+  label: "Over ons",
+  href: "/over-react2u",
+  children: [
+    { label: "Over React2u", href: "/over-react2u" },
+    { label: "Werken bij React2u", href: "/vacatures" },
+  ],
+};
+
+/**
+ * Het menu per doelgroep. `algemeen` staat op het startscherm, waar nog niet
+ * gekozen is.
+ */
+export const NAV: Record<Doelgroep | "algemeen", NavItem[]> = {
+  werkgever: [
+    { label: "Diensten", href: "/diensten", mega: true },
+    OVER_ONS,
+    { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/contact" },
+  ],
+  werknemer: [
+    { label: "Ziek, wat nu?", href: "/verzuimprotocol" },
+    { label: "Veelgestelde vragen", href: "/werknemers#veelgestelde-vragen" },
+    OVER_ONS,
+    { label: "Contact", href: "/contact" },
+  ],
+  algemeen: [OVER_ONS, { label: "Blog", href: "/blog" }, { label: "Contact", href: "/contact" }],
+};
+
+/** De knop rechts in de header, per doelgroep. */
+export const HEADER_CTA: Record<Doelgroep | "algemeen", NavLink> = {
+  werkgever: { label: "Maak een afspraak", href: "/contact" },
+  werknemer: { label: "Stel je vraag", href: "/contact" },
+  algemeen: { label: "Neem contact op", href: "/contact" },
+};
+
+/** De dienst achter een pad, met zijn pijler — of null als het geen dienstpagina is. */
+export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | null {
+  for (const pijler of PIJLERS) {
+    const dienst = pijler.diensten.find((d) => d.href === path);
+    if (dienst) return { dienst, pijler };
+  }
+  return null;
+}
+
+/**
+ * Het kruimelpad naar een pagina, zonder "Home" (dat zet de weergave ervoor).
+ * Pagina's van een doelgroep hangen onder hun startpagina, zodat je altijd
+ * ziet in welk deel van de site je bent: Werkgevers › Diensten › Verzuim-
+ * begeleiding WVP, of Werknemers › Verzuimprotocol.
+ */
+export function crumbsVoor(path: string, title: string): NavLink[] {
+  const groep = doelgroepVoorPad(path);
+  if (!groep) return [{ label: title, href: path }];
+  const start = STARTPAGINA[groep];
+  if (path === start.href) return [start];
+  const tussen = dienstVoor(path) ? [{ label: "Diensten", href: "/diensten" }] : [];
+  return [start, ...tussen, { label: title, href: path }];
+}
+
+export const LINKEDIN_URL = "https://www.linkedin.com/company/react2u/";
 
 const MEDIA = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 

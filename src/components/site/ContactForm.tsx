@@ -2,33 +2,41 @@
 import { useActionState } from "react";
 import { submitContact, type FormState } from "@/app/(site)/actions";
 import Link from "next/link";
-
-const input =
-  "w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-[16px] outline-none focus:border-accent";
+import { Field, Bedankt, fieldClass } from "./FormField";
+import { Arrow } from "./DotCloud";
 
 export default function ContactForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(submitContact, null);
-  if (state?.ok)
-    return (
-      <div className="rounded-2xl bg-secondary/10 border border-secondary/30 p-6 text-primary font-medium">
-        Bedankt voor je bericht! We nemen zo snel mogelijk contact met je op.
-      </div>
-    );
+  if (state?.ok) return <Bedankt>Bedankt voor je bericht! We nemen zo snel mogelijk contact met je op.</Bedankt>;
   return (
-    <form action={action} className="space-y-3">
-      <input className={input} name="name" placeholder="Naam" required maxLength={200} />
-      <input className={input} name="email" type="email" placeholder="E-mailadres" required maxLength={200} />
-      <input className={input} name="phone" type="tel" placeholder="Telefoonnummer" required maxLength={40} />
-      <input className={input} name="subject" placeholder="Onderwerp" maxLength={200} />
-      <textarea className={input} name="message" placeholder="Bericht" rows={4} required maxLength={4000} />
+    <form action={action} className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Naam">
+          <input className={fieldClass} name="name" autoComplete="name" required maxLength={200} />
+        </Field>
+        <Field label="Telefoonnummer">
+          <input className={fieldClass} name="phone" type="tel" autoComplete="tel" required maxLength={40} />
+        </Field>
+      </div>
+      <Field label="E-mailadres">
+        <input className={fieldClass} name="email" type="email" autoComplete="email" required maxLength={200} />
+      </Field>
+      <Field label="Onderwerp" optional>
+        <input className={fieldClass} name="subject" maxLength={200} />
+      </Field>
+      <Field label="Bericht">
+        <textarea className={fieldClass} name="message" rows={4} required maxLength={4000} />
+      </Field>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-      {state?.error && <p className="text-accent-pink text-[15px]">{state.error}</p>}
-      <button className="btn" disabled={pending}>
-        {pending ? "Versturen…" : "Contact opnemen"}
-      </button>
-      <p className="text-[13.5px] text-primary/55">
-        Zie onze <Link href="/privacyverklaring" className="underline hover:text-accent">privacyverklaring</Link> voor wat we met je gegevens doen en hoe lang we ze bewaren.
-      </p>
+      {state?.error && <p role="alert" className="text-[15px] font-medium text-accent">{state.error}</p>}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
+        <button className="btn" disabled={pending}>
+          {pending ? "Versturen…" : <>Verstuur bericht <Arrow /></>}
+        </button>
+        <p className="text-[13.5px] text-body">
+          Lees in onze <Link href="/privacyverklaring" className="underline underline-offset-2 hover:text-accent">privacyverklaring</Link> wat we met je gegevens doen.
+        </p>
+      </div>
     </form>
   );
 }

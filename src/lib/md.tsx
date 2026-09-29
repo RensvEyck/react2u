@@ -1,11 +1,23 @@
 import React from "react";
+import { koppeltekensHeel } from "./tekst";
+
+/** Tekst met woorden als "re-integratie" heel gehouden (zie lib/tekst.ts). */
+export function Heel({ text }: { text: string }) {
+  return (
+    <>
+      {koppeltekensHeel(text).map((d, i) =>
+        typeof d === "string" ? d : <span key={i} className="whitespace-nowrap">{d.heel}</span>
+      )}
+    </>
+  );
+}
 
 // Mini-markdown renderer: paragraphs, "- " lists, **bold**, ### h3.
 function inline(text: string, key: number): React.ReactNode {
   const parts = text.split(/\*\*(.+?)\*\*/g);
   return (
     <React.Fragment key={key}>
-      {parts.map((p, i) => (i % 2 === 1 ? <strong key={i}>{p}</strong> : p))}
+      {parts.map((p, i) => (i % 2 === 1 ? <strong key={i}><Heel text={p} /></strong> : <Heel key={i} text={p} />))}
     </React.Fragment>
   );
 }

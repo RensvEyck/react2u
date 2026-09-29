@@ -2,28 +2,52 @@
 
 @theme {
   --color-primary: #312e82;
+  --color-primary-deep: #22205a;
+  /* Lichte indigo voor tekst op indigo: 5,1:1 op --color-primary. */
+  --color-primary-light: #a9a6ea;
+  /* Teal uit het logo, voor vlakken en decoratie. Te licht voor tekst (2,9:1). */
   --color-secondary: #00aa98;
-  --color-accent: #e75387;
+  /* Teal voor tekst, zoals bovenkopjes: 5,2:1 op wit. */
+  --color-secondary-ink: #007a6d;
+  /* Roze voor knoppen en accenten. Het oude #e75387 haalde met witte tekst
+     maar 3,5:1; deze tint 5,1:1 (WCAG AA). */
+  --color-accent: #c8306a;
+  --color-accent-deep: #a92656;
   --color-accent-blue: #39a5dd;
   --color-accent-pink: #e51673;
   --color-accent-orange: #f19000;
-  --color-body: rgba(0, 0, 0, 0.61);
+  /* Grijs met een zweem indigo, zodat het bij de rest past: 6,85:1 op wit. */
+  --color-body: #5a5870;
   --color-soft: #f6f5fb;
+  /* Lichtblauw vlak, afgeleid van de blauwe stip; wisselt af met --color-soft. */
+  --color-sky: #edf5fb;
   /* Gevuld door next/font in app/layout.tsx; de fallback geldt zolang het
      lettertype nog laadt. */
   --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  /* Hoogte van de plakkende header (zonder de topbalk erboven). Een lichte
+     paginakop schuift er zoveel onder, zodat zijn achtergrond doorloopt. Moet
+     kloppen met Header.tsx. */
+  --hh: 72px;
+}
+@media (min-width: 1024px) {
+  :root { --hh: 84px; }
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   font-family: var(--font-sans);
   color: var(--color-body);
   font-size: 18px;
-  line-height: 1.56;
+  line-height: 1.6;
   background: #fff;
 }
 
@@ -31,86 +55,291 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 700;
   color: var(--color-primary);
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+/* Op een donker vlak (.on-dark) zijn koppen wit. Een witte kaart daarbinnen
+   gebruikt geen h-elementen, of zet zelf text-primary. */
+.on-dark :is(h1, h2, h3, h4) {
+  color: #fff;
 }
 
-.btn {
-  display: inline-block;
-  border-radius: 100px;
-  padding: 14px 32px;
-  font-size: 17px;
-  line-height: 1.5;
-  background: var(--color-accent);
-  color: #fff;
-  border: 1px solid var(--color-accent);
-  transition: all 0.25s ease;
-  text-align: center;
-}
-.btn:hover {
-  background: transparent;
-  color: var(--color-accent);
-}
-.btn-indigo {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-.btn-indigo:hover {
-  background: transparent;
+::selection {
+  background: rgba(200, 48, 106, 0.18);
   color: var(--color-primary);
 }
-.btn-outline {
-  background: transparent;
-  color: var(--color-accent);
+
+/* Eén focusstijl voor alles wat je met het toetsenbord bereikt.
+   De kleur staat al vóór de focus vast: veel elementen hebben
+   transition-colors, en die animeert ook outline-color — anders begint de
+   rand in de tekstkleur en vloeit hij pas daarna naar roze. De rand volgt de
+   ronding van het element zelf. Formuliervelden hebben hun eigen focusstijl
+   (FormField.tsx). */
+:where(a, button, summary, [tabindex]) {
+  outline-color: rgba(200, 48, 106, 0.5);
 }
-.btn-outline:hover {
-  background: var(--color-accent);
-  color: #fff;
+.on-dark :where(a, button) {
+  outline-color: rgba(255, 255, 255, 0.75);
+}
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline-style: solid;
+  outline-width: 3px;
+  outline-offset: 3px;
 }
 
-.eyebrow {
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: var(--color-secondary);
-  font-size: 15px;
+/* In een laag, zodat een utility (bv. hover:text-…) ze kan overschrijven.
+   Klassen buiten een @layer winnen in Tailwind v4 altijd van utilities. */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55em;
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-size: 16.5px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    background: var(--color-accent);
+    color: #fff;
+    border: 1px solid var(--color-accent);
+    box-shadow: 0 6px 16px -10px rgba(200, 48, 106, 0.5);
+    transition:
+      background-color 0.25s var(--ease-out-soft),
+      border-color 0.25s var(--ease-out-soft),
+      color 0.25s var(--ease-out-soft),
+      box-shadow 0.25s var(--ease-out-soft),
+      transform 0.25s var(--ease-out-soft);
+  }
+  .btn svg {
+    flex: none;
+    transition: transform 0.3s var(--ease-out-soft);
+  }
+  .btn:hover {
+    background: var(--color-accent-deep);
+    border-color: var(--color-accent-deep);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px -12px rgba(200, 48, 106, 0.55);
+  }
+  .btn:hover svg {
+    transform: translateX(3px);
+  }
+  .btn:active {
+    transform: translateY(0);
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .btn-indigo {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 6px 16px -10px rgba(49, 46, 130, 0.5);
+  }
+  .btn-indigo:hover {
+    background: var(--color-primary-deep);
+    border-color: var(--color-primary-deep);
+    box-shadow: 0 10px 20px -12px rgba(34, 32, 90, 0.55);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--color-primary);
+    border-color: rgba(49, 46, 130, 0.22);
+    box-shadow: none;
+  }
+  .btn-outline:hover {
+    background: #fff;
+    border-color: var(--color-primary);
+    box-shadow: none;
+  }
+  .btn-sm {
+    padding: 10px 20px;
+    font-size: 15.5px;
+  }
+  /* Op een donker vlak wordt de outline wit. */
+  .on-dark .btn-outline {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  .on-dark .btn-outline:hover {
+    background: #fff;
+    color: var(--color-primary);
+    border-color: #fff;
+  }
+
+  /* Tekstlink met een pijl die meeschuift, zoals "Lees verder →". */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    font-weight: 600;
+    color: var(--color-primary);
+    transition: color 0.2s ease;
+  }
+  .link-arrow svg {
+    flex: none;
+    transition: transform 0.3s var(--ease-out-soft);
+  }
+  .link-arrow:hover {
+    color: var(--color-accent);
+  }
+  .link-arrow:hover svg,
+  .group:hover .link-arrow svg {
+    transform: translateX(4px);
+  }
+
+  /* Bovenkopje. Op een dienstpagina neemt het de kleur van de dienst aan
+     (--k, gezet in [slug]/page.tsx). */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--k, var(--color-secondary-ink));
+  }
+  .on-dark .eyebrow {
+    color: var(--color-primary-light);
+  }
+
+  .container-site {
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .container-site { padding-inline: 2rem; }
+  }
+
+  /* Kaart die bij hover iets optilt. */
+  .lift {
+    transition:
+      transform 0.35s var(--ease-out-soft),
+      box-shadow 0.35s var(--ease-out-soft),
+      border-color 0.35s var(--ease-out-soft);
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px -28px rgba(34, 32, 90, 0.35);
+  }
+
+  /* Accentwoord in een kop ("Jouw mensen, onze aandacht"): in het roze, zoals
+     het getypte woord op de oude site. */
+  .hl {
+    color: var(--color-accent);
+  }
+
+  /* Subtiel stippenpatroon voor donkere vlakken — het beeldmerk als textuur. */
+  .dot-texture {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+  /* Hetzelfde patroon op een lichte ondergrond. */
+  .dot-texture-light {
+    background-image: radial-gradient(rgba(49, 46, 130, 0.07) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
 }
 
-.container-site {
-  max-width: 1200px;
-  margin-inline: auto;
-  padding-inline: 1.25rem;
+/* Een hero schuift onder de zwevende header, zodat zijn achtergrond doorloopt.
+   Alleen op de site zelf: in het voorbeeld van de blokeditor staat geen header. */
+.site-root .hero-pull {
+  margin-top: calc(-1 * var(--hh));
+  padding-top: calc(var(--hh) + 1rem);
 }
 
-/* Flip cards */
-.flip-card {
-  perspective: 1200px;
+/* Ritme: twee secties met dezelfde achtergrond na elkaar krijgen samen één
+   keer ruimte, niet twee keer. Zonder deze regel stonden er gaten van 220px
+   tussen twee witte secties. Elke sectie zet data-tone (white/soft/dark). */
+.site-root [data-tone="white"] + [data-tone="white"],
+.site-root [data-tone="soft"] + [data-tone="soft"] {
+  padding-top: 0;
 }
-.flip-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
+
+/* Lange samengestelde woorden ("Verzuimbegeleiding") passen op een telefoon
+   niet in een grote kop; daar mag de browser afbreken. Op grotere schermen
+   niet — daar oogt een afgebroken kop slordig. */
+h1, h2, h3 {
+  overflow-wrap: break-word;
 }
-.flip-card:hover .flip-inner,
-.flip-card:focus-within .flip-inner {
-  transform: rotateX(180deg);
+@media (max-width: 639px) {
+  h1, h2 { hyphens: auto; }
 }
-.flip-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  padding: 2rem;
-  text-align: center;
+
+/* Onthullen bij scrollen. De klasse js-reveal zet Reveal.tsx pas nadat alles
+   wat al in beeld staat zichtbaar is gemarkeerd: zonder JavaScript, of als het
+   script faalt, blijft alles gewoon staan. */
+.js-reveal .site-root [data-reveal]:not(.is-in) {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
 }
-.flip-back {
-  transform: rotateX(180deg);
+.js-reveal .site-root [data-reveal] {
+  transition:
+    opacity 0.8s var(--ease-out-soft),
+    transform 0.8s var(--ease-out-soft);
+  transition-delay: calc(var(--ri, 0) * 80ms);
+}
+
+/* Stippenwolk uit het logo: stip voor stip erin, daarna licht zwevend. */
+.dot {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.dots-animate .dot {
+  animation:
+    dot-in 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) both calc(var(--i) * 45ms + 200ms),
+    dot-float 5s ease-in-out infinite calc(var(--i) * -0.37s);
+}
+@keyframes dot-in {
+  from { opacity: 0; scale: 0.2; }
+}
+@keyframes dot-float {
+  50% { translate: 0 -0.9px; }
+}
+
+/* Megamenu en uitklapmenu's */
+.menu-panel {
+  animation: menu-in 0.22s var(--ease-out-soft) both;
+}
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.99); }
+}
+
+/* Uitklappen zonder hoogte te meten: 0fr → 1fr. */
+.fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s var(--ease-out-soft);
+}
+.fold[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.fold > * {
+  overflow: hidden;
+}
+
+/* prefers-reduced-motion zet beweging uit, niet trager. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .dots-animate .dot,
+  .menu-panel { animation: none; }
+  .js-reveal .site-root [data-reveal]:not(.is-in) { opacity: 1; transform: none; }
+  .js-reveal .site-root [data-reveal],
+  .btn, .btn svg, .link-arrow svg, .lift, .fold { transition: none; }
+  .btn:hover, .lift:hover { transform: none; }
+}
+
+/* Anker-doelen vallen anders onder de plakkende header. */
+[id] {
+  scroll-margin-top: calc(var(--hh) + 24px);
 }
 
 /* Typing headline */
@@ -226,9 +455,25 @@ h1, h2, h3, h4, h5, h6 {
   .acard:target { animation: none; outline: 3px solid rgba(231, 83, 135, 0.45); }
 }
 
-/* Prose (mini markdown) */
-.prose-r2u p { margin-bottom: 1em; }
-.prose-r2u ul { list-style: disc; padding-left: 1.4em; margin-bottom: 1em; }
-.prose-r2u li { margin-bottom: 0.35em; }
+/* Proza (mini-markdown) */
+.prose-r2u > * + * { margin-top: 1em; }
+.prose-r2u ul { padding-left: 0; }
+.prose-r2u li {
+  position: relative;
+  padding-left: 1.5em;
+  margin-top: 0.45em;
+}
+.prose-r2u li::before {
+  content: "";
+  position: absolute;
+  left: 0.2em;
+  top: 0.62em;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 999px;
+  background: var(--k-vlak, var(--color-secondary));
+}
 .prose-r2u strong { color: var(--color-primary); font-weight: 700; }
-.prose-r2u h3 { margin-top: 1.4em; margin-bottom: 0.5em; font-size: 24px; }
+.on-dark .prose-r2u strong { color: #fff; }
+.prose-r2u h3 { margin-top: 1.6em; font-size: 24px; }
+.prose-r2u a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }

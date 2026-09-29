@@ -118,9 +118,45 @@ toe te voegen is.
 1. [`src/components/blocks/BlockRenderer.tsx`](src/components/blocks/BlockRenderer.tsx) → `REGISTRY` (koppelt type aan component)
 2. [`src/lib/blockTemplates.ts`](src/lib/blockTemplates.ts) → `BLOCK_TEMPLATES` (label + standaarddata voor "Blok toevoegen")
 
+Rendert het blok een kop op paginaniveau, zet het type dan ook in
+`HEADING_BLOCKS` in `BlockRenderer` — anders kan het nooit de `<h1>` worden.
+
 **Het menu volgt de database niet.** `MAIN_NAV` in [`src/lib/nav.ts`](src/lib/nav.ts)
 is een hardgecodeerde lijst. Een nieuwe pagina in het adminpaneel verschijnt dus
-wél op zijn URL, maar niet in de navigatie tot je `nav.ts` bijwerkt.
+wél op zijn URL, maar niet in de navigatie tot je `nav.ts` bijwerkt. Hetzelfde
+geldt voor `PIJLERS` (de zes diensten in drie stappen): daaruit lezen het
+menu onder *Diensten*, de footer én het blok `pillars`. Een dienst
+erbij of een andere groepering is dus één wijziging in `nav.ts`, niet drie.
+
+**Losse CSS-klassen winnen van Tailwind-utilities.** Tailwind v4 zet utilities
+in `@layer utilities`, en CSS buiten een laag wint altijd van CSS in een laag —
+ongeacht specificiteit. Stond `.btn { display: inline-block }` los in
+`globals.css`, dan deed `btn hidden sm:inline-flex` niets, en `container-site
+max-w-[820px]` bleef 1200px breed. Daarom staan de componentklassen (`.btn*`,
+`.eyebrow`, `.container-site`, `.link-arrow`, `.lift`) in `@layer components`.
+Zet een nieuwe klasse die met utilities gecombineerd wordt daar ook in.
+
+**Ankers op dienstpagina's hangen aan de titel.** Elk onderdeel van een
+`subSections`-blok krijgt een `id` uit zijn titel (`anchorId()` in
+`BlockRenderer`, accenten eraf: "Eén-op-één coaching op maat" →
+`een-op-een-coaching-op-maat`), zodat je er vanuit bv. een blogartikel
+rechtstreeks naartoe kunt linken. Hernoem je zo'n titel, dan landt zo'n link
+nog wel op de pagina maar niet meer op het onderdeel.
+
+**Kleur hoort bij de pijler, en gaat op naam.** Preventie is blauw, Verzuim
+rood, Ontwikkeling teal — drie kleuren uit het logo. Eerder had elke dienst
+een eigen kleur; dat werd een regenboog waarin kleur niets meer zei over wat
+bij elkaar hoort. De kleuren staan in [`src/lib/brand.ts`](src/lib/brand.ts)
+(`KLEUREN`). In blokdata en `nav.ts` staat de naam, `kleurVars()` maakt er
+CSS-variabelen van (`--k`, `--k-vlak`, `--k-zacht`, `--k-donker`). Een
+onbekende naam valt terug op indigo. Roze is geen pijlerkleur maar de
+actiekleur van knoppen — houd die twee gescheiden.
+
+**Tekst uit het CMS wordt bij het tonen netjes gemaakt, niet in de database.**
+Knoppen en keurmerken die in hoofdletters zijn ingevoerd ("NEEM CONTACT OP")
+verschijnen als gewone zin, afkortingen als WVP blijven staan
+(`zinsletters()` in `src/lib/tekst.ts`). Korte woorden met een koppelteken
+("re-integratie") breken niet meer af aan het eind van een regel.
 
 **Een nieuw adminscherm moet op twee plekken bekend zijn.** `ADMIN_NAV` in
 [`src/lib/adminNav.ts`](src/lib/adminNav.ts) zet het in het menu én in het
@@ -193,6 +229,195 @@ mail helemaal niet aan; je ziet het alleen in de logs. Mail voor react2u.nl
 loopt via Microsoft 365 (`MX react2u-nl.mail.protection.outlook.com`), met
 Sophos-filtering ervoor en `-all` in de SPF.
 
+## Vormgeving
+
+Acture.nl en arboned.nl waren de inspiratiebronnen, geen voorbeelden om na te
+maken. Van Acture komt de aanpak: rust en ruimte, diensten overzichtelijk
+gegroepeerd, één duidelijke vervolgstap, sociaal bewijs en veelgestelde vragen.
+Van ArboNed: bezoekers meteen hun eigen route geven (werkgever of werknemer),
+de wettelijke plicht van de werkgever uitleggen, en contact via meerdere wegen
+naast elkaar. Vorm, woorden en concepten komen uit React2u zelf:
+
+- **Vormtaal: stippen en cirkels**, uit het logo en het REACT-wiel. Foto's
+  staan rond (`RondeFoto` in `BlockRenderer`), met de stippenwolk ernaast;
+  de afsluitende oproep toont de stippenwolk groot, net als de
+  onderhoudspagina.
+- **Eigen woorden**: "Jouw mensen, onze aandacht", "Daar zorgen wij voor",
+  "Dit is React2u!", "Voor iedereen gezond, menselijk en duidelijk", "Er is
+  altijd een oplossing", "Maak een afspraak". Neem geen formuleringen van
+  Acture of ArboNed over ("in één oogopslag", "adviesgesprek", "gingen je
+  voor", "voor lekker werkend Nederland", "wij helpen je graag verder").
+- **Eigen concepten**: diensten vanuit de situatie van de werkgever
+  (`situatie` in `nav.ts`), het REACT-model als werkwijze (blok `method`) en
+  de drie waarden met de feiten erbij (blok `values`).
+- **Werkgever en werknemer** krijgen elk een eigen site-deel — zie
+  *Werkgever en werknemer* hieronder.
+- **"Daar zorgen wij voor"** gebruikt React2u's eigen tweedeling van de
+  dienstpagina's: "Wat doet de werkgever? / Wat neemt React2u uit handen?"
+  (`twoColumnLists` met `text` en `button`).
+- **Header** met de topbalk van de oude site; **footer** op indigo met "Er is
+  altijd een oplossing."
+
+**Contrast is doorgerekend, niet geschat.** Het roze van de knoppen is
+`#c8306a` (5,1:1 met witte tekst); het oude `#e75387` haalde 3,5:1. Tekst in
+teal is `--color-secondary-ink` (`#007a6d`); het teal uit het logo is te licht
+voor tekst. De dienstkleuren in `brand.ts` hebben een aparte `tekst`-tint die
+ook op de eigen lichte tint AA haalt. Gebruik voor grijze tekst niet minder
+dan `text-primary/70` of `text-body`.
+
+**Nieuwe bloktypes** naast de bestaande:
+
+| Bloktype | Wat |
+|---|---|
+| `heroStatement` | De belofte (met `highlight` in de accentkleur), twee knoppen, een keurmerkregel (`badge`) en de ronde foto met de stippenwolk. |
+| `audienceChoice` | Het startscherm: kies werkgever of werknemer. `choices` met `label`, `title`, `text`, `icon`, `image`, `href`, `button` en `links`; de eerste staat op indigo. |
+| `steps` | Stappen onder elkaar met een stippellijn, zoals het visuele verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge` (wat in de cirkel staat), `title`, `text`, `kleur`; `anchor` maakt er een #-doel van. |
+| `pillars` | "Waar kunnen we je mee helpen?": drie stappen (voorkomen, begeleiden, versterken) met per dienst de situatie. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
+| `method` | De werkwijze: het REACT-model. `steps` met `title`, `text` en `kleur`; de letter is de eerste letter van de titel. Met het wiel en een citaat. |
+| `values` | De drie waarden (`cards` met `title`, `text`, `value`, `valueLabel`, `kleur`). Een feit onderbouwt elke waarde. |
+| `latestPosts` | De nieuwste blogartikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
+
+Bestaande blokken kregen optionele varianten: `intro` met `layout: "center"`,
+`valueCards` met een `heading`, `twoColumnLists` met `eyebrow`, `text` en
+`button`, en `ctaBanner` met `routes` (contactroutes rechts: `icon`, `label`,
+`sub`, `href`). `routes` staat bewust niet in het sjabloon: de blokeditor voegt
+aan een lege lijst een tekstregel toe in plaats van een route — begin een
+nieuwe lijst dus door het blok van de homepage als voorbeeld te nemen. De blokeditor toont alleen velden die al in
+de data staan — wil je een bestaand blok omzetten, voeg het opnieuw toe.
+
+**Ritme en raster.** Elke sectie zet `data-tone` (`white`, `soft`, `dark`,
+`hero`, `band`). Volgen twee secties met dezelfde toon elkaar op, dan haalt
+`globals.css` de bovenruimte van de tweede weg — anders verdubbelt de witruimte.
+Een nieuw blok hoort dus een `data-tone` te hebben. Tweekoloms-secties gebruiken
+`SPLIT`/`LINKS`/`RECHTS` in `BlockRenderer` (5 + 6 van 12 kolommen), zodat de
+rechterkolom op elke pagina op dezelfde lijn begint. In een groep knoppen is
+alleen de eerste een volle knop; de rest wordt outline tenzij de data anders
+zegt.
+
+**Het eerste blok is de paginakop.** Begint een pagina met `intro` of
+`richText`, dan wordt dat een lichte band met kruimelpad en h1 (`HeaderBand`);
+een `hero` toont het kruimelpad in zijn tekstpaneel. Het kruimelpad komt uit
+`crumbsVoor()` in `nav.ts` en wordt ook als `BreadcrumbList` uitgegeven.
+
+**Dienstpagina's kleuren mee.** `[slug]/page.tsx` zet `kleurVars()` van de
+dienst op een wrapper; het heropaneel, bovenkopjes, nummering, vinkjes en
+opsommingstekens lezen `--k` en `--k-zacht` (met een terugval voor gewone
+pagina's). Onder elke dienstpagina staat automatisch "Meer van React2u" met
+de vijf andere diensten.
+
+**Een lichte paginakop schuift onder de header.** De menubalk plakt bovenaan
+(de topbalk erboven scrolt weg). `.hero-pull` trekt een paginakop `--hh`
+omhoog zodat zijn lavendel achtergrond doorloopt tot onder de balk. `--hh` in
+`globals.css` moet gelijk zijn aan de hoogte van die balk (72px mobiel, 84px
+desktop). Maak je de balk hoger, verhoog dan `--hh` mee.
+
+**Onthullen bij scrollen is veilig voor als JavaScript faalt.** Elementen met
+`data-reveal` komen zacht in beeld. `Reveal.tsx` markeert eerst alles wat al
+in beeld staat en zet pas daarna `js-reveal` op `<html>`: zonder JavaScript
+blijft alles gewoon zichtbaar. Het werkt alleen binnen `.site-root` (de
+`SiteShell`), zodat het voorbeeld in de blokeditor niet leeg blijft, en staat
+uit bij `prefers-reduced-motion`. Test je met een script dat met `scrollTo`
+springt, dan kunnen secties leeg lijken; scroll dan met het muiswiel.
+
+**Formulieren hebben zichtbare labels** (`FormField.tsx`), geen placeholders
+als enige aanduiding.
+
+**404.** `(site)/not-found.tsx` vangt `notFound()` binnen de site;
+`app/not-found.tsx` vangt adressen die op geen route passen en zet zelf de
+`SiteShell` eromheen.
+
+**Niet verzinnen.** Acture toont cijfers (650+ medewerkers, 6500+ organisaties)
+en een klantcitaat. Voor React2u stonden die nergens, dus `values` gebruikt
+alleen wat aantoonbaar klopt: zes diensten, een vaste casemanager, de
+keurmerken uit `site_settings.certificates`. Ook de uitleg bij de REACT-letters
+komt uit bestaande teksten van de site. Echte cijfers of reviews kunnen er via
+het CMS bij.
+
+**`latestPosts` heeft gegevens van de pagina nodig.** Blokken renderen ook in
+het live voorbeeld van de blokeditor, en dat is een client component — een
+blok kan daar niet zelf de database bevragen. De pagina haalt de artikelen
+daarom op (`needsPosts()`) en geeft ze via `ctx` door aan `BlockRenderer`. In
+de blokeditor ontbreekt `ctx`; daar toont het blok voorbeeldkaarten.
+
+## Werkgever en werknemer
+
+De site bedient twee partijen die iets heel anders zoeken: een werkgever wil
+diensten en een partner, een zieke werknemer wil weten wat hij moet doen.
+Daarom:
+
+- **`/` is een startscherm** (blok `audienceChoice`): eerst kiezen.
+- **Elke doelgroep heeft een startpagina**: `/werkgevers` (diensten, werkwijze,
+  waarden) en `/werknemers` (ziek, wat nu?, het verzuimprotocol, vragen).
+- **Tabbladen Werkgevers | Werknemers** in de topbalk, en per doelgroep een
+  eigen menu en knop (`NAV` en `HEADER_CTA` in [`src/lib/nav.ts`](src/lib/nav.ts)).
+  Het dienstenmenu staat alleen bij werkgevers.
+- **Welke doelgroep geldt**, bepaalt `doelgroepVoorPad()`: `/werknemers` en
+  `/verzuimprotocol` zijn van de werknemer; `/werkgevers`, `/diensten` en de
+  zes dienstpagina's van de werkgever. Op gedeelde pagina's (contact, blog,
+  over ons) geldt de laatste keuze van de bezoeker, bewaard in `localStorage`
+  ([`src/lib/doelgroep.ts`](src/lib/doelgroep.ts)); zonder keuze werkgever. De
+  server kent die keuze niet — de pagina's zijn statisch — dus op een gedeelde
+  pagina rendert eerst het werkgeversmenu en wisselt de browser het direct.
+- **Het kruimelpad** laat zien in welk deel je bent: Werkgevers › Diensten ›
+  Verzuimbegeleiding WVP, of Werknemers › Verzuimprotocol.
+
+Een nieuwe pagina voor werknemers? Zet het pad in `WERKNEMER_PADEN` in
+`nav.ts`, anders krijgt hij het werkgeversmenu.
+
+Het **verzuimprotocol** stond alleen als afbeelding online. Het staat nu als
+tekst (blok `steps`) op `/werknemers` en `/verzuimprotocol`, letterlijk
+overgenomen uit die afbeelding. Twee kleine aanpassingen: een ontbrekend "je"
+("Helaas, je bent ziek") en de verwijzing "waarover je hieronder meer kunt
+lezen", die buiten de afbeelding niet meer klopte.
+
+## Concepten
+
+Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
+raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
+`werkgevers`, `werknemers`, `verzuimprotocol`): de blokken, de titel en voor
+een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
+somt ze op.
+
+**Alleen op staging** (`VERCEL_ENV=preview`) tonen `/` en `[slug]` het concept
+in plaats van de databasepagina — zo zie je de site zoals hij live komt. In
+productie komt alles uit de database. Lokaal staging nabootsen, zonder
+onderhoudspagina en met de concepten:
+
+```bash
+VERCEL_ENV=preview npm run dev
+```
+
+**Staging** is een preview-deploy van een branch: elke push naar een andere
+branch dan `master` krijgt van Vercel een eigen URL, plus een vaste per branch
+(`react2u-git-<branch>-….vercel.app`). Let op: staging praat met de
+productiedatabase. Een contactformulier of sollicitatie die je daar invult komt
+echt binnen, en bezoeken tellen mee in `/admin/bezoek`.
+
+Overzetten naar de database:
+
+```bash
+node scripts/concept-naar-sql.mjs --alle > concept.sql
+```
+
+(of een paar namen: `… home werkgevers`) en plak `concept.sql` in de SQL-editor
+van Supabase. Het script praat zelf niet met de database. Alles gebeurt in één
+transactie, en er wordt niets verwijderd:
+
+- bestaat een pagina nog niet (zoals `/werkgevers`), dan wordt hij aangemaakt,
+  met de titel en SEO-teksten uit het concept;
+- een bestaande pagina houdt zijn titel en SEO; zijn huidige blokken verhuizen
+  naar een verborgen pagina `<slug>-oud-<datum>` (alleen als er blokken zijn).
+
+Terugdraaien kan via het adminpaneel. Draai je het script twee keer op
+dezelfde dag, dan faalt de tweede keer op de bestaande `-oud-`-pagina en
+gebeurt er niets.
+
+**Een pagina die alleen als concept bestaat** (zoals `/werkgevers` vóór de
+SQL) toont ook in productie het concept, zodat de links ernaar niet op een 404
+uitkomen. Zodra de pagina in de database staat, wint de database. Bestaande
+pagina's (`/`, `/werknemers`) tonen in productie tot de SQL gewoon hun oude
+inhoud. De publieke pagina's zijn 5 minuten gecachet.
+
 ## Onderhoudsmodus
 
 Een schakelaar op `/admin/instellingen` (recht `instellingen`), opgeslagen als
@@ -210,14 +435,18 @@ HTML ([`src/lib/maintenance.ts`](src/lib/maintenance.ts)), met `503`,
 stylesheet heeft een gehashte naam. Om dezelfde reden staan de lettertypes
 (Figtree, DM Sans) los in `public/fonts/` — byte voor byte dezelfde bestanden
 die next/font voor de site bundelt, maar op een vaste naam. Het beeld is de stippenwolk uit het logo, als
-cirkels overgenomen, met de kop op de plek van het woord "React2u".
+cirkels overgenomen (`LOGO_DOTS` in `src/lib/brand.ts`, dezelfde bron als
+`DotCloud` op de site), met de kop op de plek van het woord "React2u".
 
 **De pagina's zelf veranderen niet.** Aan- of uitzetten revalideert niets; de
 statische pagina's blijven in de cache staan en zijn meteen terug zodra de
 schakelaar uit gaat.
 
 Wat de poort doorlaat: `/admin`, `/api/` (bezoekregistratie), `/_next/` en alles
-met een bestandsextensie (`robots.txt`, `sitemap.xml`, favicon). Formulieren
+met een bestandsextensie (`robots.txt`, `sitemap.xml`, favicon). Op een
+preview-deploy (staging, `VERCEL_ENV=preview`) staat de poort helemaal uit:
+die deelt de database en dus de schakelaar met productie, en staging is er juist
+om te bekijken wat nog niet live mag. Formulieren
 posten naar hun paginapad en worden dus ook tegengehouden.
 
 **Beheerders komen erlangs** met één query op `admins` via hun eigen sessie. De
@@ -338,7 +567,7 @@ Elke keer dat een regel gebruikt wordt telt `redirect_hit()` op, via
 `waitUntil`: de bezoeker wacht daar niet op.
 
 **404's** komen van de 404-pagina zelf. `data-niet-gevonden` op
-[`NotFound`](src/components/site/NotFound.tsx) vertelt de VisitTracker dat dit
+[`NietGevonden`](src/components/site/NietGevonden.tsx) vertelt de VisitTracker dat dit
 geen bezoek is; `/api/track` roept dan `log_missing_path()` aan in plaats van
 een `page_views`-rij te maken. Eén rij per pad met een teller, na 180 dagen
 zonder treffer opgeruimd. Hooguit 5000 open paden: is dat vol, dan wijkt het

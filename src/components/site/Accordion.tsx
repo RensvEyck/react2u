@@ -1,26 +1,54 @@
 "use client";
-import { useState } from "react";
-import { FaPlus, FaMinus } from "react-icons/fa";
+import { useId, useState } from "react";
+import { LuPlus } from "react-icons/lu";
+import { Heel } from "@/lib/md";
 
 export type FaqItem = { question: string; answer: string };
 
+/**
+ * Uitklapbare vragen. Eén tegelijk open; de eerste staat open zodat je meteen
+ * ziet hoe het werkt. Het antwoord blijft in de HTML (alleen dichtgeklapt),
+ * zodat zoekmachines het ook bij een gesloten vraag lezen.
+ */
 export default function Accordion({ items }: { items: FaqItem[] }) {
   const [open, setOpen] = useState<number | null>(0);
+  const id = useId();
   return (
     <div className="space-y-3">
-      {items.map((item, i) => (
-        <div key={i} className="rounded-2xl border border-black/10 bg-white shadow-sm">
-          <button
-            className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left font-heading font-bold text-primary"
-            onClick={() => setOpen(open === i ? null : i)}
-            aria-expanded={open === i}
-          >
-            <span>{item.question}</span>
-            {open === i ? <FaMinus className="shrink-0 text-accent" /> : <FaPlus className="shrink-0 text-accent" />}
-          </button>
-          {open === i && <div className="px-5 pb-5 text-body">{item.answer}</div>}
-        </div>
-      ))}
+      {items.map((item, i) => {
+        const isOpen = open === i;
+        return (
+          <div key={i}
+            className={`rounded-[22px] border bg-white transition-[border-color,box-shadow] duration-300 ${
+              isOpen ? "border-primary/15 shadow-[0_18px_40px_-28px_rgba(34,32,90,0.45)]" : "border-black/[0.07]"
+            }`}>
+            <h3 className="[text-wrap:pretty]">
+              <button
+                type="button"
+                id={`${id}-q${i}`}
+                className="flex w-full items-center justify-between gap-5 px-6 py-5 text-left font-heading text-[18px] font-bold leading-snug text-primary [text-wrap:pretty] md:px-7"
+                onClick={() => setOpen(isOpen ? null : i)}
+                aria-expanded={isOpen}
+                aria-controls={`${id}-a${i}`}
+              >
+                <span><Heel text={item.question} /></span>
+                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition-[background-color,color,transform] duration-300 ${
+                  isOpen ? "rotate-45 bg-accent text-white" : "bg-soft text-primary"
+                }`} aria-hidden>
+                  <LuPlus className="text-[18px]" />
+                </span>
+              </button>
+            </h3>
+            {/* inert: dichtgeklapt telt het antwoord niet mee voor schermlezers
+                en toetsenbord, al staat het wel in de HTML. */}
+            <div id={`${id}-a${i}`} role="region" aria-labelledby={`${id}-q${i}`} className="fold" data-open={isOpen} inert={!isOpen}>
+              <div>
+                <p className="px-6 pb-6 text-[16.5px] md:px-7"><Heel text={item.answer} /></p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
