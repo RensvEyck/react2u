@@ -2,40 +2,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
-  LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare, LuNewspaper,
-  LuSearch, LuPhone, LuChartNoAxesColumn, LuUserCog, LuConstruction,
-} from "react-icons/lu";
-import type { IconType } from "react-icons";
+import { LuExternalLink, LuMenu, LuX, LuLogOut, LuConstruction, LuSearch } from "react-icons/lu";
 import { permissionForPath, type Permission } from "@/lib/permissions";
-
-type Counts = { apps: number; msgs: number; inbox: number; leads: number };
-
-const NAV: { label: string; href: string; icon: IconType; badge?: keyof Counts }[] = [
-  { label: "Dashboard", href: "/admin", icon: LuLayoutDashboard },
-  { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox" },
-  { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads" },
-  { label: "Pagina's", href: "/admin/paginas", icon: LuFileText },
-  { label: "Blog", href: "/admin/blog", icon: LuNewspaper },
-  { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase },
-  { label: "Sollicitaties", href: "/admin/sollicitaties", icon: LuUsers, badge: "apps" },
-  { label: "Berichten", href: "/admin/berichten", icon: LuMessageSquare, badge: "msgs" },
-  { label: "Bezoek", href: "/admin/bezoek", icon: LuChartNoAxesColumn },
-  { label: "Media", href: "/admin/media", icon: LuImage },
-  { label: "SEO", href: "/admin/seo", icon: LuSearch },
-  { label: "Gebruikers", href: "/admin/gebruikers", icon: LuUserCog },
-  { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings },
-  { label: "Account", href: "/admin/account", icon: LuUserRound },
-];
-
-const CRUMBS: Record<string, string> = {
-  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", paginas: "Pagina's", blog: "Blog",
-  vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
-  bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
-  instellingen: "Instellingen", account: "Account",
-  nieuw: "Nieuw", blok: "Blok",
-};
+import { ADMIN_NAV, CRUMBS, type Counts } from "@/lib/adminNav";
+import CommandPalette from "./CommandPalette";
 
 export default function AdminShell({
   email, roleLabel, permissions, counts, maintenance, signOut, children,
@@ -50,11 +20,13 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [palette, setPalette] = useState(false);
 
   // Onderdelen waar je geen recht op hebt verdwijnen uit het menu. Dit is
   // gemak, geen beveiliging: de pagina's controleren zelf via requirePerm() en
   // de database via has_perm(). Wie de URL intikt komt hier gewoon langs.
-  const visible = NAV.filter((n) => {
+  const visible = ADMIN_NAV.filter((n) => {
+    if (n.paletteOnly) return false;
     const perm = permissionForPath(n.href);
     return !perm || permissions.includes(perm);
   });
@@ -78,7 +50,9 @@ export default function AdminShell({
     <span {...maintenanceProps}>{maintenanceContent}</span>
   );
 
-  const crumbs = pathname.split("/").filter(Boolean);
+  // Id's (uuid's) zeggen niemand iets en duwen de rest van de balk weg; die
+  // laten we uit het kruimelpad. "Blok" ervoor zegt al waar je bent.
+  const crumbs = pathname.split("/").filter((c) => c && !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(c));
   const crumbLabels = crumbs.map((c) => CRUMBS[c] || decodeURIComponent(c));
 
   const nav = (
@@ -159,24 +133,35 @@ export default function AdminShell({
             <button className="rounded-lg p-2 text-[#312e82] hover:bg-black/5 lg:hidden" onClick={() => setOpen(true)} aria-label="Menu">
               <LuMenu className="text-xl" />
             </button>
-            <div className="flex min-w-0 items-center gap-2 text-[14px]">
+            <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-[14px]">
               {crumbLabels.map((c, i) => (
-                <span key={i} className="flex min-w-0 items-center gap-2">
-                  {i > 0 && <span className="text-black/25">/</span>}
+                <span key={i} className={`flex items-center gap-2 ${i === crumbLabels.length - 1 ? "min-w-0" : "hidden shrink-0 md:flex"}`}>
+                  {i > 0 && <span className="hidden text-black/25 md:inline">/</span>}
                   <span className={`truncate ${i === crumbLabels.length - 1 ? "font-semibold text-[#312e82]" : "text-black/45"}`}>{c}</span>
                 </span>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex shrink-0 items-center gap-2">
               {maintenance && maintenancePill}
-              <a href="/" target="_blank" className="abtn-ghost !py-2 text-[13.5px]">
-                Bekijk website <LuExternalLink className="text-[13px]" />
+              <button
+                type="button"
+                onClick={() => setPalette(true)}
+                className="group flex items-center gap-2 rounded-xl border border-black/[0.1] bg-white px-2.5 py-2 text-[13.5px] text-black/45 transition hover:border-[#312e82]/40 hover:text-[#312e82] sm:min-w-[180px] sm:px-3"
+                aria-label="Zoeken (⌘K)"
+              >
+                <LuSearch className="text-[15px]" />
+                <span className="hidden sm:inline">Zoeken…</span>
+                <kbd className="akbd ml-auto hidden sm:inline-flex">⌘K</kbd>
+              </button>
+              <a href="/" target="_blank" className="abtn-ghost whitespace-nowrap !px-2.5 !py-2 text-[13.5px] sm:!px-4" aria-label="Bekijk website">
+                <span className="hidden sm:inline">Bekijk website</span> <LuExternalLink className="text-[13px]" />
               </a>
             </div>
           </div>
         </header>
         <main className="mx-auto max-w-[1160px] px-5 py-8 lg:px-8">{children}</main>
       </div>
+      <CommandPalette open={palette} onOpenChange={setPalette} permissions={permissions} />
     </div>
   );
 }

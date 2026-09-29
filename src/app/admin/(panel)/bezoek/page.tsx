@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
-import type { PageView } from "@/lib/types";
 import {
   totals, byDay, lastDays, topPaths, topReferrers, topCountries, companyVisits,
   type Ranked,
 } from "@/lib/analytics";
+import { fetchPageViews } from "@/lib/analyticsDb";
 import { LuUsers, LuEye, LuBuilding, LuExternalLink, LuInfo } from "react-icons/lu";
 
 const RANGES = [
@@ -52,14 +52,7 @@ export default async function BezoekAdmin({
   const days = lastDays(range);
   const since = `${days[0]}T00:00:00Z`;
 
-  const { data } = await sb
-    .from("page_views")
-    .select("*")
-    .gte("created_at", since)
-    .order("created_at", { ascending: false })
-    .limit(20000);
-
-  const views = (data as PageView[]) || [];
+  const views = await fetchPageViews(sb, since);
   const t = totals(views);
   const series = byDay(views, days);
   const companies = companyVisits(views);

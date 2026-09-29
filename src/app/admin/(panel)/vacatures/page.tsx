@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
+import { hasVersions } from "@/lib/revisionsDb";
 import { deleteVacancy } from "@/app/admin/actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import type { Vacancy } from "@/lib/types";
@@ -13,6 +14,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 
 export default async function VacanciesAdmin() {
   const { sb } = await requirePerm("vacatures");
+  const versionsOn = await hasVersions(sb);
   const { data } = await sb.from("vacancies").select("*").order("created_at", { ascending: false });
   const vacancies = (data as Vacancy[]) || [];
   return (
@@ -24,7 +26,10 @@ export default async function VacanciesAdmin() {
             Gepubliceerde vacatures verschijnen op de site én in Google for Jobs.
           </p>
         </div>
-        <Link href="/admin/vacatures/nieuw" className="abtn"><LuPlus /> Nieuwe vacature</Link>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/prullenbak" className="abtn-ghost !px-3" title="Prullenbak" aria-label="Prullenbak"><LuTrash2 className="text-[15px]" /></Link>
+          <Link href="/admin/vacatures/nieuw" className="abtn"><LuPlus /> Nieuwe vacature</Link>
+        </div>
       </div>
 
       <div className="space-y-2.5">
@@ -55,7 +60,9 @@ export default async function VacanciesAdmin() {
               </Link>
               <ConfirmButton
                 action={deleteVacancy.bind(null, v.id)}
-                message={`Vacature "${v.title}" definitief verwijderen?`}
+                message={versionsOn
+                  ? `Vacature "${v.title}" verwijderen? Je kunt hem terughalen uit de prullenbak.`
+                  : `Vacature "${v.title}" definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}
                 className="rounded-lg p-2 text-black/50 hover:bg-[#fdeef4] hover:text-[#e0356b]"
               >
                 <LuTrash2 />
