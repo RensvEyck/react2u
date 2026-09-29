@@ -162,6 +162,7 @@ const OVER_ONS: NavItem = {
 export const NAV: Record<Doelgroep | "algemeen", NavItem[]> = {
   werkgever: [
     { label: "Diensten", href: "/diensten", mega: true },
+    { label: "Tarieven", href: "/tarieven" },
     OVER_ONS,
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
@@ -176,6 +177,7 @@ export const NAV: Record<Doelgroep | "algemeen", NavItem[]> = {
   // wie direct zoekt, zoekt meestal een dienst.
   algemeen: [
     { label: "Diensten", href: "/diensten", mega: true },
+    { label: "Tarieven", href: "/tarieven" },
     OVER_ONS,
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },

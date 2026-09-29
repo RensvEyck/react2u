@@ -1,3 +1,5 @@
+import tarievenPagina from "@/content/tarieven.json";
+
 // Default data per bloktype — gebruikt bij "Blok toevoegen" in het admin-paneel.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
@@ -131,5 +133,11 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
       heading: "Kom met ons in contact!", text: "", phone: "0856205800", phoneDisplay: "085 - 620 58 00",
       email: "info@react2u.nl", address: "Stratumsedijk 29\n5611 NB Eindhoven", formHeading: "Stuur ons een bericht",
     },
+  },
+  tarieven: {
+    label: "Abonnementen en tarieven",
+    // Eén blok voor de hele tarievenpagina. casemanagerTarief (getal): zonder
+    // tarief blijft de rekenhulp weg. Zie CONTEXT.md, *Tarieven*.
+    data: tarievenPagina.blocks[0].data,
   },
 };

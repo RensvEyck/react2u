@@ -395,7 +395,7 @@ lezen", die buiten de afbeelding niet meer klopte.
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
 `werkgevers`, `werknemers`, `verzuimprotocol`, `diensten` — dezelfde teksten in
-een nieuwe opbouw — en `begeleiding-en-coaching` — daar alleen de volgorde
+een nieuwe opbouw — `tarieven` en `begeleiding-en-coaching` — daar alleen de volgorde
 hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
 een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
@@ -442,6 +442,31 @@ SQL) toont ook in productie het concept, zodat de links ernaar niet op een 404
 uitkomen. Zodra de pagina in de database staat, wint de database. Bestaande
 pagina's (`/`, `/werknemers`) tonen in productie tot de SQL gewoon hun oude
 inhoud. De publieke pagina's zijn 5 minuten gecachet.
+
+## Tarieven
+
+`/tarieven` is één blok van het type `tarieven` (component
+[`src/components/site/Tarieven.tsx`](src/components/site/Tarieven.tsx)), met
+daaronder de gewone blokken `faqAccordion` en `ctaBanner`. Het concept staat in
+[`src/content/tarieven.json`](src/content/tarieven.json); overzetten naar de
+database gaat zoals bij de andere concepten (`node scripts/concept-naar-sql.mjs tarieven`).
+
+- **Prijzen staan in de blokdata**, niet in de code: `pakketten[].prijs` is de
+  prijs per werknemer per jaar als getal. Per maand, totalen en de vergelijking
+  rekent het blok zelf uit. De rijen van de tarievenlijst (`lijst.categorieen`)
+  zijn tekst: een bedrag wordt vet, een woord als "per uur" of "op aanvraag"
+  een label.
+- **De `sleutel` van een pakket is betekenisvol.** De vergelijking en de
+  rekenhulp zoeken `compleet` en `basis`; zonder die twee verdwijnen ze.
+- **De rekenhulp verschijnt pas met een uurtarief.** `casemanagerTarief` leeg of
+  0: geen rekenhulp, want zonder tarief valt er niets te vergelijken.
+- **Offerteformulier.** Eén dialoog in het blok; elke link naar `#offerte` op de
+  pagina opent hem, ook vanuit een ander blok (de knop in de `ctaBanner`). Een
+  aanvraag komt als bericht in het Postvak IN (onderwerp "Offerteaanvraag: …",
+  bedrijf en aantal medewerkers in de tekst) en gaat per mail naar
+  `sales@react2u.nl`, of naar `NOTIFY_OFFERTE_TO` als die gezet is. Zonder
+  Resend-configuratie staat hij alleen in het Postvak IN, net als een
+  contactbericht.
 
 ## Onderhoudsmodus
 
