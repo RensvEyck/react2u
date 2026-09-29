@@ -62,6 +62,10 @@ export type PageView = {
   referrer_host: string | null;
   country: string | null;
   company: string | null;
+  /** Domein van het bedrijf, als dat bekend is (migratie 0010). */
+  company_domain?: string | null;
+  /** Waar de herkenning vandaan komt: netwerkeigenaar of reverse DNS. */
+  company_source?: "asn" | "rdns" | null;
   is_company: boolean;
   visitor_hash: string;
   created_at: string;

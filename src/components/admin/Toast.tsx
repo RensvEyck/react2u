@@ -46,6 +46,9 @@ const FOUT_TEKST: Record<string, string> = {
   "versie-weg": "Die versie bestaat niet meer.",
   "pagina-eerst": "De pagina van dit blok is ook verwijderd — zet eerst de pagina terug.",
   terugzetten: "Terugzetten mislukt.",
+  // Bedrijfsbezoek
+  "bedrijf-weg": "Dat bedrijf staat niet (meer) in het bezoek van de afgelopen 90 dagen.",
+  "migratie-0010": "Hiervoor moet migratie 0010 eerst in Supabase worden uitgevoerd.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
@@ -56,6 +59,10 @@ const OK_TEKST: Record<string, string> = {
   teruggezet: "Teruggezet — de site is bijgewerkt.",
   definitief: "Verwijderd, cv's inbegrepen.",
   gelezen: "Gemarkeerd als gelezen.",
+  "op-bellijst": "Op de bellijst gezet, met wat ze bekeken in de notitie.",
+  "niet-volgen": "Niet meer volgen — nieuwe bezoeken worden zonder bedrijfsnaam opgeslagen.",
+  "weer-volgen": "Wordt weer gevolgd.",
+  vergeten: "Vergeten — de bedrijfsnaam is uit alle eerdere bezoeken gehaald.",
 };
 
 export default function Toast() {

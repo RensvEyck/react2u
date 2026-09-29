@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import {
-  totals, byDay, lastDays, topPaths, topReferrers, topCountries, companyVisits,
+  totals, byDay, lastDays, topPaths, topReferrers, topCountries,
   type Ranked,
 } from "@/lib/analytics";
 import { fetchPageViews } from "@/lib/analyticsDb";
-import { LuUsers, LuEye, LuBuilding, LuExternalLink, LuInfo } from "react-icons/lu";
+import { loadCompanies } from "@/lib/companiesDb";
+import { waited } from "@/lib/dashboard";
+import BezoekTabs from "@/components/admin/BezoekTabs";
+import { CompanyAvatar, LeadPill, LevelPill } from "@/components/admin/CompanyBits";
+import { LuUsers, LuEye, LuBuilding, LuExternalLink, LuInfo, LuArrowRight } from "react-icons/lu";
 
 const RANGES = [
   { key: "7", label: "7 dagen" },
@@ -48,14 +52,18 @@ export default async function BezoekAdmin({
   const { dagen } = await searchParams;
   const range = RANGES.some((r) => r.key === dagen) ? Number(dagen) : 7;
 
-  const { sb } = await requirePerm("bezoek");
+  const { sb, admin } = await requirePerm("bezoek");
   const days = lastDays(range);
   const since = `${days[0]}T00:00:00Z`;
 
-  const views = await fetchPageViews(sb, since);
+  const [views, { companies: all }] = await Promise.all([
+    fetchPageViews(sb, since),
+    loadCompanies(sb, range, admin.permissions),
+  ]);
   const t = totals(views);
   const series = byDay(views, days);
-  const companies = companyVisits(views);
+  const companies = all.filter((c) => !c.ignored);
+  const warm = companies.filter((c) => c.score.level === "warm").length;
   const maxDay = Math.max(1, ...series.map((d) => d.views));
   const herkend = views.filter((v) => v.is_company).length;
   const aandeel = views.length ? Math.round((herkend / views.length) * 100) : 0;
@@ -94,6 +102,8 @@ export default async function BezoekAdmin({
         </div>
       </div>
 
+      <BezoekTabs active="overzicht" warm={warm} />
+
       <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <div key={s.label} className="acard flex items-center gap-4 p-5">
@@ -131,47 +141,41 @@ export default async function BezoekAdmin({
 
       <div className="acard overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.06] px-6 py-4">
-          <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Bedrijven die langskwamen</h2>
-          <span className="text-[12.5px] text-black/40">
-            {aandeel}% van het verkeer herleidbaar tot een bedrijf
-          </span>
+          <div>
+            <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Bedrijven die langskwamen</h2>
+            <p className="text-[12.5px] text-black/40">{aandeel}% van het verkeer herleidbaar tot een bedrijf · warmste eerst</p>
+          </div>
+          <Link href={`/admin/bezoek/bedrijven${range !== 30 ? `?dagen=${range}` : ""}`} className="flex items-center gap-1 text-[13px] font-semibold text-[#e75387] hover:underline">
+            Alle bedrijven <LuArrowRight className="text-[13px]" />
+          </Link>
         </div>
 
         {companies.length === 0 ? (
           <div className="px-6 py-10 text-center">
             <LuBuilding className="mx-auto text-[24px] text-black/20" />
-            <p className="mt-3 text-[14px] text-black/45">
-              {process.env.IPINFO_TOKEN
-                ? "Nog geen bezoek vanaf een bedrijfsnetwerk herkend."
-                : "Bedrijfsherkenning staat uit — voeg IPINFO_TOKEN toe in Vercel."}
-            </p>
+            <p className="mt-3 text-[14px] text-black/45">Nog geen bedrijf herkend in deze periode.</p>
           </div>
         ) : (
-          <div className="divide-y divide-black/[0.05]">
-            {companies.map((c) => (
-              <div key={c.company} className="px-6 py-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[15px] font-semibold text-[#1c1a4e]">{c.company}</p>
-                    <p className="mt-0.5 text-[12.5px] text-black/45">
-                      {c.views} weergaven · {c.visitors} bezoeker{c.visitors === 1 ? "" : "s"} ·{" "}
-                      {new Date(c.lastSeen).toLocaleString("nl-NL", {
-                        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-                      })}
+          <ul className="divide-y divide-black/[0.05]">
+            {companies.slice(0, 6).map((c) => (
+              <li key={c.key}>
+                <Link href={`/admin/bezoek/bedrijven/${encodeURIComponent(c.key)}`} className="flex items-center gap-3.5 px-6 py-3.5 transition hover:bg-[#fafafd]">
+                  <CompanyAvatar name={c.name} level={c.score.level} size={36} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-[14.5px] font-semibold text-[#1c1a4e]">{c.name}</p>
+                      <LevelPill level={c.score.level} value={c.score.value} />
+                      {c.lead && <LeadPill lead={c.lead} />}
+                    </div>
+                    <p className="truncate text-[12.5px] text-black/45">
+                      {c.sessions.length} bezoek{c.sessions.length === 1 ? "" : "en"} · {c.pages.slice(0, 3).map((p) => p.path).join(", ")}
                     </p>
                   </div>
-                  <Link href="/admin/bellijst" className="abtn-ghost !py-1.5 text-[12.5px]">
-                    Op de bellijst
-                  </Link>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {c.paths.map((p) => (
-                    <span key={p} className="apill bg-black/[0.04] text-black/55">{p}</span>
-                  ))}
-                </div>
-              </div>
+                  <span className="shrink-0 text-[12px] text-black/35">{waited(c.lastSeen, new Date())} geleden</span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
 

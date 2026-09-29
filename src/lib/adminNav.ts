@@ -2,7 +2,7 @@ import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
-  LuShieldCheck, LuSignpost, LuTrash2,
+  LuShieldCheck, LuSignpost, LuTrash2, LuBuilding,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -36,7 +36,8 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase, keywords: "banen werken bij jobs" },
   { label: "Sollicitaties", href: "/admin/sollicitaties", icon: LuUsers, badge: "apps", keywords: "kandidaten cv" },
   { label: "Berichten", href: "/admin/berichten", icon: LuMessageSquare, badge: "msgs", keywords: "contactformulier" },
-  { label: "Bezoek", href: "/admin/bezoek", icon: LuChartNoAxesColumn, keywords: "statistieken analytics bezoekers bedrijven" },
+  { label: "Bezoek", href: "/admin/bezoek", icon: LuChartNoAxesColumn, keywords: "statistieken analytics bezoekers" },
+  { label: "Bedrijven op de site", href: "/admin/bezoek/bedrijven", icon: LuBuilding, keywords: "bezoekers herkend warm leads salesfeed leadinfo", paletteOnly: true },
   { label: "Media", href: "/admin/media", icon: LuImage, keywords: "afbeeldingen foto's uploaden pdf documenten" },
   { label: "SEO", href: "/admin/seo", icon: LuSearch, keywords: "google zoekmachine meta titel omschrijving" },
   { label: "Doorverwijzingen", href: "/admin/seo/doorverwijzingen", icon: LuSignpost, keywords: "redirect 404 niet gevonden oude url kapotte link", paletteOnly: true },
@@ -67,5 +68,5 @@ export const CRUMBS: Record<string, string> = {
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",
-  nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak",
+  nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

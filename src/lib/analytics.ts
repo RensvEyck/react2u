@@ -121,13 +121,6 @@ export function normalizePath(path: string): string {
 
 export type DayCount = { day: string; visitors: number; views: number };
 export type Ranked = { label: string; count: number };
-export type CompanyVisit = {
-  company: string;
-  views: number;
-  visitors: number;
-  lastSeen: string;
-  paths: string[];
-};
 
 const dayOf = (iso: string) => iso.slice(0, 10);
 
@@ -191,28 +184,4 @@ export function topReferrers(views: PageView[], limit = 8): Ranked[] {
 
 export function topCountries(views: PageView[], limit = 6): Ranked[] {
   return rank(views.map((v) => v.country), limit);
-}
-
-/**
- * Bedrijven die langskwamen, met wat ze bekeken.
- *
- * Gesorteerd op recentheid en niet op aantal: voor opvolging is "wie was hier
- * gisteren" bruikbaarder dan "wie kwam vorige maand het vaakst".
- */
-export function companyVisits(views: PageView[], limit = 25): CompanyVisit[] {
-  const grouped = new Map<string, PageView[]>();
-  for (const v of views) {
-    if (!v.is_company || !v.company) continue;
-    (grouped.get(v.company) ?? grouped.set(v.company, []).get(v.company)!).push(v);
-  }
-  return [...grouped.entries()]
-    .map(([company, list]) => ({
-      company,
-      views: list.length,
-      visitors: uniques(list),
-      lastSeen: list.reduce((a, b) => (a > b.created_at ? a : b.created_at), list[0].created_at),
-      paths: [...new Set(list.map((v) => v.path))].slice(0, 6),
-    }))
-    .sort((a, b) => b.lastSeen.localeCompare(a.lastSeen))
-    .slice(0, limit);
 }

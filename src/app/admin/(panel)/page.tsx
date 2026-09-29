@@ -9,7 +9,9 @@ import { requireAdmin } from "@/lib/admin";
 import type { Permission } from "@/lib/permissions";
 import type { Lead, Page, PageView, Post, Vacancy } from "@/lib/types";
 import { needsCall, sortLeads, today, LEAD_STATUS } from "@/lib/leads";
-import { byDay, companyVisits, lastDays, totals } from "@/lib/analytics";
+import { byDay, lastDays, totals } from "@/lib/analytics";
+import { summarize, type CompanyProfile } from "@/lib/companies";
+import { LevelPill } from "@/components/admin/CompanyBits";
 import { fetchPageViews } from "@/lib/analyticsDb";
 import { analysePage, analysePost, analyseVacancy, countIssues } from "@/lib/seo";
 import { actorName, collapseCascades, editHref, sentence, type Context, type Revision } from "@/lib/revisions";
@@ -34,7 +36,7 @@ export default async function AdminDashboard() {
   // Alleen ophalen wat deze gebruiker mag zien. RLS zou de rest leeg
   // teruggeven, maar dan staat er een tegel met 0 die niet klopt.
   const contentPerms = can("paginas") || can("blog") || can("vacatures") || can("instellingen") || can("seo");
-  const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, aal] = await Promise.all([
+  const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, profilesRes, aal] = await Promise.all([
     can("postvak")
       ? sb.from("contact_messages").select("id, name, subject, created_at", { count: "exact" })
           .eq("read", false).order("created_at", { ascending: true }).limit(6)
@@ -45,7 +47,8 @@ export default async function AdminDashboard() {
       : none,
     can("bellijst") ? sb.from("leads").select("*") : none,
     can("bezoek")
-      ? fetchPageViews(sb, `${days14[0]}T00:00:00Z`, "id, created_at, visitor_hash, is_company, company, path")
+      // "*" zodat het vóór en na migratie 0010 werkt (company_domain wel of niet).
+      ? fetchPageViews(sb, `${days14[0]}T00:00:00Z`, "*")
           .then((data) => ({ data, count: data.length }))
       : none,
     can("paginas") || can("seo") ? sb.from("pages").select("*").order("sort") : none,
@@ -58,6 +61,7 @@ export default async function AdminDashboard() {
     contentPerms
       ? sb.from("revisions").select("*").not("actor", "is", null).order("created_at", { ascending: false }).limit(24)
       : none,
+    can("bezoek") ? sb.from("company_profiles").select("key, name, domain, ignored, lead_id") : none,
     sb.auth.mfa.getAuthenticatorAssuranceLevel(),
   ]);
 
@@ -88,7 +92,14 @@ export default async function AdminDashboard() {
   const visitorTrend = trend(visitors, totals(previous).visitors);
   const series = byDay(views, days14);
   const maxDay = Math.max(1, ...series.map((d) => d.visitors));
-  const companies = companyVisits(current, 5);
+  // Dezelfde herkenning en score als Bezoek → Bedrijven, zonder wie niet gevolgd wordt.
+  const followed = summarize(
+    current.filter((v) => v.is_company),
+    (profilesRes.data as CompanyProfile[]) || [],
+    leads,
+    now
+  ).filter((c) => !c.ignored);
+  const companies = followed.slice(0, 5);
 
   /* ---------- inhoud ---------- */
   const pages = (pagesRes.data as Page[]) || [];
@@ -219,7 +230,7 @@ export default async function AdminDashboard() {
             value={visitors}
             label="Bezoekers deze week"
             detail={
-              visitorTrend === null ? `${companies.length} bedrijf${companies.length === 1 ? "" : "en"} herkend`
+              visitorTrend === null ? `${followed.length} bedrijf${followed.length === 1 ? "" : "en"} herkend`
                 : `${visitorTrend >= 0 ? "+" : ""}${visitorTrend}% t.o.v. vorige week`
             }
             trendUp={visitorTrend === null ? undefined : visitorTrend >= 0}
@@ -352,14 +363,22 @@ export default async function AdminDashboard() {
               </p>
               {companies.length === 0 ? (
                 <p className="text-[13.5px] text-black/40">
-                  {process.env.IPINFO_TOKEN ? "Nog geen bedrijfsnetwerk herkend." : "Bedrijfsherkenning staat uit."}
+                  {process.env.ANALYTICS_SALT ? "Nog geen bedrijf herkend deze week." : "Bezoekregistratie staat uit."}
                 </p>
               ) : (
-                <ul className="space-y-2">
+                <ul className="space-y-1">
                   {companies.map((c) => (
-                    <li key={c.company} className="flex items-baseline justify-between gap-3">
-                      <span className="truncate text-[14px] font-medium text-[#1c1a4e]">{c.company}</span>
-                      <span className="shrink-0 text-[12px] tabular-nums text-black/40">{c.views}× · {waited(c.lastSeen, now)} geleden</span>
+                    <li key={c.key}>
+                      <Link
+                        href={`/admin/bezoek/bedrijven/${encodeURIComponent(c.key)}`}
+                        className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 transition hover:bg-[#fafafd]"
+                      >
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="truncate text-[14px] font-medium text-[#1c1a4e]">{c.name}</span>
+                          {c.score.level !== "koud" && <LevelPill level={c.score.level} value={c.score.value} />}
+                        </span>
+                        <span className="shrink-0 text-[12px] tabular-nums text-black/40">{c.sessions.length}× · {waited(c.lastSeen, now)} geleden</span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
