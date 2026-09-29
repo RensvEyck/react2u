@@ -156,8 +156,11 @@ Google "we zijn zo terug" opnemen als inhoud van elke pagina. Ook een
 `NextResponse.rewrite()` naar een onderhoudsroute helpt niet — Next negeert de
 status van een rewrite. Daarom bouwt de middleware de pagina zelf op als losse
 HTML ([`src/lib/maintenance.ts`](src/lib/maintenance.ts)), met `503`,
-`Retry-After` en `no-store`. Inline CSS en systeemlettertypes, omdat de
-gebundelde stylesheet en fonts gehashte namen hebben.
+`Retry-After` en `no-store`. De CSS staat inline, want de gebundelde
+stylesheet heeft een gehashte naam. Om dezelfde reden staan de lettertypes
+(Figtree, DM Sans) los in `public/fonts/` — byte voor byte dezelfde bestanden
+die next/font voor de site bundelt, maar op een vaste naam. Het beeld is de stippenwolk uit het logo, als
+cirkels overgenomen, met de kop op de plek van het woord "React2u".
 
 **De pagina's zelf veranderen niet.** Aan- of uitzetten revalideert niets; de
 statische pagina's blijven in de cache staan en zijn meteen terug zodra de
