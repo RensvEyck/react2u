@@ -23,7 +23,7 @@ const FOUT_TEKST: Record<string, string> = {
   "rol-in-gebruik": "Deze rol is nog aan iemand gekoppeld — verplaats die eerst.",
   "rol-bestaat-al": "Er bestaat al een rol met deze naam.",
   "geen-rechten": "Je hebt geen toegang tot dat onderdeel.",
-  "cv-verwijderen": "Het cv kon niet verwijderd worden — de sollicitatie staat er nog.",
+  "cv-verwijderen": "Het cv kon niet verwijderd worden, dus de sollicitatie staat er nog. Mogelijk ontbreekt het verwijderrecht op de opslag (migratie 0009).",
   opslaan: "Opslaan mislukt.",
   // Doorverwijzingen
   "bron-leeg": "Vul het oude adres in.",
@@ -54,6 +54,8 @@ const OK_TEKST: Record<string, string> = {
   verwijderd: "Verwijderd — terug te halen uit de prullenbak.",
   "definitief-weg": "Verwijderd.",
   teruggezet: "Teruggezet — de site is bijgewerkt.",
+  definitief: "Verwijderd, cv's inbegrepen.",
+  gelezen: "Gemarkeerd als gelezen.",
 };
 
 export default function Toast() {

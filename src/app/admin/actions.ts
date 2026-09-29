@@ -562,6 +562,30 @@ export async function deleteRole(id: string) {
 /* ---------- verwijderen van inzendingen ---------- */
 
 /**
+ * Verwijdert cv's en zegt of ze daarna écht weg zijn.
+ *
+ * Zonder verwijderrecht op de bucket meldt Storage géén fout maar een lege
+ * lijst — het bestand staat er dan nog (zie migratie 0009). Vertrouwen op
+ * "geen fout" liet cv's dus stil achter. Wat niet in de lijst van verwijderde
+ * bestanden staat, zoeken we op: bestaat het niet meer (al eerder weg), dan is
+ * dat goed; staat het er nog, dan is het mislukt en blijft de rij staan.
+ */
+async function removeCvs(sb: Sb, paths: string[]): Promise<boolean> {
+  if (!paths.length) return true;
+  const { data: removed, error } = await sb.storage.from("cvs").remove(paths);
+  if (error) return false;
+  const gone = new Set(((removed as { name: string }[] | null) || []).map((o) => o.name));
+  for (const path of paths.filter((p) => !gone.has(p))) {
+    const slash = path.lastIndexOf("/");
+    const folder = slash > -1 ? path.slice(0, slash) : "";
+    const name = path.slice(slash + 1);
+    const { data } = await sb.storage.from("cvs").list(folder, { search: name, limit: 10 });
+    if ((data || []).some((f) => f.name === name)) return false;
+  }
+  return true;
+}
+
+/**
  * Verwijdert een sollicitatie inclusief het cv.
  *
  * Volgorde is niet vrijblijvend: eerst het pad ophalen, dan het bestand, dan
@@ -576,12 +600,7 @@ export async function deleteApplication(id: string) {
   const { sb } = await requirePerm("postvak");
   const { data } = await sb.from("applications").select("cv_path").eq("id", id).maybeSingle();
   const cvPath = (data as { cv_path?: string | null })?.cv_path;
-  if (cvPath) {
-    const { error } = await sb.storage.from("cvs").remove([cvPath]);
-    // Bestand weg maar rij nog niet: dat is een halve verwijdering en juist
-    // gevaarlijk, want het cv lijkt dan nog te bestaan in het overzicht.
-    if (error) redirect("/admin/postvak-in?fout=cv-verwijderen");
-  }
+  if (cvPath && !(await removeCvs(sb, [cvPath]))) redirect("/admin/postvak-in?fout=cv-verwijderen");
   await sb.from("applications").delete().eq("id", id);
   revalidatePath("/admin/postvak-in");
   revalidatePath("/admin/sollicitaties");
@@ -783,4 +802,48 @@ export async function restoreRevision(id: number, back: string) {
   revalidateSite();
   revalidatePath("/admin", "layout");
   redirect(withParam("opgeslagen", "teruggezet"));
+}
+
+/* ---------- postvak: meerdere tegelijk ---------- */
+
+/**
+ * Bulkactie vanuit het Postvak IN. De selectie komt binnen als `sel`-velden
+ * met "bericht:<id>" of "sollicitatie:<id>".
+ *
+ * "Gelezen" betekent per soort iets anders, net als "onbehandeld": een bericht
+ * krijgt read = true, een nieuwe sollicitatie gaat naar "In behandeling".
+ *
+ * Verwijderen volgt dezelfde volgorde als deleteApplication: eerst de cv's uit
+ * de opslag, dan pas de rijen. Mislukt het eerste, dan blijft alles staan —
+ * een rij zonder cv is erger dan niets doen, want dan lijkt het gewist.
+ */
+export async function bulkInbox(formData: FormData) {
+  const { sb } = await requirePerm("postvak");
+  const intent = String(formData.get("intent") || "");
+  const terug = String(formData.get("terug") || "/admin/postvak-in");
+  const back = terug.startsWith("/admin/postvak-in") ? terug : "/admin/postvak-in";
+  const withParam = (k: string, v: string) => `${back}${back.includes("?") ? "&" : "?"}${k}=${v}`;
+
+  const sel = formData.getAll("sel").map(String);
+  const msgIds = sel.filter((s) => s.startsWith("bericht:")).map((s) => s.slice("bericht:".length));
+  const appIds = sel.filter((s) => s.startsWith("sollicitatie:")).map((s) => s.slice("sollicitatie:".length));
+  if (!msgIds.length && !appIds.length) redirect(back);
+
+  if (intent === "gelezen") {
+    if (msgIds.length) await sb.from("contact_messages").update({ read: true }).in("id", msgIds);
+    if (appIds.length) await sb.from("applications").update({ status: "in_behandeling" }).in("id", appIds).eq("status", "nieuw");
+  } else if (intent === "verwijderen") {
+    if (appIds.length) {
+      const { data: apps } = await sb.from("applications").select("id, cv_path").in("id", appIds);
+      const paths = ((apps as { cv_path: string | null }[]) || []).map((a) => a.cv_path).filter(Boolean) as string[];
+      if (!(await removeCvs(sb, paths))) redirect(withParam("fout", "cv-verwijderen"));
+      await sb.from("applications").delete().in("id", appIds);
+    }
+    if (msgIds.length) await sb.from("contact_messages").delete().in("id", msgIds);
+  } else {
+    redirect(back);
+  }
+
+  revalidatePath("/admin", "layout");
+  redirect(withParam("opgeslagen", intent === "verwijderen" ? "definitief" : "gelezen"));
 }
