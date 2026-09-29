@@ -21,9 +21,12 @@
           "href": "tel:0856205800",
           "style": "outline"
         },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Verzuimbegeleiding-WVP-Rood-2.png",
-        "imageAlt": "Een medewerker in gesprek met een begeleider",
-        "badge": "Geheimhoudingsplicht: je kunt alles met ons delen"
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png",
+        "imageAlt": "Een vrouw aan de telefoon, glimlachend achter haar laptop",
+        "badge": "Geheimhoudingsplicht: je kunt alles met ons delen",
+        "imagePosition": "right",
+        "focus": "55% 35%",
+        "doelgroep": "werknemer"
       }
     },
     {
@@ -80,7 +83,7 @@
       }
     },
     {
-      "type": "intro",
+      "type": "imageText",
       "label": "React2u is er voor jou",
       "data": {
         "eyebrow": "Wat is React2u?",
@@ -88,8 +91,14 @@
         "text": "Als je een tijdje niet kunt deelnemen aan het arbeidsproces, om welke reden dan ook, dan doet dat iets met je. Dat weten wij heel goed. Gelukkig weten wij ook hoe we jou in zo'n moeilijke periode zo goed mogelijk kunnen begeleiden op weg naar jouw herstel.\n\nSamen met onze bedrijfsartsen en andere persoonlijk betrokken partijen werken we met jou aan de best passende oplossing. Tijdens dat proces blijven we nauw bij je betrokken en vragen we ons voortdurend af wat je nodig hebt om weer lekker actief aan het werk te kunnen. Bij je eigen bedrijf of misschien wel ergens anders.",
         "button": {
           "label": "Over React2u",
-          "href": "/over-react2u"
-        }
+          "href": "/over-react2u",
+          "style": "outline"
+        },
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Verzuimbegeleiding-WVP-Rood-2.png",
+        "imageAlt": "Een werknemer in gesprek met haar begeleider",
+        "imageFit": "cover",
+        "imagePosition": "left",
+        "focus": "40% 40%"
       }
     },
     {
@@ -182,7 +191,10 @@
             "sub": "We nemen zo snel mogelijk contact op",
             "href": "/contact"
           }
-        ]
+        ],
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Begeleiding-Coaching-1.png",
+        "imageAlt": "",
+        "focus": "65% 35%"
       }
     }
   ]

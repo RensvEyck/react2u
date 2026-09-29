@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPage, getPublishedPages, getPublishedPosts } from "@/lib/content";
 import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
-import SiteImage from "@/components/site/SiteImage";
+import FotoTegel from "@/components/site/FotoTegel";
 import { Arrow } from "@/components/site/Arrow";
 import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
@@ -89,13 +89,14 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 }
 
 /**
- * Onder elke dienstpagina: de andere vijf diensten, zodat een bezoeker niet
- * terug hoeft naar het menu.
+ * Onder elke dienstpagina: de andere vijf diensten als fototegels, zodat een
+ * bezoeker niet terug hoeft naar het menu. Op de telefoon een rij om door te
+ * vegen (snap), vanaf een laptop vijf naast elkaar.
  */
 function MeerDiensten({ huidig }: { huidig: string }) {
   const andere = PIJLERS.flatMap((p) => p.diensten).filter((d) => d.href !== huidig);
   return (
-    <section data-tone="soft" className="border-t border-line bg-soft py-16 md:py-20">
+    <section data-tone="white" className="py-16 md:py-20">
       <div className="container-site">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -104,20 +105,17 @@ function MeerDiensten({ huidig }: { huidig: string }) {
           </div>
           <Link href="/diensten" className="link-arrow shrink-0">Alle diensten <Arrow /></Link>
         </div>
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {andere.map((d) => (
-            <li key={d.href}>
-              <Link href={d.href} className="lift group flex h-full items-center gap-4 rounded-2xl border border-line bg-white p-3 pr-4">
-                <div className="relative h-[64px] w-[64px] shrink-0 overflow-hidden rounded-xl bg-soft">
-                  <SiteImage src={d.image} alt="" sizes="64px" widths={[160]} className="absolute inset-0 h-full w-full object-cover" />
-                </div>
-                <span className="min-w-0 flex-1 font-semibold leading-snug text-primary">{d.label}</span>
-                <Arrow className="shrink-0 text-primary transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
-            </li>
-          ))}
-        </ul>
       </div>
+      {/* De rij loopt op de telefoon door tot de rand van het scherm; de eerste
+          tegel lijnt uit met de tekst erboven (scroll-padding). */}
+      <ul className="container-site flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scroll-padding-inline:1.25rem] sm:[scroll-padding-inline:2rem] lg:grid lg:snap-none lg:grid-cols-5 lg:overflow-visible lg:pb-0">
+        {andere.map((d) => (
+          <li key={d.href} className="w-[64%] shrink-0 snap-start sm:w-[40%] lg:w-auto">
+            <FotoTegel href={d.href} image={d.image} kicker={d.situatie} title={d.label} klein
+              ratio="aspect-[4/5]" sizes="(min-width: 1024px) 240px, 64vw" />
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

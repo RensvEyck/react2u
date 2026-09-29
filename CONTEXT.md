@@ -227,32 +227,44 @@ Sophos-filtering ervoor en `-all` in de SPF.
 
 ## Vormgeving
 
-**Strak en rustig, naar het voorbeeld van de markt.** De grote arbodiensten
-(Perspectief, Arbo Unie, Sazas, ArboNed) doen hetzelfde: echte foto's, één
-accentkleur, een neutraal vlak dat met wit afwisselt, weinig decoratie. Een
-eerdere versie met stippenpatronen, ronde foto's, gloed en een kleur per
-dienst werd als druk en onprofessioneel ervaren; die is bewust verlaten. De
+**Warm en menselijk, in de taal van het splitscreen.** Het startscherm
+(werkgever | werknemer, twee foto's van rand tot rand) is goedgekeurd en is
+de maat voor de rest van de site. Afgewezen, in deze volgorde: stippenpatronen
+en grote woordvlakken ("dramatisch"), en daarna een strakke, koele versie met
+dunne kaartjes naar het voorbeeld van de markt ("saai en standaard"). De
 regels:
 
-- **Warm en menselijk**: een eerste strakke versie was correct maar koud en
-  standaard. Daarom: warme, lachende mensen op grote foto's, en het vlak dat
-  met wit afwisselt is zand (`bg-soft`, `#f6f2ec`, lijnen `#e6e0d6`) in plaats
-  van grijs.
-- **Kleur**: indigo (`primary`) en wit, met het zandkleurige vlak (`bg-soft`)
-  en lijnen in `border-line`. Roze (`accent`) alleen voor de
-  hoofdactie: de knop. Geen kleur per dienst, geen verloop, geen gloed. De
-  stippen van het logo staan alleen in het logo (en op de onderhoudspagina).
-- **Foto's**: rechthoekig, `rounded-2xl`, `object-cover`. Elke dienst heeft
-  een eigen foto (`image` in `PIJLERS`, `nav.ts`), die in menu-overzichten,
-  dienstkaarten en "Meer van React2u" terugkomt. De oude illustraties met
-  witte achtergrond (bv. het REACT-wiel) staan heel, niet bijgesneden.
-- **Kaarten**: wit met een dunne rand (`KAART` in `BlockRenderer`); schaduw
-  pas bij hover (`.lift`).
-- **Typografie**: één h1-maat (`H1`) en één h2-maat (`H2`), vet (700), links
-  uitgelijnd. Bovenkopjes klein en gedempt (`.eyebrow`, `--color-muted`).
+- **Mensen, groot**: waar een foto een sectie draagt, loopt hij van rand tot
+  rand naast een tekstkolom — het "halve scherm" (`HeroSplit`, `ImageText` met
+  `imageFit: "cover"`, `CtaBanner`). De tekstkolom lijnt aan de buitenkant uit
+  met de rest van de pagina (`RAND_L`/`RAND_R`). Op de telefoon staat de foto
+  erboven.
+- **Tekst op een foto** alleen met het donkere indigo verloop erachter, dat
+  aan de tekst vastzit en niet aan de foto: achter elke regel minstens 78%
+  dekkend, alleen erboven vloeit het weg. Zo blijven gezichten helder en haalt
+  wit ook op een witte foto 7:1 (`FotoTegel`, het splitscreen).
+- **Diensten als fototegels** (`FotoTegel`): de situatie en de naam op de foto,
+  een ronde witte pijl die bij aanwijzen roze wordt — de kleine versie van een
+  helft van het startscherm. In `pillars`, `servicesGrid` en "Meer van
+  React2u" (op de telefoon een rij om door te vegen).
+- **Kleur**: indigo (`primary`) en wit, afgewisseld met zand (`bg-soft`,
+  `#f6f2ec`, lijnen `#e6e0d6`) — geen grijs. Roze (`accent`) alleen voor de
+  hoofdactie. Geen kleur per dienst. De stippen van het logo staan alleen in
+  het logo (en op de onderhoudspagina).
+- **Geen kaartjes met dunne randen**: vlakken (wit op zand, zand op wit),
+  foto's en ruimte. Pictogrammen en stappen in ronde vlakken.
+- **Typografie**: `H1` voor een kop over de volle breedte, `H1_HALF` (3,1rem,
+  even groot als "Ik ben werkgever") naast een foto, één h2-maat (`H2`).
+  De drie waarden ("Gezond", "Menselijk", "Duidelijk") staan groot, als woorden.
 - **Knoppen**: afgerond op 10px, 48px hoog, zonder schaduw.
-- **Pictogrammen**: Lucide-lijniconen in indigo, in een vierkant vlak van 48px
-  (`IconTegel`).
+- **Doorklikken vloeit over**: de foto van een helft van het startscherm heeft
+  een ViewTransition-naam (`foto-werkgever`/`foto-werknemer`), net als de foto
+  in de paginakop van /werkgevers en /werknemers (`doelgroep` in
+  `heroStatement`). Bij doorklikken schuift de foto de nieuwe pagina in, aan
+  dezelfde kant: werkgever links, werknemer rechts (`imagePosition`). Met
+  verminderde beweging staat dat uit.
+- **Het REACT-wiel** staat op een grijs vierkant; `imageRond` in `method` knipt
+  het rond uit, zodat het op zand staat zonder grijs vlak.
 
 **Contrast is doorgerekend, niet geschat.** Roze knop met witte tekst 5,1:1;
 gedempte bovenkopjes 6,0:1 op wit; lopende tekst (`--color-body`) 6,9:1; de
@@ -272,18 +284,19 @@ werkwijze (blok `method`) en de drie waarden met een feit erbij (blok
 | Bloktype | Wat |
 |---|---|
 | `audienceChoice` | Het startscherm, een splitscreen: een smalle kopregel met de h1, daaronder werkgever \| werknemer als twee paginavullende foto's van rand tot rand (`choices`: `doelgroep`, `title`, `text`, `button`, `image`, `focus`, `href`; `focus` is de `object-position`). Ook op de telefoon naast elkaar, zodat beide keuzes boven de vouw staan; daar vallen `text` en de knoptekst weg (ronde pijl). De helft onder de muis wordt breder (`.split` in `globals.css`). Het donkere verloop zit alleen achter de tekst; wit haalt daarop gemeten 3,2:1+ (kop) en 6:1+ (tekst). Eronder één regel vertrouwen (`trust`). Een terugkerende bezoeker ziet "Je vorige keuze". |
-| `heroStatement` | Paginakop met foto: tekst en knoppen links, foto rechts, eventueel een keurmerkregel (`badge`). Hetzelfde ontwerp als `hero`. |
-| `pillars` | "Waar kunnen we je mee helpen?": de zes diensten per stap (voorkomen, begeleiden, versterken), elk met foto en situatie. Inhoud uit `PIJLERS`; het blok zelf heeft alleen de kop. |
-| `steps` | Genummerde stappen met scheidingslijnen, zoals het verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge`, `title`, `text`; `anchor` maakt er een #-doel van. |
+| `heroStatement` | Paginakop voor een doelgroep: tekst op zand, foto van rand tot rand ernaast (`imagePosition`, `focus`), eventueel een keurmerkregel (`badge`). Met `doelgroep` vloeit de foto van het startscherm erin over. Hetzelfde ontwerp als `hero`. |
+| `pillars` | "Waar kunnen we je mee helpen?": de zes diensten per stap (voorkomen, begeleiden, versterken), als fototegels met de situatie. De drie kolommen delen hun rijen (subgrid), zodat de tegels op één lijn beginnen. Inhoud uit `PIJLERS`; het blok zelf heeft alleen de kop. |
+| `steps` | Een tijdlijn: ronde stappen verbonden door een lijn, zoals het verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge`, `title`, `text`; `anchor` maakt er een #-doel van. |
 | `method` | Het REACT-model: vijf letters met uitleg naast het wiel, en een citaat. |
-| `values` | De drie waarden, elk met een feit (`value`, `valueLabel`). |
+| `values` | De drie waarden op zand, groot als woorden, elk met een feit als label (`value`, `valueLabel`). |
 | `latestPosts` | De nieuwste blogartikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
 
 Bestaande blokken kregen optionele varianten: `intro` met `layout: "center"`,
 `imageText` met `imageFit: "cover"` (foto bijsnijden in plaats van heel
 tonen), `valueCards` met een `heading`, `twoColumnLists` met `eyebrow`, `text`
-en `button`, en `ctaBanner` met `routes` (contactroutes rechts: `icon`,
-`label`, `sub`, `href`). `routes` staat bewust niet in het sjabloon: de
+en `button`, en `ctaBanner` met `routes` (contactroutes: `icon`, `label`, en
+`sub` — het nummer of adres, groot) en een eigen foto (`image`; leeg is de
+vaste contactfoto, `CONTACT_FOTO` in `nav.ts`). `routes` staat bewust niet in het sjabloon: de
 blokeditor voegt aan een lege lijst een tekstregel toe in plaats van een route.
 De blokeditor toont alleen velden die al in de data staan — wil je een
 bestaand blok omzetten, voeg het opnieuw toe.
@@ -367,7 +380,8 @@ lezen", die buiten de afbeelding niet meer klopte.
 
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
-`werkgevers`, `werknemers`, `verzuimprotocol`): de blokken, de titel en voor
+`werkgevers`, `werknemers`, `verzuimprotocol`, en `begeleiding-en-coaching`
+— daar alleen de volgorde hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
 een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
 
@@ -399,11 +413,11 @@ transactie, en er wordt niets verwijderd:
 - bestaat een pagina nog niet (zoals `/werkgevers`), dan wordt hij aangemaakt,
   met de titel en SEO-teksten uit het concept;
 - een bestaande pagina houdt zijn titel en SEO; zijn huidige blokken verhuizen
-  naar een verborgen pagina `<slug>-oud-<datum>` (alleen als er blokken zijn).
+  naar een verborgen pagina `<slug>-oud-<datum>-<tijd>` (UTC, alleen als er
+  blokken zijn).
 
-Terugdraaien kan via het adminpaneel. Draai je het script twee keer op
-dezelfde dag, dan faalt de tweede keer op de bestaande `-oud-`-pagina en
-gebeurt er niets.
+Terugdraaien kan via het adminpaneel. Door de tijd in de naam kan het script
+ook twee keer op één dag draaien.
 
 **Een pagina die alleen als concept bestaat** (zoals `/werkgevers` vóór de
 SQL) toont ook in productie het concept, zodat de links ernaar niet op een 404

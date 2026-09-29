@@ -291,6 +291,34 @@ h1, h2, h3 {
   outline-offset: -4px;
 }
 
+/* Van startscherm naar doelgroeppagina: de foto waarop je klikte schuift in de
+   paginakop (ViewTransition met share="morph", zie VolFoto). Een halve seconde,
+   met een zweem vervaging om tussenbeelden te verbergen. De rest van de pagina
+   vervaagt kort in de nieuwe. */
+::view-transition-group(.morph) {
+  animation-duration: 560ms;
+  animation-timing-function: var(--ease-out-soft);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+@keyframes via-blur {
+  35% {
+    filter: blur(2px);
+  }
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* Megamenu en uitklapmenu's */
 .menu-panel {
   animation: menu-in 0.22s var(--ease-out-soft) both;

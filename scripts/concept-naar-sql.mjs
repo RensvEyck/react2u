@@ -31,7 +31,9 @@ if (!namen.length || namen.some((n) => !/^[a-z0-9-]+$/.test(n))) {
 // mag alleen niet zelf in de tekst voorkomen.
 const TAG = "$concept$";
 const q = (s) => (s == null || s === "" ? "null" : `'${String(s).replaceAll("'", "''")}'`);
-const datum = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+// Datum én tijd: dan kan het script ook twee keer op één dag draaien zonder
+// te botsen op de reservepagina van de eerste keer.
+const datum = new Date().toISOString().slice(0, 16).replace(/[-:]/g, "").replace("T", "-");
 
 let sql = `-- Concepten uit src/content/: ${namen.join(", ")}
 -- Huidige blokken blijven bewaard op verborgen pagina's "<slug>-oud-${datum}".

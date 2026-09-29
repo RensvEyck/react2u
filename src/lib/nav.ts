@@ -4,6 +4,9 @@ import type { Kleur } from "./brand";
 // hieronder gebruikt ze al bij het laden.
 const FOTO = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 
+/** De foto bij "Kom met ons in contact" onderaan een pagina, als het blok zelf geen foto heeft. */
+export const CONTACT_FOTO = `${FOTO}/2023/06/front-view-older-woman-talking-phone-while-working.jpg`;
+
 /* ---------- Diensten: drie stappen, zes diensten ---------- */
 
 /**

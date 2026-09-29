@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ViewTransition } from "react";
 import type { Block, Post } from "@/lib/types";
 import { MiniMarkdown } from "@/lib/md";
 import { zinsletters } from "@/lib/tekst";
@@ -11,19 +12,21 @@ import SiteImage from "@/components/site/SiteImage";
 import { Arrow } from "@/components/site/Arrow";
 import Breadcrumbs from "@/components/site/Breadcrumbs";
 import VorigeKeuze from "@/components/site/VorigeKeuze";
-import { PIJLERS, dienstVoor } from "@/lib/nav";
+import FotoTegel from "@/components/site/FotoTegel";
+import { PIJLERS, CONTACT_FOTO, dienstVoor } from "@/lib/nav";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*
- * De blokken van de site, in één strakke vormtaal:
- * - indigo en wit, met één neutraal vlak (bg-soft) om secties af te wisselen;
- * - roze alleen voor de hoofdactie (de knop), nergens als decoratie;
- * - echte foto's, rechthoekig, met één afronding (rounded-2xl);
- * - kaarten met een dunne rand (border-line), zonder schaduw tot je erover gaat;
- * - één raster van twaalf kolommen, koppen links uitgelijnd.
- * Geen stippenpatronen, gloed of kleur per dienst: rust is hier de kwaliteit.
+ * De blokken van de site, in de taal van het startscherm (het splitscreen
+ * werkgever | werknemer):
+ * - mensen op grote foto's; waar een foto een sectie draagt, loopt hij van
+ *   rand tot rand, naast een tekstkolom op zand of wit ("half scherm");
+ * - tekst op een foto alleen met het donkere verloop erachter;
+ * - zand en wit wisselen elkaar af, indigo voor tekst en het slot;
+ * - roze alleen voor de hoofdactie (de knop, de pijl onder de muis);
+ * - geen kaartjes met dunne randen: vlakken, foto's en ruimte.
  */
 
 type Btn = { label: string; href: string; style?: "accent" | "indigo" | "outline" };
@@ -62,13 +65,19 @@ const RECHTS = "lg:col-span-6 lg:col-start-7";
 /** De linkerkolom blijft staan terwijl je langs een lange rechterkolom scrolt. */
 const STICKY = "lg:sticky lg:top-[calc(var(--hh)+2rem)] lg:self-start";
 
+/**
+ * Een tekstkolom naast een foto van rand tot rand: de buitenkant lijnt uit met
+ * de inhoud van de rest van de pagina (container-site: 1240px, 2rem rand).
+ */
+const RAND_L = "lg:pl-[max(2rem,calc(50vw-620px+2rem))]";
+const RAND_R = "lg:pr-[max(2rem,calc(50vw-620px+2rem))]";
+
 /** Typografie: één h1-maat, één h2-maat. */
 const H1 = "text-[2.25rem] font-bold leading-[1.08] tracking-[-0.025em] sm:text-[2.9rem] lg:text-[3.5rem]";
 const H2 = "text-[1.85rem] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[2.2rem] lg:text-[2.5rem]";
 const LEAD = "text-[18px] leading-relaxed md:text-[19px]";
-
-/** Kaart: wit met een dunne rand. */
-const KAART = "rounded-2xl border border-line bg-white";
+/** h1 op een half scherm: dezelfde maat als "Ik ben werkgever" op het startscherm. */
+const H1_HALF = "text-[2.25rem] font-bold leading-[1.06] tracking-[-0.025em] sm:text-[2.8rem] lg:text-[3.1rem]";
 
 /* ---------- Bouwstenen ---------- */
 
@@ -194,7 +203,7 @@ function SectionHead({
 /** Pictogram in een vierkant vlak — overal hetzelfde formaat en dezelfde kleur. */
 function IconTegel({ name, donker }: { name?: string; donker?: boolean }) {
   return (
-    <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-[22px] ${
+    <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-full text-[21px] ${
       donker ? "bg-white/10 text-white" : "bg-soft text-primary"
     }`}>
       <Icon name={name} />
@@ -202,23 +211,29 @@ function IconTegel({ name, donker }: { name?: string; donker?: boolean }) {
   );
 }
 
-/** Rechthoekige foto met één afronding. */
-function Foto({
-  src, alt, sizes, priority, className = "", ratio = "aspect-[4/3]",
+/**
+ * Foto die een half scherm (of een hele helft van het startscherm) vult. Met
+ * `vt` krijgt hij een naam voor een ViewTransition: staat op de volgende
+ * pagina een foto met dezelfde naam, dan vloeit de een in de ander over in
+ * plaats van te knipperen. Zo blijft de foto waarop je klikte in beeld.
+ */
+function VolFoto({
+  src, alt = "", focus, sizes, priority, vt, className = "",
 }: {
-  src?: string;
+  src: string;
   alt?: string;
+  focus?: string;
   sizes: string;
   priority?: boolean;
+  vt?: string;
   className?: string;
-  ratio?: string;
 }) {
-  if (!src) return null;
-  return (
-    <div className={`overflow-hidden rounded-2xl bg-soft ${ratio} ${className}`}>
-      <SiteImage src={src} alt={alt || ""} sizes={sizes} priority={priority} className="h-full w-full object-cover" />
-    </div>
+  const img = (
+    <SiteImage src={src} alt={alt} sizes={sizes} priority={priority} widths={[640, 960, 1280, 1600]}
+      className={`absolute inset-0 h-full w-full object-cover ${className}`}
+      style={focus ? { objectPosition: focus } : undefined} />
   );
+  return vt ? <ViewTransition name={vt} share="morph" default="none">{img}</ViewTransition> : img;
 }
 
 /**
@@ -227,7 +242,7 @@ function Foto({
  */
 function HeaderBand({ ctx, children }: { ctx?: BlockCtx; children: React.ReactNode }) {
   return (
-    <section data-tone="band" className="border-b border-line bg-soft">
+    <section data-tone="band" className="bg-soft">
       <div className="container-site pb-14 pt-8 md:pb-20 md:pt-10">
         {ctx?.crumbs && <Breadcrumbs crumbs={ctx.crumbs} className="mb-8 text-primary" />}
         <div className="max-w-[860px]">{children}</div>
@@ -239,33 +254,55 @@ function HeaderBand({ ctx, children }: { ctx?: BlockCtx; children: React.ReactNo
 /* ---------- Hero's ---------- */
 
 /**
- * De paginakop met foto: tekst links, foto rechts op hetzelfde raster. Gebruikt
- * door `heroStatement` (startpagina's) en `hero` (de pagina's uit het CMS).
+ * De paginakop met foto, als een helft van het startscherm: tekst op zand, de
+ * foto van rand tot rand ernaast en even hoog. Gebruikt door `heroStatement`
+ * (de startpagina's per doelgroep) en `hero` (de pagina's uit het CMS).
+ *
+ * `imagePosition: "left"` zet de foto links. Op /werkgevers staat hij links
+ * omdat de werkgever op het startscherm links staat; met `doelgroep` vloeit de
+ * foto van die helft bij het doorklikken over in deze (zie VolFoto). `focus`
+ * is de object-position. Zonder foto wordt het een gewone kopband.
  */
 function HeroSplit({ d, asH1, ctx }: BlockProps) {
-  return (
-    <section data-tone="band" className="border-b border-line bg-soft">
-      <div className={`container-site ${SPLIT} items-center gap-y-10 pb-14 pt-8 md:pb-20 md:pt-10`}>
-        <div className={d.image ? "lg:col-span-6" : "lg:col-span-9"}>
-          {ctx?.crumbs && <Breadcrumbs crumbs={ctx.crumbs} className="mb-8 text-primary" />}
-          {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
-          <PageHeading asH1={asH1} className={`${H1} whitespace-pre-line max-sm:hyphens-auto`}>
-            <Highlighted text={d.heading || ""} highlight={d.highlight} />
-          </PageHeading>
-          {d.text && <MiniMarkdown text={d.text} className={`mt-6 max-w-[580px] ${LEAD}`} />}
-          <Buttons list={[d.button, d.button2]} className="mt-8" />
-          {d.badge && (
-            <p className="mt-7 flex items-center gap-2.5 text-[15px] font-medium text-primary">
-              <LuBadgeCheck className="shrink-0 text-[19px]" aria-hidden />
-              {d.badge}
-            </p>
-          )}
+  const tekst = (
+    <>
+      {ctx?.crumbs && <Breadcrumbs crumbs={ctx.crumbs} className="mb-8 text-primary" />}
+      {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
+      <PageHeading asH1={asH1} className={`${d.image ? H1_HALF : H1} whitespace-pre-line max-sm:hyphens-auto`}>
+        <Highlighted text={d.heading || ""} highlight={d.highlight} />
+      </PageHeading>
+      {d.text && <MiniMarkdown text={d.text} className={`mt-6 max-w-[580px] ${LEAD}`} />}
+      <Buttons list={[d.button, d.button2]} className="mt-8" />
+      {d.badge && (
+        <p className="mt-7 flex items-center gap-2.5 text-[15px] font-medium text-primary">
+          <LuBadgeCheck className="shrink-0 text-[19px]" aria-hidden />
+          {d.badge}
+        </p>
+      )}
+    </>
+  );
+  if (!d.image) {
+    return (
+      <section data-tone="band" className="bg-soft">
+        <div className="container-site pb-14 pt-8 md:pb-20 md:pt-10">
+          <div className="max-w-[860px]">{tekst}</div>
         </div>
-        {d.image && (
-          <div className="lg:col-span-6 lg:col-start-7">
-            <Foto src={d.image} alt={d.imageAlt} priority sizes="(min-width: 1024px) 580px, 100vw" />
-          </div>
-        )}
+      </section>
+    );
+  }
+  const fotoLinks = d.imagePosition === "left";
+  return (
+    // Hoogte: het scherm min de kopbalk, met ruimte om te zien dat er meer komt.
+    <section data-tone="bleed" className="bg-soft lg:grid lg:min-h-[clamp(480px,calc(100svh-var(--hh)-8rem),660px)] lg:grid-cols-2">
+      {/* Zand als ondergrond: zo zie je tijdens het overvloeien (en zolang de foto laadt) geen donkere rand. */}
+      <div className={`relative aspect-[4/3] overflow-hidden bg-soft sm:aspect-[16/9] lg:aspect-auto ${fotoLinks ? "" : "lg:order-last"}`}>
+        <VolFoto src={d.image} alt={d.imageAlt} focus={d.focus} priority sizes="(min-width: 1024px) 50vw, 100vw"
+          vt={d.doelgroep ? `foto-${d.doelgroep}` : undefined} />
+      </div>
+      <div className={`flex flex-col justify-center px-5 pb-14 pt-8 sm:px-8 md:pb-16 lg:py-16 ${
+        fotoLinks ? `lg:pl-14 xl:pl-20 ${RAND_R}` : `lg:pr-14 xl:pr-20 ${RAND_L}`
+      }`}>
+        <div className="max-w-[600px]">{tekst}</div>
       </div>
     </section>
   );
@@ -312,9 +349,11 @@ function AudienceChoice({ d, asH1 }: BlockProps) {
           <Link key={i} href={c.href}
             className="split-half group relative isolate flex flex-1 basis-0 flex-col justify-end overflow-hidden bg-primary-deep text-white">
             {c.image && (
-              <SiteImage src={c.image} alt="" priority sizes="(min-width: 768px) 60vw, 100vw" widths={[640, 960, 1280, 1600]}
-                className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-[1200ms] ease-[var(--ease-out-soft)] group-hover:scale-[1.04]"
-                style={c.focus ? { objectPosition: c.focus } : undefined} />
+              // Dezelfde naam als de foto in de paginakop van /werkgevers of
+              // /werknemers: bij doorklikken schuift deze foto daarin over.
+              <VolFoto src={c.image} focus={c.focus} priority sizes="(min-width: 768px) 60vw, 50vw"
+                vt={c.doelgroep ? `foto-${c.doelgroep}` : undefined}
+                className="-z-20 transition-transform duration-[1200ms] ease-[var(--ease-out-soft)] group-hover:scale-[1.04]" />
             )}
             {/* Dimt de andere helft zodra je er één aanwijst (zie .split in globals.css). */}
             <div aria-hidden className="split-dim absolute inset-0 -z-10 bg-primary-deep/25 opacity-0 transition-opacity duration-500" />
@@ -446,8 +485,31 @@ function AnimatedHeadline({ d }: BlockProps) {
   );
 }
 
+/**
+ * Tekst naast een foto. Een echte foto (`imageFit: "cover"`) loopt van rand
+ * tot rand en is even hoog als de tekst, zoals een helft van het startscherm;
+ * `imagePosition: "left"` zet hem links. Een illustratie met witte achtergrond
+ * (zoals het REACT-wiel) blijft heel, binnen de kolom.
+ */
 function ImageText({ d, asH1 }: BlockProps) {
   const imgLeft = d.imagePosition === "left";
+  if (d.image && d.imageFit === "cover") {
+    return (
+      <section data-tone="bleed" className="bg-white lg:grid lg:min-h-[600px] lg:grid-cols-2">
+        <div className={`relative aspect-[4/3] overflow-hidden bg-soft sm:aspect-[16/9] lg:aspect-auto ${imgLeft ? "" : "lg:order-last"}`}>
+          <VolFoto src={d.image} alt={d.imageAlt} focus={d.focus} sizes="(min-width: 1024px) 50vw, 100vw" />
+        </div>
+        <div className={`flex flex-col justify-center px-5 py-14 sm:px-8 md:py-20 lg:py-24 ${
+          imgLeft ? `lg:pl-14 xl:pl-20 ${RAND_R}` : `lg:pr-14 xl:pr-20 ${RAND_L}`
+        }`}>
+          <div className="max-w-[560px]">
+            <SectionHead eyebrow={d.eyebrow} heading={d.heading} text={d.text} asH1={asH1} />
+            <Buttons list={[d.button]} className="mt-8" />
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section data-tone="white" className={PAD}>
       <div className={`container-site ${SPLIT} items-center`}>
@@ -457,14 +519,10 @@ function ImageText({ d, asH1 }: BlockProps) {
         </div>
         {d.image && (
           <div className={imgLeft ? "lg:col-span-6 lg:col-start-1 lg:row-start-1" : RECHTS} data-reveal>
-            {d.imageFit === "cover" ? (
-              <Foto src={d.image} alt={d.imageAlt} sizes="(min-width: 1024px) 580px, 100vw" />
-            ) : (
-              // De oude illustraties hebben een witte achtergrond: hele beeld, op wit met een rand.
-              <div className="overflow-hidden rounded-2xl border border-line bg-white">
-                <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 580px, 100vw" className="mx-auto w-full" />
-              </div>
-            )}
+            {/* De oude illustraties hebben een witte achtergrond: hele beeld, niet bijgesneden. */}
+            <div className="overflow-hidden rounded-2xl bg-white">
+              <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 580px, 100vw" className="mx-auto w-full" />
+            </div>
           </div>
         )}
       </div>
@@ -524,38 +582,10 @@ function ImagesBlock({ d }: BlockProps) {
 
 const DIENST_VOLGORDE = PIJLERS.flatMap((p) => p.diensten.map((x) => x.href));
 
-/** Een dienst als kaart: foto, stap, titel, één regel. */
-function DienstKaart({
-  href, image, pijler, title, text,
-}: {
-  href: string;
-  image?: string;
-  pijler?: string;
-  title: string;
-  text?: string;
-}) {
-  return (
-    <Link href={href} className={`${KAART} lift group flex h-full flex-col overflow-hidden`} data-reveal>
-      {image && (
-        <div className="aspect-[16/10] overflow-hidden bg-soft">
-          <SiteImage src={image} alt="" sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw" widths={[480, 800]}
-            className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-out-soft)] group-hover:scale-[1.03]" />
-        </div>
-      )}
-      <div className="flex flex-1 flex-col p-6">
-        {pijler && <span className="eyebrow">{pijler}</span>}
-        <h3 className="mt-1.5 text-[21px] leading-snug">{title}</h3>
-        {text && <p className="mt-2 text-[16px]">{text}</p>}
-        <span className="link-arrow mt-auto pt-5 text-[15px]">Lees meer <Arrow /></span>
-      </div>
-    </Link>
-  );
-}
-
 /**
- * Het overzicht van de zes diensten, als kaarten met foto. Titel, foto en
- * stap komen uit PIJLERS (op de link), zodat de kaarten hetzelfde heten als in
- * menu en footer — ook als de blokdata nog de oude titel in hoofdletters heeft.
+ * Het overzicht van de zes diensten, als fototegels. Titel, foto en situatie
+ * komen uit PIJLERS (op de link), zodat de tegels hetzelfde heten als in menu
+ * en footer — ook als de blokdata nog de oude titel in hoofdletters heeft.
  */
 function ServicesGrid({ d }: BlockProps) {
   const plek = (c: any) => {
@@ -565,23 +595,28 @@ function ServicesGrid({ d }: BlockProps) {
   const cards = [...((d.cards as any[]) || [])].sort((a, b) => plek(a) - plek(b));
   return (
     <section data-tone="white" className={PAD}>
-      <div className="container-site grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="container-site grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c, i) => {
           const hit = c.href ? dienstVoor(c.href) : null;
           return (
-            <DienstKaart key={i} href={c.href || "#"} image={hit?.dienst.image}
-              pijler={hit?.pijler.stap} title={hit?.dienst.label || zinsletters(c.title)} text={c.description} />
+            <li key={i} data-reveal style={{ "--ri": i % 3 } as React.CSSProperties}>
+              <FotoTegel href={c.href || "#"} image={hit?.dienst.image} kicker={hit?.dienst.situatie || c.description}
+                title={hit?.dienst.label || zinsletters(c.title)} sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" />
+            </li>
           );
         })}
-      </div>
+      </ul>
     </section>
   );
 }
 
 /**
  * "Waar kunnen we je mee helpen?": de diensten per stap (voorkomen,
- * begeleiden, versterken), elk met de situatie waarin hij helpt. Inhoud uit
- * PIJLERS in nav.ts; het blok zelf heeft alleen de kop.
+ * begeleiden, versterken), elk als fototegel met de situatie waarin hij helpt.
+ * Inhoud uit PIJLERS in nav.ts; het blok zelf heeft alleen de kop.
+ *
+ * De kolommen delen hun rijen (subgrid), zodat de tegels van de drie stappen op
+ * één lijn beginnen, ook als de ene stap een langere uitleg heeft.
  */
 function Pillars({ d, asH1 }: BlockProps) {
   return (
@@ -591,29 +626,19 @@ function Pillars({ d, asH1 }: BlockProps) {
           <SectionHead eyebrow={d.eyebrow} heading={d.heading} asH1={asH1} className={LINKS} />
           {d.text && <MiniMarkdown text={d.text} className={`${RECHTS} ${LEAD}`} />}
         </div>
-        <div className="grid gap-x-5 gap-y-12 lg:grid-cols-3">
+        <div className="grid gap-y-14 lg:grid-cols-3 lg:grid-rows-[auto_auto] lg:gap-x-6 lg:gap-y-7">
           {PIJLERS.map((p, i) => (
-            <div key={p.key} data-reveal style={{ "--ri": i } as React.CSSProperties}>
-              <div className="flex items-center gap-4 border-b border-line pb-5">
-                <IconTegel name={p.icon} />
-                <p>
-                  <span className="eyebrow block">Stap {i + 1} · {p.stap}</span>
-                  <span className="block font-heading text-[21px] font-bold text-primary">{p.title}</span>
-                </p>
+            <div key={p.key} className="grid gap-y-6 lg:row-span-2 lg:grid-rows-subgrid" data-reveal style={{ "--ri": i } as React.CSSProperties}>
+              <div>
+                <p className="eyebrow">Stap {i + 1} · {p.stap}</p>
+                <h3 className="mt-2 text-[26px] leading-tight">{p.title}</h3>
+                <p className="mt-2.5 max-w-[440px] text-[16.5px]">{p.text}</p>
               </div>
-              <ul className="mt-5 space-y-3">
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
                 {p.diensten.map((x) => (
                   <li key={x.href}>
-                    <Link href={x.href} className={`${KAART} lift group flex items-center gap-4 p-3 pr-4`}>
-                      <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-xl bg-soft">
-                        <SiteImage src={x.image} alt="" sizes="76px" widths={[160]} className="absolute inset-0 h-full w-full object-cover" />
-                      </div>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[14.5px] leading-snug">{x.situatie}</span>
-                        <span className="mt-0.5 block font-semibold leading-snug text-primary">{x.label}</span>
-                      </span>
-                      <Arrow className="shrink-0 text-primary transition-transform duration-300 group-hover:translate-x-1" />
-                    </Link>
+                    <FotoTegel href={x.href} image={x.image} kicker={x.situatie} title={x.label} kop="h4"
+                      ratio="aspect-[16/10]" sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" />
                   </li>
                 ))}
               </ul>
@@ -671,7 +696,7 @@ function TwoColumnLists({ d, asH1 }: BlockProps) {
             const dark = i % 2 === 1;
             return (
               <div key={i} data-reveal style={{ "--ri": i } as React.CSSProperties}
-                className={`rounded-2xl p-8 md:p-10 ${dark ? "on-dark bg-primary text-white/85" : "border border-line bg-soft"}`}>
+                className={`rounded-2xl p-8 md:p-10 ${dark ? "on-dark bg-primary text-white/85" : "bg-soft"}`}>
                 <h3 className="mb-6 text-[22px]">{c.title}</h3>
                 <ul className="space-y-3.5">
                   {((c.items as string[]) || []).map((item, j) => (
@@ -691,11 +716,11 @@ function TwoColumnLists({ d, asH1 }: BlockProps) {
   );
 }
 
-/** Waarden als drie kaarten. Met een kop: kop erboven. */
+/** Waarden als drie witte vlakken op zand. Met een kop: kop erboven. */
 function ValueCards({ d, asH1 }: BlockProps) {
   const cards = (d.cards as any[]) || [];
   return (
-    <section data-tone="white" className={PAD}>
+    <section data-tone="soft" className={`bg-soft ${PAD}`}>
       <div className="container-site">
         {d.heading && (
           <div className={`${SPLIT} mb-12 lg:items-end`}>
@@ -705,9 +730,9 @@ function ValueCards({ d, asH1 }: BlockProps) {
         )}
         <div className="grid gap-5 md:grid-cols-3">
           {cards.map((c, i) => (
-            <div key={i} className={`${KAART} p-7 md:p-8`} data-reveal style={{ "--ri": i } as React.CSSProperties}>
+            <div key={i} className="rounded-2xl bg-white p-7 md:p-9" data-reveal style={{ "--ri": i } as React.CSSProperties}>
               <IconTegel name={c.icon} />
-              <h3 className="mt-6 text-[22px]">{c.title}</h3>
+              <h3 className="mt-6 text-[24px]">{c.title}</h3>
               <MiniMarkdown text={c.text || ""} className="mt-2.5 text-[16.5px]" />
             </div>
           ))}
@@ -721,39 +746,41 @@ function ValueCards({ d, asH1 }: BlockProps) {
 /* ---------- Oproep, contact en vragen ---------- */
 
 /**
- * Afsluitende oproep op indigo: tekst links, rechts de knoppen, of met
- * `routes` (lijst van { icon, label, sub, href }) de manieren om contact op te
- * nemen, zodat iedereen zijn eigen weg kiest.
+ * De afsluitende oproep, als half scherm: links een foto van iemand aan de
+ * telefoon (`image`, anders CONTACT_FOTO), rechts op zand de tekst en de
+ * manieren om contact op te nemen. `routes` is een lijst van
+ * { icon, label, sub, href }: het label klein, `sub` (het nummer, het adres)
+ * groot — dat is waar je naar zoekt. Zonder routes staan er alleen knoppen.
  */
 function CtaBanner({ d, asH1 }: BlockProps) {
   const buttons = (d.buttons as Btn[]) || [];
   const routes = ((d.routes as any[]) || []).filter((r) => r?.label && r?.href);
   return (
-    <section data-tone="white" className="py-12 md:py-16">
-      <div className="container-site">
-        {/* grid-cols-1 (= minmax(0, 1fr)): zonder die ondergrens kan lange
-            tekst in de routes de kolom breder duwen dan het scherm. */}
-        <div className="on-dark grid grid-cols-1 items-center gap-10 rounded-2xl bg-primary px-6 py-12 text-white/80 sm:px-12 md:py-14 lg:grid-cols-12 lg:px-14" data-reveal>
-          <div className={routes.length ? "lg:col-span-6" : "lg:col-span-7"}>
-            {d.eyebrow && <p className="eyebrow mb-3">{d.eyebrow}</p>}
-            {d.heading && <PageHeading asH1={asH1} className={H2}>{d.heading}</PageHeading>}
-            {d.text && <MiniMarkdown text={d.text} className="mt-4 max-w-[560px] text-[17.5px]" />}
-            {routes.length > 0 && <Buttons list={buttons} className="mt-8" />}
-          </div>
-          {routes.length > 0 ? (
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-6 lg:grid-cols-1">
+    <section data-tone="bleed" className="bg-soft lg:grid lg:min-h-[540px] lg:grid-cols-2">
+      <div className="relative aspect-[16/10] overflow-hidden bg-soft sm:aspect-[2/1] lg:aspect-auto">
+        <VolFoto src={d.image || CONTACT_FOTO} alt={d.imageAlt} focus={d.focus || "center 30%"} sizes="(min-width: 1024px) 50vw, 100vw" />
+      </div>
+      <div className={`flex flex-col justify-center px-5 py-14 sm:px-8 md:py-20 lg:pl-14 xl:pl-20 ${RAND_R}`}>
+        <div className="max-w-[540px]" data-reveal>
+          {d.eyebrow && <p className="eyebrow mb-3">{d.eyebrow}</p>}
+          {d.heading && <PageHeading asH1={asH1} className={H2}>{d.heading}</PageHeading>}
+          {d.text && <MiniMarkdown text={d.text} className="mt-4 text-[17.5px]" />}
+          {routes.length > 0 && (
+            <ul className="mt-8 divide-y divide-line border-y border-line">
               {routes.map((r, i) => {
                 const inner = (
                   <>
-                    <IconTegel name={r.icon} donker />
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-white">{r.label}</span>
-                      {r.sub && <span className="block text-[15px] leading-snug text-white/70">{r.sub}</span>}
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-[20px] text-primary transition-colors duration-300 group-hover:bg-accent group-hover:text-white" aria-hidden>
+                      <Icon name={r.icon} />
                     </span>
-                    <Arrow className="shrink-0 text-white/70 transition-transform duration-300 group-hover:translate-x-1" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] leading-snug">{r.label}</span>
+                      {r.sub && <span className="block break-words font-heading text-[20px] font-bold leading-snug text-primary sm:text-[22px]">{r.sub}</span>}
+                    </span>
+                    <Arrow className="shrink-0 text-primary transition-transform duration-300 group-hover:translate-x-1" />
                   </>
                 );
-                const cls = "group flex items-center gap-4 rounded-xl border border-white/15 px-4 py-3.5 transition-colors hover:border-white/45 hover:bg-white/[0.06]";
+                const cls = "group flex items-center gap-4 py-4";
                 return (
                   <li key={i}>
                     {isExternal(r.href) ? <a href={r.href} className={cls}>{inner}</a> : <Link href={r.href} className={cls}>{inner}</Link>}
@@ -761,11 +788,8 @@ function CtaBanner({ d, asH1 }: BlockProps) {
                 );
               })}
             </ul>
-          ) : (
-            <div className="lg:col-span-5">
-              <Buttons list={buttons} className="lg:justify-end" />
-            </div>
           )}
+          <Buttons list={buttons} className="mt-8" />
         </div>
       </div>
     </section>
@@ -800,7 +824,7 @@ function ContactFaq({ d, asH1 }: BlockProps) {
   return (
     <section data-tone="soft" className={`bg-soft ${PAD}`}>
       <div className="container-site grid gap-10 lg:grid-cols-2 lg:gap-16">
-        <div className={`${KAART} p-7 md:p-10`} data-reveal>
+        <div className="rounded-2xl bg-white p-7 md:p-10" data-reveal>
           {d.heading && <PageHeading asH1={asH1} className={H2}>{d.heading}</PageHeading>}
           {d.text && <MiniMarkdown text={d.text} className="mb-8 mt-4 text-[17px]" />}
           <ContactForm />
@@ -821,7 +845,7 @@ function ContactDetails({ d, asH1 }: BlockProps) {
     d.address && { icon: <LuMapPin />, label: "Bezoekadres", value: d.address, href: "" },
   ].filter(Boolean) as { icon: React.ReactNode; label: string; value: string; href: string }[];
   return (
-    <section data-tone="white" className={PAD}>
+    <section data-tone="soft" className={`bg-soft ${PAD}`}>
       <div className={`container-site ${SPLIT}`}>
         <div className={LINKS}>
           <SectionHead heading={d.heading} text={d.text} asH1={asH1} />
@@ -829,7 +853,7 @@ function ContactDetails({ d, asH1 }: BlockProps) {
             {rows.map((r, i) => {
               const inner = (
                 <>
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-soft text-[20px] text-primary" aria-hidden>{r.icon}</span>
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-[20px] text-primary" aria-hidden>{r.icon}</span>
                   <span>
                     <span className="block text-[14px]">{r.label}</span>
                     <span className="block whitespace-pre-line font-semibold text-primary">{r.value}</span>
@@ -845,7 +869,7 @@ function ContactDetails({ d, asH1 }: BlockProps) {
             })}
           </ul>
         </div>
-        <div className={`${RECHTS} ${KAART} p-7 md:p-10`} data-reveal>
+        <div className={`${RECHTS} rounded-2xl bg-white p-7 md:p-10`} data-reveal>
           <h3 className="mb-6 text-[24px]">{d.formHeading || "Stuur ons een bericht"}</h3>
           <ContactForm />
         </div>
@@ -858,8 +882,8 @@ function ContactDetails({ d, asH1 }: BlockProps) {
 function LogoCarouselBlock({ d }: BlockProps) {
   const logos = ((d.logos as any[]) || []).filter((l) => l?.image);
   return (
-    // Eigen toon: tussen twee lijnen houdt deze rij altijd zijn eigen ruimte.
-    <section data-tone="logos" className="border-y border-line py-12 md:py-14">
+    // Eigen toon: deze rij houdt altijd zijn eigen ruimte, ook tussen twee witte secties.
+    <section data-tone="logos" className="py-14 md:py-16">
       <div className="container-site flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-16" data-reveal>
         {d.eyebrow && <p className="eyebrow shrink-0 lg:w-[220px]">{d.eyebrow}</p>}
         <ul className="flex flex-1 flex-wrap items-center gap-x-12 gap-y-8 lg:justify-between">
@@ -891,7 +915,7 @@ function Method({ d, asH1 }: BlockProps) {
             <ol className="mt-8 divide-y divide-line border-y border-line">
               {steps.map((st, i) => (
                 <li key={i} className="flex gap-5 py-4" data-reveal style={{ "--ri": i } as React.CSSProperties}>
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary font-heading text-[17px] font-bold text-white" aria-hidden>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary font-heading text-[17px] font-bold text-white" aria-hidden>
                     {String(st.title).charAt(0)}
                   </span>
                   <div>
@@ -906,10 +930,18 @@ function Method({ d, asH1 }: BlockProps) {
         </div>
         <div className="lg:col-span-5 lg:col-start-8" data-reveal>
           {d.image && (
-            // Het wiel heeft zelf een lichtgrijze achtergrond; die wordt het vlak.
-            <div className="overflow-hidden rounded-2xl">
-              <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 460px, 90vw" className="w-full" />
-            </div>
+            // Het REACT-wiel staat op een grijs vierkant, en grijs vloekt met het
+            // zand. Met `imageRond` knippen we het rond uit, iets ingezoomd (het
+            // wiel beslaat 92% van het beeld), zodat alleen het wiel overblijft.
+            d.imageRond ? (
+              <div className="mx-auto aspect-square max-w-[460px] overflow-hidden rounded-full">
+                <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 460px, 90vw" className="h-full w-full scale-[1.1] object-cover" />
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-2xl">
+                <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 460px, 90vw" className="w-full" />
+              </div>
+            )
           )}
           {d.quote && (
             <blockquote className="mt-6 border-l-2 border-accent pl-5 font-heading text-[19px] font-semibold leading-snug text-primary">
@@ -937,13 +969,15 @@ function Steps({ d, asH1 }: BlockProps) {
           <SectionHead eyebrow={d.eyebrow} heading={d.heading} text={d.text} asH1={asH1} />
           <Buttons list={[d.button]} className="mt-8" />
         </div>
-        <ol className={`${RECHTS} divide-y divide-line border-y border-line`}>
+        {/* Een tijdlijn: ronde stappen, verbonden door een lijn. */}
+        <ol className={RECHTS}>
           {steps.map((st, i) => (
-            <li key={i} data-reveal className="flex gap-6 py-7">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary font-heading text-[16px] font-bold text-white" aria-hidden>
+            <li key={i} data-reveal className="relative flex gap-6 pb-11 last:pb-0">
+              {i < steps.length - 1 && <span aria-hidden className="absolute bottom-0 left-[23px] top-[52px] w-0.5 rounded-full bg-line" />}
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary font-heading text-[16px] font-bold text-white" aria-hidden>
                 {st.badge || i + 1}
               </span>
-              <div className="min-w-0">
+              <div className="min-w-0 pt-2.5">
                 <h3 className="text-[20px] leading-snug">
                   <span className="sr-only">Stap {i + 1}: </span>{st.title}
                 </h3>
@@ -965,21 +999,24 @@ function Steps({ d, asH1 }: BlockProps) {
 function Values({ d, asH1 }: BlockProps) {
   const cards = (d.cards as any[]) || [];
   return (
-    <section data-tone="white" className={PAD}>
+    <section data-tone="soft" className={`bg-soft ${PAD}`}>
       <div className="container-site">
-        <div className={`${SPLIT} mb-12 lg:items-end`}>
+        <div className={`${SPLIT} mb-14 lg:items-end`}>
           <SectionHead eyebrow={d.eyebrow} heading={d.heading} highlight={d.highlight} asH1={asH1} className={LINKS} />
           {d.text && <MiniMarkdown text={d.text} className={`${RECHTS} ${LEAD}`} />}
         </div>
-        <div className="grid gap-5 md:grid-cols-3">
+        {/* De drie woorden groot, als de titels op het startscherm; het feit eronder als een label. */}
+        <div className="grid gap-y-12 md:grid-cols-3 md:divide-x md:divide-line">
           {cards.map((c, i) => (
-            <div key={i} className={`${KAART} flex flex-col p-7 md:p-8`} data-reveal style={{ "--ri": i } as React.CSSProperties}>
-              <h3 className="text-[24px]">{c.title}</h3>
-              {c.text && <p className="mt-3 text-[16.5px]">{c.text}</p>}
+            <div key={i} className="flex flex-col md:px-8 md:first:pl-0 md:last:pr-0 lg:px-10" data-reveal style={{ "--ri": i } as React.CSSProperties}>
+              <h3 className="text-[2.1rem] leading-none tracking-[-0.025em] lg:text-[2.5rem]">{c.title}</h3>
+              {c.text && <p className="mt-4 text-[16.5px]">{c.text}</p>}
               {c.value && (
-                <p className="mt-auto flex items-baseline gap-3 border-t border-line pt-5">
-                  <span className="shrink-0 font-heading text-[1.9rem] font-bold leading-none tracking-[-0.02em] text-primary">{c.value}</span>
-                  {c.valueLabel && <span className="text-[15px] font-medium text-primary">{c.valueLabel}</span>}
+                <p className="mt-auto pt-7">
+                  <span className="inline-flex items-baseline gap-2 rounded-full bg-white px-4 py-2">
+                    <span className="font-heading text-[18px] font-bold text-primary">{c.value}</span>
+                    {c.valueLabel && <span className="text-[14.5px] font-medium text-primary">{c.valueLabel}</span>}
+                  </span>
                 </p>
               )}
             </div>
@@ -1017,14 +1054,14 @@ function LatestPosts({ d, asH1, ctx }: BlockProps) {
         </div>
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {cards.map((p) => (
-            <article key={p.id} className={`${KAART} lift group relative flex flex-col overflow-hidden`} data-reveal>
-              <div className="aspect-[16/10] overflow-hidden bg-soft">
+            <article key={p.id} className="group relative flex flex-col" data-reveal>
+              <div className="aspect-[16/10] overflow-hidden rounded-2xl bg-soft">
                 {p.cover_image && (
                   <SiteImage src={p.cover_image} alt="" sizes="(min-width: 1024px) 380px, (min-width: 768px) 50vw, 100vw"
-                    widths={[480, 800]} className="h-full w-full object-cover" />
+                    widths={[480, 800]} className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-out-soft)] group-hover:scale-[1.04]" />
                 )}
               </div>
-              <div className="flex flex-1 flex-col p-6">
+              <div className="flex flex-1 flex-col pt-5">
                 {p.published_at && <p className="mb-2 text-[14px] text-muted">{fmtDatum(p.published_at)}</p>}
                 <h3 className="mb-4 text-[20px] leading-snug">
                   {/* De hele kaart is klikbaar via de ::after van deze link. */}

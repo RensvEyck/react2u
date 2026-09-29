@@ -2,8 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   hero: {
-    label: "Hero (kop + afbeelding)",
-    data: { eyebrow: "", heading: "Nieuwe kop", text: "Introtekst…", button: { label: "", href: "" }, image: "", imageAlt: "" },
+    label: "Hero (kop + foto van rand tot rand)",
+    // imagePosition: "left" of "right". focus: welk deel van de foto in beeld blijft, bv. "30% 40%".
+    data: { eyebrow: "", heading: "Nieuwe kop", text: "Introtekst…", button: { label: "", href: "" }, image: "", imageAlt: "", imagePosition: "right", focus: "" },
   },
   intro: {
     label: "Introtekst",
@@ -16,7 +17,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   imageText: {
     label: "Tekst + afbeelding",
-    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, image: "", imageAlt: "", imagePosition: "right" },
+    // imageFit "cover": een foto van rand tot rand naast de tekst. Leeg: een illustratie, heel in beeld.
+    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, image: "", imageAlt: "", imagePosition: "right", imageFit: "cover", focus: "" },
   },
   servicesGrid: {
     label: "Dienstenkaarten",
@@ -27,7 +29,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     // Het blok kent ook `routes` (contactroutes rechts, zie de homepage), maar
     // niet in dit sjabloon: de blokeditor voegt aan een lege lijst een losse
     // tekstregel toe in plaats van een route.
-    data: { eyebrow: "", heading: "Kop", text: "", buttons: [{ label: "Neem contact op", href: "/contact", style: "accent" }] },
+    // image: de foto links; leeg = de vaste contactfoto (iemand aan de telefoon).
+    data: { eyebrow: "", heading: "Kop", text: "", buttons: [{ label: "Neem contact op", href: "/contact", style: "accent" }], image: "", imageAlt: "" },
   },
   subSections: {
     label: "Subsecties (verwachtingen)",
@@ -63,7 +66,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     data: { images: [{ image: "", alt: "" }] },
   },
   heroStatement: {
-    label: "Hero met ronde foto",
+    label: "Paginakop voor een doelgroep (foto van rand tot rand)",
+    // doelgroep: werkgever of werknemer — dan schuift de foto van het startscherm hierin over.
     data: {
       eyebrow: "De persoonlijke arbodienst",
       heading: "Jouw mensen, onze aandacht",
@@ -71,7 +75,7 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
       text: "Introtekst…",
       button: { label: "Maak een afspraak", href: "/contact" },
       button2: { label: "Bekijk onze diensten", href: "/diensten", style: "outline" },
-      image: "", imageAlt: "", badge: "",
+      image: "", imageAlt: "", badge: "", imagePosition: "right", focus: "", doelgroep: "",
     },
   },
   audienceChoice: {
@@ -106,7 +110,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     data: {
       eyebrow: "Onze werkwijze", heading: "Kop", text: "", button: { label: "", href: "" },
       steps: [{ title: "Results", text: "Tekst", kleur: "blauw" }],
-      image: "", imageAlt: "", quote: "",
+      // imageRond: true knipt een rond beeld (het REACT-wiel) uit zijn grijze vierkant.
+      image: "", imageAlt: "", imageRond: false, quote: "",
     },
   },
   values: {

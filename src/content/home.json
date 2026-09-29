@@ -60,7 +60,8 @@
         "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
         "imageAlt": "Adviseur en klant in gesprek aan tafel",
         "imagePosition": "right",
-        "imageFit": "cover"
+        "imageFit": "cover",
+        "focus": "center 35%"
       }
     },
     {
