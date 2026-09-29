@@ -529,14 +529,18 @@ function SubSections({ d, asH1 }: BlockProps) {
   );
 }
 
-/** "Wat doet de werkgever? / Wat neemt React2u uit handen?" — twee kaarten, de tweede op indigo. */
+/**
+ * "Wat doet de werkgever? / Wat neemt React2u uit handen?" — twee kaarten, de
+ * tweede op indigo. Met `text` (bv. over de wettelijke plicht van de
+ * werkgever) en `button` wordt het een volwaardige sectie voor de homepage.
+ */
 function TwoColumnLists({ d, asH1 }: BlockProps) {
   const cols = (d.columns as any[]) || [];
   return (
     <section data-tone="white" className={PAD}>
       <div className="container-site">
-        <SectionHead heading={d.heading} asH1={asH1} align="center" className="mb-12 max-w-[760px]" />
-        <div className="grid gap-5 md:grid-cols-2">
+        <SectionHead eyebrow={d.eyebrow} heading={d.heading} text={d.text} asH1={asH1} align="center" className="mb-12 max-w-[760px]" />
+        <div className="relative grid gap-5 md:grid-cols-2">
           {cols.map((c, i) => {
             const dark = i % 2 === 1;
             return (
@@ -550,6 +554,58 @@ function TwoColumnLists({ d, asH1 }: BlockProps) {
                         <LuCheck className="text-[14px]" aria-hidden />
                       </span>
                       <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+        <Buttons list={[d.button && { ...d.button, style: d.button.style || "indigo" }]} className="mt-10 justify-center" />
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Twee ingangen: werkgever en werknemer. Wie de site bezoekt is meestal één
+ * van de twee, en een zieke werknemer moet het verzuimprotocol meteen vinden —
+ * niet pas na het menu. `items` is een lijst van { eyebrow, title, text, icon,
+ * links: [{ label, href }] }; het eerste item staat op indigo.
+ */
+function Audiences({ d, asH1 }: BlockProps) {
+  const items = ((d.items as any[]) || []).filter((it) => it?.title);
+  // Zonder eigen kop zijn de kaarttitels de koppen van deze sectie (h2); met
+  // kop zijn ze daaronder (h3). Anders springt de pagina van h1 naar h3.
+  const Titel = d.heading ? "h3" : "h2";
+  return (
+    <section data-tone="white" className="pb-16 md:pb-24">
+      <div className="container-site">
+        {d.heading && <SectionHead heading={d.heading} asH1={asH1} className="mb-10" />}
+        <div className="grid gap-5 md:grid-cols-2">
+          {items.map((it, i) => {
+            const dark = i === 0;
+            return (
+              <div key={i} data-reveal style={{ "--ri": i } as React.CSSProperties}
+                className={`relative flex flex-col overflow-hidden rounded-[30px] p-8 md:p-10 ${dark ? "on-dark bg-primary text-white/80" : "bg-soft"}`}>
+                <div className="flex items-center gap-4">
+                  <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-full text-[24px] ${dark ? "bg-white/10 text-white" : "bg-white text-primary"}`}>
+                    <Icon name={it.icon} />
+                  </span>
+                  <p className="eyebrow">{it.eyebrow}</p>
+                </div>
+                <Titel className="mt-6 text-[26px] leading-tight md:text-[28px]">{it.title}</Titel>
+                {it.text && <p className="mt-3 max-w-[480px] text-[17px]">{it.text}</p>}
+                <ul className={`mt-auto divide-y pt-7 ${dark ? "divide-white/15" : "divide-primary/10"}`}>
+                  {((it.links as any[]) || []).filter((l) => l?.label).map((l, j) => (
+                    <li key={j}>
+                      <Link href={l.href || "#"}
+                        className={`group flex items-center justify-between gap-4 py-3.5 font-semibold ${dark ? "text-white" : "text-primary"}`}>
+                        {l.label}
+                        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition-transform duration-300 group-hover:translate-x-1 ${dark ? "bg-white text-primary" : "bg-primary text-white"}`}>
+                          <Arrow />
+                        </span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -616,17 +672,24 @@ function ValueCards({ d, asH1 }: BlockProps) {
 
 /**
  * Afsluitende oproep: tekst links, rechts de stippenwolk uit het logo op
- * groot formaat — hetzelfde beeld als op de onderhoudspagina.
+ * groot formaat — hetzelfde beeld als op de onderhoudspagina. Met `routes`
+ * (lijst van { icon, label, sub, href }) staan rechts de manieren om contact
+ * op te nemen, zodat iedereen zijn eigen weg kiest: bellen, mailen, een
+ * bericht sturen, of als werknemer meteen naar het verzuimprotocol.
  */
 function CtaBanner({ d, asH1 }: BlockProps) {
   const buttons = (d.buttons as Btn[]) || [];
+  const routes = ((d.routes as any[]) || []).filter((r) => r?.label && r?.href);
   return (
     <section data-tone="white" className="py-12 md:py-16">
       <div className="container-site">
-        <div className="on-dark relative isolate grid items-center gap-10 overflow-hidden rounded-[36px] bg-primary px-7 py-14 text-white/80 sm:px-12 md:py-16 lg:grid-cols-12 lg:px-16" data-reveal>
+        {/* grid-cols-1 (= minmax(0, 1fr)): zonder die ondergrens kan lange
+            tekst in de routes de kolom breder duwen dan het scherm. */}
+        <div className="on-dark relative isolate grid grid-cols-1 items-center gap-10 overflow-hidden rounded-[36px] bg-primary px-6 py-14 text-white/80 sm:px-12 md:py-16 lg:grid-cols-12 lg:px-16" data-reveal>
           {/* Achter de tekst: -z-10 binnen de isolate-laag van dit vlak. */}
           <div aria-hidden className="dot-texture absolute inset-0 -z-10" />
-          <div className="lg:col-span-8">
+          <div className={routes.length ? "lg:col-span-6" : "lg:col-span-8"}>
+            {routes.length > 0 && <DotCloud animate className="mb-8 w-[88px]" />}
             {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
             {d.heading && (
               <PageHeading asH1={asH1} className="max-w-[720px] text-[2.1rem] font-extrabold leading-[1.06] tracking-[-0.025em] md:text-[2.9rem]">
@@ -636,9 +699,34 @@ function CtaBanner({ d, asH1 }: BlockProps) {
             {d.text && <MiniMarkdown text={d.text} className="mt-5 max-w-[620px] text-[18.5px]" />}
             <Buttons list={buttons} className="mt-9" />
           </div>
-          <div className="hidden lg:col-span-4 lg:block">
-            <DotCloud animate className="ml-auto w-full max-w-[260px]" />
-          </div>
+          {routes.length > 0 ? (
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-6 lg:grid-cols-1">
+              {routes.map((r, i) => {
+                const inner = (
+                  <>
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-[19px] text-white">
+                      <Icon name={r.icon} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-white">{r.label}</span>
+                      {r.sub && <span className="block text-[15px] leading-snug text-white/70">{r.sub}</span>}
+                    </span>
+                    <Arrow className="shrink-0 text-white/70 transition-transform duration-300 group-hover:translate-x-1" />
+                  </>
+                );
+                const cls = "group flex items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.06] px-4 py-3.5 transition-colors hover:border-white/35 hover:bg-white/10";
+                return (
+                  <li key={i}>
+                    {isExternal(r.href) ? <a href={r.href} className={cls}>{inner}</a> : <Link href={r.href} className={cls}>{inner}</Link>}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="hidden lg:col-span-4 lg:block">
+              <DotCloud animate className="ml-auto w-full max-w-[260px]" />
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -658,7 +746,7 @@ function FaqSide({ heading, asH1 }: { heading?: string; asH1?: boolean }) {
 
 function FaqBlock({ d, asH1 }: BlockProps) {
   return (
-    <section data-tone="white" className={PAD}>
+    <section id="veelgestelde-vragen" data-tone="white" className={PAD}>
       <div className={`container-site ${SPLIT}`}>
         <FaqSide heading={d.heading} asH1={asH1} />
         <div className={RECHTS} data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
@@ -958,6 +1046,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   imagesBlock: ImagesBlock,
   contactDetails: ContactDetails,
   heroStatement: HeroStatement,
+  audiences: Audiences,
   pillars: Pillars,
   method: Method,
   values: Values,
@@ -978,7 +1067,7 @@ export function RenderBlockBody({ type, data }: { type: string; data: unknown })
 const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
-  "heroStatement", "pillars", "method", "values", "valueCards",
+  "heroStatement", "audiences", "pillars", "method", "values", "valueCards",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,

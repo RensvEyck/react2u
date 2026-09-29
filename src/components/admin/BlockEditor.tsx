@@ -20,6 +20,7 @@ const FIELD_LABELS: Record<string, string> = {
   highlight: "Woord in accentkleur", badge: "Keurmerkregel", logosLabel: "Tekst bij de logo's",
   layout: "Opmaak (leeg of center)", kleur: "Kleur (blauw, teal, rood, oranje, roze, indigo)",
   steps: "Stappen", valueLabel: "Toelichting bij het cijfer",
+  links: "Links", routes: "Contactroutes", sub: "Tweede regel",
   quote: "Citaat", quoteName: "Naam bij citaat", quoteRole: "Functie bij citaat",
   value: "Cijfer of kernwoord", count: "Aantal artikelen",
 };

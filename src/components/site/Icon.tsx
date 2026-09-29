@@ -1,7 +1,7 @@
 import {
   LuRoute, LuMap, LuStethoscope, LuMessagesSquare, LuPencilLine, LuScale, LuHeart, LuUserRound,
   LuCheck, LuSprout, LuHandHelping, LuLightbulb, LuShieldCheck, LuGraduationCap, LuClipboardCheck,
-  LuUsers, LuCompass, LuAward,
+  LuUsers, LuCompass, LuAward, LuBriefcaseBusiness, LuPhone, LuMail, LuMessageSquareText, LuFileText,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -26,6 +26,11 @@ const ICONS: Record<string, IconType> = {
   users: LuUsers,
   compass: LuCompass,
   award: LuAward,
+  werkgever: LuBriefcaseBusiness,
+  phone: LuPhone,
+  mail: LuMail,
+  message: LuMessageSquareText,
+  document: LuFileText,
 };
 
 export default function Icon({ name, className }: { name?: string; className?: string }) {

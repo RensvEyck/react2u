@@ -171,7 +171,11 @@ export default function Header({ contact }: { contact: ContactInfo }) {
               <LuMail className="text-[13px]" aria-hidden /> {contact.email}
             </a>
           </div>
-          <p className="hidden md:block">Jouw mensen, onze aandacht!</p>
+          {/* Een zieke werknemer zoekt iets anders dan een werkgever: die route
+              staat daarom altijd in beeld, niet pas in het menu. */}
+          <Link href="/verzuimprotocol" className="flex items-center gap-1.5 hover:text-white">
+            <span className="hidden sm:inline">Ben je werknemer?</span> Het verzuimprotocol <Arrow />
+          </Link>
         </div>
       </aside>
 

@@ -1,5 +1,5 @@
 {
-  "_uitleg": "Nieuwe homepage, met acture.nl als inspiratie en React2u's eigen merk als basis. Voorbeeld: /concept (en / op staging). Naar de database: node scripts/concept-naar-sql.mjs home — zie CONTEXT.md, *Concepten*.",
+  "_uitleg": "Nieuwe homepage, met acture.nl en arboned.nl als inspiratie en React2u's eigen merk als basis. Voorbeeld: /concept (en / op staging). Naar de database: node scripts/concept-naar-sql.mjs home — zie CONTEXT.md, *Concepten*.",
   "slug": "home",
   "blocks": [
     {
@@ -25,16 +25,43 @@
       }
     },
     {
-      "type": "intro",
-      "label": "Daar zorgen wij voor",
+      "type": "audiences",
+      "label": "Werkgever en werknemer",
       "data": {
-        "eyebrow": "Meer grip op inzetbaarheid",
-        "heading": "Daar zorgen wij voor",
-        "text": "Ziekteverzuim vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. React2u ondersteunt werkgevers bij verzuimbegeleiding en re-integratie, zowel binnen de Wet verbetering poortwachter (WVP) als bij eigenrisicodragerschap (ERD/ZW).\n\nWij adviseren, begeleiden en faciliteren medewerkers en werkgevers om samen te werken aan een duurzame terugkeer naar het werk. Zo houd je grip op inzetbaarheid en voorkom je langdurig verzuim.",
-        "button": {
-          "label": "Over React2u",
-          "href": "/over-react2u"
-        }
+        "items": [
+          {
+            "eyebrow": "Voor werkgevers",
+            "title": "Grip op verzuim, van preventie tot re-integratie",
+            "text": "We ondersteunen je bij ziekteverzuim, verzuimbegeleiding en re-integratie, binnen de Wet verbetering poortwachter én bij eigenrisicodragerschap.",
+            "icon": "werkgever",
+            "links": [
+              {
+                "label": "Bekijk onze diensten",
+                "href": "/diensten"
+              },
+              {
+                "label": "Maak een afspraak",
+                "href": "/contact"
+              }
+            ]
+          },
+          {
+            "eyebrow": "Voor werknemers",
+            "title": "React2u is er ook voor jou",
+            "text": "Bij React2u weten we waar je als werknemer mee te maken krijgt. Samen met jou doen we er alles aan om je zo snel mogelijk weer gezond en onbezorgd op de werkvloer te krijgen.",
+            "icon": "user",
+            "links": [
+              {
+                "label": "Het verzuimprotocol",
+                "href": "/verzuimprotocol"
+              },
+              {
+                "label": "Wat React2u voor jou doet",
+                "href": "/werknemers"
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -44,6 +71,39 @@
         "eyebrow": "Onze diensten",
         "heading": "Waar kunnen we je mee helpen?",
         "text": "Van het voorkomen van verzuim tot een duurzame terugkeer naar werk. Kies wat bij jouw situatie past — of bel ons, dan denken we met je mee."
+      }
+    },
+    {
+      "type": "twoColumnLists",
+      "label": "Daar zorgen wij voor",
+      "data": {
+        "eyebrow": "Meer grip op inzetbaarheid",
+        "heading": "Daar zorgen wij voor",
+        "text": "Als werkgever ben je wettelijk verplicht om samen met je zieke medewerker actief te werken aan re-integratie. Dat vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. Wat doe jij, en wat nemen wij uit handen?",
+        "button": {
+          "label": "Meer over verzuimbegeleiding WVP",
+          "href": "/verzuimbegeleiding-wvp"
+        },
+        "columns": [
+          {
+            "title": "Wat doet de werkgever?",
+            "items": [
+              "In gesprek blijven met de werknemer",
+              "Samen een plan van aanpak opstellen",
+              "Mogelijkheden voor passend werk onderzoeken",
+              "Afspraken naleven en vastleggen"
+            ]
+          },
+          {
+            "title": "Wat neemt React2u uit handen?",
+            "items": [
+              "Professionele begeleiding van het WVP-traject",
+              "Holistische analyse van de situatie",
+              "Advies over passend werk en interventies",
+              "Correcte dossieropbouw en wettelijke borging"
+            ]
+          }
+        ]
       }
     },
     {
@@ -201,11 +261,32 @@
             "label": "Maak een afspraak",
             "href": "/contact",
             "style": "accent"
+          }
+        ],
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bel ons",
+            "sub": "085 - 620 58 00",
+            "href": "tel:0856205800"
           },
           {
-            "label": "Bel 085 - 620 58 00",
-            "href": "tel:0856205800",
-            "style": "outline"
+            "icon": "mail",
+            "label": "Mail ons",
+            "sub": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "message",
+            "label": "Stuur een bericht",
+            "sub": "We nemen zo snel mogelijk contact op",
+            "href": "/contact"
+          },
+          {
+            "icon": "document",
+            "label": "Ben je werknemer?",
+            "sub": "Bekijk het verzuimprotocol",
+            "href": "/verzuimprotocol"
           }
         ]
       }

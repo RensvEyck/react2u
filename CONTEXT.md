@@ -182,10 +182,12 @@ Sophos-filtering ervoor en `-all` in de SPF.
 
 ## Vormgeving
 
-Acture.nl was de inspiratiebron, geen voorbeeld om na te maken. Wat we ervan
-hebben overgenomen is de aanpak: rust en ruimte, diensten overzichtelijk
+Acture.nl en arboned.nl waren de inspiratiebronnen, geen voorbeelden om na te
+maken. Van Acture komt de aanpak: rust en ruimte, diensten overzichtelijk
 gegroepeerd, één duidelijke vervolgstap, sociaal bewijs en veelgestelde vragen.
-Vorm, woorden en concepten komen uit React2u zelf:
+Van ArboNed: bezoekers meteen hun eigen route geven (werkgever of werknemer),
+de wettelijke plicht van de werkgever uitleggen, en contact via meerdere wegen
+naast elkaar. Vorm, woorden en concepten komen uit React2u zelf:
 
 - **Vormtaal: stippen en cirkels**, uit het logo en het REACT-wiel. Foto's
   staan rond (`RondeFoto` in `BlockRenderer`), met de stippenwolk ernaast;
@@ -194,10 +196,17 @@ Vorm, woorden en concepten komen uit React2u zelf:
 - **Eigen woorden**: "Jouw mensen, onze aandacht", "Daar zorgen wij voor",
   "Dit is React2u!", "Voor iedereen gezond, menselijk en duidelijk", "Er is
   altijd een oplossing", "Maak een afspraak". Neem geen formuleringen van
-  Acture over ("in één oogopslag", "adviesgesprek", "gingen je voor").
+  Acture of ArboNed over ("in één oogopslag", "adviesgesprek", "gingen je
+  voor", "voor lekker werkend Nederland", "wij helpen je graag verder").
 - **Eigen concepten**: diensten vanuit de situatie van de werkgever
   (`situatie` in `nav.ts`), het REACT-model als werkwijze (blok `method`) en
   de drie waarden met de feiten erbij (blok `values`).
+- **Werkgever en werknemer** als twee ingangen (blok `audiences`), zoals de
+  oude footer al twee kolommen had. Een zieke werknemer vindt het
+  verzuimprotocol direct: in de topbalk, in de ingang en in de contactroutes.
+- **"Daar zorgen wij voor"** gebruikt React2u's eigen tweedeling van de
+  dienstpagina's: "Wat doet de werkgever? / Wat neemt React2u uit handen?"
+  (`twoColumnLists` met `text` en `button`).
 - **Header** met de topbalk van de oude site; **footer** op indigo met "Er is
   altijd een oplossing."
 
@@ -213,13 +222,18 @@ dan `text-primary/70` of `text-body`.
 | Bloktype | Wat |
 |---|---|
 | `heroStatement` | De belofte (met `highlight` in de accentkleur), twee knoppen, een keurmerkregel (`badge`) en de ronde foto met de stippenwolk. |
+| `audiences` | Twee ingangen, werkgever (op indigo) en werknemer, elk met een paar links. Zonder eigen kop zijn de kaarttitels h2. |
 | `pillars` | "Waar kunnen we je mee helpen?": drie stappen (voorkomen, begeleiden, versterken) met per dienst de situatie. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
 | `method` | De werkwijze: het REACT-model. `steps` met `title`, `text` en `kleur`; de letter is de eerste letter van de titel. Met het wiel en een citaat. |
 | `values` | De drie waarden (`cards` met `title`, `text`, `value`, `valueLabel`, `kleur`). Een feit onderbouwt elke waarde. |
 | `latestPosts` | De nieuwste blogartikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
 
-Bestaande blokken kregen optionele varianten: `intro` met `layout: "split"`
-en `valueCards` met een `heading`. De blokeditor toont alleen velden die al in
+Bestaande blokken kregen optionele varianten: `intro` met `layout: "center"`,
+`valueCards` met een `heading`, `twoColumnLists` met `eyebrow`, `text` en
+`button`, en `ctaBanner` met `routes` (contactroutes rechts: `icon`, `label`,
+`sub`, `href`). `routes` staat bewust niet in het sjabloon: de blokeditor voegt
+aan een lege lijst een tekstregel toe in plaats van een route — begin een
+nieuwe lijst dus door het blok van de homepage als voorbeeld te nemen. De blokeditor toont alleen velden die al in
 de data staan — wil je een bestaand blok omzetten, voeg het opnieuw toe.
 
 **Ritme en raster.** Elke sectie zet `data-tone` (`white`, `soft`, `dark`,

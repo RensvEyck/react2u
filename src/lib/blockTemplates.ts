@@ -24,6 +24,9 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   ctaBanner: {
     label: "Call-to-action banner",
+    // Het blok kent ook `routes` (contactroutes rechts, zie de homepage), maar
+    // niet in dit sjabloon: de blokeditor voegt aan een lege lijst een losse
+    // tekstregel toe in plaats van een route.
     data: { eyebrow: "", heading: "Kop", text: "", buttons: [{ label: "Neem contact op", href: "/contact", style: "accent" }] },
   },
   subSections: {
@@ -32,7 +35,7 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   twoColumnLists: {
     label: "Twee kolommen met lijsten",
-    data: { heading: "", columns: [{ title: "Kolom 1", items: ["Item"] }, { title: "Kolom 2", items: ["Item"] }] },
+    data: { eyebrow: "", heading: "", text: "", button: { label: "", href: "" }, columns: [{ title: "Kolom 1", items: ["Item"] }, { title: "Kolom 2", items: ["Item"] }] },
   },
   valueCards: {
     label: "Waardenkaarten",
@@ -69,6 +72,17 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
       button: { label: "Maak een afspraak", href: "/contact" },
       button2: { label: "Bekijk onze diensten", href: "/diensten", style: "outline" },
       image: "", imageAlt: "", badge: "",
+    },
+  },
+  audiences: {
+    label: "Werkgever en werknemer (twee ingangen)",
+    // icon: een naam uit src/components/site/Icon.tsx, bv. werkgever of user.
+    data: {
+      heading: "",
+      items: [
+        { eyebrow: "Voor werkgevers", title: "Titel", text: "Tekst", icon: "werkgever", links: [{ label: "Link", href: "/" }] },
+        { eyebrow: "Voor werknemers", title: "Titel", text: "Tekst", icon: "user", links: [{ label: "Link", href: "/" }] },
+      ],
     },
   },
   pillars: {
