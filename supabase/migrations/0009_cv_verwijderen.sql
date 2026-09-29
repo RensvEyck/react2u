@@ -1,18 +1,20 @@
--- Cv's echt kunnen verwijderen.
+-- Verwijderrecht op de bucket `cvs`, vastgelegd in de repo.
 --
--- De bucket `cvs` had een policy om te uploaden (iedereen) en om te lezen
--- (recht `postvak`), maar geen om te verwijderen. Supabase Storage meldt in dat
--- geval géén fout: `remove()` geeft een lege lijst terug en het bestand blijft
--- staan. De knop "Sollicitatie verwijderen" haalde daarna de rij weg — en dan
--- lijkt het cv gewist terwijl het nog in de opslag staat, zonder dat er nog
--- iets naar verwijst. Voor de AVG is dat erger dan niets doen.
+-- In de migraties stond voor `cvs` alleen uploaden (iedereen) en lezen (recht
+-- `postvak`). Volgens commit 2a27005 (augustus 2026) is de verwijderpolicy
+-- toen rechtstreeks in de database gezet, zonder migratiebestand. Deze
+-- migratie legt hem vast, zodat een nieuwe omgeving hem ook krijgt. Bestaat
+-- hij live al onder een andere naam, dan kan een tweede policy geen kwaad:
+-- policies voor dezelfde actie tellen als "of".
 --
--- De code controleert nu ook zelf of alle bestanden echt weg zijn voordat hij
--- de rij verwijdert (zie deleteApplication en bulkInbox), zodat dit nooit meer
--- stil mis kan gaan.
+-- Waarom dit ertoe doet: zonder verwijderpolicy meldt Supabase Storage géén
+-- fout. `remove()` geeft een lege lijst terug en het bestand blijft staan —
+-- terwijl de sollicitatie daarna wél verdwijnt. De code controleert dat nu
+-- zelf (removeCvs in src/app/admin/actions.ts), zodat het nooit stil mis kan
+-- gaan, ongeacht wat er in de database staat.
 --
--- Controleer na het uitvoeren of er al cv's zijn blijven hangen: bestanden in
--- `cvs` waar geen sollicitatie meer naar verwijst.
+-- Controle of er toch cv's zijn blijven hangen (bestanden waar geen
+-- sollicitatie meer naar verwijst):
 --
 --   select o.name, o.created_at
 --   from storage.objects o

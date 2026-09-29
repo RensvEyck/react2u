@@ -145,9 +145,17 @@ dan werkt `hidden sm:inline-flex` er gewoon op.
 DELETE-policy op de bucket geeft `remove()` een lege lijst terug en `error:
 null` — het bestand blijft staan. Controleer daarom altijd of de teruggegeven
 lijst de bestanden bevat (zie `removeCvs()` in
-[`src/app/admin/actions.ts`](src/app/admin/actions.ts)). De bucket `cvs` had tot
-migratie 0009 geen verwijderpolicy; sollicitaties verwijderen liet het cv dus
-stil achter.
+[`src/app/admin/actions.ts`](src/app/admin/actions.ts)).
+
+**De live database loopt voor op `supabase/migrations/`.** Commit 2a27005
+(augustus 2026) paste wijzigingen rechtstreeks in de database toe, zonder
+migratiebestand: triggers die velden van anonieme inzendingen vastzetten,
+lengtegrenzen op vrije tekstvelden, gesplitste policies voor `site_settings`
+en `roles`, bucketlimieten, de verwijderpolicy op `cvs` en het opruimen van
+weesfuncties. Ook `opruimen_verlopen_gegevens()` staat nergens in de repo. Een
+nieuwe omgeving opbouwen uit alleen de migraties geeft dus een ándere
+database. Leg zo'n wijziging voortaan vast als migratie, en haal het verschil
+een keer binnen met `supabase db dump`.
 
 **Supabase geeft per query hooguit 1000 rijen terug**, ook met `.limit(20000)`,
 en zonder foutmelding. Tel je iets over veel rijen (bezoek), blader dan in
@@ -415,11 +423,11 @@ een link én bij navigeren via het commandopalet
 - **Migraties 0007, 0008 en 0009 moeten in Supabase worden uitgevoerd**, vóór
   of met de deploy van doorverwijzingen, versies en de cv-reparatie. Zonder
   draait alles door, maar tonen die schermen een melding in plaats van inhoud,
-  wordt er geen geschiedenis bewaard, en weigert het Postvak een sollicitatie
-  te verwijderen zolang het cv niet echt weg kan.
-- **Achtergebleven cv's opzoeken.** Vóór migratie 0009 kon het verwijderen van
-  een sollicitatie het cv stil laten staan. De query om die bestanden te vinden
-  staat bovenaan `0009_cv_verwijderen.sql`.
+  en wordt er geen geschiedenis bewaard. 0009 legt de cv-verwijderpolicy vast
+  die live waarschijnlijk al bestaat.
+- **Schema binnenhalen.** De live database heeft wijzigingen die niet in de
+  migraties staan (zie *Valkuilen*). Eén keer `supabase db dump` naar de repo
+  maakt het weer één bron.
 
 ## SEO
 
