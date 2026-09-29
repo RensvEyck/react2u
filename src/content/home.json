@@ -8,19 +8,18 @@
       "label": "Startscherm",
       "data": {
         "eyebrow": "Welkom bij React2u",
-        "heading": "Voor iedereen gezond, menselijk en duidelijk",
+        "heading": "De persoonlijke arbodienst voor werkgevers én werknemers",
         "highlight": "",
-        "text": "React2u is de persoonlijke arbodienst voor werkgevers én werknemers. Waar kunnen we je mee helpen?",
+        "text": "Waar kunnen we je mee helpen? Kies je route, dan wijzen we je direct de weg.",
         "choices": [
           {
-            "label": "Ik ben werkgever",
-            "title": "Grip op verzuim, van preventie tot re-integratie",
-            "text": "We ondersteunen je bij ziekteverzuim, verzuimbegeleiding en re-integratie, binnen de Wet verbetering poortwachter én bij eigenrisicodragerschap.",
-            "icon": "werkgever",
+            "doelgroep": "werkgever",
+            "tone": "indigo",
+            "label": "Ik ben",
+            "title": "werkgever",
+            "text": "Grip op verzuim, van preventie tot re-integratie.",
             "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
-            "imageAlt": "Adviseur en klant in gesprek aan tafel met koffie",
             "href": "/werkgevers",
-            "button": "Verder als werkgever",
             "links": [
               {
                 "label": "Een medewerker meldt zich ziek",
@@ -29,22 +28,17 @@
               {
                 "label": "Onze diensten",
                 "href": "/diensten"
-              },
-              {
-                "label": "Maak een afspraak",
-                "href": "/contact"
               }
             ]
           },
           {
-            "label": "Ik ben werknemer",
-            "title": "Ziek? React2u is er ook voor jou",
-            "text": "Samen met jou en je werkgever doen we er alles aan om je zo snel mogelijk weer gezond en onbezorgd op de werkvloer te krijgen.",
-            "icon": "user",
+            "doelgroep": "werknemer",
+            "tone": "warm",
+            "label": "Ik ben",
+            "title": "werknemer",
+            "text": "Ziek of vastgelopen? React2u is er ook voor jou.",
             "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/05/partnering-up-project-shot-two-coworkers-meeting-office.jpg",
-            "imageAlt": "Twee collega's in overleg op kantoor",
             "href": "/werknemers",
-            "button": "Verder als werknemer",
             "links": [
               {
                 "label": "Ziek, wat nu?",
@@ -53,15 +47,27 @@
               {
                 "label": "Het verzuimprotocol",
                 "href": "/verzuimprotocol"
-              },
-              {
-                "label": "Veelgestelde vragen",
-                "href": "/werknemers#veelgestelde-vragen"
               }
             ]
           }
         ],
-        "note": "Liever meteen iemand spreken? Bel **085 - 620 58 00** of mail **info@react2u.nl**."
+        "trust": [
+          {
+            "icon": "award",
+            "text": "Gecertificeerde arbodienst · ISO 9001",
+            "href": ""
+          },
+          {
+            "icon": "phone",
+            "text": "Liever bellen? 085 - 620 58 00",
+            "href": "tel:0856205800"
+          },
+          {
+            "icon": "mail",
+            "text": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          }
+        ]
       }
     },
     {

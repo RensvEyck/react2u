@@ -264,14 +264,12 @@ p {
   padding-top: 0;
 }
 
-/* Lange samengestelde woorden ("Verzuimbegeleiding") passen op een telefoon
-   niet in een grote kop; daar mag de browser afbreken. Op grotere schermen
-   niet — daar oogt een afgebroken kop slordig. */
+/* Een woord dat niet in de regel past, mag breken in plaats van uit beeld te
+   lopen. Echt afbreken met een streepje (hyphens-auto) staat alleen op koppen
+   waar lange samenstellingen voorkomen, zoals de dienstpagina's
+   ("Verzuimbegeleiding"): op andere koppen gaf dat "werk-gevers". */
 h1, h2, h3 {
   overflow-wrap: break-word;
-}
-@media (max-width: 639px) {
-  h1, h2 { hyphens: auto; }
 }
 
 /* Onthullen bij scrollen. De klasse js-reveal zet Reveal.tsx pas nadat alles
@@ -286,6 +284,23 @@ h1, h2, h3 {
     opacity 0.8s var(--ease-out-soft),
     transform 0.8s var(--ease-out-soft);
   transition-delay: calc(var(--ri, 0) * 80ms);
+}
+
+/* Binnenkomst van het startscherm. Alleen beweging, geen doorzichtigheid: zo
+   staat de inhoud meteen in beeld (ook voor de LCP-meting van Google) en
+   schuift hij alleen het laatste stukje op zijn plek. */
+@keyframes rise-in {
+  from { transform: translate3d(0, 18px, 0) scale(0.985); }
+}
+.site-root .rise-in {
+  animation: rise-in 0.75s var(--ease-out-soft) both;
+  animation-delay: calc(var(--ri, 0) * 90ms);
+}
+
+/* De link van een keuzevlak: de focusring staat om het hele vlak
+   (has-[.keuze-link:focus-visible] in BlockRenderer), niet om de tekst. */
+.keuze-link:focus-visible {
+  outline: none;
 }
 
 /* Stippenwolk uit het logo: stip voor stip erin, daarna licht zwevend. */
@@ -330,7 +345,8 @@ h1, h2, h3 {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .dots-animate .dot,
-  .menu-panel { animation: none; }
+  .menu-panel,
+  .site-root .rise-in { animation: none; }
   .js-reveal .site-root [data-reveal]:not(.is-in) { opacity: 1; transform: none; }
   .js-reveal .site-root [data-reveal],
   .btn, .btn svg, .link-arrow svg, .lift, .fold { transition: none; }

@@ -76,13 +76,14 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   audienceChoice: {
     label: "Startscherm: kies werkgever of werknemer",
+    // tone: "indigo" of "warm". doelgroep: werkgever of werknemer (voor "Je vorige keuze").
     data: {
       eyebrow: "Welkom bij React2u", heading: "Kop", highlight: "", text: "",
       choices: [
-        { label: "Ik ben werkgever", title: "Titel", text: "Tekst", icon: "werkgever", image: "", imageAlt: "", href: "/werkgevers", button: "Verder als werkgever", links: [{ label: "Link", href: "/" }] },
-        { label: "Ik ben werknemer", title: "Titel", text: "Tekst", icon: "user", image: "", imageAlt: "", href: "/werknemers", button: "Verder als werknemer", links: [{ label: "Link", href: "/" }] },
+        { doelgroep: "werkgever", tone: "indigo", label: "Ik ben", title: "werkgever", text: "Belofte", image: "", href: "/werkgevers", links: [{ label: "Link", href: "/" }] },
+        { doelgroep: "werknemer", tone: "warm", label: "Ik ben", title: "werknemer", text: "Belofte", image: "", href: "/werknemers", links: [{ label: "Link", href: "/" }] },
       ],
-      note: "",
+      trust: [{ icon: "award", text: "Tekst", href: "" }],
     },
   },
   steps: {

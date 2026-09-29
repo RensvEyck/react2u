@@ -10,6 +10,7 @@ import { jsonLd } from "@/lib/jsonld";
 import SiteImage from "@/components/site/SiteImage";
 import DotCloud, { Arrow } from "@/components/site/DotCloud";
 import Breadcrumbs from "@/components/site/Breadcrumbs";
+import VorigeKeuze from "@/components/site/VorigeKeuze";
 import { PIJLERS, dienstVoor } from "@/lib/nav";
 import { kleurVars, type Kleur } from "@/lib/brand";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
@@ -283,7 +284,7 @@ function Hero({ d, asH1, ctx }: BlockProps) {
           {ctx?.crumbs && <Breadcrumbs crumbs={ctx.crumbs} className="mb-8 text-primary" />}
           {d.eyebrow && <p className="eyebrow mb-5" data-reveal>{d.eyebrow}</p>}
           <PageHeading asH1={asH1}
-            className="whitespace-pre-line text-[2rem] font-extrabold leading-[1.06] tracking-[-0.028em] sm:text-[2.9rem] lg:text-[3.4rem]">
+            className="whitespace-pre-line text-[2rem] font-extrabold leading-[1.06] tracking-[-0.028em] max-sm:hyphens-auto sm:text-[2.9rem] lg:text-[3.4rem]">
             {d.heading}
           </PageHeading>
           {d.text && (
@@ -568,76 +569,163 @@ function TwoColumnLists({ d, asH1 }: BlockProps) {
 }
 
 /**
- * Het startscherm: je kiest eerst of je werkgever of werknemer bent. Die twee
- * zoeken iets heel anders — diensten en een partner, of: ik ben ziek, wat nu?
- * `choices` is een lijst van { label, title, text, icon, image, imageAlt,
- * href, button, links: [{ label, href }] }. De eerste keuze staat op indigo.
+ * Het startscherm: elke bezoeker kiest eerst of hij werkgever of werknemer is.
+ * Die twee zoeken iets heel anders — diensten en een partner, of: ik ben ziek,
+ * wat nu? De keuze zelf is daarom het grootste op de pagina ("Ik ben /
+ * werkgever"), en beide vlakken passen samen in het eerste scherm.
+ *
+ * `choices` (twee) met { doelgroep, label, title, text, image, href,
+ * links: [{ label, href }], tone }: `tone` is "indigo" (zakelijk) of
+ * "warm" (persoonlijk); zonder tone is de eerste indigo en de tweede warm.
+ * `trust` is een regel vertrouwen eronder: [{ icon, text, href }].
  */
 function AudienceChoice({ d, asH1 }: BlockProps) {
-  const choices = ((d.choices as any[]) || []).filter((c) => c?.title && c?.href);
+  const choices = ((d.choices as any[]) || []).filter((c) => c?.title && c?.href).slice(0, 2);
+  const trust = ((d.trust as any[]) || []).filter((t) => t?.text);
   return (
-    <section data-tone="hero" className="relative isolate overflow-hidden bg-soft">
-      <div aria-hidden className="dot-texture-light absolute inset-0 -z-10" />
-      <div className="container-site pb-16 pt-12 md:pb-24 md:pt-16">
-        <div className="mx-auto max-w-[820px] text-center">
-          <DotCloud animate className="mx-auto mb-8 w-[92px]" />
-          {d.eyebrow && <p className="eyebrow mb-5 justify-center">{d.eyebrow}</p>}
-          <PageHeading asH1={asH1}
-            className="text-[2.4rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[3.2rem] lg:text-[3.8rem]">
-            <Highlighted text={d.heading || ""} highlight={d.highlight} />
-          </PageHeading>
-          {d.text && <MiniMarkdown text={d.text} className="mx-auto mt-6 max-w-[620px] text-[19px] md:text-[20px]" />}
+    <section data-tone="hero" className="relative">
+      <div className="container-site pb-14 pt-6 md:pb-20 md:pt-10">
+        <div className="grid gap-2 sm:gap-4 lg:grid-cols-12 lg:items-end lg:gap-x-8">
+          <div className="lg:col-span-8">
+            {d.eyebrow && (
+              <p className="eyebrow mb-3 sm:mb-4">
+                <span className="h-2 w-2 rounded-full bg-secondary" aria-hidden />
+                {d.eyebrow}
+              </p>
+            )}
+            <PageHeading asH1={asH1}
+              className="max-w-[780px] text-[1.75rem] font-extrabold leading-[1.1] tracking-[-0.026em] sm:text-[2.5rem] sm:leading-[1.06] xl:text-[3.05rem]">
+              <Highlighted text={d.heading || ""} highlight={d.highlight} />
+            </PageHeading>
+          </div>
+          {d.text && <MiniMarkdown text={d.text} className="text-[16px] sm:text-[17.5px] lg:col-span-4 lg:pb-1.5 xl:text-[18.5px]" />}
         </div>
 
-        <div className="mt-12 grid gap-5 md:mt-14 lg:grid-cols-2">
-          {choices.map((c, i) => {
-            const dark = i === 0;
-            return (
-              <div key={i} data-reveal style={{ "--ri": i } as React.CSSProperties}
-                className={`relative flex flex-col rounded-[32px] p-7 sm:p-9 lg:p-10 ${
-                  dark ? "on-dark bg-primary text-white/80" : "border border-black/[0.06] bg-white shadow-[0_24px_48px_-36px_rgba(34,32,90,0.45)]"
-                }`}>
-                <div className="flex items-start justify-between gap-6">
-                  <div>
-                    <p className="eyebrow mb-3">
-                      <Icon name={c.icon} className="text-[17px]" />
-                      {c.label}
-                    </p>
-                    <h2 className="text-[2rem] font-extrabold leading-[1.08] tracking-[-0.02em] md:text-[2.4rem]">
-                      <Link href={c.href} className="hover:underline hover:decoration-2 hover:underline-offset-4">{c.title}</Link>
-                    </h2>
-                  </div>
-                  {c.image && (
-                    <div className={`hidden h-[104px] w-[104px] shrink-0 overflow-hidden rounded-full sm:block ${dark ? "ring-4 ring-white/15" : "ring-4 ring-soft"}`}>
-                      <SiteImage src={c.image} alt={c.imageAlt || ""} sizes="104px" widths={[240]} className="h-full w-full object-cover" />
-                    </div>
+        <div className="mt-6 grid gap-3 sm:mt-8 sm:gap-4 md:mt-10 lg:grid-cols-2 lg:gap-5">
+          {choices.map((c, i) => <Keuze key={i} c={c} i={i} />)}
+        </div>
+
+        {trust.length > 0 && (
+          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[15px] font-medium text-primary md:mt-10">
+            {trust.map((t, i) => {
+              const inner = (
+                <>
+                  <Icon name={t.icon} className="shrink-0 text-[17px] text-secondary-ink" />
+                  {t.text}
+                </>
+              );
+              return (
+                <li key={i}>
+                  {t.href ? (
+                    isExternal(t.href)
+                      ? <a href={t.href} className="inline-flex items-center gap-2 hover:text-accent">{inner}</a>
+                      : <Link href={t.href} className="inline-flex items-center gap-2 hover:text-accent">{inner}</Link>
+                  ) : (
+                    <span className="inline-flex items-center gap-2">{inner}</span>
                   )}
-                </div>
-                {c.text && <p className="mt-4 max-w-[520px] text-[17.5px]">{c.text}</p>}
-                <ul className={`mt-7 divide-y ${dark ? "divide-white/15 border-y border-white/15" : "divide-primary/10 border-y border-primary/10"}`}>
-                  {((c.links as any[]) || []).filter((l) => l?.label).map((l, j) => (
-                    <li key={j}>
-                      <Link href={l.href || "#"}
-                        className={`group flex items-center justify-between gap-4 py-3.5 font-semibold ${dark ? "text-white" : "text-primary"}`}>
-                        {l.label}
-                        <Arrow className={`shrink-0 transition-transform duration-300 group-hover:translate-x-1 ${dark ? "text-white/70" : "text-accent"}`} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-8">
-                  <Link href={c.href} className={`btn max-[479px]:w-full ${dark ? "" : "btn-indigo"}`}>
-                    {c.button || `Verder als ${String(c.label || "").toLowerCase()}`} <Arrow />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {d.note && <MiniMarkdown text={d.note} className="mt-10 text-center text-[16px] text-primary" />}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </section>
+  );
+}
+
+/**
+ * Eén vlak van het startscherm. Het hele vlak is klikbaar: de link om de kop
+ * spant met ::after het vlak op. De snelle links liggen daar met z-10 bovenop,
+ * zodat ze apart te klikken zijn. De foto is rond, met de stippen uit het logo,
+ * en valt deels buiten de hoek — een bewuste compositie, geen afsnijding.
+ */
+function Keuze({ c, i }: { c: any; i: number }) {
+  const donker = (c.tone || (i === 0 ? "indigo" : "warm")) === "indigo";
+  const links = ((c.links as any[]) || []).filter((l) => l?.label && l?.href).slice(0, 3);
+  return (
+    <article
+      style={{ "--ri": i } as React.CSSProperties}
+      className={`rise-in group relative isolate flex flex-col overflow-hidden rounded-[28px] p-6 [container-type:inline-size] transition-[transform,box-shadow] duration-500 ease-[var(--ease-out-soft)] hover:-translate-y-1 sm:min-h-[380px] sm:rounded-[36px] sm:p-10 lg:min-h-[440px] xl:min-h-[470px] xl:p-12 has-[.keuze-link:focus-visible]:ring-4 has-[.keuze-link:focus-visible]:ring-accent/45 has-[.keuze-link:focus-visible]:ring-offset-4 ${
+        donker
+          ? "on-dark bg-primary hover:shadow-[0_44px_80px_-44px_rgba(34,32,90,0.85)]"
+          : "bg-[#fce9f2] hover:shadow-[0_44px_80px_-44px_rgba(192,18,99,0.5)]"
+      }`}
+    >
+      {donker && (
+        <>
+          <div aria-hidden className="dot-texture absolute inset-0 -z-10" />
+          <div aria-hidden className="absolute -left-24 -top-24 -z-10 h-80 w-80 rounded-full bg-accent-pink/20 blur-[100px]" />
+        </>
+      )}
+
+      {c.image && (
+        // Vanaf sm; op een telefoon is het vlak te smal naast de tekst. Tussen
+        // lg en xl kleiner, anders raakt hij de snelle links.
+        <div aria-hidden className="pointer-events-none absolute -bottom-9 -right-9 hidden aspect-square w-[34%] max-w-[230px] sm:block lg:w-[36%] lg:max-w-[280px] xl:w-[42%]">
+          <div className={`h-full w-full overflow-hidden rounded-full ring-[10px] ${donker ? "ring-white/10" : "ring-white/80"}`}>
+            <SiteImage src={c.image} alt="" sizes="280px" widths={[320, 560]}
+              className="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-out-soft)] group-hover:scale-[1.05]" />
+          </div>
+          {/* Rechtsboven de foto: links ernaast liggen de snelle links, en
+              linksboven komt hij bij een lang woord ("werknemer") in de kop. */}
+          {/* Alleen naast elkaar (lg): gestapeld op een tablet schuift hij achter de pijlknop. */}
+          <DotCloud animate licht={donker} className="absolute bottom-[calc(100%-0.5rem)] right-[22%] hidden w-[32%] lg:block" />
+        </div>
+      )}
+
+      <div className="mb-4 empty:hidden">
+        <VorigeKeuze doelgroep={c.doelgroep} donker={donker} />
+      </div>
+
+      <h2 className="pr-14 sm:pr-24">
+        <Link href={c.href}
+          className="keuze-link block after:absolute after:inset-0 after:z-0 after:content-['']">
+          <span className={`block font-heading text-[17px] font-semibold sm:text-[19px] md:text-[21px] ${donker ? "text-white/75" : "text-primary/75"}`}>
+            {c.label || "Ik ben"}
+          </span>
+          {/* Spatie voor schermlezers: twee blok-spans lezen anders als "Ik benwerkgever". */}
+          {" "}
+          {/* Meeschalen met het vlak (cqw), niet met het scherm: dan past
+              "werknemer" altijd op één regel, hoe breed het scherm ook is. */}
+          <span className={`mt-0.5 block whitespace-nowrap font-heading text-[clamp(2.4rem,13.2cqw,5rem)] font-extrabold sm:max-lg:text-[min(13.2cqw,4.3rem)] leading-[0.95] tracking-[-0.045em] sm:mt-1 ${
+            donker ? "text-white" : "text-primary"
+          }`}>
+            {c.title}
+          </span>
+        </Link>
+      </h2>
+
+      {c.text && (
+        <p className={`mt-3 max-w-[330px] text-[16.5px] leading-snug sm:mt-5 sm:text-[17.5px] md:text-[19px] ${donker ? "text-white/80" : "text-primary/80"}`}>
+          {c.text}
+        </p>
+      )}
+
+      {links.length > 0 && (
+        // pointer-events-none: de lijst zelf mag de klik op het vlak niet
+        // opvangen, alleen de chips erin.
+        <ul className="pointer-events-none relative z-10 mt-auto flex flex-row flex-wrap items-start gap-2 pt-5 sm:max-w-[330px] sm:flex-col sm:pt-8">
+          {links.map((l, j) => (
+            <li key={j}>
+              <Link href={l.href}
+                className={`group/chip pointer-events-auto inline-flex items-center gap-2 rounded-full py-1.5 pl-3.5 pr-3 text-[14.5px] font-semibold transition-colors duration-300 sm:py-2 sm:pl-4 sm:pr-3.5 sm:text-[15px] ${
+                  donker ? "bg-white/10 text-white hover:bg-white hover:text-primary" : "bg-white text-primary hover:bg-primary hover:text-white"
+                }`}>
+                {l.label}
+                <Arrow className="shrink-0 transition-transform duration-300 group-hover/chip:translate-x-0.5" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* De actie: een rond pijlknopje in de actiekleur. Hoort bij de
+          vlak-link (aria-hidden), dus geen eigen tabstop. */}
+      <span aria-hidden
+        className="absolute right-6 top-6 grid h-12 w-12 place-items-center rounded-full bg-accent text-[20px] text-white shadow-[0_12px_24px_-12px_rgba(200,48,106,0.8)] transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:translate-x-1 sm:right-10 sm:top-10 sm:h-14 sm:w-14 sm:text-[22px] lg:h-16 lg:w-16 xl:right-12 xl:top-12">
+        <Arrow />
+      </span>
+    </article>
   );
 }
 

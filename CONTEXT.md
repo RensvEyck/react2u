@@ -270,7 +270,7 @@ dan `text-primary/70` of `text-body`.
 | Bloktype | Wat |
 |---|---|
 | `heroStatement` | De belofte (met `highlight` in de accentkleur), twee knoppen, een keurmerkregel (`badge`) en de ronde foto met de stippenwolk. |
-| `audienceChoice` | Het startscherm: kies werkgever of werknemer. `choices` met `label`, `title`, `text`, `icon`, `image`, `href`, `button` en `links`; de eerste staat op indigo. |
+| `audienceChoice` | Het startscherm: kies werkgever of werknemer. Twee `choices` met `doelgroep`, `tone` (`indigo` of `warm`), `label` ("Ik ben"), `title` (het grote woord), `text`, `image`, `href` en hooguit drie `links`; daaronder `trust` (`icon`, `text`, `href`). Het hele vlak is klikbaar; de links liggen erbovenop. Het grote woord schaalt met het vlak (`cqw`) en blijft op één regel. Een terugkerende bezoeker ziet "Je vorige keuze". |
 | `steps` | Stappen onder elkaar met een stippellijn, zoals het visuele verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge` (wat in de cirkel staat), `title`, `text`, `kleur`; `anchor` maakt er een #-doel van. |
 | `pillars` | "Waar kunnen we je mee helpen?": drie stappen (voorkomen, begeleiden, versterken) met per dienst de situatie. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
 | `method` | De werkwijze: het REACT-model. `steps` met `title`, `text` en `kleur`; de letter is de eerste letter van de titel. Met het wiel en een citaat. |

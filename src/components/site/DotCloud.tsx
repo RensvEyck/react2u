@@ -5,8 +5,10 @@ import { DOT_R, LOGO_DOTS } from "@/lib/brand";
  * de hele site terugkomt (paginakoppen, CTA, 404, onderhoudspagina).
  */
 export default function DotCloud({
-  animate = false, className,
+  animate = false, licht = false, className,
 }: {
+  /** Op een donkere ondergrond: de indigo stip wordt lichtindigo, anders valt hij weg. */
+  licht?: boolean;
   /** Stip voor stip laten verschijnen en zweven — uit bij prefers-reduced-motion. */
   animate?: boolean;
   className?: string;
@@ -35,7 +37,7 @@ export default function DotCloud({
           cx={cx}
           cy={cy}
           r={DOT_R}
-          fill={fill}
+          fill={licht && fill === "#312e82" ? "#a9a6ea" : fill}
         />
       ))}
     </svg>

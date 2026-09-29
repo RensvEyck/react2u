@@ -19,6 +19,7 @@ export const FIELD_LABELS: Record<string, string> = {
   steps: "Stappen", valueLabel: "Toelichting bij het cijfer",
   links: "Links", routes: "Contactroutes", sub: "Tweede regel",
   choices: "Keuzes", note: "Regel onderaan", anchor: "Anker (voor #-links)",
+  trust: "Vertrouwensregel", tone: "Kleur (indigo of warm)", doelgroep: "Doelgroep (werkgever of werknemer)",
 };
 
 /** Welke velden van de blokdata verschillen tussen twee versies. */
