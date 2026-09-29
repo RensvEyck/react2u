@@ -7,8 +7,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   intro: {
     label: "Introtekst",
-    // layout: "center" (gecentreerd) of "split" (kop links, tekst rechts).
-    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, layout: "center" },
+    // Kop links, tekst rechts. layout: "center" zet alles gecentreerd.
+    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, layout: "" },
   },
   animatedHeadline: {
     label: "Typende kop",
@@ -79,8 +79,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   linkIndex: {
     label: "Overzicht van onderwerpen",
-    // kleur: blauw, teal, rood, oranje, roze of indigo — zie src/lib/brand.ts.
-    data: { eyebrow: "", heading: "Kop", text: "", button: { label: "", href: "" }, items: [{ label: "Onderwerp", href: "/", kleur: "blauw" }] },
+    // groep: preventie, verzuim of ontwikkeling (de pijlers uit nav.ts).
+    data: { eyebrow: "", heading: "Kop", text: "", button: { label: "", href: "" }, items: [{ label: "Onderwerp", href: "/", groep: "preventie" }] },
   },
   about: {
     label: "Over ons met citaat",
@@ -89,7 +89,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   facts: {
     label: "In één oogopslag (cijfers en feiten)",
-    // Met `value` een cijferkaart, met `image` een beeldkaart, anders een tekstkaart.
+    // Met `value` een cijferkaart, met `image` een beeldkaart (twee rijen hoog),
+    // anders een tekstkaart. Sluitend raster: kaart, beeld, kaart, kaart, beeld, kaart, kaart.
     data: { eyebrow: "", heading: "Kop", highlight: "", text: "", items: [{ value: "", title: "Titel", text: "Tekst", image: "", imageAlt: "" }] },
   },
   latestPosts: {

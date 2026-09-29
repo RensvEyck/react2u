@@ -10,8 +10,11 @@ export type Pijler = { key: string; title: string; text: string; kleur: Kleur; i
  * De zes diensten, gegroepeerd van voorkomen naar herstellen. Voedt het
  * megamenu, de footer en de standaardinhoud van het blok "Pijlers".
  *
- * Elke dienst houdt zijn eigen kleur uit het logo (zie brand.ts); de pijler
- * neemt de kleur van zijn eerste dienst.
+ * Kleur hoort bij de pijler, niet bij de dienst: drie kleuren uit het logo,
+ * zodat je in menu, footer en overzichten in één oogopslag ziet wat bij
+ * elkaar hoort. Zes kleuren voor zes diensten werd een regenboog waarin kleur
+ * niets meer betekende. `kleur` staat per dienst zodat het later nog kan
+ * afwijken, maar is nu gelijk aan die van de pijler.
  */
 export const PIJLERS: Pijler[] = [
   {
@@ -31,7 +34,7 @@ export const PIJLERS: Pijler[] = [
         label: "Risicomanagement (RI&E)",
         href: "/risicomanagement",
         description: "Samen met kerndeskundigen de risico's in je organisatie in kaart.",
-        kleur: "indigo",
+        kleur: "blauw",
       },
     ],
   },
@@ -52,7 +55,7 @@ export const PIJLERS: Pijler[] = [
         label: "Verzuimbegeleiding ERD/ZW",
         href: "/verzuimbegeleiding-erd-zw",
         description: "Voor eigenrisicodragers Ziektewet, ook in de flexbranche.",
-        kleur: "oranje",
+        kleur: "rood",
       },
     ],
   },
@@ -60,14 +63,14 @@ export const PIJLERS: Pijler[] = [
     key: "ontwikkeling",
     title: "Ontwikkeling",
     text: "Soms is er meer nodig dan een plan van aanpak. Met coaching en training brengen we mensen en teams weer in beweging.",
-    kleur: "roze",
+    kleur: "teal",
     icon: "leaf",
     diensten: [
       {
         label: "Begeleiding & Coaching",
         href: "/begeleiding-en-coaching",
         description: "Eén-op-één, burn-out- en loopbaancoaching op maat.",
-        kleur: "roze",
+        kleur: "teal",
       },
       {
         label: "Trainingen & Workshops",
@@ -125,6 +128,10 @@ export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | n
  * menu-item; de rest staat direct onder Home.
  */
 export function crumbsVoor(path: string, title: string): NavLink[] {
+  // Staat de pagina zelf in het menu, dan heet hij in het kruimelpad zoals in
+  // het menu ("Oplossingen", niet de paginatitel "Diensten").
+  const inMenu = MAIN_NAV.find((i) => i.href === path);
+  if (inMenu) return [{ label: inMenu.label, href: path }];
   if (dienstVoor(path)) return [{ label: "Oplossingen", href: "/diensten" }, { label: title, href: path }];
   const ouder = MAIN_NAV.find((i) => i.href !== path && i.children?.some((c) => c.href === path));
   if (ouder) return [{ label: ouder.label, href: ouder.href }, { label: title, href: path }];

@@ -23,10 +23,6 @@ export default async function SiteShell({ children }: { children: React.ReactNod
   const c = contact || CONTACT_FALLBACK;
   return (
     <div className="site-root">
-      <a href="#inhoud"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:text-white">
-        Naar de inhoud
-      </a>
       <Header contact={c} />
       <main id="inhoud">{children}</main>
       <Footer contact={c} docs={normalizeDocs(docs)} certificates={normalizeCertificates(certificates)} />

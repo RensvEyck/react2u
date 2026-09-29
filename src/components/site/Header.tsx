@@ -108,7 +108,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
       onClick={closeOnLink}
     >
       <div className="overflow-hidden rounded-[26px] border border-black/[0.06] bg-white shadow-[0_30px_60px_-30px_rgba(34,32,90,0.45)]">
-        <div className="grid grid-cols-[1fr_1fr_1fr_290px] gap-2 p-3">
+        <div className="grid grid-cols-[1fr_1fr_1fr_260px] gap-2 p-3">
           {PIJLERS.map((p) => (
             <div key={p.key} className="p-4">
               <p className="mb-3 flex items-center gap-3 text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--k)]"
@@ -164,6 +164,16 @@ export default function Header({ contact }: { contact: ContactInfo }) {
 
   return (
     <header className="pointer-events-none sticky top-0 z-50 px-3 pt-3 sm:px-5 lg:pt-4">
+      {/* Voor toetsenbordgebruikers: de eerste Tab springt langs het menu. */}
+      <a href="#inhoud"
+        className="pointer-events-auto sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:text-white">
+        Naar de inhoud
+      </a>
+      {/* Een zachte laag over de pagina zolang een menu openstaat: het menu
+          komt los van de inhoud eronder, en een klik ernaast sluit het. */}
+      {(open === megaItem?.label || mobile) && (
+        <div aria-hidden className="menu-panel pointer-events-auto fixed inset-0 -z-10 bg-primary-deep/25 backdrop-blur-[2px]" />
+      )}
       <div
         ref={barRef}
         className={`pointer-events-auto relative mx-auto max-w-[1240px] rounded-[22px] border border-black/[0.06] bg-white/90 backdrop-blur-xl transition-shadow duration-300 ${
@@ -172,7 +182,9 @@ export default function Header({ contact }: { contact: ContactInfo }) {
             : "shadow-[0_8px_24px_-18px_rgba(34,32,90,0.3)]"
         }`}
       >
-        <div className="flex items-center justify-between gap-4 py-2.5 pl-4 pr-2.5 lg:py-3 lg:pl-6 lg:pr-3">
+        {/* pl-8 op groot scherm: dan staat het logo precies op de lijn waar
+            de inhoud van de pagina begint. */}
+        <div className="flex items-center justify-between gap-4 py-2.5 pl-4 pr-2.5 lg:py-3 lg:pl-8 lg:pr-3">
           <Link href="/" className="shrink-0" onClick={closeAll} aria-label="React2u, naar de homepage">
             <Logo title="" className="h-[42px] w-auto lg:h-[46px]" />
           </Link>
@@ -201,7 +213,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                className="hidden items-center gap-2 rounded-full px-3 py-2 text-[15px] font-medium text-primary transition-colors hover:bg-soft xl:flex">
               <LuPhone className="text-[15px]" aria-hidden /> {contact.phoneDisplay}
             </a>
-            <Link href={HEADER_CTA.href} className="btn btn-indigo btn-sm hidden whitespace-nowrap sm:inline-flex" onClick={closeAll}>
+            <Link href={HEADER_CTA.href} className="btn btn-sm hidden whitespace-nowrap sm:inline-flex" onClick={closeAll}>
               {HEADER_CTA.label} <Arrow />
             </Link>
             <a href={`tel:${contact.phone}`} aria-label={`Bel ons: ${contact.phoneDisplay}`}

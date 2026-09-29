@@ -71,101 +71,6 @@
       }
     },
     {
-      "type": "linkIndex",
-      "label": "Ontdek React2u",
-      "data": {
-        "eyebrow": "Ontdek React2u",
-        "heading": "Alle onderwerpen op een rij",
-        "text": "Onze aanpak is praktisch: duidelijke stappen, een vaste casemanager en snel schakelen als het nodig is. Kies een onderwerp en lees wat we voor je doen.",
-        "button": {
-          "label": "Alle diensten",
-          "href": "/diensten"
-        },
-        "items": [
-          {
-            "label": "Preventief medisch onderzoek",
-            "href": "/preventie-en-vitaliteit#preventief-medisch-onderzoek-op-maat",
-            "kleur": "blauw"
-          },
-          {
-            "label": "Preventieve consulten",
-            "href": "/preventie-en-vitaliteit#preventieve-consulten-met-ons-verzuimteam",
-            "kleur": "blauw"
-          },
-          {
-            "label": "Tevredenheidsonderzoek (MTO)",
-            "href": "/preventie-en-vitaliteit#medewerkers-tevredenheids-onderzoek",
-            "kleur": "blauw"
-          },
-          {
-            "label": "RI&E en risicomanagement",
-            "href": "/risicomanagement",
-            "kleur": "indigo"
-          },
-          {
-            "label": "Verzuimbegeleiding WVP",
-            "href": "/verzuimbegeleiding-wvp",
-            "kleur": "rood"
-          },
-          {
-            "label": "Een vaste casemanager",
-            "href": "/verzuimbegeleiding-wvp#betrokken-eigen-casemanager",
-            "kleur": "rood"
-          },
-          {
-            "label": "Taakdelegatie",
-            "href": "/verzuimbegeleiding-wvp#taakdelegatie",
-            "kleur": "rood"
-          },
-          {
-            "label": "Verzuimbegeleiding ERD/ZW",
-            "href": "/verzuimbegeleiding-erd-zw",
-            "kleur": "oranje"
-          },
-          {
-            "label": "ERD voor de flexbranche",
-            "href": "/verzuimbegeleiding-erd-zw#erd-specialist-voor-organisaties-flexbranche",
-            "kleur": "oranje"
-          },
-          {
-            "label": "Eén-op-één coaching",
-            "href": "/begeleiding-en-coaching#een-op-een-coaching-op-maat",
-            "kleur": "roze"
-          },
-          {
-            "label": "Burn-out coaching",
-            "href": "/begeleiding-en-coaching#burn-out-coaching-op-maat",
-            "kleur": "roze"
-          },
-          {
-            "label": "Loopbaancoaching",
-            "href": "/begeleiding-en-coaching#leven-en-loopbaancoaching-op-maat",
-            "kleur": "roze"
-          },
-          {
-            "label": "Verzuimtraining",
-            "href": "/trainingen-en-workshops#verzuimtraining",
-            "kleur": "teal"
-          },
-          {
-            "label": "Managementtraining",
-            "href": "/trainingen-en-workshops#managementtraining",
-            "kleur": "teal"
-          },
-          {
-            "label": "Communicatietraining",
-            "href": "/trainingen-en-workshops#training-communicatietechnieken",
-            "kleur": "teal"
-          },
-          {
-            "label": "Vitaliteitstraining",
-            "href": "/trainingen-en-workshops#vitaliteit-en-preventietraining",
-            "kleur": "teal"
-          }
-        ]
-      }
-    },
-    {
       "type": "about",
       "label": "Over React2u",
       "data": {
@@ -208,9 +113,9 @@
             "imageAlt": "Arts in gesprek met een medewerker"
           },
           {
-            "value": "",
-            "title": "Eén dossier, altijd inzicht",
-            "text": "In ons gecertificeerde online verzuimregistratiesysteem vind je rapportages, afspraken en wettelijke deadlines op één plek.",
+            "value": "1",
+            "title": "vaste casemanager",
+            "text": "Elke organisatie krijgt een vaste casemanager die het traject bewaakt en contact houdt met werknemer én werkgever.",
             "image": "",
             "imageAlt": ""
           },
@@ -229,16 +134,16 @@
             "imageAlt": "Coach die met een medewerker een model op papier doorneemt"
           },
           {
-            "value": "1",
-            "title": "vaste casemanager",
-            "text": "Elke organisatie krijgt een vaste casemanager die het traject bewaakt en contact houdt met werknemer én werkgever.",
+            "value": "WVP + ERD",
+            "title": "beide trajecten",
+            "text": "Verzuimbegeleiding binnen de Wet verbetering poortwachter én voor eigenrisicodragers Ziektewet.",
             "image": "",
             "imageAlt": ""
           },
           {
-            "value": "WVP + ERD",
-            "title": "beide trajecten",
-            "text": "Verzuimbegeleiding binnen de Wet verbetering poortwachter én voor eigenrisicodragers Ziektewet.",
+            "value": "",
+            "title": "Snel schakelen",
+            "text": "Met taakdelegatie voeren ervaren taakgedelegeerden taken uit onder verantwoordelijkheid van de bedrijfsarts. Zo verkorten we wachttijden, zonder in te leveren op medische kwaliteit.",
             "image": "",
             "imageAlt": ""
           }
@@ -252,10 +157,6 @@
         "eyebrow": "Waar je op kunt rekenen",
         "heading": "Wat maakt React2u anders?",
         "text": "Arbodienstverlening is maatwerk. Onze vakspecialisten werken vanuit relatie en verbinding — alleen zo ontdekken we wat iemand écht nodig heeft om terug te keren. Dat kan een duwtje in de rug zijn of een flinke gedragsverandering: we durven iemand uit te dagen waar dat nodig is.",
-        "button": {
-          "label": "Werken bij React2u",
-          "href": "/vacatures"
-        },
         "cards": [
           {
             "icon": "leaf",
@@ -271,6 +172,101 @@
             "icon": "lightbulb",
             "title": "Duidelijk",
             "text": "In ons online platform vind je alle rapportages, afspraken en documenten eenvoudig terug. Handig voor werkgever én werknemer."
+          }
+        ]
+      }
+    },
+    {
+      "type": "linkIndex",
+      "label": "Ontdek React2u",
+      "data": {
+        "eyebrow": "Ontdek React2u",
+        "heading": "Alle onderwerpen op een rij",
+        "text": "Onze aanpak is praktisch: duidelijke stappen, een vaste casemanager en snel schakelen als het nodig is. Kies een onderwerp en lees wat we voor je doen.",
+        "button": {
+          "label": "Alle diensten",
+          "href": "/diensten"
+        },
+        "items": [
+          {
+            "label": "Preventief medisch onderzoek",
+            "href": "/preventie-en-vitaliteit#preventief-medisch-onderzoek-op-maat",
+            "groep": "preventie"
+          },
+          {
+            "label": "Preventieve consulten",
+            "href": "/preventie-en-vitaliteit#preventieve-consulten-met-ons-verzuimteam",
+            "groep": "preventie"
+          },
+          {
+            "label": "Tevredenheidsonderzoek (MTO)",
+            "href": "/preventie-en-vitaliteit#medewerkers-tevredenheids-onderzoek",
+            "groep": "preventie"
+          },
+          {
+            "label": "RI&E en risicomanagement",
+            "href": "/risicomanagement",
+            "groep": "preventie"
+          },
+          {
+            "label": "Verzuimbegeleiding WVP",
+            "href": "/verzuimbegeleiding-wvp",
+            "groep": "verzuim"
+          },
+          {
+            "label": "Een vaste casemanager",
+            "href": "/verzuimbegeleiding-wvp#betrokken-eigen-casemanager",
+            "groep": "verzuim"
+          },
+          {
+            "label": "Taakdelegatie",
+            "href": "/verzuimbegeleiding-wvp#taakdelegatie",
+            "groep": "verzuim"
+          },
+          {
+            "label": "Verzuimbegeleiding ERD/ZW",
+            "href": "/verzuimbegeleiding-erd-zw",
+            "groep": "verzuim"
+          },
+          {
+            "label": "ERD voor de flexbranche",
+            "href": "/verzuimbegeleiding-erd-zw#erd-specialist-voor-organisaties-flexbranche",
+            "groep": "verzuim"
+          },
+          {
+            "label": "Eén-op-één coaching",
+            "href": "/begeleiding-en-coaching#een-op-een-coaching-op-maat",
+            "groep": "ontwikkeling"
+          },
+          {
+            "label": "Burn-out coaching",
+            "href": "/begeleiding-en-coaching#burn-out-coaching-op-maat",
+            "groep": "ontwikkeling"
+          },
+          {
+            "label": "Loopbaancoaching",
+            "href": "/begeleiding-en-coaching#leven-en-loopbaancoaching-op-maat",
+            "groep": "ontwikkeling"
+          },
+          {
+            "label": "Verzuimtraining",
+            "href": "/trainingen-en-workshops#verzuimtraining",
+            "groep": "ontwikkeling"
+          },
+          {
+            "label": "Managementtraining",
+            "href": "/trainingen-en-workshops#managementtraining",
+            "groep": "ontwikkeling"
+          },
+          {
+            "label": "Communicatietraining",
+            "href": "/trainingen-en-workshops#training-communicatietechnieken",
+            "groep": "ontwikkeling"
+          },
+          {
+            "label": "Vitaliteitstraining",
+            "href": "/trainingen-en-workshops#vitaliteit-en-preventietraining",
+            "groep": "ontwikkeling"
           }
         ]
       }

@@ -18,7 +18,8 @@ const FIELD_LABELS: Record<string, string> = {
   style: "Stijl", phone: "Telefoon (tel:)", phoneDisplay: "Telefoon (weergave)", email: "E-mail",
   address: "Adres", formHeading: "Formulier-kop", images: "Afbeeldingen",
   highlight: "Woord met markeerstift", badge: "Label op de foto", logosLabel: "Tekst bij de logo's",
-  layout: "Opmaak (center of split)", kleur: "Kleur (blauw, teal, rood, oranje, roze, indigo)",
+  layout: "Opmaak (leeg of center)", kleur: "Kleur (blauw, teal, rood, oranje, roze, indigo)",
+  groep: "Pijler (preventie, verzuim of ontwikkeling)",
   quote: "Citaat", quoteName: "Naam bij citaat", quoteRole: "Functie bij citaat",
   value: "Cijfer of kernwoord", count: "Aantal artikelen", imageShape: "Beeldvorm (rounded of circle)",
 };

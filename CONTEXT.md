@@ -135,12 +135,20 @@ Zet een nieuwe klasse die met utilities gecombineerd wordt daar ook in.
 daarheen. Hernoem je zo'n titel, dan landt de link nog wel op de pagina maar
 niet meer op het onderdeel — pas dan ook de link aan.
 
-**Dienstkleuren gaan op naam, niet op hexcode.** Elke dienst heeft een kleur uit
-de stippen van het logo; die staan in [`src/lib/brand.ts`](src/lib/brand.ts)
-(`KLEUREN`: `blauw`, `teal`, `rood`, `oranje`, `roze`, `indigo`). In blokdata
-en in `nav.ts` staat de naam, `kleurVars()` maakt er CSS-variabelen van
-(`--k`, `--k-vlak`, `--k-zacht`, `--k-donker`). Een onbekende naam valt terug
-op indigo.
+**Kleur hoort bij de pijler, en gaat op naam.** Preventie is blauw, Verzuim
+rood, Ontwikkeling teal — drie kleuren uit het logo. Eerder had elke dienst
+een eigen kleur; dat werd een regenboog waarin kleur niets meer zei over wat
+bij elkaar hoort. De kleuren staan in [`src/lib/brand.ts`](src/lib/brand.ts)
+(`KLEUREN`). In blokdata en `nav.ts` staat de naam, `kleurVars()` maakt er
+CSS-variabelen van (`--k`, `--k-vlak`, `--k-zacht`, `--k-donker`). Een
+onbekende naam valt terug op indigo. Roze is geen pijlerkleur maar de
+actiekleur van knoppen — houd die twee gescheiden.
+
+**Tekst uit het CMS wordt bij het tonen netjes gemaakt, niet in de database.**
+Knoppen en keurmerken die in hoofdletters zijn ingevoerd ("NEEM CONTACT OP")
+verschijnen als gewone zin, afkortingen als WVP blijven staan
+(`zinsletters()` in `src/lib/tekst.ts`). Korte woorden met een koppelteken
+("re-integratie") breken niet meer af aan het eind van een regel.
 
 **`site_settings.documents` bestaat in twee vormen.** Oorspronkelijk een vast
 object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure`,
@@ -176,8 +184,8 @@ Sophos-filtering ervoor en `-all` in de SPF.
 
 De site volgt sinds september 2026 de opbouw van acture.nl, in de huisstijl
 van React2u: een zwevende, afgeronde header met megamenu, secties die
-afwisselen tussen wit, lavendel (`bg-soft`), lichtblauw (`bg-sky`) en indigo,
-en een lichte footer met een witte adreskaart. Alle bloktypes — ook de
+afwisselen tussen wit, lavendel (`bg-soft`) en indigo, en een lichte footer
+met een witte adreskaart. Alle bloktypes — ook de
 oudere — delen die vormtaal, dus een pagina uit het CMS ziet er vanzelf zo
 uit.
 
@@ -194,14 +202,23 @@ dan `text-primary/70` of `text-body`.
 |---|---|
 | `heroStatement` | Twee panelen: de belofte op indigo (met `highlight` onder een markeerstift), de foto ernaast met de stippenwolk en een `badge`; eronder de klantlogo's. |
 | `pillars` | De drie pijlers als kaarten. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
-| `linkIndex` | Alle onderwerpen als pil-tegels, elk in de kleur van zijn dienst. |
+| `linkIndex` | Alle onderwerpen als pil-tegels, gegroepeerd per pijler via `groep` (`preventie`, `verzuim`, `ontwikkeling`). |
 | `about` | Donker vlak, tekst naast beeld met een citaatkaart. `imageShape: "circle"` snijdt het beeld rond bij. |
-| `facts` | "In één oogopslag": kaarten in drie verspringende kolommen, op volgorde verdeeld (de middelste kolom krijgt het eerste extra item). Met `value` een cijferkaart, met `image` een kaart met beeld. |
+| `facts` | "In één oogopslag": raster van drie kolommen, een kaart met `image` is twee rijen hoog, met `value` een cijferkaart. Twee beeldkaarten en vijf andere vullen precies drie bij drie; volgorde: kaart, beeld, kaart, kaart, beeld, kaart, kaart. |
 | `latestPosts` | De nieuwste artikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
 
 Bestaande blokken kregen optionele varianten: `intro` met `layout: "split"`
 en `valueCards` met een `heading`. De blokeditor toont alleen velden die al in
 de data staan — wil je een bestaand blok omzetten, voeg het opnieuw toe.
+
+**Ritme en raster.** Elke sectie zet `data-tone` (`white`, `soft`, `dark`,
+`hero`, `band`). Volgen twee secties met dezelfde toon elkaar op, dan haalt
+`globals.css` de bovenruimte van de tweede weg — anders verdubbelt de witruimte.
+Een nieuw blok hoort dus een `data-tone` te hebben. Tweekoloms-secties gebruiken
+`SPLIT`/`LINKS`/`RECHTS` in `BlockRenderer` (5 + 6 van 12 kolommen), zodat de
+rechterkolom op elke pagina op dezelfde lijn begint. In een groep knoppen is
+alleen de eerste een volle knop; de rest wordt outline tenzij de data anders
+zegt.
 
 **Het eerste blok is de paginakop.** Begint een pagina met `intro` of
 `richText`, dan wordt dat een lichte band met kruimelpad en h1 (`HeaderBand`);

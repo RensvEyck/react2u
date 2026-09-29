@@ -16,7 +16,8 @@
   --color-accent-blue: #39a5dd;
   --color-accent-pink: #e51673;
   --color-accent-orange: #f19000;
-  --color-body: rgba(0, 0, 0, 0.61);
+  /* Grijs met een zweem indigo, zodat het bij de rest past: 6,85:1 op wit. */
+  --color-body: #5a5870;
   --color-soft: #f6f5fb;
   /* Lichtblauw vlak, afgeleid van de blauwe stip; wisselt af met --color-soft. */
   --color-sky: #edf5fb;
@@ -106,7 +107,7 @@ p {
     background: var(--color-accent);
     color: #fff;
     border: 1px solid var(--color-accent);
-    box-shadow: 0 10px 24px -14px rgba(200, 48, 106, 0.7);
+    box-shadow: 0 6px 16px -10px rgba(200, 48, 106, 0.5);
     transition:
       background-color 0.25s var(--ease-out-soft),
       border-color 0.25s var(--ease-out-soft),
@@ -122,7 +123,7 @@ p {
     background: var(--color-accent-deep);
     border-color: var(--color-accent-deep);
     transform: translateY(-1px);
-    box-shadow: 0 14px 28px -14px rgba(200, 48, 106, 0.75);
+    box-shadow: 0 10px 20px -12px rgba(200, 48, 106, 0.55);
   }
   .btn:hover svg {
     transform: translateX(3px);
@@ -137,12 +138,12 @@ p {
   .btn-indigo {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    box-shadow: 0 10px 24px -14px rgba(49, 46, 130, 0.7);
+    box-shadow: 0 6px 16px -10px rgba(49, 46, 130, 0.5);
   }
   .btn-indigo:hover {
     background: var(--color-primary-deep);
     border-color: var(--color-primary-deep);
-    box-shadow: 0 14px 28px -14px rgba(34, 32, 90, 0.8);
+    box-shadow: 0 10px 20px -12px rgba(34, 32, 90, 0.55);
   }
   .btn-outline {
     background: transparent;
@@ -229,16 +230,15 @@ p {
     box-shadow: 0 24px 48px -28px rgba(34, 32, 90, 0.35);
   }
 
-  /* Markeerstift achter een woord in een kop, zoals "oogopslag" bij Acture.
-     Alleen het onderste deel is gekleurd, zodat de tekst leesbaar blijft. */
+  /* Accentwoord in een kop, zoals "oogopslag" bij Acture: een dikke roze
+     onderstreping, laag genoeg om onder de staarten van g en p door te lopen
+     (anders knipt de browser hem in stukjes). Eén stijl, op licht en donker. */
   .hl {
-    background-image: linear-gradient(to top, var(--hl, rgba(229, 22, 115, 0.2)) 0.3em, transparent 0.3em);
-    padding-inline: 0.06em;
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone;
-  }
-  .on-dark .hl {
-    --hl: rgba(229, 22, 115, 0.85);
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-accent-pink);
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.24em;
+    text-decoration-skip-ink: none;
   }
 
   /* Subtiel stippenpatroon voor donkere vlakken — het beeldmerk als textuur. */
@@ -253,6 +253,24 @@ p {
 .site-root .hero-pull {
   margin-top: calc(-1 * var(--hh));
   padding-top: calc(var(--hh) + 1rem);
+}
+
+/* Ritme: twee secties met dezelfde achtergrond na elkaar krijgen samen één
+   keer ruimte, niet twee keer. Zonder deze regel stonden er gaten van 220px
+   tussen twee witte secties. Elke sectie zet data-tone (white/soft/dark). */
+.site-root [data-tone="white"] + [data-tone="white"],
+.site-root [data-tone="soft"] + [data-tone="soft"] {
+  padding-top: 0;
+}
+
+/* Lange samengestelde woorden ("Verzuimbegeleiding") passen op een telefoon
+   niet in een grote kop; daar mag de browser afbreken. Op grotere schermen
+   niet — daar oogt een afgebroken kop slordig. */
+h1, h2, h3 {
+  overflow-wrap: break-word;
+}
+@media (max-width: 639px) {
+  h1, h2 { hyphens: auto; }
 }
 
 /* Onthullen bij scrollen. De klasse js-reveal zet Reveal.tsx pas nadat alles

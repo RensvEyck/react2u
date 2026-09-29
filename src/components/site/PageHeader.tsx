@@ -16,9 +16,9 @@ export default function PageHeader({
   narrow?: boolean;
 }) {
   return (
-    <section className="hero-pull relative isolate overflow-hidden bg-soft">
-      <DotCloud className="pointer-events-none absolute -right-10 top-1/2 -z-10 hidden w-[340px] -translate-y-1/3 opacity-[0.14] md:block" />
-      <div className={`container-site pb-14 pt-8 md:pb-20 md:pt-12 ${narrow ? "max-w-[900px]" : ""}`}>
+    <section data-tone="band" className="hero-pull relative bg-soft">
+      <div className={`container-site relative pb-14 pt-8 md:pb-20 md:pt-12 ${narrow ? "max-w-[900px]" : ""}`}>
+        {!narrow && <DotCloud className="pointer-events-none absolute right-8 top-1/2 hidden w-[120px] -translate-y-1/2 lg:block" />}
         <Breadcrumbs crumbs={crumbs} className="mb-8 text-primary" />
         {eyebrow && <p className="eyebrow mb-4" data-reveal>{eyebrow}</p>}
         <h1 className="max-w-[860px] text-[2.5rem] font-extrabold leading-[1.05] tracking-[-0.025em] md:text-[3.5rem]" data-reveal>

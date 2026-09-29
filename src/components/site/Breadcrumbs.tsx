@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { LuChevronRight, LuHouse } from "react-icons/lu";
+import { LuChevronLeft, LuChevronRight, LuHouse } from "react-icons/lu";
 
 /**
  * Kruimelpad boven aan een pagina. "Home" staat er altijd voor; het laatste
- * item is de huidige pagina en geen link. De structured data (BreadcrumbList)
- * zet de pagina zelf, via `breadcrumbLd()` in lib/jsonld.ts.
+ * item is de huidige pagina en geen link. Op een telefoon alleen een stap
+ * terug ("‹ Oplossingen"): het volledige pad brak daar over twee regels. De
+ * structured data (BreadcrumbList) zet de pagina zelf, via `breadcrumbLd()`.
  */
 export default function Breadcrumbs({
   crumbs, className = "",
@@ -13,9 +14,13 @@ export default function Breadcrumbs({
   className?: string;
 }) {
   if (!crumbs.length) return null;
+  const terug = crumbs.length > 1 ? crumbs[crumbs.length - 2] : { label: "Home", href: "/" };
   return (
     <nav aria-label="Kruimelpad" className={className}>
-      <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[14px] font-medium">
+      <Link href={terug.href} className="inline-flex items-center gap-1 text-[14.5px] font-medium opacity-80 hover:opacity-100 sm:hidden">
+        <LuChevronLeft className="text-[16px]" aria-hidden /> {terug.label}
+      </Link>
+      <ol className="hidden flex-wrap items-center gap-x-1.5 gap-y-1 text-[14px] font-medium sm:flex">
         <li>
           <Link href="/" className="flex items-center opacity-75 transition-opacity hover:opacity-100">
             <LuHouse className="text-[15px]" aria-hidden />
@@ -28,7 +33,7 @@ export default function Breadcrumbs({
             <li key={c.href + i} className="flex items-center gap-1.5">
               <LuChevronRight className="text-[13px] opacity-50" aria-hidden />
               {last ? (
-                <span aria-current="page" className="opacity-100">{c.label}</span>
+                <span aria-current="page">{c.label}</span>
               ) : (
                 <Link href={c.href} className="opacity-75 transition-opacity hover:opacity-100">{c.label}</Link>
               )}

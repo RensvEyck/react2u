@@ -2,13 +2,11 @@ import { DOT_R, LOGO_DOTS } from "@/lib/brand";
 
 /**
  * De stippenwolk uit het logo, los van het woordmerk — het beeldmerk dat door
- * de hele site terugkomt (hero, CTA, onderhoudspagina).
+ * de hele site terugkomt (paginakoppen, CTA, 404, onderhoudspagina).
  */
 export default function DotCloud({
-  outline = false, animate = false, className,
+  animate = false, className,
 }: {
-  /** Witte rand om elke stip, voor als de wolk over een foto valt. */
-  outline?: boolean;
   /** Stip voor stip laten verschijnen en zweven — uit bij prefers-reduced-motion. */
   animate?: boolean;
   className?: string;
@@ -38,7 +36,6 @@ export default function DotCloud({
           cy={cy}
           r={DOT_R}
           fill={fill}
-          {...(outline ? { stroke: "#fff", strokeWidth: 0.9 } : {})}
         />
       ))}
     </svg>

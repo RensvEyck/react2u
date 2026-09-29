@@ -1,6 +1,7 @@
 "use client";
 import { useId, useState } from "react";
 import { LuPlus } from "react-icons/lu";
+import { Heel } from "@/lib/md";
 
 export type FaqItem = { question: string; answer: string };
 
@@ -21,16 +22,16 @@ export default function Accordion({ items }: { items: FaqItem[] }) {
             className={`rounded-[22px] border bg-white transition-[border-color,box-shadow] duration-300 ${
               isOpen ? "border-primary/15 shadow-[0_18px_40px_-28px_rgba(34,32,90,0.45)]" : "border-black/[0.07]"
             }`}>
-            <h3>
+            <h3 className="[text-wrap:pretty]">
               <button
                 type="button"
                 id={`${id}-q${i}`}
-                className="flex w-full items-center justify-between gap-5 px-6 py-5 text-left font-heading text-[18px] font-bold leading-snug text-primary md:px-7"
+                className="flex w-full items-center justify-between gap-5 px-6 py-5 text-left font-heading text-[18px] font-bold leading-snug text-primary [text-wrap:pretty] md:px-7"
                 onClick={() => setOpen(isOpen ? null : i)}
                 aria-expanded={isOpen}
                 aria-controls={`${id}-a${i}`}
               >
-                <span>{item.question}</span>
+                <span><Heel text={item.question} /></span>
                 <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition-[background-color,color,transform] duration-300 ${
                   isOpen ? "rotate-45 bg-accent text-white" : "bg-soft text-primary"
                 }`} aria-hidden>
@@ -42,7 +43,7 @@ export default function Accordion({ items }: { items: FaqItem[] }) {
                 en toetsenbord, al staat het wel in de HTML. */}
             <div id={`${id}-a${i}`} role="region" aria-labelledby={`${id}-q${i}`} className="fold" data-open={isOpen} inert={!isOpen}>
               <div>
-                <p className="px-6 pb-6 text-[16.5px] md:px-7">{item.answer}</p>
+                <p className="px-6 pb-6 text-[16.5px] md:px-7"><Heel text={item.answer} /></p>
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@ import type { ContactInfo } from "@/lib/content";
 import { LuPhone, LuMail, LuMapPin, LuAward, LuLinkedin } from "react-icons/lu";
 import SiteImage from "./SiteImage";
 import Logo from "./Logo";
+import { zinsletters } from "@/lib/tekst";
 
 const HANDIGE_LINKS = [
   { label: "Over React2u", href: "/over-react2u" },
@@ -31,7 +32,9 @@ export default function Footer({
   certificates: Certificate[];
 }) {
   return (
-    <footer className="mt-24 bg-soft text-[15.5px] text-primary/80 md:mt-32">
+    // Geen marge erboven: het laatste blok van de pagina regelt zijn eigen
+    // ruimte. Een lijntje scheidt de footer van een blok dat ook lavendel is.
+    <footer className="border-t border-primary/10 bg-soft text-[15.5px] text-primary/80">
       <div className="container-site grid gap-12 pb-12 pt-16 md:pt-20 lg:grid-cols-[1.35fr_0.85fr_0.8fr]">
         <div className="rounded-[28px] border border-black/[0.04] bg-white p-7 shadow-[0_20px_40px_-32px_rgba(34,32,90,0.4)] md:p-9">
           <Link href="/" className="inline-block" aria-label="React2u, naar de homepage">
@@ -65,6 +68,11 @@ export default function Footer({
               </ul>
             </div>
           </div>
+          <dl className="mt-7 flex flex-wrap gap-x-6 gap-y-1 border-t border-primary/10 pt-5 text-[13.5px] text-primary/75">
+            <div className="flex gap-1.5"><dt>KVK</dt><dd>{contact.kvk}</dd></div>
+            <div className="flex gap-1.5"><dt>BTW</dt><dd>{contact.btw}</dd></div>
+            <div className="flex gap-1.5"><dt>IBAN</dt><dd>{contact.iban}</dd></div>
+          </dl>
         </div>
 
         <div className="lg:pt-9">
@@ -115,7 +123,7 @@ export default function Footer({
               ) : (
                 <span className="flex items-center gap-2.5 text-[14px] font-semibold text-primary">
                   <LuAward className="shrink-0 text-[18px] text-secondary-ink" aria-hidden />
-                  {c.alt}
+                  {zinsletters(c.alt)}
                 </span>
               );
               const cls = "flex h-full min-h-[64px] items-center rounded-2xl border border-black/[0.05] bg-white px-4 py-3";
@@ -137,10 +145,8 @@ export default function Footer({
 
       <div className="border-t border-primary/10 text-[14px] text-primary/75">
         <div className="container-site flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between">
-          <p>
-            © {new Date().getFullYear()} React2u · KVK {contact.kvk} · BTW {contact.btw} · IBAN {contact.iban}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <p>© {new Date().getFullYear()} React2u</p>
+          <div className="flex items-center gap-x-5 gap-y-2 max-md:flex-wrap md:justify-end">
             <ul className="flex flex-wrap gap-x-5 gap-y-1">
               {docs.map((d, i) => (
                 <li key={`${d.label}-${i}`}>

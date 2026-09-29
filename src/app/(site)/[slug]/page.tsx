@@ -74,12 +74,12 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 function MeerOplossingen({ huidig }: { huidig: string }) {
   const andere = PIJLERS.flatMap((p) => p.diensten).filter((d) => d.href !== huidig);
   return (
-    <section className="bg-soft py-20 md:py-24">
+    <section data-tone="soft" className="bg-soft py-16 md:py-24">
       <div className="container-site">
         <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between" data-reveal>
           <div>
             <p className="eyebrow mb-4">Oplossingen</p>
-            <h2 className="text-[2.1rem] font-extrabold leading-[1.08] tracking-[-0.022em] md:text-[2.75rem]">Meer van React2u</h2>
+            <h2 className="text-[1.85rem] font-extrabold leading-[1.08] tracking-[-0.022em] sm:text-[2.1rem] md:text-[2.75rem]">Meer van React2u</h2>
           </div>
           <Link href="/diensten" className="link-arrow shrink-0">Alle oplossingen <Arrow /></Link>
         </div>
