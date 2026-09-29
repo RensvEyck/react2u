@@ -2,7 +2,8 @@
 
 Runbook voor het moment dat `react2u.nl` van de oude WordPress-site naar de
 Next.js-site op Vercel gaat. Nameservers staan bij **Hostnet**; die blijven waar
-ze zijn — we wijzigen alleen records.
+ze zijn — we wijzigen alleen records. Het Hostnet-account wordt beheerd door
+**Theiner ICT**: zij voeren de wijziging uit, niet wijzelf.
 
 Gemeten op 4 augustus 2026. Controleer met de commando's onderaan of het beeld
 nog klopt voor je iets wijzigt.
@@ -63,7 +64,8 @@ aan bounces in je eigen inbox.
 
 ## De omzetting
 
-1. Wijzig in het Hostnet-paneel de twee records uit de eerste tabel.
+1. Laat Theiner ICT de twee records uit de eerste tabel wijzigen in het
+   Hostnet-paneel. Stuur de tabel *Wat je met rust laat* mee.
 2. Wacht tot de wijziging doorwerkt (~10 min).
 3. Vercel geeft automatisch een Let's Encrypt-certificaat uit zodra het domein
    naar hun edge wijst. Tot dat klaar is kan HTTPS kortstondig een

@@ -235,7 +235,8 @@ komt de knop terug.
 ## Openstaand
 
 - **DNS staat nog op WordPress.** `react2u.nl` wijst naar `35.204.120.88` en
-  antwoordt met `x-powered-by: WP.one`; nameservers bij Hostnet. Het domein is in
+  antwoordt met `x-powered-by: WP.one`; nameservers bij Hostnet, beheerd door
+  Theiner ICT — zij passen de records aan. Het domein is in
   Vercel al aan het project gekoppeld, dus het is puur een DNS-handeling.
   Stappen, wat je met rust moet laten en het terugrolpad staan in
   [`docs/dns-omzetting.md`](docs/dns-omzetting.md).
