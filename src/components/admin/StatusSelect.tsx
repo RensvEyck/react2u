@@ -15,23 +15,34 @@ const COLORS: Record<string, string> = {
   geen_interesse: "border-black/15 text-black/55 bg-black/[0.04]",
 };
 
+// Waarden zonder eigen kleur (zoals rollen) krijgen dit, niet de roze van
+// "nieuw" — die leest als "hier moet iets gebeuren".
+const NEUTRAAL = "border-[#312e82]/20 text-[#312e82] bg-[#f7f7fc]";
+
+/**
+ * Een keuzelijst die bij wijzigen meteen opslaat.
+ *
+ * `name` is het veld waar de server action naar kijkt. Standaard `status`;
+ * voor de rol van een gebruiker is dat `role_id`.
+ */
 export default function StatusSelect({
-  action, current, options,
+  action, current, options, name = "status",
 }: {
   action: (formData: FormData) => Promise<void>;
   current: string;
   options: [string, string][];
+  name?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, startTransition] = useTransition();
   return (
     <form ref={formRef} action={action}>
       <select
-        name="status"
+        name={name}
         defaultValue={current}
         disabled={pending}
         onChange={() => startTransition(() => formRef.current?.requestSubmit())}
-        className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-[13px] font-semibold outline-none transition ${COLORS[current] || COLORS.nieuw} ${pending ? "opacity-50" : ""}`}
+        className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-[13px] font-semibold outline-none transition ${COLORS[current] || NEUTRAAL} ${pending ? "opacity-50" : ""}`}
       >
         {options.map(([val, label]) => (
           <option key={val} value={val}>{label}</option>

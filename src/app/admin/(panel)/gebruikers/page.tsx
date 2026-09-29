@@ -1,11 +1,13 @@
 import { requirePerm } from "@/lib/admin";
-import { inviteUser, setUserRole, removeUser, saveRole, deleteRole } from "@/app/admin/actions";
+import { setUserRole, removeUser, saveRole, deleteRole } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import RoleEditor from "@/components/admin/RoleEditor";
-import { canInvite } from "@/lib/supabase/admin";
+import InviteForm, { NewLinkButton } from "@/components/admin/InviteForm";
+import { canInvite, supabaseAdmin } from "@/lib/supabase/admin";
+import { inviteErrorText } from "@/lib/invite";
 import { PERMISSIONS, normalizePermissions, type Permission } from "@/lib/permissions";
-import { LuUserPlus, LuTrash2, LuShieldCheck, LuTriangleAlert, LuCheck, LuMinus } from "react-icons/lu";
+import { LuTrash2, LuShieldCheck, LuTriangleAlert, LuCheck, LuMinus } from "react-icons/lu";
 
 type RoleRow = {
   id: string; key: string; label: string; permissions: string[];
@@ -16,12 +18,46 @@ type AdminRow = {
   invited_at: string | null; created_at: string;
 };
 
+type AuthStatus = { confirmed: boolean; lastSignIn: string | null };
+
+/**
+ * Wie de uitnodiging al gebruikte en wanneer iemand voor het laatst inlogde.
+ *
+ * Staat alleen in Supabase Auth, dus dit vraagt de service-sleutel — auth-beheer,
+ * precies waar die voor is, en achter `requirePerm("gebruikers")`. Meteen de
+ * controle of die sleutel werkt: een verkeerde sleutel (de anon-sleutel, of die
+ * van een ander project) valt hier op, niet pas bij de eerste uitnodiging.
+ */
+async function authStatuses(): Promise<{ byId: Map<string, AuthStatus>; keyProblem: string | null }> {
+  const byId = new Map<string, AuthStatus>();
+  if (!canInvite()) return { byId, keyProblem: null };
+  try {
+    const { data, error } = await supabaseAdmin().auth.admin.listUsers({ perPage: 1000 });
+    if (error) {
+      console.error("[gebruikers] listUsers: %s %s %s", error.status, error.code, error.message);
+      return { byId, keyProblem: inviteErrorText(error) };
+    }
+    for (const u of data.users) {
+      byId.set(u.id, { confirmed: Boolean(u.email_confirmed_at), lastSignIn: u.last_sign_in_at ?? null });
+    }
+  } catch (err) {
+    console.error("[gebruikers] listUsers:", err);
+  }
+  return { byId, keyProblem: null };
+}
+
+function datum(iso: string) {
+  return new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Amsterdam" })
+    .format(new Date(iso));
+}
+
 export default async function GebruikersAdmin() {
   const { sb, admin } = await requirePerm("gebruikers");
 
-  const [usersRes, rolesRes] = await Promise.all([
+  const [usersRes, rolesRes, auth] = await Promise.all([
     sb.from("admins").select("user_id, email, role_id, invited_at, created_at").order("created_at"),
     sb.from("roles").select("*").order("sort").order("label"),
+    authStatuses(),
   ]);
 
   const users = (usersRes.data as AdminRow[]) || [];
@@ -39,6 +75,16 @@ export default async function GebruikersAdmin() {
         </p>
       </div>
 
+      {inviteReady && auth.keyProblem && (
+        <div className="acard flex items-start gap-3 border-l-[3px] border-l-[#e0356b] px-6 py-5">
+          <LuTriangleAlert className="mt-0.5 shrink-0 text-[16px] text-[#e0356b]" />
+          <div className="text-[13.5px] text-black/65">
+            <p className="font-semibold text-[#1c1a4e]">Uitnodigen gaat mis</p>
+            <p className="mt-0.5">{auth.keyProblem}</p>
+          </div>
+        </div>
+      )}
+
       {!inviteReady && (
         <div className="acard flex items-start gap-3 border-l-[3px] border-l-[#c77700] px-6 py-5">
           <LuTriangleAlert className="mt-0.5 shrink-0 text-[16px] text-[#c77700]" />
@@ -53,28 +99,7 @@ export default async function GebruikersAdmin() {
         </div>
       )}
 
-      <form action={inviteUser} className="acard p-6">
-        <h2 className="mb-4 font-heading text-[15px] font-bold text-[#312e82]">Collega uitnodigen</h2>
-        <div className="grid gap-4 sm:grid-cols-[1fr_220px_auto] sm:items-end">
-          <div>
-            <label className="alabel">E-mailadres</label>
-            <input className="ainput" name="email" type="email" required placeholder="collega@react2u.nl" />
-          </div>
-          <div>
-            <label className="alabel">Rol</label>
-            <select className="ainput" name="role_id" required defaultValue="">
-              <option value="" disabled>Kies een rol…</option>
-              {roles.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
-            </select>
-          </div>
-          <button className="abtn" disabled={!inviteReady}>
-            <LuUserPlus /> Uitnodigen
-          </button>
-        </div>
-        <p className="mt-3 text-[13px] text-black/45">
-          De genodigde krijgt een mail van Supabase en kiest daarin zelf een wachtwoord.
-        </p>
-      </form>
+      <InviteForm roles={roles.map((r) => ({ id: r.id, label: r.label }))} ready={inviteReady} />
 
       <div className="acard overflow-hidden">
         <div className="border-b border-black/[0.06] px-6 py-4">
@@ -86,13 +111,15 @@ export default async function GebruikersAdmin() {
           {users.map((u) => {
             const role = roleById.get(u.role_id);
             const isSelf = u.user_id === admin.userId;
-            const wacht = u.invited_at && !isSelf;
+            const status = auth.byId.get(u.user_id);
+            const openstaand = status ? !status.confirmed : false;
             return (
               <div key={u.user_id} className="flex flex-wrap items-center gap-4 px-6 py-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[14px] font-bold text-[#312e82]">
                   {(u.email[0] || "?").toUpperCase()}
                 </div>
-                <div className="min-w-0 flex-1">
+                {/* Minimale breedte, zodat op een telefoon de knoppen eronder vallen in plaats van de naam te pletten. */}
+                <div className="min-w-[180px] flex-1">
                   <p className="truncate text-[14.5px] font-semibold text-[#1c1a4e]">
                     {u.email}
                     {isSelf && <span className="ml-2 apill bg-black/[0.05] text-black/50">jij</span>}
@@ -100,13 +127,21 @@ export default async function GebruikersAdmin() {
                   <p className="text-[12.5px] text-black/40">
                     {role?.is_system && <LuShieldCheck className="mr-1 inline text-[11px]" />}
                     {role?.label || "Rol onbekend"}
-                    {wacht && " · uitnodiging verstuurd"}
+                    {openstaand && u.invited_at && ` · uitgenodigd ${datum(u.invited_at)}`}
+                    {status && !openstaand && (status.lastSignIn ? ` · laatst ingelogd ${datum(status.lastSignIn)}` : " · nog niet ingelogd")}
                   </p>
                 </div>
+                {openstaand && (
+                  <>
+                    <span className="apill bg-[#fff4e5] text-[#c77700]">Uitnodiging openstaand</span>
+                    <NewLinkButton email={u.email} roleId={u.role_id} />
+                  </>
+                )}
                 <StatusSelect
                   action={setUserRole.bind(null, u.user_id)}
                   current={u.role_id}
                   options={roleOptions}
+                  name="role_id"
                 />
                 {!isSelf && (
                   <ConfirmButton

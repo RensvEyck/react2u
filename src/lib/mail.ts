@@ -1,4 +1,4 @@
-// Notificatiemail bij binnenkomende inzendingen.
+// Notificatiemail bij binnenkomende inzendingen, en de uitnodiging voor collega's.
 //
 // Bewust zonder SDK: de Resend-API is één POST, dat is geen dependency waard.
 //
@@ -52,32 +52,59 @@ function adminUrl() {
   return `${base.replace(/\/$/, "")}/admin/postvak-in`;
 }
 
-async function send(subject: string, html: string) {
+/**
+ * Eén POST naar Resend. Geeft terug of de mail is aangenomen; gooit nooit.
+ *
+ * Zonder sleutel of afzender doet dit niets — stil, zie regel 1 bovenaan.
+ */
+async function post(to: string[], subject: string, html: string): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
-  const to = process.env.NOTIFY_TO;
   const from = process.env.NOTIFY_FROM;
-  if (!key || !to || !from) return; // niet geconfigureerd — stil overslaan
+  if (!key || !from || !to.length) return false;
 
   try {
     const res = await fetch(ENDPOINT, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from,
-        to: to.split(",").map((s) => s.trim()).filter(Boolean),
-        subject,
-        html,
-      }),
+      body: JSON.stringify({ from, to, subject, html }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) {
-      // Alleen loggen. De inzending is al opgeslagen; hier stoppen zou de
-      // bezoeker een foutmelding geven voor iets wat wél gelukt is.
+      // Alleen loggen. De aanroeper heeft zijn werk al gedaan; hier stoppen zou
+      // een foutmelding geven voor iets wat wél gelukt is.
       console.error("[mail] Resend gaf %s: %s", res.status, await res.text().catch(() => ""));
     }
+    return res.ok;
   } catch (err) {
     console.error("[mail] versturen mislukt:", err);
+    return false;
   }
+}
+
+async function send(subject: string, html: string) {
+  const to = (process.env.NOTIFY_TO || "").split(",").map((s) => s.trim()).filter(Boolean);
+  await post(to, subject, html);
+}
+
+/** Of er gemaild kan worden. Alleen of het gezet is, nooit de waarde. */
+export function mailReady() {
+  return Boolean(process.env.RESEND_API_KEY && process.env.NOTIFY_FROM);
+}
+
+/**
+ * De uitnodiging voor een collega. `true` als Resend hem heeft aangenomen;
+ * anders toont het scherm de link om zelf door te sturen.
+ */
+export async function sendInvite(i: { to: string; link: string; invitedBy: string; roleLabel: string }) {
+  const html = `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:520px;color:#1c1a4e">
+  <h2 style="margin:0 0 8px;font-size:20px;color:#312e82">Je bent uitgenodigd voor het beheer van react2u.nl</h2>
+  <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#444">${esc(i.invitedBy)} heeft je toegang gegeven als <strong>${esc(i.roleLabel)}</strong>. Kies een wachtwoord en je kunt meteen aan de slag.</p>
+  <p style="margin:0 0 24px"><a href="${esc(i.link)}" style="display:inline-block;background:#e75387;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:12px">Wachtwoord kiezen</a></p>
+  <p style="margin:0 0 6px;font-size:13px;color:#888">Werkt de knop niet? Kopieer deze link naar je browser:</p>
+  <p style="margin:0 0 20px;font-size:12px;word-break:break-all;color:#312e82">${esc(i.link)}</p>
+  <p style="margin:0;font-size:13px;color:#888">De link werkt één keer. Verwachtte je deze mail niet, dan kun je hem negeren.</p>
+</div>`;
+  return post([i.to], "Je uitnodiging voor het beheer van react2u.nl", html);
 }
 
 export async function notifyContactMessage(m: {

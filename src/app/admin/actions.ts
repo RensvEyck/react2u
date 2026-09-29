@@ -440,56 +440,85 @@ export async function saveMaintenanceSettings(formData: FormData) {
 
 /* ---------- gebruikers en rollen ---------- */
 
+export type InviteState =
+  | { status: "idle" }
+  | { status: "error"; message: string }
+  // `link` is null als het adres al een account had: dan is er niets te versturen.
+  | { status: "ok"; email: string; roleLabel: string; link: string | null; mail: "verstuurd" | "uit" | "mislukt" };
+
 /**
- * Nodigt een collega uit.
+ * Nodigt een collega uit, of stuurt iemand een nieuwe link.
  *
- * Supabase maakt het account aan en verstuurt zelf de mail, inclusief
- * vervaltermijn. De genodigde landt op /admin/uitnodiging en kiest daar een
- * wachtwoord. Daarna volgt de rij in `admins` — pas dán heeft hij toegang;
- * een auth-account op zichzelf geeft niets.
+ * Supabase maakt het account aan; de link maken we zelf en mailen we via
+ * Resend als dat is ingesteld — zie `src/lib/invite.ts` waarom niet via de mail
+ * van Supabase. De link komt altijd terug naar het scherm, zodat wie uitnodigt
+ * hem ook zelf kan doorsturen als de mail niet aankomt.
+ *
+ * Toegang volgt uit de rij in `admins`, niet uit het account: een auth-account
+ * op zichzelf geeft niets.
  */
-export async function inviteUser(formData: FormData) {
-  const { admin } = await requirePerm("gebruikers");
+export async function inviteUser(_prev: InviteState, formData: FormData): Promise<InviteState> {
+  const { sb, admin } = await requirePerm("gebruikers");
+  const { inviteErrorText, inviteLink, isEmail, isExistingAccount, siteUrl } = await import("@/lib/invite");
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const roleId = String(formData.get("role_id") || "");
-  if (!email || !roleId) redirect("/admin/gebruikers?fout=onvolledig");
+  if (!isEmail(email)) return { status: "error", message: "Vul een geldig e-mailadres in." };
+
+  const { data: role } = await sb.from("roles").select("label").eq("id", roleId).maybeSingle();
+  if (!role) return { status: "error", message: "Kies een rol." };
+  const roleLabel = (role as { label: string }).label;
 
   const { supabaseAdmin, canInvite } = await import("@/lib/supabase/admin");
-  if (!canInvite()) redirect("/admin/gebruikers?fout=geen-sleutel");
-
-  const site =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
-    "https://react2u.nl";
-
+  if (!canInvite()) {
+    return { status: "error", message: "Uitnodigen staat uit: SUPABASE_SERVICE_ROLE_KEY ontbreekt in Vercel." };
+  }
   const sa = supabaseAdmin();
-  const { data, error } = await sa.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${site.replace(/\/$/, "")}/admin/uitnodiging`,
-  });
 
-  if (error || !data?.user) {
-    // Bestaat het account al, dan alleen de adminrij toevoegen — dat is precies
-    // het geval "collega had al een account maar geen toegang".
-    const already = /already|registered|exists/i.test(error?.message || "");
-    if (!already) redirect(`/admin/gebruikers?fout=uitnodigen`);
-    const { data: found } = await sa.auth.admin.listUsers();
+  // Maakt het account aan als het er nog niet is. Voor wie al is uitgenodigd
+  // maar de link nooit gebruikte, komt er een nieuwe; de oude vervalt.
+  const { data, error } = await sa.auth.admin.generateLink({ type: "invite", email });
+
+  if (error) {
+    if (!isExistingAccount(error)) {
+      console.error("[uitnodigen] generateLink voor %s: %s %s %s", email, error.status, error.code, error.message);
+      return { status: "error", message: inviteErrorText(error) };
+    }
+    // Wie al een account heeft, krijgt alleen toegang. Die logt in met het
+    // wachtwoord dat hij al had.
+    const { data: found, error: listError } = await sa.auth.admin.listUsers({ perPage: 1000 });
     const existing = found?.users.find((u) => u.email?.toLowerCase() === email);
-    if (!existing) redirect("/admin/gebruikers?fout=uitnodigen");
-    await addAdminRow(existing.id, email, roleId, admin.userId);
-    redirect("/admin/gebruikers?opgeslagen=1");
+    if (!existing) {
+      console.error("[uitnodigen] bestaand account %s niet gevonden: %s", email, listError?.message);
+      return { status: "error", message: inviteErrorText(listError) };
+    }
+    const rowError = await addAdminRow(sb, existing.id, email, roleId, admin.userId);
+    if (rowError) return { status: "error", message: rowError };
+    return { status: "ok", email, roleLabel, link: null, mail: "uit" };
   }
 
-  await addAdminRow(data.user.id, email, roleId, admin.userId);
-  redirect("/admin/gebruikers?opgeslagen=1");
+  const rowError = await addAdminRow(sb, data.user.id, email, roleId, admin.userId);
+  if (rowError) return { status: "error", message: rowError };
+
+  const link = inviteLink(siteUrl(), data.properties.hashed_token);
+  const { mailReady, sendInvite } = await import("@/lib/mail");
+  if (!mailReady()) return { status: "ok", email, roleLabel, link, mail: "uit" };
+  const sent = await sendInvite({ to: email, link, invitedBy: admin.email, roleLabel });
+  return { status: "ok", email, roleLabel, link, mail: sent ? "verstuurd" : "mislukt" };
 }
 
-async function addAdminRow(userId: string, email: string, roleId: string, invitedBy: string) {
-  const { sb } = await requirePerm("gebruikers");
-  await sb.from("admins").upsert(
+async function addAdminRow(sb: Sb, userId: string, email: string, roleId: string, invitedBy: string) {
+  const { error } = await sb.from("admins").upsert(
     { user_id: userId, email, role_id: roleId, invited_at: new Date().toISOString(), invited_by: invitedBy },
     { onConflict: "user_id" }
   );
   revalidatePath("/admin/gebruikers");
+  if (!error) return null;
+  console.error("[uitnodigen] admins-rij voor %s: %s", email, error.message);
+  // Dezelfde databasetrigger als bij setUserRole: de laatste beheerder mag
+  // zijn recht `gebruikers` niet kwijtraken, ook niet via een nieuwe uitnodiging.
+  return /rollen mag beheren/i.test(error.message)
+    ? "Geweigerd: er moet minstens één gebruiker overblijven die rollen mag beheren."
+    : "Het account staat klaar, maar toegang geven mislukte. Probeer het opnieuw.";
 }
 
 export async function setUserRole(userId: string, formData: FormData) {

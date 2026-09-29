@@ -96,6 +96,17 @@ belandt. Gebruik hem nooit voor gewone tabellen: die sleutel omzeilt alle RLS,
 en daarmee elke rolcontrole in dit project. Ontbreekt `SUPABASE_SERVICE_ROLE_KEY`,
 dan werkt alles behalve uitnodigen.
 
+**Uitnodigen leunt niet op de mail van Supabase.** De server maakt de link zelf
+(`auth.admin.generateLink`) en de landingspagina wisselt de gehashte token in met
+`verifyOtp`; zie [`src/lib/invite.ts`](src/lib/invite.ts). Supabase's eigen
+uitnodigingsmail faalde op drie plekken tegelijk: de standaard-mailserver bezorgt
+alleen bij leden van het Supabase-team, de link valt zonder vermelding in de
+Redirect URLs terug op de Site URL, en hij zet de sessie in de hash, die de
+PKCE-client van `@supabase/ssr` weigert. Nu wordt de link gemaild via Resend als
+`RESEND_API_KEY` en `NOTIFY_FROM` gezet zijn, en staat hij altijd op het scherm
+om zelf door te sturen (kopiëren of *Open in mail*). Wie een link niet op tijd
+gebruikte, krijgt bij Gebruikers met *Nieuwe link* een nieuwe; de oude vervalt.
+
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
 zijn is niet genoeg, er moet ook een rij in `admins` staan. Schermen achter een
 recht gebruiken `requirePerm('<recht>')`.

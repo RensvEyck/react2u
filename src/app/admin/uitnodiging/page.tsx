@@ -3,9 +3,44 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { parseInviteUrl } from "@/lib/invite";
 import { LuLock, LuCircleCheck } from "react-icons/lu";
 
 type Stand = "laden" | "klaar" | "ongeldig";
+type Uitkomst = { email: string } | { ongeldig: true };
+
+/**
+ * Wisselt de link in voor een sessie. Eén keer per paginabezoek: een token
+ * werkt maar één keer, en React draait effecten in dev bewust twee keer. De
+ * tweede aanroep krijgt zo dezelfde uitkomst in plaats van "al gebruikt".
+ */
+let inwisselen: Promise<Uitkomst> | null = null;
+
+async function wisselIn(): Promise<Uitkomst> {
+  const sb = supabaseBrowser();
+  const url = parseInviteUrl(window.location.search, window.location.hash);
+  // De token hoort niet in de geschiedenis, een bladwijzer of een schermafbeelding.
+  if (url.kind !== "none") window.history.replaceState(null, "", window.location.pathname);
+
+  // Verlopen, al gebruikt of vervangen door een nieuwere link: Supabase geeft
+  // voor alle drie dezelfde code, dus de pagina zegt ook één ding.
+  if (url.kind === "error") return { ongeldig: true };
+  if (url.kind === "token_hash") {
+    const { data, error } = await sb.auth.verifyOtp({ token_hash: url.tokenHash, type: "invite" });
+    if (error || !data.user) return { ongeldig: true };
+    return { email: data.user.email || "" };
+  }
+  if (url.kind === "tokens") {
+    // Een uitnodiging die Supabase zelf mailde. De PKCE-client leest die hash
+    // niet uit zichzelf; setSession controleert het token bij Supabase.
+    const { data, error } = await sb.auth.setSession({ access_token: url.accessToken, refresh_token: url.refreshToken });
+    if (error || !data.user) return { ongeldig: true };
+    return { email: data.user.email || "" };
+  }
+  // Geen token in de URL: teruggekomen na herladen, met de sessie al gezet.
+  const { data } = await sb.auth.getUser();
+  return data.user ? { email: data.user.email || "" } : { ongeldig: true };
+}
 
 /**
  * Landingspagina van een uitnodiging.
@@ -25,13 +60,10 @@ export default function UitnodigingPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const sb = supabaseBrowser();
-    // De client leest het token uit de hash en zet zelf een sessie. Dat gebeurt
-    // asynchroon, dus we wachten op de eerste uitkomst in plaats van meteen te
-    // oordelen dat de link ongeldig is.
-    sb.auth.getSession().then(({ data }) => {
-      if (data.session?.user) {
-        setEmail(data.session.user.email || "");
+    inwisselen ??= wisselIn();
+    inwisselen.then((u) => {
+      if ("email" in u) {
+        setEmail(u.email);
         setStand("klaar");
       } else {
         setStand("ongeldig");
@@ -77,9 +109,12 @@ export default function UitnodigingPage() {
             <h1 className="mb-2 text-center font-heading text-[22px] font-bold text-[#312e82]">
               Deze link werkt niet meer
             </h1>
-            <p className="mb-6 text-center text-[13.5px] text-black/55">
-              Uitnodigingen verlopen na verloop van tijd, en een link werkt maar één keer.
-              Vraag je collega om je opnieuw uit te nodigen.
+            <p className="mb-3 text-center text-[13.5px] text-black/55">
+              Een uitnodigingslink werkt één keer, een beperkte tijd, en alleen de nieuwste.
+              Vraag je collega om een nieuwe link — dat is één klik bij Gebruikers.
+            </p>
+            <p className="mb-6 text-center text-[13px] text-black/45">
+              Heb je al een wachtwoord gekozen? Dan kun je gewoon inloggen.
             </p>
             <Link href="/admin/login" className="abtn w-full justify-center !py-3">Naar het inlogscherm</Link>
           </>
