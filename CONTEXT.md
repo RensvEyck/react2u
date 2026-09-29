@@ -110,9 +110,37 @@ toe te voegen is.
 1. [`src/components/blocks/BlockRenderer.tsx`](src/components/blocks/BlockRenderer.tsx) → `REGISTRY` (koppelt type aan component)
 2. [`src/lib/blockTemplates.ts`](src/lib/blockTemplates.ts) → `BLOCK_TEMPLATES` (label + standaarddata voor "Blok toevoegen")
 
+Rendert het blok een kop op paginaniveau, zet het type dan ook in
+`HEADING_BLOCKS` in `BlockRenderer` — anders kan het nooit de `<h1>` worden.
+
 **Het menu volgt de database niet.** `MAIN_NAV` in [`src/lib/nav.ts`](src/lib/nav.ts)
 is een hardgecodeerde lijst. Een nieuwe pagina in het adminpaneel verschijnt dus
-wél op zijn URL, maar niet in de navigatie tot je `nav.ts` bijwerkt.
+wél op zijn URL, maar niet in de navigatie tot je `nav.ts` bijwerkt. Hetzelfde
+geldt voor `PIJLERS` (de zes diensten in drie groepen): daaruit lezen het
+megamenu onder *Oplossingen*, de footer én het blok `pillars`. Een dienst
+erbij of een andere groepering is dus één wijziging in `nav.ts`, niet drie.
+
+**Losse CSS-klassen winnen van Tailwind-utilities.** Tailwind v4 zet utilities
+in `@layer utilities`, en CSS buiten een laag wint altijd van CSS in een laag —
+ongeacht specificiteit. Stond `.btn { display: inline-block }` los in
+`globals.css`, dan deed `btn hidden sm:inline-flex` niets, en `container-site
+max-w-[820px]` bleef 1200px breed. Daarom staan de componentklassen (`.btn*`,
+`.eyebrow`, `.container-site`, `.link-arrow`, `.lift`) in `@layer components`.
+Zet een nieuwe klasse die met utilities gecombineerd wordt daar ook in.
+
+**Ankers op dienstpagina's hangen aan de titel.** Elk onderdeel van een
+`subSections`-blok krijgt een `id` uit zijn titel (`anchorId()` in
+`BlockRenderer`, accenten eraf: "Eén-op-één coaching op maat" →
+`een-op-een-coaching-op-maat`). Het blok `linkIndex` op de homepage linkt
+daarheen. Hernoem je zo'n titel, dan landt de link nog wel op de pagina maar
+niet meer op het onderdeel — pas dan ook de link aan.
+
+**Dienstkleuren gaan op naam, niet op hexcode.** Elke dienst heeft een kleur uit
+de stippen van het logo; die staan in [`src/lib/brand.ts`](src/lib/brand.ts)
+(`KLEUREN`: `blauw`, `teal`, `rood`, `oranje`, `roze`, `indigo`). In blokdata
+en in `nav.ts` staat de naam, `kleurVars()` maakt er CSS-variabelen van
+(`--k`, `--k-vlak`, `--k-zacht`, `--k-donker`). Een onbekende naam valt terug
+op indigo.
 
 **`site_settings.documents` bestaat in twee vormen.** Oorspronkelijk een vast
 object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure`,
@@ -144,6 +172,68 @@ mail helemaal niet aan; je ziet het alleen in de logs. Mail voor react2u.nl
 loopt via Microsoft 365 (`MX react2u-nl.mail.protection.outlook.com`), met
 Sophos-filtering ervoor en `-all` in de SPF.
 
+## Bloktypes in de opbouw van acture.nl
+
+De homepage volgt sinds september 2026 de opbouw van acture.nl, in de huisstijl
+van React2u. Daarvoor kwamen er zes bloktypes bij, naast de bestaande:
+
+| Bloktype | Wat |
+|---|---|
+| `heroStatement` | Belofte met één woord in accentkleur (`highlight`), twee knoppen, foto met de stippenwolk, en een strook klantlogo's. |
+| `pillars` | De drie pijlers als kaarten. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
+| `linkIndex` | Alle onderwerpen als tegels, elk in de kleur van zijn dienst. |
+| `about` | Beeld naast tekst, met een citaat. |
+| `facts` | "In één oogopslag": bento-raster op indigo. Een item met `value` wordt een cijferkaart, met `image` een beeldkaart over twee rijen, anders een tekstkaart. |
+| `latestPosts` | De nieuwste artikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
+
+Daarnaast kregen twee bestaande blokken een optionele variant: `intro` met
+`layout: "split"` (kop links, tekst rechts) en `valueCards` met een `heading`
+(tekst links, waarden als lijst rechts). Zonder die velden zien ze er uit als
+voorheen. De blokeditor toont alleen velden die al in de data staan — wil je
+een bestaand blok omzetten, voeg het blok dan opnieuw toe.
+
+**Niet verzinnen.** Acture toont cijfers (650+ medewerkers, 6500+ organisaties)
+en een klantcitaat. Voor React2u stonden die nergens, dus `facts` gebruikt
+alleen wat aantoonbaar klopt: zes diensten, een vaste casemanager, de
+keurmerken uit `site_settings.certificates`. Echte cijfers of reviews kunnen er
+via het CMS bij.
+
+**`latestPosts` heeft gegevens van de pagina nodig.** Blokken renderen ook in
+het live voorbeeld van de blokeditor, en dat is een client component — een
+blok kan daar niet zelf de database bevragen. De pagina haalt de artikelen
+daarom op (`needsPosts()`) en geeft ze via `ctx` door aan `BlockRenderer`. In
+de blokeditor ontbreekt `ctx`; daar toont het blok voorbeeldkaarten.
+
+## Concepten
+
+Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
+raken: [`src/content/home.json`](src/content/home.json) bevat de blokken van de
+nieuwe homepage, en `/concept` rendert die met de gewone `BlockRenderer`.
+Alleen lokaal en op preview-deploys — in productie (`VERCEL_ENV=production`)
+geeft `/concept` een 404, en de pagina staat op `noindex`.
+
+**Staging** is een preview-deploy van een branch: elke push naar een andere
+branch dan `master` krijgt van Vercel een eigen URL, plus een vaste per branch
+(`react2u-git-<branch>-….vercel.app`). Let op: staging praat met de
+productiedatabase. Een contactformulier of sollicitatie die je daar invult komt
+echt binnen, en bezoeken tellen mee in `/admin/bezoek`.
+
+Overzetten naar de database:
+
+```bash
+node scripts/concept-naar-sql.mjs home > home.sql
+```
+
+en plak `home.sql` in de SQL-editor van Supabase. Het script praat zelf niet
+met de database. De SQL verwijdert niets: de huidige blokken verhuizen naar een
+nieuwe, niet-gepubliceerde pagina `home-oud-<datum>`, en pas daarna komen de
+nieuwe blokken erin — alles in één transactie. Terugdraaien kan via het
+adminpaneel. Draai je het script twee keer op dezelfde dag, dan faalt de tweede
+keer op de bestaande `home-oud-<datum>` en gebeurt er niets.
+
+Let op dat de publieke pagina's 5 minuten gecachet zijn; de nieuwe homepage is
+dus niet meteen zichtbaar.
+
 ## Onderhoudsmodus
 
 Een schakelaar op `/admin/instellingen` (recht `instellingen`), opgeslagen als
@@ -161,14 +251,18 @@ HTML ([`src/lib/maintenance.ts`](src/lib/maintenance.ts)), met `503`,
 stylesheet heeft een gehashte naam. Om dezelfde reden staan de lettertypes
 (Figtree, DM Sans) los in `public/fonts/` — byte voor byte dezelfde bestanden
 die next/font voor de site bundelt, maar op een vaste naam. Het beeld is de stippenwolk uit het logo, als
-cirkels overgenomen, met de kop op de plek van het woord "React2u".
+cirkels overgenomen (`LOGO_DOTS` in `src/lib/brand.ts`, dezelfde bron als
+`DotCloud` op de site), met de kop op de plek van het woord "React2u".
 
 **De pagina's zelf veranderen niet.** Aan- of uitzetten revalideert niets; de
 statische pagina's blijven in de cache staan en zijn meteen terug zodra de
 schakelaar uit gaat.
 
 Wat de poort doorlaat: `/admin`, `/api/` (bezoekregistratie), `/_next/` en alles
-met een bestandsextensie (`robots.txt`, `sitemap.xml`, favicon). Formulieren
+met een bestandsextensie (`robots.txt`, `sitemap.xml`, favicon). Op een
+preview-deploy (staging, `VERCEL_ENV=preview`) staat de poort helemaal uit:
+die deelt de database en dus de schakelaar met productie, en staging is er juist
+om te bekijken wat nog niet live mag. Formulieren
 posten naar hun paginapad en worden dus ook tegengehouden.
 
 **Beheerders komen erlangs** met één query op `admins` via hun eigen sessie. De

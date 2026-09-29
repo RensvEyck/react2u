@@ -81,6 +81,11 @@ async function adminPassThrough(request: NextRequest): Promise<NextResponse | nu
 }
 
 async function maintenanceGate(request: NextRequest) {
+  // Een preview-deploy (staging) deelt de database met productie, dus ook de
+  // schakelaar. Daar zou hij juist in de weg zitten: staging is er om te
+  // bekijken wat er nog niet live mag. Vercel zet preview-deploys zelf op
+  // noindex, dus Google ziet ze niet.
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.next();
   const { maintenance, contact } = await gateSettings();
   if (!maintenance.enabled) return NextResponse.next();
 

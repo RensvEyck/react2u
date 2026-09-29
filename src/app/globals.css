@@ -2,6 +2,8 @@
 
 @theme {
   --color-primary: #312e82;
+  --color-primary-deep: #22205a;
+  --color-primary-light: #8985d6;
   --color-secondary: #00aa98;
   --color-accent: #e75387;
   --color-accent-blue: #39a5dd;
@@ -34,51 +36,146 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-.btn {
-  display: inline-block;
-  border-radius: 100px;
-  padding: 14px 32px;
-  font-size: 17px;
-  line-height: 1.5;
-  background: var(--color-accent);
-  color: #fff;
-  border: 1px solid var(--color-accent);
-  transition: all 0.25s ease;
-  text-align: center;
-}
-.btn:hover {
-  background: transparent;
-  color: var(--color-accent);
-}
-.btn-indigo {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-.btn-indigo:hover {
-  background: transparent;
-  color: var(--color-primary);
-}
-.btn-outline {
-  background: transparent;
-  color: var(--color-accent);
-}
-.btn-outline:hover {
-  background: var(--color-accent);
-  color: #fff;
+/* In een laag, zodat een utility (bv. hover:text-…) ze kan overschrijven.
+   Klassen buiten een @layer winnen in Tailwind v4 altijd van utilities. */
+@layer components {
+  .btn {
+    display: inline-block;
+    border-radius: 100px;
+    padding: 14px 32px;
+    font-size: 17px;
+    line-height: 1.5;
+    background: var(--color-accent);
+    color: #fff;
+    border: 1px solid var(--color-accent);
+    transition: all 0.25s ease;
+    text-align: center;
+  }
+  .btn:hover {
+    background: transparent;
+    color: var(--color-accent);
+  }
+  .btn-indigo {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+  .btn-indigo:hover {
+    background: transparent;
+    color: var(--color-primary);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--color-accent);
+  }
+  .btn-outline:hover {
+    background: var(--color-accent);
+    color: #fff;
+  }
+  .btn-sm {
+    padding: 9px 22px;
+    font-size: 15.5px;
+  }
+  /* Op een donker vlak is roze-op-indigo te zwak; daar wordt de outline wit. */
+  .on-dark .btn-outline,
+  .btn-light {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+  .on-dark .btn-outline:hover,
+  .btn-light:hover {
+    background: #fff;
+    color: var(--color-primary);
+    border-color: #fff;
+  }
+  .btn:focus-visible,
+  .link-arrow:focus-visible {
+    outline: 3px solid rgba(231, 83, 135, 0.4);
+    outline-offset: 3px;
+  }
+
+  /* Tekstlink met een pijl die meeschuift, zoals "Lees verder →". */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    font-weight: 600;
+    color: var(--color-primary);
+    transition: color 0.2s ease;
+  }
+  .link-arrow svg {
+    flex: none;
+    transition: transform 0.25s ease;
+  }
+  .link-arrow:hover {
+    color: var(--color-accent);
+  }
+  .link-arrow:hover svg,
+  .group:hover .link-arrow svg {
+    transform: translateX(4px);
+  }
+
+  .eyebrow {
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--color-secondary);
+    font-size: 15px;
+  }
+
+  .container-site {
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  /* Kaart die bij hover iets optilt. */
+  .lift {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px -24px rgba(34, 32, 90, 0.35);
+  }
 }
 
-.eyebrow {
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: var(--color-secondary);
-  font-size: 15px;
+/* Stippenwolk uit het logo: stip voor stip erin, daarna licht zwevend.
+   Bij prefers-reduced-motion staat alles stil (niet trager: uit). */
+.dot {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.dots-animate .dot {
+  animation:
+    dot-in 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) both calc(var(--i) * 45ms),
+    dot-float 5s ease-in-out infinite calc(var(--i) * -0.37s);
+}
+@keyframes dot-in {
+  from { opacity: 0; scale: 0.2; }
+}
+@keyframes dot-float {
+  50% { translate: 0 -0.9px; }
 }
 
-.container-site {
-  max-width: 1200px;
-  margin-inline: auto;
-  padding-inline: 1.25rem;
+/* Megamenu en uitklapmenu's */
+.menu-panel {
+  animation: menu-in 0.18s ease-out both;
+}
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .dots-animate .dot,
+  .menu-panel { animation: none; }
+  .link-arrow svg,
+  .lift { transition: none; }
+}
+
+/* Anker-doelen vallen anders onder de plakkende header. */
+[id] {
+  scroll-margin-top: 110px;
 }
 
 /* Flip cards */

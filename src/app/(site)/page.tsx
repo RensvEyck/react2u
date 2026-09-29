@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { getPage } from "@/lib/content";
-import BlockRenderer from "@/components/blocks/BlockRenderer";
+import { getPage, getPublishedPosts } from "@/lib/content";
+import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
 import { jsonLd } from "@/lib/jsonld";
+import { LINKEDIN_URL } from "@/lib/nav";
 
 export const revalidate = 300;
 
@@ -32,9 +33,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const res = await getPage("home");
   if (!res) return <div className="container-site py-20">Content wordt nog ingericht.</div>;
+  const posts = needsPosts(res.blocks) ? await getPublishedPosts() : [];
   return (
     <>
-      <BlockRenderer blocks={res.blocks} />
+      <BlockRenderer blocks={res.blocks} ctx={{ posts }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -54,7 +56,7 @@ export default async function HomePage() {
               addressLocality: "Eindhoven",
               addressCountry: "NL",
             },
-            sameAs: ["https://www.linkedin.com/company/react2u/"],
+            sameAs: [LINKEDIN_URL],
           }),
         }}
       />

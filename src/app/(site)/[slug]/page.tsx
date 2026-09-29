@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPage, getPublishedPages } from "@/lib/content";
-import BlockRenderer from "@/components/blocks/BlockRenderer";
+import { getPage, getPublishedPages, getPublishedPosts } from "@/lib/content";
+import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -45,5 +45,6 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const res = await getPage(slug);
   if (!res) notFound();
-  return <BlockRenderer blocks={res.blocks} />;
+  const posts = needsPosts(res.blocks) ? await getPublishedPosts() : [];
+  return <BlockRenderer blocks={res.blocks} ctx={{ posts }} />;
 }

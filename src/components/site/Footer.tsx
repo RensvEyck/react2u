@@ -1,8 +1,25 @@
 import Link from "next/link";
-import { LOGO_URL, type FooterDoc, type Certificate } from "@/lib/nav";
+import { PIJLERS, LINKEDIN_URL, type FooterDoc, type Certificate } from "@/lib/nav";
+import { kleurVars } from "@/lib/brand";
 import type { ContactInfo } from "@/lib/content";
-import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaCertificate } from "react-icons/fa";
+import { FaPhoneAlt, FaEnvelope, FaCertificate, FaLinkedinIn } from "react-icons/fa";
 import SiteImage from "./SiteImage";
+import Logo from "./Logo";
+
+const HANDIGE_LINKS = [
+  { label: "Over React2u", href: "/over-react2u" },
+  { label: "Voor werknemers", href: "/werknemers" },
+  { label: "Verzuimprotocol", href: "/verzuimprotocol" },
+  { label: "Inzichten", href: "/blog" },
+  { label: "Werken bij React2u", href: "/vacatures" },
+  { label: "Vragen & contact", href: "/contact" },
+];
+
+function Kop({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-4 text-[13px] font-bold uppercase tracking-[0.14em] !text-primary-light">{children}</h2>
+  );
+}
 
 export default function Footer({
   contact, docs, certificates,
@@ -11,74 +28,92 @@ export default function Footer({
   docs: FooterDoc[];
   certificates: Certificate[];
 }) {
-  const cols = [
-    { title: "Werkgever", links: [
-      { label: "Diensten", href: "/diensten" },
-      { label: "Over React2u", href: "/over-react2u" },
-      { label: "Contact", href: "/contact" },
-    ]},
-    { title: "Werknemer", links: [
-      { label: "Diensten", href: "/werknemers" },
-      { label: "Verzuimprotocol", href: "/verzuimprotocol" },
-      { label: "Contact", href: "/contact" },
-    ]},
-  ];
   return (
-    <footer className="mt-20 bg-[#e6e6ea] text-primary">
-      <div className="container-site grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-4">
+    <footer className="on-dark mt-20 bg-primary-deep text-[16px] text-white/75">
+      <div className="container-site grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1fr]">
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={LOGO_URL} alt="React2u" className="h-[80px] w-auto mb-4" />
-          <p className="text-[16px] text-primary/80">
-            React2u kijkt graag samen met zowel werknemer, als werkgever naar de beste weg om de
-            arbeidsrelatie voort te zetten. <br />Er is altijd een oplossing!
+          <Link href="/" className="inline-block">
+            <Logo tone="light" className="mb-5 h-[64px] w-auto" />
+          </Link>
+          <p className="max-w-[320px] leading-relaxed">
+            React2u kijkt graag samen met werknemer én werkgever naar de beste weg om de
+            arbeidsrelatie voort te zetten. Er is altijd een oplossing!
           </p>
+          <a href={LINKEDIN_URL} target="_blank" rel="noopener" aria-label="React2u op LinkedIn"
+             className="mt-6 grid h-10 w-10 place-items-center rounded-full border border-white/20 text-white transition-colors hover:border-white hover:bg-white hover:text-primary">
+            <FaLinkedinIn aria-hidden />
+          </a>
         </div>
-        {cols.map((col) => (
-          <div key={col.title}>
-            <h2 className="text-2xl mb-4">{col.title}</h2>
+
+        <div className="space-y-8">
+          <div>
+            <Kop>Bezoekadres</Kop>
+            <p>React2u<br />{contact.addressLine1}<br />{contact.addressLine2}</p>
+          </div>
+          <div>
+            <Kop>Contact</Kop>
             <ul className="space-y-2">
-              {col.links.map((l) => (
-                <li key={l.label + l.href}>
-                  <Link href={l.href} className="text-primary/80 hover:text-accent">
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-2.5 hover:text-white">
+                  <FaPhoneAlt className="text-[12px]" aria-hidden /> {contact.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2.5 hover:text-white">
+                  <FaEnvelope className="text-[12px]" aria-hidden /> {contact.email}
+                </a>
+              </li>
             </ul>
           </div>
-        ))}
+        </div>
+
         <div>
-          <h2 className="text-2xl mb-4">React2u</h2>
-          <ul className="space-y-3 text-[16px] text-primary/80">
-            <li className="flex gap-3 items-start">
-              <FaMapMarkerAlt className="mt-1 shrink-0" />
-              <span>{contact.addressLine1}<br />{contact.addressLine2}</span>
-            </li>
-            <li className="flex gap-3 items-center">
-              <FaPhoneAlt className="shrink-0" />
-              <a href={`tel:${contact.phone}`} className="hover:text-accent">{contact.phoneDisplay}</a>
-            </li>
-            <li className="flex gap-3 items-center">
-              <FaEnvelope className="shrink-0" />
-              <a href={`mailto:${contact.email}`} className="hover:text-accent">{contact.email}</a>
-            </li>
-            <li><strong>KVK</strong>: {contact.kvk}</li>
-            <li><strong>BTW</strong>: {contact.btw}</li>
-            <li><strong>IBAN</strong>: {contact.iban}</li>
+          <Kop>Oplossingen</Kop>
+          <ul className="space-y-4">
+            {PIJLERS.map((p) => (
+              <li key={p.key}>
+                <span className="mb-1.5 block font-semibold text-white">{p.title}</span>
+                <ul className="space-y-1.5">
+                  {p.diensten.map((d) => (
+                    <li key={d.href} style={kleurVars(d.kleur)}>
+                      <Link href={d.href} className="inline-flex items-center gap-2 hover:text-white">
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--k-donker)]" aria-hidden />
+                        {d.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <Kop>Handige links</Kop>
+          <ul className="space-y-2">
+            {HANDIGE_LINKS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="hover:text-white">{l.label}</Link>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
+
       {certificates.length > 0 && (
-        <div className="border-t border-black/10">
-          <div className="container-site flex flex-wrap items-center justify-center gap-x-10 gap-y-6 py-8">
+        <div className="border-t border-white/10">
+          <div className="container-site flex flex-wrap items-center gap-x-8 gap-y-4 py-7">
+            <span className="text-[13px] font-bold uppercase tracking-[0.14em] text-primary-light">Gecertificeerd</span>
             {certificates.map((c, i) => {
               // Zonder logo tonen we de omschrijving als link. Certificaten
               // komen vaak als PDF binnen, en die kan geen <img> zijn — dan is
-              // een leesbare link beter dan niets laten zien.
+              // een leesbare link beter dan niets laten zien. Een logo krijgt
+              // een witte kaart: de meeste keurmerken zijn donker op transparant.
               const inhoud = c.image ? (
-                <SiteImage src={c.image} alt={c.alt} sizes="160px" widths={[160, 320]}
-                  className="h-14 w-auto max-w-[160px] object-contain" />
+                <span className="inline-block rounded-xl bg-white px-3 py-2">
+                  <SiteImage src={c.image} alt={c.alt} sizes="160px" widths={[160, 320]}
+                    className="h-10 w-auto max-w-[140px] object-contain" />
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-2 text-[15px] font-medium">
                   <FaCertificate className="shrink-0 text-secondary" aria-hidden />
@@ -86,8 +121,7 @@ export default function Footer({
                 </span>
               );
               return c.href ? (
-                <a key={i} href={c.href} target="_blank" rel="noopener"
-                   className="text-primary/80 transition-opacity hover:text-accent hover:opacity-70">
+                <a key={i} href={c.href} target="_blank" rel="noopener" className="transition-colors hover:text-white">
                   {inhoud}
                 </a>
               ) : (
@@ -98,15 +132,18 @@ export default function Footer({
         </div>
       )}
 
-      <div className="border-t border-black/10">
-        <div className="container-site py-4 text-[15px] text-primary/70 flex flex-wrap gap-x-2 gap-y-1">
-          {docs.map((d, i) => (
-            <span key={`${d.label}-${i}`}>
-              {i > 0 && <span className="mr-2">|</span>}
-              <a href={d.href} target="_blank" rel="noopener" className="hover:text-accent">{d.label}</a>
-            </span>
-          ))}
-          <span>{docs.length > 0 && "| "}© {new Date().getFullYear()} React2u</span>
+      <div className="border-t border-white/10 text-[14px] text-white/55">
+        <div className="container-site flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
+          <p>
+            © {new Date().getFullYear()} React2u · KVK {contact.kvk} · BTW {contact.btw} · IBAN {contact.iban}
+          </p>
+          <ul className="flex flex-wrap gap-x-5 gap-y-1">
+            {docs.map((d, i) => (
+              <li key={`${d.label}-${i}`}>
+                <a href={d.href} target="_blank" rel="noopener" className="hover:text-white">{d.label}</a>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </footer>

@@ -6,8 +6,9 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     data: { eyebrow: "", heading: "Nieuwe kop", text: "Introtekst…", button: { label: "", href: "" }, image: "", imageAlt: "" },
   },
   intro: {
-    label: "Introtekst (gecentreerd)",
-    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" } },
+    label: "Introtekst",
+    // layout: "center" (gecentreerd) of "split" (kop links, tekst rechts).
+    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, layout: "center" },
   },
   animatedHeadline: {
     label: "Typende kop",
@@ -35,7 +36,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   valueCards: {
     label: "Waardenkaarten",
-    data: { cards: [{ icon: "heart", title: "Titel", text: "Tekst" }] },
+    // Met een kop: tekst links, waarden als lijst rechts. Zonder kop: een rij kaarten.
+    data: { eyebrow: "", heading: "", text: "", button: { label: "", href: "" }, cards: [{ icon: "heart", title: "Titel", text: "Tekst" }] },
   },
   contactFaq: {
     label: "Contactformulier + FAQ",
@@ -56,6 +58,42 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   imagesBlock: {
     label: "Afbeelding(en)",
     data: { images: [{ image: "", alt: "" }] },
+  },
+  heroStatement: {
+    label: "Hero met belofte en klantlogo's",
+    data: {
+      eyebrow: "De persoonlijke arbodienst",
+      heading: "Jouw mensen, onze aandacht",
+      highlight: "aandacht",
+      text: "Introtekst…",
+      button: { label: "Onze oplossingen", href: "/diensten" },
+      button2: { label: "Neem contact op", href: "/contact", style: "outline" },
+      image: "", imageAlt: "", badge: "",
+      logosLabel: "Deze organisaties gingen je voor:",
+      logos: [{ image: "", alt: "" }],
+    },
+  },
+  pillars: {
+    label: "Pijlers (inhoud uit het menu)",
+    data: { eyebrow: "Onze oplossingen", heading: "Kop", text: "" },
+  },
+  linkIndex: {
+    label: "Overzicht van onderwerpen",
+    // kleur: blauw, teal, rood, oranje, roze of indigo — zie src/lib/brand.ts.
+    data: { eyebrow: "", heading: "Kop", text: "", button: { label: "", href: "" }, items: [{ label: "Onderwerp", href: "/", kleur: "blauw" }] },
+  },
+  about: {
+    label: "Over ons met citaat",
+    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, image: "", imageAlt: "", quote: "", quoteName: "", quoteRole: "" },
+  },
+  facts: {
+    label: "In één oogopslag (cijfers en feiten)",
+    // Met `value` een cijferkaart, met `image` een beeldkaart, anders een tekstkaart.
+    data: { eyebrow: "", heading: "Kop", text: "", items: [{ value: "", title: "Titel", text: "Tekst", image: "", imageAlt: "" }] },
+  },
+  latestPosts: {
+    label: "Nieuwste artikelen",
+    data: { eyebrow: "Inzichten", heading: "Volg ons nieuws", text: "", button: { label: "Bekijk alle inzichten", href: "/blog" }, count: 3 },
   },
   contactDetails: {
     label: "Contactgegevens + formulier",

@@ -1,29 +1,119 @@
-export type NavItem = { label: string; href: string; children?: { label: string; href: string }[] };
+import type { Kleur } from "./brand";
 
-export const MAIN_NAV: NavItem[] = [
-  { label: "Home", href: "/" },
+/* ---------- Oplossingen: drie pijlers, zes diensten ---------- */
+
+export type Dienst = { label: string; href: string; description: string; kleur: Kleur };
+/** `icon` is een naam uit src/components/site/Icon.tsx. */
+export type Pijler = { key: string; title: string; text: string; kleur: Kleur; icon: string; diensten: Dienst[] };
+
+/**
+ * De zes diensten, gegroepeerd van voorkomen naar herstellen. Voedt het
+ * megamenu, de footer en de standaardinhoud van het blok "Pijlers".
+ *
+ * Elke dienst houdt zijn eigen kleur uit het logo (zie brand.ts); de pijler
+ * neemt de kleur van zijn eerste dienst.
+ */
+export const PIJLERS: Pijler[] = [
   {
-    label: "Diensten",
-    href: "/diensten",
-    children: [
-      { label: "Verzuimbegeleiding WVP", href: "/verzuimbegeleiding-wvp" },
-      { label: "Verzuimbegeleiding ERD/ZW", href: "/verzuimbegeleiding-erd-zw" },
-      { label: "Preventie & Vitaliteit", href: "/preventie-en-vitaliteit" },
-      { label: "Begeleiding & Coaching", href: "/begeleiding-en-coaching" },
-      { label: "Trainingen & Workshops", href: "/trainingen-en-workshops" },
-      { label: "Risicomanagement", href: "/risicomanagement" },
+    key: "preventie",
+    title: "Preventie",
+    text: "Gezonde medewerkers vallen minder snel uit. We signaleren vroeg en pakken risico's aan voordat ze verzuim worden.",
+    kleur: "blauw",
+    icon: "shield",
+    diensten: [
+      {
+        label: "Preventie & Vitaliteit",
+        href: "/preventie-en-vitaliteit",
+        description: "Preventief medisch onderzoek, consulten en tevredenheidsonderzoek.",
+        kleur: "blauw",
+      },
+      {
+        label: "Risicomanagement (RI&E)",
+        href: "/risicomanagement",
+        description: "Samen met kerndeskundigen de risico's in je organisatie in kaart.",
+        kleur: "indigo",
+      },
     ],
   },
   {
+    key: "verzuim",
+    title: "Verzuim",
+    text: "Valt er toch iemand uit? Dan begeleiden we je medewerker doelgericht terug naar werk, met een vaste casemanager en duidelijke stappen.",
+    kleur: "rood",
+    icon: "route",
+    diensten: [
+      {
+        label: "Verzuimbegeleiding WVP",
+        href: "/verzuimbegeleiding-wvp",
+        description: "Het volledige poortwachtertraject, van ziekmelding tot WIA-aanvraag.",
+        kleur: "rood",
+      },
+      {
+        label: "Verzuimbegeleiding ERD/ZW",
+        href: "/verzuimbegeleiding-erd-zw",
+        description: "Voor eigenrisicodragers Ziektewet, ook in de flexbranche.",
+        kleur: "oranje",
+      },
+    ],
+  },
+  {
+    key: "ontwikkeling",
+    title: "Ontwikkeling",
+    text: "Soms is er meer nodig dan een plan van aanpak. Met coaching en training brengen we mensen en teams weer in beweging.",
+    kleur: "roze",
+    icon: "leaf",
+    diensten: [
+      {
+        label: "Begeleiding & Coaching",
+        href: "/begeleiding-en-coaching",
+        description: "Eén-op-één, burn-out- en loopbaancoaching op maat.",
+        kleur: "roze",
+      },
+      {
+        label: "Trainingen & Workshops",
+        href: "/trainingen-en-workshops",
+        description: "Verzuim-, management- en communicatietrainingen voor je team.",
+        kleur: "teal",
+      },
+    ],
+  },
+];
+
+/* ---------- Hoofdmenu ---------- */
+
+export type NavLink = { label: string; href: string };
+/**
+ * Een menu-item is een gewone link, een uitklapmenu (`children`) of het
+ * megamenu met de pijlers (`mega`). Het megamenu leest zijn inhoud uit PIJLERS.
+ */
+export type NavItem = NavLink & { children?: NavLink[]; mega?: true };
+
+export const MAIN_NAV: NavItem[] = [
+  { label: "Oplossingen", href: "/diensten", mega: true },
+  {
     label: "Werknemers",
     href: "/werknemers",
-    children: [{ label: "Verzuimprotocol", href: "/verzuimprotocol" }],
+    children: [
+      { label: "Voor werknemers", href: "/werknemers" },
+      { label: "Verzuimprotocol", href: "/verzuimprotocol" },
+    ],
   },
-  { label: "Blog", href: "/blog" },
-  { label: "Vacatures", href: "/vacatures" },
-  { label: "Over React2u", href: "/over-react2u" },
+  {
+    label: "Over ons",
+    href: "/over-react2u",
+    children: [
+      { label: "Over React2u", href: "/over-react2u" },
+      { label: "Werken bij React2u", href: "/vacatures" },
+    ],
+  },
+  { label: "Inzichten", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
+
+/** De knop rechts in de header, zoals Acture's "Adviesgesprek". */
+export const HEADER_CTA: NavLink = { label: "Adviesgesprek", href: "/contact" };
+
+export const LINKEDIN_URL = "https://www.linkedin.com/company/react2u/";
 
 const MEDIA = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 
