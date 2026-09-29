@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 /**
  * Merkkleuren en de stippenwolk uit het logo.
  *
@@ -33,15 +31,6 @@ export const KLEUREN: Record<Kleur, { tekst: string; vlak: string; zacht: string
 /** Onbekende of lege kleur valt terug op indigo, zodat een typefout in het CMS niets breekt. */
 export function kleur(naam: unknown) {
   return KLEUREN[(typeof naam === "string" && naam in KLEUREN ? naam : "indigo") as Kleur];
-}
-
-/**
- * CSS-variabelen voor één kleur, om via `style` op een element te zetten.
- * Componenten gebruiken daarna `text-[var(--k)]`, `bg-[var(--k-zacht)]` enz.
- */
-export function kleurVars(naam: unknown): CSSProperties {
-  const k = kleur(naam);
-  return { "--k": k.tekst, "--k-vlak": k.vlak, "--k-zacht": k.zacht, "--k-donker": k.donker } as CSSProperties;
 }
 
 /**

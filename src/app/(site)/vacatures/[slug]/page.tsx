@@ -67,15 +67,18 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
           {v.hours && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
           {v.salary && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
         </div>
+        {/* Op de telefoon staat het formulier ver onder de tekst: een sprong ernaartoe. */}
+        <a href="#solliciteer" className="btn mt-7 lg:hidden">Solliciteer direct</a>
       </PageHeader>
       <section className="py-16 md:py-24">
         <div className="container-site grid gap-12 lg:grid-cols-[1fr_440px] lg:gap-16">
           <div>
             {v.intro && <p className="mb-8 text-[21px] leading-relaxed text-primary/85">{v.intro}</p>}
-            <MiniMarkdown text={v.description_md || ""} className="text-[18px]" />
+            <MiniMarkdown text={v.description_md || ""} className="text-[18px]" kop="h2" />
           </div>
-          <div className="h-fit rounded-[28px] border border-black/[0.06] bg-white p-7 shadow-[0_30px_60px_-40px_rgba(34,32,90,0.5)] md:p-9 lg:sticky lg:top-[calc(var(--hh)+1.5rem)]">
-            <h2 className="mb-6 text-[26px]">Solliciteer op deze vacature</h2>
+          <div id="solliciteer" className="h-fit rounded-2xl bg-soft p-7 md:p-9 lg:sticky lg:top-[calc(var(--hh)+1.5rem)]">
+            <h2 className="text-[26px]">Solliciteer op deze vacature</h2>
+            <p className="mb-6 mt-2 text-[15.5px]">Binnen een paar minuten gedaan. We reageren zo snel mogelijk.</p>
             <ApplicationForm vacancyId={v.id} vacancyTitle={v.title} />
           </div>
         </div>

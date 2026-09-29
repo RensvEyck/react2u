@@ -1,6 +1,6 @@
 "use server";
 import { supabasePublic } from "@/lib/supabase/public";
-import { notifyContactMessage, notifyApplication } from "@/lib/mail";
+import { notifyContactMessage, notifyApplication, notifyOfferte } from "@/lib/mail";
 
 export type FormState = { ok: boolean; error?: string } | null;
 
@@ -68,5 +68,42 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     motivation: motivation || null,
     hasCv: Boolean(cvPath),
   });
+  return { ok: true };
+}
+
+const PAKKETTEN = ["Casemanagement Compleet", "Verrichtingenbasis", "Maatwerk"];
+
+/**
+ * Offerteaanvraag vanaf de tarievenpagina. Komt als bericht in het Postvak IN
+ * (geen eigen tabel: het is een lead zoals een contactbericht) en gaat per mail
+ * naar sales.
+ */
+export async function submitOfferte(_prev: FormState, formData: FormData): Promise<FormState> {
+  const name = String(formData.get("name") || "").trim();
+  const company = String(formData.get("company") || "").trim();
+  const email = String(formData.get("email") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const extra = String(formData.get("message") || "").trim();
+  const employees = Math.round(Number(formData.get("employees")) || 0);
+  const gekozen = String(formData.get("pakket") || "").trim();
+  const pakket = PAKKETTEN.includes(gekozen) ? gekozen : gekozen.slice(0, 80) || "Onbekend";
+  const honeypot = String(formData.get("website") || "");
+  if (honeypot) return { ok: true };
+  if (!name || !company || !email || !phone || employees < 1)
+    return { ok: false, error: "Vul naam, bedrijfsnaam, e-mailadres, telefoonnummer en het aantal medewerkers in." };
+
+  const message = [
+    `Aansluiting: ${pakket}`,
+    `Bedrijf: ${company}`,
+    `Aantal medewerkers: ${employees}`,
+    extra ? `\n${extra}` : "",
+  ].filter(Boolean).join("\n");
+
+  const sb = supabasePublic();
+  const { error } = await sb.from("contact_messages").insert({
+    name, email, phone, subject: `Offerteaanvraag: ${pakket}`, message,
+  });
+  if (error) return { ok: false, error: "Er ging iets mis. Probeer het later opnieuw." };
+  await notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null });
   return { ok: true };
 }

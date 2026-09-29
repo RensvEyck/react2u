@@ -3,7 +3,8 @@ import Link from "next/link";
 import { getPublishedVacancies } from "@/lib/content";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
-import { Arrow } from "@/components/site/DotCloud";
+import { Arrow } from "@/components/site/Arrow";
+import { WERKEN_BIJ_FOTO } from "@/lib/nav";
 
 export const revalidate = 300;
 
@@ -18,51 +19,53 @@ export default async function VacaturesPage() {
   const vacancies = await getPublishedVacancies();
   return (
     <>
-      <PageHeader crumbs={[{ label: "Werken bij React2u", href: "/vacatures" }]} eyebrow="Werken bij React2u" title="Vacatures">
+      <PageHeader crumbs={[{ label: "Werken bij React2u", href: "/vacatures" }]} eyebrow="Werken bij React2u" title="Vacatures"
+        image={WERKEN_BIJ_FOTO} focus="center 35%">
         <p>
           Bij React2u werk je met persoonlijke aandacht aan de duurzame inzetbaarheid van medewerkers.
           Bekijk onze openstaande vacatures en kom kennismaken!
         </p>
       </PageHeader>
+      {/* Op het raster van de rest van de site: links de kop, rechts de vacatures. */}
       <section className="py-16 md:py-24">
-        <div className="container-site max-w-[980px]">
-          {vacancies.length === 0 ? (
-            <div className="rounded-[28px] bg-soft p-10 text-center" data-reveal>
-              <h2 className="text-[26px]">Op dit moment geen openstaande vacatures</h2>
-              <p className="mx-auto mt-3 max-w-[520px]">
-                Maar we komen altijd graag in contact met talent. Stuur gerust een open sollicitatie!
-              </p>
-              <Link href="/vacatures/open-sollicitatie" className="btn mt-7">Open sollicitatie <Arrow /></Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
+        <div className="container-site grid gap-10 lg:grid-cols-12 lg:gap-x-8">
+          <div className="lg:col-span-4" data-reveal>
+            <p className="eyebrow mb-3">Werken bij React2u</p>
+            <h2 className="text-[1.85rem] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[2.2rem]">
+              {vacancies.length === 0
+                ? "Nu geen openstaande vacatures"
+                : vacancies.length === 1 ? "1 openstaande vacature" : `${vacancies.length} openstaande vacatures`}
+            </h2>
+            <p className="mt-4 max-w-[380px] text-[17px]">
+              {vacancies.length === 0
+                ? "Maar we komen altijd graag in contact met talent."
+                : "Staat jouw functie er niet tussen? We komen altijd graag in contact met talent."}
+            </p>
+            <Link href="/vacatures/open-sollicitatie" className="link-arrow mt-5">Stuur een open sollicitatie <Arrow /></Link>
+          </div>
+          {vacancies.length > 0 && (
+            <ul className="space-y-4 lg:col-span-8">
               {vacancies.map((v, i) => (
-                <Link
-                  key={v.id}
-                  href={`/vacatures/${v.slug}`}
-                  data-reveal
-                  style={{ "--ri": i } as React.CSSProperties}
-                  className="lift group flex flex-col gap-5 rounded-[28px] border border-black/[0.06] bg-white p-7 md:flex-row md:items-center md:justify-between md:p-9"
-                >
-                  <div>
-                    <h2 className="text-[26px] leading-tight">{v.title}</h2>
-                    {v.intro && <p className="mt-2 max-w-[620px] text-[16.5px]">{v.intro}</p>}
-                    <div className="mt-4 flex flex-wrap gap-2 text-[14.5px] font-medium text-primary">
-                      <span className="flex items-center gap-1.5 rounded-full bg-soft px-3.5 py-1.5"><LuMapPin aria-hidden /> {v.location}</span>
-                      {v.hours && <span className="flex items-center gap-1.5 rounded-full bg-soft px-3.5 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
-                      {v.salary && <span className="flex items-center gap-1.5 rounded-full bg-soft px-3.5 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
+                <li key={v.id} data-reveal style={{ "--ri": i } as React.CSSProperties}>
+                  <Link href={`/vacatures/${v.slug}`}
+                    className="group flex flex-col gap-6 rounded-2xl bg-soft p-7 transition-colors hover:bg-[#efe9e0] md:flex-row md:items-center md:justify-between md:p-10">
+                    <div>
+                      <h3 className="text-[26px] leading-tight md:text-[30px]">{v.title}</h3>
+                      {v.intro && <p className="mt-2.5 max-w-[620px] text-[16.5px]">{v.intro}</p>}
+                      <div className="mt-5 flex flex-wrap gap-2 text-[14.5px] font-medium text-primary">
+                        <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuMapPin aria-hidden /> {v.location}</span>
+                        {v.hours && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuClock aria-hidden /> {v.hours}</span>}
+                        {v.salary && <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5"><LuEuro aria-hidden /> {v.salary}</span>}
+                      </div>
                     </div>
-                  </div>
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary text-white transition-transform duration-300 group-hover:translate-x-1">
-                    <Arrow />
-                  </span>
-                </Link>
+                    {/* Dezelfde ronde pijl als op de fototegels: wit, roze onder de muis. */}
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-primary transition-colors duration-300 group-hover:bg-accent group-hover:text-white">
+                      <Arrow className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </span>
+                  </Link>
+                </li>
               ))}
-              <p className="pt-6 text-center">
-                Staat jouw functie er niet tussen?{" "}
-                <Link href="/vacatures/open-sollicitatie" className="link-arrow">Stuur een open sollicitatie <Arrow /></Link>
-              </p>
-            </div>
+            </ul>
           )}
         </div>
       </section>

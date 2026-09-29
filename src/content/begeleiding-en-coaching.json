@@ -1,0 +1,96 @@
+{
+  "_uitleg": "Zelfde inhoud als in de database, alleen de volgorde hersteld: de oproep stond boven de paginakop, waardoor de h1 'Neem de eerste stap…' werd. Zie CONTEXT.md, *Concepten*.",
+  "slug": "begeleiding-en-coaching",
+  "title": "Begeleiding & Coaching",
+  "seo_title": "Begeleiding & Coaching • React2u",
+  "seo_description": "Begeleiding & Coaching Mensen en organisaties ontwikkelen zich continu. Die veranderingen kunnen ervoor zorgen dat iemand uit balans raakt en …",
+  "blocks": [
+    {
+      "type": "hero",
+      "label": "Hero",
+      "data": {
+        "text": "Mensen en organisaties ontwikkelen zich continu. Die veranderingen kunnen ervoor zorgen dat iemand uit balans raakt en niet verder komt. Dan is een duwtje in de juiste richting heel welkom.\n\nOnze coaches luisteren aandachtig naar betrokkenen, begrijpen de unieke omstandigheden en bieden ondersteuning aan. Door middel van persoonlijke gesprekken, gerichte coaching en praktische hulpmiddelen, stimuleren we iemands zelfvertrouwen en helpen we bij het ontwikkelen van nieuwe vaardigheden. Samen stellen we haalbare doelen en werken we stapsgewijs aan de ontwikkeling die betrokkene door wil maken.",
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Begeleiding-Coaching-1.png",
+        "button": {
+          "href": "/diensten",
+          "label": "Bekijk onze dienstverlening"
+        },
+        "heading": "Begeleiding & Coaching",
+        "imageAlt": "Begeleiding & Coaching"
+      }
+    },
+    {
+      "type": "subSections",
+      "label": "Dit kun je van ons verwachten",
+      "data": {
+        "intro": "Onze coaches coachen op een effectieve manier om mensen, teams en organisaties, die een uitdaging hebben, te leren zichzelf vooruit te helpen. Er kunnen diverse oefeningen ingezet worden om op een duurzaam effectief gedrag te ontwikkelen, bewustzijn te ontwikkelen of om bijvoorbeeld meer zelfvertrouwen te krijgen.\n\nCoaching is de meest effectieve manier om je persoonlijk te ontwikkelen. Het ontwikkeltraject wordt nagenoeg volledig op de persoonlijkheid en leerbehoefte van het individu of het team samengesteld.\n\nPersoonlijker kan het niet.",
+        "items": [
+          {
+            "body": "In regelmatige persoonlijke sessies gaan we diep in op persoonlijke en professionele omstandigheden, zelfreflectie en het opbouwen van zelfvertrouwen. Door middel van op maat gemaakte oefeningen, waardevolle feedback en handige tips & tricks, helpen onze coaches belemmeringen te identificeren en te overwinnen. We werken nauw samen met andere vakspecialisten, zoals psychologen, fysiotherapeuten en bedrijfsartsen, om onze holistische aanpak te garanderen en succesvol te werken aan een duurzame terugkeer naar arbeid.",
+            "title": "Eén-op-één coaching op maat"
+          },
+          {
+            "body": "Een burn-out heeft ingrijpende effecten op iemands welzijn. Extreme vermoeidheid, emotionele uitputting en verminderde concentratie kunnen leiden tot langdurige afwezigheid van werk en vermindering van levenskwaliteit. Een burn-out coaching-traject helpt mensen zichzelf terug te vinden door onze gerichte ondersteuning, oprechte aandacht en individuele begeleiding. Door middel van gesprekken en oefeningen helpen wij mensen hun grenzen beter te bewaken waardoor zij, vaak met een dieper inzicht in hun eigen behoeften, weer met vertrouwen aan het werk gaan.",
+            "title": "Burn-out coaching op maat"
+          },
+          {
+            "body": "Gedurende dit boeiende traject, waarin wij werknemers begeleiden in zowel hun persoonlijke als professionele ontwikkeling, helpen wij mensen meer voldoening en balans in hun leven en werk te vinden. Door gerichte gesprekken, leerzame oefeningen en de mogelijke inzet van andere vakspecialisten uit onze providerboog, worden hun sterke punten, interesses en drijfveren geïdentificeerd. En als medewerkers weten wat hun talenten en passies zijn en waar ze die in de organisatie in kunnen zetten, leidt dat tot hogere betrokkenheid, betere prestaties en een positievere werkcultuur.",
+            "title": "Leven- en loopbaancoaching op maat"
+          },
+          {
+            "body": "We bieden bij React2u begeleiding & coaching op maat. Dat vraagt om enthousiaste, geïnteresseerde, warme, ervaren en gediplomeerde coaches. Die hebben we dan ook volop in dienst. En hebben we een keer een specialisme nodig dat we niet zelf in huis hebben? Dan kunnen we rekenen op een snel inzetbare providerboog.",
+            "title": "Ervaren en gediplomeerde coaches"
+          }
+        ],
+        "heading": "Dit kun je van ons verwachten"
+      }
+    },
+    {
+      "type": "ctaBanner",
+      "label": "CTA — Eerste stap naar re-integratie",
+      "data": {
+        "text": "Ben je er klaar voor om de stap te zetten naar herstel, voor jezelf of voor je werknemer? Wij begeleiden je graag in dit proces, waarbij we je uiteraard kunnen toelichten welke stappen we samen zullen nemen.",
+        "buttons": [
+          {
+            "href": "tel:0856205800",
+            "label": "EVEN BELLEN?",
+            "style": "outline"
+          },
+          {
+            "href": "/contact",
+            "label": "CONTACT",
+            "style": "accent"
+          }
+        ],
+        "heading": "Neem de eerste stap naar re-integratie"
+      }
+    },
+    {
+      "type": "twoColumnLists",
+      "label": "Werkgever vs React2u",
+      "data": {
+        "columns": [
+          {
+            "items": [
+              "Inventariseren",
+              "Signaleren",
+              "Bespreekbaar maken",
+              "Faciliteren en borgen"
+            ],
+            "title": "Wat doet de werkgever?"
+          },
+          {
+            "items": [
+              "Tot de kern komen",
+              "Werknemer zelf in beweging zetten",
+              "Zo nodig verwijzen naar specialist",
+              "Borgen samen met werkgever"
+            ],
+            "title": "Wat neemt React2u uit handen?"
+          }
+        ],
+        "heading": "Begeleiding & Coaching"
+      }
+    }
+  ]
+}

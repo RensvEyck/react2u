@@ -4,7 +4,9 @@ import { getPublishedPosts } from "@/lib/content";
 import { LuCalendar, LuUserRound } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
-import DotCloud, { Arrow } from "@/components/site/DotCloud";
+import { Arrow } from "@/components/site/Arrow";
+import FotoTegel from "@/components/site/FotoTegel";
+import { PIJLERS } from "@/lib/nav";
 
 export const revalidate = 300;
 
@@ -32,18 +34,34 @@ export default async function BlogIndex() {
       <section className="py-16 md:py-24">
         <div className="container-site">
           {posts.length === 0 ? (
-            <div className="mx-auto max-w-[640px] rounded-[28px] bg-soft p-10 text-center" data-reveal>
-              <DotCloud className="mx-auto mb-6 w-20" />
-              <h2 className="text-[26px]">Binnenkort verschijnen hier onze eerste artikelen</h2>
-              <p className="mt-3">Tot die tijd beantwoorden we je vragen graag persoonlijk.</p>
-              <Link href="/contact" className="btn mt-7">Stel je vraag <Arrow /></Link>
+            // Nog geen artikelen: geen lege plek, maar de weg naar de antwoorden die er al zijn.
+            <div className="grid gap-10 lg:grid-cols-12 lg:gap-x-8" data-reveal>
+              <div className="lg:col-span-5">
+                <h2 className="text-[1.85rem] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[2.2rem]">
+                  Binnenkort verschijnen hier onze eerste artikelen
+                </h2>
+                <p className="mt-4 text-[18px] leading-relaxed">
+                  Tot die tijd beantwoorden we je vragen graag persoonlijk. En misschien staat het antwoord er al tussen.
+                </p>
+                <Link href="/contact" className="btn mt-8">Stel je vraag <Arrow /></Link>
+              </div>
+              <ul className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
+                <li>
+                  <FotoTegel href="/werkgevers#veelgestelde-vragen" image={PIJLERS[0].diensten[1].image}
+                    kicker="Voor werkgevers" title="Veelgestelde vragen over verzuim" sizes="(min-width: 1024px) 340px, (min-width: 640px) 50vw, 100vw" />
+                </li>
+                <li>
+                  <FotoTegel href="/werknemers#ziek-wat-nu" image={PIJLERS[1].diensten[1].image}
+                    kicker="Voor werknemers" title="Ziek, wat nu?" sizes="(min-width: 1024px) 340px, (min-width: 640px) 50vw, 100vw" />
+                </li>
+              </ul>
             </div>
           ) : (
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((p, i) => (
                 <article key={p.id} data-reveal style={{ "--ri": i % 3 } as React.CSSProperties}
-                  className="lift group relative flex flex-col overflow-hidden rounded-[28px] bg-soft">
-                  <div className="aspect-[16/10] overflow-hidden bg-[#e9e7f5]">
+                  className="group relative flex flex-col">
+                  <div className="aspect-[16/10] overflow-hidden rounded-2xl bg-soft">
                     {p.cover_image ? (
                       <SiteImage
                         src={p.cover_image}
@@ -53,10 +71,10 @@ export default async function BlogIndex() {
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
                       />
                     ) : (
-                      <div className="grid h-full place-items-center"><DotCloud className="w-24 opacity-60" /></div>
+                      null
                     )}
                   </div>
-                  <div className="flex flex-1 flex-col p-7">
+                  <div className="flex flex-1 flex-col pt-5">
                     <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-primary/75">
                       {p.published_at && (
                         <span className="flex items-center gap-1.5"><LuCalendar aria-hidden /> {fmt(p.published_at)}</span>

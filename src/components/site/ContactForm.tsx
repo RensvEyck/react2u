@@ -3,7 +3,7 @@ import { useActionState } from "react";
 import { submitContact, type FormState } from "@/app/(site)/actions";
 import Link from "next/link";
 import { Field, Bedankt, fieldClass } from "./FormField";
-import { Arrow } from "./DotCloud";
+import { Arrow } from "./Arrow";
 
 export default function ContactForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(submitContact, null);

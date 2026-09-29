@@ -94,7 +94,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       {p.cover_image && (
         <div className="container-site -mt-6 max-w-[980px] md:-mt-10">
           <SiteImage src={p.cover_image} alt="" priority sizes="(min-width: 980px) 980px, 100vw"
-            className="w-full rounded-[28px] object-cover shadow-[0_30px_60px_-40px_rgba(34,32,90,0.5)]" />
+            className="w-full rounded-2xl object-cover" />
         </div>
       )}
 

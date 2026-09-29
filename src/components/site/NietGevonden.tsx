@@ -1,13 +1,28 @@
 import Link from "next/link";
 import { PIJLERS } from "@/lib/nav";
-import DotCloud, { Arrow } from "./DotCloud";
-import Pills from "./Pills";
+import { Arrow } from "./Arrow";
+import FotoTegel from "./FotoTegel";
 
 const VOOR_WERKNEMERS = [
   { label: "Ziek, wat nu?", href: "/werknemers#ziek-wat-nu" },
   { label: "Het verzuimprotocol", href: "/verzuimprotocol" },
   { label: "Veelgestelde vragen", href: "/werknemers#veelgestelde-vragen" },
 ];
+
+function Lijst({ items }: { items: { label: string; href: string }[] }) {
+  return (
+    <ul className="divide-y divide-line border-y border-line">
+      {items.map((l) => (
+        <li key={l.href}>
+          <Link href={l.href} className="group flex items-center justify-between gap-4 py-3.5 font-semibold text-primary">
+            {l.label}
+            <Arrow className="shrink-0 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 /**
  * Inhoud van de 404-pagina. Geen doodlopende weg: per doelgroep de weg verder,
@@ -18,50 +33,48 @@ const VOOR_WERKNEMERS = [
  * admin onder SEO → Doorverwijzingen verschijnt en daar door te sturen is.
  */
 export default function NietGevonden() {
-  const diensten = PIJLERS.flatMap((p) => p.diensten).map((d) => ({ label: d.label, href: d.href, kleur: d.kleur }));
+  const diensten = PIJLERS.flatMap((p) => p.diensten).map((d) => ({ label: d.label, href: d.href }));
   return (
     <div data-niet-gevonden>
-      <section className="hero-pull relative bg-soft">
-        <div className="container-site grid items-center gap-12 pb-16 pt-10 md:pb-24 md:pt-16 lg:grid-cols-[1.1fr_0.9fr]">
-          <div>
-            <p className="eyebrow mb-4">Pagina niet gevonden</p>
-            <h1 className="text-[2.6rem] font-extrabold leading-[1.04] tracking-[-0.03em] md:text-[3.8rem]">
-              Deze pagina bestaat niet (meer)
-            </h1>
-            <p className="mt-6 max-w-[560px] text-[19px]">
-              Misschien is hij verhuisd, of zat er een tikfout in de link. Er is altijd een oplossing — ook
-              voor deze.
-            </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/" className="btn">Naar de startpagina <Arrow /></Link>
-              <Link href="/contact" className="btn btn-outline">Neem contact op</Link>
-            </div>
+      <section className="bg-soft">
+        <div className="container-site pb-14 pt-10 md:pb-20 md:pt-14">
+          <p className="eyebrow mb-4">Pagina niet gevonden</p>
+          <h1 className="max-w-[760px] text-[2.25rem] font-bold leading-[1.08] tracking-[-0.025em] sm:text-[2.9rem] lg:text-[3.5rem]">
+            Deze pagina bestaat niet (meer)
+          </h1>
+          <p className="mt-6 max-w-[560px] text-[18px] leading-relaxed md:text-[19px]">
+            Misschien is hij verhuisd, of zat er een tikfout in de link. Hieronder vind je de weg verder.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/" className="btn">Naar de startpagina <Arrow /></Link>
+            <Link href="/contact" className="btn btn-outline">Neem contact op</Link>
           </div>
-          <DotCloud animate className="mx-auto hidden w-full max-w-[380px] lg:block" />
         </div>
       </section>
       <section className="py-16 md:py-20">
+        {/* Dezelfde keuze als op het startscherm, met dezelfde foto's. */}
+        <ul className="container-site mb-14 grid gap-4 sm:grid-cols-2">
+          <li>
+            <FotoTegel href="/werkgevers" image={PIJLERS[0].diensten[1].image} kicker="Grip op verzuim, van preventie tot re-integratie"
+              title="Ik ben werkgever" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
+          </li>
+          <li>
+            <FotoTegel href="/werknemers" image={PIJLERS[1].diensten[1].image} kicker="Ziek of vastgelopen? We helpen je weer op weg"
+              title="Ik ben werknemer" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
+          </li>
+        </ul>
         <div className="container-site grid gap-12 lg:grid-cols-12 lg:gap-x-8">
-          <div className="lg:col-span-7">
-            <h2 className="mb-6 text-[1.6rem] font-extrabold tracking-[-0.02em]">
-              <Link href="/werkgevers" className="hover:text-accent">Voor werkgevers</Link>
+          <div className="lg:col-span-6">
+            <h2 className="mb-5 text-[1.5rem] font-bold">
+              <Link href="/werkgevers" className="hover:underline">Voor werkgevers</Link>
             </h2>
-            <Pills items={diensten} />
+            <Lijst items={diensten} />
           </div>
-          <div className="lg:col-span-4 lg:col-start-9">
-            <h2 className="mb-6 text-[1.6rem] font-extrabold tracking-[-0.02em]">
-              <Link href="/werknemers" className="hover:text-accent">Voor werknemers</Link>
+          <div className="lg:col-span-5 lg:col-start-8">
+            <h2 className="mb-5 text-[1.5rem] font-bold">
+              <Link href="/werknemers" className="hover:underline">Voor werknemers</Link>
             </h2>
-            <ul className="divide-y divide-primary/10 border-y border-primary/10">
-              {VOOR_WERKNEMERS.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className="group flex items-center justify-between gap-4 py-3.5 font-semibold text-primary">
-                    {l.label}
-                    <Arrow className="shrink-0 text-accent transition-transform duration-300 group-hover:translate-x-1" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <Lijst items={VOOR_WERKNEMERS} />
           </div>
         </div>
       </section>

@@ -19,6 +19,13 @@ export const FIELD_LABELS: Record<string, string> = {
   steps: "Stappen", valueLabel: "Toelichting bij het cijfer",
   links: "Links", routes: "Contactroutes", sub: "Tweede regel",
   choices: "Keuzes", note: "Regel onderaan", anchor: "Anker (voor #-links)",
+  trust: "Vertrouwensregel(s)",
+  pakketten: "Abonnementen", sleutel: "Sleutel (compleet, basis)", naam: "Naam", kort: "Korte naam (telefoon)", prijs: "Prijs per werknemer per jaar",
+  omschrijving: "Omschrijving", knop: "Knoptekst", inbegrepen: "Inbegrepen", voetLabel: "Kop onderaan", voetItems: "Labels onderaan",
+  medewerkers: "Startaantal medewerkers", casemanagerTarief: "Uurtarief casemanager (voor de rekenhulp)", maatwerk: "Maatwerkregel",
+  vergelijk: "Vergelijking", rows: "Rijen", a: "Compleet", b: "Verrichtingenbasis", rekenhulp: "Rekenhulp",
+  lijst: "Tarievenlijst", geldig: "Geldigheid", noot: "Voetnoot", pdf: "Pdf (link)", categorieen: "Categorieën",
+  titel: "Titel", toelichting: "Toelichting", regels: "Regels", tone: "Kleur (indigo of warm)", doelgroep: "Doelgroep (werkgever of werknemer)",
 };
 
 /** Welke velden van de blokdata verschillen tussen twee versies. */

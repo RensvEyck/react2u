@@ -11,9 +11,9 @@
       "label": "Hero",
       "data": {
         "eyebrow": "Voor werkgevers",
-        "heading": "Jouw mensen, onze aandacht",
-        "highlight": "aandacht",
-        "text": "React2u is een moderne arbodienst voor werkgevers. We begeleiden je medewerkers bij ziekteverzuim en re-integratie, preventief én curatief — met persoonlijke aandacht en duidelijke structuur.",
+        "heading": "Grip op verzuim, van preventie tot re-integratie",
+        "highlight": "",
+        "text": "React2u ondersteunt werkgevers bij ziekteverzuim, verzuimbegeleiding en re-integratie, preventief én curatief. Met een vaste casemanager, duidelijke stappen en persoonlijke aandacht.",
         "button": {
           "label": "Maak een afspraak",
           "href": "/contact"
@@ -23,9 +23,12 @@
           "href": "/diensten",
           "style": "outline"
         },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
-        "imageAlt": "Adviseur en klant in gesprek aan tafel met koffie",
-        "badge": "Gecertificeerde arbodienst · ISO 9001"
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/RIE_-Risicomanagement-1.png",
+        "imageAlt": "Een werkgever en een adviseur geven elkaar een hand aan tafel",
+        "badge": "Gecertificeerde arbodienst · ISO 9001",
+        "imagePosition": "left",
+        "focus": "28% 40%",
+        "doelgroep": "werkgever"
       }
     },
     {
@@ -35,39 +38,6 @@
         "eyebrow": "Onze diensten",
         "heading": "Waar kunnen we je mee helpen?",
         "text": "Van het voorkomen van verzuim tot een duurzame terugkeer naar werk. Kies wat bij jouw situatie past — of bel ons, dan denken we met je mee."
-      }
-    },
-    {
-      "type": "twoColumnLists",
-      "label": "Daar zorgen wij voor",
-      "data": {
-        "eyebrow": "Meer grip op inzetbaarheid",
-        "heading": "Daar zorgen wij voor",
-        "text": "Als werkgever ben je wettelijk verplicht om samen met je zieke medewerker actief te werken aan re-integratie. Dat vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. Wat doe jij, en wat nemen wij uit handen?",
-        "button": {
-          "label": "Meer over verzuimbegeleiding WVP",
-          "href": "/verzuimbegeleiding-wvp"
-        },
-        "columns": [
-          {
-            "title": "Wat doet de werkgever?",
-            "items": [
-              "In gesprek blijven met de werknemer",
-              "Samen een plan van aanpak opstellen",
-              "Mogelijkheden voor passend werk onderzoeken",
-              "Afspraken naleven en vastleggen"
-            ]
-          },
-          {
-            "title": "Wat neemt React2u uit handen?",
-            "items": [
-              "Professionele begeleiding van het WVP-traject",
-              "Holistische analyse van de situatie",
-              "Advies over passend werk en interventies",
-              "Correcte dossieropbouw en wettelijke borging"
-            ]
-          }
-        ]
       }
     },
     {
@@ -110,7 +80,41 @@
         ],
         "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/GOEDE-VERSIE-1-1024x1024.png",
         "imageAlt": "Het REACT-model: Results, Expertise, Attention, Coaching en Together, met werknemer, leidinggevende en HR-functionaris in het midden",
-        "quote": "We denken in mogelijkheden, niet in belemmeringen of beperkingen."
+        "quote": "We denken in mogelijkheden, niet in belemmeringen of beperkingen.",
+        "imageRond": true
+      }
+    },
+    {
+      "type": "twoColumnLists",
+      "label": "Daar zorgen wij voor",
+      "data": {
+        "eyebrow": "Meer grip op inzetbaarheid",
+        "heading": "Daar zorgen wij voor",
+        "text": "Als werkgever ben je wettelijk verplicht om samen met je zieke medewerker actief te werken aan re-integratie. Dat vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. Wat doe jij, en wat nemen wij uit handen?",
+        "button": {
+          "label": "Meer over verzuimbegeleiding WVP",
+          "href": "/verzuimbegeleiding-wvp"
+        },
+        "columns": [
+          {
+            "title": "Wat doet de werkgever?",
+            "items": [
+              "In gesprek blijven met de werknemer",
+              "Samen een plan van aanpak opstellen",
+              "Mogelijkheden voor passend werk onderzoeken",
+              "Afspraken naleven en vastleggen"
+            ]
+          },
+          {
+            "title": "Wat neemt React2u uit handen?",
+            "items": [
+              "Professionele begeleiding van het WVP-traject",
+              "Holistische analyse van de situatie",
+              "Advies over passend werk en interventies",
+              "Correcte dossieropbouw en wettelijke borging"
+            ]
+          }
+        ]
       }
     },
     {

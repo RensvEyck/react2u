@@ -1,0 +1,131 @@
+{
+  "_uitleg": "Dezelfde teksten als in de database, in een nieuwe opbouw: kop met foto, de diensten per stap als fototegels, wat we aanbieden, de drie waarden, de visie en contact. Zie CONTEXT.md, *Concepten*.",
+  "slug": "diensten",
+  "title": "Diensten",
+  "seo_title": "Diensten • React2u",
+  "seo_description": "React2u is de moderne dienstverlener in verzuim- en re-integratiebegeleiding. Preventief en curatief werken we aan grip op je inzetbaarheid.",
+  "blocks": [
+    {
+      "type": "hero",
+      "label": "Paginakop",
+      "data": {
+        "eyebrow": "Wat kunnen we betekenen?",
+        "heading": "Onze dienstverlening als arbodienst voor verzuim en re-integratie",
+        "text": "Wanneer een medewerker tijdelijk of langdurig uitvalt, heeft dat impact op zowel de werknemer als de organisatie. React2u ondersteunt werkgevers bij ziekteverzuim, verzuimbegeleiding en re-integratie.\n\nMet ons gecertificeerde online verzuimregistratiesysteem werken wij samen in één dossier. Zo behouden we grip op het verzuimproces en voldoen we aan alle wettelijke verplichtingen.",
+        "button": {
+          "label": "Maak een afspraak",
+          "href": "/contact"
+        },
+        "button2": {
+          "label": "Bel 085 - 620 58 00",
+          "href": "tel:0856205800",
+          "style": "outline"
+        },
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/serious-colleagues-discussing-documents-meeting-e1717497004999.jpg",
+        "imageAlt": "Twee collega's bespreken samen een dossier",
+        "imagePosition": "right",
+        "focus": "center 30%"
+      }
+    },
+    {
+      "type": "pillars",
+      "label": "Diensten per stap",
+      "data": {
+        "eyebrow": "Onze diensten",
+        "heading": "Waar kunnen we je mee helpen?",
+        "text": "Van het voorkomen van verzuim tot een duurzame terugkeer naar werk. Kies wat bij jouw situatie past — of bel ons, dan denken we met je mee."
+      }
+    },
+    {
+      "type": "imageText",
+      "label": "Wat wij aanbieden",
+      "data": {
+        "eyebrow": "Over ons",
+        "heading": "Wat wij aanbieden als arbodienst",
+        "text": "React2u is een moderne verzuim- en re-integratiespecialist met een schat aan kennis en jarenlange ervaring. We doen wat we zeggen. Ons ervaren, warme en benaderbare team is deskundig en heeft alle disciplines in huis om het gezondheidsbeleid van bedrijven op een gezond peil te houden en alle interventies uit te voeren. Daar waar mensen werken, kunnen wij worden ingezet.\n\nBij React2u werken we altijd samen met de werkgever en werknemer aan een oplossing. Door alle betrokken partijen professioneel en persoonlijk te begeleiden, faciliteren en adviseren, brengen wij mensen weer duurzaam in beweging.",
+        "button": {
+          "label": "Over React2u",
+          "href": "/over-react2u",
+          "style": "outline"
+        },
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
+        "imageAlt": "Adviseur en klant in gesprek aan tafel",
+        "imageFit": "cover",
+        "imagePosition": "left",
+        "focus": "center 35%"
+      }
+    },
+    {
+      "type": "values",
+      "label": "Gezond, menselijk, duidelijk",
+      "data": {
+        "eyebrow": "Waar je op kunt rekenen",
+        "heading": "Voor iedereen gezond, menselijk en duidelijk",
+        "highlight": "",
+        "text": "",
+        "cards": [
+          {
+            "title": "Gezond",
+            "text": "Preventieve en curatieve begeleiding om ziekteverzuim te beperken.",
+            "value": "6",
+            "valueLabel": "diensten onder één dak",
+            "kleur": "teal"
+          },
+          {
+            "title": "Menselijk",
+            "text": "Persoonlijke aandacht voor medewerker én werkgever.",
+            "value": "1",
+            "valueLabel": "vaste casemanager",
+            "kleur": "roze"
+          },
+          {
+            "title": "Duidelijk",
+            "text": "Heldere afspraken en transparante communicatie gedurende het gehele verzuimtraject.",
+            "value": "ISO 9001",
+            "valueLabel": "gecertificeerd",
+            "kleur": "blauw"
+          }
+        ]
+      }
+    },
+    {
+      "type": "richText",
+      "label": "Over onze dienstverlening",
+      "data": {
+        "eyebrow": "Onze visie",
+        "body": "Ziekteverzuim heeft vaak meerdere oorzaken. Naast medische factoren spelen ook werkdruk, communicatie en organisatiecultuur een rol. Daarom kijkt React2u verder dan alleen het medische dossier. Wij werken vanuit een holistische visie op verzuim en re-integratie. Dit betekent dat wij aandacht hebben voor zowel persoonlijke als organisatorische factoren.\n\nNaast verzuimbegeleiding bieden wij ook:\n\n- Preventief medisch onderzoek (PMO)\n- Preventieve interventies\n- Trainingen en workshops\n- Advies over duurzame inzetbaarheid\n\nZo ondersteunen wij organisaties bij zowel herstel als preventie.",
+        "heading": "Over onze dienstverlening"
+      }
+    },
+    {
+      "type": "ctaBanner",
+      "label": "Oproep",
+      "data": {
+        "eyebrow": "Maak kennis",
+        "heading": "Klaar om grip te krijgen op ziekteverzuim?",
+        "text": "Wil je weten wat onze arbodienst voor jouw organisatie kan betekenen? Wij denken graag met je mee over verzuimbegeleiding, preventie en duurzame inzetbaarheid.",
+        "buttons": [
+          {
+            "label": "Plan een vrijblijvend gesprek",
+            "href": "/contact",
+            "style": "accent"
+          }
+        ],
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bel ons direct voor persoonlijk advies",
+            "sub": "085 - 620 58 00",
+            "href": "tel:0856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mail ons",
+            "sub": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          }
+        ]
+      }
+    }
+  ]
+}

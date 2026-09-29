@@ -81,8 +81,8 @@ async function post(to: string[], subject: string, html: string): Promise<boolea
   }
 }
 
-async function send(subject: string, html: string) {
-  const to = (process.env.NOTIFY_TO || "").split(",").map((s) => s.trim()).filter(Boolean);
+async function send(subject: string, html: string, toOverride?: string) {
+  const to = (toOverride || process.env.NOTIFY_TO || "").split(",").map((s) => s.trim()).filter(Boolean);
   await post(to, subject, html);
 }
 
@@ -133,5 +133,27 @@ export async function notifyApplication(a: {
       { label: "Telefoon", value: a.phone },
       { label: "CV", value: a.hasCv ? "meegestuurd — bekijk in het Postvak IN" : "niet meegestuurd" },
     ], a.motivation)
+  );
+}
+
+/**
+ * Offerteaanvragen gaan naar sales, niet naar het algemene meldadres.
+ * Een ander adres zet je met NOTIFY_OFFERTE_TO (komma-gescheiden mag).
+ */
+export async function notifyOfferte(o: {
+  name: string; company: string; email: string; phone: string;
+  pakket: string; employees: number; message: string | null;
+}) {
+  await send(
+    `Offerteaanvraag ${o.pakket}: ${o.company}`,
+    render("Nieuwe offerteaanvraag", "Binnengekomen via de tarievenpagina op de website.", [
+      { label: "Aansluiting", value: o.pakket },
+      { label: "Bedrijf", value: o.company },
+      { label: "Medewerkers", value: String(o.employees) },
+      { label: "Naam", value: o.name },
+      { label: "E-mail", value: o.email },
+      { label: "Telefoon", value: o.phone },
+    ], o.message),
+    process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
   );
 }

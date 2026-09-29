@@ -7,61 +7,93 @@
       "type": "audienceChoice",
       "label": "Startscherm",
       "data": {
-        "eyebrow": "Welkom bij React2u",
-        "heading": "Voor iedereen gezond, menselijk en duidelijk",
+        "eyebrow": "Arbodienst in Eindhoven",
+        "heading": "Jouw mensen, onze aandacht",
         "highlight": "",
-        "text": "React2u is de persoonlijke arbodienst voor werkgevers én werknemers. Waar kunnen we je mee helpen?",
+        "text": "De persoonlijke arbodienst voor werkgevers én werknemers. Vertel ons wie je bent, dan laten we zien wat we voor je doen.",
         "choices": [
           {
-            "label": "Ik ben werkgever",
-            "title": "Grip op verzuim, van preventie tot re-integratie",
-            "text": "We ondersteunen je bij ziekteverzuim, verzuimbegeleiding en re-integratie, binnen de Wet verbetering poortwachter én bij eigenrisicodragerschap.",
-            "icon": "werkgever",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
-            "imageAlt": "Adviseur en klant in gesprek aan tafel met koffie",
-            "href": "/werkgevers",
-            "button": "Verder als werkgever",
-            "links": [
-              {
-                "label": "Een medewerker meldt zich ziek",
-                "href": "/verzuimbegeleiding-wvp"
-              },
-              {
-                "label": "Onze diensten",
-                "href": "/diensten"
-              },
-              {
-                "label": "Maak een afspraak",
-                "href": "/contact"
-              }
-            ]
+            "doelgroep": "werkgever",
+            "title": "Ik ben werkgever",
+            "text": "Grip op verzuim, van preventie tot re-integratie.",
+            "button": "Bekijk onze diensten",
+            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/RIE_-Risicomanagement-1.png",
+            "focus": "25% 55%",
+            "href": "/werkgevers"
           },
           {
-            "label": "Ik ben werknemer",
-            "title": "Ziek? React2u is er ook voor jou",
-            "text": "Samen met jou en je werkgever doen we er alles aan om je zo snel mogelijk weer gezond en onbezorgd op de werkvloer te krijgen.",
-            "icon": "user",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/05/partnering-up-project-shot-two-coworkers-meeting-office.jpg",
-            "imageAlt": "Twee collega's in overleg op kantoor",
-            "href": "/werknemers",
-            "button": "Verder als werknemer",
-            "links": [
-              {
-                "label": "Ziek, wat nu?",
-                "href": "/werknemers#ziek-wat-nu"
-              },
-              {
-                "label": "Het verzuimprotocol",
-                "href": "/verzuimprotocol"
-              },
-              {
-                "label": "Veelgestelde vragen",
-                "href": "/werknemers#veelgestelde-vragen"
-              }
-            ]
+            "doelgroep": "werknemer",
+            "title": "Ik ben werknemer",
+            "text": "Ziek of vastgelopen? We helpen je weer op weg.",
+            "button": "Lees wat je kunt doen",
+            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png",
+            "focus": "55% 45%",
+            "href": "/werknemers"
           }
         ],
-        "note": "Liever meteen iemand spreken? Bel **085 - 620 58 00** of mail **info@react2u.nl**."
+        "trust": [
+          {
+            "icon": "award",
+            "text": "Gecertificeerd volgens ISO 9001 en het Certificatieschema Arbodiensten",
+            "href": ""
+          },
+          {
+            "icon": "phone",
+            "text": "Bel ons: 085 - 620 58 00",
+            "href": "tel:0856205800"
+          }
+        ]
+      }
+    },
+    {
+      "type": "imageText",
+      "label": "Daar zorgen wij voor",
+      "data": {
+        "eyebrow": "Meer grip op inzetbaarheid",
+        "heading": "Daar zorgen wij voor",
+        "text": "Ziekteverzuim vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. React2u ondersteunt werkgevers bij verzuimbegeleiding en re-integratie, zowel binnen de Wet verbetering poortwachter (WVP) als bij eigenrisicodragerschap (ERD/ZW).\n\nWe werken altijd samen met werkgever én werknemer aan een oplossing. Zo brengen we mensen weer duurzaam in beweging.",
+        "button": {
+          "label": "Over React2u",
+          "href": "/over-react2u",
+          "style": "outline"
+        },
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
+        "imageAlt": "Adviseur en klant in gesprek aan tafel",
+        "imagePosition": "right",
+        "imageFit": "cover",
+        "focus": "center 35%"
+      }
+    },
+    {
+      "type": "values",
+      "label": "Gezond, menselijk, duidelijk",
+      "data": {
+        "eyebrow": "Waar je op kunt rekenen",
+        "heading": "Voor iedereen gezond, menselijk en duidelijk",
+        "text": "De ene werknemer is de andere niet. Arbodienstverlening is maatwerk en vraagt iedere keer om een persoonlijke benadering.",
+        "cards": [
+          {
+            "title": "Gezond",
+            "text": "Van preventie en een RI&E tot verzuimbegeleiding en coaching: we werken samen aan duurzaam herstel en een gezonde werkvloer.",
+            "value": "6",
+            "valueLabel": "diensten onder één dak",
+            "kleur": "teal"
+          },
+          {
+            "title": "Menselijk",
+            "text": "We bieden een luisterend oor, zijn kritisch en gebruiken humor. Iedere organisatie krijgt een vaste casemanager, die contact houdt met werknemer én werkgever.",
+            "value": "1",
+            "valueLabel": "vaste casemanager",
+            "kleur": "roze"
+          },
+          {
+            "title": "Duidelijk",
+            "text": "Alle rapportages, afspraken en deadlines staan in één online dossier. Zo weet iedereen waar hij aan toe is.",
+            "value": "ISO 9001",
+            "valueLabel": "gecertificeerd",
+            "kleur": "blauw"
+          }
+        ]
       }
     },
     {
@@ -89,6 +121,36 @@
           {
             "alt": "Varkentje Lief",
             "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/10.png"
+          }
+        ]
+      }
+    },
+    {
+      "type": "ctaBanner",
+      "label": "Kom met ons in contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Kom met ons in contact",
+        "text": "Ben je nieuwsgierig naar onze werkwijze, of heb je een vraag over verzuim? We denken graag met je mee.",
+        "buttons": [
+          {
+            "label": "Stuur een bericht",
+            "href": "/contact",
+            "style": "accent"
+          }
+        ],
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bel ons",
+            "sub": "085 - 620 58 00",
+            "href": "tel:0856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mail ons",
+            "sub": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
           }
         ]
       }
