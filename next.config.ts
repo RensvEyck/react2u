@@ -123,9 +123,23 @@ const SECURITY_HEADERS = [
   },
 ];
 
+/**
+ * www → het kale domein. Beide hangen in Vercel aan dit project; zonder deze
+ * regel staat de hele site op twee adressen. De canonicals wijzen al naar
+ * react2u.nl, maar een redirect is het sterkere signaal voor Google — en een
+ * inlogsessie geldt per adres, dus wie via www binnenkomt, is in de admin op
+ * react2u.nl niet ingelogd (en andersom).
+ */
+const WWW_REDIRECT = {
+  source: "/:path*",
+  has: [{ type: "host" as const, value: "www.react2u.nl" }],
+  destination: "https://react2u.nl/:path*",
+  permanent: true,
+};
+
 const nextConfig: NextConfig = {
   async redirects() {
-    return OLD_SITE_REDIRECTS.map((r) => ({ ...r, permanent: true }));
+    return [WWW_REDIRECT, ...OLD_SITE_REDIRECTS.map((r) => ({ ...r, permanent: true }))];
   },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];

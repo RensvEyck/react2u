@@ -16,7 +16,9 @@ nog klopt voor je iets wijzigt.
 
 Kan Hostnet geen CNAME op `www` naast andere records aan, gebruik dan ook daar
 `A 76.76.21.21`. Beide domeinen zijn in Vercel al aan het project `react2u`
-gekoppeld, dus er hoeft aan die kant niets te gebeuren.
+gekoppeld, dus er hoeft aan die kant niets te gebeuren. `www` stuurt door naar
+het kale domein (308, pad en querystring blijven staan) — dat regelt
+`next.config.ts`, niet de DNS.
 
 ## Wat je met rust laat
 
@@ -48,7 +50,9 @@ aan bounces in je eigen inbox.
 1. **TTL is al laag.** De apex staat op 600 seconden, dus een wijziging is
    binnen ~10 minuten zichtbaar en een terugrol net zo snel. Extra verlagen is
    niet nodig.
-2. **Controleer dat de nieuwe site staat.** Alle drie moeten `200` geven:
+2. **Controleer dat de nieuwe site staat.** Alle drie moeten `200` geven. Staat
+   de onderhoudsmodus aan, dan krijg je `503` — dat is dan geen fout, maar
+   bedenk wel of bezoekers van react2u.nl de onderhoudspagina mogen zien:
    ```
    curl -sI https://react2u.vercel.app | head -1
    curl -sI https://react2u.vercel.app/vacatures | head -1
@@ -87,6 +91,13 @@ dig +short _dmarc.react2u.nl TXT
 
 Stuur voor de zekerheid een testmail naar een `@react2u.nl`-adres én vanaf een
 `@react2u.nl`-adres naar een externe mailbox.
+
+> **De SPF begint met `a`.** Dat betekent: het IP van het A-record mag mail
+> versturen namens react2u.nl. Na de omzetting is dat het Vercel-adres in
+> plaats van de WordPress-server. Vercel verstuurt geen mail vanaf dat adres,
+> dus er gaat niets stuk — maar stuurde de WordPress-server zelf mail (een
+> contactformulier bijvoorbeeld), dan is die nu niet meer gemachtigd. Dat is
+> precies de bedoeling. De `a` mag er later uit.
 
 ## Terugrollen
 
