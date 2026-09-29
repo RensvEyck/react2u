@@ -2,7 +2,7 @@ import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
-  LuShieldCheck,
+  LuShieldCheck, LuSignpost,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -39,6 +39,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Bezoek", href: "/admin/bezoek", icon: LuChartNoAxesColumn, keywords: "statistieken analytics bezoekers bedrijven" },
   { label: "Media", href: "/admin/media", icon: LuImage, keywords: "afbeeldingen foto's uploaden pdf documenten" },
   { label: "SEO", href: "/admin/seo", icon: LuSearch, keywords: "google zoekmachine meta titel omschrijving" },
+  { label: "Doorverwijzingen", href: "/admin/seo/doorverwijzingen", icon: LuSignpost, keywords: "redirect 404 niet gevonden oude url kapotte link", paletteOnly: true },
   { label: "Gebruikers", href: "/admin/gebruikers", icon: LuUserCog, keywords: "rollen rechten collega's uitnodigen" },
   { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings, keywords: "contactgegevens footer documenten certificaten onderhoud" },
   { label: "Account", href: "/admin/account", icon: LuUserRound, keywords: "wachtwoord tweestapsverificatie 2fa profiel" },
@@ -53,6 +54,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "Nieuwe pagina", href: "/admin/paginas#nieuw", icon: LuPlus, keywords: "pagina toevoegen aanmaken" },
   { label: "Lead toevoegen", href: "/admin/bellijst#nieuw", icon: LuUserPlus, keywords: "lead nieuw bellijst" },
   { label: "Bestand uploaden", href: "/admin/media", icon: LuUpload, keywords: "media afbeelding pdf" },
+  { label: "Doorverwijzing toevoegen", href: "/admin/seo/doorverwijzingen#nieuw", icon: LuSignpost, keywords: "redirect oude url doorsturen 404" },
   { label: "Onderhoudsmodus", href: "/admin/instellingen#onderhoud", icon: LuConstruction, keywords: "site dicht offline maintenance" },
   { label: "Collega uitnodigen", href: "/admin/gebruikers", icon: LuUserPlus, keywords: "gebruiker toevoegen uitnodiging" },
   { label: "Tweestapsverificatie", href: "/admin/account", icon: LuShieldCheck, keywords: "2fa beveiliging authenticator" },
@@ -64,5 +66,5 @@ export const CRUMBS: Record<string, string> = {
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",
-  nieuw: "Nieuw", blok: "Blok",
+  nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen",
 };

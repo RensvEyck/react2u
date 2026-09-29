@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import { saveSeoSettings } from "@/app/admin/actions";
 import ImageField from "@/components/admin/ImageField";
+import SeoTabs from "@/components/admin/SeoTabs";
 import type { Page, Post, Vacancy } from "@/lib/types";
 import {
   analysePage, analysePost, analyseVacancy, countIssues, normalizeSeoSettings,
@@ -62,11 +63,12 @@ function Row({ r }: { r: SeoRow }) {
 
 export default async function SeoAdmin() {
   const { sb } = await requirePerm("seo");
-  const [pagesRes, postsRes, vacanciesRes, seoRes] = await Promise.all([
+  const [pagesRes, postsRes, vacanciesRes, seoRes, missingRes] = await Promise.all([
     sb.from("pages").select("*").order("sort"),
     sb.from("posts").select("*").order("created_at", { ascending: false }),
     sb.from("vacancies").select("*").order("created_at", { ascending: false }),
     sb.from("site_settings").select("value").eq("key", "seo").maybeSingle(),
+    sb.from("missing_paths").select("path", { count: "exact", head: true }).eq("ignored", false),
   ]);
 
   const rows: SeoRow[] = [
@@ -95,6 +97,8 @@ export default async function SeoAdmin() {
           Bekijk sitemap <LuExternalLink className="text-[13px]" />
         </a>
       </div>
+
+      <SeoTabs active="overzicht" open404={missingRes.count ?? 0} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         {[

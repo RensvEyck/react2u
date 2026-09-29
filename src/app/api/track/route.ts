@@ -4,6 +4,7 @@ import {
   clientIp, visitorHash, isCompanyOrg, cleanOrgName, referrerHost,
   isTrackablePath, normalizePath,
 } from "@/lib/analytics";
+import { missingReferrer } from "@/lib/redirects";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,10 +38,20 @@ export async function POST(req: NextRequest) {
   const ok = () => new NextResponse(null, { status: 204 });
 
   try {
-    const body = (await req.json()) as { path?: string; referrer?: string };
+    const body = (await req.json()) as { path?: string; referrer?: string; missing?: boolean };
     const raw = String(body.path || "");
     if (!isTrackablePath(raw)) return ok();
     const path = normalizePath(raw);
+
+    // Een 404 is geen bezoek. Die gaat naar missing_paths, zonder IP of hash —
+    // alleen het pad en waar de link stond. Zie migratie 0007.
+    if (body.missing) {
+      await supabasePublic().rpc("log_missing_path", {
+        p_path: path,
+        p_referrer: missingReferrer(body.referrer, req.headers.get("host") || undefined),
+      });
+      return ok();
+    }
 
     const ip = clientIp(req.headers);
     if (!ip) return ok();
