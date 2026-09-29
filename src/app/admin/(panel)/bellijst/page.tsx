@@ -59,7 +59,7 @@ export default async function BellijstAdmin({
         </p>
       </div>
 
-      <form action={createLead} className="acard p-6">
+      <form action={createLead} id="nieuw" className="acard p-6">
         <h2 className="mb-4 font-heading text-[15px] font-bold text-[#312e82]">Nieuwe lead</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <div>
@@ -130,7 +130,7 @@ function LeadCard({ l, day }: { l: Lead; day: string }) {
   const meta = LEAD_STATUS[l.status as LeadStatus] || LEAD_STATUS.te_bellen;
 
   return (
-    <div className={`acard p-6 ${needsCall(l, day) ? "border-l-[3px] border-l-[#e75387]" : "opacity-80"}`}>
+    <div id={`lead-${l.id}`} className={`acard p-6 ${needsCall(l, day) ? "border-l-[3px] border-l-[#e75387]" : "opacity-80"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">

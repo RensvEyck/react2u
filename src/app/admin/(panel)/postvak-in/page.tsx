@@ -171,7 +171,7 @@ function CallListButton({
 
 function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
   return (
-    <div className={`acard p-6 ${m.read ? "opacity-75" : "border-l-[3px] border-l-[#e75387]"}`}>
+    <div id={`bericht-${m.id}`} className={`acard p-6 ${m.read ? "opacity-75" : "border-l-[3px] border-l-[#e75387]"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
@@ -216,7 +216,7 @@ function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
 
 function ApplicationCard({ a, onList }: { a: Application; onList: boolean }) {
   return (
-    <div className={`acard p-6 ${a.status === "nieuw" ? "border-l-[3px] border-l-[#312e82]" : "opacity-75"}`}>
+    <div id={`sollicitatie-${a.id}`} className={`acard p-6 ${a.status === "nieuw" ? "border-l-[3px] border-l-[#312e82]" : "opacity-75"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[16px] font-bold text-[#312e82]">

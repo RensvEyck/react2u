@@ -17,7 +17,7 @@ export default async function PagesAdmin() {
         </div>
       </div>
 
-      <form action={createPage} className="acard flex flex-wrap items-end gap-3 p-5">
+      <form action={createPage} id="nieuw" className="acard flex flex-wrap items-end gap-3 p-5">
         <div className="min-w-[200px] flex-1">
           <label className="alabel">Titel</label>
           <input className="ainput" name="title" placeholder="Bijv. Werken bij" required />
