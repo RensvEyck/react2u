@@ -4,6 +4,7 @@ import werkgevers from "@/content/werkgevers.json";
 import werknemers from "@/content/werknemers.json";
 import verzuimprotocol from "@/content/verzuimprotocol.json";
 import begeleidingEnCoaching from "@/content/begeleiding-en-coaching.json";
+import diensten from "@/content/diensten.json";
 
 /**
  * Concepten: een nieuwe opbouw van een pagina die nog niet in de database
@@ -18,7 +19,7 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching];
+const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten];
 
 /**
  * Concepten zijn alleen zichtbaar op een preview-deploy (staging): daar wil je

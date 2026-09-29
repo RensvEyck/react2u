@@ -12,16 +12,18 @@ import { Arrow } from "./Arrow";
  * h3 in een los overzicht, h4 onder een eigen tussenkop.
  */
 export default function FotoTegel({
-  href, image, kicker, title, sizes, kop: Kop = "h3", ratio = "aspect-[4/3]", klein = false, className = "",
+  href, image, kicker, title, sizes, kop: Kop = "h3", ratio = "aspect-[4/3]", klein = false, groot = false, className = "",
 }: {
   href: string;
   image?: string;
   kicker?: string;
   title: string;
   sizes: string;
-  kop?: "h3" | "h4";
+  kop?: "h2" | "h3" | "h4";
   ratio?: string;
   klein?: boolean;
+  /** Een grote tegel met een titel zo groot als op het startscherm (bv. de keuze op de 404). */
+  groot?: boolean;
   className?: string;
 }) {
   const pijl = (
@@ -38,14 +40,16 @@ export default function FotoTegel({
         <SiteImage src={image} alt="" sizes={sizes} widths={[400, 640, 960]}
           className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-[1200ms] ease-[var(--ease-out-soft)] group-hover:scale-[1.05]" />
       )}
-      <div className={`relative flex items-end justify-between gap-4 ${klein ? "p-4" : "p-5 sm:p-6"}`}>
+      <div className={`relative flex items-end justify-between gap-4 ${klein ? "p-4" : groot ? "p-6 sm:p-8" : "p-5 sm:p-6"}`}>
         {/* Verloop achter de tekst, zoals op het startscherm: achter elke regel
             minstens 78% dekkend (wit haalt daarop 7:1, ook op een witte foto),
             en pas in de 3rem erboven vloeit het weg. Bovenin blijft de foto vrij. */}
         <div aria-hidden className="absolute inset-x-0 -top-12 bottom-0 -z-10 bg-[linear-gradient(to_top,rgb(34_32_90/0.92),rgb(34_32_90/0.78)_calc(100%_-_3rem),rgb(34_32_90/0))]" />
         <span className="min-w-0">
-          {kicker && <span className={`block leading-snug text-white ${klein ? "text-[14px]" : "text-[15px]"}`}>{kicker}</span>}
-          <Kop className={`mt-1 font-bold leading-tight !text-white ${klein ? "text-[17px]" : "text-[21px]"}`}>{title}</Kop>
+          {kicker && <span className={`block leading-snug text-white ${klein ? "text-[14px]" : groot ? "text-[15px] sm:text-[17px]" : "text-[15px]"}`}>{kicker}</span>}
+          <Kop className={`mt-1 font-bold leading-tight !text-white ${
+            klein ? "text-[17px]" : groot ? "text-[1.6rem] tracking-[-0.02em] sm:text-[2rem] lg:text-[2.4rem]" : "text-[21px]"
+          }`}>{title}</Kop>
         </span>
         {!klein && pijl}
       </div>

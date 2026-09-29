@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PIJLERS } from "@/lib/nav";
 import { Arrow } from "./Arrow";
+import FotoTegel from "./FotoTegel";
 
 const VOOR_WERKNEMERS = [
   { label: "Ziek, wat nu?", href: "/werknemers#ziek-wat-nu" },
@@ -35,7 +36,7 @@ export default function NietGevonden() {
   const diensten = PIJLERS.flatMap((p) => p.diensten).map((d) => ({ label: d.label, href: d.href }));
   return (
     <div data-niet-gevonden>
-      <section className="border-b border-line bg-soft">
+      <section className="bg-soft">
         <div className="container-site pb-14 pt-10 md:pb-20 md:pt-14">
           <p className="eyebrow mb-4">Pagina niet gevonden</p>
           <h1 className="max-w-[760px] text-[2.25rem] font-bold leading-[1.08] tracking-[-0.025em] sm:text-[2.9rem] lg:text-[3.5rem]">
@@ -51,6 +52,17 @@ export default function NietGevonden() {
         </div>
       </section>
       <section className="py-16 md:py-20">
+        {/* Dezelfde keuze als op het startscherm, met dezelfde foto's. */}
+        <ul className="container-site mb-14 grid gap-4 sm:grid-cols-2">
+          <li>
+            <FotoTegel href="/werkgevers" image={PIJLERS[0].diensten[1].image} kicker="Grip op verzuim, van preventie tot re-integratie"
+              title="Ik ben werkgever" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
+          </li>
+          <li>
+            <FotoTegel href="/werknemers" image={PIJLERS[1].diensten[1].image} kicker="Ziek of vastgelopen? We helpen je weer op weg"
+              title="Ik ben werknemer" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
+          </li>
+        </ul>
         <div className="container-site grid gap-12 lg:grid-cols-12 lg:gap-x-8">
           <div className="lg:col-span-6">
             <h2 className="mb-5 text-[1.5rem] font-bold">

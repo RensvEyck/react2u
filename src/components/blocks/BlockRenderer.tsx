@@ -37,7 +37,12 @@ type Crumb = { label: string; href: string };
  * aanlevert: de nieuwste artikelen en het kruimelpad. Leeg in het live
  * voorbeeld van de blokeditor: die draait in de browser en haalt niets op.
  */
-export type BlockCtx = { posts?: Post[]; crumbs?: Crumb[] };
+export type BlockCtx = {
+  posts?: Post[];
+  crumbs?: Crumb[];
+  /** Knoppen voor een paginakop die er zelf geen heeft (de dienstpagina's). */
+  knoppen?: Btn[];
+};
 
 type BlockProps = {
   d: any;
@@ -272,7 +277,7 @@ function HeroSplit({ d, asH1, ctx }: BlockProps) {
         <Highlighted text={d.heading || ""} highlight={d.highlight} />
       </PageHeading>
       {d.text && <MiniMarkdown text={d.text} className={`mt-6 max-w-[580px] ${LEAD}`} />}
-      <Buttons list={[d.button, d.button2]} className="mt-8" />
+      <Buttons list={[d.button, d.button2].some((b) => b?.label) ? [d.button, d.button2] : ctx?.knoppen || []} className="mt-8" />
       {d.badge && (
         <p className="mt-7 flex items-center gap-2.5 text-[15px] font-medium text-primary">
           <LuBadgeCheck className="shrink-0 text-[19px]" aria-hidden />
@@ -497,7 +502,7 @@ function ImageText({ d, asH1 }: BlockProps) {
     return (
       <section data-tone="bleed" className="bg-white lg:grid lg:min-h-[600px] lg:grid-cols-2">
         <div className={`relative aspect-[4/3] overflow-hidden bg-soft sm:aspect-[16/9] lg:aspect-auto ${imgLeft ? "" : "lg:order-last"}`}>
-          <VolFoto src={d.image} alt={d.imageAlt} focus={d.focus} sizes="(min-width: 1024px) 50vw, 100vw" />
+          <VolFoto src={d.image} alt={d.imageAlt} focus={d.focus} sizes="(min-width: 1024px) 50vw, 100vw" className="diepte" />
         </div>
         <div className={`flex flex-col justify-center px-5 py-14 sm:px-8 md:py-20 lg:py-24 ${
           imgLeft ? `lg:pl-14 xl:pl-20 ${RAND_R}` : `lg:pr-14 xl:pr-20 ${RAND_L}`
@@ -758,7 +763,7 @@ function CtaBanner({ d, asH1 }: BlockProps) {
   return (
     <section data-tone="bleed" className="bg-soft lg:grid lg:min-h-[540px] lg:grid-cols-2">
       <div className="relative aspect-[16/10] overflow-hidden bg-soft sm:aspect-[2/1] lg:aspect-auto">
-        <VolFoto src={d.image || CONTACT_FOTO} alt={d.imageAlt} focus={d.focus || "center 30%"} sizes="(min-width: 1024px) 50vw, 100vw" />
+        <VolFoto src={d.image || CONTACT_FOTO} alt={d.imageAlt} focus={d.focus || "center 30%"} sizes="(min-width: 1024px) 50vw, 100vw" className="diepte" />
       </div>
       <div className={`flex flex-col justify-center px-5 py-14 sm:px-8 md:py-20 lg:pl-14 xl:pl-20 ${RAND_R}`}>
         <div className="max-w-[540px]" data-reveal>

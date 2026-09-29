@@ -265,6 +265,20 @@ regels:
   verminderde beweging staat dat uit.
 - **Het REACT-wiel** staat op een grijs vierkant; `imageRond` in `method` knipt
   het rond uit, zodat het op zand staat zonder grijs vlak.
+- **Diepte**: de grote foto's naast tekst (`ImageText`, `CtaBanner`) bewegen
+  tijdens het scrollen iets trager dan de pagina (`.diepte`, scroll-driven
+  animations in puur CSS). Zonder browserondersteuning of met verminderde
+  beweging staat de foto gewoon stil.
+- **Menu's met mensen**: het dienstenmenu toont elke dienst met zijn foto en
+  rechts iemand aan de telefoon; het mobiele menu vult het scherm onder de
+  balk, met de keuze werkgever/werknemer bovenin, de diensten met foto en
+  onderaan bellen en mailen. Zolang het open is, scrolt de pagina erachter niet
+  en is hij `inert` (Tab blijft in het menu).
+- **Pagina's buiten de blokken** (vacatures, open sollicitatie) krijgen via
+  `PageHeader` met `image` dezelfde kop als een half scherm. Formulieren staan
+  op zand, met witte velden.
+- **Dienstpagina's** zonder knoppen in de kop krijgen automatisch "Maak een
+  afspraak" en "Bel …" (`knoppen` in de `ctx` van BlockRenderer).
 
 **Contrast is doorgerekend, niet geschat.** Roze knop met witte tekst 5,1:1;
 gedempte bovenkopjes 6,0:1 op wit; lopende tekst (`--color-body`) 6,9:1; de
@@ -380,8 +394,9 @@ lezen", die buiten de afbeelding niet meer klopte.
 
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
-`werkgevers`, `werknemers`, `verzuimprotocol`, en `begeleiding-en-coaching`
-— daar alleen de volgorde hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
+`werkgevers`, `werknemers`, `verzuimprotocol`, `diensten` — dezelfde teksten in
+een nieuwe opbouw — en `begeleiding-en-coaching` — daar alleen de volgorde
+hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
 een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
 

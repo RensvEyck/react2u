@@ -29,7 +29,7 @@ export function Field({
 /** Bevestiging na een geslaagde inzending. */
 export function Bedankt({ children }: { children: React.ReactNode }) {
   return (
-    <div role="status" className="flex gap-4 rounded-xl border border-line bg-soft p-6 text-primary">
+    <div role="status" className="flex gap-4 rounded-xl border border-line bg-white p-6 text-primary">
       <LuCircleCheck className="mt-0.5 shrink-0 text-[24px] text-primary" aria-hidden />
       <p className="font-medium">{children}</p>
     </div>

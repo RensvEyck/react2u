@@ -3,12 +3,13 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  NAV, PIJLERS, HEADER_CTA, STARTPAGINA, dienstVoor, doelgroepVoorPad, type Doelgroep, type NavItem,
+  NAV, PIJLERS, HEADER_CTA, STARTPAGINA, CONTACT_FOTO, dienstVoor, doelgroepVoorPad, type Doelgroep, type NavItem,
 } from "@/lib/nav";
 import { bewaarDoelgroep, useBewaardeDoelgroep } from "@/lib/doelgroep";
 import type { ContactInfo } from "@/lib/content";
 import { LuPhone, LuMail, LuMenu, LuX, LuChevronDown } from "react-icons/lu";
 import Logo from "./Logo";
+import SiteImage from "./SiteImage";
 import { Arrow } from "./Arrow";
 
 // Hoe lang een menu openblijft nadat de muis het verlaat. Zonder die marge klapt
@@ -33,6 +34,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
   const [scrolled, setScrolled] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const barRef = useRef<HTMLElement>(null);
+  const rijRef = useRef<HTMLDivElement>(null);
   const ids = useId();
   const path = usePathname() || "/";
 
@@ -65,6 +67,27 @@ export default function Header({ contact }: { contact: ContactInfo }) {
     setOpen(null);
     setMobile(false);
   };
+
+  // Het mobiele menu vult het scherm onder de balk. Zolang het open is, scrolt
+  // de pagina erachter niet mee — anders veeg je het menu en de pagina door
+  // elkaar. `menuTop` is waar de balk eindigt (de topbalk kan er nog boven staan).
+  const [menuTop, setMenuTop] = useState(72);
+  useEffect(() => {
+    if (!mobile) return;
+    // De rij met logo en knoppen, niet de hele header: daar zit het paneel zelf al in.
+    setMenuTop(Math.round(rijRef.current?.getBoundingClientRect().bottom ?? 72) + 1);
+    const root = document.documentElement;
+    const vorige = root.style.overflow;
+    root.style.overflow = "hidden";
+    // En met Tab kom je niet meer in de pagina achter het menu: die is inert
+    // (niet te bereiken, niet voorgelezen) zolang het menu open is.
+    const achter = [...document.querySelectorAll<HTMLElement>("#inhoud, footer")];
+    achter.forEach((el) => (el.inert = true));
+    return () => {
+      root.style.overflow = vorige;
+      achter.forEach((el) => (el.inert = false));
+    };
+  }, [mobile]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -120,39 +143,55 @@ export default function Header({ contact }: { contact: ContactInfo }) {
       className="menu-panel absolute inset-x-0 top-full hidden border-b border-line bg-white shadow-[0_24px_40px_-32px_rgba(34,32,90,0.35)] lg:block"
       onClick={closeOnLink}
     >
-      <div className="container-site grid grid-cols-3 gap-8 py-9">
-        {PIJLERS.map((p, i) => (
-          <div key={p.key}>
-            <p className="mb-3 border-b border-line pb-3">
-              <span className="eyebrow block">Stap {i + 1} · {p.stap}</span>
-              <span className="block font-heading text-[18px] font-bold text-primary">{p.title}</span>
-            </p>
-            <ul>
-              {p.diensten.map((d) => (
-                <li key={d.href}>
-                  <Link href={d.href} aria-current={current(d.href)}
-                    className="group -mx-3 flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-soft aria-[current=page]:bg-soft">
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-primary">{d.label}</span>
-                      <span className="block text-[14px] leading-snug text-body">{d.situatie}</span>
-                    </span>
-                    <Arrow className="shrink-0 text-primary opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <div className="container-site grid grid-cols-[1fr_1fr_1fr_250px] gap-6 py-8">
+        {/* Elke dienst met zijn eigen foto, zoals op de tegels: ook hier mensen. */}
+        <div className="col-span-3 grid grid-cols-3 gap-6">
+          {PIJLERS.map((p, i) => (
+            <div key={p.key}>
+              <p className="mb-2.5 border-b border-line pb-3">
+                <span className="eyebrow block">Stap {i + 1} · {p.stap}</span>
+                <span className="block font-heading text-[18px] font-bold text-primary">{p.title}</span>
+              </p>
+              <ul className="space-y-1">
+                {p.diensten.map((d) => (
+                  <li key={d.href}>
+                    <Link href={d.href} aria-current={current(d.href)}
+                      className="group -mx-2 flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-soft aria-[current=page]:bg-soft">
+                      <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-soft">
+                        <SiteImage src={d.image} alt="" sizes="48px" widths={[120]} loading="eager"
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold leading-snug text-primary">{d.label}</span>
+                        <span className="mt-0.5 block text-[14px] leading-snug text-body">{d.situatie}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        {/* Rechts: iemand aan de lijn, zoals onderaan elke pagina. */}
+        <a href={`tel:${contact.phone}`}
+          className="group relative isolate flex min-h-[250px] flex-col justify-end overflow-hidden rounded-2xl bg-primary-deep text-white">
+          <SiteImage src={CONTACT_FOTO} alt="" sizes="250px" widths={[400, 640]} loading="eager"
+            className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_28%] transition-transform duration-700 group-hover:scale-105" />
+          <span className="relative block p-5">
+            <span aria-hidden className="absolute inset-x-0 -top-12 bottom-0 -z-10 bg-[linear-gradient(to_top,rgb(34_32_90/0.92),rgb(34_32_90/0.78)_calc(100%_-_3rem),rgb(34_32_90/0))]" />
+            <span className="block text-[14.5px] leading-snug text-white">Liever meteen iemand spreken?</span>
+            <span className="mt-1 flex items-center gap-2 font-heading text-[21px] font-bold text-white">
+              <LuPhone className="text-[17px]" aria-hidden /> {contact.phoneDisplay}
+            </span>
+          </span>
+        </a>
       </div>
       <div className="border-t border-line bg-soft">
-        <div className="container-site flex items-center justify-between py-3.5">
-          <p className="flex items-center gap-2 text-[15px] text-primary">
-            Liever meteen iemand spreken?
-            <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-1.5 font-semibold underline-offset-4 hover:underline">
-              <LuPhone className="text-[14px]" aria-hidden /> {contact.phoneDisplay}
-            </a>
-          </p>
-          <Link href={megaItem.href} className="link-arrow text-[15px]">
+        <div className="container-site flex items-center justify-between py-3.5 text-[15px]">
+          <Link href="/werknemers#ziek-wat-nu" className="text-primary underline-offset-4 hover:underline">
+            Ben je werknemer en ziek? Lees wat je moet doen
+          </Link>
+          <Link href={megaItem.href} className="link-arrow">
             Alle diensten <Arrow />
           </Link>
         </div>
@@ -204,7 +243,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
           scrolled || open || mobile ? "shadow-[0_8px_24px_-20px_rgba(34,32,90,0.35)]" : ""
         }`}
       >
-        <div className="container-site flex h-[72px] items-center justify-between gap-6 lg:h-[84px]">
+        <div ref={rijRef} className="container-site flex h-[72px] items-center justify-between gap-6 lg:h-[84px]">
           <Link href="/" className="shrink-0" onClick={closeAll} aria-label="React2u, naar de homepage">
             <Logo title="" className="h-[42px] w-auto lg:h-[46px]" />
           </Link>
@@ -245,15 +284,28 @@ export default function Header({ contact }: { contact: ContactInfo }) {
           </div>
         </div>
 
-        {/* Mobiel: klapt uit onder de balk */}
+        {/* Mobiel: een paneel dat het scherm onder de balk vult. Bovenin de
+            keuze werkgever/werknemer (de topbalk is na scrollen weg), dan het
+            menu met de diensten als foto's, onderaan bellen en mailen. */}
         {mobile && (
-          <div id={`${ids}-mobiel`} className="menu-panel max-h-[calc(100dvh-72px)] overflow-y-auto border-t border-line bg-white lg:hidden"
-               onClick={closeOnLink}>
-            <nav aria-label="Hoofdmenu mobiel" className="container-site flex flex-col pb-6 pt-2">
+          <div id={`${ids}-mobiel`} style={{ height: `calc(100dvh - ${menuTop}px)` }}
+            className="menu-panel overflow-y-auto overscroll-contain border-t border-line bg-white lg:hidden"
+            onClick={closeOnLink}>
+            <div className="container-site pt-4">
+              <nav aria-label="Kies je route" className="grid grid-cols-2 gap-1 rounded-xl bg-soft p-1 text-[15px] font-semibold">
+                {(["werkgever", "werknemer"] as const).map((g) => (
+                  <Link key={g} href={STARTPAGINA[g].href} aria-current={doelgroep === g ? "true" : undefined}
+                    className="rounded-lg py-2.5 text-center text-body transition-colors aria-[current=true]:bg-white aria-[current=true]:text-primary aria-[current=true]:shadow-[0_1px_3px_rgba(34,32,90,0.12)]">
+                    {STARTPAGINA[g].label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+            <nav aria-label="Hoofdmenu mobiel" className="container-site flex flex-col pb-2 pt-2">
               {nav.map((item) =>
                 item.mega || item.children ? (
                   <details key={item.label} className="group border-b border-line" open={!!item.mega}>
-                    <summary className="flex cursor-pointer list-none items-center justify-between py-3.5 text-[18px] font-semibold text-primary [&::-webkit-details-marker]:hidden">
+                    <summary className="flex cursor-pointer list-none items-center justify-between py-4 text-[19px] font-semibold text-primary [&::-webkit-details-marker]:hidden">
                       {item.label}
                       <LuChevronDown className="text-[18px] opacity-60 transition-transform duration-300 group-open:rotate-180" aria-hidden />
                     </summary>
@@ -262,13 +314,20 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                         <div className="space-y-4">
                           {PIJLERS.map((p) => (
                             <div key={p.key}>
-                              <p className="eyebrow mb-1">{p.stap} · {p.title}</p>
-                              {p.diensten.map((d) => (
-                                <Link key={d.href} href={d.href} aria-current={current(d.href)}
-                                  className="block py-2 text-[16.5px] text-primary aria-[current=page]:font-semibold">
-                                  {d.label}
-                                </Link>
-                              ))}
+                              <p className="eyebrow mb-1.5">{p.stap} · {p.title}</p>
+                              <ul className="space-y-1">
+                                {p.diensten.map((d) => (
+                                  <li key={d.href}>
+                                    <Link href={d.href} aria-current={current(d.href)}
+                                      className="-mx-2 flex items-center gap-3 rounded-xl p-2 text-[16.5px] text-primary aria-[current=page]:bg-soft aria-[current=page]:font-semibold">
+                                      <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-soft">
+                                        <SiteImage src={d.image} alt="" sizes="44px" widths={[120]} loading="eager" className="absolute inset-0 h-full w-full object-cover" />
+                                      </span>
+                                      {d.label}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           ))}
                           <Link href={item.href} className="link-arrow pt-1 text-[15.5px]">Alle diensten <Arrow /></Link>
@@ -285,15 +344,40 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                   </details>
                 ) : (
                   <Link key={item.href} href={item.href} aria-current={current(item.href)}
-                    className="border-b border-line py-3.5 text-[18px] font-semibold text-primary">
+                    className="border-b border-line py-4 text-[19px] font-semibold text-primary">
                     {item.label}
                   </Link>
                 )
               )}
-              <Link href={cta.href} className="btn mt-5">
-                {cta.label} <Arrow />
-              </Link>
             </nav>
+            <div className="mt-4 bg-soft pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6">
+              <div className="container-site">
+                <p className="text-[15px]">Liever meteen iemand spreken?</p>
+                <ul className="mt-2 divide-y divide-line border-y border-line">
+                  <li>
+                    <a href={`tel:${contact.phone}`} className="flex items-center gap-3.5 py-3.5">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[18px] text-primary" aria-hidden><LuPhone /></span>
+                      <span>
+                        <span className="block text-[14px] leading-snug">Bel ons</span>
+                        <span className="block font-heading text-[19px] font-bold text-primary">{contact.phoneDisplay}</span>
+                      </span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href={`mailto:${contact.email}`} className="flex items-center gap-3.5 py-3.5">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[18px] text-primary" aria-hidden><LuMail /></span>
+                      <span>
+                        <span className="block text-[14px] leading-snug">Mail ons</span>
+                        <span className="block font-heading text-[19px] font-bold text-primary">{contact.email}</span>
+                      </span>
+                    </a>
+                  </li>
+                </ul>
+                <Link href={cta.href} className="btn mt-5 w-full">
+                  {cta.label} <Arrow />
+                </Link>
+              </div>
+            </div>
           </div>
         )}
       </header>

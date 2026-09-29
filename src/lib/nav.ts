@@ -6,6 +6,8 @@ const FOTO = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/m
 
 /** De foto bij "Kom met ons in contact" onderaan een pagina, als het blok zelf geen foto heeft. */
 export const CONTACT_FOTO = `${FOTO}/2023/06/front-view-older-woman-talking-phone-while-working.jpg`;
+/** Samenwerken op kantoor: de kop van "Werken bij React2u". */
+export const WERKEN_BIJ_FOTO = `${FOTO}/2023/05/partnering-up-project-shot-two-coworkers-meeting-office.jpg`;
 
 /* ---------- Diensten: drie stappen, zes diensten ---------- */
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getPage, getPublishedPages, getPublishedPosts } from "@/lib/content";
+import { CONTACT_FALLBACK, getPage, getPublishedPages, getPublishedPosts } from "@/lib/content";
 import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
 import FotoTegel from "@/components/site/FotoTegel";
 import { Arrow } from "@/components/site/Arrow";
@@ -81,7 +81,14 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs }} />
+      {/* Een dienstpagina zonder knoppen in de kop krijgt de twee die daar horen:
+          een afspraak maken en direct bellen. */}
+      <BlockRenderer blocks={res.blocks} ctx={{
+        posts, crumbs,
+        knoppen: hit
+          ? [{ label: "Maak een afspraak", href: "/contact" }, { label: `Bel ${CONTACT_FALLBACK.phoneDisplay}`, href: `tel:${CONTACT_FALLBACK.phone}` }]
+          : undefined,
+      }} />
       {hit && <MeerDiensten huidig={path} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
     </>

@@ -22,7 +22,12 @@ function inline(text: string, key: number): React.ReactNode {
   );
 }
 
-export function MiniMarkdown({ text, className }: { text: string; className?: string }) {
+/**
+ * `kop` is het element voor "### "-regels. Standaard h3 (onder de h2 van een
+ * blok); een pagina waar de tekst direct onder de h1 staat, zoals een vacature,
+ * geeft "h2" mee — anders slaat de kopstructuur een niveau over.
+ */
+export function MiniMarkdown({ text, className, kop: Kop = "h3" }: { text: string; className?: string; kop?: "h2" | "h3" }) {
   const lines = (text || "").split("\n");
   const out: React.ReactNode[] = [];
   let list: string[] = [];
@@ -56,7 +61,7 @@ export function MiniMarkdown({ text, className }: { text: string; className?: st
     } else if (line.trim().startsWith("### ")) {
       flushPara();
       flushList();
-      out.push(<h3 key={k++}>{line.trim().slice(4)}</h3>);
+      out.push(<Kop key={k++} className="prose-kop">{line.trim().slice(4)}</Kop>);
     } else if (line.trim() === "") {
       flushPara();
       flushList();

@@ -10,7 +10,7 @@ import { optimized, srcSet, DEFAULT_WIDTHS, isOptimizable } from "@/lib/image";
  * next/image loopt.
  */
 export default function SiteImage({
-  src, alt, className, style, sizes = "100vw", widths = DEFAULT_WIDTHS, priority = false,
+  src, alt, className, style, sizes = "100vw", widths = DEFAULT_WIDTHS, priority = false, loading,
 }: {
   src: string;
   alt: string;
@@ -22,6 +22,8 @@ export default function SiteImage({
   widths?: number[];
   /** Voor beeld boven de vouw: niet uitstellen, want dit is vaak het LCP-element. */
   priority?: boolean;
+  /** "eager" zonder de rest van `priority`: voor kleine beelden in een menu dat pas opengaat als je erom vraagt. */
+  loading?: "eager" | "lazy";
 }) {
   if (!src) return null;
   const canScale = isOptimizable(src);
@@ -33,7 +35,7 @@ export default function SiteImage({
       alt={alt}
       className={className}
       style={style}
-      loading={priority ? "eager" : "lazy"}
+      loading={priority ? "eager" : loading ?? "lazy"}
       decoding={priority ? "sync" : "async"}
       {...(priority ? { fetchPriority: "high" as const } : {})}
     />

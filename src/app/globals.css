@@ -319,6 +319,25 @@ h1, h2, h3 {
   }
 }
 
+/* Diepte: een grote foto naast tekst beweegt tijdens het scrollen iets trager
+   dan de pagina. Puur CSS (scroll-driven animations); een browser die dat niet
+   kent, of iemand met verminderde beweging, ziet gewoon een stilstaande foto.
+   De foto is 12% groter dan zijn vlak, zodat er bij 5% verschuiving nooit een
+   rand zichtbaar wordt. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .diepte {
+      animation: diepte linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+@keyframes diepte {
+  from { transform: translateY(-5%) scale(1.12); }
+  to { transform: translateY(5%) scale(1.12); }
+}
+
 /* Megamenu en uitklapmenu's */
 .menu-panel {
   animation: menu-in 0.22s var(--ease-out-soft) both;
@@ -489,5 +508,5 @@ h1, h2, h3 {
 .on-dark .prose-r2u li::before { background: #fff; }
 .prose-r2u strong { color: var(--color-primary); font-weight: 700; }
 .on-dark .prose-r2u strong { color: #fff; }
-.prose-r2u h3 { margin-top: 1.6em; font-size: 24px; }
+.prose-r2u .prose-kop { margin-top: 1.6em; font-size: 24px; }
 .prose-r2u a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
