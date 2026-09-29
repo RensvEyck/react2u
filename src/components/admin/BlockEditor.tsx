@@ -17,10 +17,11 @@ const FIELD_LABELS: Record<string, string> = {
   columns: "Kolommen", words: "Woorden", before: "Tekst ervoor", after: "Tekst erna",
   style: "Stijl", phone: "Telefoon (tel:)", phoneDisplay: "Telefoon (weergave)", email: "E-mail",
   address: "Adres", formHeading: "Formulier-kop", images: "Afbeeldingen",
-  highlight: "Woord in accentkleur", badge: "Keurmerkregel", logosLabel: "Tekst bij de logo's",
+  highlight: "Woord in accentkleur", badge: "Label (keurmerkregel, of wat in de cirkel staat)", logosLabel: "Tekst bij de logo's",
   layout: "Opmaak (leeg of center)", kleur: "Kleur (blauw, teal, rood, oranje, roze, indigo)",
   steps: "Stappen", valueLabel: "Toelichting bij het cijfer",
   links: "Links", routes: "Contactroutes", sub: "Tweede regel",
+  choices: "Keuzes", note: "Regel onderaan", anchor: "Anker (voor #-links)",
   quote: "Citaat", quoteName: "Naam bij citaat", quoteRole: "Functie bij citaat",
   value: "Cijfer of kernwoord", count: "Aantal artikelen",
 };

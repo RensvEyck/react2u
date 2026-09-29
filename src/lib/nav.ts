@@ -95,36 +95,77 @@ export const PIJLERS: Pijler[] = [
   },
 ];
 
+/* ---------- Werkgever en werknemer ---------- */
+
+/**
+ * De site kent twee doelgroepen met elk een eigen startpagina en een eigen
+ * menu. Een werkgever zoekt diensten en een partner; een zieke werknemer wil
+ * weten wat hij moet doen. Het startscherm op `/` laat kiezen.
+ */
+export type Doelgroep = "werkgever" | "werknemer";
+
+export const STARTPAGINA: Record<Doelgroep, NavLink> = {
+  werkgever: { label: "Werkgevers", href: "/werkgevers" },
+  werknemer: { label: "Werknemers", href: "/werknemers" },
+};
+
+const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol"];
+
+/**
+ * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
+ * gedeelde pagina's (contact, blog, over ons): daar geldt de laatste keuze
+ * van de bezoeker (zie lib/doelgroep.ts).
+ */
+export function doelgroepVoorPad(path: string): Doelgroep | null {
+  if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
+  if (path === "/werkgevers" || path === "/diensten" || dienstVoor(path)) return "werkgever";
+  return null;
+}
+
 /* ---------- Hoofdmenu ---------- */
 
 export type NavLink = { label: string; href: string };
 /**
  * Een menu-item is een gewone link, een uitklapmenu (`children`) of het
- * megamenu met de pijlers (`mega`). Het megamenu leest zijn inhoud uit PIJLERS.
+ * dienstenmenu met de pijlers (`mega`). Het dienstenmenu leest uit PIJLERS.
  */
 export type NavItem = NavLink & { children?: NavLink[]; mega?: true };
 
-export const MAIN_NAV: NavItem[] = [
-  { label: "Diensten", href: "/diensten", mega: true },
-  {
-    label: "Werknemers",
-    href: "/werknemers",
-    children: [
-      { label: "Voor werknemers", href: "/werknemers" },
-      { label: "Verzuimprotocol", href: "/verzuimprotocol" },
-    ],
-  },
-  {
-    label: "Over ons",
-    href: "/over-react2u",
-    children: [
-      { label: "Over React2u", href: "/over-react2u" },
-      { label: "Werken bij React2u", href: "/vacatures" },
-    ],
-  },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
-];
+const OVER_ONS: NavItem = {
+  label: "Over ons",
+  href: "/over-react2u",
+  children: [
+    { label: "Over React2u", href: "/over-react2u" },
+    { label: "Werken bij React2u", href: "/vacatures" },
+  ],
+};
+
+/**
+ * Het menu per doelgroep. `algemeen` staat op het startscherm, waar nog niet
+ * gekozen is.
+ */
+export const NAV: Record<Doelgroep | "algemeen", NavItem[]> = {
+  werkgever: [
+    { label: "Diensten", href: "/diensten", mega: true },
+    OVER_ONS,
+    { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/contact" },
+  ],
+  werknemer: [
+    { label: "Ziek, wat nu?", href: "/verzuimprotocol" },
+    { label: "Veelgestelde vragen", href: "/werknemers#veelgestelde-vragen" },
+    OVER_ONS,
+    { label: "Contact", href: "/contact" },
+  ],
+  algemeen: [OVER_ONS, { label: "Blog", href: "/blog" }, { label: "Contact", href: "/contact" }],
+};
+
+/** De knop rechts in de header, per doelgroep. */
+export const HEADER_CTA: Record<Doelgroep | "algemeen", NavLink> = {
+  werkgever: { label: "Maak een afspraak", href: "/contact" },
+  werknemer: { label: "Stel je vraag", href: "/contact" },
+  algemeen: { label: "Neem contact op", href: "/contact" },
+};
 
 /** De dienst achter een pad, met zijn pijler — of null als het geen dienstpagina is. */
 export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | null {
@@ -137,22 +178,18 @@ export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | n
 
 /**
  * Het kruimelpad naar een pagina, zonder "Home" (dat zet de weergave ervoor).
- * Een dienst hangt onder Diensten, een pagina uit een uitklapmenu onder zijn
- * menu-item; de rest staat direct onder Home.
+ * Pagina's van een doelgroep hangen onder hun startpagina, zodat je altijd
+ * ziet in welk deel van de site je bent: Werkgevers › Diensten › Verzuim-
+ * begeleiding WVP, of Werknemers › Verzuimprotocol.
  */
 export function crumbsVoor(path: string, title: string): NavLink[] {
-  // Staat de pagina zelf in het menu, dan heet hij in het kruimelpad zoals in
-  // het menu ("Over ons", niet de paginatitel "Over React2u").
-  const inMenu = MAIN_NAV.find((i) => i.href === path);
-  if (inMenu) return [{ label: inMenu.label, href: path }];
-  if (dienstVoor(path)) return [{ label: "Diensten", href: "/diensten" }, { label: title, href: path }];
-  const ouder = MAIN_NAV.find((i) => i.href !== path && i.children?.some((c) => c.href === path));
-  if (ouder) return [{ label: ouder.label, href: ouder.href }, { label: title, href: path }];
-  return [{ label: title, href: path }];
+  const groep = doelgroepVoorPad(path);
+  if (!groep) return [{ label: title, href: path }];
+  const start = STARTPAGINA[groep];
+  if (path === start.href) return [start];
+  const tussen = dienstVoor(path) ? [{ label: "Diensten", href: "/diensten" }] : [];
+  return [start, ...tussen, { label: title, href: path }];
 }
-
-/** De knop rechts in de header — dezelfde uitnodiging als op de oude site. */
-export const HEADER_CTA: NavLink = { label: "Maak een afspraak", href: "/contact" };
 
 export const LINKEDIN_URL = "https://www.linkedin.com/company/react2u/";
 

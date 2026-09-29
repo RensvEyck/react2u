@@ -1,0 +1,189 @@
+{
+  "_uitleg": "Startpagina voor werknemers. De stappen zijn het visuele verzuimprotocol van React2u, letterlijk overgenomen. Zie CONTEXT.md, *Concepten*.",
+  "slug": "werknemers",
+  "title": "Werknemers",
+  "sort": 8,
+  "blocks": [
+    {
+      "type": "heroStatement",
+      "label": "Hero",
+      "data": {
+        "eyebrow": "Voor werknemers",
+        "heading": "Dat voelt beter!",
+        "highlight": "beter",
+        "text": "Bij React2u weten we waar je als werknemer mee te maken krijgt. We begrijpen hoe je je kunt voelen. Samen met jou en met andere betrokken partijen doen we er alles aan om je zo snel mogelijk weer gezond en onbezorgd op de werkvloer te krijgen.",
+        "button": {
+          "label": "Ziek, wat nu?",
+          "href": "#ziek-wat-nu"
+        },
+        "button2": {
+          "label": "Bel 085 - 620 58 00",
+          "href": "tel:0856205800",
+          "style": "outline"
+        },
+        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/05/partnering-up-project-shot-two-coworkers-meeting-office.jpg",
+        "imageAlt": "Twee collega's in overleg op kantoor",
+        "badge": "Geheimhoudingsplicht: je kunt alles met ons delen"
+      }
+    },
+    {
+      "type": "steps",
+      "label": "Ziek, wat nu?",
+      "data": {
+        "anchor": "ziek-wat-nu",
+        "eyebrow": "Het verzuimprotocol",
+        "heading": "Ziek, wat nu?",
+        "text": "Je bent ziek. Wat nu? Natuurlijk krijg je de ruimte om thuis uit te zieken, maar je hebt de plicht om bereikbaar te zijn en blijven. Niet alleen je werkgever moet contact met je kunnen leggen, ook de arbodienstverlener moet je kunnen bereiken.",
+        "button": {
+          "label": "Vragen? Bel ons",
+          "href": "tel:0856205800",
+          "style": "outline"
+        },
+        "steps": [
+          {
+            "badge": "R",
+            "title": "Rechten & plichten",
+            "text": "Helaas, je bent ziek en kunt niet komen werken. Dan heb je verschillende rechten en plichten: recht op ziekengeld en goede zorg; de plicht om bereikbaar te zijn en samen te zoeken naar mogelijkheden om te werken.",
+            "kleur": "roze"
+          },
+          {
+            "badge": "E",
+            "title": "Even je werk bellen",
+            "text": "Eén van je plichten is dat je je werk belt zodra je weet dat je niet kunt werken. Je belt je juridisch werkgever, uitzendbureau en de inlener waar je op dat moment werkt. Het is belangrijk dat je iedereen telefonisch inlicht!",
+            "kleur": "teal"
+          },
+          {
+            "badge": "A",
+            "title": "Altijd aangeven",
+            "text": "De vermoedelijke duur van je verzuim; het nummer en adres waarop je bereikbaar bent; welke werkzaamheden je wél uit kunt voeren. Je werkgever vraagt aan jou of er sprake is van een vangnetsituatie of regres (ongeval).",
+            "kleur": "blauw"
+          },
+          {
+            "badge": "C",
+            "title": "Contact met React2u",
+            "text": "Na je ziekmelding neemt arbodienst React2u contact met je op. Wij zijn de verbindende factor en willen jou, samen met je werkgever, op een goede manier weer terug naar de werkvloer brengen. Dat doen we samen!",
+            "kleur": "oranje"
+          },
+          {
+            "badge": "T",
+            "title": "Traject van verzuim",
+            "text": "React2u heeft een geheimhoudingsplicht: je kunt alles met ons delen, van medische informatie tot problemen met je werkgever. Daarnaast ondersteunen wij je bij je re-integratieproces.",
+            "kleur": "rood"
+          },
+          {
+            "badge": "2U",
+            "title": "Wij zijn er voor jou",
+            "text": "React2u kijkt samen met jou en de bedrijfsarts naar wat je nodig hebt en maakt een plan van aanpak. Jij bent samen met je werkgever verantwoordelijk om je daaraan te houden, maar wij ondersteunen je hierin.",
+            "kleur": "roze"
+          }
+        ]
+      }
+    },
+    {
+      "type": "intro",
+      "label": "React2u is er voor jou",
+      "data": {
+        "eyebrow": "Wat is React2u?",
+        "heading": "React2u is er voor jou!",
+        "text": "Als je een tijdje niet kunt deelnemen aan het arbeidsproces, om welke reden dan ook, dan doet dat iets met je. Dat weten wij heel goed. Gelukkig weten wij ook hoe we jou in zo'n moeilijke periode zo goed mogelijk kunnen begeleiden op weg naar jouw herstel.\n\nSamen met onze bedrijfsartsen en andere persoonlijk betrokken partijen werken we met jou aan de best passende oplossing. Tijdens dat proces blijven we nauw bij je betrokken en vragen we ons voortdurend af wat je nodig hebt om weer lekker actief aan het werk te kunnen. Bij je eigen bedrijf of misschien wel ergens anders.",
+        "button": {
+          "label": "Over React2u",
+          "href": "/over-react2u"
+        }
+      }
+    },
+    {
+      "type": "values",
+      "label": "Gezond, menselijk, duidelijk",
+      "data": {
+        "eyebrow": "Waar je op kunt rekenen",
+        "heading": "Voor iedereen gezond, menselijk en duidelijk",
+        "text": "",
+        "cards": [
+          {
+            "title": "Gezond",
+            "text": "Werk is belangrijk. Het zorgt voor een inkomen en voor een nuttige, leerzame en waardevolle dagbesteding. Daarom doen we er alles aan om iedereen daaraan te laten deelnemen.",
+            "value": "",
+            "valueLabel": "",
+            "kleur": "teal"
+          },
+          {
+            "title": "Menselijk",
+            "text": "Aandacht raakt. Verzuim vraagt ook om persoonlijke aandacht. Bij React2u willen wij op een menselijke manier werknemers terugbrengen in het arbeidsproces. We willen luisteren en er voor anderen zijn.",
+            "value": "",
+            "valueLabel": "",
+            "kleur": "roze"
+          },
+          {
+            "title": "Duidelijk",
+            "text": "Als je een tijdje uit de running bent, is het soms lastig om alles op orde te houden. In ons online platform zijn alle gesprekken, afspraken en documenten eenvoudig terug te vinden.",
+            "value": "",
+            "valueLabel": "",
+            "kleur": "blauw"
+          }
+        ]
+      }
+    },
+    {
+      "type": "faqAccordion",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "heading": "Veelgestelde vragen",
+        "items": [
+          {
+            "answer": "Werkgevers en werknemers willen vaak weten welke stappen er moeten worden gevolgd vanaf het moment dat een werknemer zich ziek meldt. Daarvoor hebben we bij React2u een duidelijk protocol. Als alle stappen worden doorlopen kan er eigenlijk niets fout gaan. En is er toch iets niet duidelijk? Wij zijn altijd bereikbaar.",
+            "question": "Wat zijn de stappen van het verzuimprotocol?"
+          },
+          {
+            "answer": "Er is veel behoefte aan duidelijkheid over wat zowel de werkgever als de werknemer wettelijk verplicht zijn te doen bij verzuim. Dit omvat het recht op loondoorbetaling, de verplichting van de werknemer om mee te werken aan re-integratie en de verantwoordelijkheden van de werkgever om een passend re-integratieplan te bieden. React2u is de aangewezen partner om daarbij te ondersteunen.",
+            "question": "Wat zijn de rechten en plichten van de werkgever en werknemer bij verzuim?"
+          },
+          {
+            "answer": "Zowel werkgevers als werknemers vragen vaak hoe een effectief re-integratieplan wordt gemaakt en welke stappen er worden ondernomen om een werknemer weer aan het werk te krijgen. Dit omvat het bepalen van de arbeidsgeschiktheid, het opstellen van een plan van aanpak, en het inrichten van werkplekaanpassingen of passende arbeid.",
+            "question": "Hoe wordt een re-integratieplan opgesteld en uitgevoerd?"
+          },
+          {
+            "answer": "Er is vaak onzekerheid over welke soorten aangepaste werkzaamheden beschikbaar zijn en hoe deze kunnen worden georganiseerd. Dit omvat vragen over deeltijdwerken, aangepast werk, tijdelijk ander werk binnen het bedrijf, of zelfs externe re-integratiemogelijkheden. Bij React2u helpen wij graag bij het opstellen van het juiste (maatwerk) re-integratieplan en de talloze mogelijkheden.",
+            "question": "Wat zijn de mogelijkheden voor aangepaste werkzaamheden of herplaatsing?"
+          }
+        ]
+      }
+    },
+    {
+      "type": "ctaBanner",
+      "label": "Wij zijn altijd bereikbaar",
+      "data": {
+        "eyebrow": "Vragen?",
+        "heading": "Wij zijn altijd bereikbaar",
+        "text": "Heb je vragen over je verzuim of je re-integratie? Neem contact met ons op, dan denken we met je mee.",
+        "buttons": [
+          {
+            "label": "Stel je vraag",
+            "href": "/contact",
+            "style": "accent"
+          }
+        ],
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bel ons",
+            "sub": "085 - 620 58 00",
+            "href": "tel:0856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mail ons",
+            "sub": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "message",
+            "label": "Stuur een bericht",
+            "sub": "We nemen zo snel mogelijk contact op",
+            "href": "/contact"
+          }
+        ]
+      }
+    }
+  ]
+}

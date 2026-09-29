@@ -1,42 +1,33 @@
 {
-  "_uitleg": "Nieuwe homepage, met acture.nl en arboned.nl als inspiratie en React2u's eigen merk als basis. Voorbeeld: /concept (en / op staging). Naar de database: node scripts/concept-naar-sql.mjs home — zie CONTEXT.md, *Concepten*.",
+  "_uitleg": "Startscherm: bezoekers kiezen eerst of ze werkgever of werknemer zijn. Zie CONTEXT.md, *Concepten*.",
   "slug": "home",
+  "title": "Home",
   "blocks": [
     {
-      "type": "heroStatement",
-      "label": "Hero",
+      "type": "audienceChoice",
+      "label": "Startscherm",
       "data": {
-        "eyebrow": "De persoonlijke arbodienst",
-        "heading": "Jouw mensen, onze aandacht",
-        "highlight": "aandacht",
-        "text": "React2u is een moderne arbodienst voor werkgevers. We begeleiden je medewerkers bij ziekteverzuim en re-integratie, preventief én curatief — met persoonlijke aandacht en duidelijke structuur.",
-        "button": {
-          "label": "Maak een afspraak",
-          "href": "/contact"
-        },
-        "button2": {
-          "label": "Bekijk onze diensten",
-          "href": "/diensten",
-          "style": "outline"
-        },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
-        "imageAlt": "Adviseur en klant in gesprek aan tafel met koffie",
-        "badge": "Gecertificeerde arbodienst · ISO 9001"
-      }
-    },
-    {
-      "type": "audiences",
-      "label": "Werkgever en werknemer",
-      "data": {
-        "items": [
+        "eyebrow": "Welkom bij React2u",
+        "heading": "Voor iedereen gezond, menselijk en duidelijk",
+        "highlight": "",
+        "text": "React2u is de persoonlijke arbodienst voor werkgevers én werknemers. Waar kunnen we je mee helpen?",
+        "choices": [
           {
-            "eyebrow": "Voor werkgevers",
+            "label": "Ik ben werkgever",
             "title": "Grip op verzuim, van preventie tot re-integratie",
             "text": "We ondersteunen je bij ziekteverzuim, verzuimbegeleiding en re-integratie, binnen de Wet verbetering poortwachter én bij eigenrisicodragerschap.",
             "icon": "werkgever",
+            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
+            "imageAlt": "Adviseur en klant in gesprek aan tafel met koffie",
+            "href": "/werkgevers",
+            "button": "Verder als werkgever",
             "links": [
               {
-                "label": "Bekijk onze diensten",
+                "label": "Een medewerker meldt zich ziek",
+                "href": "/verzuimbegeleiding-wvp"
+              },
+              {
+                "label": "Onze diensten",
                 "href": "/diensten"
               },
               {
@@ -46,139 +37,31 @@
             ]
           },
           {
-            "eyebrow": "Voor werknemers",
-            "title": "React2u is er ook voor jou",
-            "text": "Bij React2u weten we waar je als werknemer mee te maken krijgt. Samen met jou doen we er alles aan om je zo snel mogelijk weer gezond en onbezorgd op de werkvloer te krijgen.",
+            "label": "Ik ben werknemer",
+            "title": "Ziek? React2u is er ook voor jou",
+            "text": "Samen met jou en je werkgever doen we er alles aan om je zo snel mogelijk weer gezond en onbezorgd op de werkvloer te krijgen.",
             "icon": "user",
+            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/05/partnering-up-project-shot-two-coworkers-meeting-office.jpg",
+            "imageAlt": "Twee collega's in overleg op kantoor",
+            "href": "/werknemers",
+            "button": "Verder als werknemer",
             "links": [
+              {
+                "label": "Ziek, wat nu?",
+                "href": "/werknemers#ziek-wat-nu"
+              },
               {
                 "label": "Het verzuimprotocol",
                 "href": "/verzuimprotocol"
               },
               {
-                "label": "Wat React2u voor jou doet",
-                "href": "/werknemers"
+                "label": "Veelgestelde vragen",
+                "href": "/werknemers#veelgestelde-vragen"
               }
             ]
           }
-        ]
-      }
-    },
-    {
-      "type": "pillars",
-      "label": "Diensten per situatie",
-      "data": {
-        "eyebrow": "Onze diensten",
-        "heading": "Waar kunnen we je mee helpen?",
-        "text": "Van het voorkomen van verzuim tot een duurzame terugkeer naar werk. Kies wat bij jouw situatie past — of bel ons, dan denken we met je mee."
-      }
-    },
-    {
-      "type": "twoColumnLists",
-      "label": "Daar zorgen wij voor",
-      "data": {
-        "eyebrow": "Meer grip op inzetbaarheid",
-        "heading": "Daar zorgen wij voor",
-        "text": "Als werkgever ben je wettelijk verplicht om samen met je zieke medewerker actief te werken aan re-integratie. Dat vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. Wat doe jij, en wat nemen wij uit handen?",
-        "button": {
-          "label": "Meer over verzuimbegeleiding WVP",
-          "href": "/verzuimbegeleiding-wvp"
-        },
-        "columns": [
-          {
-            "title": "Wat doet de werkgever?",
-            "items": [
-              "In gesprek blijven met de werknemer",
-              "Samen een plan van aanpak opstellen",
-              "Mogelijkheden voor passend werk onderzoeken",
-              "Afspraken naleven en vastleggen"
-            ]
-          },
-          {
-            "title": "Wat neemt React2u uit handen?",
-            "items": [
-              "Professionele begeleiding van het WVP-traject",
-              "Holistische analyse van de situatie",
-              "Advies over passend werk en interventies",
-              "Correcte dossieropbouw en wettelijke borging"
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "type": "method",
-      "label": "Werkwijze: het REACT-model",
-      "data": {
-        "eyebrow": "Onze werkwijze",
-        "heading": "Dit is React2u!",
-        "text": "Bij React2u staat de medewerker centraal in het verzuim- en re-integratietraject. Onze werkwijze vatten we samen in vijf letters.",
-        "button": {
-          "label": "Over React2u",
-          "href": "/over-react2u"
-        },
-        "steps": [
-          {
-            "title": "Results",
-            "text": "We werken toe naar een duurzame terugkeer naar werk.",
-            "kleur": "blauw"
-          },
-          {
-            "title": "Expertise",
-            "text": "Deskundigheid in wet- en regelgeving, met BIG-geregistreerde bedrijfsartsen en vakspecialisten.",
-            "kleur": "teal"
-          },
-          {
-            "title": "Attention",
-            "text": "Persoonlijke aandacht en een luisterend oor, voor werknemer én werkgever.",
-            "kleur": "rood"
-          },
-          {
-            "title": "Coaching",
-            "text": "We komen tot de kern en stimuleren het zelfoplossend vermogen van je medewerker.",
-            "kleur": "roze"
-          },
-          {
-            "title": "Together",
-            "text": "Samen met werknemer, leidinggevende en HR werken we aan een oplossing.",
-            "kleur": "oranje"
-          }
         ],
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/GOEDE-VERSIE-1-1024x1024.png",
-        "imageAlt": "Het REACT-model: Results, Expertise, Attention, Coaching en Together, met werknemer, leidinggevende en HR-functionaris in het midden",
-        "quote": "We denken in mogelijkheden, niet in belemmeringen of beperkingen."
-      }
-    },
-    {
-      "type": "values",
-      "label": "Gezond, menselijk, duidelijk",
-      "data": {
-        "eyebrow": "Waar je op kunt rekenen",
-        "heading": "Voor iedereen gezond, menselijk en duidelijk",
-        "text": "De ene werknemer is de andere niet. Arbodienstverlening is maatwerk en vraagt iedere keer om een persoonlijke benadering.",
-        "cards": [
-          {
-            "title": "Gezond",
-            "text": "Van preventie en een RI&E tot verzuimbegeleiding en coaching: we werken samen aan duurzaam herstel en een gezonde werkvloer.",
-            "value": "6",
-            "valueLabel": "diensten onder één dak",
-            "kleur": "teal"
-          },
-          {
-            "title": "Menselijk",
-            "text": "We bieden een luisterend oor, zijn kritisch en gebruiken humor. Iedere organisatie krijgt een vaste casemanager, die contact houdt met werknemer én werkgever.",
-            "value": "1",
-            "valueLabel": "vaste casemanager",
-            "kleur": "roze"
-          },
-          {
-            "title": "Duidelijk",
-            "text": "Alle rapportages, afspraken en deadlines staan in één online dossier. Zo weet iedereen waar hij aan toe is.",
-            "value": "ISO 9001",
-            "valueLabel": "gecertificeerd",
-            "kleur": "blauw"
-          }
-        ]
+        "note": "Liever meteen iemand spreken? Bel **085 - 620 58 00** of mail **info@react2u.nl**."
       }
     },
     {
@@ -206,87 +89,6 @@
           {
             "alt": "Varkentje Lief",
             "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/10.png"
-          }
-        ]
-      }
-    },
-    {
-      "type": "latestPosts",
-      "label": "Blog",
-      "data": {
-        "eyebrow": "Blog",
-        "heading": "Kennis die je verder helpt",
-        "text": "Artikelen over verzuim, preventie en vitaliteit — praktisch en zonder omhaal.",
-        "button": {
-          "label": "Naar het blog",
-          "href": "/blog"
-        },
-        "count": 3
-      }
-    },
-    {
-      "type": "faqAccordion",
-      "label": "Veelgestelde vragen",
-      "data": {
-        "heading": "Veelgestelde vragen",
-        "items": [
-          {
-            "answer": "Verzuim en re-integratie vereisen specialistische kennis en ervaring. React2u helpt bedrijven o.a. met de complexe wetgeving en bij het opstellen van een effectief en menselijk re-integratieplan waarmee iedereen geholpen is. Maar we bieden ook training en advies in het herkennen van vroege signalen van verzuim.",
-            "question": "Wat kan ik doen om mijn kennis van verzuim en re-integratie te verbeteren?"
-          },
-          {
-            "answer": "Preventie en vitaliteit dragen bij aan een gezonde, plezierige en productieve werkomgeving. Door het bevorderen van welzijn en het voorkomen van gezondheidsproblemen, verminderen we verzuim en verhogen we de motivatie en betrokkenheid van je mensen. Investeren in preventie en vitaliteit zorgt voor duurzame inzetbaarheid.",
-            "question": "Wat maakt preventie en vitaliteit zo belangrijk?"
-          },
-          {
-            "answer": "Zowel werkgevers als werknemers vragen vaak hoe een effectief re-integratieplan wordt gemaakt en welke stappen er worden ondernomen om een werknemer weer aan het werk te krijgen. Dit omvat het bepalen van de mate van arbeidsgeschiktheid, het opstellen van een Plan van Aanpak, en het inrichten van werkplekaanpassingen of passende arbeid.",
-            "question": "Hoe wordt een re-integratieplan opgesteld en uitgevoerd?"
-          },
-          {
-            "answer": "React2u helpt organisaties om de duurzame inzetbaarheid van hun personeel te verbeteren. Dit omvat onder andere het versterken van vitaliteit en werkgeluk, het ontwikkelen van veerkracht en stressmanagement, burn-out coaching, rouwbegeleiding, het begeleiden van loopbaantransities en het ondersteunen bij re-integratie na ziekte of langdurige afwezigheid.",
-            "question": "Waarvoor kan coaching van React2u worden ingezet?"
-          }
-        ]
-      }
-    },
-    {
-      "type": "ctaBanner",
-      "label": "Kom met ons in contact",
-      "data": {
-        "eyebrow": "Maak kennis met React2u",
-        "heading": "Kom met ons in contact",
-        "text": "Ben je nieuwsgierig naar onze werkwijze? Neem vrijblijvend contact met ons op, zodat we kennis met elkaar kunnen maken.",
-        "buttons": [
-          {
-            "label": "Maak een afspraak",
-            "href": "/contact",
-            "style": "accent"
-          }
-        ],
-        "routes": [
-          {
-            "icon": "phone",
-            "label": "Bel ons",
-            "sub": "085 - 620 58 00",
-            "href": "tel:0856205800"
-          },
-          {
-            "icon": "mail",
-            "label": "Mail ons",
-            "sub": "info@react2u.nl",
-            "href": "mailto:info@react2u.nl"
-          },
-          {
-            "icon": "message",
-            "label": "Stuur een bericht",
-            "sub": "We nemen zo snel mogelijk contact op",
-            "href": "/contact"
-          },
-          {
-            "icon": "document",
-            "label": "Ben je werknemer?",
-            "sub": "Bekijk het verzuimprotocol",
-            "href": "/verzuimprotocol"
           }
         ]
       }

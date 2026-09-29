@@ -7,10 +7,16 @@ import SiteImage from "./SiteImage";
 import Logo from "./Logo";
 import { zinsletters } from "@/lib/tekst";
 
-const MEER = [
-  { label: "Over React2u", href: "/over-react2u" },
-  { label: "Voor werknemers", href: "/werknemers" },
+// Net als op de oude site: een kolom voor werkgevers en een voor werknemers.
+const WERKNEMERS = [
+  { label: "Startpagina werknemers", href: "/werknemers" },
+  { label: "Ziek, wat nu?", href: "/werknemers#ziek-wat-nu" },
   { label: "Verzuimprotocol", href: "/verzuimprotocol" },
+  { label: "Veelgestelde vragen", href: "/werknemers#veelgestelde-vragen" },
+];
+
+const REACT2U = [
+  { label: "Over React2u", href: "/over-react2u" },
   { label: "Blog", href: "/blog" },
   { label: "Werken bij React2u", href: "/vacatures" },
   { label: "Contact", href: "/contact" },
@@ -22,7 +28,8 @@ function Kop({ children }: { children: React.ReactNode }) {
 
 /**
  * Footer op indigo, met de zin waar React2u zelf mee afsluit: "Er is altijd
- * een oplossing." Daaronder bellen, mailen en de diensten per stap.
+ * een oplossing." Daarnaast een kolom voor werkgevers (de diensten per stap),
+ * een voor werknemers en een voor React2u zelf.
  */
 export default function Footer({
   contact, docs, certificates,
@@ -33,8 +40,8 @@ export default function Footer({
 }) {
   return (
     <footer className="on-dark bg-primary-deep text-[15.5px] text-white/75">
-      <div className="container-site grid gap-12 pb-12 pt-16 md:pt-20 lg:grid-cols-12 lg:gap-x-8">
-        <div className="lg:col-span-5">
+      <div className="container-site grid gap-12 pb-12 pt-16 sm:grid-cols-2 md:pt-20 lg:grid-cols-12 lg:gap-x-8">
+        <div className="sm:col-span-2 lg:col-span-4">
           <Link href="/" className="inline-block" aria-label="React2u, naar de homepage">
             <Logo tone="light" title="" className="h-[54px] w-auto" />
           </Link>
@@ -63,8 +70,8 @@ export default function Footer({
           </ul>
         </div>
 
-        <div className="lg:col-span-3 lg:col-start-7">
-          <Kop>Diensten</Kop>
+        <div className="lg:col-span-3 lg:col-start-6">
+          <Kop><Link href="/werkgevers" className="hover:text-white">Voor werkgevers</Link></Kop>
           <ul className="space-y-5">
             {PIJLERS.map((p) => (
               <li key={p.key}>
@@ -84,10 +91,21 @@ export default function Footer({
           </ul>
         </div>
 
-        <div className="lg:col-span-3">
-          <Kop>Meer React2u</Kop>
+        <div className="lg:col-span-2">
+          <Kop><Link href="/werknemers" className="hover:text-white">Voor werknemers</Link></Kop>
           <ul className="space-y-2.5">
-            {MEER.map((l) => (
+            {WERKNEMERS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="hover:text-white">{l.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="lg:col-span-2">
+          <Kop>React2u</Kop>
+          <ul className="space-y-2.5">
+            {REACT2U.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} className="hover:text-white">{l.label}</Link>
               </li>

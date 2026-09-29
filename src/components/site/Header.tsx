@@ -2,7 +2,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MAIN_NAV, PIJLERS, HEADER_CTA, dienstVoor, type NavItem } from "@/lib/nav";
+import {
+  NAV, PIJLERS, HEADER_CTA, STARTPAGINA, dienstVoor, doelgroepVoorPad, type Doelgroep, type NavItem,
+} from "@/lib/nav";
+import { bewaarDoelgroep, useBewaardeDoelgroep } from "@/lib/doelgroep";
 import { kleurVars } from "@/lib/brand";
 import type { ContactInfo } from "@/lib/content";
 import { LuPhone, LuMail, LuMenu, LuX, LuChevronDown } from "react-icons/lu";
@@ -22,9 +25,9 @@ function isActive(item: NavItem, path: string): boolean {
 }
 
 /**
- * Header: een topbalk met telefoon en e-mail (zoals op de oude site) en
- * daaronder de balk met menu, die bij het scrollen blijft staan. De hoogte van
- * die balk moet kloppen met `--hh` in globals.css.
+ * Header: een topbalk met de keuze werkgever/werknemer en telefoon en e-mail,
+ * daaronder de balk met het menu van die doelgroep, die bij het scrollen
+ * blijft staan. De hoogte van die balk moet kloppen met `--hh` in globals.css.
  */
 export default function Header({ contact }: { contact: ContactInfo }) {
   const [open, setOpen] = useState<string | null>(null);
@@ -34,6 +37,18 @@ export default function Header({ contact }: { contact: ContactInfo }) {
   const barRef = useRef<HTMLElement>(null);
   const ids = useId();
   const path = usePathname() || "/";
+
+  // Welke doelgroep? Het pad beslist (/werknemers, een dienstpagina …); op een
+  // gedeelde pagina de laatste keuze, en anders werkgever. Op het startscherm
+  // is er nog niets gekozen.
+  const vast = doelgroepVoorPad(path);
+  const bewaard = useBewaardeDoelgroep();
+  const doelgroep: Doelgroep | null = vast ?? (path === "/" ? null : bewaard ?? "werkgever");
+  const nav = NAV[doelgroep ?? "algemeen"];
+  const cta = HEADER_CTA[doelgroep ?? "algemeen"];
+  useEffect(() => {
+    if (vast) bewaarDoelgroep(vast);
+  }, [vast]);
 
   const cancelClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -92,7 +107,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
     if ((e.target as HTMLElement).closest("a")) closeAll();
   };
 
-  const megaItem = MAIN_NAV.find((i) => i.mega);
+  const megaItem = nav.find((i) => i.mega);
   // useId levert iets als "«r1»"; een label als "Over ons" bevat een spatie en
   // mag zo niet in een id.
   const panelId = (label: string) => `${ids}-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -154,28 +169,38 @@ export default function Header({ contact }: { contact: ContactInfo }) {
 
   return (
     <>
-      {/* Topbalk, zoals op de oude site: bellen en mailen staan altijd in beeld.
-          Een <aside>, zodat hij als eigen gebied herkenbaar is voor
-          schermlezers; de overslaglink staat erin als allereerste element. */}
-      <aside aria-label="Contactgegevens" className="on-dark bg-primary text-[14px] text-white/85">
+      {/* Topbalk: de keuze werkgever/werknemer als tabbladen (zoals banken
+          particulier en zakelijk scheiden), rechts bellen en mailen. Een
+          <aside>, zodat hij een eigen gebied is voor schermlezers; de
+          overslaglink staat erin als allereerste element. */}
+      <aside aria-label="Doelgroep en contact" className="on-dark bg-primary text-[14px] text-white/85">
         <a href="#inhoud"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-5 focus:py-3 focus:text-primary">
           Naar de inhoud
         </a>
-        <div className="container-site flex h-10 items-center justify-between gap-6">
-          <div className="flex items-center gap-6">
+        <div className="container-site flex h-11 items-end justify-between gap-4">
+          <nav aria-label="Kies je route" className="flex h-full items-end gap-1">
+            {(["werkgever", "werknemer"] as const).map((g) => {
+              const actief = doelgroep === g;
+              return (
+                <Link key={g} href={STARTPAGINA[g].href} aria-current={actief ? "true" : undefined}
+                  className={`flex h-9 items-center rounded-t-xl px-4 font-semibold transition-colors ${
+                    actief ? "bg-white text-primary" : "text-white/80 hover:bg-white/10 hover:text-white"
+                  }`}>
+                  {STARTPAGINA[g].label}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="flex h-full items-center gap-6">
             <a href={`tel:${contact.phone}`} className="flex items-center gap-2 hover:text-white">
-              <LuPhone className="text-[13px]" aria-hidden /> {contact.phoneDisplay}
+              <LuPhone className="text-[13px]" aria-hidden /> <span className="hidden sm:inline">{contact.phoneDisplay}</span>
+              <span className="sr-only sm:hidden">Bel ons: {contact.phoneDisplay}</span>
             </a>
-            <a href={`mailto:${contact.email}`} className="hidden items-center gap-2 hover:text-white sm:flex">
+            <a href={`mailto:${contact.email}`} className="hidden items-center gap-2 hover:text-white md:flex">
               <LuMail className="text-[13px]" aria-hidden /> {contact.email}
             </a>
           </div>
-          {/* Een zieke werknemer zoekt iets anders dan een werkgever: die route
-              staat daarom altijd in beeld, niet pas in het menu. */}
-          <Link href="/verzuimprotocol" className="flex items-center gap-1.5 hover:text-white">
-            <span className="hidden sm:inline">Ben je werknemer?</span> Het verzuimprotocol <Arrow />
-          </Link>
         </div>
       </aside>
 
@@ -192,7 +217,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
 
           {/* Desktop */}
           <nav aria-label="Hoofdmenu" className="hidden h-full items-stretch gap-1 lg:flex">
-            {MAIN_NAV.map((item) => (
+            {nav.map((item) => (
               <DesktopItem
                 key={item.href + item.label}
                 item={item}
@@ -210,8 +235,8 @@ export default function Header({ contact }: { contact: ContactInfo }) {
           </nav>
 
           <div className="flex items-center gap-1.5">
-            <Link href={HEADER_CTA.href} className="btn btn-sm hidden whitespace-nowrap sm:inline-flex" onClick={closeAll}>
-              {HEADER_CTA.label} <Arrow />
+            <Link href={cta.href} className="btn btn-sm hidden whitespace-nowrap sm:inline-flex" onClick={closeAll}>
+              {cta.label} <Arrow />
             </Link>
             <button
               type="button"
@@ -231,7 +256,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
           <div id={`${ids}-mobiel`} className="menu-panel max-h-[calc(100dvh-72px)] overflow-y-auto border-t border-black/[0.06] bg-white lg:hidden"
                onClick={closeOnLink}>
             <nav aria-label="Hoofdmenu mobiel" className="container-site flex flex-col pb-6 pt-2">
-              {MAIN_NAV.map((item) =>
+              {nav.map((item) =>
                 item.mega || item.children ? (
                   <details key={item.label} className="group border-b border-black/[0.06]" open={!!item.mega}>
                     <summary className="flex cursor-pointer list-none items-center justify-between py-3.5 text-[18px] font-semibold text-primary [&::-webkit-details-marker]:hidden">
@@ -272,8 +297,8 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                   </Link>
                 )
               )}
-              <Link href={HEADER_CTA.href} className="btn mt-5">
-                {HEADER_CTA.label} <Arrow />
+              <Link href={cta.href} className="btn mt-5">
+                {cta.label} <Arrow />
               </Link>
             </nav>
           </div>

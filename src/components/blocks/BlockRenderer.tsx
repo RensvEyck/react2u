@@ -568,51 +568,112 @@ function TwoColumnLists({ d, asH1 }: BlockProps) {
 }
 
 /**
- * Twee ingangen: werkgever en werknemer. Wie de site bezoekt is meestal één
- * van de twee, en een zieke werknemer moet het verzuimprotocol meteen vinden —
- * niet pas na het menu. `items` is een lijst van { eyebrow, title, text, icon,
- * links: [{ label, href }] }; het eerste item staat op indigo.
+ * Het startscherm: je kiest eerst of je werkgever of werknemer bent. Die twee
+ * zoeken iets heel anders — diensten en een partner, of: ik ben ziek, wat nu?
+ * `choices` is een lijst van { label, title, text, icon, image, imageAlt,
+ * href, button, links: [{ label, href }] }. De eerste keuze staat op indigo.
  */
-function Audiences({ d, asH1 }: BlockProps) {
-  const items = ((d.items as any[]) || []).filter((it) => it?.title);
-  // Zonder eigen kop zijn de kaarttitels de koppen van deze sectie (h2); met
-  // kop zijn ze daaronder (h3). Anders springt de pagina van h1 naar h3.
-  const Titel = d.heading ? "h3" : "h2";
+function AudienceChoice({ d, asH1 }: BlockProps) {
+  const choices = ((d.choices as any[]) || []).filter((c) => c?.title && c?.href);
   return (
-    <section data-tone="white" className="pb-16 md:pb-24">
-      <div className="container-site">
-        {d.heading && <SectionHead heading={d.heading} asH1={asH1} className="mb-10" />}
-        <div className="grid gap-5 md:grid-cols-2">
-          {items.map((it, i) => {
+    <section data-tone="hero" className="relative isolate overflow-hidden bg-soft">
+      <div aria-hidden className="dot-texture-light absolute inset-0 -z-10" />
+      <div className="container-site pb-16 pt-12 md:pb-24 md:pt-16">
+        <div className="mx-auto max-w-[820px] text-center">
+          <DotCloud animate className="mx-auto mb-8 w-[92px]" />
+          {d.eyebrow && <p className="eyebrow mb-5 justify-center">{d.eyebrow}</p>}
+          <PageHeading asH1={asH1}
+            className="text-[2.4rem] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-[3.2rem] lg:text-[3.8rem]">
+            <Highlighted text={d.heading || ""} highlight={d.highlight} />
+          </PageHeading>
+          {d.text && <MiniMarkdown text={d.text} className="mx-auto mt-6 max-w-[620px] text-[19px] md:text-[20px]" />}
+        </div>
+
+        <div className="mt-12 grid gap-5 md:mt-14 lg:grid-cols-2">
+          {choices.map((c, i) => {
             const dark = i === 0;
             return (
               <div key={i} data-reveal style={{ "--ri": i } as React.CSSProperties}
-                className={`relative flex flex-col overflow-hidden rounded-[30px] p-8 md:p-10 ${dark ? "on-dark bg-primary text-white/80" : "bg-soft"}`}>
-                <div className="flex items-center gap-4">
-                  <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-full text-[24px] ${dark ? "bg-white/10 text-white" : "bg-white text-primary"}`}>
-                    <Icon name={it.icon} />
-                  </span>
-                  <p className="eyebrow">{it.eyebrow}</p>
+                className={`relative flex flex-col rounded-[32px] p-7 sm:p-9 lg:p-10 ${
+                  dark ? "on-dark bg-primary text-white/80" : "border border-black/[0.06] bg-white shadow-[0_24px_48px_-36px_rgba(34,32,90,0.45)]"
+                }`}>
+                <div className="flex items-start justify-between gap-6">
+                  <div>
+                    <p className="eyebrow mb-3">
+                      <Icon name={c.icon} className="text-[17px]" />
+                      {c.label}
+                    </p>
+                    <h2 className="text-[2rem] font-extrabold leading-[1.08] tracking-[-0.02em] md:text-[2.4rem]">
+                      <Link href={c.href} className="hover:underline hover:decoration-2 hover:underline-offset-4">{c.title}</Link>
+                    </h2>
+                  </div>
+                  {c.image && (
+                    <div className={`hidden h-[104px] w-[104px] shrink-0 overflow-hidden rounded-full sm:block ${dark ? "ring-4 ring-white/15" : "ring-4 ring-soft"}`}>
+                      <SiteImage src={c.image} alt={c.imageAlt || ""} sizes="104px" widths={[240]} className="h-full w-full object-cover" />
+                    </div>
+                  )}
                 </div>
-                <Titel className="mt-6 text-[26px] leading-tight md:text-[28px]">{it.title}</Titel>
-                {it.text && <p className="mt-3 max-w-[480px] text-[17px]">{it.text}</p>}
-                <ul className={`mt-auto divide-y pt-7 ${dark ? "divide-white/15" : "divide-primary/10"}`}>
-                  {((it.links as any[]) || []).filter((l) => l?.label).map((l, j) => (
+                {c.text && <p className="mt-4 max-w-[520px] text-[17.5px]">{c.text}</p>}
+                <ul className={`mt-7 divide-y ${dark ? "divide-white/15 border-y border-white/15" : "divide-primary/10 border-y border-primary/10"}`}>
+                  {((c.links as any[]) || []).filter((l) => l?.label).map((l, j) => (
                     <li key={j}>
                       <Link href={l.href || "#"}
                         className={`group flex items-center justify-between gap-4 py-3.5 font-semibold ${dark ? "text-white" : "text-primary"}`}>
                         {l.label}
-                        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition-transform duration-300 group-hover:translate-x-1 ${dark ? "bg-white text-primary" : "bg-primary text-white"}`}>
-                          <Arrow />
-                        </span>
+                        <Arrow className={`shrink-0 transition-transform duration-300 group-hover:translate-x-1 ${dark ? "text-white/70" : "text-accent"}`} />
                       </Link>
                     </li>
                   ))}
                 </ul>
+                <div className="mt-8">
+                  <Link href={c.href} className={`btn max-[479px]:w-full ${dark ? "" : "btn-indigo"}`}>
+                    {c.button || `Verder als ${String(c.label || "").toLowerCase()}`} <Arrow />
+                  </Link>
+                </div>
               </div>
             );
           })}
         </div>
+
+        {d.note && <MiniMarkdown text={d.note} className="mt-10 text-center text-[16px] text-primary" />}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Stappen onder elkaar, verbonden door een stippellijn: zoals het visuele
+ * verzuimprotocol van React2u (R-E-A-C-T-2U). `steps` is een lijst van
+ * { badge, title, text, kleur }; `badge` is wat in de cirkel staat (een
+ * letter, "2U", of een nummer). Met `anchor` kun je ernaar linken.
+ */
+function Steps({ d, asH1 }: BlockProps) {
+  const steps = ((d.steps as any[]) || []).filter((st) => st?.title);
+  return (
+    <section id={d.anchor || undefined} data-tone="soft" className={`bg-soft ${PAD}`}>
+      <div className={`container-site ${SPLIT}`}>
+        <div className={`${LINKS} ${STICKY}`}>
+          <SectionHead eyebrow={d.eyebrow} heading={d.heading} text={d.text} asH1={asH1} />
+          <Buttons list={[d.button]} className="mt-9" />
+        </div>
+        <ol className={`${RECHTS} relative`}>
+          {/* De stippellijn door de cirkels heen. */}
+          <div aria-hidden className="absolute bottom-10 left-[27px] top-10 border-l-2 border-dotted border-primary/25" />
+          {steps.map((st, i) => (
+            <li key={i} data-reveal style={{ ...kleurVars(st.kleur), "--ri": i % 3 } as React.CSSProperties}
+              className="relative flex gap-5 pb-4 last:pb-0">
+              <span className="relative z-10 grid h-14 w-14 shrink-0 place-items-center rounded-full border-[3px] border-[var(--k-vlak)] bg-white font-heading text-[20px] font-extrabold text-[var(--k)]" aria-hidden>
+                {st.badge || i + 1}
+              </span>
+              <div className="min-w-0 flex-1 rounded-[24px] bg-white p-6 md:p-7">
+                <h3 className="text-[20px]">
+                  <span className="sr-only">Stap {i + 1}: </span>{st.title}
+                </h3>
+                {st.text && <MiniMarkdown text={st.text} className="mt-2 text-[16.5px]" />}
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
@@ -1046,7 +1107,8 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   imagesBlock: ImagesBlock,
   contactDetails: ContactDetails,
   heroStatement: HeroStatement,
-  audiences: Audiences,
+  audienceChoice: AudienceChoice,
+  steps: Steps,
   pillars: Pillars,
   method: Method,
   values: Values,
@@ -1067,7 +1129,7 @@ export function RenderBlockBody({ type, data }: { type: string; data: unknown })
 const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
-  "heroStatement", "audiences", "pillars", "method", "values", "valueCards",
+  "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,

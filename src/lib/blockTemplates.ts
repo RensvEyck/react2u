@@ -74,15 +74,23 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
       image: "", imageAlt: "", badge: "",
     },
   },
-  audiences: {
-    label: "Werkgever en werknemer (twee ingangen)",
-    // icon: een naam uit src/components/site/Icon.tsx, bv. werkgever of user.
+  audienceChoice: {
+    label: "Startscherm: kies werkgever of werknemer",
     data: {
-      heading: "",
-      items: [
-        { eyebrow: "Voor werkgevers", title: "Titel", text: "Tekst", icon: "werkgever", links: [{ label: "Link", href: "/" }] },
-        { eyebrow: "Voor werknemers", title: "Titel", text: "Tekst", icon: "user", links: [{ label: "Link", href: "/" }] },
+      eyebrow: "Welkom bij React2u", heading: "Kop", highlight: "", text: "",
+      choices: [
+        { label: "Ik ben werkgever", title: "Titel", text: "Tekst", icon: "werkgever", image: "", imageAlt: "", href: "/werkgevers", button: "Verder als werkgever", links: [{ label: "Link", href: "/" }] },
+        { label: "Ik ben werknemer", title: "Titel", text: "Tekst", icon: "user", image: "", imageAlt: "", href: "/werknemers", button: "Verder als werknemer", links: [{ label: "Link", href: "/" }] },
       ],
+      note: "",
+    },
+  },
+  steps: {
+    label: "Stappen (zoals het verzuimprotocol)",
+    // badge: wat in de cirkel staat (een letter, "2U" of een nummer). kleur: blauw, teal, rood, oranje, roze of indigo.
+    data: {
+      anchor: "", eyebrow: "", heading: "Kop", text: "", button: { label: "", href: "" },
+      steps: [{ badge: "1", title: "Titel", text: "Tekst", kleur: "blauw" }],
     },
   },
   pillars: {

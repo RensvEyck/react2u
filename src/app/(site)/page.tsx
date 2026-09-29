@@ -3,7 +3,7 @@ import { getPage, getPublishedPosts } from "@/lib/content";
 import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
 import { jsonLd } from "@/lib/jsonld";
 import { LINKEDIN_URL } from "@/lib/nav";
-import { conceptBlocks, conceptOpHome } from "@/lib/concept";
+import { concept } from "@/lib/concept";
 
 export const revalidate = 300;
 
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const blocks = conceptOpHome ? conceptBlocks() : (await getPage("home"))?.blocks;
+  const blocks = concept("home")?.blocks ?? (await getPage("home"))?.blocks;
   if (!blocks) return <div className="container-site py-20">Content wordt nog ingericht.</div>;
   const posts = needsPosts(blocks) ? await getPublishedPosts() : [];
   return (

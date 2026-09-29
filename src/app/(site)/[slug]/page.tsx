@@ -8,18 +8,32 @@ import { Arrow } from "@/components/site/DotCloud";
 import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
 import { kleurVars } from "@/lib/brand";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
+import { concept, conceptSlugs } from "@/lib/concept";
+import type { Block, Page } from "@/lib/types";
+
+/**
+ * Pagina-inhoud: op staging het concept als dat er is (zie lib/concept.ts),
+ * anders de gepubliceerde pagina uit de database.
+ */
+async function inhoud(slug: string): Promise<{ page: Pick<Page, "title" | "seo_title" | "seo_description" | "og_image">; blocks: Block[] } | null> {
+  const c = concept(slug);
+  if (c) return { page: { title: c.title, seo_title: c.seo_title ?? null, seo_description: c.seo_description ?? null, og_image: null }, blocks: c.blocks };
+  return getPage(slug);
+}
 
 export const revalidate = 300;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const pages = await getPublishedPages();
-  return pages.filter((p) => p.slug !== "home").map((p) => ({ slug: p.slug }));
+  const slugs = new Set([...pages.map((p) => p.slug), ...conceptSlugs()]);
+  slugs.delete("home");
+  return [...slugs].map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const res = await getPage(slug);
+  const res = await inhoud(slug);
   if (!res) return {};
   const title = res.page.seo_title || `${res.page.title} • React2u`;
   return {
@@ -49,7 +63,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ContentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const res = await getPage(slug);
+  const res = await inhoud(slug);
   if (!res) notFound();
   const path = `/${slug}`;
   const posts = needsPosts(res.blocks) ? await getPublishedPosts() : [];

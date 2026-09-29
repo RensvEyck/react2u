@@ -1,0 +1,109 @@
+{
+  "_uitleg": "Het verzuimprotocol als tekst in plaats van als afbeelding: leesbaar op een telefoon, voor schermlezers en voor zoekmachines. Zie CONTEXT.md, *Concepten*.",
+  "slug": "verzuimprotocol",
+  "title": "Verzuimprotocol",
+  "sort": 9,
+  "blocks": [
+    {
+      "type": "intro",
+      "label": "Verzuimprotocol",
+      "data": {
+        "eyebrow": "Voor werknemers",
+        "heading": "Verzuimprotocol",
+        "text": "Een medewerker meldt zich ziek. Wat gebeurt er dan? Aan welke eisen moet je als werkgever en werknemer voldoen? Waar heb je als werknemer en werkgever nou recht op?\n\nBij React2u hoef je je om die vragen niet druk te maken. Door ons korte, duidelijke en haalbare visuele verzuimprotocol dragen wij succesvol bij aan het verminderen van je verzuim en het bevorderen van de inzetbaarheid van je medewerkers.",
+        "button": {
+          "label": "",
+          "href": ""
+        }
+      }
+    },
+    {
+      "type": "steps",
+      "label": "De zes stappen",
+      "data": {
+        "anchor": "stappen",
+        "eyebrow": "R · E · A · C · T · 2U",
+        "heading": "Ziek, wat nu?",
+        "text": "Het verzuimprotocol van React2u in zes stappen: wat je als werknemer moet doen, en wat je van ons kunt verwachten.",
+        "button": {
+          "label": "",
+          "href": ""
+        },
+        "steps": [
+          {
+            "badge": "R",
+            "title": "Rechten & plichten",
+            "text": "Helaas, je bent ziek en kunt niet komen werken. Dan heb je verschillende rechten en plichten: recht op ziekengeld en goede zorg; de plicht om bereikbaar te zijn en samen te zoeken naar mogelijkheden om te werken.",
+            "kleur": "roze"
+          },
+          {
+            "badge": "E",
+            "title": "Even je werk bellen",
+            "text": "Eén van je plichten is dat je je werk belt zodra je weet dat je niet kunt werken. Je belt je juridisch werkgever, uitzendbureau en de inlener waar je op dat moment werkt. Het is belangrijk dat je iedereen telefonisch inlicht!",
+            "kleur": "teal"
+          },
+          {
+            "badge": "A",
+            "title": "Altijd aangeven",
+            "text": "De vermoedelijke duur van je verzuim; het nummer en adres waarop je bereikbaar bent; welke werkzaamheden je wél uit kunt voeren. Je werkgever vraagt aan jou of er sprake is van een vangnetsituatie of regres (ongeval).",
+            "kleur": "blauw"
+          },
+          {
+            "badge": "C",
+            "title": "Contact met React2u",
+            "text": "Na je ziekmelding neemt arbodienst React2u contact met je op. Wij zijn de verbindende factor en willen jou, samen met je werkgever, op een goede manier weer terug naar de werkvloer brengen. Dat doen we samen!",
+            "kleur": "oranje"
+          },
+          {
+            "badge": "T",
+            "title": "Traject van verzuim",
+            "text": "React2u heeft een geheimhoudingsplicht: je kunt alles met ons delen, van medische informatie tot problemen met je werkgever. Daarnaast ondersteunen wij je bij je re-integratieproces.",
+            "kleur": "rood"
+          },
+          {
+            "badge": "2U",
+            "title": "Wij zijn er voor jou",
+            "text": "React2u kijkt samen met jou en de bedrijfsarts naar wat je nodig hebt en maakt een plan van aanpak. Jij bent samen met je werkgever verantwoordelijk om je daaraan te houden, maar wij ondersteunen je hierin.",
+            "kleur": "roze"
+          }
+        ]
+      }
+    },
+    {
+      "type": "ctaBanner",
+      "label": "Wij zijn altijd bereikbaar",
+      "data": {
+        "eyebrow": "Vragen?",
+        "heading": "Is er toch iets niet duidelijk?",
+        "text": "Wij zijn altijd bereikbaar. Neem contact met ons op, dan denken we met je mee.",
+        "buttons": [
+          {
+            "label": "Stel je vraag",
+            "href": "/contact",
+            "style": "accent"
+          }
+        ],
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bel ons",
+            "sub": "085 - 620 58 00",
+            "href": "tel:0856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mail ons",
+            "sub": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "message",
+            "label": "Stuur een bericht",
+            "sub": "We nemen zo snel mogelijk contact op",
+            "href": "/contact"
+          }
+        ]
+      }
+    }
+  ]
+}
