@@ -26,7 +26,7 @@ async function wisselIn(): Promise<Uitkomst> {
   // voor alle drie dezelfde code, dus de pagina zegt ook één ding.
   if (url.kind === "error") return { ongeldig: true };
   if (url.kind === "token_hash") {
-    const { data, error } = await sb.auth.verifyOtp({ token_hash: url.tokenHash, type: "invite" });
+    const { data, error } = await sb.auth.verifyOtp({ token_hash: url.tokenHash, type: url.type });
     if (error || !data.user) return { ongeldig: true };
     return { email: data.user.email || "" };
   }

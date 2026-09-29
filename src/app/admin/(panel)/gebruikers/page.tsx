@@ -113,6 +113,8 @@ export default async function GebruikersAdmin() {
             const isSelf = u.user_id === admin.userId;
             const status = auth.byId.get(u.user_id);
             const openstaand = status ? !status.confirmed : false;
+            // Nooit ingelogd: die kent zijn wachtwoord waarschijnlijk niet, dus ook een link.
+            const linkNodig = !isSelf && status && (openstaand || !status.lastSignIn);
             return (
               <div key={u.user_id} className="flex flex-wrap items-center gap-4 px-6 py-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[14px] font-bold text-[#312e82]">
@@ -131,12 +133,8 @@ export default async function GebruikersAdmin() {
                     {status && !openstaand && (status.lastSignIn ? ` · laatst ingelogd ${datum(status.lastSignIn)}` : " · nog niet ingelogd")}
                   </p>
                 </div>
-                {openstaand && (
-                  <>
-                    <span className="apill bg-[#fff4e5] text-[#c77700]">Uitnodiging openstaand</span>
-                    <NewLinkButton email={u.email} roleId={u.role_id} />
-                  </>
-                )}
+                {openstaand && <span className="apill bg-[#fff4e5] text-[#c77700]">Uitnodiging openstaand</span>}
+                {linkNodig && <NewLinkButton email={u.email} roleId={u.role_id} />}
                 <StatusSelect
                   action={setUserRole.bind(null, u.user_id)}
                   current={u.role_id}

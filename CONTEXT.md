@@ -106,6 +106,9 @@ PKCE-client van `@supabase/ssr` weigert. Nu wordt de link gemaild via Resend als
 `RESEND_API_KEY` en `NOTIFY_FROM` gezet zijn, en staat hij altijd op het scherm
 om zelf door te sturen (kopiëren of *Open in mail*). Wie een link niet op tijd
 gebruikte, krijgt bij Gebruikers met *Nieuwe link* een nieuwe; de oude vervalt.
+Had het adres al een account, dan wordt het een herstellink (`type=recovery`):
+wie nooit inlogde kent zijn wachtwoord niet, en een "wachtwoord vergeten" is er
+niet. Die knop staat daarom ook bij iedereen die nog nooit ingelogd is.
 
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
 zijn is niet genoeg, er moet ook een rij in `admins` staan. Schermen achter een

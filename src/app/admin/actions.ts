@@ -443,8 +443,8 @@ export async function saveMaintenanceSettings(formData: FormData) {
 export type InviteState =
   | { status: "idle" }
   | { status: "error"; message: string }
-  // `link` is null als het adres al een account had: dan is er niets te versturen.
-  | { status: "ok"; email: string; roleLabel: string; link: string | null; mail: "verstuurd" | "uit" | "mislukt" };
+  // `existing`: het adres had al een account. Dan is de link een herstellink.
+  | { status: "ok"; email: string; roleLabel: string; existing: boolean; link: string; mail: "verstuurd" | "uit" | "mislukt" };
 
 /**
  * Nodigt een collega uit, of stuurt iemand een nieuwe link.
@@ -476,34 +476,31 @@ export async function inviteUser(_prev: InviteState, formData: FormData): Promis
 
   // Maakt het account aan als het er nog niet is. Voor wie al is uitgenodigd
   // maar de link nooit gebruikte, komt er een nieuwe; de oude vervalt.
-  const { data, error } = await sa.auth.admin.generateLink({ type: "invite", email });
+  let existing = false;
+  let result = await sa.auth.admin.generateLink({ type: "invite", email });
 
-  if (error) {
-    if (!isExistingAccount(error)) {
-      console.error("[uitnodigen] generateLink voor %s: %s %s %s", email, error.status, error.code, error.message);
-      return { status: "error", message: inviteErrorText(error) };
-    }
-    // Wie al een account heeft, krijgt alleen toegang. Die logt in met het
-    // wachtwoord dat hij al had.
-    const { data: found, error: listError } = await sa.auth.admin.listUsers({ perPage: 1000 });
-    const existing = found?.users.find((u) => u.email?.toLowerCase() === email);
-    if (!existing) {
-      console.error("[uitnodigen] bestaand account %s niet gevonden: %s", email, listError?.message);
-      return { status: "error", message: inviteErrorText(listError) };
-    }
-    const rowError = await addAdminRow(sb, existing.id, email, roleId, admin.userId);
-    if (rowError) return { status: "error", message: rowError };
-    return { status: "ok", email, roleLabel, link: null, mail: "uit" };
+  // Bestond het account al (bevestigd), dan een herstellink. Kent de collega
+  // zijn wachtwoord, dan logt hij gewoon in; anders kiest hij er hiermee een.
+  // Zonder deze link zat wie nooit inlogde vast: "wachtwoord vergeten" is er niet.
+  if (result.error && isExistingAccount(result.error)) {
+    existing = true;
+    result = await sa.auth.admin.generateLink({ type: "recovery", email });
   }
+  if (result.error) {
+    const e = result.error;
+    console.error("[uitnodigen] generateLink voor %s: %s %s %s", email, e.status, e.code, e.message);
+    return { status: "error", message: inviteErrorText(e) };
+  }
+  const { user, properties } = result.data;
 
-  const rowError = await addAdminRow(sb, data.user.id, email, roleId, admin.userId);
+  const rowError = await addAdminRow(sb, user.id, email, roleId, admin.userId);
   if (rowError) return { status: "error", message: rowError };
 
-  const link = inviteLink(siteUrl(), data.properties.hashed_token);
+  const link = inviteLink(siteUrl(), properties.hashed_token, existing ? "recovery" : "invite");
   const { mailReady, sendInvite } = await import("@/lib/mail");
-  if (!mailReady()) return { status: "ok", email, roleLabel, link, mail: "uit" };
+  if (!mailReady()) return { status: "ok", email, roleLabel, existing, link, mail: "uit" };
   const sent = await sendInvite({ to: email, link, invitedBy: admin.email, roleLabel });
-  return { status: "ok", email, roleLabel, link, mail: sent ? "verstuurd" : "mislukt" };
+  return { status: "ok", email, roleLabel, existing, link, mail: sent ? "verstuurd" : "mislukt" };
 }
 
 async function addAdminRow(sb: Sb, userId: string, email: string, roleId: string, invitedBy: string) {

@@ -20,8 +20,15 @@ export function siteUrl(): string {
   return base.replace(/\/$/, "");
 }
 
-export function inviteLink(base: string, hashedToken: string): string {
-  const q = new URLSearchParams({ token_hash: hashedToken, type: "invite" });
+/**
+ * `invite` voor een nieuw account, `recovery` voor een account dat al bestond:
+ * wie nooit inlogde, kent zijn wachtwoord niet, en een "wachtwoord vergeten" is
+ * er niet. Beide landen op dezelfde pagina om een wachtwoord te kiezen.
+ */
+export type LinkType = "invite" | "recovery";
+
+export function inviteLink(base: string, hashedToken: string, type: LinkType = "invite"): string {
+  const q = new URLSearchParams({ token_hash: hashedToken, type });
   return `${base.replace(/\/$/, "")}/admin/uitnodiging?${q}`;
 }
 
@@ -59,7 +66,7 @@ export function inviteErrorText(err: AuthErrorLike): string {
 }
 
 export type InviteUrl =
-  | { kind: "token_hash"; tokenHash: string }
+  | { kind: "token_hash"; tokenHash: string; type: LinkType }
   | { kind: "tokens"; accessToken: string; refreshToken: string }
   | { kind: "error" }
   | { kind: "none" };
@@ -79,7 +86,8 @@ export function parseInviteUrl(search: string, hash: string): InviteUrl {
   if (h.get("error_code") || h.get("error") || q.get("error_code") || q.get("error")) return { kind: "error" };
 
   const tokenHash = q.get("token_hash");
-  if (tokenHash) return { kind: "token_hash", tokenHash };
+  // Alleen deze twee soorten; een ander type in een geknutselde URL wordt een uitnodiging, en faalt dan bij Supabase.
+  if (tokenHash) return { kind: "token_hash", tokenHash, type: q.get("type") === "recovery" ? "recovery" : "invite" };
 
   const accessToken = h.get("access_token");
   const refreshToken = h.get("refresh_token");

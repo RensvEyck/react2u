@@ -75,29 +75,24 @@ function InviteResult({ state }: { state: Exclude<InviteState, { status: "idle" 
     );
   }
 
-  const { email, roleLabel, link, mail } = state;
-
-  if (!link) {
-    return (
-      <Notice tone="ok">
-        <strong>{email}</strong> had al een account en heeft nu toegang als {roleLabel}. Inloggen kan met het
-        wachtwoord dat daar al bij hoort.
-      </Notice>
-    );
-  }
+  const { email, roleLabel, existing, link, mail } = state;
+  // Een bestaand account kan al een wachtwoord hebben; de link is dan een uitweg, geen verplichting.
+  const bestaand = existing ? " Kent die collega het wachtwoord al, dan kan hij gewoon inloggen." : "";
 
   return (
     <div aria-live="polite" className="space-y-3">
       {mail === "verstuurd" ? (
         <Notice tone="ok">
-          Uitnodiging gemaild naar <strong>{email}</strong> ({roleLabel}). Komt de mail niet aan, stuur dan deze link zelf door.
+          {existing ? "Link gemaild naar " : "Uitnodiging gemaild naar "}
+          <strong>{email}</strong> ({roleLabel}).{bestaand} Komt de mail niet aan, stuur dan deze link zelf door.
         </Notice>
       ) : (
         <Notice tone="todo">
-          <strong>{email}</strong> staat klaar als {roleLabel}.{" "}
+          <strong>{email}</strong> {existing ? `had al een account en heeft nu toegang als ${roleLabel}.` : `staat klaar als ${roleLabel}.`}
+          {bestaand}{" "}
           {mail === "uit"
-            ? "Er is geen mailkoppeling ingesteld, dus stuur deze link zelf door."
-            : "De mail kon niet verstuurd worden, dus stuur deze link zelf door."}
+            ? "Er is geen mailkoppeling ingesteld: stuur deze link zelf door, of gebruik Open in mail."
+            : "De mail kon niet verstuurd worden: stuur deze link zelf door, of gebruik Open in mail."}
         </Notice>
       )}
       <LinkTools email={email} roleLabel={roleLabel} link={link} />

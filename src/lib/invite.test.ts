@@ -6,10 +6,15 @@ describe("uitnodigen", () => {
     expect(inviteLink("https://react2u.nl/", "abc123")).toBe(
       "https://react2u.nl/admin/uitnodiging?token_hash=abc123&type=invite"
     );
+    expect(inviteLink("https://react2u.nl", "abc123", "recovery")).toBe(
+      "https://react2u.nl/admin/uitnodiging?token_hash=abc123&type=recovery"
+    );
   });
 
   it("leest onze eigen link", () => {
-    expect(parseInviteUrl("?token_hash=abc&type=invite", "")).toEqual({ kind: "token_hash", tokenHash: "abc" });
+    expect(parseInviteUrl("?token_hash=abc&type=invite", "")).toEqual({ kind: "token_hash", tokenHash: "abc", type: "invite" });
+    expect(parseInviteUrl("?token_hash=abc&type=recovery", "")).toEqual({ kind: "token_hash", tokenHash: "abc", type: "recovery" });
+    expect(parseInviteUrl("?token_hash=abc&type=email_change", "")).toEqual({ kind: "token_hash", tokenHash: "abc", type: "invite" });
   });
 
   it("leest een uitnodiging die Supabase zelf mailde", () => {
