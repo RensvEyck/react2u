@@ -29,7 +29,9 @@ Gebruik deze termen; de code doet dat ook.
 | **Lead** (`leads`) | Iemand die gebeld moet worden, met belstatus, notities en een terugbeldatum. Staat op `/admin/bellijst`. Handmatig toe te voegen of vanuit het Postvak IN — zie *Van Postvak IN naar bellijst*. Interne data, zie de RLS-uitzondering hieronder. |
 | **Te bellen** | Wat vandaag op de bellijst staat: status `te_bellen`, of `terugbellen` waarvan de datum is bereikt of ontbreekt. Bepaald door `needsCall()` in [`src/lib/leads.ts`](src/lib/leads.ts). |
 | **Bezoek** (`page_views`) | Eén paginaweergave. Bevat géén IP-adres: alleen de afgeleide organisatie en een bezoekershash die dagelijks roteert. Zie `/admin/bezoek`. |
-| **Bedrijfsbezoek** | Een bezoek waarvan het IP naar een bedrijfsnetwerk herleidt (`is_company`). Providers en datacenters vallen af — zie `isCompanyOrg()` in [`src/lib/analytics.ts`](src/lib/analytics.ts). |
+| **Bedrijfsbezoek** | Een bezoek waarvan het IP naar een organisatie herleidt (`is_company`), via de netwerkeigenaar of reverse DNS. Providers en datacenters vallen af — zie [`src/lib/companies.ts`](src/lib/companies.ts). Zie *Bedrijfsbezoek*. |
+| **Warm / lauw / koud** | Interesse-score van een herkend bedrijf, uit bezoeken, terugkomen en welke pagina's (contact en diensten zwaar, vacatures niet). Zie `score()` in `companies.ts`. |
+| **Niet volgen** | Een bedrijf dat verborgen is en waarvan nieuwe bezoeken zonder bedrijfsnaam worden opgeslagen (`company_profiles.ignored`). *Vergeten* haalt daarnaast de naam uit eerdere bezoeken. |
 | **Beheerder** (`admins`) | Rij die een Supabase-auth-gebruiker toegang tot `/admin` geeft. Een auth-account zonder rij hier heeft géén toegang. Elke rij heeft precies één rol. |
 | **Rol** (`roles`) | Een naam met een lijst rechten. Bewerkbaar op `/admin/gebruikers`, gesorteerd op `sort`. |
 | **Super admin** | De toprol (`superadmin`, `sort` 0). Systeemrol: houdt altijd alle tien rechten en is niet te verwijderen. Als enige met het recht `gebruikers` — uitnodigen en rollen verdelen is hieraan voorbehouden. |
@@ -597,6 +599,53 @@ vacatures ziet iemand geen concepten, dus gebruik daarin telt dan niet mee —
 dat staat er dan bij. Het logo en de favicon staan in de code en tellen apart
 mee. Afbeeldingen boven 600 KB krijgen het label *Zwaar*.
 
+## Bedrijfsbezoek
+
+Onder **Bezoek → Bedrijven**: welke organisaties de site bekeken, wat ze lazen,
+hoe warm ze zijn, en in één klik op de bellijst — met de bekeken pagina's in de
+notitie, zodat wie belt weet waar het over kan gaan. Een gratis versie van wat
+Salesfeed en Leadinfo doen.
+
+**Herkenning** ([`src/lib/companies.ts`](src/lib/companies.ts), lookups in
+[`companyLookup.ts`](src/lib/companyLookup.ts)), twee gratis bronnen:
+
+1. *Netwerkeigenaar* via ipinfo Lite (`IPINFO_TOKEN`, gratis account). Werkt
+   voor organisaties met een eigen IP-blok: gemeenten, ziekenhuizen, concerns.
+2. *Reverse DNS*: veel bedrijven met een vaste zakelijke lijn zetten hun eigen
+   domein op hun IP-adres (`mail.bedrijf.nl`), ook als de lijn van KPN of Ziggo
+   is. Kost niets, geen derde partij, werkt zonder token.
+
+Providers, carriers, hosting en crawlers vallen af op domein en naam; namen die
+een provider automatisch uitdeelt (met het IP-adres erin, of woorden als
+`static`, `dsl`, `pool`) ook. Bij twijfel geen bedrijf. De uitkomst per IP wordt
+een dag in het geheugen onthouden; het IP-adres zelf komt nergens in de
+database. Wat je **niet** ziet: thuiswerkers, mobiel internet en de meeste
+kleine bedrijven op een gewone consumentenlijn — daar hebben de betaalde
+diensten een eigen databank voor.
+
+**Score** (`score()`): +1 per bezoek, +2 per extra dag dat ze terugkwamen, het
+gewicht van de bekeken pagina's (contact 4, diensten 2, over ons 1, blog ½;
+hooguit twee keer per pagina), +1 als het laatste bezoek binnen drie dagen was.
+Warm vanaf 8, lauw vanaf 4. Wie alleen vacatures bekeek is waarschijnlijk een
+sollicitant, wie de werknemerspagina's bekeek een werknemer van een klant; die
+blijven koud, met die uitleg erbij. De gewichten staan in `INTENT` — pas ze aan
+als het aanbod verandert.
+
+**Bellijst**: een bedrijf wordt gekoppeld aan een bestaande lead via een vaste
+koppeling (`company_profiles.lead_id`), het e-maildomein van de lead of een
+gelijke bedrijfsnaam — geen losse gelijkenis. Dan staat er *Klant* of *Op
+bellijst* bij, en geen tweede lead.
+
+**Niet volgen en vergeten.** Niet volgen verbergt het bedrijf en laat de tracker
+bij volgende bezoeken geen bedrijfsnaam meer opslaan (`company_ignored()`,
+tien minuten onthouden). Vergeten haalt daarnaast de naam uit alle eerdere
+bezoeken — voor een verzoek om verwijdering; bij een eenmanszaak is de
+bedrijfsnaam een persoonsgegeven.
+
+Werkt vóór migratie 0010 al met herkenning (de tracker valt terug op een insert
+zonder de nieuwe kolommen); niet volgen en koppelen aan de bellijst pas daarna.
+Zonder `ANALYTICS_SALT` wordt er niets geregistreerd.
+
 ## Versies en prullenbak
 
 Een trigger (`record_revision()`, migratie 0008) bewaart bij elke opslag van
@@ -652,6 +701,10 @@ een link én bij navigeren via het commandopalet
   draait alles door, maar tonen die schermen een melding in plaats van inhoud,
   en wordt er geen geschiedenis bewaard. 0009 legt de cv-verwijderpolicy vast
   die live waarschijnlijk al bestaat.
+- **Bedrijfsherkenning aanzetten**: `ANALYTICS_SALT` in Vercel (zonder
+  registreert de tracker niets), migratie 0010, en eventueel een gratis
+  ipinfo-token (Lite) als `IPINFO_TOKEN`. Daarna de privacyverklaring bijwerken
+  — zie het voorstel onder *Bewaartermijnen en privacy*.
 - **Schema binnenhalen.** De live database heeft wijzigingen die niet in de
   migraties staan (zie *Valkuilen*). Eén keer `supabase db dump` naar de repo
   maakt het weer één bron.
@@ -737,6 +790,18 @@ gelinkt in de footer en onder beide formulieren. Hij beschrijft precies wat de
 site nu doet. **Zet je `IPINFO_TOKEN` of Resend aan, dan moet die verklaring
 mee**: er komt dan een verwerker bij (ipinfo.io, Resend) die er nu niet in staat.
 
+Voor de bedrijfsherkenning zegt hij nu: "Komt een bezoek vanaf een
+bedrijfsnetwerk, dan kan daar de naam van dat bedrijf bij staan — nooit de naam
+van een persoon." Voorstel om dat te vervangen, zodra de herkenning aan staat:
+
+> Komt een bezoek vanaf het netwerk van een organisatie, dan leiden we uit het
+> IP-adres af welke organisatie dat is: aan de eigenaar van het netwerk (via
+> ipinfo.io) of aan de naam die de organisatie zelf op haar internetlijn heeft
+> gezet. Het IP-adres bewaren we niet, alleen de naam van de organisatie. Bij
+> een eenmanszaak kan dat een persoonsnaam zijn; wil je niet dat we jouw
+> organisatie herkennen, mail ons, dan halen we de naam weg en leggen we hem
+> niet meer vast.
+
 Het privacyreglement (PDF, verzuimdossiers) belooft tweefactorauthenticatie voor
 toegang tot digitale bestanden. Het adminpaneel heeft dat: in te stellen onder
 Account, en afgedwongen door `requireAdmin()` voor wie hem heeft ingesteld.
@@ -752,9 +817,12 @@ Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`
 `leads.source_id`), `0005_roles.sql` (rollen en rechten, `has_perm()`),
 `0006_superadmin.sql` (super admin boven beheerder),
 `0007_doorverwijzingen.sql` (`redirects`, `missing_paths`),
-`0008_versies.sql` (`revisions` en de trigger) en `0009_cv_verwijderen.sql`
-(verwijderpolicy op de bucket `cvs`). Supabase-project `tumwtappyegkjabtmold`.
+`0008_versies.sql` (`revisions` en de trigger), `0009_cv_verwijderen.sql`
+(verwijderpolicy op de bucket `cvs`) en `0010_bedrijfsbezoek.sql`
+(`company_domain`/`company_source` op `page_views`, `company_profiles`,
+`company_ignored()`). Supabase-project `tumwtappyegkjabtmold`.
 
 **Tests:** `npm test` draait Vitest over de pure modules in `src/lib`
-(zoeken, doorverwijzingen, versies, dashboard, bewaartermijn, mediagebruik). Die bevatten de
+(zoeken, doorverwijzingen, versies, dashboard, bewaartermijn, mediagebruik,
+bedrijfsherkenning). Die bevatten de
 regels waar het op aankomt; de schermen eromheen zijn dun.

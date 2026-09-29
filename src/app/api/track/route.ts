@@ -1,35 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabasePublic } from "@/lib/supabase/public";
-import {
-  clientIp, visitorHash, isCompanyOrg, cleanOrgName, referrerHost,
-  isTrackablePath, normalizePath,
-} from "@/lib/analytics";
+import { clientIp, visitorHash, referrerHost, isTrackablePath, normalizePath } from "@/lib/analytics";
+import { isIgnored, lookupCompany } from "@/lib/companyLookup";
 import { missingReferrer } from "@/lib/redirects";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-/**
- * Zoekt op welke organisatie achter een IP zit.
- *
- * Zonder IPINFO_TOKEN gebeurt er niets — dan wordt het bezoek gewoon zonder
- * bedrijfsnaam geregistreerd. Net als bij de notificatiemail is de verrijking
- * een extra, geen voorwaarde: liever een bezoek zonder bedrijf dan geen bezoek.
- */
-async function lookupOrg(ip: string): Promise<string | null> {
-  const token = process.env.IPINFO_TOKEN;
-  if (!token) return null;
-  try {
-    const res = await fetch(`https://ipinfo.io/${encodeURIComponent(ip)}/json?token=${token}`, {
-      signal: AbortSignal.timeout(2500),
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { org?: string; company?: { name?: string } };
-    return cleanOrgName(data.company?.name || data.org);
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(req: NextRequest) {
   // Altijd 204 teruggeven, wat er ook misgaat. Dit is een zijspoor: een
@@ -70,19 +46,31 @@ export async function POST(req: NextRequest) {
     const day = new Date().toISOString().slice(0, 10);
     const hash = visitorHash(ip, req.headers.get("user-agent") || "", day, salt);
 
-    const org = await lookupOrg(ip);
-    const isCompany = isCompanyOrg(org);
+    // Welk bedrijf, als dat gratis te weten is (netwerkeigenaar of reverse
+    // DNS, zie companies.ts). Providers en datacenters vallen af: die zeggen
+    // niets en zouden het overzicht vervuilen. Het IP zelf bewaren we niet.
+    const found = await lookupCompany(ip);
+    const company = found && !(await isIgnored(found)) ? found : null;
 
-    await supabasePublic().from("page_views").insert({
+    const row = {
       path,
       referrer_host: referrerHost(body.referrer, req.headers.get("host") || undefined),
       country: req.headers.get("x-vercel-ip-country") || null,
-      // Providernamen bewaren we niet: die zeggen niets en zouden het overzicht
-      // vervuilen. Alleen echte organisaties.
-      company: isCompany ? org : null,
-      is_company: isCompany,
+      company: company?.name ?? null,
+      is_company: Boolean(company),
       visitor_hash: hash,
+    };
+    const sb = supabasePublic();
+    const { error } = await sb.from("page_views").insert({
+      ...row,
+      company_domain: company?.domain ?? null,
+      company_source: company?.source ?? null,
     });
+    // Vóór migratie 0010 bestaan die twee kolommen nog niet. Dan zonder, anders
+    // gaat elk bezoek verloren in plaats van alleen het domein.
+    if (error && (error.code === "42703" || error.code === "PGRST204")) {
+      await sb.from("page_views").insert(row);
+    }
 
     return ok();
   } catch {

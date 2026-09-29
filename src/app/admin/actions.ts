@@ -847,3 +847,105 @@ export async function bulkInbox(formData: FormData) {
   revalidatePath("/admin", "layout");
   redirect(withParam("opgeslagen", intent === "verwijderen" ? "definitief" : "gelezen"));
 }
+
+/* ---------- bedrijfsbezoek ---------- */
+
+/** Terug naar een scherm onder /admin/bezoek, met een melding erbij. */
+function bezoekBack(back: string) {
+  const target = back.startsWith("/admin/bezoek") ? back.split("#")[0] : "/admin/bezoek/bedrijven";
+  return (k: string, v: string) => `${target}${target.includes("?") ? "&" : "?"}${k}=${v}`;
+}
+
+/**
+ * Zet een herkend bedrijf op de bellijst, met in de notitie wat het bekeek —
+ * zodat wie belt weet waar het gesprek over kan gaan.
+ *
+ * Staat het bedrijf er al (gekoppeld, zelfde e-maildomein of zelfde naam),
+ * dan geen tweede lead maar alleen de koppeling. Vraagt twee rechten: `bezoek`
+ * om het bedrijf te zien, `bellijst` om de lead te maken.
+ */
+export async function addLeadFromCompany(key: string, back: string) {
+  const { sb, admin } = await requireAdmin();
+  const withParam = bezoekBack(back);
+  if (!admin.permissions.includes("bezoek") || !admin.permissions.includes("bellijst")) redirect(withParam("fout", "geen-rechten"));
+
+  const { loadCompanies } = await import("@/lib/companiesDb");
+  const { leadNotes } = await import("@/lib/companies");
+  const { when } = await import("@/lib/dashboard");
+  const { companies } = await loadCompanies(sb, 90, admin.permissions);
+  const c = companies.find((x) => x.key === key);
+  if (!c) redirect(withParam("fout", "bedrijf-weg"));
+
+  let leadId = c.lead?.id ?? null;
+  if (!leadId) {
+    const { data, error } = await sb
+      .from("leads")
+      .insert({
+        name: c.name,
+        company: c.domain && c.domain !== c.name ? c.domain : null,
+        source: "websitebezoek",
+        notes: leadNotes(c, when),
+        status: "te_bellen",
+      })
+      .select("id")
+      .single();
+    if (error || !data) redirect(withParam("fout", "opslaan"));
+    leadId = (data as { id: string }).id;
+  }
+  // Zonder migratie 0010 lukt de koppeling niet; de lead staat er dan wel.
+  await sb.from("company_profiles").upsert({ key, name: c.name, domain: c.domain, lead_id: leadId }, { onConflict: "key" });
+
+  revalidatePath("/admin", "layout");
+  redirect(withParam("opgeslagen", "op-bellijst"));
+}
+
+/**
+ * Niet meer volgen, of weer wel. Niet volgen verbergt het bedrijf én zorgt
+ * dat de tracker bij volgende bezoeken geen bedrijfsnaam meer opslaat — voor
+ * het eigen kantoor, een leverancier, of een eenmanszaak die dat liever niet
+ * heeft.
+ */
+export async function setCompanyIgnored(key: string, name: string, domain: string | null, ignored: boolean, back: string) {
+  const { sb } = await requirePerm("bezoek");
+  const withParam = bezoekBack(back);
+  const { error } = await sb.from("company_profiles").upsert({ key, name, domain, ignored }, { onConflict: "key" });
+  if (error) redirect(withParam("fout", "migratie-0010"));
+  revalidatePath("/admin", "layout");
+  redirect(withParam("opgeslagen", ignored ? "niet-volgen" : "weer-volgen"));
+}
+
+/**
+ * Vergeten: haalt de bedrijfsnaam uit alle eerdere bezoeken en zet het
+ * bedrijf op niet volgen. De bezoeken zelf blijven meetellen, alleen zonder
+ * bedrijf. Bedoeld voor een verzoek om verwijdering — bij een eenmanszaak is
+ * de bedrijfsnaam een persoonsgegeven.
+ */
+export async function forgetCompany(key: string, name: string, domain: string | null) {
+  const { sb } = await requirePerm("bezoek");
+  const withParam = bezoekBack("/admin/bezoek/bedrijven");
+  const cleared = { company: null, company_domain: null, company_source: null, is_company: false };
+
+  const { error: profileError } = await sb
+    .from("company_profiles")
+    .upsert({ key, name, domain, ignored: true }, { onConflict: "key" });
+  if (profileError) redirect(withParam("fout", "migratie-0010"));
+
+  if (domain) {
+    const { error } = await sb.from("page_views").update(cleared).eq("company_domain", domain);
+    if (error) redirect(withParam("fout", "opslaan"));
+  }
+  // Oudere bezoeken hebben geen domein, alleen een naam. Alle namen die bij
+  // deze sleutel horen, over de hele bewaartermijn.
+  const { fetchPageViews } = await import("@/lib/analyticsDb");
+  const { companyKey } = await import("@/lib/companies");
+  const since = new Date(Date.now() - 400 * 86_400_000).toISOString();
+  const rows = await fetchPageViews(sb, since, "id, company, company_domain", { onlyCompanies: true });
+  const names = [...new Set(rows.filter((r) => r.company && companyKey(r.company, r.company_domain ?? null) === key).map((r) => r.company!))];
+  if (names.length) {
+    const { error } = await sb.from("page_views").update(cleared).in("company", names);
+    if (error) redirect(withParam("fout", "opslaan"));
+  }
+
+  revalidatePath("/admin", "layout");
+  redirect(withParam("opgeslagen", "vergeten"));
+}
