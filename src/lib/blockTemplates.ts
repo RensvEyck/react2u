@@ -137,7 +137,7 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   tarieven: {
     label: "Abonnementen en tarieven",
     // Eén blok voor de hele tarievenpagina. casemanagerTarief (getal): zonder
-    // tarief blijft de rekenhulp weg. Zie CONTEXT.md, *Tarieven*.
+    // tarief vergelijkt de rekenhulp alleen de vaste kosten. Zie CONTEXT.md, *Tarieven*.
     data: tarievenPagina.blocks[0].data,
   },
 };

@@ -472,8 +472,10 @@ database gaat zoals bij de andere concepten (`node scripts/concept-naar-sql.mjs 
   een label.
 - **De `sleutel` van een pakket is betekenisvol.** De vergelijking en de
   rekenhulp zoeken `compleet` en `basis`; zonder die twee verdwijnen ze.
-- **De rekenhulp verschijnt pas met een uurtarief.** `casemanagerTarief` leeg of
-  0: geen rekenhulp, want zonder tarief valt er niets te vergelijken.
+- **De rekenhulp rekent pas volledig met een uurtarief.** `casemanagerTarief`
+  leeg of 0: hij vergelijkt alleen de vaste kosten en zegt dat de uren er bij de
+  Verrichtingenbasis nog bij komen. Met een tarief toont hij vanaf hoeveel uur
+  Compleet voordeliger is.
 - **Offerteformulier.** Eén dialoog in het blok; elke link naar `#offerte` op de
   pagina opent hem, ook vanuit een ander blok (de knop in de `ctaBanner`). Een
   aanvraag komt als bericht in het Postvak IN (onderwerp "Offerteaanvraag: …",

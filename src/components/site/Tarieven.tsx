@@ -126,7 +126,7 @@ export default function Tarieven({ d, asH1 }: { d: TarievenData; asH1?: boolean 
   const rate = num(d.casemanagerTarief);
   const compleet = pakketten.find((p) => p.sleutel === "compleet");
   const basis = pakketten.find((p) => p.sleutel === "basis");
-  const toonRekenhulp = rate > 0 && compleet && basis;
+  const toonRekenhulp = compleet && basis;
 
   const categorieen = (d.lijst?.categorieen || []).filter((c) => c && c.titel);
   const actief = categorieen[Math.min(tab, Math.max(0, categorieen.length - 1))];
@@ -286,7 +286,7 @@ export default function Tarieven({ d, asH1 }: { d: TarievenData; asH1?: boolean 
           </div>
         )}
 
-        {/* Rekenhulp: alleen met een ingevuld uurtarief, anders valt er niets te rekenen. */}
+        {/* Rekenhulp. Zonder uurtarief vergelijkt hij alleen de vaste kosten. */}
         {toonRekenhulp && (
           <Rekenhulp d={d} n={n} setN={setN} uren={uren} setUren={setUren} rate={rate} compleet={num(compleet!.prijs)} basis={num(basis!.prijs)} />
         )}
@@ -388,10 +388,19 @@ function Rekenhulp({
   rate: number; compleet: number; basis: number;
 }) {
   const kC = compleet * n;
-  const kB = basis * n + uren * rate;
+  // Zonder uurtarief rekenen we alleen de vaste kosten; de uren tellen dan
+  // niet mee en de uitkomst zegt dat eerlijk.
+  const metTarief = rate > 0;
+  const kB = basis * n + (metTarief ? uren * rate : 0);
   const max = Math.max(kC, kB, 1);
-  const omslag = Math.ceil(((compleet - basis) * n) / rate);
-  const oordeel = kC < kB ? "Compleet is voordeliger voor jou" : kC > kB ? "Verrichtingenbasis is voordeliger voor jou" : "Beide kosten even veel";
+  const omslag = metTarief ? Math.ceil(((compleet - basis) * n) / rate) : 0;
+  const verschil = (compleet - basis) * n;
+  const oordeel = !metTarief
+    ? `Compleet kost ${heel(verschil)} per jaar meer aan vaste kosten`
+    : kC < kB ? "Compleet is voordeliger voor jou" : kC > kB ? "Verrichtingenbasis is voordeliger voor jou" : "Beide kosten even veel";
+  const toelichting = metTarief
+    ? `Vanaf ${omslag} uur casemanagement per jaar is Compleet voordeliger.`
+    : "Daar staat onbeperkt casemanagement tegenover. Bij de Verrichtingenbasis komen de uren casemanagement er nog bij.";
   const balk = (v: number) => ({ width: `${Math.max(3, Math.round((v / max) * 100))}%` });
   return (
     <div className="mx-auto mt-24 grid max-w-[1000px] gap-5 md:mt-32 lg:grid-cols-[400px_1fr] lg:gap-6">
@@ -412,15 +421,15 @@ function Rekenhulp({
           <p className="text-[13.5px] text-body">{euro(compleet)} × {n} medewerkers, casemanagement onbeperkt</p>
         </div>
         <div className="space-y-3">
-          <p className="flex items-baseline justify-between gap-4"><span className="font-heading text-[17px] font-semibold text-primary">Verrichtingenbasis</span><span className="font-heading text-[24px] font-bold text-primary">{heel(kB)}</span></p>
+          <p className="flex items-baseline justify-between gap-4"><span className="font-heading text-[17px] font-semibold text-primary">Verrichtingenbasis</span><span className="font-heading text-[24px] font-bold text-primary">{heel(kB)}{!metTarief && <span className="text-[16px] font-semibold"> + uren</span>}</span></p>
           <div className="h-3.5 overflow-hidden rounded-full bg-soft"><div className="h-full rounded-full bg-primary-light transition-[width] duration-500" style={balk(kB)} /></div>
-          <p className="text-[13.5px] text-body">{euro(basis)} × {n} medewerkers + {uren} uur × {euro(rate)}</p>
+          <p className="text-[13.5px] text-body">{euro(basis)} × {n} medewerkers + {uren} uur × {metTarief ? euro(rate) : "uurtarief casemanager"}</p>
         </div>
         <div className="mt-auto flex items-center gap-4 rounded-2xl bg-soft p-5">
           <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-white"><LuLightbulb className="text-[20px]" /></span>
           <p className="flex flex-col">
             <span className="font-heading text-[16px] font-bold text-primary">{oordeel}</span>
-            <span className="text-[14px] text-body">Vanaf {omslag} uur casemanagement per jaar is Compleet voordeliger.</span>
+            <span className="text-[14px] text-body">{toelichting}</span>
           </p>
         </div>
       </div>
