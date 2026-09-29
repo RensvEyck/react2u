@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
   LuSettings, LuUserRound, LuExternalLink, LuMenu, LuX, LuLogOut, LuMessageSquare, LuNewspaper,
-  LuSearch, LuPhone, LuChartNoAxesColumn, LuUserCog,
+  LuSearch, LuPhone, LuChartNoAxesColumn, LuUserCog, LuConstruction,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 import { permissionForPath, type Permission } from "@/lib/permissions";
@@ -38,12 +38,13 @@ const CRUMBS: Record<string, string> = {
 };
 
 export default function AdminShell({
-  email, roleLabel, permissions, counts, signOut, children,
+  email, roleLabel, permissions, counts, maintenance, signOut, children,
 }: {
   email: string;
   roleLabel: string;
   permissions: Permission[];
   counts: Counts;
+  maintenance: boolean;
   signOut: () => Promise<void>;
   children: React.ReactNode;
 }) {
@@ -57,6 +58,25 @@ export default function AdminShell({
     const perm = permissionForPath(n.href);
     return !perm || permissions.includes(perm);
   });
+
+  // Beheerders zien de site ook tijdens onderhoud gewoon. Zonder deze melding
+  // valt dus nergens te merken dat bezoekers voor een dichte deur staan.
+  const maintenanceContent = (
+    <>
+      <LuConstruction className="text-[14px]" />
+      <span className="hidden sm:inline">Onderhoudsmodus aan</span>
+      <span className="sm:hidden">Onderhoud</span>
+    </>
+  );
+  const maintenanceProps = {
+    title: "Bezoekers zien de onderhoudspagina. Jij ziet de site omdat je bent ingelogd.",
+    className: "apill whitespace-nowrap bg-[#fff4e5] !py-1.5 text-[#c77700]",
+  };
+  const maintenancePill = permissions.includes("instellingen") ? (
+    <Link href="/admin/instellingen#onderhoud" {...maintenanceProps}>{maintenanceContent}</Link>
+  ) : (
+    <span {...maintenanceProps}>{maintenanceContent}</span>
+  );
 
   const crumbs = pathname.split("/").filter(Boolean);
   const crumbLabels = crumbs.map((c) => CRUMBS[c] || decodeURIComponent(c));
@@ -148,6 +168,7 @@ export default function AdminShell({
               ))}
             </div>
             <div className="ml-auto flex items-center gap-2">
+              {maintenance && maintenancePill}
               <a href="/" target="_blank" className="abtn-ghost !py-2 text-[13.5px]">
                 Bekijk website <LuExternalLink className="text-[13px]" />
               </a>

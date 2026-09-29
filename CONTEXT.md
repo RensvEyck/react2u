@@ -21,7 +21,8 @@ Gebruik deze termen; de code doet dat ook.
 | **Bericht** (`contact_messages`) | Inzending van het contactformulier. Bevat sinds `0005` een telefoonnummer: het formulier vraagt er verplicht om, zodat een bericht een belbare lead oplevert. Berichten van vóór die migratie hebben er geen — de kolom is nullable. |
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
 | **Onbehandeld** | Wat in het Postvak IN als ongelezen telt. Per soort verschillend: een bericht heeft `read = false`, een sollicitatie heeft `status = 'nieuw'`. |
-| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents` en `certificates`. |
+| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents`, `certificates`, `seo` en `maintenance`. |
+| **Onderhoudsmodus** (`maintenance`) | Instelling `{enabled, message}`. Aan: bezoekers krijgen op elke publieke URL een onderhoudspagina (503), ingelogde beheerders zien de site gewoon. Schakelaar op `/admin/instellingen`. Zie *Onderhoudsmodus*. |
 | **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
 | **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
 | **Lead** (`leads`) | Iemand die gebeld moet worden, met belstatus, notities en een terugbeldatum. Staat op `/admin/bellijst`. Handmatig toe te voegen of vanuit het Postvak IN — zie *Van Postvak IN naar bellijst*. Interne data, zie de RLS-uitzondering hieronder. |
@@ -89,8 +90,9 @@ dan werkt alles behalve uitnodigen.
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
 zijn is niet genoeg, er moet ook een rij in `admins` staan. Schermen achter een
 recht gebruiken `requirePerm('<recht>')`.
-[`src/middleware.ts`](src/middleware.ts) ververst alleen de sessie op `/admin/:path*`
-— het is géén autorisatiepoort. De echte controle staat in de pagina's zelf.
+[`src/middleware.ts`](src/middleware.ts) ververst op `/admin` alleen de sessie
+— het is géén autorisatiepoort. De echte controle staat in de pagina's zelf. Op
+de publieke routes is de middleware de poort van de onderhoudsmodus.
 
 **Rendering.** Publieke pagina's zijn statisch met revalidatie (5 min; sitemap 1 uur).
 Alles onder `/admin` is dynamisch.
@@ -140,6 +142,49 @@ haalt pagina-inhoud op tijdens de build. Zonder `.env` faalt de build lokaal.
 mail helemaal niet aan; je ziet het alleen in de logs. Mail voor react2u.nl
 loopt via Microsoft 365 (`MX react2u-nl.mail.protection.outlook.com`), met
 Sophos-filtering ervoor en `-all` in de SPF.
+
+## Onderhoudsmodus
+
+Een schakelaar op `/admin/instellingen` (recht `instellingen`), opgeslagen als
+`site_settings.maintenance`. Zolang hij aan staat toont de topbalk van het
+adminpaneel aan iedereen *Onderhoudsmodus aan* — beheerders zien de site zelf
+gewoon, dus anders valt nergens te merken dat hij dicht is.
+
+**De poort zit in de middleware, niet in de layout.** Een layout kan geen 503
+teruggeven: bezoekers zouden de melding krijgen met status 200, en dan kan
+Google "we zijn zo terug" opnemen als inhoud van elke pagina. Ook een
+`NextResponse.rewrite()` naar een onderhoudsroute helpt niet — Next negeert de
+status van een rewrite. Daarom bouwt de middleware de pagina zelf op als losse
+HTML ([`src/lib/maintenance.ts`](src/lib/maintenance.ts)), met `503`,
+`Retry-After` en `no-store`. Inline CSS en systeemlettertypes, omdat de
+gebundelde stylesheet en fonts gehashte namen hebben.
+
+**De pagina's zelf veranderen niet.** Aan- of uitzetten revalideert niets; de
+statische pagina's blijven in de cache staan en zijn meteen terug zodra de
+schakelaar uit gaat.
+
+Wat de poort doorlaat: `/admin`, `/api/` (bezoekregistratie), `/_next/` en alles
+met een bestandsextensie (`robots.txt`, `sitemap.xml`, favicon). Formulieren
+posten naar hun paginapad en worden dus ook tegengehouden.
+
+**Beheerders komen erlangs** met één query op `admins` via hun eigen sessie. De
+policy *own admin row* geeft een beheerder minstens zijn eigen rij en ieder
+ander niets; PostgREST controleert de handtekening van het token, dus een
+nagemaakte cookie helpt niet. Zonder `sb-…-auth-token`-cookie wordt die query
+overgeslagen. Controleer onderhoud daarom in een privévenster.
+
+**De site gaat open bij twijfel.** Omdat de middleware nu vóór élke publieke
+pagina draait, zou een haperend Supabase de hele site laten hangen. Daarom:
+
+- de stand wordt 15 seconden per instantie onthouden (best effort — Next belooft
+  niets over globals in middleware, maar het scheelt een query per weergave);
+  een wijziging is dus niet op de seconde overal zichtbaar;
+- elke query heeft een timeout van 1 seconde;
+- bij een fout geldt de laatst bekende stand, en zonder die: open.
+
+`middleware.ts` heet sinds Next 16 officieel `proxy.ts` (en draait dan op
+Node.js in plaats van de edge). Nog niet omgezet; bij het omzetten verhuist de
+poort mee.
 
 ## Notificatiemail
 

@@ -368,6 +368,21 @@ export async function saveContactSettings(formData: FormData) {
   redirect("/admin/instellingen?opgeslagen=1");
 }
 
+// Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt
+// bezoekers tegen. Wél de fout controleren — wie denkt dat de site dicht is
+// terwijl hij openstaat (of andersom), hoort dat te weten.
+export async function saveMaintenanceSettings(formData: FormData) {
+  const { sb } = await requirePerm("instellingen");
+  const value = {
+    enabled: formData.get("enabled") === "on",
+    message: String(formData.get("message") || "").trim(),
+  };
+  const { error } = await sb.from("site_settings").upsert({ key: "maintenance", value });
+  if (error) redirect("/admin/instellingen?fout=opslaan");
+  revalidatePath("/admin", "layout");
+  redirect("/admin/instellingen?opgeslagen=1");
+}
+
 /* ---------- gebruikers en rollen ---------- */
 
 /**
