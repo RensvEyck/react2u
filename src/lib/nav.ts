@@ -1,14 +1,18 @@
 import type { Kleur } from "./brand";
 
-/* ---------- Oplossingen: drie pijlers, zes diensten ---------- */
-
-export type Dienst = { label: string; href: string; description: string; kleur: Kleur };
-/** `icon` is een naam uit src/components/site/Icon.tsx. */
-export type Pijler = { key: string; title: string; text: string; kleur: Kleur; icon: string; diensten: Dienst[] };
+/* ---------- Diensten: drie stappen, zes diensten ---------- */
 
 /**
- * De zes diensten, gegroepeerd van voorkomen naar herstellen. Voedt het
- * megamenu, de footer en de standaardinhoud van het blok "Pijlers".
+ * `situatie` beschrijft de dienst vanuit de werkgever: waar loop je tegenaan?
+ * Zo kiest een bezoeker op herkenning in plaats van op vakjargon.
+ */
+export type Dienst = { label: string; href: string; description: string; situatie: string; kleur: Kleur };
+/** `stap` is de plek in de route van voorkomen naar versterken; `icon` een naam uit Icon.tsx. */
+export type Pijler = { key: string; stap: string; title: string; text: string; kleur: Kleur; icon: string; diensten: Dienst[] };
+
+/**
+ * De zes diensten in drie stappen: voorkomen, begeleiden, versterken. Voedt het
+ * menu, de footer en het blok "Diensten per situatie" (`pillars`).
  *
  * Kleur hoort bij de pijler, niet bij de dienst: drie kleuren uit het logo,
  * zodat je in menu, footer en overzichten in één oogopslag ziet wat bij
@@ -19,6 +23,7 @@ export type Pijler = { key: string; title: string; text: string; kleur: Kleur; i
 export const PIJLERS: Pijler[] = [
   {
     key: "preventie",
+    stap: "Voorkomen",
     title: "Preventie",
     text: "Gezonde medewerkers vallen minder snel uit. We signaleren vroeg en pakken risico's aan voordat ze verzuim worden.",
     kleur: "blauw",
@@ -28,18 +33,21 @@ export const PIJLERS: Pijler[] = [
         label: "Preventie & Vitaliteit",
         href: "/preventie-en-vitaliteit",
         description: "Preventief medisch onderzoek, consulten en tevredenheidsonderzoek.",
+        situatie: "Je wilt verzuim voorkomen",
         kleur: "blauw",
       },
       {
         label: "Risicomanagement (RI&E)",
         href: "/risicomanagement",
         description: "Samen met kerndeskundigen de risico's in je organisatie in kaart.",
+        situatie: "Je wilt de risico's in je organisatie in kaart",
         kleur: "blauw",
       },
     ],
   },
   {
     key: "verzuim",
+    stap: "Begeleiden",
     title: "Verzuim",
     text: "Valt er toch iemand uit? Dan begeleiden we je medewerker doelgericht terug naar werk, met een vaste casemanager en duidelijke stappen.",
     kleur: "rood",
@@ -49,18 +57,21 @@ export const PIJLERS: Pijler[] = [
         label: "Verzuimbegeleiding WVP",
         href: "/verzuimbegeleiding-wvp",
         description: "Het volledige poortwachtertraject, van ziekmelding tot WIA-aanvraag.",
+        situatie: "Een medewerker meldt zich ziek",
         kleur: "rood",
       },
       {
         label: "Verzuimbegeleiding ERD/ZW",
         href: "/verzuimbegeleiding-erd-zw",
         description: "Voor eigenrisicodragers Ziektewet, ook in de flexbranche.",
+        situatie: "Je bent eigenrisicodrager voor de Ziektewet",
         kleur: "rood",
       },
     ],
   },
   {
     key: "ontwikkeling",
+    stap: "Versterken",
     title: "Ontwikkeling",
     text: "Soms is er meer nodig dan een plan van aanpak. Met coaching en training brengen we mensen en teams weer in beweging.",
     kleur: "teal",
@@ -70,12 +81,14 @@ export const PIJLERS: Pijler[] = [
         label: "Begeleiding & Coaching",
         href: "/begeleiding-en-coaching",
         description: "Eén-op-één, burn-out- en loopbaancoaching op maat.",
+        situatie: "Een medewerker loopt vast of dreigt uit te vallen",
         kleur: "teal",
       },
       {
         label: "Trainingen & Workshops",
         href: "/trainingen-en-workshops",
         description: "Verzuim-, management- en communicatietrainingen voor je team.",
+        situatie: "Je wilt leidinggevenden en je team versterken",
         kleur: "teal",
       },
     ],
@@ -92,7 +105,7 @@ export type NavLink = { label: string; href: string };
 export type NavItem = NavLink & { children?: NavLink[]; mega?: true };
 
 export const MAIN_NAV: NavItem[] = [
-  { label: "Oplossingen", href: "/diensten", mega: true },
+  { label: "Diensten", href: "/diensten", mega: true },
   {
     label: "Werknemers",
     href: "/werknemers",
@@ -109,7 +122,7 @@ export const MAIN_NAV: NavItem[] = [
       { label: "Werken bij React2u", href: "/vacatures" },
     ],
   },
-  { label: "Inzichten", href: "/blog" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -124,22 +137,22 @@ export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | n
 
 /**
  * Het kruimelpad naar een pagina, zonder "Home" (dat zet de weergave ervoor).
- * Een dienst hangt onder Oplossingen, een pagina uit een uitklapmenu onder zijn
+ * Een dienst hangt onder Diensten, een pagina uit een uitklapmenu onder zijn
  * menu-item; de rest staat direct onder Home.
  */
 export function crumbsVoor(path: string, title: string): NavLink[] {
   // Staat de pagina zelf in het menu, dan heet hij in het kruimelpad zoals in
-  // het menu ("Oplossingen", niet de paginatitel "Diensten").
+  // het menu ("Over ons", niet de paginatitel "Over React2u").
   const inMenu = MAIN_NAV.find((i) => i.href === path);
   if (inMenu) return [{ label: inMenu.label, href: path }];
-  if (dienstVoor(path)) return [{ label: "Oplossingen", href: "/diensten" }, { label: title, href: path }];
+  if (dienstVoor(path)) return [{ label: "Diensten", href: "/diensten" }, { label: title, href: path }];
   const ouder = MAIN_NAV.find((i) => i.href !== path && i.children?.some((c) => c.href === path));
   if (ouder) return [{ label: ouder.label, href: ouder.href }, { label: title, href: path }];
   return [{ label: title, href: path }];
 }
 
-/** De knop rechts in de header, zoals Acture's "Adviesgesprek". */
-export const HEADER_CTA: NavLink = { label: "Adviesgesprek", href: "/contact" };
+/** De knop rechts in de header — dezelfde uitnodiging als op de oude site. */
+export const HEADER_CTA: NavLink = { label: "Maak een afspraak", href: "/contact" };
 
 export const LINKEDIN_URL = "https://www.linkedin.com/company/react2u/";
 

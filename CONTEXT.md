@@ -116,8 +116,8 @@ Rendert het blok een kop op paginaniveau, zet het type dan ook in
 **Het menu volgt de database niet.** `MAIN_NAV` in [`src/lib/nav.ts`](src/lib/nav.ts)
 is een hardgecodeerde lijst. Een nieuwe pagina in het adminpaneel verschijnt dus
 wél op zijn URL, maar niet in de navigatie tot je `nav.ts` bijwerkt. Hetzelfde
-geldt voor `PIJLERS` (de zes diensten in drie groepen): daaruit lezen het
-megamenu onder *Oplossingen*, de footer én het blok `pillars`. Een dienst
+geldt voor `PIJLERS` (de zes diensten in drie stappen): daaruit lezen het
+menu onder *Diensten*, de footer én het blok `pillars`. Een dienst
 erbij of een andere groepering is dus één wijziging in `nav.ts`, niet drie.
 
 **Losse CSS-klassen winnen van Tailwind-utilities.** Tailwind v4 zet utilities
@@ -131,9 +131,9 @@ Zet een nieuwe klasse die met utilities gecombineerd wordt daar ook in.
 **Ankers op dienstpagina's hangen aan de titel.** Elk onderdeel van een
 `subSections`-blok krijgt een `id` uit zijn titel (`anchorId()` in
 `BlockRenderer`, accenten eraf: "Eén-op-één coaching op maat" →
-`een-op-een-coaching-op-maat`). Het blok `linkIndex` op de homepage linkt
-daarheen. Hernoem je zo'n titel, dan landt de link nog wel op de pagina maar
-niet meer op het onderdeel — pas dan ook de link aan.
+`een-op-een-coaching-op-maat`), zodat je er vanuit bv. een blogartikel
+rechtstreeks naartoe kunt linken. Hernoem je zo'n titel, dan landt zo'n link
+nog wel op de pagina maar niet meer op het onderdeel.
 
 **Kleur hoort bij de pijler, en gaat op naam.** Preventie is blauw, Verzuim
 rood, Ontwikkeling teal — drie kleuren uit het logo. Eerder had elke dienst
@@ -182,12 +182,24 @@ Sophos-filtering ervoor en `-all` in de SPF.
 
 ## Vormgeving
 
-De site volgt sinds september 2026 de opbouw van acture.nl, in de huisstijl
-van React2u: een zwevende, afgeronde header met megamenu, secties die
-afwisselen tussen wit, lavendel (`bg-soft`) en indigo, en een lichte footer
-met een witte adreskaart. Alle bloktypes — ook de
-oudere — delen die vormtaal, dus een pagina uit het CMS ziet er vanzelf zo
-uit.
+Acture.nl was de inspiratiebron, geen voorbeeld om na te maken. Wat we ervan
+hebben overgenomen is de aanpak: rust en ruimte, diensten overzichtelijk
+gegroepeerd, één duidelijke vervolgstap, sociaal bewijs en veelgestelde vragen.
+Vorm, woorden en concepten komen uit React2u zelf:
+
+- **Vormtaal: stippen en cirkels**, uit het logo en het REACT-wiel. Foto's
+  staan rond (`RondeFoto` in `BlockRenderer`), met de stippenwolk ernaast;
+  de afsluitende oproep toont de stippenwolk groot, net als de
+  onderhoudspagina.
+- **Eigen woorden**: "Jouw mensen, onze aandacht", "Daar zorgen wij voor",
+  "Dit is React2u!", "Voor iedereen gezond, menselijk en duidelijk", "Er is
+  altijd een oplossing", "Maak een afspraak". Neem geen formuleringen van
+  Acture over ("in één oogopslag", "adviesgesprek", "gingen je voor").
+- **Eigen concepten**: diensten vanuit de situatie van de werkgever
+  (`situatie` in `nav.ts`), het REACT-model als werkwijze (blok `method`) en
+  de drie waarden met de feiten erbij (blok `values`).
+- **Header** met de topbalk van de oude site; **footer** op indigo met "Er is
+  altijd een oplossing."
 
 **Contrast is doorgerekend, niet geschat.** Het roze van de knoppen is
 `#c8306a` (5,1:1 met witte tekst); het oude `#e75387` haalde 3,5:1. Tekst in
@@ -196,16 +208,15 @@ voor tekst. De dienstkleuren in `brand.ts` hebben een aparte `tekst`-tint die
 ook op de eigen lichte tint AA haalt. Gebruik voor grijze tekst niet minder
 dan `text-primary/70` of `text-body`.
 
-**Zes nieuwe bloktypes** naast de bestaande:
+**Nieuwe bloktypes** naast de bestaande:
 
 | Bloktype | Wat |
 |---|---|
-| `heroStatement` | Twee panelen: de belofte op indigo (met `highlight` onder een markeerstift), de foto ernaast met de stippenwolk en een `badge`; eronder de klantlogo's. |
-| `pillars` | De drie pijlers als kaarten. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
-| `linkIndex` | Alle onderwerpen als pil-tegels, gegroepeerd per pijler via `groep` (`preventie`, `verzuim`, `ontwikkeling`). |
-| `about` | Donker vlak, tekst naast beeld met een citaatkaart. `imageShape: "circle"` snijdt het beeld rond bij. |
-| `facts` | "In één oogopslag": raster van drie kolommen, een kaart met `image` is twee rijen hoog, met `value` een cijferkaart. Twee beeldkaarten en vijf andere vullen precies drie bij drie; volgorde: kaart, beeld, kaart, kaart, beeld, kaart, kaart. |
-| `latestPosts` | De nieuwste artikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
+| `heroStatement` | De belofte (met `highlight` in de accentkleur), twee knoppen, een keurmerkregel (`badge`) en de ronde foto met de stippenwolk. |
+| `pillars` | "Waar kunnen we je mee helpen?": drie stappen (voorkomen, begeleiden, versterken) met per dienst de situatie. Inhoud uit `PIJLERS` in `nav.ts`; het blok zelf heeft alleen de kop. |
+| `method` | De werkwijze: het REACT-model. `steps` met `title`, `text` en `kleur`; de letter is de eerste letter van de titel. Met het wiel en een citaat. |
+| `values` | De drie waarden (`cards` met `title`, `text`, `value`, `valueLabel`, `kleur`). Een feit onderbouwt elke waarde. |
+| `latestPosts` | De nieuwste blogartikelen. Zonder gepubliceerde artikelen verdwijnt het blok. |
 
 Bestaande blokken kregen optionele varianten: `intro` met `layout: "split"`
 en `valueCards` met een `heading`. De blokeditor toont alleen velden die al in
@@ -231,11 +242,11 @@ opsommingstekens lezen `--k` en `--k-zacht` (met een terugval voor gewone
 pagina's). Onder elke dienstpagina staat automatisch "Meer van React2u" met
 de vijf andere diensten.
 
-**De hero schuift onder de header.** De header zweeft (`sticky`, met marge);
-`.hero-pull` trekt een hero `--hh` omhoog zodat zijn achtergrond doorloopt.
-`--hh` in `globals.css` moet minstens zo hoog zijn als de header (nu 78px
-mobiel, 88px desktop; `--hh` heeft een paar pixels marge). Maak je de header
-hoger, verhoog dan `--hh` mee — anders verschijnt er een witte streep.
+**Een lichte paginakop schuift onder de header.** De menubalk plakt bovenaan
+(de topbalk erboven scrolt weg). `.hero-pull` trekt een paginakop `--hh`
+omhoog zodat zijn lavendel achtergrond doorloopt tot onder de balk. `--hh` in
+`globals.css` moet gelijk zijn aan de hoogte van die balk (72px mobiel, 84px
+desktop). Maak je de balk hoger, verhoog dan `--hh` mee.
 
 **Onthullen bij scrollen is veilig voor als JavaScript faalt.** Elementen met
 `data-reveal` komen zacht in beeld. `Reveal.tsx` markeert eerst alles wat al
@@ -253,10 +264,11 @@ als enige aanduiding.
 `SiteShell` eromheen.
 
 **Niet verzinnen.** Acture toont cijfers (650+ medewerkers, 6500+ organisaties)
-en een klantcitaat. Voor React2u stonden die nergens, dus `facts` gebruikt
+en een klantcitaat. Voor React2u stonden die nergens, dus `values` gebruikt
 alleen wat aantoonbaar klopt: zes diensten, een vaste casemanager, de
-keurmerken uit `site_settings.certificates`. Echte cijfers of reviews kunnen er
-via het CMS bij.
+keurmerken uit `site_settings.certificates`. Ook de uitleg bij de REACT-letters
+komt uit bestaande teksten van de site. Echte cijfers of reviews kunnen er via
+het CMS bij.
 
 **`latestPosts` heeft gegevens van de pagina nodig.** Blokken renderen ook in
 het live voorbeeld van de blokeditor, en dat is een client component — een

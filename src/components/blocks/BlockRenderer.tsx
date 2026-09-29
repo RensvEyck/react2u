@@ -10,7 +10,6 @@ import { jsonLd } from "@/lib/jsonld";
 import SiteImage from "@/components/site/SiteImage";
 import DotCloud, { Arrow } from "@/components/site/DotCloud";
 import Breadcrumbs from "@/components/site/Breadcrumbs";
-import Pills from "@/components/site/Pills";
 import { PIJLERS, dienstVoor } from "@/lib/nav";
 import { kleurVars, type Kleur } from "@/lib/brand";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
@@ -134,7 +133,7 @@ export function anchorId(title: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-/** Kop met één woord of woordgroep onder een markeerstift, zoals "oogopslag" bij Acture. */
+/** Kop met één woord of woordgroep in de accentkleur ("Jouw mensen, onze aandacht"). */
 function Highlighted({ text, highlight }: { text: string; highlight?: string }) {
   const hl = (highlight || "").trim();
   const at = hl ? text.indexOf(hl) : -1;
@@ -203,69 +202,68 @@ const H1_BAND = "max-w-[900px] text-[2.5rem] font-extrabold leading-[1.05] track
 /* ---------- Hero's ---------- */
 
 /**
- * De homepage-hero naar acture.nl: twee panelen naast elkaar — de belofte op
- * indigo, de foto ernaast met de stippenwolk — en daaronder de klantlogo's.
+ * Ronde foto met de stippenwolk uit het logo ernaast: de vormtaal van React2u
+ * (stippen, het REACT-wiel, de ronde foto op de oude site). De stippen staan in
+ * de hoek van het vierkant, buiten de cirkel — nooit over een gezicht.
+ */
+function RondeFoto({
+  src, alt, priority, klein,
+}: {
+  src: string;
+  alt: string;
+  priority?: boolean;
+  klein?: boolean;
+}) {
+  return (
+    <div className={`relative mx-auto aspect-square w-full ${klein ? "max-w-[420px]" : "max-w-[540px]"}`}>
+      {/* Een zachte ring in de kleur van de pagina (op een dienstpagina de pijler). */}
+      <div aria-hidden className="absolute inset-0 rounded-full bg-[var(--k-zacht,var(--color-soft))]" />
+      <div className="absolute inset-[5%] overflow-hidden rounded-full bg-soft shadow-[0_30px_60px_-30px_rgba(34,32,90,0.45)]">
+        <SiteImage src={src} alt={alt} priority={priority} sizes="(min-width: 1024px) 540px, 90vw"
+          className="h-full w-full object-cover object-[center_28%]" />
+      </div>
+      <DotCloud animate className="pointer-events-none absolute -left-2 top-0 w-[27%] sm:-left-6" />
+    </div>
+  );
+}
+
+/**
+ * De homepage-hero: de belofte links, rechts de ronde foto met de stippen uit
+ * het logo. Klantlogo's horen niet hier maar in een eigen blok verderop.
  */
 function HeroStatement({ d, asH1 }: BlockProps) {
-  const logos = ((d.logos as any[]) || []).filter((l) => l?.image);
   return (
-    <section data-tone="hero" className="hero-pull relative bg-soft">
-      <div className="container-site pb-12 pt-3 md:pb-16 lg:pt-5">
-        <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr] lg:gap-5">
-          <div className="on-dark relative isolate flex flex-col justify-center overflow-hidden rounded-[32px] bg-primary px-7 py-12 text-white sm:px-10 lg:min-h-[600px] lg:px-14 lg:py-16">
-            <div aria-hidden className="dot-texture absolute inset-0 -z-10 opacity-70" />
-            <div aria-hidden className="absolute -left-24 -top-24 -z-10 h-72 w-72 rounded-full bg-accent-pink/25 blur-[90px]" />
-            {d.eyebrow && (
-              <p className="eyebrow mb-6" data-reveal>
-                <span className="relative flex h-2 w-2" aria-hidden>
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary opacity-60 motion-reduce:animate-none" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-secondary" />
-                </span>
-                {d.eyebrow}
-              </p>
-            )}
-            <PageHeading asH1={asH1}
-              className="whitespace-pre-line text-[2.7rem] font-extrabold leading-[1.02] tracking-[-0.032em] !text-white sm:text-[3.5rem] lg:text-[4.3rem]">
-              <Highlighted text={d.heading || ""} highlight={d.highlight} />
-            </PageHeading>
-            {d.text && (
-              <div data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
-                <MiniMarkdown text={d.text} className="mt-7 max-w-[560px] text-[18.5px] text-white/80 md:text-[20px]" />
-              </div>
-            )}
-            <div data-reveal style={{ "--ri": 2 } as React.CSSProperties}>
-              <Buttons list={[d.button, d.button2]} className="mt-9" />
+    <section data-tone="hero" className="relative overflow-hidden">
+      <div className={`container-site ${SPLIT} items-center gap-y-12 pb-16 pt-10 md:pb-24 md:pt-14`}>
+        <div className="lg:col-span-6">
+          {d.eyebrow && (
+            <p className="eyebrow mb-6" data-reveal>
+              <span className="h-2 w-2 rounded-full bg-secondary" aria-hidden />
+              {d.eyebrow}
+            </p>
+          )}
+          <PageHeading asH1={asH1}
+            className="whitespace-pre-line text-[2.6rem] font-extrabold leading-[1.03] tracking-[-0.032em] sm:text-[3.6rem] lg:text-[4.4rem]">
+            <Highlighted text={d.heading || ""} highlight={d.highlight} />
+          </PageHeading>
+          {d.text && (
+            <div data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
+              <MiniMarkdown text={d.text} className="mt-7 max-w-[560px] text-[19px] md:text-[20px]" />
             </div>
-          </div>
-
-          <div className="relative min-h-[380px] overflow-hidden rounded-[32px] bg-[#dcdaf0] sm:min-h-[480px]">
-            {d.image && (
-              <SiteImage src={d.image} alt={d.imageAlt || ""} priority sizes="(min-width: 1024px) 560px, 100vw"
-                className="absolute inset-0 h-full w-full object-cover object-[center_30%]" />
-            )}
+          )}
+          <div data-reveal style={{ "--ri": 2 } as React.CSSProperties}>
+            <Buttons list={[d.button, d.button2]} className="mt-9" />
             {d.badge && (
-              <p className="absolute bottom-5 left-5 flex max-w-[calc(100%-2.5rem)] items-center gap-3 rounded-2xl bg-white/95 py-3 pl-3 pr-5 text-[15px] font-semibold leading-snug text-primary shadow-[0_18px_40px_-20px_rgba(34,32,90,0.55)] backdrop-blur sm:bottom-7 sm:left-7">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky text-[20px] text-[#186c98]">
-                  <LuBadgeCheck aria-hidden />
-                </span>
-                {/* Harde spaties rond "·": anders blijft het puntje los aan het eind van een regel staan. */}
-                <span>{String(d.badge).replace(/ · /g, "\u00a0·\u00a0").replace(/ISO (\d)/g, "ISO\u00a0$1")}</span>
+              <p className="mt-8 flex items-center gap-2.5 text-[15px] font-medium text-primary">
+                <LuBadgeCheck className="shrink-0 text-[20px] text-secondary-ink" aria-hidden />
+                {d.badge}
               </p>
             )}
           </div>
         </div>
-
-        {logos.length > 0 && (
-          <div className="mt-10 flex flex-col gap-6 md:mt-12 lg:flex-row lg:items-center lg:gap-14" data-reveal>
-            {d.logosLabel && <p className="shrink-0 text-[16px] font-medium text-primary">{d.logosLabel}</p>}
-            <ul className="flex flex-1 flex-wrap items-center gap-x-10 gap-y-6 lg:justify-between">
-              {logos.map((l, i) => (
-                <li key={`${l.image}-${i}`}>
-                  <SiteImage src={l.image} alt={l.alt || ""} sizes="160px" widths={[160, 320]}
-                    className="h-11 w-auto max-w-[150px] object-contain opacity-75 mix-blend-multiply grayscale transition duration-300 hover:opacity-100 hover:grayscale-0" />
-                </li>
-              ))}
-            </ul>
+        {d.image && (
+          <div className="lg:col-span-6 lg:col-start-7" data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
+            <RondeFoto src={d.image} alt={d.imageAlt || ""} priority />
           </div>
         )}
       </div>
@@ -274,37 +272,34 @@ function HeroStatement({ d, asH1 }: BlockProps) {
 }
 
 /**
- * Hero voor gewone pagina's: tekstpaneel met kruimelpad naast de foto. Op een
- * dienstpagina kleurt het paneel mee met de dienst (--k-zacht).
+ * Hero voor gewone pagina's: kruimelpad en tekst links, de ronde foto rechts.
+ * Op een dienstpagina krijgt de ring de kleur van de pijler (--k-zacht).
  */
 function Hero({ d, asH1, ctx }: BlockProps) {
   return (
-    <section data-tone="hero" className="relative pb-6 md:pb-10">
-      <div className="container-site pt-3 lg:pt-5">
-        <div className={`grid gap-4 lg:gap-5 ${d.image ? "lg:grid-cols-[1.12fr_0.88fr]" : ""}`}>
-          <div className="flex flex-col justify-center rounded-[32px] bg-[var(--k-zacht,var(--color-soft))] px-6 py-10 sm:px-10 lg:min-h-[540px] lg:px-14 lg:py-14">
-            {ctx?.crumbs && <Breadcrumbs crumbs={ctx.crumbs} className="mb-8 text-primary" />}
-            {d.eyebrow && <p className="eyebrow mb-5" data-reveal>{d.eyebrow}</p>}
-            <PageHeading asH1={asH1}
-              className="whitespace-pre-line text-[2rem] font-extrabold leading-[1.06] tracking-[-0.028em] sm:text-[2.9rem] lg:text-[3.3rem]">
-              {d.heading}
-            </PageHeading>
-            {d.text && (
-              <div data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
-                <MiniMarkdown text={d.text} className="mt-6 max-w-[620px] text-[18px]" />
-              </div>
-            )}
-            <div data-reveal style={{ "--ri": 2 } as React.CSSProperties}>
-              <Buttons list={[d.button, d.button2]} className="mt-8" />
-            </div>
-          </div>
-          {d.image && (
-            <div className="relative min-h-[320px] overflow-hidden rounded-[32px] bg-soft sm:min-h-[420px]">
-              <SiteImage src={d.image} alt={d.imageAlt || ""} priority sizes="(min-width: 1024px) 520px, 100vw"
-                className="absolute inset-0 h-full w-full object-cover" />
+    <section data-tone="hero" className="relative">
+      <div className={`container-site ${SPLIT} items-center gap-y-10 pb-12 pt-8 md:pb-16 md:pt-12`}>
+        <div className={d.image ? "lg:col-span-7" : "lg:col-span-9"}>
+          {ctx?.crumbs && <Breadcrumbs crumbs={ctx.crumbs} className="mb-8 text-primary" />}
+          {d.eyebrow && <p className="eyebrow mb-5" data-reveal>{d.eyebrow}</p>}
+          <PageHeading asH1={asH1}
+            className="whitespace-pre-line text-[2rem] font-extrabold leading-[1.06] tracking-[-0.028em] sm:text-[2.9rem] lg:text-[3.4rem]">
+            {d.heading}
+          </PageHeading>
+          {d.text && (
+            <div data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
+              <MiniMarkdown text={d.text} className="mt-6 max-w-[640px] text-[18.5px]" />
             </div>
           )}
+          <div data-reveal style={{ "--ri": 2 } as React.CSSProperties}>
+            <Buttons list={[d.button, d.button2]} className="mt-8" />
+          </div>
         </div>
+        {d.image && (
+          <div className="lg:col-span-5 lg:col-start-8" data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
+            <RondeFoto src={d.image} alt={d.imageAlt || ""} priority klein />
+          </div>
+        )}
       </div>
     </section>
   );
@@ -619,25 +614,31 @@ function ValueCards({ d, asH1 }: BlockProps) {
 
 /* ---------- Oproep, contact en vragen ---------- */
 
+/**
+ * Afsluitende oproep: tekst links, rechts de stippenwolk uit het logo op
+ * groot formaat — hetzelfde beeld als op de onderhoudspagina.
+ */
 function CtaBanner({ d, asH1 }: BlockProps) {
   const buttons = (d.buttons as Btn[]) || [];
   return (
     <section data-tone="white" className="py-12 md:py-16">
       <div className="container-site">
-        <div className="on-dark relative isolate overflow-hidden rounded-[36px] bg-primary px-7 py-16 text-center text-white/80 sm:px-12 md:py-20" data-reveal>
+        <div className="on-dark relative isolate grid items-center gap-10 overflow-hidden rounded-[36px] bg-primary px-7 py-14 text-white/80 sm:px-12 md:py-16 lg:grid-cols-12 lg:px-16" data-reveal>
           {/* Achter de tekst: -z-10 binnen de isolate-laag van dit vlak. */}
           <div aria-hidden className="dot-texture absolute inset-0 -z-10" />
-          <div aria-hidden className="absolute -right-24 -top-32 -z-10 h-96 w-96 rounded-full bg-accent-pink/30 blur-[110px]" />
-          <div aria-hidden className="absolute -bottom-40 -left-24 -z-10 h-96 w-96 rounded-full bg-accent-blue/25 blur-[110px]" />
-          <DotCloud className="pointer-events-none absolute right-10 top-10 -z-10 hidden w-[110px] lg:block" />
-          {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
-          {d.heading && (
-            <PageHeading asH1={asH1} className="mx-auto max-w-[820px] text-[2.2rem] font-extrabold leading-[1.06] tracking-[-0.025em] !text-white md:text-[3rem]">
-              {d.heading}
-            </PageHeading>
-          )}
-          {d.text && <MiniMarkdown text={d.text} className="mx-auto mt-5 max-w-[640px] text-[18.5px]" />}
-          <Buttons list={buttons} className="mt-9 justify-center" />
+          <div className="lg:col-span-8">
+            {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
+            {d.heading && (
+              <PageHeading asH1={asH1} className="max-w-[720px] text-[2.1rem] font-extrabold leading-[1.06] tracking-[-0.025em] md:text-[2.9rem]">
+                {d.heading}
+              </PageHeading>
+            )}
+            {d.text && <MiniMarkdown text={d.text} className="mt-5 max-w-[620px] text-[18.5px]" />}
+            <Buttons list={buttons} className="mt-9" />
+          </div>
+          <div className="hidden lg:col-span-4 lg:block">
+            <DotCloud animate className="ml-auto w-full max-w-[260px]" />
+          </div>
         </div>
       </div>
     </section>
@@ -748,192 +749,135 @@ function LogoCarouselBlock({ d }: BlockProps) {
 /* ---------- Opbouw naar acture.nl: pijlers, index, over ons, cijfers, inzichten ---------- */
 
 /**
- * De drie pijlers. De inhoud (titel, tekst, diensten) komt uit PIJLERS in
- * nav.ts — dezelfde bron als het megamenu en de footer, zodat die drie nooit
- * uit elkaar lopen. Het blok zelf regelt alleen de kop erboven.
+ * De diensten vanuit de werkgever: "waar loop je tegenaan?". Drie stappen —
+ * voorkomen, begeleiden, versterken — met per dienst de situatie waarin hij
+ * helpt. De inhoud komt uit PIJLERS in nav.ts, dezelfde bron als menu en
+ * footer; het blok zelf regelt alleen de kop.
  */
 function Pillars({ d, asH1 }: BlockProps) {
   return (
     <section data-tone="soft" className={`bg-soft ${PAD}`}>
       <div className="container-site">
-        <SectionHead eyebrow={d.eyebrow} heading={d.heading} text={d.text} asH1={asH1} align="center" className="mb-14 max-w-[780px]" />
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className={`${SPLIT} mb-14 lg:items-end`}>
+          <SectionHead eyebrow={d.eyebrow} heading={d.heading} asH1={asH1} className={LINKS} />
+          {d.text && <MiniMarkdown text={d.text} className={`${RECHTS} text-[18.5px]`} />}
+        </div>
+        <ol className="relative grid gap-5 md:grid-cols-3">
+          {/* De stappen hangen aan een stippellijn: van voorkomen naar versterken. */}
+          <div aria-hidden className="absolute left-[16%] right-[16%] top-7 hidden border-t-2 border-dotted border-primary/20 md:block" />
           {PIJLERS.map((p, i) => (
-            <article key={p.key} style={{ ...kleurVars(p.kleur), "--ri": i } as React.CSSProperties} data-reveal
-              className="lift flex flex-col rounded-[30px] border border-black/[0.04] bg-white p-7 md:p-9">
-              <span className="grid h-16 w-16 place-items-center rounded-[20px] bg-[var(--k-zacht)] text-[30px] text-[var(--k)]">
-                <Icon name={p.icon} />
-              </span>
-              <h3 className="mt-8 text-[28px]">{p.title}</h3>
-              <p className="mt-3 text-[17px]">{p.text}</p>
-              <ul className="mt-auto space-y-2 pt-8">
+            <li key={p.key} style={{ ...kleurVars(p.kleur), "--ri": i } as React.CSSProperties} data-reveal className="relative">
+              <div className="flex items-center gap-4 md:flex-col md:items-start">
+                <span className="relative grid h-14 w-14 shrink-0 place-items-center rounded-full border-4 border-soft bg-white text-[24px] text-[var(--k)] shadow-[0_6px_16px_-10px_rgba(34,32,90,0.5)]">
+                  <Icon name={p.icon} />
+                </span>
+                <p>
+                  <span className="block text-[12.5px] font-bold uppercase tracking-[0.14em] text-[var(--k)]">Stap {i + 1} · {p.stap}</span>
+                  <span className="block font-heading text-[24px] font-bold text-primary">{p.title}</span>
+                </p>
+              </div>
+              <p className="mt-4 text-[16.5px]">{p.text}</p>
+              <ul className="mt-6 space-y-3">
                 {p.diensten.map((x) => (
                   <li key={x.href} style={kleurVars(x.kleur)}>
                     <Link href={x.href}
-                      className="group flex items-center justify-between gap-3 rounded-2xl bg-[var(--k-zacht)] py-2 pl-5 pr-2 text-[15.5px] font-semibold text-primary transition-colors duration-300 hover:bg-[var(--k)] hover:text-white">
-                      {x.label}
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[var(--k)] transition-transform duration-300 group-hover:translate-x-0.5">
-                        <Arrow />
+                      className="group block rounded-[22px] border border-black/[0.05] bg-white px-5 py-4 transition-[border-color,box-shadow] duration-300 hover:border-[var(--k-vlak)] hover:shadow-[0_16px_32px_-24px_rgba(34,32,90,0.5)]">
+                      <span className="block text-[15px] text-body">{x.situatie}</span>
+                      <span className="mt-1 flex items-center justify-between gap-3 font-semibold text-primary">
+                        {x.label}
+                        <Arrow className="shrink-0 text-[var(--k)] transition-transform duration-300 group-hover:translate-x-1" />
                       </span>
                     </Link>
                   </li>
                 ))}
               </ul>
-            </article>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );
 }
 
 /**
- * "Ontdek React2u": alle onderwerpen als pil-tegels, gegroepeerd per pijler
- * (`groep`: preventie, verzuim of ontwikkeling). Een los item zonder groep
- * komt eronder. Kleur en kop komen uit PIJLERS.
+ * Het REACT-model: de werkwijze van React2u. Links de vijf letters met wat ze
+ * betekenen, rechts het wiel. `steps` is een lijst van { title, text, kleur };
+ * de letter is de eerste letter van de titel. Op indigo, zodat de kleuren van
+ * het wiel oplichten.
  */
-function LinkIndex({ d, asH1 }: BlockProps) {
-  const items = ((d.items as any[]) || []).filter((it) => it?.label && it?.href);
-  const groepen = PIJLERS.map((p) => ({ p, items: items.filter((it) => it.groep === p.key) })).filter((g) => g.items.length);
-  const los = items.filter((it) => !PIJLERS.some((p) => p.key === it.groep));
-  return (
-    <section data-tone="white" className={PAD}>
-      <div className="container-site">
-        <div className={`${SPLIT} mb-12 lg:items-end`}>
-          <SectionHead eyebrow={d.eyebrow} heading={d.heading} asH1={asH1} className={LINKS} />
-          {d.text && <MiniMarkdown text={d.text} className={`${RECHTS} text-[18.5px]`} />}
-        </div>
-        {groepen.length > 0 && (
-          <div className="grid gap-10 md:grid-cols-3 md:gap-8">
-            {groepen.map(({ p, items: g }) => (
-              <div key={p.key} style={kleurVars(p.kleur)}>
-                <p className="mb-5 flex items-center gap-3 text-[13px] font-bold uppercase tracking-[0.14em] text-[var(--k)]">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--k-zacht)] text-[18px]"><Icon name={p.icon} /></span>
-                  {p.title}
-                </p>
-                <Pills items={g.map((it: any) => ({ label: it.label, href: it.href, kleur: p.kleur }))} className="flex-col items-start" />
-              </div>
-            ))}
-          </div>
-        )}
-        {los.length > 0 && <Pills items={los} className={groepen.length ? "mt-10" : ""} />}
-        <Buttons list={[d.button && { ...d.button, style: "indigo" }]} className="mt-12" />
-      </div>
-    </section>
-  );
-}
-
-/**
- * "Over React2u" op donker indigo: tekst links, beeld rechts met een witte
- * citaatkaart eroverheen. `imageShape: "circle"` snijdt het beeld rond bij,
- * zoals het REACT-wiel.
- */
-function About({ d, asH1 }: BlockProps) {
-  const circle = d.imageShape === "circle";
+function Method({ d, asH1 }: BlockProps) {
+  const steps = ((d.steps as any[]) || []).filter((st) => st?.title);
   return (
     <section data-tone="dark" className="on-dark relative isolate overflow-hidden bg-primary-deep py-20 text-white/75 md:py-28">
       <div aria-hidden className="dot-texture absolute inset-0 -z-10 opacity-80" />
-      <div aria-hidden className="absolute right-[-10%] top-1/2 -z-10 h-[520px] w-[520px] -translate-y-1/2 rounded-full bg-accent-blue/20 blur-[130px]" />
-      <div className="container-site grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
-        <div>
-          <div data-reveal>
-            {d.eyebrow && <p className="eyebrow mb-4">{d.eyebrow}</p>}
-            {d.heading && <PageHeading asH1={asH1} className={`${H2} !text-white`}>{d.heading}</PageHeading>}
-            {d.text && <MiniMarkdown text={d.text} className="mt-6 max-w-[560px] text-[18.5px]" />}
-          </div>
-          <div data-reveal style={{ "--ri": 1 } as React.CSSProperties}>
-            <Buttons list={[d.button && { ...d.button, style: "outline" }]} className="mt-9" />
-          </div>
+      <div className={`container-site ${SPLIT} items-center gap-y-14`}>
+        <div className="lg:col-span-6">
+          <SectionHead eyebrow={d.eyebrow} heading={d.heading} text={d.text} asH1={asH1} />
+          {steps.length > 0 && (
+            <ol className="mt-10 space-y-5">
+              {steps.map((st, i) => (
+                <li key={i} style={{ ...kleurVars(st.kleur), "--ri": i } as React.CSSProperties} data-reveal className="flex gap-5">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border-2 border-[var(--k-donker)] font-heading text-[22px] font-extrabold text-[var(--k-donker)]" aria-hidden>
+                    {String(st.title).charAt(0)}
+                  </span>
+                  <div>
+                    <h3 className="text-[19px]">{st.title}</h3>
+                    {st.text && <p className="mt-1 text-[16px]">{st.text}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+          <Buttons list={[d.button && { ...d.button, style: "outline" }]} className="mt-10" />
         </div>
-        {d.image && (
-          // Met een citaat komt er ruimte onder het beeld: de kaart valt dan in
-          // de hoek linksonder en bedekt zo min mogelijk van het beeld zelf.
-          <div className={`relative mx-auto w-full ${circle ? "max-w-[460px]" : "max-w-[520px]"}`} data-reveal>
-            <div className={`relative overflow-hidden bg-[#ececf1] shadow-[0_40px_80px_-40px_rgba(0,0,0,0.6)] ${circle ? "aspect-square rounded-full ring-[10px] ring-white/[0.06]" : "rounded-[32px]"}`}>
-              <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 520px, 100vw"
-                className={circle ? "h-full w-full object-cover" : "w-full object-cover"} />
+        <div className="lg:col-span-5 lg:col-start-8" data-reveal>
+          {d.image && (
+            <div className="mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-full bg-[#ececf1] ring-[12px] ring-white/[0.06]">
+              <SiteImage src={d.image} alt={d.imageAlt || ""} sizes="(min-width: 1024px) 460px, 90vw" className="h-full w-full object-cover" />
             </div>
-            {d.quote && (
-              // Onder het beeld en iets naar links verschoven. Over het beeld heen
-              // verdween er tekst van het REACT-model onder de kaart.
-              <figure className="relative mx-4 mt-6 rounded-[24px] bg-white p-6 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.55)] sm:mx-0 sm:-ml-12 sm:max-w-[380px] md:p-7">
-                {(d.quoteName || d.quoteRole) && (
-                  <figcaption className="mb-3 text-[14px] text-body">
-                    {d.quoteName && <strong className="font-semibold text-primary">{d.quoteName}</strong>}
-                    {d.quoteName && d.quoteRole && " · "}
-                    {d.quoteRole}
-                  </figcaption>
-                )}
-                <blockquote className="font-heading text-[20px] font-bold leading-snug tracking-[-0.01em] text-primary md:text-[21px]">
-                  “{d.quote}”
-                </blockquote>
-              </figure>
-            )}
-          </div>
-        )}
+          )}
+          {d.quote && (
+            <blockquote className="mx-auto mt-10 max-w-[460px] text-center font-heading text-[23px] font-bold leading-snug text-white md:text-[26px]">
+              “{d.quote}”
+            </blockquote>
+          )}
+        </div>
       </div>
     </section>
   );
 }
 
-const FEIT_KLEUREN: Kleur[] = ["roze", "teal", "blauw", "oranje", "rood"];
+const WAARDE_KLEUREN_VAST: Kleur[] = ["teal", "roze", "blauw"];
 
 /**
- * "In één oogopslag": een raster van drie kolommen waarin een kaart met beeld
- * twee rijen hoog is. Met twee beeldkaarten en vijf andere vult dat precies
- * drie bij drie, zonder gaten of rafelige onderkant — zet ze in die volgorde:
- * kaart, beeld, kaart, kaart, beeld, kaart, kaart. Een item met `value` wordt
- * een cijferkaart, een item met `image` een beeldkaart, de rest een tekstkaart.
+ * "Voor iedereen gezond, menselijk en duidelijk": de drie waarden van
+ * React2u, elk met een feit dat het onderbouwt. `cards` is een lijst van
+ * { title, text, value, valueLabel, kleur? }.
  */
-function Facts({ d, asH1 }: BlockProps) {
-  const items = (d.items as any[]) || [];
+function Values({ d, asH1 }: BlockProps) {
+  const cards = (d.cards as any[]) || [];
   return (
     <section data-tone="white" className={PAD}>
       <div className="container-site">
-        <SectionHead eyebrow={d.eyebrow} heading={d.heading} highlight={d.highlight} text={d.text} asH1={asH1}
-          align="center" className="max-w-[760px]" />
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-[minmax(250px,auto)]">
-          {items.map((it, i) => {
-            const stijl = { ...kleurVars(FEIT_KLEUREN[i % FEIT_KLEUREN.length]), "--ri": i % 3 } as React.CSSProperties;
-            if (it.image) {
-              return (
-                <div key={i} style={stijl} data-reveal className="flex flex-col overflow-hidden rounded-[28px] bg-soft sm:row-span-2">
-                  <div className="p-7 md:p-8">
-                    {it.title && <h3 className="text-[24px] leading-snug">{it.title}</h3>}
-                    {it.text && <p className="mt-3 text-[16px]">{it.text}</p>}
-                  </div>
-                  <div className="relative mx-3 mb-3 min-h-[240px] flex-1 overflow-hidden rounded-[22px]">
-                    <SiteImage src={it.image} alt={it.imageAlt || ""} sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
-                      className="absolute inset-0 h-full w-full object-cover" />
-                  </div>
+        <SectionHead eyebrow={d.eyebrow} heading={d.heading} highlight={d.highlight} text={d.text} asH1={asH1} className="mb-14 max-w-[820px]" />
+        <div className="grid gap-5 md:grid-cols-3">
+          {cards.map((c, i) => (
+            <div key={i} style={{ ...kleurVars(c.kleur || WAARDE_KLEUREN_VAST[i % 3]), "--ri": i } as React.CSSProperties} data-reveal
+              className="flex flex-col rounded-[30px] bg-soft p-8 md:p-9">
+              <p className="font-heading text-[2.4rem] font-extrabold leading-none tracking-[-0.03em] text-[var(--k)] md:text-[2.8rem]">
+                {c.title}.
+              </p>
+              {c.text && <p className="mt-5 text-[16.5px]">{c.text}</p>}
+              {c.value && (
+                <div className="mt-auto flex items-baseline gap-3 border-t border-primary/10 pt-6">
+                  <span className={`shrink-0 font-heading font-extrabold leading-none tracking-[-0.02em] text-primary ${
+                    String(c.value).length > 4 ? "text-[1.7rem]" : "text-[2.4rem]"
+                  }`}>{c.value}</span>
+                  {c.valueLabel && <span className="text-[15px] font-medium leading-snug text-primary">{c.valueLabel}</span>}
                 </div>
-              );
-            }
-            return (
-              <div key={i} style={stijl} data-reveal className="flex flex-col rounded-[28px] bg-soft p-7 md:p-8">
-                {it.value ? (
-                  <>
-                    <span className="block h-1.5 w-10 rounded-full bg-[var(--k-vlak)]" aria-hidden />
-                    {/* Een kernwoord als "WVP + ERD" is langer dan een cijfer; kleiner, zodat het op één regel past. */}
-                    <p className={`mt-6 font-heading font-extrabold leading-none tracking-[-0.035em] text-primary ${
-                      String(it.value).length > 6 ? "text-[2.6rem] md:text-[2.9rem]" : "text-[3.4rem] md:text-[3.9rem]"
-                    }`}>
-                      {it.value}
-                    </p>
-                    <div className="mt-auto pt-6">
-                      {it.title && <h3 className="text-[19px] leading-snug">{it.title}</h3>}
-                      {it.text && <p className="mt-2 text-[16px]">{it.text}</p>}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {it.title && <h3 className="text-[24px] leading-snug">{it.title}</h3>}
-                    {it.text && <p className="mt-3 text-[16px]">{it.text}</p>}
-                  </>
-                )}
-              </div>
-            );
-          })}
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1015,9 +959,8 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   contactDetails: ContactDetails,
   heroStatement: HeroStatement,
   pillars: Pillars,
-  linkIndex: LinkIndex,
-  about: About,
-  facts: Facts,
+  method: Method,
+  values: Values,
   latestPosts: LatestPosts,
 };
 
@@ -1035,7 +978,7 @@ export function RenderBlockBody({ type, data }: { type: string; data: unknown })
 const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
-  "heroStatement", "pillars", "linkIndex", "about", "facts", "valueCards",
+  "heroStatement", "pillars", "method", "values", "valueCards",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,

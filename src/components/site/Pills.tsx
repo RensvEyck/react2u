@@ -5,20 +5,19 @@ import { Arrow } from "./DotCloud";
 export type Pill = { label: string; href: string; kleur?: string };
 
 /**
- * Linktegels als pil, met een rond pijlknopje — de "oplossingen"-tegels van
- * Acture. Elke tegel draagt de kleur van zijn dienst.
+ * Links als label met een gekleurde stip ervoor — de stippen uit het logo. De
+ * stip draagt de kleur van de pijler waar de dienst bij hoort.
  */
 export default function Pills({ items, className = "" }: { items: Pill[]; className?: string }) {
   return (
-    <ul className={`flex flex-wrap gap-3 ${className}`}>
+    <ul className={`flex flex-wrap gap-2.5 ${className}`}>
       {items.map((it, i) => (
         <li key={`${it.href}-${i}`} style={{ ...kleurVars(it.kleur), "--ri": i % 8 } as React.CSSProperties} data-reveal>
           <Link href={it.href}
-            className="group inline-flex items-center gap-4 rounded-full bg-[var(--k-zacht)] py-2 pl-6 pr-2 text-[16.5px] font-semibold text-primary transition-colors duration-300 hover:bg-[var(--k)] hover:text-white">
+            className="group inline-flex items-center gap-2.5 rounded-full border border-black/[0.08] bg-white py-2.5 pl-4 pr-5 text-[16px] font-semibold text-primary transition-[border-color,box-shadow] duration-300 hover:border-[var(--k-vlak)] hover:shadow-[0_8px_20px_-14px_rgba(34,32,90,0.5)]">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--k-vlak)]" aria-hidden />
             {it.label}
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[var(--k)] shadow-[0_2px_8px_-4px_rgba(34,32,90,0.35)] transition-transform duration-300 group-hover:translate-x-0.5">
-              <Arrow />
-            </span>
+            <Arrow className="text-[var(--k)] transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </li>
       ))}

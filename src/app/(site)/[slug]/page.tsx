@@ -61,7 +61,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
     // heropaneel, vinkjes en nummering lezen --k uit kleurVars().
     <div style={hit ? kleurVars(hit.dienst.kleur) : undefined}>
       <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs }} />
-      {hit && <MeerOplossingen huidig={path} />}
+      {hit && <MeerDiensten huidig={path} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
     </div>
   );
@@ -71,17 +71,17 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
  * Onder elke dienstpagina: de andere vijf diensten, zodat een bezoeker niet
  * terug hoeft naar het menu. Elke tegel houdt zijn eigen dienstkleur.
  */
-function MeerOplossingen({ huidig }: { huidig: string }) {
+function MeerDiensten({ huidig }: { huidig: string }) {
   const andere = PIJLERS.flatMap((p) => p.diensten).filter((d) => d.href !== huidig);
   return (
     <section data-tone="soft" className="bg-soft py-16 md:py-24">
       <div className="container-site">
         <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between" data-reveal>
           <div>
-            <p className="eyebrow mb-4">Oplossingen</p>
+            <p className="eyebrow mb-4">Diensten</p>
             <h2 className="text-[1.85rem] font-extrabold leading-[1.08] tracking-[-0.022em] sm:text-[2.1rem] md:text-[2.75rem]">Meer van React2u</h2>
           </div>
-          <Link href="/diensten" className="link-arrow shrink-0">Alle oplossingen <Arrow /></Link>
+          <Link href="/diensten" className="link-arrow shrink-0">Alle diensten <Arrow /></Link>
         </div>
         <Pills items={andere.map((d) => ({ label: d.label, href: d.href, kleur: d.kleur }))} />
       </div>

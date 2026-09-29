@@ -76,15 +76,15 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE },
-      { "@type": "ListItem", position: 2, name: "Inzichten", item: `${SITE}/blog` },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE}/blog` },
       { "@type": "ListItem", position: 3, name: p.title, item: `${SITE}/blog/${p.slug}` },
     ],
   };
 
   return (
     <>
-      <PageHeader crumbs={[{ label: "Inzichten", href: "/blog" }, { label: p.title, href: `/blog/${p.slug}` }]}
-        eyebrow="Inzichten" title={p.title} narrow>
+      <PageHeader crumbs={[{ label: "Blog", href: "/blog" }, { label: p.title, href: `/blog/${p.slug}` }]}
+        eyebrow="Blog" title={p.title} narrow>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-[16px] text-primary/80">
           {date && <span className="flex items-center gap-2"><LuCalendar aria-hidden /> {date}</span>}
           {p.author && <span className="flex items-center gap-2"><LuUserRound aria-hidden /> {p.author}</span>}

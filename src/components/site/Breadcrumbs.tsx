@@ -4,7 +4,7 @@ import { LuChevronLeft, LuChevronRight, LuHouse } from "react-icons/lu";
 /**
  * Kruimelpad boven aan een pagina. "Home" staat er altijd voor; het laatste
  * item is de huidige pagina en geen link. Op een telefoon alleen een stap
- * terug ("‹ Oplossingen"): het volledige pad brak daar over twee regels. De
+ * terug ("‹ Diensten"): het volledige pad brak daar over twee regels. De
  * structured data (BreadcrumbList) zet de pagina zelf, via `breadcrumbLd()`.
  */
 export default function Breadcrumbs({

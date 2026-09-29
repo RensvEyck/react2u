@@ -25,7 +25,7 @@ export default async function BlogIndex() {
 
   return (
     <>
-      <PageHeader crumbs={[{ label: "Inzichten", href: "/blog" }]} eyebrow="Inzichten" title="Kennis die je verder helpt">
+      <PageHeader crumbs={[{ label: "Blog", href: "/blog" }]} eyebrow="Blog" title="Kennis die je verder helpt">
         <p>Artikelen over verzuim, preventie en vitaliteit — praktisch en zonder omhaal.</p>
       </PageHeader>
 

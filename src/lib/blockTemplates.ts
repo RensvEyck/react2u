@@ -60,42 +60,40 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     data: { images: [{ image: "", alt: "" }] },
   },
   heroStatement: {
-    label: "Hero met belofte en klantlogo's",
+    label: "Hero met ronde foto",
     data: {
       eyebrow: "De persoonlijke arbodienst",
       heading: "Jouw mensen, onze aandacht",
       highlight: "aandacht",
       text: "Introtekst…",
-      button: { label: "Onze oplossingen", href: "/diensten" },
-      button2: { label: "Neem contact op", href: "/contact", style: "outline" },
+      button: { label: "Maak een afspraak", href: "/contact" },
+      button2: { label: "Bekijk onze diensten", href: "/diensten", style: "outline" },
       image: "", imageAlt: "", badge: "",
-      logosLabel: "Deze organisaties gingen je voor:",
-      logos: [{ image: "", alt: "" }],
     },
   },
   pillars: {
-    label: "Pijlers (inhoud uit het menu)",
-    data: { eyebrow: "Onze oplossingen", heading: "Kop", text: "" },
+    label: "Diensten per situatie (inhoud uit het menu)",
+    data: { eyebrow: "Onze diensten", heading: "Waar kunnen we je mee helpen?", text: "" },
   },
-  linkIndex: {
-    label: "Overzicht van onderwerpen",
-    // groep: preventie, verzuim of ontwikkeling (de pijlers uit nav.ts).
-    data: { eyebrow: "", heading: "Kop", text: "", button: { label: "", href: "" }, items: [{ label: "Onderwerp", href: "/", groep: "preventie" }] },
+  method: {
+    label: "Werkwijze (REACT-model)",
+    // kleur per stap: blauw, teal, rood, roze, oranje of indigo.
+    data: {
+      eyebrow: "Onze werkwijze", heading: "Kop", text: "", button: { label: "", href: "" },
+      steps: [{ title: "Results", text: "Tekst", kleur: "blauw" }],
+      image: "", imageAlt: "", quote: "",
+    },
   },
-  about: {
-    label: "Over ons met citaat",
-    // imageShape: "rounded" of "circle" (rond bijgesneden, zoals het REACT-wiel).
-    data: { eyebrow: "", heading: "Kop", text: "Tekst…", button: { label: "", href: "" }, image: "", imageAlt: "", imageShape: "rounded", quote: "", quoteName: "", quoteRole: "" },
-  },
-  facts: {
-    label: "In één oogopslag (cijfers en feiten)",
-    // Met `value` een cijferkaart, met `image` een beeldkaart (twee rijen hoog),
-    // anders een tekstkaart. Sluitend raster: kaart, beeld, kaart, kaart, beeld, kaart, kaart.
-    data: { eyebrow: "", heading: "Kop", highlight: "", text: "", items: [{ value: "", title: "Titel", text: "Tekst", image: "", imageAlt: "" }] },
+  values: {
+    label: "Waarden met feiten",
+    data: {
+      eyebrow: "", heading: "Kop", text: "",
+      cards: [{ title: "Gezond", text: "Tekst", value: "", valueLabel: "", kleur: "teal" }],
+    },
   },
   latestPosts: {
     label: "Nieuwste artikelen",
-    data: { eyebrow: "Inzichten", heading: "Volg ons nieuws", text: "", button: { label: "Bekijk alle inzichten", href: "/blog" }, count: 3 },
+    data: { eyebrow: "Blog", heading: "Kennis die je verder helpt", text: "", button: { label: "Naar het blog", href: "/blog" }, count: 3 },
   },
   contactDetails: {
     label: "Contactgegevens + formulier",
