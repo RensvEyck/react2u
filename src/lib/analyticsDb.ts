@@ -20,16 +20,18 @@ export async function fetchPageViews(
   sb: Sb,
   since: string,
   columns = "*",
-  max = 60_000
+  { max = 60_000, onlyCompanies = false }: { max?: number; onlyCompanies?: boolean } = {}
 ): Promise<PageView[]> {
   const until = new Date().toISOString();
   const out: PageView[] = [];
   for (let from = 0; from < max; from += PAGE) {
-    const { data, error } = await sb
+    let q = sb
       .from("page_views")
       .select(columns)
       .gte("created_at", since)
-      .lte("created_at", until)
+      .lte("created_at", until);
+    if (onlyCompanies) q = q.eq("is_company", true);
+    const { data, error } = await q
       .order("created_at", { ascending: false })
       .order("id", { ascending: true })
       .range(from, from + PAGE - 1);

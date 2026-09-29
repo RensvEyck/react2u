@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import type { IconType } from "react-icons";
 import {
   LuSearch, LuFileText, LuTextCursorInput, LuNewspaper, LuBriefcase, LuMessageSquare, LuUsers,
-  LuPhone, LuUserCog, LuCornerDownLeft, LuLoaderCircle,
+  LuPhone, LuUserCog, LuCornerDownLeft, LuLoaderCircle, LuBuilding,
 } from "react-icons/lu";
 import { ADMIN_ACTIONS, ADMIN_NAV, type NavItem } from "@/lib/adminNav";
 import Highlight from "./Highlight";
@@ -39,7 +39,7 @@ type Item = {
 
 const GROUP_ORDER = [
   "Acties", "Schermen", "Pagina's", "Tekst op pagina's", "Artikelen", "Vacatures",
-  "Postvak IN", "Bellijst", "Gebruikers",
+  "Postvak IN", "Bellijst", "Bedrijven", "Gebruikers",
 ];
 
 // Hoeveel resultaten per groep. Schermen en acties kort, want daar weet je
@@ -55,6 +55,7 @@ const KIND: Record<IndexEntry["kind"] | RecordHit["kind"], { group: string; icon
   sollicitatie: { group: "Postvak IN", icon: LuUsers },
   lead: { group: "Bellijst", icon: LuPhone },
   gebruiker: { group: "Gebruikers", icon: LuUserCog },
+  bedrijf: { group: "Bedrijven", icon: LuBuilding },
 };
 
 const STATUS_TAG: Record<IndexEntry["status"], { label: string; cls: string } | undefined> = {

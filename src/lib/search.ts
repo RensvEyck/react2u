@@ -34,7 +34,7 @@ export type IndexEntry = {
 
 /** Een inzending of persoon, gevonden door de server. */
 export type RecordHit = {
-  kind: "bericht" | "sollicitatie" | "lead" | "gebruiker";
+  kind: "bericht" | "sollicitatie" | "lead" | "gebruiker" | "bedrijf";
   id: string;
   title: string;
   subtitle: string;
