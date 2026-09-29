@@ -51,7 +51,7 @@ export function maintenancePage(m: Maintenance, contact: Partial<ContactInfo> | 
   h1{margin:0 0 12px;color:#312e82;font-size:30px;line-height:1.2}
   p{margin:0;white-space:pre-line}
   .contact{margin-top:28px;padding-top:24px;border-top:1px solid rgba(13,13,40,.08);font-size:16px}
-  a{color:#e75387;font-weight:600;text-decoration:none}
+  a{color:#e75387;font-weight:600;text-decoration:none;white-space:nowrap}
   a:hover{text-decoration:underline}
 </style>
 </head>
