@@ -1,9 +1,9 @@
 {
-  "_uitleg": "Concept voor /tarieven. Staat de pagina in de database, dan wint die. Zie CONTEXT.md, *Concepten* en *Tarieven*.",
-  "slug": "tarieven",
-  "title": "Tarieven",
+  "_uitleg": "Concept voor /verzuimabonnementen. Staat de pagina in de database, dan wint die. Zie CONTEXT.md, *Concepten* en *Tarieven*.",
+  "slug": "verzuimabonnementen",
+  "title": "Verzuimabonnementen",
   "sort": 60,
-  "seo_title": "Tarieven en abonnementen arbodienst • React2u",
+  "seo_title": "Verzuimabonnementen en tarieven arbodienst • React2u",
   "seo_description": "Heldere tarieven voor verzuimbegeleiding: Casemanagement Compleet voor € 135 of de Verrichtingenbasis voor € 35 per werknemer per jaar, plus alle losse tarieven op een rij.",
   "blocks": [
     {

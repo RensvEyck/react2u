@@ -275,6 +275,11 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/xdiensten", destination: "/diensten" },
   { source: "/xbegeleidingx-xcoachingx", destination: "/begeleiding-en-coaching" },
 
+  // Hernoemd op deze site: de tarievenpagina heet sinds september 2026
+  // Verzuimabonnementen. De tabel `redirects` bestaat in productie nog niet
+  // (migratie 0007), dus deze staat hier.
+  { source: "/tarieven", destination: "/verzuimabonnementen" },
+
   // Documenten waren aparte pagina's, nu PDF's in de footer
   { source: "/privacy-reglement", destination: `${MEDIA}/Privacy-reglement-r2u.pdf` },
   { source: "/klachtenprocedure", destination: `${MEDIA}/Klachtenprocedure-r2u.pdf` },

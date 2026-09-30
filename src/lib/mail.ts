@@ -146,7 +146,7 @@ export async function notifyOfferte(o: {
 }) {
   await send(
     `Offerteaanvraag ${o.pakket}: ${o.company}`,
-    render("Nieuwe offerteaanvraag", "Binnengekomen via de tarievenpagina op de website.", [
+    render("Nieuwe offerteaanvraag", "Binnengekomen via de pagina Verzuimabonnementen op de website.", [
       { label: "Aansluiting", value: o.pakket },
       { label: "Bedrijf", value: o.company },
       { label: "Medewerkers", value: String(o.employees) },

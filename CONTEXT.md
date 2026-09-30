@@ -459,7 +459,11 @@ inhoud. De publieke pagina's zijn 5 minuten gecachet.
 
 ## Tarieven
 
-`/tarieven` is één blok van het type `tarieven` (component
+Voor de bezoeker heet deze pagina **Verzuimabonnementen**, op
+`/verzuimabonnementen`; `/tarieven` stuurt daar permanent naartoe (vaste lijst
+in `src/lib/redirects.ts`). Het bloktype en de bestandsnamen houden `tarieven`.
+
+`/verzuimabonnementen` is één blok van het type `tarieven` (component
 [`src/components/site/Tarieven.tsx`](src/components/site/Tarieven.tsx)), met
 daaronder de gewone blokken `faqAccordion` en `ctaBanner`. Het concept staat in
 [`src/content/tarieven.json`](src/content/tarieven.json); overzetten naar de
