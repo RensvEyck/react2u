@@ -15,6 +15,12 @@ import VorigeKeuze from "@/components/site/VorigeKeuze";
 import FotoTegel from "@/components/site/FotoTegel";
 import Tarieven from "@/components/site/Tarieven";
 import { HomeSplit, HomeWaarom, HomeSnelNaar, HomeContact } from "./HomeNeutraal";
+import {
+  WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
+} from "./Werkgevers";
+import {
+  WnSplit, WnInhoud, WnWatNu, WnTijdlijn, WnRechten, WnPrivacy, WnCasemanager, WnCoaching, WnVragen, WnContact,
+} from "./Werknemers";
 import { PIJLERS, CONTACT_FOTO, dienstVoor } from "@/lib/nav";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
 
@@ -1112,6 +1118,26 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   homeWaarom: HomeWaarom,
   homeSnelNaar: HomeSnelNaar,
   homeContact: HomeContact,
+  wgSplit: WgSplit,
+  wgWaarom: WgWaarom,
+  wgDiensten: WgDiensten,
+  wgWerkwijze: WgWerkwijze,
+  wgErd: WgErd,
+  wgStarten: WgStarten,
+  wgTarieven: WgTarieven,
+  wgBewijs: WgBewijs,
+  wgVragen: WgVragen,
+  wgOfferte: WgOfferte,
+  wnSplit: WnSplit,
+  wnInhoud: WnInhoud,
+  wnWatNu: WnWatNu,
+  wnTijdlijn: WnTijdlijn,
+  wnRechten: WnRechten,
+  wnPrivacy: WnPrivacy,
+  wnCasemanager: WnCasemanager,
+  wnCoaching: WnCoaching,
+  wnVragen: WnVragen,
+  wnContact: WnContact,
 };
 
 export const BLOCK_TYPES = Object.keys(REGISTRY);
@@ -1129,7 +1155,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit",
+  "homeSplit", "wgSplit", "wnSplit",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
@@ -1149,7 +1175,7 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
   const out: { question: string; answer: string }[] = [];
   for (const b of blocks) {
     const d = b.data as { items?: unknown; faq?: unknown };
-    const raw = b.type === "faqAccordion" ? d.items : b.type === "contactFaq" ? d.faq : null;
+    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" ? d.items : b.type === "contactFaq" ? d.faq : null;
     if (!Array.isArray(raw)) continue;
     for (const item of raw) {
       const q = String((item as { question?: string })?.question ?? "").trim();

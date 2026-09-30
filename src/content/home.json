@@ -99,20 +99,20 @@
             "links": [
               {
                 "label": "Onze diensten",
-                "href": "/diensten"
+                "href": "/werkgevers#diensten"
               },
               {
                 "label": "Zo werkt verzuimbegeleiding",
-                "href": "/verzuimbegeleiding-wvp"
+                "href": "/werkgevers#werkwijze"
               },
               {
-                "label": "Verzuimabonnementen",
-                "href": "/verzuimabonnementen"
+                "label": "Tarieven",
+                "href": "/werkgevers#tarieven"
               }
             ],
             "button": {
               "label": "Offerte aanvragen",
-              "href": "/contact"
+              "href": "/werkgevers#offerte"
             }
           },
           {
@@ -123,20 +123,20 @@
             "links": [
               {
                 "label": "Ziek, wat nu?",
-                "href": "/werknemers"
+                "href": "/werknemers#wat-nu"
               },
               {
-                "label": "Het verzuimprotocol",
-                "href": "/verzuimprotocol"
+                "label": "Je rechten en privacy",
+                "href": "/werknemers#rechten"
               },
               {
-                "label": "Veelgestelde vragen",
-                "href": "/werknemers#veelgestelde-vragen"
+                "label": "Je casemanager",
+                "href": "/werknemers#casemanager"
               }
             ],
             "button": {
-              "label": "Neem contact op",
-              "href": "/contact"
+              "label": "Ziek melden",
+              "href": "/werknemers#ziekmelden"
             }
           },
           {
@@ -150,11 +150,11 @@
                 "href": "/vacatures"
               },
               {
-                "label": "Over React2u",
+                "label": "Werken bij React2u",
                 "href": "/over-react2u"
               },
               {
-                "label": "Neem contact op",
+                "label": "Open sollicitatie",
                 "href": "/contact"
               }
             ],

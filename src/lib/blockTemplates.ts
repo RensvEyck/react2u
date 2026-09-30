@@ -1,7 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import tarievenPagina from "@/content/tarieven.json";
+import werkgeversPagina from "@/content/werkgevers.json";
+import werknemersPagina from "@/content/werknemers.json";
+
+/** De data van een blok uit de werknemerspagina, als sjabloon. */
+function wn(type: string) {
+  return JSON.parse(JSON.stringify(werknemersPagina.blocks.find((b) => b.type === type)?.data ?? {}));
+}
+
+/** De data van een blok op de werkgeverspagina, als sjabloon voor een nieuw blok. */
+function werkgevers(type: string): any {
+  return werkgeversPagina.blocks.find((b) => b.type === type)?.data ?? {};
+}
 
 // Default data per bloktype — gebruikt bij "Blok toevoegen" in het admin-paneel.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   homeSplit: {
     label: "Startpagina: Splitscreen werkgever | werknemer",
@@ -19,6 +31,56 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     label: "Startpagina: Contact",
     data: {"eyebrow": "Contact", "heading": "Een vraag?\nBel gewoon even.", "text": "Je krijgt direct een mens aan de lijn die je verder helpt.", "image": "/beeld/home/even-bellen.webp", "alt": "Een vrouw belt ontspannen met React2u", "focus": "52% 22%", "routes": [{"icon": "phone", "label": "Bellen", "value": "085 620 58 00", "href": "tel:+31856205800"}, {"icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl"}, {"icon": "pin", "label": "Hoofdkantoor", "value": "Stratumsedijk 29, Eindhoven", "href": "https://maps.google.com/?q=Stratumsedijk+29+Eindhoven"}]},
   },
+  wgSplit: {
+    label: "Werkgevers: Kop werkgever | werknemer (met h1)",
+    data: werkgevers("wgSplit"),
+  },
+  wgWaarom: {
+    label: "Werkgevers: Waarom React2u",
+    data: werkgevers("wgWaarom"),
+  },
+  wgDiensten: {
+    label: "Werkgevers: Diensten",
+    data: werkgevers("wgDiensten"),
+  },
+  wgWerkwijze: {
+    label: "Werkgevers: Poortwachter-tijdlijn",
+    data: werkgevers("wgWerkwijze"),
+  },
+  wgErd: {
+    label: "Werkgevers: Eigenrisicodrager (ERD/ZW)",
+    data: werkgevers("wgErd"),
+  },
+  wgStarten: {
+    label: "Werkgevers: Zo start je",
+    data: werkgevers("wgStarten"),
+  },
+  wgTarieven: {
+    label: "Werkgevers: Tarieven (drie pakketten)",
+    data: werkgevers("wgTarieven"),
+  },
+  wgBewijs: {
+    label: "Werkgevers: Klantlogo’s",
+    data: werkgevers("wgBewijs"),
+  },
+  wgVragen: {
+    label: "Werkgevers: Veelgestelde vragen",
+    data: werkgevers("wgVragen"),
+  },
+  wgOfferte: {
+    label: "Werkgevers: Offerte aanvragen (formulier)",
+    data: werkgevers("wgOfferte"),
+  },
+  wnSplit: { label: "Werknemers: Splitscreen werkgever | werknemer", data: wn("wnSplit") },
+  wnInhoud: { label: "Werknemers: Op deze pagina (ankerlinks)", data: wn("wnInhoud") },
+  wnWatNu: { label: "Werknemers: Net ziek, eerste stappen", data: wn("wnWatNu") },
+  wnTijdlijn: { label: "Werknemers: Je verzuimperiode (tijdlijn)", data: wn("wnTijdlijn") },
+  wnRechten: { label: "Werknemers: Rechten en plichten", data: wn("wnRechten") },
+  wnPrivacy: { label: "Werknemers: Wie weet wat (privacy)", data: wn("wnPrivacy") },
+  wnCasemanager: { label: "Werknemers: Je casemanager", data: wn("wnCasemanager") },
+  wnCoaching: { label: "Werknemers: Vastgelopen, coaching", data: wn("wnCoaching") },
+  wnVragen: { label: "Werknemers: Veelgestelde vragen", data: wn("wnVragen") },
+  wnContact: { label: "Werknemers: Contact en ziek melden", data: wn("wnContact") },
   hero: {
     label: "Hero (kop + foto van rand tot rand)",
     // imagePosition: "left" of "right". focus: welk deel van de foto in beeld blijft, bv. "30% 40%".

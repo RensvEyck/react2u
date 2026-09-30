@@ -513,6 +513,7 @@ h1, h2, h3 {
 
 /* ---------- Startpagina "Home neutraal" (src/components/blocks/HomeNeutraal.tsx) ---------- */
 .hn h1, .hn h2, .hn h3 { font-family: inherit; }
+.hn :is(h1, h2, h3) { font-weight: revert-layer; letter-spacing: revert-layer; line-height: revert-layer; color: revert-layer; }
 .hn a { text-decoration: none; }
 .hn-tile img { transition: transform 1.4s cubic-bezier(.2,.75,.2,1), filter .8s ease; }
 .hn-orb { transition: transform .8s cubic-bezier(.2,.75,.2,1); }
@@ -537,4 +538,152 @@ h1, h2, h3 {
 }
 @media (prefers-reduced-motion: reduce) {
   .hn *, .hn-tile, .hn-card { transition: none !important; }
+}
+
+/* ---------- Header en footer uit het nieuwe ontwerp (HeaderR2u.tsx, FooterR2u.tsx; alleen staging) ---------- */
+/* Hoogte van de plakkende header: werkgever/werknemer 68 → 86 (xl), neutraal 72 → 92 (md). */
+.r2u-kop { --hh: 68px; }
+.r2u-kop:has([data-r2u-kop="neutraal"]) { --hh: 72px; }
+@media (min-width: 768px) {
+  .r2u-kop:has([data-r2u-kop="neutraal"]) { --hh: 92px; }
+}
+@media (min-width: 1280px) {
+  .r2u-kop { --hh: 86px; }
+}
+.rk h2 { font-family: inherit; }
+.rk a:focus-visible, .rk button:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; border-radius: 14px; }
+.rk-balk nav a:focus-visible, .rk-balk .rk-tab:focus-visible { outline-color: #ffffff; }
+.rk-link, .rk-pilllink, .rk-flink, .rk-pill, .rk-tab, .rk-dd-link { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
+.rk-btn, .rk-rond { transition: transform .35s ease, box-shadow .35s ease; }
+.rk-pijl { transition: transform .35s ease; }
+@media (hover: hover) {
+  .rk .rk-link:hover, .rk .rk-pilllink:hover, .rk .rk-flink:hover { color: #C8306A !important; }
+  .rk .rk-pill:hover { border-color: #2A2677 !important; }
+  .rk .rk-tab:hover { color: #ffffff !important; }
+  .rk .rk-dd-link:hover { background: #F3F1FA; }
+  .rk-btn:hover, .rk-rond:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -16px rgba(42,38,119,.55); }
+  .rk-btn:hover .rk-pijl, .rk-row:hover .rk-pijl, .rk-crow:hover .rk-pijl { transform: translateX(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rk *, .rk-btn, .rk-rond { transition: none !important; }
+  .rk-btn:hover, .rk-rond:hover { transform: none; }
+}
+
+/* ---------- Werkgeverspagina (src/components/blocks/Werkgevers.tsx) ---------- */
+.wg h1, .wg h2, .wg h3 { font-family: inherit; }
+/* De algemene kopstijl (h1-h6 bovenin) staat buiten een laag en zou de
+   Tailwind-klassen op deze koppen overschrijven; revert-layer geeft ze terug. */
+.wg :is(h1, h2, h3) { font-weight: revert-layer; color: revert-layer; line-height: revert-layer; letter-spacing: revert-layer; text-wrap: pretty; }
+.wg a { text-decoration: none; }
+.wg a:focus-visible, .wg button:focus-visible, .wg summary:focus-visible, .wg-rail:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
+.wg-tile img { transition: transform 1.4s cubic-bezier(.2,.75,.2,1), filter .8s ease; }
+.wg-orb { transition: transform .8s cubic-bezier(.2,.75,.2,1); }
+.wg-card { transition: transform .5s cubic-bezier(.2,.75,.2,1), box-shadow .5s cubic-bezier(.2,.75,.2,1); }
+.wg-pijl { transition: transform .35s ease; }
+.wg-btn, .wg-go, .wg-pijlknop { transition: transform .35s ease, box-shadow .35s ease, background-color .35s ease, color .35s ease; }
+.wg-rail { scrollbar-width: none; }
+.wg-rail::-webkit-scrollbar { display: none; }
+/* Uitklappers (<details>): plus wordt min; open vraag krijgt een lila vlak */
+.wg-acc > summary::-webkit-details-marker { display: none; }
+.wg-plus-dicht { display: none; }
+.wg-acc[open] .wg-plus-open { display: none; }
+.wg-acc[open] .wg-plus-dicht { display: inline; }
+.wg-faq { border-color: #E4E0F4; background: #fff; color: #2A2677; transition: background-color .3s ease, border-color .3s ease; }
+.wg-faq[open] { background: #F3F1FA; border-color: #F3F1FA; }
+.wg-faq .wg-plus { border-color: #E4E0F4; transition: background-color .3s ease, color .3s ease; }
+.wg-faq[open] .wg-plus { background: #2A2677; border-color: #2A2677; color: #fff; }
+/* Het bestaande contactformulier in de vormgeving van het offerteblok */
+.wg-form form > * + * { margin-top: 14px; }
+.wg-form label > span:first-child { margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #2A2677; }
+.wg-form input:not([type="checkbox"]):not([name="website"]), .wg-form textarea {
+  height: 52px; border: 1.5px solid #E4E0F4; border-radius: 16px; padding: 0 16px; font-size: 16px; color: #2A2677; background: #fff;
+}
+.wg-form form > .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 1024px) { .wg-form form > .grid { gap: 14px; } }
+.wg-form textarea { height: auto; min-height: 84px; padding: 14px 16px; resize: vertical; }
+.wg-form input::placeholder, .wg-form textarea::placeholder { color: #6D6A92; }
+.wg-form input:focus, .wg-form textarea:focus { border-color: #2A2677; box-shadow: 0 0 0 3px rgba(42,38,119,.12); }
+.wg-form .btn { width: 100%; min-height: 58px; border-radius: 999px; border-color: #2A2677; background: #2A2677; color: #fff; font-weight: 700; }
+.wg-form .btn:hover { background: #1F1B5E; border-color: #1F1B5E; }
+.wg-form form p { color: #55518A; font-size: 13.5px; }
+.wg-form form p a { color: #2A2677; font-weight: 700; }
+@media (min-width: 768px) {
+  .wg-tile-wg { flex: 2 1 0; min-width: 0; transition: flex .8s cubic-bezier(.2,.75,.2,1); }
+  .wg-tile-wn { flex: 1 1 0; min-width: 0; transition: flex .8s cubic-bezier(.2,.75,.2,1); }
+  .wg-split:has(.wg-tile-wn:hover) .wg-tile-wg { flex-grow: 1.7; }
+  .wg-split:has(.wg-tile-wn:hover) .wg-tile-wn { flex-grow: 1.3; }
+}
+@media (hover: hover) {
+  .wg-tile:hover img { transform: scale(1.045); }
+  .wg-split:has(.wg-tile-wn:hover) .wg-tile-wg img { filter: saturate(.75) brightness(.9); }
+  .wg-tile-wn:hover .wg-orb { transform: scale(1.07); }
+  .wg-tile-wn:hover .wg-go { transform: translateX(4px); }
+  .wg-card:hover { transform: translateY(-6px); box-shadow: 0 32px 64px -36px rgba(42,38,119,.38); }
+  .wg-card:hover .wg-go { transform: translateX(4px); }
+  .wg-row:hover .wg-pijl { transform: translateX(5px); }
+  .wg-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -16px rgba(42,38,119,.55); }
+  .wg-btn-rand:hover { background: #2A2677; color: #fff !important; }
+  .wg-pijlknop:not(:disabled):hover { transform: scale(1.06); }
+  .wg-faq:not([open]):hover { border-color: #C9C3E6; }
+  .wg-dienst summary:hover .wg-plus { transform: rotate(90deg); }
+  .wg-logo img { filter: grayscale(1); opacity: .75; transition: filter .3s ease, opacity .3s ease; }
+  .wg-logo:hover img { filter: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wg *, .wg-tile, .wg-card { transition: none !important; }
+  .wg-rail { scroll-behavior: auto; }
+}
+
+/* ---------- Werknemerspagina (ontwerp D-Werknemers), blokken wn* ---------- */
+/* De algemene kopregels (h1 t/m h6) staan buiten een @layer en winnen dus van
+   Tailwind-klassen; revert-layer geeft gewicht, spatiëring en regelhoogte
+   terug aan de klassen op het element zelf. */
+/* Het ontwerp rekent met de standaard regelhoogte van de letter, niet met de 1.6 van body. */
+.wn { font-size: 16px; line-height: normal; }
+.wn :is(h1, h2, h3) { font-family: inherit; font-weight: revert-layer; letter-spacing: revert-layer; line-height: revert-layer; text-wrap: wrap; }
+.wn a { text-decoration: none; }
+.wn a:focus-visible, .wn summary:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; border-radius: 12px; }
+.wn-foto-f { object-position: var(--f-m); }
+.wn-foto { transition: transform 1.4s cubic-bezier(.2,.75,.2,1), filter .8s ease; }
+.wn-orb { transition: transform .8s cubic-bezier(.2,.75,.2,1); }
+.wn-pijl { transition: transform .35s ease; }
+.wn-btn { transition: transform .35s ease, box-shadow .35s ease; }
+.wn-chip { transition: background-color .25s ease, border-color .25s ease; }
+.wn-kaart { transition: transform .35s ease, box-shadow .35s ease; }
+.wn-privlink { transition: background-color .25s ease; }
+.wn-faq > summary::-webkit-details-marker { display: none; }
+.wn-faq-ico { transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
+.wn-faq-v { transition: opacity .25s ease; }
+.wn-faq[open] .wn-faq-ico { background: #2A2677; border-color: #2A2677; color: #ffffff; }
+.wn-faq[open] .wn-faq-v { opacity: 0; }
+@media (min-width: 768px) {
+  .wn-foto-f { object-position: var(--f-d); }
+  .wn-split .wn-tile { min-width: 0; transition: flex-grow .8s cubic-bezier(.2,.75,.2,1); }
+  .wn-split .wn-wn { flex: 66 1 0%; }
+  .wn-split .wn-wg { flex: 34 1 0%; }
+  .wn-split:has(.wn-wg:hover) .wn-wg, .wn-split:has(.wn-wg:focus-visible) .wn-wg { flex-grow: 42; }
+  .wn-split:has(.wn-wg:hover) .wn-wn, .wn-split:has(.wn-wg:focus-visible) .wn-wn { flex-grow: 58; }
+  .wn-split:has(.wn-wn:hover) .wn-wg { flex-grow: 30; }
+  .wn-split:has(.wn-wn:hover) .wn-wn { flex-grow: 70; }
+}
+@media (min-width: 1024px) {
+  .wn-privlink { background: #F3F1FA; }
+  .wn-privpijl { background: #2A2677; color: #ffffff; }
+}
+@media (hover: hover) {
+  .wn-tile:hover .wn-foto { transform: scale(1.045); }
+  .wn-split:hover .wn-tile:not(:hover) .wn-foto { filter: saturate(.75) brightness(.9); }
+  .wn-wg:hover .wn-orb { transform: scale(1.07); }
+  .wn-wn:hover .wn-orb { transform: scale(1.02); }
+  .wn-wg:hover .wn-pijl, .wn-row:hover .wn-pijl { transform: translateX(5px); }
+  .wn-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -16px rgba(42,38,119,.55); }
+  .wn-chip:hover { background: #F3F1FA; border-color: #2A2677; }
+  .wn-kaart:hover { transform: translateY(-3px); box-shadow: 0 24px 44px -28px rgba(42,38,119,.6); }
+  .wn-faq > summary:hover .wn-faq-ico { border-color: #2A2677; }
+}
+@media (min-width: 1024px) and (hover: hover) {
+  .wn-privlink:hover { background: #E9E3F9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wn *, .wn-tile { transition: none !important; }
 }
