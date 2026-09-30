@@ -325,7 +325,8 @@ function Hero(p: BlockProps) {
 /**
  * Het startscherm: een splitscreen. Werkgever en werknemer zoeken iets heel
  * anders, dus het scherm is in tweeën gedeeld — elk een paginavullende foto met
- * de keuze erop. Daarboven alleen een smalle kopregel met de h1.
+ * de keuze erop, direct onder de kop van de site. De h1 en de inleiding staan
+ * er alleen voor schermlezers en zoekmachines; in beeld spreken de helften.
  *
  * `choices` (twee) met { doelgroep, title, text, button, image, focus, href };
  * `focus` is de object-position van de foto (bv. "30% 25%"). De foto is sfeer
@@ -336,21 +337,18 @@ function AudienceChoice({ d, asH1 }: BlockProps) {
   const trust = ((d.trust as any[]) || []).filter((t) => t?.text);
   return (
     <section data-tone="band" className="bg-soft">
-      <div className="container-site flex flex-col gap-3 pb-7 pt-7 md:flex-row md:items-end md:justify-between md:gap-12 md:pb-8 md:pt-9">
-        <div>
-          {d.eyebrow && <p className="eyebrow mb-2">{d.eyebrow}</p>}
-          <PageHeading asH1={asH1} className="text-[1.9rem] font-bold leading-[1.1] tracking-[-0.022em] sm:text-[2.3rem] lg:text-[2.6rem]">
-            <Highlighted text={d.heading || ""} highlight={d.highlight} />
-          </PageHeading>
-        </div>
-        {d.text && <MiniMarkdown text={d.text} className="max-w-[440px] text-[16.5px] leading-relaxed md:pb-1 lg:text-[17px]" />}
+      <div className="sr-only">
+        {d.eyebrow && <p>{d.eyebrow}</p>}
+        <PageHeading asH1={asH1}>{d.heading}</PageHeading>
+        {d.text && <MiniMarkdown text={d.text} />}
       </div>
 
       {/* De twee helften, van rand tot rand en ook op de telefoon naast elkaar: zo
-          ziet iedereen beide keuzes meteen. De hoogte vult het scherm tot de vouw
-          (min de kopregel), met een onder- en bovengrens. De smalle naad
-          ertussen is de zandkleur van de sectie. */}
-      <div className="split flex h-[clamp(300px,calc(100svh-372px),560px)] gap-1 md:h-[clamp(440px,calc(100svh-280px),720px)]">
+          ziet iedereen beide keuzes meteen. Ze sluiten direct aan op de kop van
+          de site en vullen het scherm tot de vouw, min topbalk + kop (114px,
+          vanaf lg 126px) en de vertrouwensregel eronder; met een onder- en
+          bovengrens. De smalle naad ertussen is de zandkleur van de sectie. */}
+      <div className="split flex h-[clamp(340px,calc(100svh-240px),640px)] gap-1 md:h-[clamp(460px,calc(100svh-184px),800px)] lg:h-[clamp(460px,calc(100svh-196px),800px)]">
         {choices.map((c, i) => (
           <Link key={i} href={c.href}
             className="split-half group relative isolate flex flex-1 basis-0 flex-col justify-end overflow-hidden bg-primary-deep text-white">
