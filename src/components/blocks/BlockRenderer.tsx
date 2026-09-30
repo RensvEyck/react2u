@@ -14,6 +14,7 @@ import Breadcrumbs from "@/components/site/Breadcrumbs";
 import VorigeKeuze from "@/components/site/VorigeKeuze";
 import FotoTegel from "@/components/site/FotoTegel";
 import Tarieven from "@/components/site/Tarieven";
+import { HomeSplit, HomeWaarom, HomeSnelNaar, HomeContact } from "./HomeNeutraal";
 import { PIJLERS, CONTACT_FOTO, dienstVoor } from "@/lib/nav";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
 
@@ -1107,6 +1108,10 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   values: Values,
   latestPosts: LatestPosts,
   tarieven: ({ d, asH1 }: BlockProps) => <Tarieven d={d} asH1={asH1} />,
+  homeSplit: HomeSplit,
+  homeWaarom: HomeWaarom,
+  homeSnelNaar: HomeSnelNaar,
+  homeContact: HomeContact,
 };
 
 export const BLOCK_TYPES = Object.keys(REGISTRY);
@@ -1124,6 +1129,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
+  "homeSplit",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,

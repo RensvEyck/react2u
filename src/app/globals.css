@@ -510,3 +510,31 @@ h1, h2, h3 {
 .on-dark .prose-r2u strong { color: #fff; }
 .prose-r2u .prose-kop { margin-top: 1.6em; font-size: 24px; }
 .prose-r2u a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Startpagina "Home neutraal" (src/components/blocks/HomeNeutraal.tsx) ---------- */
+.hn h1, .hn h2, .hn h3 { font-family: inherit; }
+.hn a { text-decoration: none; }
+.hn-tile img { transition: transform 1.4s cubic-bezier(.2,.75,.2,1), filter .8s ease; }
+.hn-orb { transition: transform .8s cubic-bezier(.2,.75,.2,1); }
+.hn-go-t { max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap; transition: max-width .6s cubic-bezier(.2,.75,.2,1), opacity .4s ease, margin .6s cubic-bezier(.2,.75,.2,1); }
+.hn-card { transition: transform .5s cubic-bezier(.2,.75,.2,1), box-shadow .5s cubic-bezier(.2,.75,.2,1); }
+.hn-pijl { transition: transform .35s ease; }
+.hn-btn { transition: transform .35s ease, box-shadow .35s ease; }
+.hn a:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
+@media (min-width: 768px) {
+  .hn-tile { flex: 1 1 0; min-width: 0; transition: flex .8s cubic-bezier(.2,.75,.2,1); }
+  .hn-split:hover .hn-tile { flex-grow: .72; }
+  .hn-split .hn-tile:hover { flex-grow: 1.28; }
+}
+@media (hover: hover) {
+  .hn-tile:hover img { transform: scale(1.045); }
+  .hn-split:hover .hn-tile:not(:hover) img { filter: saturate(.75) brightness(.9); }
+  .hn-tile:hover .hn-orb { transform: scale(1.07); }
+  .hn-tile:hover .hn-go-t, .hn-tile:focus-visible .hn-go-t { max-width: 240px; opacity: 1; margin-right: 12px; }
+  .hn-card:hover { transform: translateY(-6px); box-shadow: 0 32px 64px -36px rgba(42,38,119,.38); }
+  .hn-row:hover .hn-pijl { transform: translateX(5px); }
+  .hn-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -16px rgba(42,38,119,.55); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hn *, .hn-tile, .hn-card { transition: none !important; }
+}
