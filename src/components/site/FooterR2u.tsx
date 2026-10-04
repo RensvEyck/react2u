@@ -13,14 +13,25 @@ import { letter, K, telefoon, type Link2 } from "./r2uStijl";
  * regel met KvK en de juridische documenten. Alleen op staging.
  */
 
-/** Keurmerken uit het ontwerp, zolang er in de instellingen nog niets staat. */
-const KEURMERKEN: Certificate[] = [
-  { image: "/beeld/keurmerken/sbca.jpg", alt: "SBCA gecertificeerde arbodienst", href: "" },
-  { image: "/beeld/keurmerken/iso9001.png", alt: "DNV ISO 9001 certificaat", href: "" },
-  { image: "/beeld/keurmerken/iso27001.png", alt: "DNV ISO 27001 certificaat", href: "" },
-  { image: "/beeld/keurmerken/iso27701.png", alt: "DNV ISO 27701 certificaat", href: "" },
-  { image: "/beeld/keurmerken/oval.png", alt: "Lid van OVAL", href: "" },
+/**
+ * De keurmerken in de footer zijn altijd de logo's uit het ontwerp. In de
+ * instellingen staan de certificaten als PDF; die worden de doorklik achter
+ * het bijbehorende logo (herkend aan de naam).
+ */
+const KEURMERKEN: (Certificate & { zoek?: RegExp })[] = [
+  { image: "/beeld/keurmerken/sbca.jpg", alt: "SBCA gecertificeerde arbodienst", href: "", zoek: /arbodienst|sbca|managementsysteem/i },
+  { image: "/beeld/keurmerken/iso9001.png", alt: "DNV ISO 9001 certificaat", href: "", zoek: /9001/i },
+  { image: "/beeld/keurmerken/iso27001.png", alt: "DNV ISO 27001 certificaat", href: "", zoek: /27001/i },
+  { image: "/beeld/keurmerken/iso27701.png", alt: "DNV ISO 27701 certificaat", href: "", zoek: /27701/i },
+  { image: "/beeld/keurmerken/oval.png", alt: "Lid van OVAL", href: "", zoek: /oval/i },
 ];
+
+function keurmerkenMetLinks(certificates: Certificate[]): Certificate[] {
+  return KEURMERKEN.map(({ zoek, ...k }) => {
+    const c = zoek && certificates.find((x) => zoek.test(`${x.alt} ${x.href} ${x.image}`));
+    return { ...k, href: c ? c.href || c.image : "" };
+  });
+}
 
 type Kolom = { kop: string; regels: (Link2 & { sterk?: boolean })[] };
 
@@ -89,7 +100,7 @@ export default function FooterR2u({ contact, docs, certificates }: {
   contact: ContactInfo; docs: FooterDoc[]; certificates: Certificate[];
 }) {
   const docLinks = documenten(docs);
-  const keurmerken = certificates.length > 0 ? certificates : KEURMERKEN;
+  const keurmerken = keurmerkenMetLinks(certificates);
   const jaar = new Date().getFullYear();
   return (
     <footer className={`rk ${letter.className}`} style={{ background: K.ivoor }}>
