@@ -15,6 +15,7 @@ import VorigeKeuze from "@/components/site/VorigeKeuze";
 import FotoTegel from "@/components/site/FotoTegel";
 import Tarieven from "@/components/site/Tarieven";
 import { HomeSplit, HomeWaarom, HomeSnelNaar, HomeContact } from "./HomeNeutraal";
+import { HomeEenMens, HomeReis } from "./HomeVerhaal";
 import {
   WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
 } from "./Werkgevers";
@@ -1117,6 +1118,8 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   homeSplit: HomeSplit,
   homeWaarom: HomeWaarom,
   homeSnelNaar: HomeSnelNaar,
+  homeEenMens: HomeEenMens,
+  homeReis: HomeReis,
   homeContact: HomeContact,
   wgSplit: WgSplit,
   wgWaarom: WgWaarom,

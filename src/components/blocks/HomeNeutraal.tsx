@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { outfit } from "./HomeVerhaal";
 import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin } from "react-icons/lu";
 
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
@@ -7,18 +7,13 @@ import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin } from "reac
 /*
  * De neutrale startpagina (ontwerp "Home neutraal"): de splitscreen
  * werkgever | werknemer, waarom React2u, snel naar voor drie soorten
- * bezoekers en contact. Eigen letter (Plus Jakarta Sans) en eigen kleuren;
+ * bezoekers en contact. Koppen in Outfit, tekst in DM Sans, kleuren uit het logo;
  * de hover-effecten staan in globals.css onder `.hn`.
  */
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
 
-const INDIGO = "#2A2677";
-const MAGENTA = "#C8306A";
+const INDIGO = "#322E83";
+const MAGENTA = "#E61674";
 const IVOOR = "#F8F5F1";
 const TEKST2 = "#55518A";
 
@@ -46,7 +41,7 @@ function Pijl({ size = 16 }: { size?: number }) {
   );
 }
 
-function Label({ children, kleur = "#A8245A" }: { children: React.ReactNode; kleur?: string }) {
+function Label({ children, kleur = "#C40F60" }: { children: React.ReactNode; kleur?: string }) {
   return (
     <span className="text-[12px] font-bold uppercase tracking-[1.4px] md:text-[13px]" style={{ color: kleur }}>
       {children}
@@ -70,7 +65,7 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
   const choices = ((d.choices as any[]) || []).filter((c) => c?.title && c?.href).slice(0, 2);
   const H = asH1 ? "h1" : "h2";
   return (
-    <section className={`hn ${jakarta.className}`} style={{ background: IVOOR }}>
+    <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
       <H className="sr-only">{d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}</H>
       <div className="hn-split flex flex-col gap-[6px] px-[6px] pb-[6px] md:h-[clamp(520px,calc(100svh-92px),808px)] md:flex-row md:gap-2 md:px-2 md:pb-2">
         {choices.map((c, i) => {
@@ -94,7 +89,7 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
                     : "right-[-50px] pb-[50px] pl-[60px] md:right-[-70px] md:pb-[64px] md:pl-[104px] lg:right-[-80px] lg:pb-[70px] lg:pl-[116px]"}`}
                 style={{ background: kleur, transformOrigin: links ? "28% 72%" : "72% 72%" }}>
                 <span className="hidden text-[13px] font-bold uppercase tracking-[1.2px] md:block" style={{ color: label }}>{c.eyebrow}</span>
-                <span className="text-[28px] font-extrabold leading-none tracking-[-1px] md:text-[38px] lg:text-[46px] lg:tracking-[-1.6px]">
+                <span className="hn-kop text-[28px] leading-none tracking-[-1px] md:text-[38px] lg:text-[46px] lg:tracking-[-1.6px]">
                   {String(c.title).replace(/^Ik ben /, "Ik ben ").split(" ").map((t, k) => (
                     <span key={k} className="block">{t}</span>
                   ))}
@@ -132,7 +127,7 @@ export function HomeWaarom({ d }: BlockProps) {
   const promises = ((d.promises as any[]) || []).filter((p) => p?.title);
   const trust = ((d.trust as any[]) || []).filter((t) => t?.text);
   return (
-    <section className={`hn ${jakarta.className}`} style={{ background: IVOOR }}>
+    <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
       <div className="mx-[6px] grid gap-7 rounded-[32px] bg-white p-[6px] pb-8 md:mx-2 md:grid-cols-12 md:gap-x-6 md:rounded-[40px] md:p-10 lg:p-[72px]"
         style={{ marginTop: "clamp(56px, 8vw, 120px)" }}>
         <div className="relative h-[340px] overflow-hidden rounded-[28px] md:col-span-5 md:h-auto md:min-h-[620px] md:rounded-[32px] lg:min-h-[700px]"
@@ -197,7 +192,7 @@ const TONEN: Record<string, { bg: string; dot: string; circ: string }> = {
 export function HomeSnelNaar({ d }: BlockProps) {
   const cards = ((d.cards as any[]) || []).filter((c) => c?.title);
   return (
-    <section className={`hn ${jakarta.className}`} style={{ background: IVOOR }}>
+    <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
       <div className="mx-auto flex max-w-[1440px] flex-col gap-[22px] px-[6px] md:gap-12 md:px-10 lg:px-20"
         style={{ paddingTop: "clamp(80px, 10vw, 144px)" }}>
         <div className="flex flex-col gap-3.5 px-[14px] md:flex-row md:items-end md:justify-between md:px-0">
@@ -247,10 +242,10 @@ const ROUTE_ICON: Record<string, any> = { phone: LuPhone, mail: LuMail, pin: LuM
 export function HomeContact({ d }: BlockProps) {
   const routes = ((d.routes as any[]) || []).filter((r) => r?.value);
   return (
-    <section id="contact" className={`hn ${jakarta.className}`} style={{ background: IVOOR, paddingBottom: 8 }}>
+    <section id="contact" className={`hn hn-type ${outfit.variable}`} style={{ background: d.bg || IVOOR, paddingBottom: d.bg ? "clamp(8px, 6vw, 96px)" : 8 }}>
       <div className="relative mx-[6px] flex flex-col gap-[18px] overflow-hidden rounded-[32px] px-5 pb-4 pt-9 text-white md:mx-2 md:grid md:min-h-[480px] md:grid-cols-12 md:items-center md:gap-x-6 md:rounded-[40px] md:px-10 md:py-16 lg:px-[72px]"
-        style={{ background: INDIGO, marginTop: "clamp(80px, 10vw, 144px)" }}>
-        <span aria-hidden className="absolute right-[-90px] top-[-90px] h-[300px] w-[300px] rounded-full md:left-[-120px] md:right-auto md:top-[-140px] md:h-[620px] md:w-[620px]" style={{ background: "#332F85" }} />
+        style={{ background: INDIGO, marginTop: d.bg ? "clamp(64px, 7vw, 96px)" : "clamp(80px, 10vw, 144px)" }}>
+        <span aria-hidden className="absolute right-[-90px] top-[-90px] h-[300px] w-[300px] rounded-full md:left-[-120px] md:right-auto md:top-[-140px] md:h-[620px] md:w-[620px]" style={{ background: "#3B378F" }} />
         {d.image && (
           <span className="relative block h-[150px] w-[150px] overflow-hidden rounded-full border-[6px] md:col-span-3 md:h-[240px] md:w-[240px] md:border-8 lg:h-[300px] lg:w-[300px]" style={{ borderColor: MAGENTA, background: "#E9E3F9" }}>
             <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "52% 22%" }} />

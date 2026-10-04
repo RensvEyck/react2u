@@ -687,3 +687,32 @@ h1, h2, h3 {
 @media (prefers-reduced-motion: reduce) {
   .wn *, .wn-tile { transition: none !important; }
 }
+
+/* ---------- Startpagina middensecties (src/components/blocks/HomeVerhaal.tsx) ---------- */
+.hv, .hn-type { font-family: var(--font-dm-sans), system-ui, sans-serif; }
+.hv .hv-kop, .hn-type h1, .hn-type h2, .hn-type .hn-kop {
+  font-family: var(--font-outfit), var(--font-dm-sans), sans-serif;
+  font-weight: 600;
+}
+@keyframes hvDot { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+@keyframes hvPop { 0% { opacity: 0; transform: scale(.55); } 70% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes hvUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes hvF { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes hvF2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(10px, -10px); } }
+.hv-f1 { animation: hvF 7s ease-in-out infinite; }
+.hv-f2 { animation: hvF2 9s ease-in-out infinite; }
+.hv-f3 { animation: hvF 11s ease-in-out infinite reverse; }
+/* Zonder JavaScript staat de reis gewoon stil en zichtbaar; ReisSpeler zet hv-armed en daarna hv-go. */
+.hv-reis.hv-armed:not(.hv-go) :is(.hv-jd, .hv-js, .hv-jc) { opacity: 0; }
+.hv-reis.hv-go .hv-jd { animation: hvDot .45s cubic-bezier(.2,.8,.2,1.4) both; }
+.hv-reis.hv-go .hv-js { animation: hvPop .8s cubic-bezier(.2,.9,.25,1) both; }
+.hv-reis.hv-go .hv-jc { animation: hvUp .7s cubic-bezier(.2,.75,.2,1) both; }
+.hv-btn { transition: background .2s ease, color .2s ease, border-color .2s ease, transform .35s ease; }
+.hv-btn-roze { background: #E61674; color: #ffffff; border: 1.5px solid #E61674; }
+.hv-btn-roze:hover { background: #C40F60; border-color: #C40F60; }
+.hv-btn-rand { background: #ffffff; color: #322E83; border: 1.5px solid #D9D8E6; }
+.hv-btn-rand:hover { background: #322E83; border-color: #322E83; color: #ffffff; }
+.hv-btn:hover .hn-pijl { transform: translateX(5px); }
+@media (prefers-reduced-motion: reduce) {
+  .hv-f1, .hv-f2, .hv-f3, .hv-reis .hv-jd, .hv-reis .hv-js, .hv-reis .hv-jc { animation: none !important; opacity: 1 !important; }
+}

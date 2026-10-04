@@ -39,129 +39,87 @@
       }
     },
     {
-      "type": "homeWaarom",
-      "label": "Waarom React2u",
+      "type": "homeEenMens",
+      "label": "Eén mens. Eén verhaal. Eén aanspreekpunt.",
       "data": {
         "eyebrow": "Waarom React2u",
-        "heading": "Samen gezond",
-        "highlight": "terug aan het werk.",
-        "text": "Eén vaste casemanager begeleidt werkgever én werknemer, van de eerste ziekmelding tot volledig herstel.",
-        "image": "/beeld/home/aandacht-definitief.webp",
-        "alt": "Een casemanager in gesprek met een werknemer aan tafel",
-        "focus": "30% 40%",
-        "badgeLabel": "Altijd samen",
-        "badgeText": "werkgever én\nwerknemer",
-        "promises": [
+        "lines": [
+          "Eén mens.",
+          "Eén verhaal.",
+          "Eén aanspreekpunt."
+        ],
+        "text": "Bij React2u krijg je geen keuzemenu, maar een vaste casemanager die jouw organisatie en je mensen kent. Van de eerste ziektedag tot volledig herstel.",
+        "checks": [
           {
-            "icon": "user",
-            "title": "Eén vast gezicht",
-            "text": "Je casemanager kent jou en je mensen. Je vertelt je verhaal maar één keer."
+            "text": "Direct een mens aan de lijn"
           },
           {
-            "icon": "phone",
-            "title": "Een mens aan de lijn",
-            "text": "Geen keuzemenu, geen ticketnummer. Gewoon iemand die je helpt."
+            "text": "SBCA en ISO gecertificeerd"
           },
           {
-            "icon": "shield",
-            "title": "Grip op elke termijn",
-            "text": "Wij bewaken elke stap van de Wet verbetering poortwachter."
-          },
-          {
-            "icon": "folder",
-            "title": "Alles op één plek",
-            "text": "Afspraken en rapportages in één online dossier."
+            "text": "Medische informatie blijft bij de bedrijfsarts"
           }
         ],
-        "trust": [
+        "photos": [
           {
-            "text": "ISO 9001 gecertificeerd"
+            "image": "/beeld/home/kring-gesprek.webp",
+            "alt": "",
+            "focus": "50% 40%"
           },
           {
-            "text": "Persoonlijke arbodienst uit Eindhoven"
+            "image": "/beeld/home/kring-samen-scherm.webp",
+            "alt": "",
+            "focus": "50% 45%"
+          },
+          {
+            "image": "/beeld/home/kring-werkvloer.webp",
+            "alt": "",
+            "focus": "50% 30%"
           }
         ]
       }
     },
     {
-      "type": "homeSnelNaar",
-      "label": "Snel naar",
+      "type": "homeReis",
+      "label": "Zo werkt het",
       "data": {
-        "eyebrow": "Snel naar",
-        "heading": "Waar ben je naar op zoek?",
-        "text": "Werkgever, werknemer of op zoek naar een nieuwe baan? Hier vind je de snelste weg.",
-        "cards": [
+        "eyebrow": "Zo werkt het",
+        "heading": "Van gezond blijven tot weer aan de slag",
+        "text": "We zijn er niet alleen bij ziekte. Van preventie en vitaliteit tot re-integratie en loopbaan: één partij, één vast aanspreekpunt.",
+        "steps": [
           {
-            "tone": "werkgever",
-            "label": "Voor werkgevers",
-            "href": "/werkgevers",
-            "title": "Grip op verzuim, met één vaste casemanager",
-            "links": [
-              {
-                "label": "Onze diensten",
-                "href": "/werkgevers#diensten"
-              },
-              {
-                "label": "Zo werkt verzuimbegeleiding",
-                "href": "/werkgevers#werkwijze"
-              },
-              {
-                "label": "Tarieven",
-                "href": "/werkgevers#tarieven"
-              }
-            ],
-            "button": {
-              "label": "Offerte aanvragen",
-              "href": "/werkgevers#offerte"
-            }
+            "icon": "shield",
+            "label": "Voorkomen",
+            "title": "Gezond aan het werk",
+            "text": "Risico-inventarisatie, preventief medisch onderzoek, vitaliteit en trainingen."
           },
           {
-            "tone": "werknemer",
-            "label": "Voor werknemers",
-            "href": "/werknemers",
-            "title": "Ziek of vastgelopen?\nWe helpen je verder.",
-            "links": [
-              {
-                "label": "Ziek, wat nu?",
-                "href": "/werknemers#wat-nu"
-              },
-              {
-                "label": "Je rechten en privacy",
-                "href": "/werknemers#rechten"
-              },
-              {
-                "label": "Je casemanager",
-                "href": "/werknemers#casemanager"
-              }
-            ],
-            "button": {
-              "label": "Ziek melden",
-              "href": "/werknemers#ziekmelden"
-            }
+            "icon": "chat",
+            "label": "Signaleren",
+            "title": "Er vroeg bij zijn",
+            "text": "Coaching, een vertrouwenspersoon en hulp als iemand vastloopt, nog vóór uitval."
           },
           {
-            "tone": "werkzoekende",
-            "label": "Voor werkzoekenden",
-            "href": "/vacatures",
-            "title": "Kom ons team versterken",
-            "links": [
-              {
-                "label": "Vacatures",
-                "href": "/vacatures"
-              },
-              {
-                "label": "Werken bij React2u",
-                "href": "/over-react2u"
-              },
-              {
-                "label": "Open sollicitatie",
-                "href": "/contact"
-              }
-            ],
-            "button": {
-              "label": "Bekijk vacatures",
-              "href": "/vacatures"
-            }
+            "icon": "heart",
+            "label": "Begeleiden",
+            "title": "Bij ziekte één aanspreekpunt",
+            "text": "Je vaste casemanager, de bedrijfsarts en alle poortwachtertermijnen geregeld."
+          },
+          {
+            "icon": "route",
+            "label": "Verder",
+            "title": "Terug aan het werk of een nieuwe stap",
+            "text": "Re-integratie, tweede spoor en loopbaanbegeleiding met nieuw perspectief."
+          }
+        ],
+        "buttons": [
+          {
+            "label": "Kennismaken",
+            "href": "/contact"
+          },
+          {
+            "label": "Ziek? Lees wat je moet doen",
+            "href": "/werknemers#wat-nu"
           }
         ]
       }
@@ -172,7 +130,7 @@
       "data": {
         "eyebrow": "Contact",
         "heading": "Een vraag?\nBel gewoon even.",
-        "text": "Je krijgt direct een mens aan de lijn die je verder helpt.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
         "image": "/beeld/home/even-bellen.webp",
         "alt": "Een vrouw belt ontspannen met React2u",
         "focus": "52% 22%",
@@ -195,7 +153,8 @@
             "value": "Stratumsedijk 29, Eindhoven",
             "href": "https://maps.google.com/?q=Stratumsedijk+29+Eindhoven"
           }
-        ]
+        ],
+        "bg": "#ffffff"
       }
     }
   ]
