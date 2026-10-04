@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin } from "react-icons/lu";
+import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin, LuClock } from "react-icons/lu";
 
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 
@@ -67,7 +67,7 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
   return (
     <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
       <H className="sr-only">{d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}</H>
-      <div className="hn-split flex flex-col gap-[6px] px-[6px] pb-[6px] md:h-[clamp(520px,calc(100svh-92px),808px)] md:flex-row md:gap-2 md:px-2 md:pb-2">
+      <div className="hn-split flex flex-col gap-[6px] px-[6px] pb-[6px] md:h-[clamp(520px,calc(100svh-132px),808px)] md:flex-row md:gap-2 md:px-2 md:pb-2">
         {choices.map((c, i) => {
           const links = i === 0;
           const kleur = links ? INDIGO : MAGENTA;
@@ -237,13 +237,13 @@ export function HomeSnelNaar({ d }: BlockProps) {
 
 /* ---------- 4. Contact ---------- */
 
-const ROUTE_ICON: Record<string, any> = { phone: LuPhone, mail: LuMail, pin: LuMapPin };
+const ROUTE_ICON: Record<string, any> = { phone: LuPhone, mail: LuMail, pin: LuMapPin, clock: LuClock };
 
 export function HomeContact({ d }: BlockProps) {
   const routes = ((d.routes as any[]) || []).filter((r) => r?.value);
   return (
     <section id="contact" className={`hn hn-type ${outfit.variable}`} style={{ background: d.bg || IVOOR, paddingBottom: d.bg ? "clamp(8px, 6vw, 96px)" : 8 }}>
-      <div className="relative mx-[6px] flex flex-col gap-[18px] overflow-hidden rounded-[32px] px-5 pb-4 pt-9 text-white md:mx-2 md:grid md:min-h-[480px] md:grid-cols-12 md:items-center md:gap-x-6 md:rounded-[40px] md:px-10 md:py-16 lg:px-[72px]"
+      <div className={`relative ${d.bg ? "mx-[6px] md:mx-10 xl:mx-auto xl:max-w-[1200px]" : "mx-[6px] md:mx-2"} flex flex-col gap-[18px] overflow-hidden rounded-[32px] px-5 pb-4 pt-9 text-white md:grid md:min-h-[480px] md:grid-cols-12 md:items-center md:gap-x-6 md:rounded-[40px] md:px-10 md:py-16 lg:px-[72px]`}
         style={{ background: INDIGO, marginTop: d.bg ? "clamp(64px, 7vw, 96px)" : "clamp(80px, 10vw, 144px)" }}>
         <span aria-hidden className="absolute right-[-90px] top-[-90px] h-[300px] w-[300px] rounded-full md:left-[-120px] md:right-auto md:top-[-140px] md:h-[620px] md:w-[620px]" style={{ background: "#3B378F" }} />
         {d.image && (
@@ -268,7 +268,7 @@ export function HomeContact({ d }: BlockProps) {
                 </span>
                 <span className="flex grow flex-col gap-0.5">
                   <span className="text-[13px] font-semibold" style={{ color: "#B4ADF2" }}>{r.label}</span>
-                  <span className="text-[17px] font-extrabold tracking-[-0.3px] md:text-[20px]">{r.value}</span>
+                  <span className="text-[17px] font-extrabold tracking-[-0.3px] md:whitespace-nowrap md:text-[18px] xl:text-[20px]">{r.value}</span>
                 </span>
                 <span style={{ color: "#B4ADF2" }}><Pijl /></span>
               </Go>

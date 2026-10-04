@@ -541,24 +541,25 @@ h1, h2, h3 {
 }
 
 /* ---------- Header en footer uit het nieuwe ontwerp (HeaderR2u.tsx, FooterR2u.tsx; alleen staging) ---------- */
-/* Hoogte van de plakkende header: werkgever/werknemer 68 → 86 (xl), neutraal 72 → 92 (md). */
+/* Hoogte van de plakkende witte header (de indigo balk erboven scrolt weg): 68, vanaf lg 88. */
 .r2u-kop { --hh: 68px; }
-.r2u-kop:has([data-r2u-kop="neutraal"]) { --hh: 72px; }
-@media (min-width: 768px) {
-  .r2u-kop:has([data-r2u-kop="neutraal"]) { --hh: 92px; }
+@media (min-width: 1024px) {
+  .r2u-kop { --hh: 88px; }
 }
-@media (min-width: 1280px) {
-  .r2u-kop { --hh: 86px; }
+.r2u-dm { font-family: var(--font-dm-sans), system-ui, sans-serif; }
+.rk-roze { background: #E61674; border-color: #E61674; color: #ffffff; }
+@media (hover: hover) {
+  .rk .rk-roze:hover { background: #C40F60; border-color: #C40F60; color: #ffffff; }
 }
 .rk h2 { font-family: inherit; }
-.rk a:focus-visible, .rk button:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; border-radius: 14px; }
+.rk a:focus-visible, .rk button:focus-visible { outline: 3px solid #E61674; outline-offset: 3px; border-radius: 14px; }
 .rk-balk nav a:focus-visible, .rk-balk .rk-tab:focus-visible { outline-color: #ffffff; }
 .rk-link, .rk-pilllink, .rk-flink, .rk-pill, .rk-tab, .rk-dd-link { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
 .rk-btn, .rk-rond { transition: transform .35s ease, box-shadow .35s ease; }
 .rk-pijl { transition: transform .35s ease; }
 @media (hover: hover) {
-  .rk .rk-link:hover, .rk .rk-pilllink:hover, .rk .rk-flink:hover { color: #C8306A !important; }
-  .rk .rk-pill:hover { border-color: #2A2677 !important; }
+  .rk .rk-link:hover, .rk .rk-pilllink:hover, .rk .rk-flink:hover { color: #E61674 !important; }
+  .rk .rk-pill:hover { border-color: #322E83 !important; }
   .rk .rk-tab:hover { color: #ffffff !important; }
   .rk .rk-dd-link:hover { background: #F3F1FA; }
   .rk-btn:hover, .rk-rond:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -16px rgba(42,38,119,.55); }

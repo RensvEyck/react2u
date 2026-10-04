@@ -137,7 +137,7 @@
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen",
+            "label": "Bellen · op werkdagen",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },
@@ -148,10 +148,10 @@
             "href": "mailto:info@react2u.nl"
           },
           {
-            "icon": "pin",
-            "label": "Hoofdkantoor",
-            "value": "Stratumsedijk 29, Eindhoven",
-            "href": "https://maps.google.com/?q=Stratumsedijk+29+Eindhoven"
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
           }
         ],
         "bg": "#ffffff"

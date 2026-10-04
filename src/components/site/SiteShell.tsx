@@ -31,7 +31,7 @@ export default async function SiteShell({ children }: { children: React.ReactNod
       {conceptenActief ? <HeaderR2u contact={c} /> : <Header contact={c} />}
       <main id="inhoud">{children}</main>
       {conceptenActief ? (
-        <FooterR2u contact={c} docs={normalizeDocs(docs)} />
+        <FooterR2u contact={c} docs={normalizeDocs(docs)} certificates={normalizeCertificates(certificates)} />
       ) : (
         <Footer contact={c} docs={normalizeDocs(docs)} certificates={normalizeCertificates(certificates)} />
       )}
