@@ -16,6 +16,7 @@ import FotoTegel from "@/components/site/FotoTegel";
 import Tarieven from "@/components/site/Tarieven";
 import { HomeSplit, HomeWaarom, HomeSnelNaar, HomeContact } from "./HomeNeutraal";
 import { HomeEenMens, HomeReis } from "./HomeVerhaal";
+import { ContactSimpel } from "./ContactSimpel";
 import {
   WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
 } from "./Werkgevers";
@@ -1120,6 +1121,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   homeSnelNaar: HomeSnelNaar,
   homeEenMens: HomeEenMens,
   homeReis: HomeReis,
+  contactSimpel: ContactSimpel,
   homeContact: HomeContact,
   wgSplit: WgSplit,
   wgWaarom: WgWaarom,
@@ -1158,7 +1160,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
