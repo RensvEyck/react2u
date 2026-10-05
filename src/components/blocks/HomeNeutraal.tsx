@@ -67,7 +67,7 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
   return (
     <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
       <H className="sr-only">{d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}</H>
-      <div className="hn-split flex flex-col gap-[6px] px-[6px] pb-[6px] md:h-[clamp(520px,calc(100svh-132px),808px)] md:flex-row md:gap-2 md:px-2 md:pb-2">
+      <div className="hn-split mx-auto flex max-w-[1760px] flex-col gap-[6px] px-[6px] pb-[6px] md:h-[clamp(520px,calc(100svh-132px),808px)] md:flex-row md:gap-2 md:px-2 md:pb-2">
         {choices.map((c, i) => {
           const links = i === 0;
           const kleur = links ? INDIGO : MAGENTA;
