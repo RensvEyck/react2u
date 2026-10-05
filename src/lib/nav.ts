@@ -125,6 +125,8 @@ export const STARTPAGINA: Record<Doelgroep, NavLink> = {
 };
 
 const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol"];
+/** De vijf labelpagina's (Resist, Recover, …) horen bij de werkgever. */
+const LABEL_PADEN = ["/resist", "/recover", "/restart", "/reflex", "/ready"];
 
 /**
  * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
@@ -133,7 +135,7 @@ const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol"];
  */
 export function doelgroepVoorPad(path: string): Doelgroep | null {
   if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
-  if (path === "/werkgevers" || path === "/diensten" || dienstVoor(path)) return "werkgever";
+  if (path === "/werkgevers" || path === "/diensten" || LABEL_PADEN.includes(path) || dienstVoor(path)) return "werkgever";
   return null;
 }
 

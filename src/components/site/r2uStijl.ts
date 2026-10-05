@@ -45,7 +45,16 @@ export function telefoon(c: ContactInfo) {
   return c.phoneDisplay.replace(/\s*[-–]\s*/g, " ");
 }
 
-export type Link2 = { label: string; href: string; sub?: string };
+export type Link2 = { label: string; href: string; sub?: string; kleur?: string; items?: Link2[] };
+
+/** De vijf labels, voor het uitklapmenu Diensten. Elk label heeft zijn eigen kleur. */
+export const DIENSTEN: Link2[] = [
+  { label: "React2u Resist", sub: "Preventie en vitaliteit", href: "/resist", kleur: "#00A098" },
+  { label: "React2u Recover", sub: "Verzuimbegeleiding", href: "/recover", kleur: "#E61674" },
+  { label: "React2u Restart", sub: "Re-integratie en loopbaan", href: "/restart", kleur: "#F19001" },
+  { label: "React2u Reflex", sub: "Flexbranche en Ziektewet", href: "/reflex", kleur: "#3AA5DD" },
+  { label: "React2u Ready", sub: "HR en arbeidsrecht", href: "/ready", kleur: "#322E83" },
+];
 
 export const OVER_ONS: Link2[] = [
   { label: "Over React2u", href: "/over-react2u" },
@@ -81,7 +90,7 @@ export const PORTALEN: Record<"neutraal" | Doelgroep, Link2[]> = {
 /** Het pill-menu per doelgroep. Ankers met pad ervoor, zodat ze ook van elders werken. */
 export const MENU: Record<Doelgroep, Link2[]> = {
   werkgever: [
-    { label: "Diensten", href: "/werkgevers#diensten" },
+    { label: "Diensten", href: "/werkgevers#diensten", items: DIENSTEN },
     { label: "Werkwijze", href: "/werkgevers#werkwijze" },
     { label: "Tarieven", href: "/werkgevers#tarieven" },
     { label: "Overstappen", href: "/werkgevers#starten" },

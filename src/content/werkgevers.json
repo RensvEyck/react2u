@@ -124,7 +124,7 @@
             "tone": "indigo",
             "badge": "Meest gevraagd",
             "title": "Verzuimbegeleiding volgens de WVP",
-            "href": "/verzuimbegeleiding-wvp",
+            "href": "/recover",
             "text": "Van de eerste ziektedag tot herstel, precies volgens de Wet verbetering poortwachter. Je casemanager bewaakt elke termijn en schakelt de bedrijfsarts in wanneer dat nodig is.",
             "short": "Van ziekmelding tot herstel. Je casemanager bewaakt elke termijn.",
             "list": [
@@ -136,7 +136,7 @@
           {
             "tone": "lila",
             "title": "Verzuimbegeleiding ERD/ZW",
-            "href": "/verzuimbegeleiding-erd-zw",
+            "href": "/reflex",
             "text": "Ben je eigenrisicodrager? Dan begeleiden we ook wie ziek uit dienst gaat.",
             "short": "Ook wie ziek uit dienst gaat",
             "list": [
@@ -148,7 +148,7 @@
           {
             "tone": "oranje",
             "title": "Risicomanagement (RI&E)",
-            "href": "/risicomanagement",
+            "href": "/resist",
             "text": "Risico’s in kaart, met een plan van aanpak dat je echt uitvoert.",
             "short": "Risico’s in kaart, met een plan",
             "list": [
@@ -160,7 +160,7 @@
           {
             "tone": "roze",
             "title": "Preventie en vitaliteit",
-            "href": "/preventie-en-vitaliteit",
+            "href": "/resist",
             "text": "Signalen van uitval vroeg zien en werken aan gezonde werkdruk.",
             "short": "Gezonde werkdruk en werkplek",
             "list": [
@@ -172,7 +172,7 @@
           {
             "tone": "paars",
             "title": "Begeleiding en coaching",
-            "href": "/begeleiding-en-coaching",
+            "href": "/restart",
             "text": "Voor wie vastloopt in werk of privé, het liefst voordat iemand uitvalt.",
             "short": "Voordat iemand uitvalt",
             "list": [
@@ -184,7 +184,7 @@
           {
             "tone": "wit",
             "title": "Trainingen en workshops",
-            "href": "/trainingen-en-workshops",
+            "href": "/resist",
             "text": "Praktisch, voor leidinggevenden en teams. Bijvoorbeeld over het verzuimgesprek.",
             "short": "Voor leidinggevenden en teams",
             "list": [
@@ -296,8 +296,8 @@
           }
         ],
         "link": {
-          "label": "Meer over verzuimbegeleiding ERD/ZW",
-          "href": "/verzuimbegeleiding-erd-zw"
+          "label": "Meer over React2u Reflex",
+          "href": "/reflex"
         }
       }
     },

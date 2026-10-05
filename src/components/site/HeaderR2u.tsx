@@ -134,14 +134,18 @@ function Uitklap({ label, icoon, items, rechts = false }: {
         {icoon}{label}<Punt open={open} />
       </button>
       {open && (
-        <div id={id} className="menu-panel absolute top-[calc(100%-12px)] w-[240px]" style={rechts ? { right: -16 } : { left: -16 }}
+        <div id={id} className={`menu-panel absolute top-[calc(100%-12px)] ${items.some((l) => l.sub) ? "w-[300px]" : "w-[240px]"}`} style={rechts ? { right: -16 } : { left: -16 }}
           onClick={(e) => { if ((e.target as HTMLElement).closest("a")) setOpen(false); }}>
           <ul className="flex flex-col rounded-[24px] border bg-white p-2 shadow-[0_24px_48px_-24px_rgba(42,38,119,0.3)]"
             style={{ borderColor: "#EEEDF5" }}>
             {items.map((l) => (
               <li key={l.href + l.label}>
-                <Go href={l.href} className="rk-dd-link flex rounded-[8px] px-3.5 py-3 text-[15px] font-bold" style={{ color: K.indigo }}>
-                  {l.label}
+                <Go href={l.href} className="rk-dd-link flex items-start gap-3 rounded-[8px] px-3.5 py-3 text-[15px] font-bold" style={{ color: K.indigo }}>
+                  {l.kleur && <span aria-hidden className="mt-[6px] h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: l.kleur }} />}
+                  <span className="flex flex-col gap-0.5">
+                    {l.label}
+                    {l.sub && <span className="text-[13px] font-semibold" style={{ color: "#77758F" }}>{l.sub}</span>}
+                  </span>
                 </Go>
               </li>
             ))}
@@ -296,7 +300,9 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
               ? MENU_NEUTRAAL.map((l) => l.overOns
                 ? <Uitklap key={l.label} label={l.label} items={OVER_ONS} />
                 : <Link key={l.href} href={l.href} className="rk-link">{l.label}</Link>)
-              : MENU[groep!].map((l) => <Link key={l.href} href={l.href} className="rk-link whitespace-nowrap">{l.label}</Link>)}
+              : MENU[groep!].map((l) => l.items
+                ? <Uitklap key={l.label} label={l.label} items={l.items} />
+                : <Link key={l.href} href={l.href} className="rk-link whitespace-nowrap">{l.label}</Link>)}
           </nav>
 
           <div className="flex h-full items-center gap-2 text-[15px] font-bold">
@@ -345,6 +351,18 @@ function MobielPaneel({ variant, contact, tel, knopHref }: { variant: Variant; c
               <Link href={l.href} className="rk-row flex items-center justify-between py-4 text-[19px] font-bold tracking-[-0.3px]">
                 {l.label}<span style={{ color: K.magenta }}><Pijl /></span>
               </Link>
+              {l.items && (
+                <ul className="-mt-1 flex flex-col pb-3">
+                  {l.items.map((x) => (
+                    <li key={x.href}>
+                      <Link href={x.href} className="rk-dd-link flex items-center gap-3 rounded-[10px] px-1 py-2 text-[16px] font-bold">
+                        {x.kleur && <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: x.kleur }} />}
+                        {x.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
