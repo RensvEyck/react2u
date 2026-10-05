@@ -522,6 +522,23 @@ h1, h2, h3 {
 .hn-pijl { transition: transform .35s ease; }
 .hn-btn { transition: transform .35s ease, box-shadow .35s ease; }
 .hn a:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
+
+/* Kop van de startpagina: alles schaalt mee met het scherm. */
+.hn-split { --h: 380px; }
+.hn-orb { --o: 290px; width: var(--o); height: var(--o); bottom: calc(var(--o) * -0.24); gap: calc(var(--o) * 0.034); padding-bottom: calc(var(--o) * 0.17); }
+.hn-orb-l { left: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.28); }
+.hn-orb-r { right: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.21); }
+.hn-orb-kop { font-size: calc(var(--o) * 0.097); letter-spacing: -0.035em; }
+.hn-orb-t { max-width: calc(var(--o) * 0.48); font-size: clamp(14px, calc(var(--o) * 0.033), 22px); }
+.hn-orb-e { font-size: clamp(12px, calc(var(--o) * 0.025), 16px); letter-spacing: 0.09em; }
+.hn-orb-go { height: clamp(44px, calc(var(--o) * 0.108), 72px); min-width: clamp(44px, calc(var(--o) * 0.108), 72px); padding: 0 clamp(14px, calc(var(--o) * 0.036), 24px); font-size: clamp(15px, calc(var(--o) * 0.031), 20px); }
+@media (min-width: 768px) {
+  .hn-split { --h: clamp(520px, min(calc(100svh - 132px), 46vw), 1040px); height: var(--h); }
+  .hn-orb { --o: clamp(400px, min(30vw, calc(var(--h) * 0.68)), 780px); bottom: calc(var(--o) * -0.19); padding-bottom: calc(var(--o) * 0.135); }
+  .hn-orb-l { left: calc(var(--o) * -0.154); padding-left: calc(var(--o) * 0.29); }
+  .hn-orb-r { right: calc(var(--o) * -0.154); padding-left: calc(var(--o) * 0.22); }
+  .hn-orb-kop { font-size: calc(var(--o) * 0.088); }
+}
 @media (min-width: 768px) {
   .hn-tile { flex: 1 1 0; min-width: 0; transition: flex .8s cubic-bezier(.2,.75,.2,1); }
   .hn-split:hover .hn-tile { flex-grow: .72; }

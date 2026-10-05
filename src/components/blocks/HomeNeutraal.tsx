@@ -67,7 +67,7 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
   return (
     <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
       <H className="sr-only">{d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}</H>
-      <div className="hn-split mx-auto flex max-w-[1760px] flex-col gap-[6px] px-[6px] pb-[6px] md:h-[clamp(520px,calc(100svh-132px),808px)] md:flex-row md:gap-2 md:px-2 md:pb-2">
+      <div className="hn-split mx-auto flex max-w-[2400px] flex-col gap-[6px] px-[6px] pb-[6px] md:flex-row md:gap-2 md:px-2 md:pb-2">
         {choices.map((c, i) => {
           const links = i === 0;
           const kleur = links ? INDIGO : MAGENTA;
@@ -80,27 +80,21 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
               <img src={c.image} alt={c.alt || ""} className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: c.focus || "50% 30%" }} fetchPriority="high" loading="eager" decoding="sync" />
               <span
-                className={`hn-orb absolute flex flex-col justify-center text-white
-                  bottom-[-70px] h-[290px] w-[290px] gap-2.5 rounded-full
-                  md:bottom-[-90px] md:h-[440px] md:w-[440px] md:gap-3.5
-                  lg:bottom-[-100px] lg:h-[520px] lg:w-[520px] lg:gap-4
-                  ${links
-                    ? "left-[-50px] pb-[50px] pl-[80px] md:left-[-70px] md:pb-[64px] md:pl-[130px] lg:left-[-80px] lg:pb-[70px] lg:pl-[152px]"
-                    : "right-[-50px] pb-[50px] pl-[60px] md:right-[-70px] md:pb-[64px] md:pl-[104px] lg:right-[-80px] lg:pb-[70px] lg:pl-[116px]"}`}
+                className={`hn-orb absolute flex flex-col justify-center rounded-full text-white ${links ? "hn-orb-l" : "hn-orb-r"}`}
                 style={{ background: kleur, transformOrigin: links ? "28% 72%" : "72% 72%" }}>
-                <span className="hidden text-[13px] font-bold uppercase tracking-[1.2px] md:block" style={{ color: label }}>{c.eyebrow}</span>
-                <span className="hn-kop text-[28px] leading-none tracking-[-1px] md:text-[38px] lg:text-[46px] lg:tracking-[-1.6px]">
+                <span className="hn-orb-e hidden font-bold uppercase md:block" style={{ color: label }}>{c.eyebrow}</span>
+                <span className="hn-kop hn-orb-kop leading-none">
                   {String(c.title).replace(/^Ik ben /, "Ik ben ").split(" ").map((t, k) => (
                     <span key={k} className="block">{t}</span>
                   ))}
                 </span>
                 {c.text && (
-                  <span className="max-w-[240px] text-[14px] leading-snug md:text-[16px] lg:text-[17px]" style={{ color: zacht }}>
+                  <span className="hn-orb-t leading-snug" style={{ color: zacht }}>
                     <span className="md:hidden">{c.short || c.text}</span>
                     <span className="hidden md:inline">{c.text}</span>
                   </span>
                 )}
-                <span className="mt-1 flex h-11 min-w-11 items-center justify-center self-start rounded-full bg-white px-[14px] text-[16px] font-bold md:h-14 md:min-w-14 md:px-[19px]"
+                <span className="hn-orb-go mt-1 flex items-center justify-center self-start rounded-full bg-white font-bold"
                   style={{ color: kleur }}>
                   <span className="hn-go-t">{c.button}</span>
                   <Pijl size={18} />
