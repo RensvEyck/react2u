@@ -1,0 +1,167 @@
+{
+  "slug": "reflex",
+  "title": "React2u Reflex",
+  "seo_title": "React2u Reflex: Flexbranche en Ziektewet • React2u",
+  "seo_description": "Voor uitzendbureaus en eigenrisicodragers Ziektewet. We begeleiden zieke flexkrachten, ook na het einde van het dienstverband.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Reflex",
+      "data": {
+        "heading": "React2u Reflex",
+        "naam": "Reflex",
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "label": "Voor de flexbranche.",
+        "tagline": "Ziektewet zonder zorgen",
+        "text": "Voor uitzendbureaus en eigenrisicodragers Ziektewet. We begeleiden zieke flexkrachten, ook na het einde van het dienstverband.",
+        "checks": [
+          "Begeleiding zieke flexkrachten",
+          "Eigenrisicodragerschap Ziektewet",
+          "Ook na einde dienstverband",
+          "Gericht op passend werk"
+        ],
+        "de": "Dé verzuimpartner voor de flexbranche",
+        "lead": "Snel schakelen, ook als het contract al is gestopt.",
+        "intro": [
+          "In de flexbranche loopt een ziekmelding vaak door na het einde van het contract. Als eigenrisicodrager voor de Ziektewet draag je dan zelf de kosten en de re-integratie.",
+          "React2u Reflex kent die wereld. We begeleiden zieke flexkrachten snel en gericht naar passend werk, ook na het einde van het dienstverband, en helpen je de instroom in de WGA te beperken."
+        ],
+        "herken": [
+          "Zieke flexkrachten lopen door na het einde van hun contract",
+          "Ziektewetkosten en WGA-premie lopen op",
+          "Je mist een partner die de uitzendbranche kent",
+          "Re-integratie van flexkrachten krijgt te weinig aandacht"
+        ],
+        "groepen": [
+          {
+            "titel": "Begeleiding flexkrachten",
+            "tekst": "Snel contact, ook als de opdracht stopt.",
+            "items": [
+              "Casemanager die de flexbranche kent",
+              "Begeleiding na einde dienstverband",
+              "Re-integratie naar passend werk"
+            ]
+          },
+          {
+            "titel": "Eigenrisicodrager Ziektewet",
+            "tekst": "Wij nemen de taken van het UWV over.",
+            "items": [
+              "Uitvoering Ziektewettaken",
+              "Dossieropbouw en termijnbewaking",
+              "Eerstejaars Ziektewetbeoordeling"
+            ]
+          },
+          {
+            "titel": "Kosten in de hand",
+            "tekst": "Minder uitval, minder instroom.",
+            "items": [
+              "WGA-instroom beperken",
+              "Inzicht in Ziektewetlasten",
+              "Rapportages per vestiging of klant"
+            ]
+          },
+          {
+            "titel": "Verzekeren",
+            "tekst": "Zekerheid voor de eerste 104 weken.",
+            "items": [
+              "Verzuimverzekering voor de uitzendbranche",
+              "Advies over eigenrisicodragerschap"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Ziekmelding",
+            "tekst": "Je flexkracht meldt zich ziek bij jou of bij ons."
+          },
+          {
+            "titel": "Snelle inzet",
+            "tekst": "Binnen één werkdag contact en een eerste inschatting."
+          },
+          {
+            "titel": "Passend werk",
+            "tekst": "We zoeken gericht naar werk dat past."
+          },
+          {
+            "titel": "Afronding",
+            "tekst": "We sluiten het dossier netjes af bij herstel of einde Ziektewet."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Kent de branche",
+            "tekst": "Fasen, contracten en payroll: we spreken je taal."
+          },
+          {
+            "titel": "Snelheid",
+            "tekst": "Binnen één werkdag contact met de zieke flexkracht."
+          },
+          {
+            "titel": "Grip op kosten",
+            "tekst": "Goede begeleiding nu voorkomt hoge lasten later."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Preventie en vitaliteit",
+            "kleur": "#00A098",
+            "href": "/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Verzuimbegeleiding",
+            "kleur": "#E61674",
+            "href": "/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "href": "/restart"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR en arbeidsrecht",
+            "kleur": "#322E83",
+            "href": "/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

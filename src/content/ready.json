@@ -1,0 +1,168 @@
+{
+  "slug": "ready",
+  "title": "React2u Ready",
+  "seo_title": "React2u Ready: HR en arbeidsrecht • React2u",
+  "seo_description": "Vragen over contracten, verlof of ontslag bij ziekte? Je krijgt helder advies van mensen die verzuim kennen.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Ready",
+      "data": {
+        "heading": "React2u Ready",
+        "naam": "Ready",
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "label": "HR en arbeidsrecht.",
+        "tagline": "Helder advies, snel geregeld",
+        "text": "Vragen over contracten, verlof of ontslag bij ziekte? Je krijgt helder advies van mensen die verzuim kennen.",
+        "checks": [
+          "HR-advies rond verzuim",
+          "Arbeidsrechtelijke ondersteuning",
+          "Advies bij conflicten",
+          "Second opinion en deskundigenoordeel"
+        ],
+        "de": "Dé vraagbaak voor HR en arbeidsrecht",
+        "lead": "Helder advies waar je direct mee verder kunt.",
+        "intro": [
+          "Verzuim raakt vaak aan HR- en arbeidsrechtelijke vragen. Mag ik een contract verlengen tijdens ziekte? Wat doe ik bij een conflict? Hoe voorkom ik een loonsanctie?",
+          "Met React2u Ready krijg je helder advies van mensen die verzuim van binnen en buiten kennen. Zonder omwegen, en zo dat je er direct mee verder kunt."
+        ],
+        "herken": [
+          "Je twijfelt of je een contract mag beëindigen tijdens ziekte",
+          "Een conflict maakt het verzuim ingewikkeld",
+          "Je bent het niet eens met een besluit van het UWV",
+          "Je wilt je verzuimbeleid eindelijk goed op papier"
+        ],
+        "groepen": [
+          {
+            "titel": "HR-advies",
+            "tekst": "Praktisch en direct toepasbaar.",
+            "items": [
+              "Verzuimbeleid en verzuimprotocol",
+              "Contracten en verlof tijdens ziekte",
+              "Functioneren en verzuim"
+            ]
+          },
+          {
+            "titel": "Arbeidsrecht",
+            "tekst": "Zekerheid bij lastige situaties.",
+            "items": [
+              "Beëindiging en vaststellingsovereenkomst",
+              "Geschil over loondoorbetaling",
+              "Ontslag na twee jaar ziekte"
+            ]
+          },
+          {
+            "titel": "Conflicten",
+            "tekst": "Weer met elkaar in gesprek.",
+            "items": [
+              "Mediation",
+              "Advies bij arbeidsconflict",
+              "Begeleiding van het gesprek"
+            ]
+          },
+          {
+            "titel": "UWV",
+            "tekst": "Sterk staan richting het UWV.",
+            "items": [
+              "Deskundigenoordeel",
+              "Bezwaar en beroep",
+              "Loonsanctie voorkomen"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Je vraag",
+            "tekst": "Je belt of mailt met je vraag."
+          },
+          {
+            "titel": "Analyse",
+            "tekst": "We zetten de feiten en je opties op een rij."
+          },
+          {
+            "titel": "Advies",
+            "tekst": "Je krijgt een helder advies, zo nodig op papier."
+          },
+          {
+            "titel": "Opvolging",
+            "tekst": "Waar nodig helpen we bij de uitvoering."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Verzuim én HR",
+            "tekst": "Adviseurs die beide werelden van binnen kennen."
+          },
+          {
+            "titel": "Snel antwoord",
+            "tekst": "Je vraag wordt dezelfde werkdag opgepakt."
+          },
+          {
+            "titel": "Zonder omwegen",
+            "tekst": "Helder advies, zo nodig op papier."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Preventie en vitaliteit",
+            "kleur": "#00A098",
+            "href": "/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Verzuimbegeleiding",
+            "kleur": "#E61674",
+            "href": "/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Flexbranche en Ziektewet",
+            "kleur": "#3AA5DD",
+            "href": "/reflex"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

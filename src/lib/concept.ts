@@ -7,6 +7,11 @@ import begeleidingEnCoaching from "@/content/begeleiding-en-coaching.json";
 import diensten from "@/content/diensten.json";
 import tarieven from "@/content/tarieven.json";
 import contact from "@/content/contact.json";
+import resist from "@/content/resist.json";
+import recover from "@/content/recover.json";
+import restart from "@/content/restart.json";
+import reflex from "@/content/reflex.json";
+import ready from "@/content/ready.json";
 
 /**
  * Concepten: een nieuwe opbouw van een pagina die nog niet in de database
@@ -21,7 +26,7 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact];
+const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact, resist, recover, restart, reflex, ready];
 
 /**
  * Concepten zijn alleen zichtbaar op een preview-deploy (staging): daar wil je
