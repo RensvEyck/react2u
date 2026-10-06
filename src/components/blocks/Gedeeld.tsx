@@ -28,12 +28,12 @@ export const kop = "hv-kop font-semibold";
 export const BREED = "mx-auto w-full max-w-[1440px] px-5 md:px-10 lg:px-16 xl:px-[120px]";
 
 export const KLANTEN = [
-  { src: "/beeld/klanten/jumbo.png", alt: "De Jumbo’s van Ralf & René" },
+  { src: "/beeld/klanten/jumbo.png", alt: "Jumbo Supermarkten" },
   { src: "/beeld/klanten/werkhelden.png", alt: "Werkhelden" },
   { src: "/beeld/klanten/payingit.png", alt: "Payingit" },
   { src: "/beeld/klanten/kester.png", alt: "Kester uitzendbureau" },
   { src: "/beeld/klanten/leebo.png", alt: "Leebo" },
-  { src: "/beeld/klanten/pronkert.png", alt: "Pronkert" },
+  { src: "/beeld/klanten/zorg-verbindt.png", alt: "Zorg Verbindt" },
 ];
 
 export const KEURMERKEN = [
