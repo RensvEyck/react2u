@@ -3,6 +3,7 @@ import {
   NAVY, PINK, BODY, LINE, SOFT, LAV, kop, BREED,
   Eyebrow, Kruimels, Keurmerken, KlantenStrook, KlantenAanHetWoord,
 } from "./Gedeeld";
+import Beeld from "@/components/site/Beeld";
 
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 
@@ -81,7 +82,7 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
         <section aria-label="Ons kantoor" className="bg-white">
           <div className={`${BREED} pb-20 md:pb-[112px]`}>
             <div className="relative h-[340px] overflow-hidden rounded-[24px] md:h-[600px] md:rounded-[32px]" style={{ background: LAV }}>
-              <img src={d.foto} alt={d.fotoAlt || ""} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.fotoFocus || "50% 55%" }} loading="lazy" />
+              <Beeld src={d.foto} alt={d.fotoAlt || ""} fill sizes="(min-width: 1440px) 1200px, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.fotoFocus || "50% 55%" }} />
               {d.fotoLabel && (
                 <span className="absolute bottom-5 left-5 inline-flex h-11 items-center gap-2.5 rounded-full bg-white px-[18px] text-[15px] font-bold md:bottom-8 md:left-8">
                   <span className="h-2 w-2 rounded-full" style={{ background: PINK }} />{d.fotoLabel}

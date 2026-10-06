@@ -131,5 +131,17 @@ export function systemChecks(env: Record<string, string | undefined>): SystemChe
       label: "Collega's uitnodigen",
       impact: "Uitnodigen vanuit Gebruikers werkt niet.",
     },
+    {
+      key: "opruimen",
+      ok: set("CRON_SECRET") && set("SUPABASE_SERVICE_ROLE_KEY"),
+      label: "Sollicitaties automatisch opschonen",
+      impact: "Verlopen sollicitaties en cv's blijven staan tot iemand ze in het Postvak IN verwijdert.",
+    },
+    {
+      key: "turnstile",
+      ok: set("TURNSTILE_SECRET_KEY") && set("NEXT_PUBLIC_TURNSTILE_SITE_KEY"),
+      label: "Spamcontrole op formulieren (Turnstile)",
+      impact: "Alleen de honeypot en de limiet per IP houden spam tegen; dat is meestal genoeg.",
+    },
   ];
 }

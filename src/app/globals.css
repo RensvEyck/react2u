@@ -749,3 +749,21 @@ p {
 @media (prefers-reduced-motion: reduce) {
   .hv-f1, .hv-f2, .hv-f3, .hv-reis .hv-jd, .hv-reis .hv-js, .hv-reis .hv-jc { animation: none !important; opacity: 1 !important; }
 }
+
+/* Belbalk (BelBalk.tsx; mobiel, werkgeverspagina's). Zolang hij er staat geeft
+   <html data-belbalk> de pagina onderaan ruimte, zodat de footer niet onder de
+   balk verdwijnt, en schuift de cookiemelding erboven. Bewust buiten een
+   @layer: dit moet winnen van de bottom-utility op de melding. */
+@media (max-width: 767.98px) {
+  html[data-belbalk] .site-root { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
+  html[data-belbalk] .cb-in { bottom: calc(66px + env(safe-area-inset-bottom) + 0.75rem); }
+}
+/* Het terugbelpaneel schuift van onderen omhoog. */
+.belbalk-paneel[open] { animation: belbalk-op 0.32s var(--ease-out-soft); }
+@keyframes belbalk-op {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .belbalk-paneel[open] { animation: none; }
+}

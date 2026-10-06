@@ -3,6 +3,10 @@ import { DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
 
 const SUPABASE = "https://tumwtappyegkjabtmold.supabase.co";
 
+// Cloudflare Turnstile (spamcontrole op de formulieren) is optioneel; alleen
+// als de site-sleutel gezet is, mag het widget laden. Zie src/lib/turnstile.ts.
+const TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "https://challenges.cloudflare.com" : "";
+
 /**
  * Beveiligingsheaders.
  *
@@ -40,9 +44,12 @@ const SECURITY_HEADERS = [
       // geserialiseerd wordt (src/lib/jsonld.ts). Wat deze CSP wél afdekt staat
       // hieronder — exfiltratie naar vreemde domeinen, gekaapte formulieren,
       // clickjacking en base-tag-injectie.
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline' ${TURNSTILE}`.trim(),
       `img-src 'self' data: blob: ${SUPABASE}`,
       `connect-src 'self' ${SUPABASE} https://*.supabase.co`,
+      // Het Turnstile-widget is een iframe; zonder frame-src valt dat terug op
+      // default-src 'self' en wordt het geblokkeerd.
+      ...(TURNSTILE ? [`frame-src ${TURNSTILE}`] : []),
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       // Formulieren mogen alleen naar de eigen site posten.

@@ -5,10 +5,12 @@ import HeaderR2u from "./HeaderR2u";
 import FooterR2u from "./FooterR2u";
 import VisitTracker from "./VisitTracker";
 import CookieBanner from "./CookieBanner";
+import BelBalk from "./BelBalk";
 import Reveal from "./Reveal";
 import { getSetting, CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
 import { conceptenActief } from "@/lib/concept";
+import { normalizeTracking } from "@/lib/tracking";
 
 /**
  * Alles om de inhoud van een publieke pagina heen. Gedeeld door de site-layout
@@ -19,18 +21,25 @@ import { conceptenActief } from "@/lib/concept";
  * header doorloopt.
  */
 export default async function SiteShell({ children }: { children: React.ReactNode }) {
-  const [contact, docs, certificates] = await Promise.all([
+  const [contact, docs, certificates, tracking] = await Promise.all([
     getSetting<ContactInfo>("contact"),
     getSetting<unknown>("documents"),
     getSetting<unknown>("certificates"),
+    getSetting<unknown>("tracking"),
   ]);
   const c = contact || CONTACT_FALLBACK;
+  const { bedrijfsherkenning } = normalizeTracking(tracking);
   return (
     // Op staging (concepten) de header en footer uit het nieuwe ontwerp;
     // productie houdt Header en Footer. `r2u-kop` zet --hh op hun hoogte.
     <div className={conceptenActief ? "site-root r2u-kop" : "site-root"}>
       {conceptenActief ? <HeaderR2u contact={c} /> : <Header contact={c} />}
-      <main id="inhoud">{children}</main>
+      <main id="inhoud">
+        {children}
+        {/* Mobiel, alleen op werkgeverspagina's: bellen of een terugbelmoment.
+            Binnen <main>, zodat hij met het mobiele menu mee inert wordt. */}
+        <BelBalk contact={c} />
+      </main>
       {conceptenActief ? (
         <FooterR2u contact={c} docs={normalizeDocs(docs)} certificates={normalizeCertificates(certificates)} />
       ) : (
@@ -40,7 +49,7 @@ export default async function SiteShell({ children }: { children: React.ReactNod
           hoort niet in de statistieken. */}
       <VisitTracker />
       {/* Hier en niet in de root-layout: wel op de 404, niet in het adminpaneel. */}
-      <CookieBanner />
+      <CookieBanner bedrijfsherkenning={bedrijfsherkenning} />
       <Reveal />
       <Analytics />
     </div>

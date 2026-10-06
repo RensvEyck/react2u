@@ -5,6 +5,7 @@ import BezoekTabs from "@/components/admin/BezoekTabs";
 import { CompanyAvatar, LeadPill, LevelPill } from "@/components/admin/CompanyBits";
 import { loadCompanies } from "@/lib/companiesDb";
 import { waited } from "@/lib/dashboard";
+import { normalizeTracking, type TrackingSettings } from "@/lib/tracking";
 import type { CompanySummary } from "@/lib/companies";
 import {
   LuBuilding, LuChevronRight, LuEyeOff, LuEye, LuPhoneCall, LuInfo, LuTriangleAlert, LuFlame,
@@ -38,7 +39,11 @@ export default async function BedrijvenAdmin({
   const days = RANGES.some((r) => r.key === sp.dagen) ? Number(sp.dagen) : 30;
   const view: View = VIEWS.some((v) => v.key === sp.weergave) ? (sp.weergave as View) : "alle";
   const { sb, admin } = await requirePerm("bezoek");
-  const { companies, profilesReady } = await loadCompanies(sb, days, admin.permissions);
+  const [{ companies, profilesReady }, { data: trackingData }] = await Promise.all([
+    loadCompanies(sb, days, admin.permissions),
+    sb.from("site_settings").select("value").eq("key", "tracking").maybeSingle(),
+  ]);
+  const tracking = normalizeTracking(trackingData?.value);
   const canCall = admin.permissions.includes("bellijst");
 
   const followed = companies.filter((c) => !c.ignored);
@@ -74,7 +79,7 @@ export default async function BedrijvenAdmin({
 
       <BezoekTabs active="bedrijven" warm={counts.warm} />
 
-      <Setup profilesReady={profilesReady} />
+      <Setup profilesReady={profilesReady} tracking={tracking} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
@@ -200,7 +205,7 @@ function Row({ c, here, canCall, now }: { c: CompanySummary; here: string; canCa
 }
 
 /** Wat er nog aan moet om bedrijven te zien, in gewone taal. */
-function Setup({ profilesReady }: { profilesReady: boolean }) {
+function Setup({ profilesReady, tracking }: { profilesReady: boolean; tracking: TrackingSettings }) {
   const notes: { tone: "stop" | "tip"; text: React.ReactNode }[] = [];
   if (!process.env.ANALYTICS_SALT) {
     notes.push({
@@ -209,6 +214,18 @@ function Setup({ profilesReady }: { profilesReady: boolean }) {
         <>
           <strong>Bezoek wordt nu niet geregistreerd.</strong> Zet <code className="font-mono">ANALYTICS_SALT</code> in
           Vercel (een lange willekeurige tekst) en deploy opnieuw.
+        </>
+      ),
+    });
+  }
+  if (tracking.bedrijfsherkenning === "toestemming") {
+    notes.push({
+      tone: "tip",
+      text: (
+        <>
+          Herkenning draait alleen bij bezoekers die in de cookiemelding &ldquo;Statistiek&rdquo; aanzetten. Je ziet dus
+          een deel van de bedrijven. Wil je op gerechtvaardigd belang herkennen, regel dat dan eerst in de privacyverklaring
+          en zet het daarna om onder <Link href="/admin/instellingen#privacy" className="font-semibold underline">Instellingen</Link>.
         </>
       ),
     });
