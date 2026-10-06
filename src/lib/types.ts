@@ -110,6 +110,8 @@ export type Application = {
   motivation: string | null;
   cv_path: string | null;
   status: "nieuw" | "in_behandeling" | "afgewezen" | "aangenomen";
+  /** De sollicitant gaf toestemming om een jaar te bewaren (migratie 0013). */
+  retain_longer?: boolean | null;
   /** Via welke taal van de site de sollicitatie binnenkwam (migratie 0015); ontbreekt bij oudere rijen. */
   lang?: "nl" | "en";
   created_at: string;

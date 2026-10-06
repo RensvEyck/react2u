@@ -1,7 +1,7 @@
 {
   "_uitleg": "Tarieven in het ontwerp van het canvas (Tarieven). Blijft op /verzuimabonnementen. Zie CONTEXT.md, *Concepten*.",
   "slug": "verzuimabonnementen",
-  "title": "Tarieven",
+  "title": "Verzuimabonnementen",
   "seo_title": "Verzuimabonnementen en tarieven arbodienst • React2u",
   "seo_description": "Heldere tarieven voor verzuimbegeleiding: Casemanagement Compleet voor € 135 of de Verrichtingenbasis voor € 35 per werknemer per jaar, plus alle losse tarieven op een rij.",
   "blocks": [
@@ -219,12 +219,12 @@
         "anchor": "vragen",
         "eyebrow": "Vragen",
         "heading": "Veelgestelde\nvragen",
-        "text": "Staat je vraag er niet bij? Bel ons gerust, je krijgt direct iemand aan de lijn.",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, we zijn op werkdagen bereikbaar.",
         "bg": "#F6F5FB",
         "items": [
           {
             "question": "Zijn de prijzen inclusief btw?",
-            "answer": "Nee. Alle bedragen op deze pagina zijn exclusief btw en gelden voor 2026."
+            "answer": "Nee. Alle bedragen op deze pagina zijn exclusief btw en gelden voor het jaar dat boven aan de pagina staat."
           },
           {
             "question": "Welk abonnement past bij ons?",
@@ -254,7 +254,7 @@
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen · op werkdagen",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },

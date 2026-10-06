@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import BlockRenderer from "@/components/blocks/BlockRenderer";
+import BlockRenderer, { needsTarieven } from "@/components/blocks/BlockRenderer";
+import { getSetting } from "@/lib/content";
+import { normalizeTarieven } from "@/lib/tarieven";
 import { alleConceptSlugsEn, conceptEn } from "@/lib/concept";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
 import { crumbsVoor } from "@/lib/nav";
@@ -38,9 +40,11 @@ export default async function EnglishPage({ params }: { params: Promise<{ slug: 
   if (!c) notFound();
   const path = `/en/${pad}`;
   const crumbs = crumbsVoor(path, c.title, "en");
+  // Het tarievenjaar uit de instellingen, alleen voor /en/pricing (dgTarieven).
+  const tarieven = needsTarieven(c.blocks) ? normalizeTarieven(await getSetting<unknown>("tarieven")) : undefined;
   return (
     <>
-      <BlockRenderer blocks={c.blocks} ctx={{ crumbs, lang: "en" }} />
+      <BlockRenderer blocks={c.blocks} ctx={{ crumbs, lang: "en", tarieven }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs, "en")) }} />
     </>
   );

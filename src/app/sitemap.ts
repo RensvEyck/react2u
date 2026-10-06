@@ -37,7 +37,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const engels = (nlPath: string, extra: Omit<MetadataRoute.Sitemap[number], "url">) =>
     heeftVertaling(nlPath) ? [{ url: `${base}${vertaalPad(nlPath, "en")}`, ...extra, ...alternates(nlPath) }] : [];
 
-  const conceptSlugs = alleConceptSlugs().filter((s) => !pages.some((p) => p.slug === s));
+  const conceptSlugs = alleConceptSlugs()
+    .filter((s) => !pages.some((p) => p.slug === s))
+    .filter((s) => !coveredByWordpress(`/${s}`));
   // Engelse pagina's waarvan de Nederlandse tegenhanger noch in de database
   // noch als concept bestaat (hoort niet voor te komen, maar zo blijft de
   // Engelse pagina vindbaar).

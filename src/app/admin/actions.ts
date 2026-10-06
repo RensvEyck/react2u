@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { requireAdmin, requirePerm } from "@/lib/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads";
+import { removeCvs } from "@/lib/cvs";
+import { normalizeTracking } from "@/lib/tracking";
+import { normalizeTarieven } from "@/lib/tarieven";
 
 type Sb = Awaited<ReturnType<typeof requirePerm>>["sb"];
 
@@ -433,6 +436,28 @@ export async function saveContactSettings(formData: FormData) {
   redirect("/admin/instellingen?opgeslagen=1");
 }
 
+/**
+ * Op welke grond de bedrijfsherkenning draait (lib/tracking.ts). "altijd" is
+ * alleen verantwoord als de privacyverklaring de afweging van het
+ * gerechtvaardigd belang bevat — dat staat ook zo in het scherm.
+ */
+export async function saveTrackingSettings(formData: FormData) {
+  const { sb } = await requirePerm("instellingen");
+  const value = normalizeTracking({ bedrijfsherkenning: String(formData.get("bedrijfsherkenning") || "") });
+  await sb.from("site_settings").upsert({ key: "tracking", value });
+  revalidateSite();
+  redirect("/admin/instellingen?opgeslagen=1#privacy");
+}
+
+/** Het tarievenjaar en de geldigheid (lib/tarieven.ts); de tariefblokken lezen dit. */
+export async function saveTarievenSettings(formData: FormData) {
+  const { sb } = await requirePerm("instellingen");
+  const value = normalizeTarieven({ jaar: String(formData.get("jaar") || ""), geldigTot: String(formData.get("geldigTot") || "") });
+  await sb.from("site_settings").upsert({ key: "tarieven", value });
+  revalidateSite();
+  redirect("/admin/instellingen?opgeslagen=1#tarieven");
+}
+
 // Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt
 // bezoekers tegen. Wél de fout controleren — wie denkt dat de site dicht is
 // terwijl hij openstaat (of andersom), hoort dat te weten.
@@ -597,29 +622,9 @@ export async function deleteRole(id: string) {
 
 /* ---------- verwijderen van inzendingen ---------- */
 
-/**
- * Verwijdert cv's en zegt of ze daarna écht weg zijn.
- *
- * Zonder verwijderrecht op de bucket meldt Storage géén fout maar een lege
- * lijst — het bestand staat er dan nog (zie migratie 0009). Vertrouwen op
- * "geen fout" liet cv's dus stil achter. Wat niet in de lijst van verwijderde
- * bestanden staat, zoeken we op: bestaat het niet meer (al eerder weg), dan is
- * dat goed; staat het er nog, dan is het mislukt en blijft de rij staan.
- */
-async function removeCvs(sb: Sb, paths: string[]): Promise<boolean> {
-  if (!paths.length) return true;
-  const { data: removed, error } = await sb.storage.from("cvs").remove(paths);
-  if (error) return false;
-  const gone = new Set(((removed as { name: string }[] | null) || []).map((o) => o.name));
-  for (const path of paths.filter((p) => !gone.has(p))) {
-    const slash = path.lastIndexOf("/");
-    const folder = slash > -1 ? path.slice(0, slash) : "";
-    const name = path.slice(slash + 1);
-    const { data } = await sb.storage.from("cvs").list(folder, { search: name, limit: 10 });
-    if ((data || []).some((f) => f.name === name)) return false;
-  }
-  return true;
-}
+// Cv's verwijderen loopt via removeCvs() in src/lib/cvs.ts, gedeeld met de
+// dagelijkse opschoning (api/cron/opruimen): die controleert of het bestand
+// écht weg is, want Storage meldt geen fout als een policy het tegenhoudt.
 
 /**
  * Verwijdert een sollicitatie inclusief het cv.

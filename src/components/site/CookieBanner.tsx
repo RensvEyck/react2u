@@ -2,31 +2,48 @@
 
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { DOCUMENTEN } from "@/lib/documenten";
+import type { Bedrijfsherkenning } from "@/lib/tracking";
 import { useTaal } from "./Taal";
+import type { Woordenboek } from "@/lib/woordenboek";
 
 /**
  * Cookiemelding op de publieke site. Gemonteerd in SiteShell: zo staat hij ook
  * op de 404 en niet in het adminpaneel.
  *
- * Zolang OPTIONAL_CATEGORIES leeg is, meldt de banner alleen dat de site
- * functionele cookies gebruikt; daar is geen toestemming voor nodig. Komt er
- * later statistiek of marketing bij, voeg dan een categorie toe. De banner
- * vraagt dan om toestemming, met Accepteren en Weigeren even zichtbaar. Laad
- * zulke scripts alleen als hasConsent('<id>') waar is, hoog CONSENT_VERSION op
- * (dan wordt opnieuw gevraagd) en vervang de PDF in public/documenten/
- * (de melding en de footer linken ernaar). Zie CONTEXT.md, *Bewaartermijnen en privacy*.
+ * Er is één keuze: "Statistiek". De site telt bezoek zonder cookies (een hash
+ * die elke nacht verandert), maar om een bezoek vanaf een bedrijfsnetwerk tot
+ * dat bedrijf te herleiden gaat het IP-adres naar ipinfo.io. Dat vraagt een
+ * grondslag. Standaard is dat toestemming: zonder vinkje gebeurt het niet.
+ * Staat de instelling op gerechtvaardigd belang (`bedrijfsherkenning:
+ * "altijd"`, zie lib/tracking.ts), dan staat het vinkje standaard aan en is
+ * uitzetten een bezwaar dat we ook respecteren. De tracker (VisitTracker)
+ * stuurt de keuze mee met elk bezoek; de server beslist.
  *
- * De keuze staat 12 maanden in de cookie r2u_cookie_consent.
+ * De keuze staat 12 maanden in de cookie r2u_cookie_consent. Verandert er iets
+ * aan waar je toestemming voor vraagt, hoog dan CONSENT_VERSION op: dan wordt
+ * opnieuw gevraagd. Vervang dan ook de cookieverklaring in public/documenten/.
+ * Zie CONTEXT.md, *Bewaartermijnen en privacy*.
  */
 
-type Category = { id: string; label: string; description: string };
+export const STATISTIEK = "statistiek";
 
-// Leeg = alleen functionele cookies. Voorbeeld voor later:
-// { id: "analytics", label: "Statistiek", description: "Helpt ons te zien hoe de website wordt gebruikt." }
-const OPTIONAL_CATEGORIES: Category[] = [];
+type Category = { id: string; label: string; description: string; standaard: boolean };
+
+/** De categorieën met hun teksten in de taal van de pagina (lib/woordenboek). */
+function categorieen(mode: Bedrijfsherkenning, c: Woordenboek["cookies"]): Category[] {
+  return [
+    {
+      id: STATISTIEK,
+      label: c.statistiek,
+      description: mode === "altijd" ? c.statistiekAltijd : c.statistiekToestemming,
+      standaard: mode === "altijd",
+    },
+  ];
+}
 
 export const COOKIE_NAME = "r2u_cookie_consent";
-const CONSENT_VERSION = 1;
+// 2 sinds oktober 2026: toen kwam de keuze "Statistiek" erbij.
+const CONSENT_VERSION = 2;
 const MAX_AGE = 60 * 60 * 24 * 365;
 const OPEN_EVENT = "r2u:open-cookie-settings";
 const CHANGED_EVENT = "r2u:consent-changed";
@@ -72,9 +89,19 @@ function writeConsent(choices: Record<string, boolean>) {
   window.dispatchEvent(new CustomEvent(CHANGED_EVENT, { detail: value }));
 }
 
+/**
+ * De keuze voor een categorie: true (aan), false (uit) of null als de bezoeker
+ * nog niets heeft gekozen. Dat onderscheid doet ertoe: bij gerechtvaardigd
+ * belang telt alleen een uitdrukkelijk "uit" als bezwaar.
+ */
+export function consentFor(categoryId: string): boolean | null {
+  const v = readConsent()?.choices?.[categoryId];
+  return typeof v === "boolean" ? v : null;
+}
+
 /** Waar als de bezoeker toestemming gaf voor deze categorie. */
 export function hasConsent(categoryId: string): boolean {
-  return readConsent()?.choices?.[categoryId] === true;
+  return consentFor(categoryId) === true;
 }
 
 /** Opent de melding opnieuw, bijvoorbeeld vanuit de footer. */
@@ -92,11 +119,15 @@ export function CookieSettingsLink({ className = "", style }: { className?: stri
   );
 }
 
-export default function CookieBanner() {
+export default function CookieBanner({ bedrijfsherkenning = "toestemming" }: { bedrijfsherkenning?: Bedrijfsherkenning }) {
   const { t } = useTaal();
   const c = t.cookies;
   const raw = useSyncExternalStore<string | null>(subscribe, rawConsent, onServer);
   const consent = useMemo(() => (raw === null ? null : parseConsent(raw)), [raw]);
+  const cats = useMemo(() => categorieen(bedrijfsherkenning, c), [bedrijfsherkenning, c]);
+  // Bij gerechtvaardigd belang is de melding een mededeling met een uitknop;
+  // bij toestemming een vraag, met Accepteren en Weigeren even zichtbaar.
+  const optOut = bedrijfsherkenning === "altijd";
   // Heropend vanuit de footer, of juist weggeklikt zonder iets vast te leggen.
   const [forced, setForced] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -105,46 +136,48 @@ export default function CookieBanner() {
   const primary = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const textId = useId();
-  const informative = OPTIONAL_CATEGORIES.length === 0;
   const open = forced || (raw !== null && consent === null && !dismissed);
+
+  const standaard = () => Object.fromEntries(cats.map((cat) => [cat.id, cat.standaard]));
+  const all = (value: boolean) => Object.fromEntries(cats.map((cat) => [cat.id, value]));
 
   useEffect(() => {
     // Heropenen vanuit de footer: dan is er een klik geweest, en hoort de
     // focus mee te gaan naar de melding. Bij het eerste bezoek juist niet.
     const reopen = () => {
-      setChoices(readConsent()?.choices ?? {});
-      setDetails(!informative);
+      setChoices(readConsent()?.choices ?? Object.fromEntries(cats.map((cat) => [cat.id, cat.standaard])));
+      setDetails(true);
       setForced(true);
       requestAnimationFrame(() => primary.current?.focus());
     };
     window.addEventListener(OPEN_EVENT, reopen);
     return () => window.removeEventListener(OPEN_EVENT, reopen);
-  }, [informative]);
+  }, [cats]);
 
   useEffect(() => {
     if (!open) return;
-    // Escape sluit. Bij een mededeling is dat hetzelfde als "Prima"; moet er
-    // toestemming gegeven worden, dan sluit hij zonder iets vast te leggen.
+    // Escape sluit. Bij een mededeling (bezwaar mogelijk) is dat hetzelfde als
+    // "Prima"; moet er toestemming gegeven worden, dan sluit hij zonder iets
+    // vast te leggen — niet kiezen is dan niet toestemmen.
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (informative) writeConsent({});
+      if (optOut) writeConsent(Object.fromEntries(cats.map((cat) => [cat.id, cat.standaard])));
       else setDismissed(true);
       setForced(false);
       setDetails(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, informative]);
+  }, [open, optOut, cats]);
 
   if (!open) return null;
 
-  const save = (c: Record<string, boolean>) => {
-    writeConsent(c);
-    setChoices(c);
+  const save = (keuze: Record<string, boolean>) => {
+    writeConsent(keuze);
+    setChoices(keuze);
     setForced(false);
     setDetails(false);
   };
-  const all = (value: boolean) => Object.fromEntries(OPTIONAL_CATEGORIES.map((c) => [c.id, value]));
 
   return (
     <section
@@ -155,14 +188,14 @@ export default function CookieBanner() {
     >
       <p id={titleId} className="mb-1.5 text-[16px] font-bold text-primary">{c.titel}</p>
       <p id={textId}>
-        {informative ? c.info : c.toestemming}{" "}
+        {c.basis} {optOut ? c.optOut : c.toestemming}{" "}
         <a href={POLICY_URL} target="_blank" rel="noopener" className="font-semibold text-primary underline underline-offset-[3px] hover:text-primary-deep">
           {c.lees}
         </a>
         .
       </p>
 
-      {details && !informative && (
+      {details && (
         <ul className="mt-4 grid gap-3">
           <li>
             <label className="grid grid-cols-[auto_1fr] items-start gap-x-2.5">
@@ -173,18 +206,18 @@ export default function CookieBanner() {
               </span>
             </label>
           </li>
-          {OPTIONAL_CATEGORIES.map((c) => (
-            <li key={c.id}>
+          {cats.map((cat) => (
+            <li key={cat.id}>
               <label className="grid cursor-pointer grid-cols-[auto_1fr] items-start gap-x-2.5">
                 <input
                   type="checkbox"
                   className="mt-1 accent-primary"
-                  checked={choices[c.id] === true}
-                  onChange={(e) => setChoices({ ...choices, [c.id]: e.target.checked })}
+                  checked={choices[cat.id] === true}
+                  onChange={(e) => setChoices({ ...choices, [cat.id]: e.target.checked })}
                 />
                 <span>
-                  <strong className="font-semibold text-primary">{c.label}</strong>
-                  <span className="block text-[13.5px] text-body/80">{c.description}</span>
+                  <strong className="font-semibold text-primary">{cat.label}</strong>
+                  <span className="block text-[13.5px] text-body/80">{cat.description}</span>
                 </span>
               </label>
             </li>
@@ -193,20 +226,25 @@ export default function CookieBanner() {
       )}
 
       <div className="mt-5 flex flex-wrap gap-2.5 sm:justify-end">
-        {informative ? (
-          <button ref={primary} type="button" className="btn btn-sm btn-indigo flex-1 rounded-full sm:flex-none" onClick={() => save({})}>
-            {c.prima}
-          </button>
-        ) : details ? (
+        {details ? (
           <button ref={primary} type="button" className="btn btn-sm btn-indigo flex-1 rounded-full sm:flex-none" onClick={() => save({ ...all(false), ...choices })}>
             {c.keuzeOpslaan}
           </button>
+        ) : optOut ? (
+          <>
+            <button type="button" className="btn btn-sm btn-outline flex-1 rounded-full sm:flex-none" onClick={() => { setChoices(standaard()); setDetails(true); }}>
+              {c.instellingen}
+            </button>
+            <button ref={primary} type="button" className="btn btn-sm btn-indigo flex-1 rounded-full sm:flex-none" onClick={() => save(standaard())}>
+              {c.prima}
+            </button>
+          </>
         ) : (
           <>
             <button type="button" className="btn btn-sm btn-outline flex-1 rounded-full sm:flex-none" onClick={() => save(all(false))}>
               {c.weigeren}
             </button>
-            <button type="button" className="btn btn-sm btn-outline flex-1 rounded-full sm:flex-none" onClick={() => setDetails(true)}>
+            <button type="button" className="btn btn-sm btn-outline flex-1 rounded-full sm:flex-none" onClick={() => { setChoices(standaard()); setDetails(true); }}>
               {c.instellingen}
             </button>
             <button ref={primary} type="button" className="btn btn-sm btn-indigo flex-1 rounded-full sm:flex-none" onClick={() => save(all(true))}>

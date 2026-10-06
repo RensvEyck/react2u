@@ -1,8 +1,11 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   checkDestination, checkSource, coveredByWordpress, coveringSources, createsLoop, matchRedirect, missingReferrer,
-  normalizePath, suggestDestination, targetUrl, type RedirectRule,
+  normalizePath, suggestDestination, targetUrl, DIENST_REDIRECTS, VASTE_REDIRECTS, type RedirectRule,
 } from "./redirects";
+import { LABELS, labelVoor } from "./nav";
 
 const rule = (source: string, destination: string): RedirectRule => ({ source, destination, permanent: true });
 const reason = (r: { ok: boolean }) => (r as { reason?: string }).reason;
@@ -68,6 +71,18 @@ describe("doorverwijzingen", () => {
     // De juridische documenten: webpagina's die een PDF zijn geworden.
     expect(coveredByWordpress("/privacyverklaring")?.destination).toBe("/documenten/privacyverklaring-react2u.pdf");
     expect(coveredByWordpress("/Cookieverklaring/")?.destination).toBe("/documenten/cookieverklaring-react2u.pdf");
+    // De oude WordPress-documentpagina's wijzen naar de nieuwe pdf's, niet meer naar media/wp/.
+    expect(coveredByWordpress("/privacy-reglement")?.destination).toBe("/documenten/privacyverklaring-react2u.pdf");
+    expect(coveredByWordpress("/klachtenprocedure")?.destination).toBe("/documenten/klachtenregeling-react2u.pdf");
+    expect(coveredByWordpress("/algemene-voorwaarden")?.destination).toBe("/documenten/algemene-voorwaarden-react2u.pdf");
+    expect(VASTE_REDIRECTS.some((r) => r.destination.includes("/media/wp/"))).toBe(false);
+  });
+
+  it("vangt de -niet-varianten van de oude site af, specifiek vóór algemeen", () => {
+    expect(coveredByWordpress("/werkgever-niet/diensten-niet/verzuim")?.destination).toBe("/diensten");
+    expect(coveredByWordpress("/werkgever-niet/over-ons")?.destination).toBe("/werkgevers");
+    expect(coveredByWordpress("/werknemer-niet/faq")?.destination).toBe("/werknemers");
+    expect(coveredByWordpress("/werkgever")?.destination).toBe("/werkgevers");
   });
 
   it("stelt een bestemming voor, of niets als het een gok zou zijn", () => {
@@ -91,5 +106,49 @@ describe("doorverwijzingen", () => {
     expect(missingReferrer("https://react2u.nl/diensten", "react2u.nl")).toBe("/diensten");
     expect(missingReferrer("https://www.google.com/search?q=x", "react2u.nl")).toBe("google.com");
     expect(missingReferrer("onzin", "react2u.nl")).toBeNull();
+  });
+});
+
+describe("de oude dienstpagina's", () => {
+  it("sturen elk met een eigen regel naar hun label", () => {
+    expect(Object.fromEntries(DIENST_REDIRECTS.map((r) => [r.source, r.destination]))).toEqual({
+      "/verzuimbegeleiding-wvp": "/recover",
+      "/verzuimbegeleiding-erd-zw": "/reflex",
+      "/preventie-en-vitaliteit": "/resist",
+      "/risicomanagement": "/resist",
+      "/trainingen-en-workshops": "/restart",
+      "/begeleiding-en-coaching": "/restart",
+    });
+    for (const r of DIENST_REDIRECTS) {
+      expect(labelVoor(r.destination), r.destination).not.toBeNull();
+      expect(coveredByWordpress(r.source)).toEqual(r);
+    }
+  });
+
+  it("de labels en /diensten zelf sturen nergens heen", () => {
+    for (const p of ["/diensten", ...LABELS.map((l) => l.href)]) expect(coveredByWordpress(p), p).toBeNull();
+  });
+
+  it("geen vaste regel wijst naar een adres dat zelf weer doorstuurt", () => {
+    for (const r of VASTE_REDIRECTS) {
+      if (/^https?:\/\//.test(r.destination)) continue;
+      expect(coveredByWordpress(r.destination), `${r.source} → ${r.destination}`).toBeNull();
+    }
+  });
+
+  it("geen interne link in de concepten wijst naar een doorverwijzing", () => {
+    const bestanden = (map: string): string[] =>
+      readdirSync(map, { withFileTypes: true }).flatMap((e) =>
+        e.isDirectory() ? bestanden(join(map, e.name)) : e.name.endsWith(".json") ? [join(map, e.name)] : []);
+    const hrefs = (x: unknown): string[] =>
+      Array.isArray(x) ? x.flatMap(hrefs)
+        : x && typeof x === "object" ? Object.entries(x).flatMap(([k, v]) => (k === "href" && typeof v === "string" ? [v] : hrefs(v)))
+          : [];
+    for (const f of bestanden(join(__dirname, "../content"))) {
+      for (const h of hrefs(JSON.parse(readFileSync(f, "utf8")))) {
+        if (!h.startsWith("/") || h.startsWith("//")) continue;
+        expect(coveredByWordpress(h.split(/[?#]/)[0]), `${f}: ${h}`).toBeNull();
+      }
+    }
   });
 });

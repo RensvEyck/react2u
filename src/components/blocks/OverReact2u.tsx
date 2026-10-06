@@ -5,6 +5,7 @@ import {
   NAVY, PINK, BODY, LINE, SOFT, LAV, kop, BREED,
   Eyebrow, Kruimels, Keurmerken, KlantenStrook, KlantenAanHetWoord,
 } from "./Gedeeld";
+import Beeld from "@/components/site/Beeld";
 
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 
@@ -26,14 +27,14 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. Het motto */}
       <section aria-label={d.heading || t.werkgevers.overReact2uKruimel} className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
-        <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-12 md:rounded-[36px] md:px-14 md:py-16 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end lg:gap-16 lg:px-20 lg:pb-20 lg:pt-[88px]"
+        <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-12 md:rounded-[36px] md:px-14 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(280px,36%)] lg:items-end lg:gap-16 lg:px-20 lg:pb-20 lg:pt-[88px]"
           style={{ background: LAV }}>
           <span aria-hidden className="absolute right-[-160px] top-[-200px] h-[640px] w-[640px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <span aria-hidden className="absolute bottom-[-220px] right-[260px] h-[360px] w-[360px] rounded-full" style={{ background: PINK, opacity: 0.08 }} />
           <div className="relative flex flex-col gap-7">
             <Kruimels items={[{ label: t.algemeen.home, href: pad(taal, "home") }, { label: t.werkgevers.overReact2uKruimel }]} taal={taal} />
-            <H className={`${kop} m-0 text-[72px] leading-[0.92] tracking-[-2.4px] md:text-[104px] lg:text-[128px] lg:tracking-[-4.6px]`}>
-              {(d.motto || "Aandacht\nraakt.").split("\n").map((r: string, i: number) => <span key={i} className="block">{r}</span>)}
+            <H className={`${kop} m-0 text-[44px] leading-[0.95] tracking-[-1.2px] md:text-[72px] md:tracking-[-2.4px] lg:text-[clamp(56px,5.8vw,84px)] lg:tracking-[-0.035em]`}>
+              {(d.motto || "Een arbodienst\ndie je mensen\necht kent").split("\n").map((r: string, i: number) => <span key={i} className="block">{r}</span>)}
             </H>
             {d.intro && <p className="m-0 max-w-[560px] text-[18px] leading-[1.65] md:text-[20px]" style={{ color: BODY }}>{d.intro}</p>}
           </div>
@@ -85,7 +86,7 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
         <section aria-label={d.fotoLabel || d.fotoAlt} className="bg-white">
           <div className={`${BREED} pb-20 md:pb-[112px]`}>
             <div className="relative h-[340px] overflow-hidden rounded-[24px] md:h-[600px] md:rounded-[32px]" style={{ background: LAV }}>
-              <img src={d.foto} alt={d.fotoAlt || ""} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.fotoFocus || "50% 55%" }} loading="lazy" />
+              <Beeld src={d.foto} alt={d.fotoAlt || ""} fill sizes="(min-width: 1440px) 1200px, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.fotoFocus || "50% 55%" }} />
               {d.fotoLabel && (
                 <span className="absolute bottom-5 left-5 inline-flex h-11 items-center gap-2.5 rounded-full bg-white px-[18px] text-[15px] font-bold md:bottom-8 md:left-8">
                   <span className="h-2 w-2 rounded-full" style={{ background: PINK }} />{d.fotoLabel}

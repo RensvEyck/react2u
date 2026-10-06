@@ -128,9 +128,15 @@ export const nl = {
   },
 
   cookies: {
-    titel: "Cookies op react2u.nl",
-    info: "We gebruiken alleen functionele cookies, nodig om de site goed en veilig te laten werken. We volgen je niet en plaatsen geen cookies van derden.",
-    toestemming: "We gebruiken functionele cookies om de site te laten werken. Met jouw toestemming ook andere cookies. Je keuze pas je altijd aan via Cookie-instellingen onderaan de pagina.",
+    titel: "Cookies en statistiek op react2u.nl",
+    basis: "We gebruiken alleen functionele cookies en tellen bezoek zonder cookies.",
+    /** Bij gerechtvaardigd belang (bedrijfsherkenning "altijd"): een mededeling met een uitknop. */
+    optOut: "Komt je bezoek van een bedrijfsnetwerk, dan zien we welk bedrijf dat is, nooit wie. Niet nodig? Zet het uit bij Instellingen.",
+    /** Bij toestemming: een vraag. */
+    toestemming: "Met jouw toestemming zien we ook vanaf welk bedrijf je kijkt, nooit wie. Je keuze pas je altijd aan via Cookie-instellingen onderaan de pagina.",
+    statistiek: "Statistiek",
+    statistiekAltijd: "Komt je bezoek van een bedrijfsnetwerk, dan zien we welk bedrijf dat is, nooit wie. Zet dit uit als je dat niet wilt.",
+    statistiekToestemming: "Met jouw toestemming zien we vanaf welk bedrijf je kijkt, nooit wie. Zo weten we welke organisaties onze site bezoeken.",
     lees: "Lees de cookieverklaring",
     prima: "Prima",
     functioneel: "Functioneel",
@@ -186,6 +192,8 @@ export const nl = {
       privacyVoor: "We gaan zorgvuldig om met je gegevens, lees onze ",
       privacyLink: "privacyverklaring",
       privacyNa: ".",
+      bewaren: "Bewaar mijn gegevens een jaar, ook voor toekomstige vacatures.",
+      bewarenUitleg: "Zonder vinkje verwijderen we ze uiterlijk vier weken na afloop van de procedure.",
     },
     contact: {
       kop: "Stuur een bericht",
@@ -197,6 +205,12 @@ export const nl = {
       telefoonPlaceholder: "06 12 34 56 78",
     },
     fouten: {
+      emailOngeldig: "Controleer je e-mailadres: dat lijkt niet te kloppen.",
+      limiet: "Je hebt kort geleden al een paar keer iets verstuurd. Probeer het over een uur opnieuw, of bel ons.",
+      spamcontrole: "De spamcontrole is niet gelukt. Vernieuw de pagina en probeer het opnieuw.",
+      terugbelVerplicht: "Vul je naam en telefoonnummer in.",
+      telefoonOngeldig: "Controleer je telefoonnummer.",
+      terugbelAlgemeen: "Er ging iets mis. Bel ons gerust direct.",
       contactVerplicht: "Vul naam, e-mailadres, telefoonnummer en bericht in.",
       algemeen: "Er ging iets mis. Probeer het later opnieuw.",
       sollicitatieVerplicht: "Vul in ieder geval je naam en e-mailadres in.",
@@ -206,6 +220,19 @@ export const nl = {
       sollicitatieAlgemeen: "Er ging iets mis bij het versturen. Probeer het later opnieuw.",
       offerteVerplicht: "Vul naam, bedrijfsnaam, e-mailadres, telefoonnummer en het aantal medewerkers in.",
     },
+  },
+
+  /** De belbalk onderaan het scherm op de telefoon (werkgeverspagina's): bellen of een terugbelmoment. */
+  belbalk: {
+    belMijTerug: "Bel mij terug",
+    sluiten: "Sluiten",
+    eyebrow: "Terugbelverzoek",
+    kop: "Wanneer mogen we je bellen?",
+    bedankt: "Bedankt! We bellen je zoals afgesproken. Liever nu al iemand spreken? Bel {tel}.",
+    wanneer: "Wanneer",
+    /** Labels bij TERUGBEL_MOMENTEN (lib/formulier.ts), in dezelfde volgorde; de waarde blijft Nederlands voor het Postvak IN. */
+    momenten: ["Zo snel mogelijk", "Vandaag nog", "Morgenochtend", "Morgenmiddag", "Later deze week"],
+    tijden: "We bellen op werkdagen tussen 9.00 en 17.00 uur.",
   },
 
   /** Werken bij React2u, de vacaturepagina en de open sollicitatie. */
@@ -269,6 +296,8 @@ export const nl = {
     solliciterenMicro: ["Geen motivatiebrief", "Eerst kennismaken mag"],
     aanspreekpunt: "Je aanspreekpunt",
     susanneRol: "Algemeen directeur",
+    fotoTeamAlt: "Collega’s van React2u lachen samen aan tafel",
+    fotoWerkAlt: "Drie collega’s van React2u kijken samen naar een scherm op kantoor",
     /** Alleen op een vacature zonder tekst in de taal van de pagina. */
     inHetNederlands: "Deze vacature is in het Nederlands",
     inHetNederlandsKort: "In het Nederlands",
@@ -322,6 +351,8 @@ export const nl = {
     overOnsKruimel: "Over ons",
     overReact2uKruimel: "Over React2u",
     kernwaarden: "Kernwaarden",
+    /** De regel onder de prijstabel; het jaar en de datum komen uit Instellingen → Tarievenjaar. */
+    geldigheid: "Tarieven {jaar}, geldig tot en met {tot}. Alle bedragen zijn exclusief btw.",
   },
 
   /** De labelpagina's (React2u Recover, Resist, …): de vaste woorden rond de blokdata. */

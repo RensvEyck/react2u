@@ -1,130 +1,264 @@
 {
-  "_uitleg": "Dezelfde teksten als in de database, in een nieuwe opbouw: kop met foto, de diensten per stap als fototegels, wat we aanbieden, de drie waarden, de visie en contact. Zie CONTEXT.md, *Concepten*.",
+  "_uitleg": "Overzicht van de vijf labels (Resist, Recover, Restart, Reflex, Ready) in de blokken van het nieuwe ontwerp, met dezelfde labelkaarten als op /werkgevers. Vervangt sinds oktober 2026 de oude opbouw met losse dienstpagina's; die sturen met een 301 door naar hun label (DIENST_REDIRECTS in src/lib/redirects.ts). Engelse tegenhanger: src/content/en/services.json.",
   "slug": "diensten",
   "title": "Diensten",
-  "seo_title": "Diensten • React2u",
-  "seo_description": "React2u is de moderne dienstverlener in verzuim- en re-integratiebegeleiding. Preventief en curatief werken we aan grip op je inzetbaarheid.",
+  "seo_title": "Diensten: vijf specialismen voor verzuim en preventie • React2u",
+  "seo_description": "React2u biedt vijf specialismen onder één dak: Resist, Recover, Restart, Reflex en Ready. Van preventie tot re-integratie, met één vaste casemanager.",
   "blocks": [
     {
-      "type": "hero",
+      "type": "dgKop",
       "label": "Paginakop",
       "data": {
-        "eyebrow": "Wat kunnen we betekenen?",
-        "heading": "Onze dienstverlening als arbodienst voor verzuim en re-integratie",
-        "text": "Wanneer een medewerker tijdelijk of langdurig uitvalt, heeft dat impact op zowel de werknemer als de organisatie. React2u ondersteunt werkgevers bij ziekteverzuim, verzuimbegeleiding en re-integratie.\n\nMet ons gecertificeerde online verzuimregistratiesysteem werken wij samen in één dossier. Zo behouden we grip op het verzuimproces en voldoen we aan alle wettelijke verplichtingen.",
-        "button": {
-          "label": "Maak een afspraak",
-          "href": "/contact"
-        },
-        "button2": {
-          "label": "Bel 085 - 620 58 00",
-          "href": "tel:0856205800",
-          "style": "outline"
-        },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/serious-colleagues-discussing-documents-meeting-e1717497004999.jpg",
-        "imageAlt": "Twee collega's bespreken samen een dossier",
-        "imagePosition": "right",
-        "focus": "center 30%"
-      }
-    },
-    {
-      "type": "pillars",
-      "label": "Diensten per stap",
-      "data": {
-        "eyebrow": "Onze diensten",
-        "heading": "Waar kunnen we je mee helpen?",
-        "text": "Van het voorkomen van verzuim tot een duurzame terugkeer naar werk. Kies wat bij jouw situatie past — of bel ons, dan denken we met je mee."
-      }
-    },
-    {
-      "type": "imageText",
-      "label": "Wat wij aanbieden",
-      "data": {
-        "eyebrow": "Over ons",
-        "heading": "Wat wij aanbieden als arbodienst",
-        "text": "React2u is een moderne verzuim- en re-integratiespecialist met een schat aan kennis en jarenlange ervaring. We doen wat we zeggen. Ons ervaren, warme en benaderbare team is deskundig en heeft alle disciplines in huis om het gezondheidsbeleid van bedrijven op een gezond peil te houden en alle interventies uit te voeren. Daar waar mensen werken, kunnen wij worden ingezet.\n\nBij React2u werken we altijd samen met de werkgever en werknemer aan een oplossing. Door alle betrokken partijen professioneel en persoonlijk te begeleiden, faciliteren en adviseren, brengen wij mensen weer duurzaam in beweging.",
-        "button": {
-          "label": "Over React2u",
-          "href": "/over-react2u",
-          "style": "outline"
-        },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
-        "imageAlt": "Adviseur en klant in gesprek aan tafel",
-        "imageFit": "cover",
-        "imagePosition": "left",
-        "focus": "center 35%"
-      }
-    },
-    {
-      "type": "values",
-      "label": "Gezond, menselijk, duidelijk",
-      "data": {
-        "eyebrow": "Waar je op kunt rekenen",
-        "heading": "Voor iedereen gezond, menselijk en duidelijk",
-        "highlight": "",
-        "text": "",
-        "cards": [
+        "eyebrow": "Diensten",
+        "heading": "Vijf specialismen,\néén vast\naanspreekpunt",
+        "text": "Van uitval voorkomen tot re-integratie en HR-advies. Je casemanager houdt het overzicht.",
+        "image": "/beeld/werkgevers/gezonde-werkplek.webp",
+        "alt": "Twee collega’s kijken samen naar een scherm",
+        "focus": "50% 40%",
+        "panel": "#322E83",
+        "buttons": [
           {
-            "title": "Gezond",
-            "text": "Preventieve en curatieve begeleiding om ziekteverzuim te beperken.",
-            "value": "6",
-            "valueLabel": "diensten onder één dak",
-            "kleur": "teal"
+            "label": "Kennismaken",
+            "href": "/kennismaken"
           },
           {
-            "title": "Menselijk",
-            "text": "Persoonlijke aandacht voor medewerker én werkgever.",
-            "value": "1",
-            "valueLabel": "vaste casemanager",
-            "kleur": "roze"
-          },
-          {
-            "title": "Duidelijk",
-            "text": "Heldere afspraken en transparante communicatie gedurende het gehele verzuimtraject.",
-            "value": "ISO 9001",
-            "valueLabel": "gecertificeerd",
-            "kleur": "blauw"
+            "label": "Tarieven",
+            "href": "/verzuimabonnementen"
           }
         ]
       }
     },
     {
-      "type": "richText",
-      "label": "Over onze dienstverlening",
+      "type": "dgLabels",
+      "label": "De vijf labels",
       "data": {
-        "eyebrow": "Onze visie",
-        "body": "Ziekteverzuim heeft vaak meerdere oorzaken. Naast medische factoren spelen ook werkdruk, communicatie en organisatiecultuur een rol. Daarom kijkt React2u verder dan alleen het medische dossier. Wij werken vanuit een holistische visie op verzuim en re-integratie. Dit betekent dat wij aandacht hebben voor zowel persoonlijke als organisatorische factoren.\n\nNaast verzuimbegeleiding bieden wij ook:\n\n- Preventief medisch onderzoek (PMO)\n- Preventieve interventies\n- Trainingen en workshops\n- Advies over duurzame inzetbaarheid\n\nZo ondersteunen wij organisaties bij zowel herstel als preventie.",
-        "heading": "Over onze dienstverlening"
+        "anchor": "labels",
+        "heading": "Wat kunnen we voor je doen?",
+        "text": "Elke dienst is een eigen specialisme. Je casemanager houdt het overzicht over alles.",
+        "items": [
+          {
+            "naam": "Resist",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "label": "Preventie en vitaliteit.",
+            "tagline": "Uitval voorkomen begint vóór de ziekmelding",
+            "text": "We brengen risico’s in kaart en helpen teams om gezond en met energie aan het werk te blijven.",
+            "points": [
+              "Risico-inventarisatie (RI&E)",
+              "Preventief medisch onderzoek (PMO)",
+              "Werkplekonderzoek",
+              "Trainingen voor leidinggevenden",
+              "Vertrouwenspersoon"
+            ],
+            "href": "/resist"
+          },
+          {
+            "naam": "Recover",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "label": "Verzuimbegeleiding.",
+            "tagline": "Van ziekmelding tot herstel",
+            "text": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.",
+            "points": [
+              "Casemanagement",
+              "Bedrijfsarts en taakdelegatie",
+              "Poortwachterdossier en UWV",
+              "Online dossier en rapportages",
+              "Verzuimadvies"
+            ],
+            "href": "/recover"
+          },
+          {
+            "naam": "Restart",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "label": "Re-integratie en loopbaan.",
+            "tagline": "Samen weer vooruit",
+            "text": "Lukt terugkeer in het eigen werk niet? Dan zoeken we samen naar nieuw perspectief, binnen of buiten de organisatie.",
+            "points": [
+              "Tweede spoor",
+              "Loopbaanscan",
+              "Coaching en burn-outbegeleiding",
+              "Arbeidsdeskundig onderzoek",
+              "Rouwverwerking"
+            ],
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC",
+            "label": "Voor de flexbranche.",
+            "tagline": "Ziektewet zonder zorgen",
+            "text": "Voor uitzendbureaus en eigenrisicodragers Ziektewet. We begeleiden zieke flexkrachten, ook na het einde van het dienstverband.",
+            "points": [
+              "Begeleiding zieke flexkrachten",
+              "Eigenrisicodragerschap Ziektewet",
+              "Ook na einde dienstverband",
+              "Gericht op passend werk"
+            ],
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5",
+            "label": "HR en arbeidsrecht.",
+            "tagline": "Helder advies, snel geregeld",
+            "text": "Vragen over contracten, verlof of ontslag bij ziekte? Je krijgt helder advies van mensen die verzuim kennen.",
+            "points": [
+              "HR-advies rond verzuim",
+              "Arbeidsrechtelijke ondersteuning",
+              "Advies bij conflicten",
+              "Second opinion en deskundigenoordeel"
+            ],
+            "href": "/ready"
+          }
+        ],
+        "strook": {
+          "heading": "Niet zeker wat je nodig hebt?",
+          "text": "In een kort gesprek kijken we samen welke combinatie past bij je organisatie.",
+          "label": "Plan een gesprek",
+          "href": "/kennismaken"
+        }
       }
     },
     {
-      "type": "ctaBanner",
-      "label": "Oproep",
+      "type": "dgSituaties",
+      "label": "Welk label past bij je vraag?",
       "data": {
-        "eyebrow": "Maak kennis",
-        "heading": "Klaar om grip te krijgen op ziekteverzuim?",
-        "text": "Wil je weten wat onze arbodienst voor jouw organisatie kan betekenen? Wij denken graag met je mee over verzuimbegeleiding, preventie en duurzame inzetbaarheid.",
-        "buttons": [
+        "anchor": "situaties",
+        "eyebrow": "Waar loop je tegenaan?",
+        "heading": "Kies op wat je herkent",
+        "text": "Je hoeft niet te weten hoe een dienst heet. Begin bij je vraag, dan zie je welk label erbij hoort.",
+        "items": [
           {
-            "label": "Plan een vrijblijvend gesprek",
-            "href": "/contact",
-            "style": "accent"
+            "vraag": "Een medewerker meldt zich ziek",
+            "naam": "Recover",
+            "wat": "Verzuimbegeleiding",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "href": "/recover"
+          },
+          {
+            "vraag": "Je wilt uitval voorkomen of een RI&E laten maken",
+            "naam": "Resist",
+            "wat": "Preventie en vitaliteit",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "href": "/resist"
+          },
+          {
+            "vraag": "Een medewerker loopt vast of dreigt uit te vallen",
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "href": "/restart"
+          },
+          {
+            "vraag": "Terugkeer in het eigen werk lukt niet meer",
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "href": "/restart"
+          },
+          {
+            "vraag": "Je wilt leidinggevenden of je team laten trainen",
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "href": "/restart"
+          },
+          {
+            "vraag": "Je werkt met uitzendkrachten of bent eigenrisicodrager",
+            "naam": "Reflex",
+            "wat": "Flexbranche en Ziektewet",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC",
+            "href": "/reflex"
+          },
+          {
+            "vraag": "Je twijfelt over een contract, verlof of ontslag bij ziekte",
+            "naam": "Ready",
+            "wat": "HR en arbeidsrecht",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5",
+            "href": "/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "dgStarten",
+      "label": "Zo start je",
+      "data": {
+        "anchor": "starten",
+        "eyebrow": "Overstappen en starten",
+        "heading": "Zo start je",
+        "text": "Al een arbodienst? Overstappen is minder werk dan je denkt. Lopende verzuimdossiers nemen we over, zodat er geen termijn wordt gemist.",
+        "steps": [
+          {
+            "title": "Kennismaking",
+            "text": "Een gesprek over je organisatie en wat je nodig hebt."
+          },
+          {
+            "title": "Offerte op maat",
+            "text": "Een voorstel dat past bij je aantal medewerkers."
+          },
+          {
+            "title": "Overstap geregeld",
+            "text": "We regelen de overdracht met je huidige arbodienst."
+          },
+          {
+            "title": "Je casemanager start",
+            "text": "Je casemanager start en informeert ook je medewerkers."
           }
         ],
+        "button": {
+          "label": "Offerte aanvragen",
+          "href": "/kennismaken"
+        },
+        "call": {
+          "label": "Liever eerst praten?",
+          "value": "Bel 085 620 58 00",
+          "href": "tel:+31856205800"
+        }
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Kennismaken?\nBel gewoon even.",
+        "text": "We horen graag hoe jouw organisatie in elkaar zit. Daarna krijg je een voorstel op maat.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
         "routes": [
           {
             "icon": "phone",
-            "label": "Bel ons direct voor persoonlijk advies",
-            "sub": "085 - 620 58 00",
-            "href": "tel:0856205800"
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
           },
           {
             "icon": "mail",
-            "label": "Mail ons",
-            "sub": "info@react2u.nl",
-            "href": "mailto:info@react2u.nl"
+            "label": "Offerte of kennismaken",
+            "value": "sales@react2u.nl",
+            "href": "mailto:sales@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
           }
-        ]
+        ],
+        "bg": "#ffffff"
       }
     }
   ]

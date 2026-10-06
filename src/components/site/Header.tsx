@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  NAV, PIJLERS, HEADER_CTA, STARTPAGINA, CONTACT_FOTO, dienstVoor, doelgroepVoorPad, type Doelgroep, type NavItem,
+  NAV, LABELS, HEADER_CTA, STARTPAGINA, CONTACT_FOTO, labelVoor, doelgroepVoorPad, type Doelgroep, type NavItem,
 } from "@/lib/nav";
 import { bewaarDoelgroep, useBewaardeDoelgroep } from "@/lib/doelgroep";
 import type { ContactInfo } from "@/lib/content";
@@ -18,7 +18,7 @@ const CLOSE_DELAY_MS = 160;
 
 /** Hoort het huidige pad bij dit menu-item? Voor de actieve markering. */
 function isActive(item: NavItem, path: string): boolean {
-  if (item.mega) return path === item.href || dienstVoor(path) !== null;
+  if (item.mega) return path === item.href || labelVoor(path) !== null;
   if (item.children) return path === item.href || item.children.some((c) => c.href === path);
   return path === item.href || path.startsWith(`${item.href}/`);
 }
@@ -144,33 +144,32 @@ export default function Header({ contact }: { contact: ContactInfo }) {
       onClick={closeOnLink}
     >
       <div className="container-site grid grid-cols-[1fr_1fr_1fr_250px] gap-6 py-8">
-        {/* Elke dienst met zijn eigen foto, zoals op de tegels: ook hier mensen. */}
-        <div className="col-span-3 grid grid-cols-3 gap-6">
-          {PIJLERS.map((p, i) => (
-            <div key={p.key}>
-              <p className="mb-2.5 border-b border-line pb-3">
-                <span className="eyebrow block">Stap {i + 1} · {p.stap}</span>
-                <span className="block font-heading text-[18px] font-bold text-primary">{p.title}</span>
-              </p>
-              <ul className="space-y-1">
-                {p.diensten.map((d) => (
-                  <li key={d.href}>
-                    <Link href={d.href} aria-current={current(d.href)}
-                      className="group -mx-2 flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-soft aria-[current=page]:bg-soft">
-                      <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-soft">
-                        <SiteImage src={d.image} alt="" sizes="48px" widths={[120]} loading="eager"
-                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-semibold leading-snug text-primary">{d.label}</span>
-                        <span className="mt-0.5 block text-[14px] leading-snug text-body">{d.situatie}</span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        {/* Elk label met zijn eigen foto, zoals op de tegels: ook hier mensen. */}
+        <div className="col-span-3">
+          <p className="mb-2.5 border-b border-line pb-3">
+            <span className="eyebrow block">Vijf specialismen</span>
+            <span className="block font-heading text-[18px] font-bold text-primary">Eén vast aanspreekpunt</span>
+          </p>
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-1">
+            {LABELS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} aria-current={current(l.href)}
+                  className="group -mx-2 flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-soft aria-[current=page]:bg-soft">
+                  <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-soft">
+                    <SiteImage src={l.image} alt="" sizes="48px" widths={[120]} loading="eager"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2 font-semibold leading-snug text-primary">
+                      <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ background: l.kleur }} />
+                      {l.titel}
+                    </span>
+                    <span className="mt-0.5 block text-[14px] leading-snug text-body">{l.situatie}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
         {/* Rechts: iemand aan de lijn, zoals onderaan elke pagina. */}
         <a href={`tel:${contact.phone}`}
@@ -312,24 +311,22 @@ export default function Header({ contact }: { contact: ContactInfo }) {
                     <div className="pb-4">
                       {item.mega ? (
                         <div className="space-y-4">
-                          {PIJLERS.map((p) => (
-                            <div key={p.key}>
-                              <p className="eyebrow mb-1.5">{p.stap} · {p.title}</p>
-                              <ul className="space-y-1">
-                                {p.diensten.map((d) => (
-                                  <li key={d.href}>
-                                    <Link href={d.href} aria-current={current(d.href)}
-                                      className="-mx-2 flex items-center gap-3 rounded-xl p-2 text-[16.5px] text-primary aria-[current=page]:bg-soft aria-[current=page]:font-semibold">
-                                      <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-soft">
-                                        <SiteImage src={d.image} alt="" sizes="44px" widths={[120]} loading="eager" className="absolute inset-0 h-full w-full object-cover" />
-                                      </span>
-                                      {d.label}
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
+                          <ul className="space-y-1">
+                            {LABELS.map((l) => (
+                              <li key={l.href}>
+                                <Link href={l.href} aria-current={current(l.href)}
+                                  className="-mx-2 flex items-center gap-3 rounded-xl p-2 text-[16.5px] text-primary aria-[current=page]:bg-soft aria-[current=page]:font-semibold">
+                                  <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-soft">
+                                    <SiteImage src={l.image} alt="" sizes="44px" widths={[120]} loading="eager" className="absolute inset-0 h-full w-full object-cover" />
+                                  </span>
+                                  <span className="flex flex-col leading-snug">
+                                    {l.titel}
+                                    <span className="text-[14px] text-body">{l.omschrijving}</span>
+                                  </span>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
                           <Link href={item.href} className="link-arrow pt-1 text-[15.5px]">Alle diensten <Arrow /></Link>
                         </div>
                       ) : (

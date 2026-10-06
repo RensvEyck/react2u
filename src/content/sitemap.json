@@ -49,6 +49,10 @@
             "title": "Specialismen",
             "links": [
               {
+                "label": "Alle diensten",
+                "href": "/diensten"
+              },
+              {
                 "label": "React2u Resist",
                 "href": "/resist"
               },

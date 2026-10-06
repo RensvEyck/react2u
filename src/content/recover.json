@@ -22,11 +22,10 @@
           "Online dossier en rapportages",
           "Verzuimadvies"
         ],
-        "de": "Dé arbopartner met één vast aanspreekpunt",
-        "lead": "Grip op verzuim begint met aandacht en regie.",
+        "de": "Eén casemanager die je organisatie kent",
         "intro": [
           "Als een medewerker ziek wordt, wil je weten waar je aan toe bent. Met React2u Recover heb je één vaste casemanager die je organisatie kent, met je medewerker in gesprek gaat en alles voor je regelt.",
-          "Je casemanager werkt samen met de bedrijfsarts, bewaakt elke termijn en houdt jou op de hoogte. Zo loopt de begeleiding volgens de wet, en houdt je medewerker het gevoel dat er naar hem geluisterd wordt."
+          "Je casemanager werkt samen met de bedrijfsarts, bewaakt elke termijn en houdt jou op de hoogte. Zo loopt de begeleiding volgens de wet en voelt je medewerker zich gehoord."
         ],
         "herken": [
           "Verzuimbegeleiding voelt complex en tijdrovend",
@@ -97,7 +96,7 @@
           },
           {
             "titel": "Poortwachterproof",
-            "tekst": "Volg je onze aanpak, dan voldoe je aan de eisen van het UWV."
+            "tekst": "We bewaken elke termijn en zorgen dat je dossier compleet is voor het UWV."
           },
           {
             "titel": "Gecertificeerd",
@@ -138,14 +137,14 @@
       "data": {
         "eyebrow": "Contact",
         "heading": "Een vraag?\nBel gewoon even.",
-        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
         "image": "/beeld/home/even-bellen.webp",
         "alt": "Een vrouw belt ontspannen met React2u",
         "focus": "52% 22%",
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen · op werkdagen",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },

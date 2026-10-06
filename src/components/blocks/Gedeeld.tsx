@@ -1,8 +1,7 @@
 import Link from "next/link";
+import Beeld from "@/components/site/Beeld";
 import { pad, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
-
-/* eslint-disable @next/next/no-img-element */
 
 /*
  * Bouwstenen die op meerdere pagina's uit het Design-canvas terugkomen:
@@ -30,13 +29,22 @@ export const kop = "hv-kop font-semibold";
  */
 export const BREED = "mx-auto w-full max-w-[1440px] px-5 md:px-10 lg:px-16 xl:px-[120px]";
 
+/**
+ * Secties die van rand tot rand lopen (de paginakop met foto). Op een heel
+ * breed scherm (ultrawide, 5120 px) werd de foto een band over de volle
+ * breedte met een piepklein tekstpaneel, terwijl de rest van de pagina in
+ * 1440 px bleef staan. Daarom een plafond van 1920 px, gecentreerd: nog steeds
+ * breder dan de inhoud, maar in verhouding. Tot 1920 px verandert er niets.
+ */
+export const BLEED = "mx-auto w-full max-w-[1920px]";
+
 export const KLANTEN = [
-  { src: "/beeld/klanten/jumbo.png", alt: "De Jumbo’s van Ralf & René" },
+  { src: "/beeld/klanten/jumbo.png", alt: "Jumbo Supermarkten" },
   { src: "/beeld/klanten/werkhelden.png", alt: "Werkhelden" },
   { src: "/beeld/klanten/payingit.png", alt: "Payingit" },
   { src: "/beeld/klanten/kester.png", alt: "Kester uitzendbureau" },
   { src: "/beeld/klanten/leebo.png", alt: "Leebo" },
-  { src: "/beeld/klanten/pronkert.png", alt: "Pronkert" },
+  { src: "/beeld/klanten/zorg-verbindt.png", alt: "Zorg Verbindt" },
 ];
 
 export const KEURMERKEN = [
@@ -115,7 +123,7 @@ export function KlantenStrook({ label, taal = "nl" }: { label?: string; taal?: T
         <ul className="m-0 flex w-full list-none flex-wrap items-center justify-center gap-x-10 gap-y-6 p-0 md:justify-between">
           {KLANTEN.map((k) => (
             <li key={k.src} className="flex h-10 items-center md:h-11">
-              <img src={k.src} alt={k.alt} className="h-full w-auto max-w-[150px] object-contain" loading="lazy" />
+              <Beeld src={k.src} alt={k.alt} sizes="150px" className="h-full w-auto max-w-[150px] object-contain" />
             </li>
           ))}
         </ul>
@@ -146,7 +154,7 @@ export function KlantenAanHetWoord({ bg = SOFT, eyebrow, heading, taal = "nl" }:
                   <span className="text-[16px] font-bold" style={{ color: NAVY }}>{q.naam}</span>
                   <span className="text-[14.5px]" style={{ color: MUTE }}>{q.rol}</span>
                 </span>
-                <img src={q.logo} alt="" className="h-8 w-auto max-w-[120px] object-contain" loading="lazy" />
+                <Beeld src={q.logo} alt="" sizes="120px" className="h-8 w-auto max-w-[120px] object-contain" />
               </figcaption>
             </figure>
           ))}
@@ -177,7 +185,7 @@ export function Keurmerken({ taal = "nl" }: { taal?: Taal }) {
         <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
           {KEURMERKEN.map((k, i) => (
             <li key={k.src} className="flex flex-col items-center gap-4 rounded-[22px] border bg-white px-5 py-7 text-center" style={{ borderColor: LINE }}>
-              <span className="flex h-[72px] items-center"><img src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} className="max-h-full w-auto max-w-[110px] object-contain" loading="lazy" /></span>
+              <span className="flex h-[72px] items-center"><Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="72px" className="max-h-full w-auto max-w-[110px] object-contain" /></span>
               <span className="flex flex-col gap-0.5">
                 <span className="text-[16px] font-bold" style={{ color: NAVY }}>{g.keurmerken[i]?.naam || k.naam}</span>
                 <span className="text-[14px]" style={{ color: MUTE }}>{g.keurmerken[i]?.wat || k.wat}</span>

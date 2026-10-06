@@ -5,17 +5,23 @@ import { createClient } from "@supabase/supabase-js";
  * Client met de service-role-sleutel. **Omzeilt alle RLS.**
  *
  * De rest van dit project werkt bewust zonder deze sleutel — zie CONTEXT.md.
- * Er is één ding dat niet zonder kan: een auth-account aanmaken voor iemand
- * anders. Uitnodigen per e-mail vereist `auth.admin`, en dat is service-role.
+ * Er zijn precies drie dingen die niet zonder kunnen, en meer horen er niet
+ * bij te komen:
+ *
+ * - een auth-account aanmaken voor iemand anders (uitnodigen, `auth.admin`);
+ * - een cv uit het publieke formulier in de bucket zetten (src/lib/cvs.ts),
+ *   zodat de publieke sleutel daar geen schrijfrecht meer nodig heeft;
+ * - de dagelijkse opschoning van verlopen sollicitaties (api/cron/opruimen),
+ *   want daar is geen ingelogde beheerder.
  *
  * Regels die hier gelden:
  *
- * 1. **Alleen voor auth-beheer.** Gewone tabellen lees en schrijf je met de
- *    ingelogde client uit `server.ts`, zodat de policies blijven gelden. Zou je
- *    hier ook content mee schrijven, dan is elke rolcontrole in dit project
- *    zinloos geworden.
- * 2. **Nooit zonder rechtencontrole aanroepen.** Elke aanroeper controleert
- *    eerst `requirePerm("gebruikers")`.
+ * 1. **Niet voor het adminpaneel.** Daar lees en schrijf je met de ingelogde
+ *    client uit `server.ts`, zodat de policies blijven gelden. Zou je hier ook
+ *    content mee schrijven, dan is elke rolcontrole in dit project zinloos.
+ * 2. **Nooit zonder eigen controle aanroepen.** Uitnodigen controleert eerst
+ *    `requirePerm("gebruikers")`; het cv-formulier honeypot, limiet, type en
+ *    grootte; de cron-route het geheim in de Authorization-header.
  * 3. **Nooit in de browser.** De import van `server-only` bovenaan laat de
  *    build falen zodra dit bestand in een client component belandt — dat is een
  *    hardere garantie dan een afspraak.
@@ -28,7 +34,7 @@ export function supabaseAdmin() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY ontbreekt — uitnodigen werkt pas als die in Vercel staat."
+      "SUPABASE_SERVICE_ROLE_KEY ontbreekt — uitnodigen en automatisch opschonen werken pas als die in Vercel staat."
     );
   }
   return createClient(url, key, {
@@ -36,7 +42,10 @@ export function supabaseAdmin() {
   });
 }
 
-/** Of uitnodigen überhaupt kan. Gebruikt om de knop uit te leggen in plaats van te laten falen. */
-export function canInvite(): boolean {
+/** Of de sleutel er is. Alleen of hij gezet is, nooit de waarde. */
+export function serviceRoleAvailable(): boolean {
   return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
+
+/** Of uitnodigen überhaupt kan. Gebruikt om de knop uit te leggen in plaats van te laten falen. */
+export const canInvite = serviceRoleAvailable;

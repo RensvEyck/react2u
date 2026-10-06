@@ -3,9 +3,28 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { clientIp, visitorHash, referrerHost, isTrackablePath, normalizePath } from "@/lib/analytics";
 import { isIgnored, lookupCompany } from "@/lib/companyLookup";
 import { missingReferrer } from "@/lib/redirects";
+import { mayIdentify, normalizeTracking, TRACKING_DEFAULT, type TrackingSettings } from "@/lib/tracking";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// De instelling kort onthouden per instantie: dit draait bij elke paginaweergave.
+const SETTINGS_MS = 60_000;
+let cachedSettings: { at: number; value: TrackingSettings } | null = null;
+
+async function trackingSettings(): Promise<TrackingSettings> {
+  if (cachedSettings && Date.now() - cachedSettings.at < SETTINGS_MS) return cachedSettings.value;
+  try {
+    const { data } = await supabasePublic()
+      .from("site_settings").select("value").eq("key", "tracking")
+      .abortSignal(AbortSignal.timeout(1000))
+      .maybeSingle();
+    cachedSettings = { at: Date.now(), value: normalizeTracking(data?.value) };
+  } catch {
+    cachedSettings = { at: Date.now(), value: cachedSettings?.value ?? TRACKING_DEFAULT };
+  }
+  return cachedSettings.value;
+}
 
 export async function POST(req: NextRequest) {
   // Altijd 204 teruggeven, wat er ook misgaat. Dit is een zijspoor: een
@@ -14,7 +33,11 @@ export async function POST(req: NextRequest) {
   const ok = () => new NextResponse(null, { status: 204 });
 
   try {
-    const body = (await req.json()) as { path?: string; referrer?: string; missing?: boolean };
+    const body = (await req.json()) as {
+      path?: string; referrer?: string; missing?: boolean;
+      /** De keuze "Statistiek" in de cookiemelding: aan, uit, of nog niets gekozen. */
+      consent?: boolean | null;
+    };
     const raw = String(body.path || "");
     if (!isTrackablePath(raw)) return ok();
     const path = normalizePath(raw);
@@ -46,10 +69,14 @@ export async function POST(req: NextRequest) {
     const day = new Date().toISOString().slice(0, 10);
     const hash = visitorHash(ip, req.headers.get("user-agent") || "", day, salt);
 
-    // Welk bedrijf, als dat gratis te weten is (netwerkeigenaar of reverse
-    // DNS, zie companies.ts). Providers en datacenters vallen af: die zeggen
-    // niets en zouden het overzicht vervuilen. Het IP zelf bewaren we niet.
-    const found = await lookupCompany(ip);
+    // Welk bedrijf — maar alleen als dat mag. Standaard pas na toestemming in
+    // de cookiemelding ("Statistiek"); de beheerder kan dat op gerechtvaardigd
+    // belang zetten als de privacyverklaring die afweging bevat (lib/tracking.ts).
+    // Zonder die grond gaat het IP-adres nergens heen: geen ipinfo, geen
+    // reverse DNS. Het bezoek zelf wordt wel geteld, zonder bedrijf.
+    const consent = typeof body.consent === "boolean" ? body.consent : null;
+    const identify = mayIdentify(await trackingSettings(), consent);
+    const found = identify ? await lookupCompany(ip) : null;
     const company = found && !(await isIgnored(found)) ? found : null;
 
     const row = {

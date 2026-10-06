@@ -4,6 +4,7 @@ import { submitOfferte, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, BODY, MUTE, LAV, kop, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
+import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
 import { pad, telefoonInTaal } from "@/lib/taal";
 
@@ -88,6 +89,7 @@ function Formulier({ d }: { d: any }) {
           <textarea className={`${veld} h-[120px] resize-none py-3.5 leading-[1.6]`} name="toelichting" maxLength={3000} placeholder={k.toelichtingPlaceholder} /></label>
       </div>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="m-0 text-[15px] font-medium" style={{ color: PINK }}>{state.error}</p>}
       <button disabled={pending}
         className="hv-btn hv-btn-roze inline-flex h-[56px] items-center justify-center gap-2.5 rounded-full px-7 text-[16px] font-bold disabled:opacity-60">

@@ -120,9 +120,13 @@ export const en: Woordenboek = {
   },
 
   cookies: {
-    titel: "Cookies on react2u.nl",
-    info: "We only use functional cookies. They are needed to make the site work properly and safely. We do not track you and we do not place third-party cookies.",
-    toestemming: "We use functional cookies to make the site work. With your consent we also use other cookies. You can change your choice at any time via Cookie settings at the bottom of the page.",
+    titel: "Cookies and statistics on react2u.nl",
+    basis: "We only use functional cookies and count visits without cookies.",
+    optOut: "If you visit from a company network, we see which company that is, never who. Not needed? Switch it off under Settings.",
+    toestemming: "With your consent we also see which company you are visiting from, never who. You can change your choice at any time via Cookie settings at the bottom of the page.",
+    statistiek: "Statistics",
+    statistiekAltijd: "If you visit from a company network, we see which company that is, never who. Switch this off if you prefer.",
+    statistiekToestemming: "With your consent we see which company you are visiting from, never who. That way we know which organisations visit our site.",
     lees: "Read the cookie statement (Dutch)",
     prima: "OK",
     functioneel: "Functional",
@@ -178,6 +182,8 @@ export const en: Woordenboek = {
       privacyVoor: "We handle your details with care. Read our ",
       privacyLink: "privacy statement (Dutch)",
       privacyNa: ".",
+      bewaren: "Keep my details for a year, also for future vacancies.",
+      bewarenUitleg: "Without this tick we delete them no later than four weeks after the procedure ends.",
     },
     contact: {
       kop: "Send a message",
@@ -189,6 +195,12 @@ export const en: Woordenboek = {
       telefoonPlaceholder: "+31 6 12 34 56 78",
     },
     fouten: {
+      emailOngeldig: "Please check your email address: it does not look right.",
+      limiet: "You have already sent something a few times recently. Please try again in an hour, or call us.",
+      spamcontrole: "The spam check did not succeed. Please refresh the page and try again.",
+      terugbelVerplicht: "Please fill in your name and phone number.",
+      telefoonOngeldig: "Please check your phone number.",
+      terugbelAlgemeen: "Something went wrong. Feel free to call us directly.",
       contactVerplicht: "Please fill in your name, email address, phone number and message.",
       algemeen: "Something went wrong. Please try again later.",
       sollicitatieVerplicht: "Please fill in at least your name and email address.",
@@ -198,6 +210,17 @@ export const en: Woordenboek = {
       sollicitatieAlgemeen: "Something went wrong while sending. Please try again later.",
       offerteVerplicht: "Please fill in your name, company name, email address, phone number and the number of employees.",
     },
+  },
+
+  belbalk: {
+    belMijTerug: "Call me back",
+    sluiten: "Close",
+    eyebrow: "Call-back request",
+    kop: "When may we call you?",
+    bedankt: "Thank you! We will call you as agreed. Prefer to speak to someone now? Call {tel}.",
+    wanneer: "When",
+    momenten: ["As soon as possible", "Today", "Tomorrow morning", "Tomorrow afternoon", "Later this week"],
+    tijden: "We call on working days between 9:00 and 17:00.",
   },
 
   vacatures: {
@@ -260,6 +283,8 @@ export const en: Woordenboek = {
     solliciterenMicro: ["No cover letter", "Happy to meet first"],
     aanspreekpunt: "Your contact",
     susanneRol: "Managing director",
+    fotoTeamAlt: "React2u colleagues laughing together at a table",
+    fotoWerkAlt: "Three React2u colleagues looking at a screen together at the office",
     inHetNederlands: "This vacancy is in Dutch",
     inHetNederlandsKort: "In Dutch",
     detail: {
@@ -311,6 +336,7 @@ export const en: Woordenboek = {
     overOnsKruimel: "About us",
     overReact2uKruimel: "About React2u",
     kernwaarden: "Core values",
+    geldigheid: "Prices {jaar}, valid up to and including {tot}. All amounts are excl. VAT.",
   },
 
   dienstLabel: {

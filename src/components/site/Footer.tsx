@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { PIJLERS, LINKEDIN_URL, type FooterDoc, type Certificate } from "@/lib/nav";
+import { LABELS, LINKEDIN_URL, type FooterDoc, type Certificate } from "@/lib/nav";
 import type { ContactInfo } from "@/lib/content";
-import { LuPhone, LuMail, LuMapPin, LuAward, LuLinkedin } from "react-icons/lu";
+import { LuPhone, LuMail, LuMapPin, LuAward, LuLinkedin, LuClock } from "react-icons/lu";
 import SiteImage from "./SiteImage";
 import Logo from "./Logo";
 import { zinsletters } from "@/lib/tekst";
@@ -55,6 +55,10 @@ export default function Footer({
                 <LuPhone className="text-[16px]" aria-hidden /> {contact.phoneDisplay}
               </a>
             </li>
+            <li className="flex gap-3">
+              <LuClock className="mt-1 shrink-0 text-[16px]" aria-hidden />
+              <span>Ma t/m vr 9.00 tot 17.00 uur</span>
+            </li>
             <li>
               <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-3 font-semibold text-white underline-offset-4 hover:underline">
                 <LuMail className="text-[16px]" aria-hidden /> {contact.email}
@@ -70,11 +74,14 @@ export default function Footer({
         <div className="lg:col-span-3 lg:col-start-6">
           <Kop><Link href="/werkgevers" className="hover:underline">Voor werkgevers</Link></Kop>
           <ul className="space-y-2.5">
-            {PIJLERS.flatMap((p) => p.diensten).map((d) => (
-              <li key={d.href}>
-                <Link href={d.href} className="hover:text-white">{d.label}</Link>
+            {LABELS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="hover:text-white">{l.titel}</Link>
               </li>
             ))}
+            <li>
+              <Link href="/diensten" className="hover:text-white">Alle diensten</Link>
+            </li>
           </ul>
         </div>
 

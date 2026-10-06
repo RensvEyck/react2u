@@ -167,3 +167,22 @@ export async function notifyOfferte(o: {
     process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
   );
 }
+
+/**
+ * Terugbelverzoek vanuit de belbalk op de werkgeverspagina's (mobiel). Een
+ * lead voor sales, net als een offerteaanvraag.
+ */
+export async function notifyTerugbel(t: {
+  name: string; phone: string; company: string | null; moment: string; path: string;
+}) {
+  await send(
+    `Terugbelverzoek: ${t.name}${t.company ? ` (${t.company})` : ""}`,
+    render("Nieuw terugbelverzoek", `Aangevraagd via de belbalk op ${t.path}.`, [
+      { label: "Naam", value: t.name },
+      { label: "Bedrijf", value: t.company },
+      { label: "Telefoon", value: t.phone },
+      { label: "Wanneer", value: t.moment },
+    ]),
+    process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
+  );
+}

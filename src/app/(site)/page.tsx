@@ -47,7 +47,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{
           __html: jsonLd({
             "@context": "https://schema.org",
-            "@type": "Organization",
+            "@type": "LocalBusiness",
             name: "React2u",
             alternateName: "R2U",
             url: process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl",
@@ -62,6 +62,15 @@ export default async function HomePage() {
               addressCountry: "NL",
             },
             sameAs: [LINKEDIN_URL],
+            image: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp/2023/05/Logo-kleur.svg`,
+            openingHoursSpecification: [
+              {
+                "@type": "OpeningHoursSpecification",
+                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                opens: "09:00",
+                closes: "17:00",
+              },
+            ],
           }),
         }}
       />

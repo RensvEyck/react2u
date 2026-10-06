@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
 import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin, LuClock } from "react-icons/lu";
+import Beeld from "@/components/site/Beeld";
 
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 
@@ -77,8 +78,8 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
             <Link key={i} href={c.href} aria-label={c.aria || c.title}
               className="hn-tile group relative h-[380px] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]"
               style={{ background: links ? "#D9D3F0" : "#F5D9E4" }}>
-              <img src={c.image} alt={c.alt || ""} className="absolute inset-0 h-full w-full object-cover"
-                style={{ objectPosition: c.focus || "50% 30%" }} fetchPriority="high" loading="eager" decoding="sync" />
+              <Beeld src={c.image} alt={c.alt || ""} fill priority sizes="(min-width: 768px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover"
+                style={{ objectPosition: c.focus || "50% 30%" }} />
               <span
                 className={`hn-orb absolute flex flex-col justify-center rounded-full text-white ${links ? "hn-orb-l" : "hn-orb-r"}`}
                 style={{ background: kleur, transformOrigin: links ? "28% 72%" : "72% 72%" }}>
@@ -128,7 +129,7 @@ export function HomeWaarom({ d }: BlockProps) {
         style={{ marginTop: "clamp(56px, 8vw, 120px)" }}>
         <div className="relative h-[340px] overflow-hidden rounded-[28px] md:col-span-5 md:h-auto md:min-h-[620px] md:rounded-[32px] lg:min-h-[700px]"
           style={{ background: "#D9D3F0" }}>
-          <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover"
+          <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 768px) 42vw, 100vw" className="absolute inset-0 h-full w-full object-cover"
             style={{ objectPosition: d.focus || "30% 40%" }} />
           {d.badgeText && (
             <span className="absolute bottom-[-80px] left-[-60px] flex h-[230px] w-[230px] flex-col justify-center gap-1 rounded-full pb-[56px] pl-[82px] text-white md:bottom-[-110px] md:left-[-70px] md:h-[330px] md:w-[330px] md:gap-1.5 md:pb-[80px] md:pl-[118px]"
@@ -248,7 +249,7 @@ export function HomeContact({ d }: BlockProps) {
         <span aria-hidden className="absolute right-[-90px] top-[-90px] h-[300px] w-[300px] rounded-full md:left-[-120px] md:right-auto md:top-[-140px] md:h-[620px] md:w-[620px]" style={{ background: "#3B378F" }} />
         {d.image && (
           <span className="relative block h-[150px] w-[150px] overflow-hidden rounded-full border-[6px] md:h-[240px] md:w-[240px] md:border-8 lg:h-[220px] lg:w-[220px] xl:h-[300px] xl:w-[300px]" style={{ borderColor: MAGENTA, background: "#E9E3F9" }}>
-            <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "52% 22%" }} />
+            <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1280px) 300px, (min-width: 1024px) 220px, (min-width: 768px) 240px, 150px" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "52% 22%" }} />
           </span>
         )}
         <div className="relative mt-1.5 flex flex-col gap-3 md:mt-0 md:gap-5">
@@ -267,7 +268,7 @@ export function HomeContact({ d }: BlockProps) {
                   <Ic className="text-[18px] md:text-[20px]" aria-hidden />
                 </span>
                 <span className="flex grow flex-col gap-0.5">
-                  <span className="text-[13px] font-semibold" style={{ color: "#B4ADF2" }}>{r.label}</span>
+                  <span className="text-balance text-[13px] font-semibold" style={{ color: "#B4ADF2" }}>{r.label}</span>
                   <span className="text-[17px] font-extrabold tracking-[-0.3px] md:text-[18px] xl:whitespace-nowrap xl:text-[20px]">{r.value}</span>
                 </span>
                 <span style={{ color: "#B4ADF2" }}><Pijl /></span>

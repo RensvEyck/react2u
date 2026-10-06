@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN } from "./Gedeeld";
-import { pad, type Taal } from "@/lib/taal";
+import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, BLEED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN } from "./Gedeeld";
+import Beeld from "@/components/site/Beeld";
+import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
+import { datumInTaal, pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 
-type Ctx = { lang?: Taal };
+type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
 
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*
  * Blokken voor de doelgroeppagina's in het ontwerp van het canvas
@@ -51,8 +53,8 @@ export function DgKop({ d, asH1 }: { d: any; asH1?: boolean }) {
   const knoppen: any[] = d.buttons || [];
   return (
     <section aria-label={d.eyebrow || d.heading} className={`hv ${outfit.variable} px-[6px] pt-2 md:px-2`}>
-      <div className="relative overflow-hidden rounded-[24px] md:rounded-[28px]">
-        <img src={d.image} alt={d.alt || ""} className="h-[300px] w-full object-cover md:h-[640px]" style={{ objectPosition: d.focus || "50% 35%" }} />
+      <div className={`${BLEED} relative overflow-hidden rounded-[24px] md:rounded-[28px]`}>
+        <Beeld src={d.image} alt={d.alt || ""} priority sizes="(min-width: 1920px) 1920px, 100vw" className="h-[300px] w-full object-cover md:h-[640px]" style={{ objectPosition: d.focus || "50% 35%" }} />
         {/* Op een tablet is het vlak breder en de kop kleiner: in 46% met een rand
             van 72px brak "re-integratie" in drieën. Vanaf 1280px de maten van het ontwerp. */}
         <div className="relative -mt-10 flex flex-col gap-5 rounded-t-[28px] px-6 pb-9 pt-9 md:absolute md:bottom-0 md:left-0 md:mt-0 md:w-[58%] md:max-w-[640px] md:rounded-none md:rounded-tr-[300px] md:px-12 md:pb-12 md:pt-12 lg:w-[54%] lg:px-14 lg:pb-14 lg:pt-14 xl:w-[46%] xl:px-[72px] xl:pb-[72px] xl:pt-[72px]"
@@ -78,9 +80,12 @@ export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} bg-white`}>
       <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
         <SectieKop d={d} />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:gap-3">
+        {/* Vijf naast elkaar pas vanaf 1400px; daaronder werden de kaarten zo smal
+            dat woorden midden in braken ("Werkplekonderzoe-k"). Op een laptop drie
+            en twee, die samen de volle breedte vullen (zes kolommen: 2+2+2, 3+3). */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 min-[87.5rem]:grid-cols-5">
           {kaarten.map((c, i) => (
-            <div key={i} className="relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-6 pb-7 pt-7" style={{ background: c.tint }}>
+            <div key={i} className={`relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-6 pb-7 pt-7 min-[87.5rem]:col-span-1 ${kaarten.length === 5 ? (i < 3 ? "lg:col-span-2" : "lg:col-span-3") : "lg:col-span-2"}`} style={{ background: c.tint }}>
               <span aria-hidden className="absolute right-[-40px] top-[-40px] h-[120px] w-[120px] rounded-full" style={{ background: c.kleur, opacity: 0.16 }} />
               <span className={`${kop} relative flex flex-col text-[19px] leading-[1.1]`} style={{ color: NAVY }}>
                 React2u<span className="text-[30px] tracking-[-0.6px]" style={{ color: c.kleur === NAVY ? NAVY : c.kleur }}>{c.naam}<sup className="text-[13px]" style={{ color: NAVY }}>®</sup></span>
@@ -129,7 +134,7 @@ export function DgFotoLijst({ d }: { d: any }) {
         <SectieKop d={d} />
         <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-6">
           <div className="relative h-[300px] overflow-hidden rounded-[24px] md:h-[440px] lg:col-span-6">
-            <img src={d.image} alt={d.alt || ""} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 50%" }} loading="lazy" />
+            <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1024px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 50%" }} />
           </div>
           <ol className="m-0 flex list-none flex-col p-0 lg:col-span-5 lg:col-start-8">
             {items.map((it, i) => (
@@ -332,12 +337,16 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
   const H = asH1 ? "h1" : "h2";
   const abonnementen: any[] = d.abonnementen || [];
   const groepen: any[] = d.groepen || [];
+  // Het jaartal komt uit Instellingen → Tarievenjaar, niet uit de bloktekst;
+  // in de blokeditor (zonder ctx) staat de tekst zoals ingevoerd.
+  const tar = ctx?.tarieven;
+  const eyebrow = tar ? metJaar(d.eyebrow, tar.jaar) : d.eyebrow;
   return (
     <div className={`hv ${outfit.variable}`}>
       <section aria-label={d.eyebrow || "Tarieven"} className="bg-white">
         <div className={`${BREED} flex flex-col gap-5 pb-14 pt-10 md:pb-16 md:pt-14`}>
           <Kruimels items={[{ label: t.algemeen.home, href: pad(taal, "home") }, { label: t.werkgevers.tarievenKruimel }]} taal={taal} />
-          {d.eyebrow && <Eyebrow kleur={TEAL}>{d.eyebrow}</Eyebrow>}
+          {eyebrow && <Eyebrow kleur={TEAL}>{eyebrow}</Eyebrow>}
           <H className={`${kop} m-0 text-[42px] leading-[1.04] tracking-[-1.4px] md:text-[60px]`} style={{ color: NAVY }}>{d.heading}</H>
           {d.text && <p className="m-0 max-w-[640px] text-[17px] leading-[1.65]" style={{ color: BODY }}>{d.text}</p>}
         </div>
@@ -369,6 +378,11 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
               </div>
             );
           })}
+          {tar && (
+            <p className="m-0 text-[14px] md:col-span-2" style={{ color: MUTE }}>
+              {taal === "nl" ? geldigheidsregel(tar) : vul(t.werkgevers.geldigheid, { jaar: tar.jaar, tot: datumInTaal(tar.geldigTot, taal) })}
+            </p>
+          )}
         </div>
       </section>
       {groepen.map((g, gi) => (
@@ -426,7 +440,7 @@ export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ct
         <ul className={`${BREED} m-0 grid list-none grid-cols-2 gap-3 py-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4`}>
           {KEURMERKEN.map((k, i) => (
             <li key={k.src} className="grid h-[110px] place-items-center rounded-[20px] bg-white p-4 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)]">
-              <img src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} className="max-h-[70px] w-auto object-contain" loading="lazy" />
+              <Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="70px" className="max-h-[70px] w-auto object-contain" />
             </li>
           ))}
         </ul>
@@ -440,7 +454,7 @@ export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ct
               return (
                 <div key={i} className="grid gap-5 border-b py-8 md:grid-cols-12 md:gap-6" style={{ borderColor: LINE }}>
                   <span className="grid h-[76px] w-[76px] place-items-center rounded-[18px] border bg-white p-2 md:col-span-2" style={{ borderColor: LINE }}>
-                    {k && <img src={k.src} alt="" className="max-h-full w-auto object-contain" loading="lazy" />}
+                    {k && <Beeld src={k.src} alt="" sizes="60px" className="max-h-full w-auto object-contain" />}
                   </span>
                   <span className={`${kop} text-[21px] leading-[1.25] md:col-span-4`} style={{ color: NAVY }}>{it.title}</span>
                   <span className="text-[16px] leading-[1.7] md:col-span-6" style={{ color: BODY }}>{it.text}</span>
@@ -451,5 +465,42 @@ export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ct
         </div>
       </section>
     </div>
+  );
+}
+
+/* ---------- Situaties: welk label past bij je vraag? ---------- */
+
+/*
+ * Kiezen op herkenning in plaats van op labelnaam: per rij een situatie zoals
+ * een werkgever hem zelf zou omschrijven, met het label dat erbij hoort. De
+ * hele rij is de link; bij aanwijzen kleurt hij in de tint van het label.
+ */
+export function DgSituaties({ d }: { d: any }) {
+  const rijen: any[] = d.items || [];
+  return (
+    <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: d.bg || SOFT }}>
+      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+        <SectieKop d={d} />
+        <ul className="m-0 flex list-none flex-col overflow-hidden rounded-[24px] bg-white p-0">
+          {rijen.map((r, i) => (
+            <li key={i} className="border-t first:border-t-0" style={{ borderColor: LINE }}>
+              <Link href={r.href} className="hn-row flex items-center gap-4 px-6 py-5 transition-colors duration-300 hover:bg-(--tint) md:gap-8 md:px-8 md:py-6"
+                style={{ "--tint": r.tint || SOFT } as React.CSSProperties}>
+                <span className="grid min-w-0 flex-1 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,340px)] md:items-center md:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
+                  <span className="text-[17px] font-bold leading-[1.4] md:text-[19px]" style={{ color: NAVY }}>{r.vraag}</span>
+                  <span className="flex items-center gap-2.5 text-[15px] leading-[1.45]" style={{ color: BODY }}>
+                    <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: r.kleur }} />
+                    <span><strong style={{ color: NAVY }}>React2u {r.naam}</strong>{r.wat && <> · {r.wat}</>}</span>
+                  </span>
+                </span>
+                <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[1.5px] md:h-11 md:w-11" style={{ borderColor: LINE, color: NAVY }}>
+                  <Pijl />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }

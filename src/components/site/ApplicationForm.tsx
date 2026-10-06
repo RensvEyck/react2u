@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
 import { Field, Bedankt, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
+import TurnstileField from "./TurnstileField";
 import { DOCUMENTEN } from "@/lib/documenten";
 
 export default function ApplicationForm({ vacancyId, vacancyTitle }: { vacancyId?: string; vacancyTitle: string }) {
@@ -32,6 +33,14 @@ export default function ApplicationForm({ vacancyId, vacancyTitle }: { vacancyId
           name="cv" type="file" accept=".pdf,.doc,.docx" />
       </Field>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <label className="flex items-start gap-3 text-[14.5px] text-body">
+        <input type="checkbox" name="retain_longer" className="mt-1 size-4 shrink-0 accent-primary" />
+        <span>
+          Bewaar mijn gegevens een jaar, ook voor toekomstige vacatures.{" "}
+          <span className="text-body/70">Zonder vinkje verwijderen we ze uiterlijk vier weken na afloop van de procedure.</span>
+        </span>
+      </label>
+      <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="text-[15px] font-medium text-accent">{state.error}</p>}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
         <button className="btn" disabled={pending}>

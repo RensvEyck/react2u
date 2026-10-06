@@ -21,7 +21,7 @@ import { ContactSimpel } from "./ContactSimpel";
 import { DienstLabel } from "./DienstLabel";
 import { OverReact2u } from "./OverReact2u";
 import { SitemapOverzicht } from "./Werkgebied";
-import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen } from "./Doelgroep";
+import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen, DgSituaties } from "./Doelgroep";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
@@ -31,8 +31,10 @@ import {
 import {
   WnSplit, WnInhoud, WnWatNu, WnTijdlijn, WnRechten, WnPrivacy, WnCasemanager, WnCoaching, WnVragen, WnContact,
 } from "./Werknemers";
-import { PIJLERS, CONTACT_FOTO, dienstVoor } from "@/lib/nav";
+import { LABELS, CONTACT_FOTO, labelVoor, type Label } from "@/lib/nav";
+import { DIENST_REDIRECTS } from "@/lib/redirects";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
+import type { TarievenSettings } from "@/lib/tarieven";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -58,8 +60,8 @@ type Crumb = { label: string; href: string };
 export type BlockCtx = {
   posts?: Post[];
   crumbs?: Crumb[];
-  /** Knoppen voor een paginakop die er zelf geen heeft (de dienstpagina's). */
-  knoppen?: Btn[];
+  /** Het tarievenjaar en de geldigheid uit de instellingen; voor de tariefblokken. */
+  tarieven?: TarievenSettings;
   /** De taal van de pagina; de blokdata is al in die taal, dit is voor de paar vaste woorden in een blok. */
   lang?: Taal;
 };
@@ -172,7 +174,7 @@ function Buttons({ list, className = "" }: { list: (Btn | undefined)[]; classNam
 
 /**
  * Anker voor een kop, zodat je vanaf elders naar een onderdeel van een pagina
- * kunt linken (`/begeleiding-en-coaching#burn-out-coaching-op-maat`).
+ * kunt linken (`/over-react2u#onze-visie`).
  * Accenten eraf: "Eén-op-één" wordt "een-op-een".
  */
 export function anchorId(title: string): string {
@@ -297,7 +299,7 @@ function HeroSplit({ d, asH1, ctx }: BlockProps) {
         <Highlighted text={d.heading || ""} highlight={d.highlight} />
       </PageHeading>
       {d.text && <MiniMarkdown text={d.text} className={`mt-6 max-w-[580px] ${LEAD}`} />}
-      <Buttons list={[d.button, d.button2].some((b) => b?.label) ? [d.button, d.button2] : ctx?.knoppen || []} className="mt-8" />
+      <Buttons list={[d.button, d.button2]} className="mt-8" />
       {d.badge && (
         <p className="mt-7 flex items-center gap-2.5 text-[15px] font-medium text-primary">
           <LuBadgeCheck className="shrink-0 text-[19px]" aria-hidden />
@@ -603,43 +605,50 @@ function ImagesBlock({ d }: BlockProps) {
 
 /* ---------- Diensten ---------- */
 
-const DIENST_VOLGORDE = PIJLERS.flatMap((p) => p.diensten.map((x) => x.href));
+/**
+ * Het label achter een link in blokdata. Oude blokken in de database linken
+ * nog naar de zes dienstpagina's van vóór oktober 2026; die gaan via
+ * DIENST_REDIRECTS naar hun label, zodat er geen link naar een doorverwijzing
+ * op de pagina staat.
+ */
+function labelVoorLink(href: unknown): Label | null {
+  if (typeof href !== "string") return null;
+  const pad = href.split(/[?#]/)[0].replace(/\/+$/, "");
+  return labelVoor(DIENST_REDIRECTS.find((r) => r.source === pad)?.destination ?? pad);
+}
 
 /**
- * Het overzicht van de zes diensten, als fototegels. Titel, foto en situatie
- * komen uit PIJLERS (op de link), zodat de tegels hetzelfde heten als in menu
- * en footer — ook als de blokdata nog de oude titel in hoofdletters heeft.
+ * Een overzicht van diensten als fototegels. Kaarten die naar een label (of
+ * een oude dienstpagina) wijzen, worden dat label: titel, foto en situatie uit
+ * LABELS, elk label één keer en in de volgorde van het menu. Zo blijft een oud
+ * blok met zes kaarten kloppen. Andere kaarten blijven zoals ze zijn.
  */
 function ServicesGrid({ d }: BlockProps) {
-  const plek = (c: any) => {
-    const i = DIENST_VOLGORDE.indexOf(c.href);
-    return i < 0 ? Infinity : i;
-  };
-  const cards = [...((d.cards as any[]) || [])].sort((a, b) => plek(a) - plek(b));
+  const kaarten = (d.cards as any[]) || [];
+  const labels = LABELS.filter((l) => kaarten.some((c) => labelVoorLink(c.href) === l));
+  const overig = kaarten.filter((c) => !labelVoorLink(c.href));
+  const tegels = [
+    ...labels.map((l) => ({ href: l.href, image: l.image, kicker: l.situatie, title: l.titel })),
+    ...overig.map((c) => ({ href: c.href || "#", image: undefined, kicker: c.description, title: zinsletters(c.title) })),
+  ];
   return (
     <section data-tone="white" className={PAD}>
       <ul className="container-site grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c, i) => {
-          const hit = c.href ? dienstVoor(c.href) : null;
-          return (
-            <li key={i} data-reveal style={{ "--ri": i % 3 } as React.CSSProperties}>
-              <FotoTegel href={c.href || "#"} image={hit?.dienst.image} kicker={hit?.dienst.situatie || c.description}
-                title={hit?.dienst.label || zinsletters(c.title)} sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" />
-            </li>
-          );
-        })}
+        {tegels.map((t, i) => (
+          <li key={i} data-reveal style={{ "--ri": i % 3 } as React.CSSProperties}>
+            <FotoTegel href={t.href} image={t.image} kicker={t.kicker} title={t.title}
+              sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" />
+          </li>
+        ))}
       </ul>
     </section>
   );
 }
 
 /**
- * "Waar kunnen we je mee helpen?": de diensten per stap (voorkomen,
- * begeleiden, versterken), elk als fototegel met de situatie waarin hij helpt.
- * Inhoud uit PIJLERS in nav.ts; het blok zelf heeft alleen de kop.
- *
- * De kolommen delen hun rijen (subgrid), zodat de tegels van de drie stappen op
- * één lijn beginnen, ook als de ene stap een langere uitleg heeft.
+ * "Waar kunnen we je mee helpen?": de vijf labels als fototegels, elk met de
+ * situatie waarin het helpt. Inhoud uit LABELS in nav.ts; het blok zelf heeft
+ * alleen de kop. Vóór oktober 2026 waren dit zes diensten in drie stappen.
  */
 function Pillars({ d, asH1 }: BlockProps) {
   return (
@@ -649,25 +658,14 @@ function Pillars({ d, asH1 }: BlockProps) {
           <SectionHead eyebrow={d.eyebrow} heading={d.heading} asH1={asH1} className={LINKS} />
           {d.text && <MiniMarkdown text={d.text} className={`${RECHTS} ${LEAD}`} />}
         </div>
-        <div className="grid gap-y-14 lg:grid-cols-3 lg:grid-rows-[auto_auto] lg:gap-x-6 lg:gap-y-7">
-          {PIJLERS.map((p, i) => (
-            <div key={p.key} className="grid gap-y-6 lg:row-span-2 lg:grid-rows-subgrid" data-reveal style={{ "--ri": i } as React.CSSProperties}>
-              <div>
-                <p className="eyebrow">Stap {i + 1} · {p.stap}</p>
-                <h3 className="mt-2 text-[26px] leading-tight">{p.title}</h3>
-                <p className="mt-2.5 max-w-[440px] text-[16.5px]">{p.text}</p>
-              </div>
-              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                {p.diensten.map((x) => (
-                  <li key={x.href}>
-                    <FotoTegel href={x.href} image={x.image} kicker={x.situatie} title={x.label} kop="h4"
-                      ratio="aspect-[16/10]" sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" />
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {LABELS.map((l, i) => (
+            <li key={l.href} data-reveal style={{ "--ri": i } as React.CSSProperties}>
+              <FotoTegel href={l.href} image={l.image} kicker={l.situatie} title={l.titel} kop="h3"
+                ratio="aspect-[4/5]" sizes="(min-width: 1024px) 240px, (min-width: 640px) 50vw, 100vw" />
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
@@ -1125,7 +1123,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   method: Method,
   values: Values,
   latestPosts: LatestPosts,
-  tarieven: ({ d, asH1 }: BlockProps) => <Tarieven d={d} asH1={asH1} />,
+  tarieven: ({ d, asH1, ctx }: BlockProps) => <Tarieven d={d} asH1={asH1} tarieven={ctx?.tarieven} />,
   homeSplit: HomeSplit,
   homeWaarom: HomeWaarom,
   homeSnelNaar: HomeSnelNaar,
@@ -1141,6 +1139,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   dgPoortwachter: DgPoortwachter,
   dgPrijzen: DgPrijzen,
   dgStarten: DgStarten,
+  dgSituaties: DgSituaties,
   dgVragen: DgVragen,
   dgTarieven: DgTarieven,
   dgCertificeringen: DgCertificeringen,
@@ -1236,6 +1235,11 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
 /** Of een pagina met deze blokken de nieuwste artikelen nodig heeft. */
 export function needsPosts(blocks: Block[]): boolean {
   return blocks.some((b) => b.type === "latestPosts");
+}
+
+/** Of een pagina een tariefblok heeft, en dus het tarievenjaar uit de instellingen nodig heeft. */
+export function needsTarieven(blocks: Block[]): boolean {
+  return blocks.some((b) => b.type === "tarieven" || b.type === "dgTarieven" || b.type === "wgTarieven");
 }
 
 export default function BlockRenderer({ blocks, ctx = {} }: { blocks: Block[]; ctx?: BlockCtx }) {

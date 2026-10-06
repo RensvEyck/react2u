@@ -1,0 +1,21 @@
+-- Het cv-formulier uploadt voortaan via de server met de service-role-sleutel
+-- (src/lib/cvs.ts), ná de limiet per IP en de controle van type en grootte.
+-- Daarmee kan de publieke sleutel uit de bucket: tot nu toe kon iedereen met
+-- de anon-sleutel uit de browser onbeperkt bestanden in `cvs` zetten, buiten
+-- elk formulier om.
+--
+-- PAS DRAAIEN ALS (1) `SUPABASE_SERVICE_ROLE_KEY` IN VERCEL STAAT (production
+-- én preview — staging deelt de database) EN (2) DE CODE MET src/lib/cvs.ts OP
+-- `master` STAAT. Zonder sleutel valt uploadCv() terug op de anon-sleutel, en
+-- een oudere productieversie kent alleen die sleutel; na deze migratie mag die
+-- niets meer, en dan faalt elke sollicitatie met cv. Op 6 oktober 2026 is dit
+-- gedraaid terwijl productie nog `master` draaide (in onderhoudsmodus), op
+-- uitdrukkelijk verzoek; tot de livegang van de redesign mislukt een
+-- sollicitatie met cv daar dus. Terugdraaien kan altijd met:
+--
+--   create policy "anyone upload cv" on storage.objects
+--     for insert to anon, authenticated with check (bucket_id = 'cvs');
+--
+-- Het dashboard toont of de sleutel er is (controle "Collega's uitnodigen").
+
+drop policy if exists "anyone upload cv" on storage.objects;

@@ -26,7 +26,7 @@
             "doelgroep": "werknemer",
             "eyebrow": "Voor werknemers",
             "title": "Ik ben werknemer",
-            "text": "Ziek of vastgelopen? We helpen je weer op weg.",
+            "text": "Ziek of vastgelopen? We helpen je weer verder.",
             "short": "Ziek of vastgelopen?",
             "button": "Naar de werknemerssite",
             "href": "/werknemers",
@@ -40,18 +40,17 @@
     },
     {
       "type": "homeEenMens",
-      "label": "Eén mens. Eén verhaal. Eén aanspreekpunt.",
+      "label": "Eén casemanager die je kent. Van dag één tot herstel.",
       "data": {
         "eyebrow": "Waarom React2u",
         "lines": [
-          "Eén mens.",
-          "Eén verhaal.",
-          "Eén aanspreekpunt."
+          "Eén casemanager die je kent.",
+          "Van dag één tot herstel."
         ],
         "text": "Bij React2u krijg je geen keuzemenu, maar een vaste casemanager die jouw organisatie en je mensen kent. Van de eerste ziektedag tot volledig herstel.",
         "checks": [
           {
-            "text": "Direct een mens aan de lijn"
+            "text": "Geen keuzemenu, je krijgt meteen iemand van ons aan de telefoon"
           },
           {
             "text": "SBCA en ISO gecertificeerd"
@@ -130,14 +129,14 @@
       "data": {
         "eyebrow": "Contact",
         "heading": "Een vraag?\nBel gewoon even.",
-        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
         "image": "/beeld/home/even-bellen.webp",
         "alt": "Een vrouw belt ontspannen met React2u",
         "focus": "52% 22%",
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen · op werkdagen",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },

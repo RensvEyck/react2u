@@ -16,6 +16,12 @@ describe("bewaartermijn sollicitaties", () => {
     expect(isExpired({ status: "in_behandeling", created_at: ago(91) }, now)).toBe(true);
   });
 
+  it("met toestemming: een jaar, ongeacht de status", () => {
+    expect(isExpired({ status: "afgewezen", created_at: ago(200), retain_longer: true }, now)).toBe(false);
+    expect(isExpired({ status: "nieuw", created_at: ago(366), retain_longer: true }, now)).toBe(true);
+    expect(isExpired({ status: "afgewezen", created_at: ago(57), retain_longer: false }, now)).toBe(true);
+  });
+
   it("telt de dagen af", () => {
     expect(daysLeft({ status: "afgewezen", created_at: ago(50) }, now)).toBe(6);
     expect(daysLeft({ status: "afgewezen", created_at: ago(60) }, now)).toBeNull();

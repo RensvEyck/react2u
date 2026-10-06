@@ -3,7 +3,7 @@
   "slug": "contact",
   "title": "Contact",
   "seo_title": "Contact • React2u",
-  "seo_description": "Neem contact op met React2u. Bel 085 620 58 00, mail info@react2u.nl of stuur een bericht. Tijdens openingstijden direct een mens aan de lijn.",
+  "seo_description": "Neem contact op met React2u. Bel 085 620 58 00, mail info@react2u.nl of stuur een bericht. Op werkdagen bereikbaar van 9.00 tot 17.00 uur.",
   "blocks": [
     {
       "type": "contactSimpel",
@@ -12,7 +12,7 @@
         "heading": "Contact",
         "text": "Bel, mail of stuur een bericht. We helpen je graag verder.",
         "rows": [
-          { "label": "Telefoon", "value": "085 620 58 00", "href": "tel:+31856205800", "sub": "Op werkdagen direct een mens aan de lijn" },
+          { "label": "Telefoon", "value": "085 620 58 00", "href": "tel:+31856205800", "sub": "Maandag tot en met vrijdag, 9.00 tot 17.00 uur" },
           { "label": "E-mail", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl", "sub": "We reageren binnen één werkdag" },
           { "label": "Offerte en kennismaken", "value": "sales@react2u.nl", "href": "mailto:sales@react2u.nl", "sub": "" },
           { "label": "Adres", "value": "Stratumsedijk 29\n5611 NB Eindhoven", "href": "https://maps.google.com/?q=Stratumsedijk+29+Eindhoven", "sub": "Bezoek op afspraak" }

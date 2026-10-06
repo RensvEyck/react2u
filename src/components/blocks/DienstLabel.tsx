@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
+import Beeld from "@/components/site/Beeld";
 import { pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 
@@ -207,7 +208,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
               <div className="flex flex-wrap gap-3">
                 {KEURMERKEN.map((k, i) => (
                   <span key={k.src} className="grid h-[72px] w-[72px] place-items-center rounded-[18px] bg-white md:h-[84px] md:w-[84px]">
-                    <img src={k.src} alt={w.footer.keurmerkAlts[i] || k.alt} loading="lazy" className="block max-h-[56px] max-w-[56px] md:max-h-[64px] md:max-w-[64px]" />
+                    <Beeld src={k.src} alt={w.footer.keurmerkAlts[i] || k.alt} sizes="(min-width: 768px) 64px, 56px" className="block max-h-[56px] max-w-[56px] md:max-h-[64px] md:max-w-[64px]" />
                   </span>
                 ))}
               </div>

@@ -239,8 +239,6 @@ export function suggestDestination(missing: string, candidates: { path: string; 
 
 /* ---------- de vaste lijst van de oude site ---------- */
 
-const MEDIA = "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2025/05";
-
 /**
  * Redirects van de oude WordPress-site.
  *
@@ -256,8 +254,8 @@ const MEDIA = "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public
 export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   // Oude structuur met /werkgever en /werknemer ervoor
   { source: "/werkgever/diensten/arbodienstverlening", destination: "/diensten" },
-  { source: "/werkgever/diensten/verzuimbegeleiding", destination: "/verzuimbegeleiding-wvp" },
-  { source: "/werkgever/diensten/ziektewetuitvoering", destination: "/verzuimbegeleiding-erd-zw" },
+  { source: "/werkgever/diensten/verzuimbegeleiding", destination: "/recover" },
+  { source: "/werkgever/diensten/ziektewetuitvoering", destination: "/reflex" },
   { source: "/werkgever/diensten", destination: "/diensten" },
   { source: "/werkgever/over-ons", destination: "/over-react2u" },
   { source: "/werkgever/contact", destination: "/contact" },
@@ -265,27 +263,32 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/werknemer/faq-werknemer", destination: "/werknemers" },
   { source: "/werknemer/contact", destination: "/contact" },
   { source: "/werknemer", destination: "/werknemers" },
-  { source: "/werkgever", destination: "/diensten" },
+  { source: "/werkgever", destination: "/werkgevers" },
+
+  // Varianten met "-niet": WordPress-pagina's die uit het menu waren gehaald
+  // en een "-niet"-slug kregen, maar wel in Google stonden. Specifiek vóór
+  // algemeen, anders slokt /werkgever-niet/* de dienstenpaden op.
+  { source: "/werkgever-niet/diensten-niet/:slug*", destination: "/diensten" },
+  { source: "/werkgever-niet/diensten/:slug*", destination: "/diensten" },
+  { source: "/werkgever-niet/:slug*", destination: "/werkgevers" },
+  { source: "/werknemer-niet/:slug*", destination: "/werknemers" },
+  { source: "/diensten-niet/:slug*", destination: "/diensten" },
+  { source: "/adviseurs-niet/:slug*", destination: "/diensten" },
 
   // Adviseurssectie, bestaat niet meer als aparte ingang
   { source: "/adviseurs/arbodienstverlening", destination: "/diensten" },
-  { source: "/adviseurs/ziektewet-uitvoering", destination: "/verzuimbegeleiding-erd-zw" },
-  { source: "/adviseurs/ziekteverzuimbegeleiding", destination: "/verzuimbegeleiding-wvp" },
+  { source: "/adviseurs/ziektewet-uitvoering", destination: "/reflex" },
+  { source: "/adviseurs/ziekteverzuimbegeleiding", destination: "/recover" },
   { source: "/adviseurs", destination: "/diensten" },
 
   // Losse oude paden
   { source: "/xdiensten", destination: "/diensten" },
-  { source: "/xbegeleidingx-xcoachingx", destination: "/begeleiding-en-coaching" },
+  { source: "/xbegeleidingx-xcoachingx", destination: "/restart" },
 
   // Hernoemd op deze site: de tarievenpagina heet sinds september 2026
   // Verzuimabonnementen. De tabel `redirects` bestaat in productie nog niet
   // (migratie 0007), dus deze staat hier.
   { source: "/tarieven", destination: "/verzuimabonnementen" },
-
-  // Documenten waren aparte pagina's, nu PDF's in de footer
-  { source: "/privacy-reglement", destination: `${MEDIA}/Privacy-reglement-r2u.pdf` },
-  { source: "/klachtenprocedure", destination: `${MEDIA}/Klachtenprocedure-r2u.pdf` },
-  { source: "/algemene-voorwaarden", destination: `${MEDIA}/Algemene-voorwaarden-r2u.pdf` },
 
   // Restanten van het WordPress-thema: Engelstalige demo-artikelen, teamleden
   // met plaatshouder-namen, categorieën en auteursarchieven. Geen echte
@@ -319,10 +322,37 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
 export const DOCUMENT_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/privacyverklaring", destination: DOCUMENTEN.privacyverklaring },
   { source: "/cookieverklaring", destination: DOCUMENTEN.cookieverklaring },
+  // De documentpagina's van de oude WordPress-site. Tot oktober 2026 wezen ze
+  // naar de WordPress-PDF's in media/wp/; nu naar de definitieve versies.
+  { source: "/privacy-reglement", destination: DOCUMENTEN.privacyverklaring },
+  { source: "/klachtenprocedure", destination: DOCUMENTEN.klachtenregeling },
+  { source: "/algemene-voorwaarden", destination: DOCUMENTEN.algemeneVoorwaarden },
+];
+
+/**
+ * De zes dienstpagina's van vóór oktober 2026, nu opgegaan in de vijf labels
+ * (Resist, Recover, Restart, Reflex, Ready; zie LABELS in nav.ts). Een echte
+ * 301, net als de documenten: Google moet de oude adressen definitief door het
+ * label vervangen. De pagina's staan nog in de database, maar deze regels gaan
+ * vóór elke pagina, en sitemap.xml laat ze weg (coveredByWordpress).
+ *
+ * Engelse versies van deze pagina's hebben nooit bestaan: de Engelse site
+ * kende vanaf het begin alleen /en/services/<label>.
+ *
+ * De WordPress-lijst hierboven wijst rechtstreeks naar dezelfde labels, zodat
+ * er nergens een keten van twee doorverwijzingen ontstaat.
+ */
+export const DIENST_REDIRECTS: { source: string; destination: string }[] = [
+  { source: "/verzuimbegeleiding-wvp", destination: "/recover" },
+  { source: "/verzuimbegeleiding-erd-zw", destination: "/reflex" },
+  { source: "/preventie-en-vitaliteit", destination: "/resist" },
+  { source: "/risicomanagement", destination: "/resist" },
+  { source: "/trainingen-en-workshops", destination: "/restart" },
+  { source: "/begeleiding-en-coaching", destination: "/restart" },
 ];
 
 /** Alle vaste regels uit de code, in de volgorde waarin next.config.ts ze toepast. */
-export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS];
+export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS];
 
 /** Valt dit pad al onder de vaste lijst? Dan zou een regel in de tabel nooit werken. */
 export function coveredByWordpress(path: string): { source: string; destination: string } | null {

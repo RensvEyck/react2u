@@ -165,6 +165,17 @@ export function telefoonInTaal(nlWeergave: string, taal: Taal): string {
   return kaal.startsWith("0") ? `+31 ${kaal.slice(1)}` : kaal;
 }
 
+const MAANDEN: Record<string, string> = {
+  januari: "January", februari: "February", maart: "March", april: "April", mei: "May", juni: "June",
+  juli: "July", augustus: "August", september: "September", oktober: "October", november: "November", december: "December",
+};
+
+/** "31 december 2026" uit de instellingen wordt in het Engels "31 December 2026". */
+export function datumInTaal(tekst: string, taal: Taal): string {
+  if (taal === "nl") return tekst;
+  return tekst.replace(/\b(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\b/gi, (m) => MAANDEN[m.toLowerCase()] ?? m);
+}
+
 /** Vult {naam}-plekken in een woordenboektekst. */
 export function vul(tekst: string, waarden: Record<string, string | number>): string {
   return tekst.replace(/\{(\w+)\}/g, (_, k) => String(waarden[k] ?? `{${k}}`));

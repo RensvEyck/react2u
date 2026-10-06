@@ -5,11 +5,13 @@ import HeaderR2u from "./HeaderR2u";
 import FooterR2u from "./FooterR2u";
 import VisitTracker from "./VisitTracker";
 import CookieBanner from "./CookieBanner";
+import BelBalk from "./BelBalk";
 import Reveal from "./Reveal";
 import { TaalProvider } from "./Taal";
 import { getSetting, CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
-import { conceptenActief } from "@/lib/concept";
+import { nieuwOntwerp } from "@/lib/concept";
+import { normalizeTracking } from "@/lib/tracking";
 import type { Taal } from "@/lib/taal";
 
 /**
@@ -21,22 +23,30 @@ import type { Taal } from "@/lib/taal";
  * header doorloopt.
  */
 export default async function SiteShell({ children, taal = "nl" }: { children: React.ReactNode; taal?: Taal }) {
-  const [contact, docs, certificates] = await Promise.all([
+  const [contact, docs, certificates, tracking] = await Promise.all([
     getSetting<ContactInfo>("contact"),
     getSetting<unknown>("documents"),
     getSetting<unknown>("certificates"),
+    getSetting<unknown>("tracking"),
   ]);
   const c = contact || CONTACT_FALLBACK;
-  // Op staging (concepten) de header en footer uit het nieuwe ontwerp;
-  // productie houdt Header en Footer. De Engelse site is geschreven op de
-  // blokken van het nieuwe ontwerp en krijgt die header en footer dus altijd.
-  // `r2u-kop` zet --hh op hun hoogte.
-  const nieuw = conceptenActief || taal === "en";
+  const { bedrijfsherkenning } = normalizeTracking(tracking);
+  // Header en footer uit het nieuwe ontwerp: sinds de livegang van oktober
+  // 2026 overal (`nieuwOntwerp`), en op de Engelse site hoe dan ook, want die
+  // is geschreven op de blokken van het nieuwe ontwerp en de oude Header en
+  // Footer kennen het woordenboek niet. `r2u-kop` zet --hh op hun hoogte.
+  // Header en Footer blijven als terugvaloptie staan.
+  const nieuw = nieuwOntwerp || taal === "en";
   return (
     <TaalProvider taal={taal}>
       <div className={nieuw ? "site-root r2u-kop" : "site-root"}>
         {nieuw ? <HeaderR2u contact={c} /> : <Header contact={c} />}
-        <main id="inhoud">{children}</main>
+        <main id="inhoud">
+          {children}
+          {/* Mobiel, alleen op werkgeverspagina's: bellen of een terugbelmoment.
+              Binnen <main>, zodat hij met het mobiele menu mee inert wordt. */}
+          <BelBalk contact={c} />
+        </main>
         {nieuw ? (
           <FooterR2u contact={c} docs={normalizeDocs(docs)} certificates={normalizeCertificates(certificates)} />
         ) : (
@@ -46,7 +56,7 @@ export default async function SiteShell({ children, taal = "nl" }: { children: R
             hoort niet in de statistieken. */}
         <VisitTracker />
         {/* Hier en niet in de root-layout: wel op de 404, niet in het adminpaneel. */}
-        <CookieBanner />
+        <CookieBanner bedrijfsherkenning={bedrijfsherkenning} />
         <Reveal />
         <Analytics />
       </div>

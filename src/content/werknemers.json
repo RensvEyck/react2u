@@ -148,7 +148,7 @@
         ],
         "cta": {
           "heading": "Vragen over je ziekmelding?",
-          "text": "Bel je casemanager. Op werkdagen krijg je direct iemand aan de lijn.",
+          "text": "Bel je casemanager. Op werkdagen bereikbaar.",
           "label": "Bel je casemanager",
           "href": "tel:+31856205800"
         }
@@ -239,14 +239,14 @@
       "data": {
         "eyebrow": "Contact",
         "heading": "Een vraag?\nBel gewoon even.",
-        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
         "image": "/beeld/home/even-bellen.webp",
         "alt": "Een vrouw belt ontspannen met React2u",
         "focus": "52% 22%",
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen · op werkdagen",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },

@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
-import { DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
+import { DIENST_REDIRECTS, DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
 
 const SUPABASE = "https://tumwtappyegkjabtmold.supabase.co";
+
+// Cloudflare Turnstile (spamcontrole op de formulieren) is optioneel; alleen
+// als de site-sleutel gezet is, mag het widget laden. Zie src/lib/turnstile.ts.
+const TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? "https://challenges.cloudflare.com" : "";
 
 /**
  * Beveiligingsheaders.
@@ -40,9 +44,12 @@ const SECURITY_HEADERS = [
       // geserialiseerd wordt (src/lib/jsonld.ts). Wat deze CSP wél afdekt staat
       // hieronder — exfiltratie naar vreemde domeinen, gekaapte formulieren,
       // clickjacking en base-tag-injectie.
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline' ${TURNSTILE}`.trim(),
       `img-src 'self' data: blob: ${SUPABASE}`,
       `connect-src 'self' ${SUPABASE} https://*.supabase.co`,
+      // Het Turnstile-widget is een iframe; zonder frame-src valt dat terug op
+      // default-src 'self' en wordt het geblokkeerd.
+      ...(TURNSTILE ? [`frame-src ${TURNSTILE}`] : []),
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       // Formulieren mogen alleen naar de eigen site posten.
@@ -71,6 +78,12 @@ const WWW_REDIRECT = {
 };
 
 const nextConfig: NextConfig = {
+  images: {
+    // Next 16 staat alleen kwaliteiten uit deze lijst toe. 75 is de standaard;
+    // 85 is voor de foto's (Beeld): de AI-serie heeft fijne details en werd bij
+    // 75 na de her-encodering van de optimizer zichtbaar zacht.
+    qualities: [75, 85],
+  },
   // De vaste lijst van de oude WordPress-site staat in src/lib/redirects.ts,
   // zodat de admin kan tonen welke paden al vergeven zijn. Doorverwijzingen die
   // later in de admin worden toegevoegd past de middleware toe — die komt pas
@@ -81,6 +94,8 @@ const nextConfig: NextConfig = {
       ...WORDPRESS_REDIRECTS.map((r) => ({ ...r, permanent: true })),
       // De juridische documenten: een klassieke 301 naar de PDF.
       ...DOCUMENT_REDIRECTS.map((r) => ({ ...r, statusCode: 301 })),
+      // De zes oude dienstpagina's: een 301 naar hun label.
+      ...DIENST_REDIRECTS.map((r) => ({ ...r, statusCode: 301 })),
     ];
   },
   async headers() {
