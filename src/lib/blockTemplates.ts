@@ -29,7 +29,7 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   },
   homeEenMens: {
     label: "Startpagina: Eén mens. Eén verhaal. Eén aanspreekpunt.",
-    data: {"eyebrow": "Waarom React2u", "lines": ["Eén mens.", "Eén verhaal.", "Eén aanspreekpunt."], "text": "Bij React2u krijg je geen keuzemenu, maar een vaste casemanager die jouw organisatie en je mensen kent. Van de eerste ziektedag tot volledig herstel.", "checks": [{"text": "Direct een mens aan de lijn"}, {"text": "SBCA en ISO gecertificeerd"}, {"text": "Medische informatie blijft bij de bedrijfsarts"}], "photos": [{"image": "/beeld/home/kring-gesprek.webp", "alt": "", "focus": "50% 40%"}, {"image": "/beeld/home/kring-samen-scherm.webp", "alt": "", "focus": "50% 45%"}, {"image": "/beeld/home/kring-werkvloer.webp", "alt": "", "focus": "50% 30%"}]},
+    data: {"eyebrow": "Waarom React2u", "lines": ["Eén mens.", "Eén verhaal.", "Eén aanspreekpunt."], "text": "Bij React2u krijg je geen keuzemenu, maar een vaste casemanager die jouw organisatie en je mensen kent. Van de eerste ziektedag tot volledig herstel.", "checks": [{"text": "Direct een mens aan de lijn"}, {"text": "SBCA en ISO gecertificeerd"}, {"text": "Medische informatie blijft bij de bedrijfsarts"}], "photos": [{"image": "/beeld/home/kring-gesprek.webp", "alt": "Een casemanager in gesprek met een werknemer aan tafel", "focus": "50% 40%"}, {"image": "/beeld/home/kring-samen-scherm.webp", "alt": "Twee collega’s overleggen samen achter een beeldscherm", "focus": "50% 45%"}, {"image": "/beeld/home/kring-werkvloer.webp", "alt": "Twee medewerkers in gesprek op de werkvloer", "focus": "50% 30%"}]},
   },
   homeReis: {
     label: "Startpagina: Zo werkt het (stippenreis)",

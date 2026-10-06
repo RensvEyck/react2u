@@ -4,15 +4,17 @@ import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
 import { jsonLd } from "@/lib/jsonld";
 import { LINKEDIN_URL } from "@/lib/nav";
 import { concept } from "@/lib/concept";
+import { kort } from "@/lib/seo";
 
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const res = await getPage("home");
   const title = res?.page.seo_title || "Home • React2u";
+  const description = kort(res?.page.seo_description);
   return {
     title: { absolute: title },
-    description: res?.page.seo_description || undefined,
+    description,
     alternates: { canonical: "/" },
     // Zie (site)/[slug]/page.tsx: weglaten erft de defaults, `undefined` wist ze.
     ...(res?.page.og_image
@@ -23,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
             locale: "nl_NL",
             url: "/",
             title,
-            description: res.page.seo_description || undefined,
+            description,
             images: [res.page.og_image],
           },
         }

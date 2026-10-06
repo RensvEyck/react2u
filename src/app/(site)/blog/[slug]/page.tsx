@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPublishedPosts, getPost } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
+import { kort, paginaTitel } from "@/lib/seo";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
@@ -25,14 +26,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const p = await getPost(slug);
   if (!p) return {};
   const image = p.og_image || p.cover_image;
+  const description = kort(p.seo_description || p.excerpt);
   return {
-    title: p.seo_title || p.title,
-    description: p.seo_description || p.excerpt || undefined,
+    // Zie vacatures/[slug]: het merk precies één keer achter de titel.
+    title: { absolute: paginaTitel(p.seo_title || p.title) },
+    description,
     alternates: { canonical: `/blog/${slug}` },
     openGraph: {
       type: "article",
       title: p.seo_title || p.title,
-      description: p.seo_description || p.excerpt || undefined,
+      description,
       url: `/blog/${slug}`,
       publishedTime: p.published_at || undefined,
       modifiedTime: p.updated_at,

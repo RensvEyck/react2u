@@ -7,6 +7,7 @@ import FotoTegel from "@/components/site/FotoTegel";
 import { Arrow } from "@/components/site/Arrow";
 import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
+import { kort } from "@/lib/seo";
 import { concept, conceptSlugs, reserveConcept, type Concept } from "@/lib/concept";
 import type { Block, Page } from "@/lib/types";
 import { isGeindexeerd, plaatsVoorSlug, provincieVoorSlug } from "@/lib/gemeenten";
@@ -76,9 +77,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const res = await inhoud(slug);
   if (!res) return {};
   const title = res.page.seo_title || `${res.page.title} • React2u`;
+  const description = kort(res.page.seo_description);
   return {
     title: { absolute: title },
-    description: res.page.seo_description || undefined,
+    description,
     alternates: { canonical: `/${slug}` },
     // Alleen meesturen als er echt een eigen afbeelding is. `openGraph: undefined`
     // is niet hetzelfde als weglaten: de sleutel bestaat dan, en overschrijft de
@@ -93,7 +95,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             locale: "nl_NL",
             url: `/${slug}`,
             title,
-            description: res.page.seo_description || undefined,
+            description,
             images: [res.page.og_image],
           },
         }

@@ -63,17 +63,17 @@
         "photos": [
           {
             "image": "/beeld/home/kring-gesprek.webp",
-            "alt": "",
+            "alt": "Een casemanager in gesprek met een werknemer aan tafel",
             "focus": "50% 40%"
           },
           {
             "image": "/beeld/home/kring-samen-scherm.webp",
-            "alt": "",
+            "alt": "Twee collega’s overleggen samen achter een beeldscherm",
             "focus": "50% 45%"
           },
           {
             "image": "/beeld/home/kring-werkvloer.webp",
-            "alt": "",
+            "alt": "Twee medewerkers in gesprek op de werkvloer",
             "focus": "50% 30%"
           }
         ]

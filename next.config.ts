@@ -84,7 +84,18 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/:path*", headers: SECURITY_HEADERS },
+      // Alleen react2u.nl hoort in Google. Het Vercel-adres van productie
+      // (react2u.vercel.app) en elke preview-deploy (*.vercel.app) serveren
+      // dezelfde pagina's; zonder deze header kon Google ze als dubbele site
+      // oppakken. Een preview sluit daarnaast zijn robots.txt (app/robots.ts).
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: ".*\\.vercel\\.app" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
   },
 };
 

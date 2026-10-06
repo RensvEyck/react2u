@@ -222,7 +222,8 @@ export const LINKEDIN_URL = "https://www.linkedin.com/company/react2u/";
 const MEDIA = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 
 export const LOGO_URL = `${MEDIA}/2023/07/cropped-cropped-Logo_react2u.png`;
-export const FAVICON_URL = `${MEDIA}/2023/05/cropped-favicon-react2u-32x32.png`;
+/** De favicon staat in de code: app/favicon.ico (met icon.png en apple-icon.png ernaast). */
+export const FAVICON_URL = "/favicon.ico";
 export const LOGO_SVG_URL = `${MEDIA}/2023/05/Logo-kleur.svg`;
 
 /* ---------- Footer: documenten ---------- */

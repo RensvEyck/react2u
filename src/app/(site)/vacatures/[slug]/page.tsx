@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublishedVacancies, getVacancy } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
+import { kort, paginaTitel } from "@/lib/seo";
 import ApplicationForm from "@/components/site/ApplicationForm";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
@@ -22,8 +23,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const v = await getVacancy(slug);
   if (!v) return {};
   return {
-    title: v.seo_title || `${v.title} | Vacature`,
-    description: v.seo_description || v.intro || undefined,
+    // Absoluut, zonder het sjabloon uit app/layout.tsx: paginaTitel zet het merk
+    // er precies één keer achter, ook als de SEO-titel het al bevat.
+    title: { absolute: paginaTitel(v.seo_title || `${v.title} • Vacature`) },
+    description: kort(v.seo_description || v.intro),
     alternates: { canonical: `/vacatures/${slug}` },
   };
 }

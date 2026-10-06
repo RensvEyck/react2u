@@ -104,14 +104,14 @@ export function analysePost(p: Post): SeoRow {
     path: `/blog/${p.slug}`,
     editHref: `/admin/blog/${p.id}`,
     published: p.status === "published",
-    title: checkTitle(`${base} • React2u`, Boolean(p.seo_title)),
+    title: checkTitle(paginaTitel(base), Boolean(p.seo_title)),
     description: checkDescription(description, Boolean(p.seo_description)),
   });
 }
 
 /** Spiegelt app/(site)/vacatures/[slug]/page.tsx — inclusief de titelsjabloon. */
 export function analyseVacancy(v: Vacancy): SeoRow {
-  const base = v.seo_title || `${v.title} | Vacature`;
+  const base = v.seo_title || `${v.title} • Vacature`;
   const description = v.seo_description || v.intro || "";
   return row({
     kind: "Vacature",
@@ -120,9 +120,40 @@ export function analyseVacancy(v: Vacancy): SeoRow {
     path: `/vacatures/${v.slug}`,
     editHref: `/admin/vacatures/${v.id}`,
     published: v.status === "published",
-    title: checkTitle(`${base} • React2u`, Boolean(v.seo_title)),
+    title: checkTitle(paginaTitel(base), Boolean(v.seo_title)),
     description: checkDescription(description, Boolean(v.seo_description)),
   });
+}
+
+/* ---------- titel en omschrijving zoals de pagina ze uitstuurt ---------- */
+
+const MERK = "React2u";
+
+/**
+ * Precies één keer " • React2u" achter de titel.
+ *
+ * Een redacteur die het merk zelf al in de SEO-titel zet (met •, | of een
+ * streepje ervoor) kreeg "… • React2u • React2u": het sjabloon in
+ * app/layout.tsx plakte er altijd nog een achter. Vacatures en artikelen
+ * zetten hun titel daarom als `absolute` en laten dit het merk toevoegen.
+ */
+export function paginaTitel(base: string): string {
+  const kaal = base.replace(/\s*[•|\-–—]\s*React2u\s*$/i, "").trim();
+  return kaal ? `${kaal} • ${MERK}` : MERK;
+}
+
+/**
+ * Hooguit `max` tekens (standaard DESC_MAX), afgekapt op een woordgrens met
+ * een beletselteken. Een intro of samenvatting die als omschrijving dient is
+ * vaak langer; Google kapt dan zelf af, midden in een zin.
+ */
+export function kort(tekst: string | null | undefined, max = DESC_MAX): string | undefined {
+  const s = (tekst ?? "").replace(/\s+/g, " ").trim();
+  if (!s) return undefined;
+  if (s.length <= max) return s;
+  const kap = s.slice(0, max - 1);
+  const spatie = kap.lastIndexOf(" ");
+  return `${(spatie > max * 0.6 ? kap.slice(0, spatie) : kap).replace(/[\s,;:.]+$/, "")}…`;
 }
 
 /**

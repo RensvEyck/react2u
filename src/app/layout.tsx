@@ -21,17 +21,15 @@ const figtree = Figtree({
 });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
-const MEDIA = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 
 // Alleen wat voor élke route geldt. De omschrijving en de deelafbeelding zijn
 // instelbaar en staan daarom in app/(site)/layout.tsx — die haalt toch al
 // instellingen op, en zo blijft het adminpaneel vrij van die query.
+// De favicon komt uit app/favicon.ico, icon.png en apple-icon.png (Next zet
+// de <link>-tags zelf), niet meer uit de oude WordPress-map op Supabase.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: { default: "React2u", template: "%s • React2u" },
-  icons: {
-    icon: `${MEDIA}/2023/05/cropped-favicon-react2u-32x32.png`,
-  },
   robots: {
     index: true,
     follow: true,
