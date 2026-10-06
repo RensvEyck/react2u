@@ -7,8 +7,7 @@ import {
   NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED,
   Eyebrow, Kruimels, KopBlok, Knop, Pijl, Vink, KlantenStrook,
 } from "./Gedeeld";
-
-/* eslint-disable @next/next/no-img-element */
+import Beeld from "@/components/site/Beeld";
 
 /*
  * Werken bij React2u en de vacaturepagina (canvas: "Werken bij" en
@@ -100,7 +99,7 @@ export function WerkenBijPagina({ vacatures }: { vacatures: Vacancy[] }) {
           <Micro items={["Solliciteren in 2 minuten", "Geen motivatiebrief nodig", "Reactie binnen 5 werkdagen"]} />
         </div>
         <div className="relative h-[420px] overflow-hidden rounded-[28px] md:h-[560px] lg:col-span-6 lg:col-start-7">
-          <img src="/beeld/home/samen-leren.webp" alt="Collega’s van React2u lachen samen aan tafel" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 35%" }} />
+          <Beeld src="/beeld/home/samen-leren.webp" alt="Collega’s van React2u lachen samen aan tafel" fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 35%" }} />
           {vacatures.length > 0 && (
             <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1 rounded-[20px] bg-white p-5 shadow-[0_30px_60px_-30px_rgba(50,46,131,0.45)] md:bottom-6 md:left-auto md:right-6 md:w-[340px]">
               <div className="mb-1 flex items-center justify-between">
@@ -146,7 +145,7 @@ export function WerkenBijPagina({ vacatures }: { vacatures: Vacancy[] }) {
       <section aria-label="Je werk" className="bg-white">
         <div className={`${BREED} grid gap-10 py-20 md:py-[112px] lg:grid-cols-12 lg:items-center lg:gap-6`}>
           <div className="relative h-[340px] overflow-hidden rounded-[28px] md:h-[480px] lg:col-span-6">
-            <img src="/beeld/werkgevers/gezonde-werkplek.webp" alt="Twee collega’s overleggen samen achter een beeldscherm" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 40%" }} loading="lazy" />
+            <Beeld src="/beeld/werkgevers/gezonde-werkplek.webp" alt="Twee collega’s overleggen samen achter een beeldscherm" fill sizes="(min-width: 1024px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 40%" }} />
           </div>
           <div className="flex flex-col gap-5 lg:col-span-5 lg:col-start-8">
             <Eyebrow>Je werk</Eyebrow>

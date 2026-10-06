@@ -3,8 +3,7 @@ import type { Post } from "@/lib/types";
 import { MiniMarkdown } from "@/lib/md";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
-
-/* eslint-disable @next/next/no-img-element */
+import Beeld from "@/components/site/Beeld";
 
 /*
  * Blog en blogartikel (canvas: "Blog" en "Blogartikel"). De artikelen komen
@@ -33,7 +32,7 @@ function Kaart({ p }: { p: Post }) {
   return (
     <article className="group relative flex flex-col gap-3">
       <div className="aspect-[16/10] overflow-hidden rounded-[18px]" style={{ background: LAV }}>
-        {p.cover_image && <img src={p.cover_image} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" loading="lazy" />}
+        {p.cover_image && <Beeld src={p.cover_image} alt="" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />}
       </div>
       {p.published_at && <span className="text-[13px] font-semibold" style={{ color: MUTE }}>{datum(p.published_at)}</span>}
       <h3 className={`${kop} m-0 text-[20px] leading-[1.25]`} style={{ color: NAVY }}>
@@ -88,7 +87,7 @@ export function BlogOverzicht({ posts }: { posts: Post[] }) {
         </div>
         {uitgelicht ? (
           <Link href={`/blog/${uitgelicht.slug}`} className="group relative flex min-h-[380px] flex-col justify-end overflow-hidden rounded-[28px] p-7 md:p-10 lg:col-span-7" style={{ background: NAVY }}>
-            {uitgelicht.cover_image && <img src={uitgelicht.cover_image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60 transition duration-700 group-hover:scale-[1.03]" />}
+            {uitgelicht.cover_image && <Beeld src={uitgelicht.cover_image} alt="" fill priority sizes="(min-width: 1024px) 58vw, 100vw" className="absolute inset-0 h-full w-full object-cover opacity-60 transition duration-700 group-hover:scale-[1.03]" />}
             <span aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(50,46,131,0) 20%, rgba(50,46,131,0.92) 85%)" }} />
             <span className="absolute left-6 top-6 rounded-full bg-white px-3 py-1.5 text-[13px] font-bold" style={{ color: NAVY }}>Uitgelicht</span>
             <span className="relative flex flex-col gap-3">
@@ -158,7 +157,7 @@ export function BlogArtikel({ p, andere }: { p: Post; andere: Post[] }) {
       </section>
       {p.cover_image && (
         <div className={`${BREED} pb-4`}>
-          <img src={p.cover_image} alt="" className="max-h-[520px] w-full rounded-[24px] object-cover" />
+          <Beeld src={p.cover_image} alt="" priority sizes="(min-width: 1280px) 1200px, 100vw" className="max-h-[520px] w-full rounded-[24px] object-cover" />
         </div>
       )}
       <section aria-label="Inhoud" className={`${BREED} grid gap-10 py-12 md:py-16 lg:grid-cols-12 lg:gap-6`}>
