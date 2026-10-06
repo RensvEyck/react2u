@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import { submitContact, type FormState } from "@/app/(site)/actions";
 import { Field, Bedankt, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
+import TurnstileField from "./TurnstileField";
 import { DOCUMENTEN } from "@/lib/documenten";
 
 export default function ContactForm() {
@@ -28,6 +29,7 @@ export default function ContactForm() {
         <textarea className={fieldClass} name="message" rows={4} required maxLength={4000} />
       </Field>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="text-[15px] font-medium text-accent">{state.error}</p>}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
         <button className="btn" disabled={pending}>

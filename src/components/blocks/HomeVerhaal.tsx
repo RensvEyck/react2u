@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Outfit } from "next/font/google";
 import { LuShieldCheck, LuMessageSquare, LuHeart, LuRoute, LuCheck } from "react-icons/lu";
 import ReisSpeler from "./ReisSpeler";
+import Beeld from "@/components/site/Beeld";
 
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 
@@ -121,7 +122,7 @@ export function HomeEenMens({ d }: BlockProps) {
                 <span key={`f${i}`} className={`hv-f${f} absolute overflow-hidden rounded-full`}
                   style={{ left: pct(x, CW), top: pct(y, CH), width: pct(s, CW), aspectRatio: "1",
                     boxShadow: "0 0 0 6px #ffffff, 0 30px 60px -30px rgba(50,46,131,.5)" }}>
-                  <img src={p.image} alt={p.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover"
+                  <Beeld src={p.image} alt={p.alt || ""} fill sizes={`(min-width: 1440px) ${s}px, (min-width: 768px) ${Math.round((s / CW) * 50)}vw, ${Math.round((s / CW) * 100)}vw`} className="absolute inset-0 h-full w-full object-cover"
                     style={{ objectPosition: p.focus || "50% 40%" }} />
                 </span>
               );

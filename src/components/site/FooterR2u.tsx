@@ -6,6 +6,7 @@ import { DOCUMENTEN } from "@/lib/documenten";
 import Logo from "./Logo";
 import { letter, K, telefoon, type Link2 } from "./r2uStijl";
 import { CookieSettingsLink } from "./CookieBanner";
+import Beeld from "./Beeld";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -131,7 +132,7 @@ export default function FooterR2u({ contact, docs, certificates }: {
           <ul aria-label="Certificeringen en keurmerken" className="flex flex-wrap gap-2 md:gap-4">
             {keurmerken.map((c, i) => {
               const tegel = c.image ? (
-                <img src={c.image} alt={c.alt} loading="lazy" className="h-[50px] w-[50px] object-contain md:h-[76px] md:w-[76px]" />
+                <Beeld src={c.image} alt={c.alt} sizes="(min-width: 768px) 76px, 50px" className="h-[50px] w-[50px] object-contain md:h-[76px] md:w-[76px]" />
               ) : (
                 <span className="px-1 text-center text-[11px] font-bold leading-tight" style={{ color: K.indigo }}>{c.alt}</span>
               );

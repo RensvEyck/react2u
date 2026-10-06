@@ -4,8 +4,10 @@ import { useRef, useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { LuPhone, LuMail } from "react-icons/lu";
 import ContactForm from "@/components/site/ContactForm";
+import Beeld from "@/components/site/Beeld";
+import { metJaar, type TarievenSettings } from "@/lib/tarieven";
 
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*
  * De werkgeverspagina (ontwerp "D-Werkgevers", 1440 en 390): kop werkgever |
@@ -31,7 +33,7 @@ const LILA = "#8C7FE8";
 const TEKST2 = "#55518A";
 const LIJN = "#E4E0F4";
 
-type BlockProps = { d: any; asH1?: boolean };
+type BlockProps = { d: any; asH1?: boolean; ctx?: { tarieven?: TarievenSettings } };
 
 function isExternal(href?: string) {
   return !!href && (href.startsWith("http") || href.startsWith("tel:") || href.startsWith("mailto:"));
@@ -71,10 +73,10 @@ const RONDJES = [
   { bg: MAGENTA, fg: "#ffffff" },
 ];
 
-function Foto({ src, alt, focus, className = "", style }: { src?: string; alt?: string; focus?: string; className?: string; style?: React.CSSProperties }) {
+function Foto({ src, alt, focus, sizes, className = "", style }: { src?: string; alt?: string; focus?: string; sizes: string; className?: string; style?: React.CSSProperties }) {
   return (
     <span className={`block overflow-hidden rounded-full ${className}`} style={{ background: "#DCD6F2", ...style }}>
-      {src && <img src={src} alt={alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: focus || "50% 35%" }} />}
+      {src && <Beeld src={src} alt={alt || ""} fill sizes={sizes} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: focus || "50% 35%" }} />}
     </span>
   );
 }
@@ -118,9 +120,9 @@ export function WgSplit({ d, asH1 }: BlockProps) {
       <div className="wg-split flex flex-col gap-[6px] px-[6px] md:h-[clamp(520px,calc(100svh-150px),680px)] md:flex-row md:gap-2 md:px-2">
         {/* Werkgever: groot, met de h1 */}
         <div className="wg-tile wg-tile-wg relative h-[514px] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]" style={{ background: "#D9D3F0" }}>
-          <img src={d.image} alt={d.alt || ""} className="absolute inset-0 h-full w-full object-cover md:hidden"
+          <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 768px) 66vw, 100vw" className="absolute inset-0 h-full w-full object-cover md:hidden"
             style={{ objectPosition: d.focusMobiel || d.focus || "42% 20%" }} fetchPriority="high" loading="eager" />
-          <img src={d.image} alt={d.alt || ""} className="absolute inset-0 hidden h-full w-full object-cover md:block"
+          <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 768px) 66vw, 100vw" className="absolute inset-0 hidden h-full w-full object-cover md:block"
             style={{ objectPosition: d.focus || "62% 30%" }} loading="eager" />
           <span aria-hidden className="wg-orb absolute rounded-full
             bottom-[-298px] left-[-130px] h-[640px] w-[640px]
@@ -150,10 +152,10 @@ export function WgSplit({ d, asH1 }: BlockProps) {
             style={{ background: MAGENTA }}>
             {/* Mobiel: foto in een rondje rechtsboven */}
             <span className="absolute right-[-34px] top-[-24px] h-[200px] w-[200px] overflow-hidden rounded-full border-[6px] border-white md:hidden" style={{ background: "#F5D9E4" }}>
-              <img src={wn.image} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 20%" }} loading="eager" />
+              <Beeld src={wn.image} alt="" fill sizes="(min-width: 768px) 33vw, 200px" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 20%" }} loading="eager" />
             </span>
             {/* Vanaf tablet: foto van rand tot rand, roze cirkel rechtsonder */}
-            <img src={wn.image} alt={wn.alt || ""} className="absolute inset-0 hidden h-full w-full object-cover md:block"
+            <Beeld src={wn.image} alt={wn.alt || ""} fill sizes="(min-width: 768px) 33vw, 200px" className="absolute inset-0 hidden h-full w-full object-cover md:block"
               style={{ objectPosition: wn.focus || "48% 30%", background: "#F5D9E4" }} loading="eager" />
             <span aria-hidden className="wg-orb absolute bottom-[-70px] right-[-80px] hidden h-[400px] w-[400px] rounded-full md:block" style={{ background: MAGENTA }} />
             <span className="relative flex flex-col gap-1.5 text-white md:absolute md:bottom-[60px] md:right-[38px] md:w-[220px] md:gap-2.5">
@@ -185,9 +187,9 @@ export function WgWaarom({ d }: BlockProps) {
       <div className={`${SECTIE} flex flex-col gap-[18px] lg:grid lg:grid-cols-12 lg:items-center lg:gap-x-6`} style={RUIMTE}>
         {/* Beeld: mobiel bovenaan met twee rondjes, desktop rechts met het dossier */}
         <div className="relative h-[250px] w-full max-w-[350px] lg:order-last lg:col-span-6 lg:col-start-7 lg:h-[500px] lg:max-w-none xl:col-span-5 xl:col-start-8 xl:h-[600px]">
-          <Foto src={d.image} alt={d.alt} focus={d.focusMobiel || d.focus}
+          <Foto src={d.image} alt={d.alt} focus={d.focusMobiel || d.focus} sizes="240px"
             className="absolute left-0 top-0 h-[240px] w-[240px] border-[7px] lg:hidden" style={{ borderColor: LILA }} />
-          <Foto src={d.image} alt={d.alt} focus={d.focus}
+          <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="(min-width: 1280px) 480px, (min-width: 1024px) 400px, 1px"
             className="absolute left-0 top-0 hidden h-[400px] w-[400px] border-[10px] lg:block xl:h-[480px] xl:w-[480px]" style={{ borderColor: LILA }} />
           <span aria-hidden className="absolute left-[350px] top-[24px] hidden h-[60px] w-[60px] rounded-full lg:block xl:left-[420px] xl:top-[30px] xl:h-[72px] xl:w-[72px]" style={{ background: MAGENTA }} />
           {badges[0] && (
@@ -355,7 +357,7 @@ export function WgDiensten({ d }: BlockProps) {
                     </span>
                   </span>
                   <span className="relative">
-                    <Foto src={it.image} alt={it.alt} focus={it.focus} className="absolute left-0 top-[34px] h-[200px] w-[200px] border-8 lg:h-[250px] lg:w-[250px]" style={{ borderColor: ORANJE }} />
+                    <Foto src={it.image} alt={it.alt} focus={it.focus} sizes="(min-width: 1024px) 250px, 200px" className="absolute left-0 top-[34px] h-[200px] w-[200px] border-8 lg:h-[250px] lg:w-[250px]" style={{ borderColor: ORANJE }} />
                     <span className="wg-go absolute bottom-[26px] right-1.5 grid h-[52px] w-[52px] place-items-center rounded-full text-white" style={{ background: INDIGO }}><Pijl size={18} /></span>
                   </span>
                 </Go>
@@ -554,7 +556,7 @@ export function WgErd({ d }: BlockProps) {
     <section id="erd" className={`wg ${jakarta.className}`}>
       <div className={`${SECTIE} flex flex-col gap-5 lg:grid lg:grid-cols-12 lg:items-center lg:gap-x-6`} style={{ ...RUIMTE, color: INDIGO }}>
         <div className="relative h-[210px] w-full max-w-[350px] lg:col-span-5 lg:h-[400px] lg:max-w-none xl:h-[480px]">
-          <Foto src={d.image} alt={d.alt} focus={d.focus} className="absolute left-0 top-0 h-[210px] w-[210px] border-[7px] lg:top-2.5 lg:h-[380px] lg:w-[380px] lg:border-[10px] xl:h-[460px] xl:w-[460px]" style={{ borderColor: INDIGO }} />
+          <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="(min-width: 1280px) 460px, (min-width: 1024px) 380px, 210px" className="absolute left-0 top-0 h-[210px] w-[210px] border-[7px] lg:top-2.5 lg:h-[380px] lg:w-[380px] lg:border-[10px] xl:h-[460px] xl:w-[460px]" style={{ borderColor: INDIGO }} />
           {d.badge?.title && (
             <span className="absolute left-[186px] top-[96px] flex h-[104px] w-[104px] flex-col items-center justify-center rounded-full lg:left-[290px] lg:top-[250px] lg:h-[140px] lg:w-[140px] xl:left-[360px] xl:top-[300px] xl:h-40 xl:w-40" style={{ background: ORANJE, color: "#3D2206" }}>
               <span className="text-[24px] font-extrabold leading-none tracking-[-1px] lg:text-[30px] xl:text-[34px]">{d.badge.title}</span>
@@ -597,7 +599,7 @@ export function WgStarten({ d }: BlockProps) {
         style={{ ...VLAK_MARGE, background: INDIGO, color: "#ffffff" }}>
         <span aria-hidden className="absolute bottom-[-220px] left-[-160px] hidden h-[540px] w-[540px] rounded-full lg:block" style={{ background: "#3A3690" }} />
         {/* Mobiel: foto rechtsboven */}
-        <Foto src={d.image} alt={d.alt} focus={d.focus} className="absolute right-[-24px] top-[-24px] h-[150px] w-[150px] border-[6px] lg:hidden" style={{ borderColor: ORANJE, background: "#3A3690" }} />
+        <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="150px" className="absolute right-[-24px] top-[-24px] h-[150px] w-[150px] border-[6px] lg:hidden" style={{ borderColor: ORANJE, background: "#3A3690" }} />
 
         <div className="relative flex flex-col gap-3 px-1.5 lg:col-span-5 lg:gap-6 lg:px-0">
           <Label kleur="#B4ADF2">{d.eyebrow}</Label>
@@ -611,7 +613,7 @@ export function WgStarten({ d }: BlockProps) {
           {d.call?.href && (
             <Go href={d.call.href} className="wg-row mt-3 hidden items-center gap-5 lg:flex" style={{ color: "#ffffff" }}>
               <span className="relative h-[116px] w-[116px] shrink-0 overflow-hidden rounded-full border-[6px]" style={{ borderColor: ORANJE, background: "#3A3690" }}>
-                {d.image && <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "55% 25%" }} />}
+                {d.image && <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1024px) 116px, 1px" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "55% 25%" }} />}
               </span>
               <span className="flex flex-col gap-1">
                 <span className="text-[15px]" style={{ color: "#D6D2F7" }}>{d.call.label}</span>
@@ -651,13 +653,15 @@ export function WgStarten({ d }: BlockProps) {
 
 /* ---------- 7. Tarieven ---------- */
 
-export function WgTarieven({ d }: BlockProps) {
+export function WgTarieven({ d, ctx }: BlockProps) {
   const pakketten = ((d.pakketten as any[]) || []).filter((p) => p?.naam);
+  // Jaartal uit Instellingen → Tarievenjaar (zie DgTarieven).
+  const eyebrow = ctx?.tarieven ? metJaar(d.eyebrow, ctx.tarieven.jaar) : d.eyebrow;
   return (
     <section id="tarieven" className={`wg ${jakarta.className}`}>
       <div className={`${SECTIE} flex flex-col gap-3 lg:grid lg:grid-cols-12 lg:gap-x-6`} style={{ ...RUIMTE, color: INDIGO }}>
         <div className="mb-2 flex flex-col gap-3 lg:col-span-12 lg:mb-10 lg:max-w-[560px] lg:gap-5 xl:col-span-3 xl:mb-0">
-          <Label>{d.eyebrow}</Label>
+          <Label>{eyebrow}</Label>
           <h2 className="text-[36px] font-extrabold leading-[1.02] tracking-[-1.4px] md:text-[46px] lg:text-[52px] lg:leading-none lg:tracking-[-2px] xl:text-[56px] xl:tracking-[-2.2px]">{d.heading}</h2>
           <p className="text-[15px] leading-[1.6] lg:text-[17px]" style={{ color: TEKST2 }}>
             <span className="lg:hidden">{d.textShort || d.text}</span><span className="hidden lg:inline">{d.text}</span>
@@ -741,7 +745,7 @@ export function WgBewijs({ d }: BlockProps) {
     <section className={`wg ${jakarta.className}`}>
       <div className={`${SECTIE} flex flex-col gap-5 lg:grid lg:grid-cols-12 lg:items-center lg:gap-x-6`} style={{ ...RUIMTE, color: INDIGO }}>
         <div className="flex items-center gap-4 lg:relative lg:col-span-5 lg:block lg:h-[320px] xl:col-span-4 xl:h-[360px]">
-          <Foto src={d.image} alt={d.alt} focus={d.focus} className="relative h-[150px] w-[150px] shrink-0 border-[6px] lg:absolute lg:left-0 lg:top-0 lg:h-[320px] lg:w-[320px] lg:border-[10px] xl:h-[360px] xl:w-[360px]" style={{ borderColor: ORANJE }} />
+          <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="(min-width: 1280px) 360px, (min-width: 1024px) 320px, 150px" className="relative h-[150px] w-[150px] shrink-0 border-[6px] lg:absolute lg:left-0 lg:top-0 lg:h-[320px] lg:w-[320px] lg:border-[10px] xl:h-[360px] xl:w-[360px]" style={{ borderColor: ORANJE }} />
           <span aria-hidden className="absolute left-[260px] top-[240px] hidden h-16 w-16 rounded-full lg:block xl:left-[296px] xl:top-[270px]" style={{ background: INDIGO }} />
           <span className="flex flex-col gap-3 lg:hidden">
             <Stipjes klein />
@@ -756,7 +760,7 @@ export function WgBewijs({ d }: BlockProps) {
             <ul className="mt-1 grid grid-cols-3 gap-2 md:grid-cols-5 lg:mt-2 lg:gap-2.5">
               {logos.map((l, i) => (
                 <li key={i} className="wg-logo grid h-[52px] place-items-center rounded-[14px] px-3 lg:h-[72px] lg:rounded-[18px] lg:px-4" style={{ background: "#F7F6FB" }}>
-                  <img src={l.image} alt={l.alt || "Klantlogo"} loading="lazy" className="max-h-[30px] max-w-full object-contain lg:max-h-[40px]" />
+                  <Beeld src={l.image} alt={l.alt || "Klantlogo"} sizes="160px" className="max-h-[30px] max-w-full object-contain lg:max-h-[40px]" />
                 </li>
               ))}
             </ul>
@@ -780,11 +784,11 @@ export function WgVragen({ d }: BlockProps) {
             <h2 className="text-[34px] font-extrabold leading-[1.02] tracking-[-1.3px] md:text-[46px] lg:text-[52px] lg:leading-none lg:tracking-[-2px] xl:text-[56px] xl:tracking-[-2.2px]">{d.heading}</h2>
           </span>
           <span className="relative h-24 w-24 shrink-0 lg:hidden">
-            <Foto src={d.image} alt={d.alt} focus={d.focus} className="absolute inset-0 border-[5px]" style={{ borderColor: LILA }} />
+            <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="96px" className="absolute inset-0 border-[5px]" style={{ borderColor: LILA }} />
           </span>
           <div className="mt-2 hidden items-center gap-[22px] lg:flex">
             <span className="relative h-[150px] w-[150px] shrink-0">
-              <Foto src={d.image} alt={d.alt} focus={d.focus} className="absolute inset-0 border-[7px]" style={{ borderColor: LILA }} />
+              <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="(min-width: 1024px) 150px, 1px" className="absolute inset-0 border-[7px]" style={{ borderColor: LILA }} />
             </span>
             <span className="flex flex-col gap-3.5">
               <span className="text-[16px] leading-[1.55]" style={{ color: TEKST2 }}>{d.text}</span>
@@ -833,8 +837,8 @@ export function WgOfferte({ d }: BlockProps) {
       <div className="relative mx-[6px] flex flex-col gap-5 overflow-hidden rounded-[32px] px-3.5 pb-3.5 pt-11 text-white md:mx-2 md:px-10 md:pb-10 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:rounded-[40px] lg:px-14 lg:py-20 xl:px-[72px]"
         style={{ ...VLAK_MARGE, background: MAGENTA, color: "#ffffff" }}>
         <span aria-hidden className="absolute right-[-90px] top-[-90px] h-60 w-60 rounded-full lg:bottom-[-220px] lg:left-[-140px] lg:right-auto lg:top-auto lg:h-[540px] lg:w-[540px]" style={{ background: "#B02A5D" }} />
-        <Foto src={d.image} alt={d.alt} focus={d.focus} className="absolute right-[18px] top-[26px] h-[104px] w-[104px] border-[5px] border-white lg:hidden" style={{ background: "#F5D9E4" }} />
-        <Foto src={d.image} alt={d.alt} focus={d.focus} className="absolute bottom-[72px] left-[300px] hidden h-[160px] w-[160px] border-8 border-white lg:block xl:left-[392px] xl:h-[190px] xl:w-[190px]" style={{ background: "#F5D9E4" }} />
+        <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="104px" className="absolute right-[18px] top-[26px] h-[104px] w-[104px] border-[5px] border-white lg:hidden" style={{ background: "#F5D9E4" }} />
+        <Foto src={d.image} alt={d.alt} focus={d.focus} sizes="(min-width: 1280px) 190px, (min-width: 1024px) 160px, 1px" className="absolute bottom-[72px] left-[300px] hidden h-[160px] w-[160px] border-8 border-white lg:block xl:left-[392px] xl:h-[190px] xl:w-[190px]" style={{ background: "#F5D9E4" }} />
         <span aria-hidden className="absolute bottom-[210px] left-[440px] hidden h-10 w-10 rounded-full lg:block xl:bottom-[228px] xl:left-[560px]" style={{ background: ORANJE }} />
 
         <div className="relative flex flex-col gap-3.5 px-2.5 lg:col-span-5 lg:gap-6 lg:px-0">

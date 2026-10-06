@@ -22,7 +22,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Bericht** (`contact_messages`) | Inzending van het contactformulier. Bevat sinds `0005` een telefoonnummer: het formulier vraagt er verplicht om, zodat een bericht een belbare lead oplevert. Berichten van vóór die migratie hebben er geen — de kolom is nullable. |
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
 | **Onbehandeld** | Wat in het Postvak IN als ongelezen telt. Per soort verschillend: een bericht heeft `read = false`, een sollicitatie heeft `status = 'nieuw'`. |
-| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents`, `certificates`, `seo` en `maintenance`. |
+| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents`, `certificates`, `seo`, `maintenance`, `tracking` (grondslag bedrijfsherkenning) en `tarieven` (tarievenjaar). |
 | **Onderhoudsmodus** (`maintenance`) | Instelling `{enabled, message}`. Aan: bezoekers krijgen op elke publieke URL een onderhoudspagina (503), ingelogde beheerders zien de site gewoon. Schakelaar op `/admin/instellingen`. Zie *Onderhoudsmodus*. |
 | **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
 | **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
@@ -42,7 +42,10 @@ Gebruik deze termen; de code doet dat ook.
 | **404** (`missing_paths`) | Een adres waarop een bezoeker "niet gevonden" kreeg, met een teller en waar de link stond. Geen persoonsgegevens. |
 | **Versie** (`revisions`) | Momentopname van een pagina, blok, artikel, vacature of instelling, gemaakt door een databasetrigger bij elke opslag. Zie *Versies en prullenbak*. |
 | **Prullenbak** | Wat verwijderd is en nog terug kan (`/admin/prullenbak`). Geen tabel: de laatste versie van rijen die niet meer bestaan. Inzendingen en leads komen er nooit in. |
-| **Bewaartermijn** | Voor sollicitaties: hoe lang ze mogen blijven staan. Bepaald in [`src/lib/retention.ts`](src/lib/retention.ts); het Postvak IN wijst aan wat erover is. |
+| **Bewaartermijn** | Voor sollicitaties: hoe lang ze mogen blijven staan. Bepaald in [`src/lib/retention.ts`](src/lib/retention.ts); het Postvak IN wijst aan wat erover is, en `api/cron/opruimen` verwijdert het dagelijks. |
+| **Conversie** (`conversions`) | Eén verstuurd formulier: het soort (`contact`, `offerte`, `sollicitatie`, `terugbel`) en de pagina waar het stond. Geen persoonsgegevens. Zie *Bewaartermijnen en privacy*, "Conversies". |
+| **Belbalk** | Vaste balk onderaan het scherm op de telefoon, alleen op werkgeverspagina's: bellen of een terugbelmoment aanvragen (`BelBalk.tsx`, `lib/belbalk.ts`). Een terugbelverzoek is een bericht met onderwerp "Terugbelverzoek". |
+| **Tarievenjaar** (`tarieven`) | Instelling `{jaar, geldigTot}`. De tariefblokken zetten het jaar in hun bovenkopje en tonen de geldigheid; per 1 januari pas je hier het jaar aan en in de blokken de bedragen. |
 
 ## Architectuur
 
@@ -88,13 +91,19 @@ een verwijderde gebruiker, een gewijzigde rol of een uitgeklede rechtenlijst.
 Zonder dat slot is één verkeerde klik genoeg om iedereen buiten te sluiten, en
 is alleen een ingreep in de database nog een uitweg.
 
-**Er is nu wél een service-role-sleutel**, maar alleen voor één ding: een
-auth-account aanmaken voor iemand anders bij het uitnodigen. Zie
+**Er is nu wél een service-role-sleutel**, voor precies drie dingen waar geen
+ingelogde beheerder voor bestaat: een auth-account aanmaken bij het uitnodigen,
+het cv uit het publieke sollicitatieformulier in de bucket zetten
+([`src/lib/cvs.ts`](src/lib/cvs.ts), ná honeypot, limiet, type- en
+groottecontrole — zodat de publieke sleutel geen schrijfrecht op `cvs` meer
+nodig heeft, migratie 0014), en de dagelijkse opschoning van verlopen
+sollicitaties (`api/cron/opruimen`). Zie
 [`src/lib/supabase/admin.ts`](src/lib/supabase/admin.ts) — die importeert
 `server-only`, zodat de build faalt als het bestand ooit in een client component
-belandt. Gebruik hem nooit voor gewone tabellen: die sleutel omzeilt alle RLS,
-en daarmee elke rolcontrole in dit project. Ontbreekt `SUPABASE_SERVICE_ROLE_KEY`,
-dan werkt alles behalve uitnodigen.
+belandt. Gebruik hem nooit in het adminpaneel: die sleutel omzeilt alle RLS, en
+daarmee elke rolcontrole in dit project. Ontbreekt `SUPABASE_SERVICE_ROLE_KEY`,
+dan werkt uitnodigen niet, draait de opschoning niet, en uploadt het cv-formulier
+met de anon-sleutel (wat na 0014 niet meer mag).
 
 **Uitnodigen leunt niet op de mail van Supabase.** De server maakt de link zelf
 (`auth.admin.generateLink`) en de landingspagina wisselt de gehashte token in met
@@ -174,6 +183,21 @@ commandopalet (`paletteOnly: true` voor een tab binnen een scherm, zoals
 Doorverwijzingen onder SEO). `PATH_PERMISSIONS` in
 [`src/lib/permissions.ts`](src/lib/permissions.ts) zegt welk recht het vraagt;
 ontbreekt het daar, dan ziet iedereen met een account het in het menu.
+
+**Een `"use server"`-bestand mag alleen async functies exporteren.** Een
+constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de
+build. Pure hulpjes voor de formulieren staan daarom in `src/lib/formulier.ts`.
+
+**Foto's gaan via `Beeld`, niet via `<img>`.**
+[`src/components/site/Beeld.tsx`](src/components/site/Beeld.tsx) kiest per bron:
+lokaal beeld (`/beeld/…`) door `next/image` (kleinere varianten per
+schermbreedte, WebP), beeld uit de mediabibliotheek via `SiteImage` (Supabase
+schaalt), extern als gewone `<img>`. `sizes` is verplicht en moet kloppen met de
+lay-out — zonder kiest de browser de grootste variant. `fill` voor een foto die
+zijn (gepositioneerde) vlak vult; anders komen de afmetingen uit
+`src/lib/beeldAfmetingen.json`. **Nieuw bestand in `public/beeld`? Draai
+`node scripts/beeld-afmetingen.mjs`**, anders valt dat beeld terug op een
+onbewerkte `<img>`.
 
 **`src/lib/redirects.ts` wordt ook door `next.config.ts` geladen.** Houd dat
 bestand vrij van `@/`-imports en van code die alleen op de server of alleen in
@@ -792,6 +816,23 @@ een link én bij navigeren via het commandopalet
 - **Schema binnenhalen.** De live database heeft wijzigingen die niet in de
   migraties staan (zie *Valkuilen*). Eén keer `supabase db dump` naar de repo
   maakt het weer één bron.
+- **Audit oktober 2026: migraties 0013 en 0014 nog draaien.** 0013 (limiet
+  per IP, conversies, `retain_longer`) kan meteen. 0014 (anon-upload op `cvs`
+  weg) pas als `SUPABASE_SERVICE_ROLE_KEY` óók in de preview-omgeving van
+  Vercel staat — staging deelt de database, en zonder die sleutel faalt daar
+  elke sollicitatie met cv. In productie staat de sleutel al; `CRON_SECRET`
+  staat in productie en preview (6 oktober 2026). Optioneel Turnstile:
+  `TURNSTILE_SECRET_KEY` en `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Zonder 0013
+  draait de code gewoon, maar zonder limiet en zonder conversiemeting (het
+  dashboard en de serverlog melden het). Let op: Vercel Cron draait alleen op
+  productie, dus de opschoning begint pas als deze code op `master` staat.
+- **Privacy- en cookieverklaring**: op 6 oktober 2026 is achter beide PDF's een
+  gedateerde aanvulling gezet (`scripts/juridische-aanvulling.mjs`): de keuze
+  Statistiek, bedrijfsherkenning op toestemming met ipinfo.io als verwerker,
+  terugbelverzoek, limiet per IP, bewaarvinkje bij sollicitaties en de
+  conversiemeting. Laat de FG er nog naar kijken. Zet je de herkenning op
+  gerechtvaardigd belang, dan moet onderdeel B van die aanvulling mee (de
+  afweging staat als voorstel onder *Bewaartermijnen en privacy*).
 
 ## SEO
 
@@ -852,22 +893,29 @@ niets zegt.
 `public.opruimen_verlopen_gegevens()`. Die verwijdert contactberichten na 12
 maanden, leads na 24 maanden en bezoekgegevens na 12 maanden.
 
-**Sollicitaties staan er bewust niet in.** Daar hangt een cv-bestand aan, en dat
-moet via de Storage-API weg. Alleen de databaserij verwijderen laat de bytes in
-de bucket staan — het lijkt dan gewist terwijl het er nog is, en dat is voor de
-AVG slechter dan niets doen. De functie telt ze wel, zodat er zicht op blijft;
-verwijderen gaat via het Postvak IN. Volledige automatisering vraagt
-`SUPABASE_SERVICE_ROLE_KEY`.
+**Sollicitaties staan er bewust niet in**, want daar hangt een cv-bestand aan,
+en dat moet via de Storage-API weg. Alleen de databaserij verwijderen laat de
+bytes in de bucket staan — het lijkt dan gewist terwijl het er nog is, en dat is
+voor de AVG slechter dan niets doen. Daarom doet **Vercel Cron** het:
+`vercel.json` roept dagelijks om 04:30 `/api/cron/opruimen` aan met
+`Authorization: Bearer <CRON_SECRET>`. Die route haalt met de
+service-role-sleutel alle sollicitaties op, bepaalt met `retention.ts` welke
+verlopen zijn, verwijdert eerst het cv (en controleert dat het weg is) en dan
+de rij. Zonder `CRON_SECRET` of `SUPABASE_SERVICE_ROLE_KEY` in Vercel doet hij
+niets; het dashboard meldt dat ("Sollicitaties automatisch opschonen"). Het
+antwoord van de route (aantallen) staat in de Vercel-logs.
 
-Het Postvak IN wijst sollicitaties aan die **over hun bewaartermijn** zijn
-([`src/lib/retention.ts`](src/lib/retention.ts)): afgerond (afgewezen of
-aangenomen) na acht weken, nog open na drie maanden — volgens de richtlijn van
-de Autoriteit Persoonsgegevens (vier weken na afloop, langer alleen met
-toestemming). Er is geen datum van afronding, dus de termijn loopt vanaf
-binnenkomst met ruimte voor de procedure. Een melding bovenaan leidt naar het
-filter *Bewaartermijn verstreken*; daar selecteer je ze en verwijder je ze in
-één keer, cv's inbegrepen (`bulkInbox`). Ander beleid? Pas de getallen daar aan,
-en de privacyverklaring mee.
+De termijnen ([`src/lib/retention.ts`](src/lib/retention.ts)): afgerond
+(afgewezen of aangenomen) na acht weken, nog open na drie maanden, en **een
+jaar als de sollicitant daar toestemming voor gaf** — het vinkje "Bewaar mijn
+gegevens een jaar" in het formulier, kolom `applications.retain_longer`
+(migratie 0013). Dat volgt de richtlijn van de Autoriteit Persoonsgegevens
+(vier weken na afloop, langer alleen met toestemming). Er is geen datum van
+afronding, dus de termijn loopt vanaf binnenkomst met ruimte voor de
+procedure. Het Postvak IN wijst ze nog steeds aan (filter *Bewaartermijn
+verstreken*, verwijderen in één keer via `bulkInbox`), voor wie eerder wil
+ingrijpen dan de nachtelijke run. Ander beleid? Pas de getallen daar aan, en de
+privacyverklaring mee.
 
 De **privacyverklaring** is alleen nog een PDF (`/documenten/privacyverklaring-react2u.pdf`,
 zie [`src/lib/documenten.ts`](src/lib/documenten.ts)), gelinkt in de footer en
@@ -878,20 +926,41 @@ of Resend aan, dan moet die verklaring mee**: er komt dan een verwerker bij
 (ipinfo.io, Resend) die er nu niet in staat.
 
 De **cookiemelding** ([`CookieBanner.tsx`](src/components/site/CookieBanner.tsx))
-staat in `SiteShell`: wel op de 404, niet in het adminpaneel. Hij vraagt niets,
-want er is niets om toestemming voor te vragen: de site zet precies één cookie
-(`r2u_cookie_consent`, 12 maanden, onthoudt dat je de melding zag) en bewaart de
-doelgroepkeuze in `localStorage`; de bezoekstatistiek werkt zonder cookies.
+staat in `SiteShell`: wel op de 404, niet in het adminpaneel. De site zet
+precies één cookie (`r2u_cookie_consent`, 12 maanden, onthoudt je keuze) en
+bewaart de doelgroepkeuze in `localStorage`; de bezoekstatistiek werkt zonder
+cookies. Sinds oktober 2026 (`CONSENT_VERSION` 2) is er één keuze,
+**Statistiek**: die gaat niet over een cookie maar over de
+**bedrijfsherkenning** — om een bezoek vanaf een bedrijfsnetwerk tot dat
+bedrijf te herleiden gaat het IP-adres naar ipinfo.io, en dat vraagt een
+grondslag. `VisitTracker` stuurt de keuze (aan, uit, of nog niets) mee met elk
+bezoek; `/api/track` beslist met `mayIdentify()` in
+[`src/lib/tracking.ts`](src/lib/tracking.ts). Het bezoek zelf wordt altijd
+geteld, zonder bedrijf en zonder dat het IP ergens heen gaat.
+
+Welke grondslag geldt, staat in `site_settings.tracking`
+(Instellingen → *Bedrijfsherkenning en privacy*):
+
+- **`toestemming`** (standaard): alleen bij een uitdrukkelijk "aan". De melding
+  vraagt met Accepteren en Weigeren even zichtbaar; Escape of wegklikken is
+  niet toestemmen.
+- **`altijd`**: gerechtvaardigd belang. De melding is dan een mededeling met
+  een uitknop ("Prima" / Instellingen); wie Statistiek uitzet maakt bezwaar en
+  wordt ook dan niet herkend. Alleen kiezen als de privacyverklaring de
+  afweging bevat (welk belang, alleen de organisatie en nooit een persoon, geen
+  IP bewaard, hoe je bezwaar maakt) — zie het voorstel hieronder.
+
 *Cookie-instellingen* in beide footers opent de melding opnieuw. Wat er in de
 browser staat, beschrijft de cookieverklaring, alleen als PDF
-(`/documenten/cookieverklaring-react2u.pdf`). Komt er statistiek of marketing
-bij: categorie toevoegen aan `OPTIONAL_CATEGORIES`, het script alleen laden als
-`hasConsent()` waar is, `CONSENT_VERSION` ophogen en een nieuwe PDF onder
-dezelfde naam neerzetten.
+(`/documenten/cookieverklaring-react2u.pdf`); die moet de keuze Statistiek nog
+noemen. Komt er een echte cookie- of scriptcategorie bij: toevoegen in
+`categorieen()`, het script alleen laden als `hasConsent()` waar is,
+`CONSENT_VERSION` ophogen en een nieuwe PDF onder dezelfde naam neerzetten.
 
-Voor de bedrijfsherkenning zegt hij nu: "Komt een bezoek vanaf een
+De cookieverklaring zegt over bedrijfsherkenning nu: "Komt een bezoek vanaf een
 bedrijfsnetwerk, dan kan daar de naam van dat bedrijf bij staan — nooit de naam
-van een persoon." Voorstel om dat te vervangen, zodra de herkenning aan staat:
+van een persoon." Voorstel om dat te vervangen (en voor de privacyverklaring,
+als grondslag voor `altijd`):
 
 > Komt een bezoek vanaf het netwerk van een organisatie, dan leiden we uit het
 > IP-adres af welke organisatie dat is: aan de eigenaar van het netwerk (via
@@ -900,6 +969,29 @@ van een persoon." Voorstel om dat te vervangen, zodra de herkenning aan staat:
 > een eenmanszaak kan dat een persoonsnaam zijn; wil je niet dat we jouw
 > organisatie herkennen, mail ons, dan halen we de naam weg en leggen we hem
 > niet meer vast.
+
+**Formulieren: spam en misbruik.** Elk publiek formulier gaat door dezelfde
+poort in [`src/app/(site)/actions.ts`](src/app/(site)/actions.ts): een
+honeypot (bot krijgt "gelukt" te zien), een **limiet per IP én per soort**
+([`src/lib/rateLimit.ts`](src/lib/rateLimit.ts): 5 per uur per bezoeker, 3
+voor sollicitaties, 60 per uur in totaal — geteld door de databasefunctie
+`throttle()` uit migratie 0013 op een gezouten hash, het IP komt de database
+niet in; ontbreekt de functie, dan staat de limiet uit en zegt de serverlog dat
+één keer), optioneel **Cloudflare Turnstile**
+([`src/lib/turnstile.ts`](src/lib/turnstile.ts), `TurnstileField.tsx`; aan
+zodra `TURNSTILE_SECRET_KEY` en `NEXT_PUBLIC_TURNSTILE_SITE_KEY` gezet zijn,
+dan ook de CSP in `next.config.ts` en de cookieverklaring), en een controle of
+het e-mailadres de vorm van een e-mailadres heeft (`geldigEmail()` in
+`lib/formulier.ts`). Een cv gaat via `uploadCv()` met de service-role-sleutel
+de bucket in, zodat anon daar geen schrijfrecht meer nodig heeft (0014).
+
+**Conversies.** Elk verstuurd formulier schrijft één rij in `conversions`
+(soort + pagina uit de Referer, migratie 0013; `recordConversion()` in
+[`src/lib/conversionsDb.ts`](src/lib/conversionsDb.ts), nooit een fout naar
+de bezoeker). `/admin/bezoek` toont het totaal, het aandeel van de bezoekers,
+per soort, en per pagina met bezoekers en percentage
+([`src/lib/conversions.ts`](src/lib/conversions.ts)). Twaalf maanden bewaard,
+net als bezoek. Een terugbelverzoek uit de belbalk telt als `terugbel`.
 
 Het privacyreglement (PDF, verzuimdossiers) belooft tweefactorauthenticatie voor
 toegang tot digitale bestanden. Het adminpaneel heeft dat: in te stellen onder

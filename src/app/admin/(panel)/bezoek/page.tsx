@@ -5,11 +5,13 @@ import {
   type Ranked,
 } from "@/lib/analytics";
 import { fetchPageViews } from "@/lib/analyticsDb";
+import { fetchConversions } from "@/lib/conversionsDb";
+import { byKind, byPath, overallRate } from "@/lib/conversions";
 import { loadCompanies } from "@/lib/companiesDb";
 import { waited } from "@/lib/dashboard";
 import BezoekTabs from "@/components/admin/BezoekTabs";
 import { CompanyAvatar, LeadPill, LevelPill } from "@/components/admin/CompanyBits";
-import { LuUsers, LuEye, LuBuilding, LuExternalLink, LuInfo, LuArrowRight } from "react-icons/lu";
+import { LuUsers, LuEye, LuBuilding, LuExternalLink, LuInfo, LuArrowRight, LuInbox } from "react-icons/lu";
 
 const RANGES = [
   { key: "7", label: "7 dagen" },
@@ -56,11 +58,15 @@ export default async function BezoekAdmin({
   const days = lastDays(range);
   const since = `${days[0]}T00:00:00Z`;
 
-  const [views, { companies: all }] = await Promise.all([
+  const [views, { companies: all }, { conversions, ready: conversiesKlaar }] = await Promise.all([
     fetchPageViews(sb, since),
     loadCompanies(sb, range, admin.permissions),
+    fetchConversions(sb, since),
   ]);
   const t = totals(views);
+  const perSoort = byKind(conversions);
+  const perPagina = byPath(conversions, views).slice(0, 10);
+  const conversie = overallRate(conversions, t.visitors);
   const series = byDay(views, days);
   const companies = all.filter((c) => !c.ignored);
   const warm = companies.filter((c) => c.score.level === "warm").length;
@@ -69,9 +75,15 @@ export default async function BezoekAdmin({
   const aandeel = views.length ? Math.round((herkend / views.length) * 100) : 0;
 
   const stats = [
-    { label: "Bezoekers", value: t.visitors, icon: LuUsers, tint: "bg-[#eef0ff] text-[#312e82]" },
-    { label: "Paginaweergaven", value: t.views, icon: LuEye, tint: "bg-[#e6f7f4] text-[#0e9f8a]" },
-    { label: "Herkende bedrijven", value: companies.length, icon: LuBuilding, tint: "bg-[#fdeef4] text-[#e0356b]" },
+    { label: "Bezoekers", value: String(t.visitors), icon: LuUsers, tint: "bg-[#eef0ff] text-[#312e82]" },
+    { label: "Paginaweergaven", value: String(t.views), icon: LuEye, tint: "bg-[#e6f7f4] text-[#0e9f8a]" },
+    { label: "Herkende bedrijven", value: String(companies.length), icon: LuBuilding, tint: "bg-[#fdeef4] text-[#e0356b]" },
+    {
+      label: conversie === null ? "Aanvragen" : `Aanvragen · ${String(conversie).replace(".", ",")}% van de bezoekers`,
+      value: String(conversions.length),
+      icon: LuInbox,
+      tint: "bg-[#fff4e5] text-[#c77700]",
+    },
   ];
 
   return (
@@ -104,7 +116,7 @@ export default async function BezoekAdmin({
 
       <BezoekTabs active="overzicht" warm={warm} />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="acard flex items-center gap-4 p-5">
             <div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-[20px] ${s.tint}`}>
@@ -176,6 +188,51 @@ export default async function BezoekAdmin({
               </li>
             ))}
           </ul>
+        )}
+      </div>
+
+      {/* Conversies: wat levert de site op, en welke pagina doet dat. */}
+      <div className="acard overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.06] px-6 py-4">
+          <div>
+            <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Aanvragen per pagina</h2>
+            <p className="text-[12.5px] text-black/40">
+              Elk verstuurd formulier telt als aanvraag, met de pagina waar het stond. Conversie = aanvragen per honderd bezoekers van die pagina.
+            </p>
+          </div>
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-black/55">
+            {perSoort.map((k) => (
+              <li key={k.kind}><span className="font-semibold tabular-nums text-[#1c1a4e]">{k.count}</span> {k.label.toLowerCase()}</li>
+            ))}
+          </ul>
+        </div>
+        {!conversiesKlaar ? (
+          <p className="px-6 py-8 text-center text-[13.5px] text-black/45">
+            Aanvragen meten werkt na migratie <code className="font-mono">0013</code> in Supabase.
+          </p>
+        ) : perPagina.length === 0 ? (
+          <p className="px-6 py-8 text-center text-[13.5px] text-black/40">Nog geen aanvragen in deze periode.</p>
+        ) : (
+          <table className="w-full text-[14px]">
+            <thead>
+              <tr className="text-left text-[12px] uppercase tracking-wide text-black/40">
+                <th scope="col" className="px-6 py-2.5 font-semibold">Pagina</th>
+                <th scope="col" className="px-3 py-2.5 text-right font-semibold">Bezoekers</th>
+                <th scope="col" className="px-3 py-2.5 text-right font-semibold">Aanvragen</th>
+                <th scope="col" className="px-6 py-2.5 text-right font-semibold">Conversie</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/[0.05]">
+              {perPagina.map((r) => (
+                <tr key={r.path}>
+                  <td className="truncate px-6 py-3 text-[#1c1a4e]" title={r.path}>{r.path}</td>
+                  <td className="px-3 py-3 text-right tabular-nums text-black/55">{r.visitors}</td>
+                  <td className="px-3 py-3 text-right font-semibold tabular-nums text-[#1c1a4e]">{r.conversions}</td>
+                  <td className="px-6 py-3 text-right tabular-nums text-black/55">{r.rate === null ? "–" : `${String(r.rate).replace(".", ",")}%`}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 

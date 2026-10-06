@@ -32,6 +32,7 @@ import {
 } from "./Werknemers";
 import { PIJLERS, CONTACT_FOTO, dienstVoor } from "@/lib/nav";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
+import type { TarievenSettings } from "@/lib/tarieven";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -59,6 +60,8 @@ export type BlockCtx = {
   crumbs?: Crumb[];
   /** Knoppen voor een paginakop die er zelf geen heeft (de dienstpagina's). */
   knoppen?: Btn[];
+  /** Het tarievenjaar en de geldigheid uit de instellingen; voor de tariefblokken. */
+  tarieven?: TarievenSettings;
 };
 
 type BlockProps = {
@@ -1122,7 +1125,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   method: Method,
   values: Values,
   latestPosts: LatestPosts,
-  tarieven: ({ d, asH1 }: BlockProps) => <Tarieven d={d} asH1={asH1} />,
+  tarieven: ({ d, asH1, ctx }: BlockProps) => <Tarieven d={d} asH1={asH1} tarieven={ctx?.tarieven} />,
   homeSplit: HomeSplit,
   homeWaarom: HomeWaarom,
   homeSnelNaar: HomeSnelNaar,
@@ -1233,6 +1236,11 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
 /** Of een pagina met deze blokken de nieuwste artikelen nodig heeft. */
 export function needsPosts(blocks: Block[]): boolean {
   return blocks.some((b) => b.type === "latestPosts");
+}
+
+/** Of een pagina een tariefblok heeft, en dus het tarievenjaar uit de instellingen nodig heeft. */
+export function needsTarieven(blocks: Block[]): boolean {
+  return blocks.some((b) => b.type === "tarieven" || b.type === "dgTarieven" || b.type === "wgTarieven");
 }
 
 export default function BlockRenderer({ blocks, ctx = {} }: { blocks: Block[]; ctx?: BlockCtx }) {

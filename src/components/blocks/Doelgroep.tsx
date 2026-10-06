@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN } from "./Gedeeld";
+import Beeld from "@/components/site/Beeld";
+import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
 
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*
  * Blokken voor de doelgroeppagina's in het ontwerp van het canvas
@@ -48,7 +50,7 @@ export function DgKop({ d, asH1 }: { d: any; asH1?: boolean }) {
   return (
     <section aria-label={d.eyebrow || d.heading} className={`hv ${outfit.variable} px-[6px] pt-2 md:px-2`}>
       <div className="relative overflow-hidden rounded-[24px] md:rounded-[28px]">
-        <img src={d.image} alt={d.alt || ""} className="h-[300px] w-full object-cover md:h-[640px]" style={{ objectPosition: d.focus || "50% 35%" }} />
+        <Beeld src={d.image} alt={d.alt || ""} priority sizes="100vw" className="h-[300px] w-full object-cover md:h-[640px]" style={{ objectPosition: d.focus || "50% 35%" }} />
         {/* Op een tablet is het vlak breder en de kop kleiner: in 46% met een rand
             van 72px brak "re-integratie" in drieën. Vanaf 1280px de maten van het ontwerp. */}
         <div className="relative -mt-10 flex flex-col gap-5 rounded-t-[28px] px-6 pb-9 pt-9 md:absolute md:bottom-0 md:left-0 md:mt-0 md:w-[58%] md:max-w-[640px] md:rounded-none md:rounded-tr-[300px] md:px-12 md:pb-12 md:pt-12 lg:w-[54%] lg:px-14 lg:pb-14 lg:pt-14 xl:w-[46%] xl:px-[72px] xl:pb-[72px] xl:pt-[72px]"
@@ -124,7 +126,7 @@ export function DgFotoLijst({ d }: { d: any }) {
         <SectieKop d={d} />
         <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-6">
           <div className="relative h-[300px] overflow-hidden rounded-[24px] md:h-[440px] lg:col-span-6">
-            <img src={d.image} alt={d.alt || ""} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 50%" }} loading="lazy" />
+            <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1024px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 50%" }} />
           </div>
           <ol className="m-0 flex list-none flex-col p-0 lg:col-span-5 lg:col-start-8">
             {items.map((it, i) => (
@@ -320,16 +322,20 @@ function Prijslijst({ titel, per, regels }: { titel: string; per: string; regels
   );
 }
 
-export function DgTarieven({ d, asH1 }: { d: any; asH1?: boolean }) {
+export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { tarieven?: TarievenSettings } }) {
   const H = asH1 ? "h1" : "h2";
   const abonnementen: any[] = d.abonnementen || [];
   const groepen: any[] = d.groepen || [];
+  // Het jaartal komt uit Instellingen → Tarievenjaar, niet uit de bloktekst;
+  // in de blokeditor (zonder ctx) staat de tekst zoals ingevoerd.
+  const t = ctx?.tarieven;
+  const eyebrow = t ? metJaar(d.eyebrow, t.jaar) : d.eyebrow;
   return (
     <div className={`hv ${outfit.variable}`}>
       <section aria-label={d.eyebrow || "Tarieven"} className="bg-white">
         <div className={`${BREED} flex flex-col gap-5 pb-14 pt-10 md:pb-16 md:pt-14`}>
           <Kruimels items={[{ label: "Home", href: "/" }, { label: "Tarieven" }]} />
-          {d.eyebrow && <Eyebrow kleur={TEAL}>{d.eyebrow}</Eyebrow>}
+          {eyebrow && <Eyebrow kleur={TEAL}>{eyebrow}</Eyebrow>}
           <H className={`${kop} m-0 text-[42px] leading-[1.04] tracking-[-1.4px] md:text-[60px]`} style={{ color: NAVY }}>{d.heading}</H>
           {d.text && <p className="m-0 max-w-[640px] text-[17px] leading-[1.65]" style={{ color: BODY }}>{d.text}</p>}
         </div>
@@ -361,6 +367,7 @@ export function DgTarieven({ d, asH1 }: { d: any; asH1?: boolean }) {
               </div>
             );
           })}
+          {t && <p className="m-0 text-[14px] md:col-span-2" style={{ color: MUTE }}>{geldigheidsregel(t)}</p>}
         </div>
       </section>
       {groepen.map((g, gi) => (
@@ -416,7 +423,7 @@ export function DgCertificeringen({ d, asH1 }: { d: any; asH1?: boolean }) {
         <ul className={`${BREED} m-0 grid list-none grid-cols-2 gap-3 py-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4`}>
           {KEURMERKEN.map((k) => (
             <li key={k.src} className="grid h-[110px] place-items-center rounded-[20px] bg-white p-4 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)]">
-              <img src={k.src} alt={k.alt} className="max-h-[70px] w-auto object-contain" loading="lazy" />
+              <Beeld src={k.src} alt={k.alt} sizes="70px" className="max-h-[70px] w-auto object-contain" />
             </li>
           ))}
         </ul>
@@ -430,7 +437,7 @@ export function DgCertificeringen({ d, asH1 }: { d: any; asH1?: boolean }) {
               return (
                 <div key={i} className="grid gap-5 border-b py-8 md:grid-cols-12 md:gap-6" style={{ borderColor: LINE }}>
                   <span className="grid h-[76px] w-[76px] place-items-center rounded-[18px] border bg-white p-2 md:col-span-2" style={{ borderColor: LINE }}>
-                    {k && <img src={k.src} alt="" className="max-h-full w-auto object-contain" loading="lazy" />}
+                    {k && <Beeld src={k.src} alt="" sizes="60px" className="max-h-full w-auto object-contain" />}
                   </span>
                   <span className={`${kop} text-[21px] leading-[1.25] md:col-span-4`} style={{ color: NAVY }}>{it.title}</span>
                   <span className="text-[16px] leading-[1.7] md:col-span-6" style={{ color: BODY }}>{it.text}</span>

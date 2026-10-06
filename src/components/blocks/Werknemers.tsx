@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import Beeld from "@/components/site/Beeld";
 
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*
  * De werknemerspagina (ontwerp "D-Werknemers"): splitscreen met de werknemer
@@ -132,7 +133,7 @@ export function WnSplit({ d, asH1 }: BlockProps) {
       <div className="wn-split flex flex-col gap-[6px] px-[6px] md:h-[clamp(540px,calc(100svh-184px),768px)] md:flex-row-reverse md:gap-2 md:px-2 md:pb-2 lg:h-[clamp(580px,calc(100svh-196px),768px)]">
         {/* Werknemer: groot, met de h1 */}
         <div className="wn-tile wn-wn relative h-[528px] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]" style={{ background: "#F5D9E4" }}>
-          <img src={d.image} alt={d.alt || ""} fetchPriority="high" loading="eager" decoding="sync"
+          <Beeld src={d.image} alt={d.alt || ""} priority sizes="(min-width: 768px) 66vw, 100vw"
             className="wn-foto wn-foto-f absolute left-0 top-0 h-[270px] w-full object-cover md:h-full"
             style={{ ["--f-m" as any]: d.focusMobile || d.focus || "46% 18%", ["--f-d" as any]: d.focus || "28% 20%" }} />
           <div className="wn-orb absolute flex flex-col text-white
@@ -181,7 +182,7 @@ export function WnSplit({ d, asH1 }: BlockProps) {
         {wg.href && (
           <Link href={wg.href} aria-label={wg.aria || wg.title}
             className="wn-tile wn-wg relative h-[150px] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]" style={{ background: "#D9D3F0" }}>
-            <img src={wg.image} alt={wg.alt || ""} loading="eager"
+            <Beeld src={wg.image} alt={wg.alt || ""} loading="eager" fill sizes="(min-width: 768px) 34vw, 100vw"
               className="wn-foto wn-foto-f absolute inset-0 h-full w-full object-cover"
               style={{ ["--f-m" as any]: wg.focusMobile || wg.focus || "40% 22%", ["--f-d" as any]: wg.focus || "52% 30%" }} />
             <span className="wn-orb absolute flex flex-col justify-center text-white
@@ -238,7 +239,7 @@ export function WnWatNu({ d }: BlockProps) {
         <div className="relative hidden aspect-[519/520] lg:col-span-5 lg:block">
           <span className="absolute left-0 top-[3.85%] aspect-square w-[88.6%] overflow-hidden rounded-full border-[8px] xl:border-[10px]"
             style={{ background: "#E9E3F9", borderColor: LILA }}>
-            <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute left-[-63%] top-[-1.7%] h-auto w-[187%] max-w-none" />
+            <Beeld src={d.image} alt={d.alt || ""} sizes="(min-width: 1440px) 860px, (min-width: 1024px) 60vw, 1px" className="absolute left-[-63%] top-[-1.7%] h-auto w-[187%] max-w-none" />
           </span>
           {d.badgeText && (
             <span className="absolute left-[61.7%] top-[63.5%] flex aspect-square w-[35.5%] flex-col items-center justify-center gap-1 rounded-full text-center text-white" style={{ background: INDIGO }}>
@@ -257,7 +258,7 @@ export function WnWatNu({ d }: BlockProps) {
               <h2 className="text-[34px] font-extrabold leading-[1.02] tracking-[-1.3px] md:text-[44px] lg:text-[50px] lg:leading-none lg:tracking-[-2px] xl:text-[56px] xl:tracking-[-2.2px]" style={{ color: INDIGO }}><Regels text={d.heading} /></h2>
             </div>
             <span className="relative h-[112px] w-[112px] shrink-0 overflow-hidden rounded-full border-[5px] lg:hidden" style={{ background: "#E9E3F9", borderColor: LILA }}>
-              <img src={d.image} alt="" aria-hidden="true" loading="lazy" className="absolute left-[-104px] top-[-2px] h-auto w-[260px] max-w-none" />
+              <Beeld src={d.image} alt="" aria-hidden sizes="260px" className="absolute left-[-104px] top-[-2px] h-auto w-[260px] max-w-none" />
             </span>
           </div>
           {d.text && <p className="max-w-[540px] text-[16px] leading-[1.6] lg:text-[18px]" style={{ color: TEKST2 }}>{d.text}</p>}
@@ -553,7 +554,7 @@ export function WnCasemanager({ d }: BlockProps) {
         {/* Beeld: mobiel boven de tekst, desktop rechts */}
         <div className="relative order-first h-[230px] w-full max-w-[400px] lg:order-none lg:col-span-5 lg:col-start-8 lg:h-auto lg:max-w-none lg:aspect-[519/560]">
           <span className="absolute right-0 top-0 aspect-square w-[226px] overflow-hidden rounded-full border-[6px] lg:w-[86.7%] lg:border-[8px] xl:border-[10px]" style={{ background: "#DCD6F2", borderColor: MAGENTA }}>
-            <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 40%" }} />
+            <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1440px) 450px, (min-width: 1024px) 31vw, 226px" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 40%" }} />
           </span>
           {(d.badgeTitle || d.badgeLabel) && (
             <span className="absolute left-0 top-[70px] flex aspect-square w-[150px] flex-col items-center justify-center gap-[3px] rounded-full px-4 text-center text-white lg:left-[1.9%] lg:top-[56.8%] lg:w-[46.2%] lg:gap-1.5 lg:px-[30px]"
@@ -589,7 +590,7 @@ export function WnCoaching({ d }: BlockProps) {
             {/* Beeld desktop */}
             <div className="relative hidden aspect-[519/420] lg:col-span-5 lg:block">
               <span className="absolute left-0 top-0 aspect-square w-[81%] overflow-hidden rounded-full border-[8px] xl:border-[10px]" style={{ background: "#F6D9B8", borderColor: ORANJE }}>
-                <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 30%" }} />
+                <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1440px) 420px, (min-width: 1024px) 28vw, 1px" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 30%" }} />
               </span>
               <span aria-hidden className="absolute left-[65.5%] top-[71.4%] aspect-square w-[19.3%] rounded-full" style={{ background: INDIGO, boxShadow: "0 0 0 8px #FEF1E3" }} />
               <span aria-hidden className="absolute left-[71.7%] top-[6.7%] aspect-square w-[5.8%] rounded-full" style={{ background: MAGENTA }} />
@@ -601,7 +602,7 @@ export function WnCoaching({ d }: BlockProps) {
                   <h2 className={H2} style={{ color: INDIGO }}><Regels text={d.heading} /></h2>
                 </div>
                 <span className="relative h-[124px] w-[124px] shrink-0 overflow-hidden rounded-full border-[5px] lg:hidden" style={{ background: "#F6D9B8", borderColor: ORANJE }}>
-                  <img src={d.image} alt="" aria-hidden="true" loading="lazy" className="absolute left-[-48px] top-[-4px] h-auto w-[240px] max-w-none" />
+                  <Beeld src={d.image} alt="" aria-hidden sizes="240px" className="absolute left-[-48px] top-[-4px] h-auto w-[240px] max-w-none" />
                 </span>
               </div>
               {d.text && <p className="px-1 text-[15px] leading-[1.6] lg:px-0 lg:text-[18px]" style={{ color: "#6B4A2A" }}><Kort lang={d.text} kort={d.textShort} /></p>}
@@ -672,7 +673,7 @@ export function WnVragen({ d }: BlockProps) {
             <span className="flex items-center lg:hidden">
               <span aria-hidden className="relative z-[1] -mr-1.5 h-[22px] w-[22px] rounded-full" style={{ background: MAGENTA, boxShadow: "0 0 0 4px #ffffff" }} />
               <span className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-full border-4" style={{ background: "#E9E3F9", borderColor: ORANJE }}>
-                <img src={d.image} alt="" aria-hidden="true" loading="lazy" className="absolute left-[-16px] top-[-4px] h-auto w-[150px] max-w-none" />
+                <Beeld src={d.image} alt="" aria-hidden sizes="150px" className="absolute left-[-16px] top-[-4px] h-auto w-[150px] max-w-none" />
               </span>
             </span>
           </span>
@@ -681,7 +682,7 @@ export function WnVragen({ d }: BlockProps) {
           {d.image && (
             <div className="relative mt-2 hidden aspect-[342/302] w-full max-w-[342px] lg:block">
               <span className="absolute left-0 top-0 aspect-square w-[87.7%] overflow-hidden rounded-full border-8" style={{ background: "#E9E3F9", borderColor: ORANJE }}>
-                <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "12% 35%" }} />
+                <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1024px) 300px, 1px" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "12% 35%" }} />
               </span>
               <span aria-hidden className="absolute left-[71.9%] top-[68.2%] aspect-square w-[28.1%] rounded-full" style={{ background: MAGENTA, boxShadow: "0 0 0 8px #ffffff" }} />
             </div>
