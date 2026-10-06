@@ -22,11 +22,13 @@ export function jsonLd(data: unknown): string {
     .replace(/\u2029/g, "\\u2029");
 }
 
+import type { Taal } from "./taal";
+
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
 
-/** `BreadcrumbList` voor een kruimelpad; "Home" komt er zelf voor. */
-export function breadcrumbLd(crumbs: { label: string; href: string }[]) {
-  const items = [{ label: "Home", href: "/" }, ...crumbs];
+/** `BreadcrumbList` voor een kruimelpad; "Home" komt er zelf voor (in het Engels: /en). */
+export function breadcrumbLd(crumbs: { label: string; href: string }[], taal: Taal = "nl") {
+  const items = [{ label: "Home", href: taal === "en" ? "/en" : "/" }, ...crumbs];
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

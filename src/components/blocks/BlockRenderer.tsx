@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
 import type { Block, Post } from "@/lib/types";
+import type { Taal } from "@/lib/taal";
 import { MiniMarkdown } from "@/lib/md";
 import { zinsletters } from "@/lib/tekst";
 import Icon from "@/components/site/Icon";
@@ -59,6 +60,8 @@ export type BlockCtx = {
   crumbs?: Crumb[];
   /** Knoppen voor een paginakop die er zelf geen heeft (de dienstpagina's). */
   knoppen?: Btn[];
+  /** De taal van de pagina; de blokdata is al in die taal, dit is voor de paar vaste woorden in een blok. */
+  lang?: Taal;
 };
 
 type BlockProps = {
@@ -1152,7 +1155,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   inloggen: Inloggen,
   juridischeDocumenten: JuridischeDocumenten,
   kennismaken: Kennismaken,
-  klantenStrook: ({ d }: BlockProps) => <KlantenStrook label={d?.label} />,
+  klantenStrook: ({ d, ctx }: BlockProps) => <KlantenStrook label={d?.label} taal={ctx?.lang} />,
   klantenAanHetWoord: ({ d }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} />,
   keurmerken: () => <Keurmerken />,
   homeContact: HomeContact,

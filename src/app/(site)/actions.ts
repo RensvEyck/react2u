@@ -1,10 +1,43 @@
 "use server";
 import { supabasePublic } from "@/lib/supabase/public";
 import { notifyContactMessage, notifyApplication, notifyOfferte } from "@/lib/mail";
+import { isTaal, type Taal } from "@/lib/taal";
+import { woordenboek } from "@/lib/woordenboek";
 
 export type FormState = { ok: boolean; error?: string } | null;
 
+/**
+ * De formulieren van de Nederlandse en de Engelse site posten naar dezelfde
+ * acties en sturen een veld `taal` mee. Foutmeldingen komen uit het woordenboek
+ * van die taal, en de inzending onthoudt de taal (kolom `lang`), zodat het
+ * Postvak IN laat zien dat iemand Engels verwacht.
+ */
+function taalUit(formData: FormData): Taal {
+  const t = formData.get("taal");
+  return isTaal(t) ? t : "nl";
+}
+
+type Rij = Record<string, unknown>;
+
+/**
+ * Insert mét `lang`, en zonder als die kolom er nog niet is (migratie 0013 niet
+ * gedraaid: Postgres 42703 of de schema-cache van PostgREST, PGRST204). Een
+ * formulier mag nooit stuk zijn omdat één kolom ontbreekt.
+ */
+async function insertMetTaal(tabel: "contact_messages" | "applications", rij: Rij, taal: Taal) {
+  const sb = supabasePublic();
+  const { error } = await sb.from(tabel).insert({ ...rij, lang: taal });
+  if (!error) return null;
+  if (error.code === "42703" || error.code === "PGRST204") {
+    const { error: zonder } = await sb.from(tabel).insert(rij);
+    return zonder;
+  }
+  return error;
+}
+
 export async function submitContact(_prev: FormState, formData: FormData): Promise<FormState> {
+  const taal = taalUit(formData);
+  const fout = woordenboek(taal).formulier.fouten;
   const name = String(formData.get("name") || "").trim();
   const email = String(formData.get("email") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
@@ -12,13 +45,11 @@ export async function submitContact(_prev: FormState, formData: FormData): Promi
   const message = String(formData.get("message") || "").trim();
   const honeypot = String(formData.get("website") || "");
   if (honeypot) return { ok: true };
-  if (!name || !email || !phone || !message)
-    return { ok: false, error: "Vul naam, e-mailadres, telefoonnummer en bericht in." };
+  if (!name || !email || !phone || !message) return { ok: false, error: fout.contactVerplicht };
 
-  const sb = supabasePublic();
-  const { error } = await sb.from("contact_messages").insert({ name, email, phone, subject, message });
-  if (error) return { ok: false, error: "Er ging iets mis. Probeer het later opnieuw." };
-  await notifyContactMessage({ name, email, phone, subject, message });
+  const error = await insertMetTaal("contact_messages", { name, email, phone, subject, message }, taal);
+  if (error) return { ok: false, error: fout.algemeen };
+  await notifyContactMessage({ name, email, phone, subject, message, taal });
   return { ok: true };
 }
 
@@ -30,6 +61,8 @@ const CV_TYPES = [
 ];
 
 export async function submitApplication(_prev: FormState, formData: FormData): Promise<FormState> {
+  const taal = taalUit(formData);
+  const fout = woordenboek(taal).formulier.fouten;
   const vacancyId = String(formData.get("vacancy_id") || "");
   const vacancyTitle = String(formData.get("vacancy_title") || "");
   const name = String(formData.get("name") || "").trim();
@@ -38,35 +71,36 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   const motivation = String(formData.get("motivation") || "").trim();
   const honeypot = String(formData.get("website") || "");
   if (honeypot) return { ok: true };
-  if (!name || !email) return { ok: false, error: "Vul in ieder geval je naam en e-mailadres in." };
+  if (!name || !email) return { ok: false, error: fout.sollicitatieVerplicht };
 
   const sb = supabasePublic();
   let cvPath: string | null = null;
   const cv = formData.get("cv") as File | null;
   if (cv && cv.size > 0) {
-    if (cv.size > MAX_CV_BYTES) return { ok: false, error: "CV is te groot (max 8 MB)." };
-    if (!CV_TYPES.includes(cv.type)) return { ok: false, error: "Upload je CV als PDF of Word-bestand." };
+    if (cv.size > MAX_CV_BYTES) return { ok: false, error: fout.cvTeGroot };
+    if (!CV_TYPES.includes(cv.type)) return { ok: false, error: fout.cvType };
     const ext = cv.name.split(".").pop() || "pdf";
     cvPath = `${crypto.randomUUID()}/${cv.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || `cv.${ext}`}`;
     const { error: upErr } = await sb.storage.from("cvs").upload(cvPath, cv, { contentType: cv.type });
-    if (upErr) return { ok: false, error: "CV uploaden is niet gelukt. Probeer het opnieuw." };
+    if (upErr) return { ok: false, error: fout.cvUpload };
   }
 
-  const { error } = await sb.from("applications").insert({
+  const error = await insertMetTaal("applications", {
     vacancy_id: vacancyId || null,
     vacancy_title: vacancyTitle || null,
     name, email,
     phone: phone || null,
     motivation: motivation || null,
     cv_path: cvPath,
-  });
-  if (error) return { ok: false, error: "Er ging iets mis bij het versturen. Probeer het later opnieuw." };
+  }, taal);
+  if (error) return { ok: false, error: fout.sollicitatieAlgemeen };
   await notifyApplication({
     name, email,
     phone: phone || null,
     vacancyTitle: vacancyTitle || null,
     motivation: motivation || null,
     hasCv: Boolean(cvPath),
+    taal,
   });
   return { ok: true };
 }
@@ -79,6 +113,8 @@ const PAKKETTEN = ["Casemanagement Compleet", "Verrichtingenbasis", "Maatwerk"];
  * naar sales.
  */
 export async function submitOfferte(_prev: FormState, formData: FormData): Promise<FormState> {
+  const taal = taalUit(formData);
+  const fout = woordenboek(taal).formulier.fouten;
   const name = String(formData.get("name") || "").trim();
   const company = String(formData.get("company") || "").trim();
   const email = String(formData.get("email") || "").trim();
@@ -89,9 +125,9 @@ export async function submitOfferte(_prev: FormState, formData: FormData): Promi
   const pakket = PAKKETTEN.includes(gekozen) ? gekozen : gekozen.slice(0, 80) || "Onbekend";
   const honeypot = String(formData.get("website") || "");
   if (honeypot) return { ok: true };
-  if (!name || !company || !email || !phone || employees < 1)
-    return { ok: false, error: "Vul naam, bedrijfsnaam, e-mailadres, telefoonnummer en het aantal medewerkers in." };
+  if (!name || !company || !email || !phone || employees < 1) return { ok: false, error: fout.offerteVerplicht };
 
+  // De samenvatting is voor het Postvak IN en blijft Nederlands: dat leest het team.
   const message = [
     `Aansluiting: ${pakket}`,
     `Bedrijf: ${company}`,
@@ -99,11 +135,10 @@ export async function submitOfferte(_prev: FormState, formData: FormData): Promi
     extra ? `\n${extra}` : "",
   ].filter(Boolean).join("\n");
 
-  const sb = supabasePublic();
-  const { error } = await sb.from("contact_messages").insert({
+  const error = await insertMetTaal("contact_messages", {
     name, email, phone, subject: `Offerteaanvraag: ${pakket}`, message,
-  });
-  if (error) return { ok: false, error: "Er ging iets mis. Probeer het later opnieuw." };
-  await notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null });
+  }, taal);
+  if (error) return { ok: false, error: fout.algemeen };
+  await notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null, taal });
   return { ok: true };
 }

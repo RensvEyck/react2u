@@ -89,7 +89,7 @@ export function DgLabels({ d }: { d: any }) {
               {c.text && <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{c.text}</span>}
               <ul className="m-0 flex list-none flex-col gap-2 p-0">
                 {(c.points || []).map((p: string, j: number) => (
-                  <li key={j} className="flex gap-2.5 text-[14.5px] leading-[1.45]" style={{ color: NAVY }}>
+                  <li key={j} className="flex min-w-0 gap-2.5 text-[14.5px] leading-[1.45] [overflow-wrap:anywhere]" style={{ color: NAVY }}>
                     <span className="mt-0.5 shrink-0" style={{ color: c.kleur }}><Vink size={14} /></span>{p}
                   </li>
                 ))}

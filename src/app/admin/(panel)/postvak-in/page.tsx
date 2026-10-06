@@ -197,6 +197,16 @@ function Retention({ a }: { a: Application }) {
   return null;
 }
 
+/** Kwam de inzending via de Engelse site (/en)? Dan verwacht de afzender een antwoord in het Engels. */
+function TaalTag({ lang }: { lang?: "nl" | "en" }) {
+  if (lang !== "en") return null;
+  return (
+    <span className="apill bg-[#e6f0fb] text-[#1d5fa8]" title="Binnengekomen via de Engelse site (/en); antwoord in het Engels" lang="en">
+      EN
+    </span>
+  );
+}
+
 function TypeTag({ kind }: { kind: "bericht" | "sollicitatie" }) {
   return kind === "bericht" ? (
     <span className="apill bg-[#fff4e5] text-[#c77700]">
@@ -244,6 +254,7 @@ function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
           <div className="flex flex-wrap items-center gap-2.5">
             {!m.read && <span className="h-2 w-2 shrink-0 rounded-full bg-[#e75387]" />}
             <TypeTag kind="bericht" />
+            <TaalTag lang={m.lang} />
             <p className="text-[15.5px] font-bold text-[#1c1a4e]">{m.subject || "(geen onderwerp)"}</p>
           </div>
           <p className="mt-1 text-[13px] text-black/45">
@@ -300,6 +311,7 @@ function ApplicationCard({ a, onList }: { a: Application; onList: boolean }) {
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
               <TypeTag kind="sollicitatie" />
+              <TaalTag lang={a.lang} />
               <p className="text-[16px] font-bold text-[#1c1a4e]">{a.name}</p>
               <Retention a={a} />
             </div>

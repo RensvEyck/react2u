@@ -4,14 +4,15 @@ import Link from "next/link";
 import type { ContactInfo } from "@/lib/content";
 import type { Doelgroep } from "@/lib/nav";
 import Logo from "./Logo";
-import {
-  letter, K, useVariant, telefoon, OVER_ONS, TOPLINKS, MENU_NEUTRAAL, MENU, KNOPPEN, PORTALEN, SITE,
-  type Link2, type Variant,
-} from "./r2uStijl";
+import { letter, K, useVariant, telefoon, menus, type Link2, type Menus, type Variant } from "./r2uStijl";
+import { useTaal } from "./Taal";
+import Taalwissel from "./Taalwissel";
+import { vul } from "@/lib/taal";
 
 /*
- * Header uit het ontwerp (Design-canvas: Main, Werkgevers, Werknemers). Alleen
- * op staging; SiteShell kiest tussen deze en Header.
+ * Header uit het ontwerp (Design-canvas: Main, Werkgevers, Werknemers). Op
+ * staging en op de Engelse site; SiteShell kiest tussen deze en Header. De
+ * teksten komen uit het woordenboek, de menu's uit menus() in r2uStijl.
  *
  * Bovenaan een dunne indigo balk met de tabs Werkgevers | Werknemers en rechts
  * Over ons, Werken bij, Contact en het telefoonnummer. Die balk scrolt weg.
@@ -156,30 +157,31 @@ function Uitklap({ label, icoon, items, rechts = false }: {
   );
 }
 
-/** Dunne indigo balk: tabs Werkgevers | Werknemers en rechts de vaste links. Scrolt weg. */
-function TopBalk({ groep, tel, telHref }: { groep: Doelgroep | null; tel: string; telHref: string }) {
+/** Dunne indigo balk: tabs Werkgevers | Werknemers, rechts de vaste links en de taalknop. Scrolt weg. */
+function TopBalk({ groep, tel, telHref, m, kies }: { groep: Doelgroep | null; tel: string; telHref: string; m: Menus; kies: string }) {
   return (
     <div data-r2u-tabs className={`rk rk-balk relative z-[60] ${letter.className}`} style={{ background: K.indigo }}>
       <div className="mx-auto flex h-10 max-w-[1440px] items-end justify-between px-1.5 md:h-11 md:px-10 xl:px-[120px]">
-        <nav aria-label="Kies je doelgroep" className="flex flex-1 gap-1 text-[14px] font-bold md:flex-none">
+        <nav aria-label={kies} className="flex flex-1 gap-1 text-[14px] font-bold md:flex-none">
           {(["werkgever", "werknemer"] as const).map((g) => {
             const actief = g === groep;
             return (
-              <Link key={g} href={SITE[g].href} aria-current={actief ? "page" : undefined}
+              <Link key={g} href={m.SITE[g].href} aria-current={actief ? "page" : undefined}
                 className={`flex h-10 flex-1 items-center justify-center rounded-t-[8px] md:h-11 md:flex-none md:px-5 ${actief ? "" : "rk-tab"}`}
                 style={actief ? { background: "#ffffff", color: K.indigo } : { color: "rgba(255,255,255,0.78)" }}>
-                {g === "werkgever" ? "Werkgevers" : "Werknemers"}
+                {m.SITE[g].label}
               </Link>
             );
           })}
         </nav>
         <div className="hidden h-11 items-center gap-7 text-[13px] font-semibold md:flex">
-          {TOPLINKS.map((l) => (
+          {m.TOPLINKS.map((l) => (
             <Link key={l.href} href={l.href} className="rk-tab" style={{ color: "rgba(255,255,255,0.78)" }}>{l.label}</Link>
           ))}
           <a href={telHref} className="rk-tab flex items-center gap-1.5 font-bold" style={{ color: "#ffffff" }}>
             <Telefoon size={14} /> {tel}
           </a>
+          <Taalwissel donker />
         </div>
       </div>
     </div>
@@ -202,6 +204,8 @@ const BREED = {
 };
 
 export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
+  const { taal, t } = useTaal();
+  const m = menus(taal);
   const variant = useVariant({ bewaar: true });
   const [mobiel, setMobiel] = useState(false);
   const [gescrold, setGescrold] = useState(false);
@@ -210,7 +214,7 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
   const rijRef = useRef<HTMLDivElement>(null);
   const knopRef = useRef<HTMLButtonElement>(null);
   const ids = useId();
-  const tel = telefoon(contact);
+  const tel = telefoon(contact, taal);
   const telHref = `tel:${contact.phone}`;
 
   const neutraal = variant === "neutraal";
@@ -256,9 +260,10 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
   }, [mobiel, B.px]);
 
   const sluit = () => setMobiel(false);
-  const knop = KNOPPEN[variant];
+  const knop = m.KNOPPEN[variant];
   const knopHref = knop.href === "tel:" ? telHref : knop.href;
-  const portalen = PORTALEN[variant];
+  const portalen = m.PORTALEN[variant];
+  const start = taal === "en" ? "/en" : "/";
   const paneelId = `${ids}-menu`;
 
   return (
@@ -266,10 +271,10 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
       <a href="#inhoud"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:px-5 focus:py-3 focus:text-white"
         style={{ background: K.indigo }}>
-        Naar de inhoud
+        {t.algemeen.naarInhoud}
       </a>
 
-      <TopBalk groep={groep} tel={tel} telHref={telHref} />
+      <TopBalk groep={groep} tel={tel} telHref={telHref} m={m} kies={t.header.kiesDoelgroep} />
 
       <header ref={kopRef} data-r2u-kop={variant}
         className={`rk ${letter.className} sticky top-0 z-50 border-b bg-white transition-shadow duration-300 ${
@@ -281,45 +286,45 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
               werknemer); de doelgroep ernaast naar het begin van die eigen site. */}
           {groep ? (
             <div className="flex shrink-0 items-center gap-4">
-              <Link href="/" aria-label="React2u, naar de homepage" className="flex shrink-0" onClick={sluit}>
+              <Link href={start} aria-label={t.header.logoNaarHome} className="flex shrink-0" onClick={sluit}>
                 <Logo title="" className="h-[36px] w-auto lg:h-[44px]" />
               </Link>
               <span aria-hidden className="h-7 w-px" style={{ background: K.lijn }} />
-              <Link href={SITE[groep].href} onClick={sluit} aria-label={`React2u voor ${SITE[groep].naam}, naar het begin`}
+              <Link href={m.SITE[groep].href} onClick={sluit} aria-label={vul(t.header.naarBegin, { naam: m.SITE[groep].naam })}
                 className="rk-link text-[15px] font-bold" style={{ color: K.indigo }}>
-                {groep === "werkgever" ? "Werkgevers" : "Werknemers"}
+                {m.SITE[groep].label}
               </Link>
             </div>
           ) : (
-            <Link href="/" aria-label="React2u, naar de homepage" className="flex shrink-0" onClick={sluit}>
+            <Link href={start} aria-label={t.header.logoNaarHome} className="flex shrink-0" onClick={sluit}>
               <Logo title="" className="h-[40px] w-auto lg:h-[48px]" />
             </Link>
           )}
 
           {/* Menu op een breed scherm. Neutraal staat het precies in het midden. */}
-          <nav aria-label={groep ? `Menu ${SITE[groep].naam}` : "Hoofdmenu"}
+          <nav aria-label={groep ? vul(t.header.menuVoor, { naam: m.SITE[groep].naam }) : t.header.hoofdmenu}
             className={`hidden h-full items-center text-[15px] font-bold ${B.toon} ${
               neutraal ? "absolute left-1/2 -translate-x-1/2 gap-8" : "gap-[26px]"}`}>
             {neutraal
-              ? MENU_NEUTRAAL.map((l) => l.overOns
-                ? <Uitklap key={l.label} label={l.label} items={OVER_ONS} />
+              ? m.MENU_NEUTRAAL.map((l) => l.overOns
+                ? <Uitklap key={l.label} label={l.label} items={m.OVER_ONS} />
                 : <Link key={l.href} href={l.href} className="rk-link">{l.label}</Link>)
-              : MENU[groep!].map((l) => l.items
+              : m.MENU[groep!].map((l) => l.items
                 ? <Uitklap key={l.label} label={l.label} items={l.items} />
                 : <Link key={l.href} href={l.href} className="rk-link whitespace-nowrap">{l.label}</Link>)}
           </nav>
 
           <div className="flex h-full items-center gap-2 text-[15px] font-bold">
             <div className={`hidden h-full items-center gap-3 ${B.toon}`}>
-              {portalen.length > 0 && <Uitklap label="Inloggen" icoon={<Slot />} items={portalen} rechts />}
+              {portalen.length > 0 && <Uitklap label={t.header.inloggen} icoon={<Slot />} items={portalen} rechts />}
               <HoofdKnop href={knopHref} className="h-14 px-7 text-[16px]">{knop.label}<Pijl /></HoofdKnop>
             </div>
-            <a href={telHref} aria-label={`Bel ons: ${tel}`}
+            <a href={telHref} aria-label={vul(t.algemeen.belOns, { tel })}
               className={`rk-rond grid h-11 w-11 place-items-center rounded-full ${B.verberg}`} style={{ background: K.zacht, color: K.indigo }}>
               <Telefoon />
             </a>
             <button ref={knopRef} type="button" onClick={() => setMobiel((m) => !m)}
-              aria-expanded={mobiel} aria-controls={paneelId} aria-label={mobiel ? "Menu sluiten" : "Menu openen"}
+              aria-expanded={mobiel} aria-controls={paneelId} aria-label={mobiel ? t.algemeen.menuSluiten : t.algemeen.menuOpenen}
               className={`rk-rond grid h-11 w-11 shrink-0 place-items-center rounded-full ${B.verberg}`}
               style={{ background: K.indigo }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
@@ -333,7 +338,7 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
           <div id={paneelId} onClick={(e) => { if ((e.target as HTMLElement).closest("a")) sluit(); }}
             className={`menu-panel overflow-y-auto overscroll-contain border-t ${B.verberg}`}
             style={{ height: `calc(100dvh - ${paneelTop}px)`, borderColor: K.lijn, background: "#ffffff" }}>
-            <MobielPaneel variant={variant} contact={contact} tel={tel} knopHref={knopHref} />
+            <MobielPaneel variant={variant} contact={contact} tel={tel} knopHref={knopHref} m={m} />
           </div>
         )}
       </header>
@@ -341,14 +346,19 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
   );
 }
 
-/** Het paneel achter de menuknop: dezelfde links als op een breed scherm, onder elkaar. */
-function MobielPaneel({ variant, contact, tel, knopHref }: { variant: Variant; contact: ContactInfo; tel: string; knopHref: string }) {
+/** Het paneel achter de menuknop: dezelfde links als op een breed scherm, onder elkaar, met de taalknop. */
+function MobielPaneel({ variant, contact, tel, knopHref, m }: { variant: Variant; contact: ContactInfo; tel: string; knopHref: string; m: Menus }) {
+  const { t } = useTaal();
   const groep = variant === "neutraal" ? null : variant;
-  const links: Link2[] = groep ? MENU[groep] : MENU_NEUTRAAL.filter((l) => !l.overOns);
-  const portalen = PORTALEN[variant];
+  const links: Link2[] = groep ? m.MENU[groep] : m.MENU_NEUTRAAL.filter((l) => !l.overOns);
+  const portalen = m.PORTALEN[variant];
   return (
     <div className="mx-auto flex max-w-[640px] flex-col gap-7 px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
-      <nav aria-label="Menu">
+      <div className="flex items-center justify-between gap-4 border-b pb-3" style={{ borderColor: K.lijn }}>
+        <span className="text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: K.klein }}>{t.algemeen.taal}</span>
+        <Taalwissel className="text-[15px]" />
+      </div>
+      <nav aria-label={t.algemeen.menu}>
         <ul className="flex flex-col">
           {links.map((l) => (
             <li key={l.href} className="border-b" style={{ borderColor: K.lijn }}>
@@ -373,7 +383,7 @@ function MobielPaneel({ variant, contact, tel, knopHref }: { variant: Variant; c
       </nav>
 
       <div className="flex flex-col gap-2.5">
-        <HoofdKnop href={knopHref} className="h-[52px] justify-center text-[16px]">{KNOPPEN[variant].label}<Pijl /></HoofdKnop>
+        <HoofdKnop href={knopHref} className="h-[52px] justify-center text-[16px]">{m.KNOPPEN[variant].label}<Pijl /></HoofdKnop>
         {portalen.map((p) => (
           <Go key={p.href} href={p.href} className="rk-pill flex h-[52px] items-center justify-center gap-2 rounded-full border-[1.5px] text-[16px] font-bold"
             style={{ borderColor: K.lijn }}>
@@ -383,9 +393,9 @@ function MobielPaneel({ variant, contact, tel, knopHref }: { variant: Variant; c
       </div>
 
       <div>
-        <p className="mb-1 text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: "#00A098" }}>Over React2u</p>
+        <p className="mb-1 text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: "#00A098" }}>{t.header.overOnsKop}</p>
         <ul className="-mx-3.5 flex flex-col">
-          {OVER_ONS.map((l) => (
+          {m.OVER_ONS.map((l) => (
             <li key={l.href}>
               <Link href={l.href} className="rk-dd-link flex rounded-[10px] px-3.5 py-2.5 text-[16px] font-bold">{l.label}</Link>
             </li>
@@ -395,8 +405,8 @@ function MobielPaneel({ variant, contact, tel, knopHref }: { variant: Variant; c
 
       <div className="rounded-[24px] px-5 py-2 text-white" style={{ background: K.indigo }}>
         {[
-          { href: `tel:${contact.phone}`, label: "Bellen", waarde: tel, Ic: Telefoon },
-          { href: `mailto:${contact.email}`, label: "Mailen", waarde: contact.email, Ic: Mail },
+          { href: `tel:${contact.phone}`, label: t.algemeen.bellen, waarde: tel, Ic: Telefoon },
+          { href: `mailto:${contact.email}`, label: t.algemeen.mailen, waarde: contact.email, Ic: Mail },
         ].map(({ href, label, waarde, Ic }, i) => (
           <a key={href} href={href} className={`rk-crow flex items-center gap-4 py-4 ${i ? "border-t-[1.5px]" : ""}`}
             style={{ borderColor: "#423E97", color: "#ffffff" }}>

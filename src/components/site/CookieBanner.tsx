@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { useTaal } from "./Taal";
 
 /**
  * Cookiemelding op de publieke site. Gemonteerd in SiteShell: zo staat hij ook
@@ -83,14 +84,17 @@ export function openCookieSettings() {
 
 /** De tekstknop "Cookie-instellingen" voor de footer; erft letter en kleur van zijn omgeving. */
 export function CookieSettingsLink({ className = "", style }: { className?: string; style?: CSSProperties }) {
+  const { t } = useTaal();
   return (
     <button type="button" onClick={openCookieSettings} className={`cursor-pointer ${className}`} style={style}>
-      Cookie-instellingen
+      {t.footer.cookieInstellingen}
     </button>
   );
 }
 
 export default function CookieBanner() {
+  const { t } = useTaal();
+  const c = t.cookies;
   const raw = useSyncExternalStore<string | null>(subscribe, rawConsent, onServer);
   const consent = useMemo(() => (raw === null ? null : parseConsent(raw)), [raw]);
   // Heropend vanuit de footer, of juist weggeklikt zonder iets vast te leggen.
@@ -149,21 +153,11 @@ export default function CookieBanner() {
       aria-describedby={textId}
       className="cb-in fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-[70] ml-auto max-w-[560px] rounded-[20px] border border-line bg-white p-5 text-[15px] leading-relaxed text-body shadow-[0_18px_50px_rgb(34_32_90/0.18)] print:hidden sm:inset-x-4 sm:bottom-[max(1rem,env(safe-area-inset-bottom))] sm:p-6"
     >
-      <p id={titleId} className="mb-1.5 text-[16px] font-bold text-primary">Cookies op react2u.nl</p>
+      <p id={titleId} className="mb-1.5 text-[16px] font-bold text-primary">{c.titel}</p>
       <p id={textId}>
-        {informative ? (
-          <>
-            We gebruiken alleen functionele cookies, nodig om de site goed en veilig te laten werken.
-            We volgen je niet en plaatsen geen cookies van derden.{" "}
-          </>
-        ) : (
-          <>
-            We gebruiken functionele cookies om de site te laten werken. Met jouw toestemming ook andere
-            cookies. Je keuze pas je altijd aan via Cookie-instellingen onderaan de pagina.{" "}
-          </>
-        )}
+        {informative ? c.info : c.toestemming}{" "}
         <a href={POLICY_URL} target="_blank" rel="noopener" className="font-semibold text-primary underline underline-offset-[3px] hover:text-primary-deep">
-          Lees de cookieverklaring
+          {c.lees}
         </a>
         .
       </p>
@@ -174,8 +168,8 @@ export default function CookieBanner() {
             <label className="grid grid-cols-[auto_1fr] items-start gap-x-2.5">
               <input type="checkbox" checked disabled className="mt-1 accent-primary" />
               <span>
-                <strong className="font-semibold text-primary">Functioneel</strong>
-                <span className="block text-[13.5px] text-body/80">Nodig voor een goede en veilige werking. Altijd aan.</span>
+                <strong className="font-semibold text-primary">{c.functioneel}</strong>
+                <span className="block text-[13.5px] text-body/80">{c.functioneelUitleg}</span>
               </span>
             </label>
           </li>
@@ -201,22 +195,22 @@ export default function CookieBanner() {
       <div className="mt-5 flex flex-wrap gap-2.5 sm:justify-end">
         {informative ? (
           <button ref={primary} type="button" className="btn btn-sm btn-indigo flex-1 rounded-full sm:flex-none" onClick={() => save({})}>
-            Prima
+            {c.prima}
           </button>
         ) : details ? (
           <button ref={primary} type="button" className="btn btn-sm btn-indigo flex-1 rounded-full sm:flex-none" onClick={() => save({ ...all(false), ...choices })}>
-            Keuze opslaan
+            {c.keuzeOpslaan}
           </button>
         ) : (
           <>
             <button type="button" className="btn btn-sm btn-outline flex-1 rounded-full sm:flex-none" onClick={() => save(all(false))}>
-              Weigeren
+              {c.weigeren}
             </button>
             <button type="button" className="btn btn-sm btn-outline flex-1 rounded-full sm:flex-none" onClick={() => setDetails(true)}>
-              Instellingen
+              {c.instellingen}
             </button>
             <button ref={primary} type="button" className="btn btn-sm btn-indigo flex-1 rounded-full sm:flex-none" onClick={() => save(all(true))}>
-              Accepteren
+              {c.accepteren}
             </button>
           </>
         )}

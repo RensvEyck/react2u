@@ -1,0 +1,131 @@
+{
+  "_uitleg": "Engels 'Je casemanager' (/en/your-case-manager): dezelfde blokken als je-casemanager.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "your-case-manager",
+  "title": "Your case manager",
+  "seo_title": "Your case manager during sickness absence • React2u",
+  "seo_description": "After you report sick, you get a regular case manager from React2u. What does your case manager do, and how do you reach them?",
+  "blocks": [
+    {
+      "type": "wnKop",
+      "label": "Header",
+      "data": {
+        "heading": "Your case manager",
+        "text": "After you report sick, you get a regular case manager. They guide you until you are back at work, together with your employer and the company doctor (bedrijfsarts).",
+        "tint": "#E5F5F4",
+        "orb": "#00A098",
+        "crumbs": [
+          { "label": "Employees", "href": "/en/employees" },
+          { "label": "Your case manager" }
+        ],
+        "buttons": [
+          {
+            "label": "Call your case manager",
+            "href": "tel:+31856205800"
+          }
+        ],
+        "cardTitle": "Reach your case manager",
+        "card": [
+          {
+            "icon": "telefoon",
+            "label": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          }
+        ],
+        "cardNote": "Available on working days. Ask for your case manager, or leave a message."
+      }
+    },
+    {
+      "type": "wnKaarten",
+      "label": "What your case manager does",
+      "data": {
+        "anchor": "what",
+        "eyebrow": "What your case manager does",
+        "heading": "Someone who stands beside you",
+        "text": "Your case manager is there for you and for your employer, with respect for everyone's role and privacy.",
+        "cards": [
+          {
+            "icon": "mensen",
+            "title": "One regular contact",
+            "text": "Your case manager stays the same throughout. You only have to tell your story once.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "icon": "chat",
+            "title": "Listens and thinks along",
+            "text": "We ask how you are doing and what you need, and look together at what you can do.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          },
+          {
+            "icon": "klembord",
+            "title": "Keeps the overview",
+            "text": "Appointments, conversations and documents are in one online file, so you also know where you stand.",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC"
+          },
+          {
+            "icon": "koffer",
+            "title": "Liaises with your employer",
+            "text": "Your case manager coordinates with your employer and the company doctor, so you can focus on your recovery.",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3"
+          },
+          {
+            "icon": "hart",
+            "title": "Confidential",
+            "text": "You can speak to your case manager in confidence. Medical information you share only with the company doctor.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "icon": "diploma",
+            "title": "Brings in the right help",
+            "text": "A physiotherapist, psychologist or coach if that helps. We arrange it together with your employer.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnWaarden",
+      "label": "What you can count on",
+      "data": {
+        "eyebrow": "What you can count on",
+        "heading": "Healthy, human and clear",
+        "items": [
+          {
+            "title": "Healthy",
+            "kleur": "#00A098",
+            "text": "Work gives structure, contact and income. That is why we help you back to work that suits you."
+          },
+          {
+            "title": "Human",
+            "kleur": "#E61674",
+            "text": "We listen, we are there for you and we help you back to work at your own pace."
+          },
+          {
+            "title": "Clear",
+            "kleur": "#3AA5DD",
+            "text": "When you are out of action for a while, it can be hard to keep everything in order. In our online platform you can find all your conversations, appointments and documents."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnContactStrook",
+      "label": "Contact",
+      "data": {
+        "heading": "Don't know who your case manager is?",
+        "text": "Call us. We will find out for you and put you through.",
+        "phoneDisplay": "+31 85 620 58 00"
+      }
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { jsonLd } from "@/lib/jsonld";
 import { LINKEDIN_URL } from "@/lib/nav";
 import { concept } from "@/lib/concept";
 import { kort } from "@/lib/seo";
+import { hreflangVoor } from "@/lib/taal";
 
 export const revalidate = 300;
 
@@ -15,7 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { absolute: title },
     description,
-    alternates: { canonical: "/" },
+    // Met hreflang naar /en zodra het startscherm er in het Engels is (lib/taal.ts).
+    alternates: { canonical: "/", languages: hreflangVoor("/") ?? undefined },
     // Zie (site)/[slug]/page.tsx: weglaten erft de defaults, `undefined` wist ze.
     ...(res?.page.og_image
       ? {

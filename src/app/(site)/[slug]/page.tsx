@@ -12,6 +12,7 @@ import { concept, conceptSlugs, reserveConcept, type Concept } from "@/lib/conce
 import type { Block, Page } from "@/lib/types";
 import { isGeindexeerd, plaatsVoorSlug, provincieVoorSlug } from "@/lib/gemeenten";
 import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/Werkgebied";
+import { hreflangVoor } from "@/lib/taal";
 
 /**
  * Werkgebied: /arbodienst-provincie-<provincie> en /arbodienst-<gemeente>.
@@ -81,7 +82,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: { absolute: title },
     description,
-    alternates: { canonical: `/${slug}` },
+    // hreflang alleen voor pagina's die ook in het Engels bestaan (lib/taal.ts).
+    alternates: { canonical: `/${slug}`, languages: hreflangVoor(`/${slug}`) ?? undefined },
     // Alleen meesturen als er echt een eigen afbeelding is. `openGraph: undefined`
     // is niet hetzelfde als weglaten: de sleutel bestaat dan, en overschrijft de
     // defaults uit (site)/layout.tsx — waardoor de pagina hélemaal geen og-tags

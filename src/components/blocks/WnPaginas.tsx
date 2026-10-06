@@ -1,4 +1,5 @@
 import { outfit } from "./HomeVerhaal";
+import type { Taal } from "@/lib/taal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, kop, BREED, Eyebrow, Kruimels, Knop, Vink, Pijl } from "./Gedeeld";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -37,10 +38,11 @@ function anker(d: any) {
 
 /* ---------- Kop met kruimelpad, knoppen en optioneel een kaart ---------- */
 
-export function WnKop({ d, asH1 }: { d: any; asH1?: boolean }) {
+export function WnKop({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { lang?: Taal } }) {
   const H = asH1 ? "h1" : "h2";
   const knoppen: any[] = d.buttons || [];
   const kaart: any[] = d.card || [];
+  // De Engelse pagina's geven hun kruimelpad zelf mee in `crumbs`.
   const crumbs = d.crumbs || [{ label: "Werknemers", href: "/werknemers" }, { label: d.heading }];
   return (
     <section aria-label={d.heading} className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]`}>
@@ -48,7 +50,7 @@ export function WnKop({ d, asH1 }: { d: any; asH1?: boolean }) {
         style={{ background: d.tint || "#FDECF4" }}>
         <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: d.orb || PINK, opacity: 0.12 }} />
         <div className="relative flex max-w-[640px] flex-col gap-6">
-          <Kruimels items={crumbs} />
+          <Kruimels items={crumbs} taal={ctx?.lang} />
           <H className={`${kop} m-0 text-[44px] leading-[1] tracking-[-1.4px] md:text-[68px] md:tracking-[-1.8px]`} style={{ color: NAVY }}>{d.heading}</H>
           {d.text && <p className="m-0 text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }}>{d.text}</p>}
           {knoppen.length > 0 && (
@@ -269,7 +271,7 @@ export function WnContactStrook({ d }: { d: any }) {
           </div>
           <div className="flex shrink-0 flex-wrap gap-2.5">
             <a href="tel:+31856205800" className="inline-flex h-[54px] items-center gap-2.5 rounded-full bg-white px-6 text-[15px] font-bold" style={{ color: NAVY }}>
-              <Icoon naam="telefoon" size={17} />085 620 58 00
+              <Icoon naam="telefoon" size={17} />{d.phoneDisplay || "085 620 58 00"}
             </a>
             <a href="mailto:info@react2u.nl" className="inline-flex h-[54px] items-center gap-2.5 rounded-full border px-6 text-[15px] font-bold" style={{ color: "#ffffff", borderColor: "rgba(255,255,255,0.4)" }}>
               <Icoon naam="mail" size={17} />info@react2u.nl

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { Taal } from "@/lib/taal";
+import { woordenboek } from "@/lib/woordenboek";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -71,9 +73,9 @@ export function Eyebrow({ children, kleur = PINK }: { children: React.ReactNode;
   );
 }
 
-export function Kruimels({ items }: { items: { label: string; href?: string }[] }) {
+export function Kruimels({ items, taal = "nl" }: { items: { label: string; href?: string }[]; taal?: Taal }) {
   return (
-    <nav aria-label="Kruimelpad" className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
+    <nav aria-label={woordenboek(taal).algemeen.kruimelpad} className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
       {items.map((c, i) => (
         <span key={i} className="flex items-center gap-2.5">
           {i > 0 && <span aria-hidden>/</span>}
@@ -104,9 +106,9 @@ export function KopBlok({ eyebrow, kopTekst, tekst, size = 44 }: { eyebrow: stri
   );
 }
 
-export function KlantenStrook({ label = "We werken samen met:" }: { label?: string }) {
+export function KlantenStrook({ label = "We werken samen met:", taal = "nl" }: { label?: string; taal?: Taal }) {
   return (
-    <section aria-label="Klanten" className="bg-white">
+    <section aria-label={woordenboek(taal).algemeen.klanten} className="bg-white">
       <div className={`${BREED} flex flex-col items-center gap-7 py-12 md:py-14`}>
         <span className="text-[14px] font-semibold" style={{ color: MUTE }}>{label}</span>
         <ul className="m-0 flex w-full list-none flex-wrap items-center justify-center gap-x-10 gap-y-6 p-0 md:justify-between">

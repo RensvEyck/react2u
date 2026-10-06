@@ -91,6 +91,16 @@ export async function saveVacancy(formData: FormData) {
     valid_through: String(formData.get("valid_through") || "") || null,
     seo_title: String(formData.get("seo_title") || "") || null,
     seo_description: String(formData.get("seo_description") || "") || null,
+    // De Engelse velden (migratie 0013) alleen als het formulier ze meestuurt:
+    // zonder die kolommen in de database staan ze uitgeschakeld (VacancyFields)
+    // en ontbreken ze hier, zodat de opslag niet op een onbekende kolom breekt.
+    ...(formData.has("title_en")
+      ? {
+          title_en: String(formData.get("title_en") || "").trim() || null,
+          intro_en: String(formData.get("intro_en") || "").trim() || null,
+          description_en_md: String(formData.get("description_en_md") || "") || null,
+        }
+      : {}),
   };
   if (!payload.title || !payload.slug) redirect(`/admin/vacatures?fout=titel-of-slug`);
 
