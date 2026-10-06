@@ -57,7 +57,7 @@ function Pijl() {
 /** Label met een stip, zoals in het logo. */
 function Label({ children, kleur = TEAL, zacht = "#D7F0EE" }: { children: React.ReactNode; kleur?: string; zacht?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 self-start text-[12px] font-bold uppercase tracking-[1.6px] md:text-[13px]" style={{ color: kleur }}>
+    <span className="inline-flex items-center gap-2 self-start text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: kleur }}>
       <span className="grid h-[18px] w-[18px] place-items-center rounded-full" style={{ background: zacht }}>
         <span className="h-[7px] w-[7px] rounded-full" style={{ background: kleur }} />
       </span>
@@ -88,7 +88,7 @@ export function HomeEenMens({ d }: BlockProps) {
   const lineColors = [NAVY, TEAL, PINK];
   return (
     <section aria-label={d.eyebrow || "Waarom React2u"} className={`hv ${outfit.variable}`} style={{ background: GRIJS }}>
-      <div className="mx-auto grid max-w-[1440px] items-center gap-12 px-5 py-20 md:grid-cols-12 md:gap-6 md:px-10 md:py-28 lg:px-16 xl:px-[120px] lg:py-[120px]">
+      <div className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-14 md:grid-cols-12 md:gap-6 md:px-10 md:py-28 lg:px-16 xl:px-[120px] lg:py-[120px]">
         <div className="flex flex-col gap-6 md:col-span-6 lg:col-span-5">
           {d.eyebrow && <Label>{d.eyebrow}</Label>}
           <h2 className="hv-kop text-balance text-[38px] leading-[1.05] tracking-[-1px] md:text-[44px] lg:text-[54px] lg:tracking-[-1.4px]">
@@ -186,7 +186,7 @@ export function HomeReis({ d }: BlockProps) {
   const buttons = ((d.buttons as any[]) || []).filter((b) => b?.label && b?.href);
   return (
     <section aria-label={d.eyebrow || "Zo werkt het"} className={`hv ${outfit.variable}`} style={{ background: d.bg || "#ffffff" }}>
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-12 px-5 pt-20 md:px-10 md:pt-28 lg:px-16 xl:px-[120px] lg:pt-[120px]">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-5 pt-14 md:gap-12 md:px-10 md:pt-28 lg:px-16 xl:px-[120px] lg:pt-[120px]">
         <div className="grid gap-5 md:grid-cols-12 md:items-end md:gap-6">
           <div className="flex flex-col gap-4 md:col-span-7 lg:col-span-6">
             {d.eyebrow && <Label>{d.eyebrow}</Label>}
@@ -255,7 +255,7 @@ export function HomeReis({ d }: BlockProps) {
                     )}
                   </div>
                   <div className={`hv-jc flex flex-col gap-1.5 pt-2 ${laatste ? "" : "pb-8"}`} style={{ animationDelay: `${(tStation(i) + 0.12).toFixed(2)}s` }}>
-                    <span className="text-[12px] font-bold uppercase tracking-[1.3px]" style={{ color: c }}>{i + 1}. {s.label}</span>
+                    <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: c }}>{i + 1}. {s.label}</span>
                     <span className="hv-kop text-[20px] leading-[1.3]" style={{ color: NAVY }}>{s.title}</span>
                     <span className="text-[15px] leading-[1.7]" style={{ color: TEKST }}>{s.text}</span>
                   </div>

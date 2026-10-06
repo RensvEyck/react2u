@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
 import Beeld from "@/components/site/Beeld";
+import { Strook } from "./Gedeeld";
 import { pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 
@@ -110,8 +111,8 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
       </section>
 
       {/* 2. Introductie en "Herken je dit?" */}
-      <section aria-label={`React2u ${naam}`} className="px-5 py-20 md:px-10 md:py-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-6">
+      <section aria-label={`React2u ${naam}`} className="px-5 py-14 md:px-10 md:py-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
+        <div className="grid gap-10 lg:grid-cols-12 lg:gap-6">
           <div className="flex flex-col gap-5 lg:col-span-6 md:gap-[22px]">
             <span className="inline-flex items-center gap-2.5 text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: tc }}>
               <span className="h-2 w-2 rounded-full" style={{ background: c }} />React2u {naam}
@@ -123,7 +124,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
             ))}
           </div>
           {(d.herken || []).length > 0 && (
-            <div className="flex flex-col rounded-[28px] p-7 md:p-10 lg:col-span-5 lg:col-start-8" style={{ background: SOFT }}>
+            <div className="flex flex-col rounded-[28px] p-6 md:p-10 lg:col-span-5 lg:col-start-8" style={{ background: SOFT }}>
               <h3 className={`${kop} m-0 mb-[18px] text-[24px] tracking-[-0.4px] md:text-[26px]`}>{t2.herken}</h3>
               {d.herken.map((q: string, i: number) => (
                 <div key={i} className="flex items-start gap-3.5 border-t py-4" style={{ borderColor: LINE }}>
@@ -139,14 +140,14 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
 
       {/* 3. Wat het label omvat */}
       {groepen.length > 0 && (
-        <section aria-label={vul(t2.omvat, { naam })} className="flex flex-col gap-10 px-5 pb-20 md:gap-12 md:px-10 md:pb-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
+        <section aria-label={vul(t2.omvat, { naam })} className="flex flex-col gap-8 px-5 pb-14 md:gap-12 md:px-10 md:pb-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
           <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
             <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px] md:tracking-[-1px] lg:col-span-7`}>{vul(t2.omvat, { naam })}</h2>
             <p className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>{t2.omvatTekst}</p>
           </div>
-          <div className={`grid gap-4 md:grid-cols-2 md:gap-6 ${kolommen}`}>
+          <Strook n={groepen.length} className={`grid gap-4 md:grid-cols-2 md:gap-6 ${kolommen}`}>
             {groepen.map((g, i) => (
-              <div key={i} className="flex flex-col gap-3.5 rounded-[28px] border bg-white p-7 md:p-9"
+              <div key={i} className="flex flex-col gap-3.5 rounded-[28px] border bg-white p-6 md:p-9"
                 style={{ borderColor: LINE, boxShadow: "0 1px 2px rgba(46,42,126,0.04), 0 24px 48px -36px rgba(46,42,126,0.35)" }}>
                 <span className="grid h-[52px] w-[52px] place-items-center rounded-full text-[17px] font-bold" style={{ background: t, color: tc }}>
                   {String(i + 1).padStart(2, "0")}
@@ -162,25 +163,26 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
                 </div>
               </div>
             ))}
-          </div>
+          </Strook>
         </section>
       )}
 
       {/* 4. Onze aanpak */}
       {stappen.length > 0 && (
-        <section aria-label={t2.aanpak} className="relative overflow-hidden px-5 py-20 md:px-10 md:py-[104px]" style={{ background: NAVY }}>
+        <section aria-label={t2.aanpak} className="relative overflow-hidden px-5 py-14 md:px-10 md:py-[104px]" style={{ background: NAVY }}>
           <span aria-hidden className="absolute right-[-180px] top-[-220px] h-[540px] w-[540px] rounded-full" style={{ background: "#3B378F" }} />
-          <div className="relative flex flex-col gap-10 md:gap-[52px] xl:mx-auto xl:max-w-[1200px]">
+          <div className="relative flex flex-col gap-8 md:gap-[52px] xl:mx-auto xl:max-w-[1200px]">
             <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px]`} style={{ color: "#ffffff" }}>{t2.aanpak}</h2>
-            <ol className="m-0 grid list-none gap-8 p-0 md:grid-cols-2 lg:grid-cols-4">
+            {/* Op de telefoon het nummer naast de titel; vanaf md erboven met de lijn ernaast. */}
+            <ol className="m-0 grid list-none gap-6 p-0 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
               {stappen.map((s, i) => (
-                <li key={i} className="flex flex-col gap-3.5">
-                  <span className="flex items-center gap-3">
+                <li key={i} className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-4 gap-y-1.5 md:flex md:flex-col md:gap-3.5">
+                  <span className="row-span-2 flex items-start gap-3 md:row-span-1 md:items-center">
                     <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[19px] font-semibold"
                       style={{ background: c === NAVY ? "#ffffff" : c, color: c === NAVY ? NAVY : "#ffffff" }}>{i + 1}</span>
                     {i < stappen.length - 1 && <span aria-hidden className="hidden h-px grow lg:block" style={{ background: "rgba(255,255,255,0.18)" }} />}
                   </span>
-                  <h3 className={`${kop} m-0 text-[21px]`} style={{ color: "#ffffff" }}>{s.titel}</h3>
+                  <h3 className={`${kop} m-0 pt-2.5 text-[21px] md:pt-0`} style={{ color: "#ffffff" }}>{s.titel}</h3>
                   <p className="m-0 text-[15.5px] leading-[1.6]" style={{ color: "#D6D2F7" }}>{s.tekst}</p>
                 </li>
               ))}
@@ -191,24 +193,25 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
 
       {/* 5. Waarom React2u, met de keurmerken */}
       {waarom.length > 0 && (
-        <section aria-label={vul(t2.waarom, { naam })} className="px-[6px] pt-20 md:px-10 md:pt-[120px] xl:mx-auto xl:max-w-[1280px]">
-          <div className="relative flex flex-col gap-10 overflow-hidden rounded-[28px] px-6 py-12 md:gap-[52px] md:rounded-[36px] md:p-[72px]" style={{ background: t }}>
+        <section aria-label={vul(t2.waarom, { naam })} className="px-[6px] pt-14 md:px-10 md:pt-[120px] xl:mx-auto xl:max-w-[1280px]">
+          <div className="relative flex flex-col gap-8 overflow-hidden rounded-[28px] px-5 py-10 md:gap-[52px] md:rounded-[36px] md:p-[72px]" style={{ background: t }}>
             <span aria-hidden className="absolute bottom-[-200px] left-[-140px] h-[460px] w-[460px] rounded-full" style={{ background: c, opacity: 0.1 }} />
             <h2 className={`${kop} relative m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px]`}>{vul(t2.waarom, { naam })}</h2>
-            <div className="relative grid gap-8 md:grid-cols-3 md:gap-10">
+            <div className="relative grid gap-6 md:grid-cols-3 md:gap-10">
               {waarom.map((w, i) => (
-                <div key={i} className="flex flex-col gap-3 border-t-2 pt-6" style={{ borderColor: c }}>
+                <div key={i} className="flex flex-col gap-2.5 border-t-2 pt-5 md:gap-3 md:pt-6" style={{ borderColor: c }}>
                   <h3 className={`${kop} m-0 text-[21px] tracking-[-0.3px] md:text-[22px]`}>{w.titel}</h3>
                   <p className="m-0 text-[16px] leading-[1.65]" style={{ color: BODY }}>{w.tekst}</p>
                 </div>
               ))}
             </div>
-            <div className="relative flex flex-col gap-5 border-t pt-9 md:flex-row md:items-center md:justify-between" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
+            <div className="relative flex flex-col gap-4 border-t pt-7 md:flex-row md:items-center md:justify-between md:gap-5 md:pt-9" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
               <span className="text-[16px] font-bold">{t2.gecertificeerd}</span>
-              <div className="flex flex-wrap gap-3">
+              {/* Vijf tegels op één rij, ook op de telefoon (5 × 60 + 4 × 8 = 332px). */}
+              <div className="flex flex-wrap gap-2 md:gap-3">
                 {KEURMERKEN.map((k, i) => (
-                  <span key={k.src} className="grid h-[72px] w-[72px] place-items-center rounded-[18px] bg-white md:h-[84px] md:w-[84px]">
-                    <Beeld src={k.src} alt={w.footer.keurmerkAlts[i] || k.alt} sizes="(min-width: 768px) 64px, 56px" className="block max-h-[56px] max-w-[56px] md:max-h-[64px] md:max-w-[64px]" />
+                  <span key={k.src} className="grid h-[60px] w-[60px] place-items-center rounded-[14px] bg-white md:h-[84px] md:w-[84px] md:rounded-[18px]">
+                    <Beeld src={k.src} alt={w.footer.keurmerkAlts[i] || k.alt} sizes="(min-width: 768px) 64px, 46px" className="block max-h-[46px] max-w-[46px] md:max-h-[64px] md:max-w-[64px]" />
                   </span>
                 ))}
               </div>
@@ -219,17 +222,18 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
 
       {/* 6. De andere labels */}
       {ook.length > 0 && (
-        <section aria-label={t2.bekijkOok} className="flex flex-col gap-8 px-5 pt-20 md:px-10 md:pt-[104px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
+        <section aria-label={t2.bekijkOok} className="flex flex-col gap-8 px-5 pt-14 md:px-10 md:pt-[104px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
           <h2 className={`${kop} m-0 text-[28px] leading-[1.15] tracking-[-0.6px] md:text-[34px]`}>{t2.bekijkOok}</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Op de telefoon twee naast elkaar (vier kleine kaarten in plaats van een lange stapel). */}
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
             {ook.map((o, i) => (
-              <Link key={i} href={o.href} className="flex flex-col gap-2.5 rounded-[20px] px-6 py-[26px] transition-transform duration-300 hover:-translate-y-1"
+              <Link key={i} href={o.href} className="flex flex-col gap-2 rounded-[20px] px-4 py-5 transition-transform duration-300 hover:-translate-y-1 sm:gap-2.5 sm:px-6 sm:py-[26px]"
                 style={{ background: SOFT, color: NAVY }}>
                 <span className="flex items-center gap-2.5">
-                  <span className="h-3 w-3 rounded-full" style={{ background: o.kleur }} />
-                  <span className="text-[14px] font-bold" style={{ color: MUTE }}>{o.wat}</span>
+                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: o.kleur }} />
+                  <span className="text-[13px] font-bold leading-[1.3] sm:text-[14px]" style={{ color: MUTE }}>{o.wat}</span>
                 </span>
-                <span className={`${kop} text-[24px]`}>React2u {o.naam}</span>
+                <span className={`${kop} text-[20px] sm:text-[24px]`}>React2u {o.naam}</span>
                 <span className="flex items-center gap-2 text-[15px] font-bold">{t2.bekijk} <Pijl /></span>
               </Link>
             ))}
