@@ -434,10 +434,10 @@ Nederlands staat op de gewone paden, Engels onder `/en` met Engelse slugs
   de taal als `ctx.lang`.
 - **Formulieren** sturen een veld `taal` mee; de server action kiest de
   foutmelding in die taal en bewaart de taal in `contact_messages.lang` en
-  `applications.lang` (migratie 0013), met een terugval zonder die kolom. Het
+  `applications.lang` (migratie 0015), met een terugval zonder die kolom. Het
   Postvak IN toont dan een EN-label.
 - **Vacatures** hebben optionele Engelse velden (`title_en`, `intro_en`,
-  `description_en_md`, migratie 0013). Zonder Engelse titel toont `/en/jobs/<slug>`
+  `description_en_md`, migratie 0015). Zonder Engelse titel toont `/en/jobs/<slug>`
   de Nederlandse tekst met "This vacancy is in Dutch".
 - **`/en/services`** toont de vijf labels in de blokken van het nieuwe ontwerp;
   `/diensten` zelf gebruikt nog de oude blokken (`pillars` uit `nav.ts`).

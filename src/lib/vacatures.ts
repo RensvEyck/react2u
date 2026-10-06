@@ -2,7 +2,7 @@ import type { Vacancy } from "./types";
 import type { Taal } from "./taal";
 
 /**
- * Een vacature in de taal van de pagina. De Engelse velden (migratie 0013)
+ * Een vacature in de taal van de pagina. De Engelse velden (migratie 0015)
  * zijn optioneel: zonder Engelse titel toont de Engelse site de Nederlandse
  * vacature, met bovenaan de melding dat hij in het Nederlands is.
  */

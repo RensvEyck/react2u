@@ -91,7 +91,7 @@ export async function saveVacancy(formData: FormData) {
     valid_through: String(formData.get("valid_through") || "") || null,
     seo_title: String(formData.get("seo_title") || "") || null,
     seo_description: String(formData.get("seo_description") || "") || null,
-    // De Engelse velden (migratie 0013) alleen als het formulier ze meestuurt:
+    // De Engelse velden (migratie 0015) alleen als het formulier ze meestuurt:
     // zonder die kolommen in de database staan ze uitgeschakeld (VacancyFields)
     // en ontbreken ze hier, zodat de opslag niet op een onbekende kolom breekt.
     ...(formData.has("title_en")

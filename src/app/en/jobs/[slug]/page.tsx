@@ -16,7 +16,7 @@ export async function generateStaticParams() {
 }
 
 /**
- * Een vacature op de Engelse site. Met Engelse velden (migratie 0013) in het
+ * Een vacature op de Engelse site. Met Engelse velden (migratie 0015) in het
  * Engels; zonder in het Nederlands, met bovenaan "This vacancy is in Dutch".
  * De SEO-titel volgt de taal van de tekst, met "Vacancy" als label.
  */

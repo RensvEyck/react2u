@@ -79,7 +79,7 @@ de 404). De menu's van het nieuwe ontwerp staan in het woordenboek als
 
 **Formulieren: dezelfde server actions, met `taal` als veld.** De actie kiest
 de foutmelding in die taal en bewaart de taal in de kolom `lang` van
-`contact_messages` en `applications` (migratie `0013_engels.sql`), zodat het
+`contact_messages` en `applications` (migratie `0015_engels.sql`), zodat het
 Postvak IN een EN-label toont. Ontbreekt de kolom nog, dan valt de insert terug
 op een insert zonder `lang`: een formulier mag niet stuk zijn om één kolom.
 
@@ -149,6 +149,6 @@ Tarieven: dezelfde bedragen, "excl. VAT".
 - Een nieuwe vaste UI-tekst komt in `nl.ts` én `en.ts`; TypeScript dwingt dat af.
 - Blokken met vaste Nederlandse woorden (bv. een tabelkop) moeten die uit
   `woordenboek(ctx.lang)` halen zodra het blok op een Engelse pagina staat.
-- Migratie `0013_engels.sql` moet op de live database draaien voordat de
+- Migratie `0015_engels.sql` moet op de live database draaien voordat de
   Engelse vacaturevelden in de admin te gebruiken zijn en het Postvak IN de taal
   toont; tot die tijd werkt alles verder gewoon.

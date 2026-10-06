@@ -20,7 +20,7 @@ function taalUit(formData: FormData): Taal {
 type Rij = Record<string, unknown>;
 
 /**
- * Insert mét `lang`, en zonder als die kolom er nog niet is (migratie 0013 niet
+ * Insert mét `lang`, en zonder als die kolom er nog niet is (migratie 0015 niet
  * gedraaid: Postgres 42703 of de schema-cache van PostgREST, PGRST204). Een
  * formulier mag nooit stuk zijn omdat één kolom ontbreekt.
  */

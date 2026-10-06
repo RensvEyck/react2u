@@ -30,7 +30,7 @@ export type Vacancy = {
   salary: string | null;
   intro: string | null;
   description_md: string | null;
-  /** Engelse versie van titel, intro en tekst (migratie 0013); leeg = de Engelse site toont de Nederlandse tekst. */
+  /** Engelse versie van titel, intro en tekst (migratie 0015); leeg = de Engelse site toont de Nederlandse tekst. */
   title_en?: string | null;
   intro_en?: string | null;
   description_en_md?: string | null;
@@ -110,7 +110,7 @@ export type Application = {
   motivation: string | null;
   cv_path: string | null;
   status: "nieuw" | "in_behandeling" | "afgewezen" | "aangenomen";
-  /** Via welke taal van de site de sollicitatie binnenkwam (migratie 0013); ontbreekt bij oudere rijen. */
+  /** Via welke taal van de site de sollicitatie binnenkwam (migratie 0015); ontbreekt bij oudere rijen. */
   lang?: "nl" | "en";
   created_at: string;
 };
@@ -124,7 +124,7 @@ export type ContactMessage = {
   subject: string | null;
   message: string;
   read: boolean;
-  /** Via welke taal van de site het bericht binnenkwam (migratie 0013); ontbreekt bij oudere rijen. */
+  /** Via welke taal van de site het bericht binnenkwam (migratie 0015); ontbreekt bij oudere rijen. */
   lang?: "nl" | "en";
   created_at: string;
 };

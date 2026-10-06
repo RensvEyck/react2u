@@ -10,7 +10,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 /**
- * `engels` zegt of de Engelse kolommen (migratie 0013) in de database bestaan.
+ * `engels` zegt of de Engelse kolommen (migratie 0015) in de database bestaan.
  * Zonder die kolommen zijn de velden uitgeschakeld (en gaan ze niet mee in het
  * formulier), met de uitleg erbij; anders zou opslaan mislukken.
  */
@@ -76,7 +76,7 @@ export default function VacancyFields({ v, engels = true }: { v?: Vacancy | null
         </p>
         {!engels && (
           <p className="mb-4 rounded-xl bg-[#fff8ec] px-4 py-3 text-[13.5px] text-[#7a4a00]">
-            De Engelse velden bestaan nog niet in de database. Draai eerst migratie <code>0013_engels.sql</code>; tot die
+            De Engelse velden bestaan nog niet in de database. Draai eerst migratie <code>0015_engels.sql</code>; tot die
             tijd zijn deze velden uitgeschakeld.
           </p>
         )}
