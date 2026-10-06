@@ -35,7 +35,12 @@ export default async function ApplicationsAdmin() {
                   {(a.name[0] || "?").toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-[16px] font-bold text-[#1c1a4e]">{a.name}</p>
+                  <p className="flex flex-wrap items-center gap-2 text-[16px] font-bold text-[#1c1a4e]">
+                    {a.name}
+                    {a.lang === "en" && (
+                      <span className="apill bg-[#e6f0fb] text-[#1d5fa8]" title="Binnengekomen via de Engelse site (/en)" lang="en">EN</span>
+                    )}
+                  </p>
                   <p className="text-[13px] text-black/45">
                     {a.vacancy_title || "Sollicitatie"} ·{" "}
                     {new Date(a.created_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}

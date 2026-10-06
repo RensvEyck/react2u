@@ -1,9 +1,9 @@
 "use client";
 import { useActionState } from "react";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
-import Link from "next/link";
 import { Field, Bedankt, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 export default function ApplicationForm({ vacancyId, vacancyTitle }: { vacancyId?: string; vacancyTitle: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(submitApplication, null);
@@ -38,7 +38,7 @@ export default function ApplicationForm({ vacancyId, vacancyTitle }: { vacancyId
           {pending ? "Versturen…" : <>Solliciteer direct <Arrow /></>}
         </button>
         <p className="text-[13.5px] text-body">
-          Lees in onze <Link href="/privacyverklaring" className="underline underline-offset-2 hover:text-accent">privacyverklaring</Link> wat we met je gegevens en je cv doen.
+          Lees in onze <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-accent">privacyverklaring</a> wat we met je gegevens en je cv doen.
         </p>
       </div>
     </form>

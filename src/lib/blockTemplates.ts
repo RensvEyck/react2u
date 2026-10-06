@@ -1,8 +1,102 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import tarievenPagina from "@/content/tarieven.json";
+import werkgeversPagina from "@/content/werkgevers.json";
+import werknemersPagina from "@/content/werknemers.json";
+
+/** De data van een blok uit de werknemerspagina, als sjabloon. */
+function wn(type: string) {
+  return JSON.parse(JSON.stringify(werknemersPagina.blocks.find((b) => b.type === type)?.data ?? {}));
+}
+
+/** De data van een blok op de werkgeverspagina, als sjabloon voor een nieuw blok. */
+function werkgevers(type: string): any {
+  return werkgeversPagina.blocks.find((b) => b.type === type)?.data ?? {};
+}
 
 // Default data per bloktype — gebruikt bij "Blok toevoegen" in het admin-paneel.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
+  homeSplit: {
+    label: "Startpagina: Splitscreen werkgever | werknemer",
+    data: {"heading": "React2u, de persoonlijke arbodienst voor werkgevers en werknemers", "choices": [{"doelgroep": "werkgever", "eyebrow": "Voor werkgevers", "title": "Ik ben werkgever", "text": "Grip op verzuim, van preventie tot re-integratie.", "short": "Grip op verzuim", "button": "Naar de werkgeverssite", "href": "/werkgevers", "aria": "Ik ben werkgever, naar de pagina voor werkgevers", "image": "/beeld/home/samen-leren.webp", "alt": "Vier collega’s lachen samen aan een ronde tafel", "focus": "46% 30%"}, {"doelgroep": "werknemer", "eyebrow": "Voor werknemers", "title": "Ik ben werknemer", "text": "Ziek of vastgelopen? We helpen je weer op weg.", "short": "Ziek of vastgelopen?", "button": "Naar de werknemerssite", "href": "/werknemers", "aria": "Ik ben werknemer, naar de pagina voor werknemers", "image": "/beeld/home/samen-buiten.webp", "alt": "Een vrouw en een man wandelen samen in het park", "focus": "50% 20%"}]},
+  },
+  homeWaarom: {
+    label: "Startpagina: Waarom React2u",
+    data: {"eyebrow": "Waarom React2u", "heading": "Samen gezond", "highlight": "terug aan het werk.", "text": "Eén vaste casemanager begeleidt werkgever én werknemer, van de eerste ziekmelding tot volledig herstel.", "image": "/beeld/home/aandacht-definitief.webp", "alt": "Een casemanager in gesprek met een werknemer aan tafel", "focus": "30% 40%", "badgeLabel": "Altijd samen", "badgeText": "werkgever én\nwerknemer", "promises": [{"icon": "user", "title": "Eén vast gezicht", "text": "Je casemanager kent jou en je mensen. Je vertelt je verhaal maar één keer."}, {"icon": "phone", "title": "Een mens aan de lijn", "text": "Geen keuzemenu, geen ticketnummer. Gewoon iemand die je helpt."}, {"icon": "shield", "title": "Grip op elke termijn", "text": "Wij bewaken elke stap van de Wet verbetering poortwachter."}, {"icon": "folder", "title": "Alles op één plek", "text": "Afspraken en rapportages in één online dossier."}], "trust": [{"text": "ISO 9001 gecertificeerd"}, {"text": "Persoonlijke arbodienst uit Eindhoven"}]},
+  },
+  homeSnelNaar: {
+    label: "Startpagina: Snel naar",
+    data: {"eyebrow": "Snel naar", "heading": "Waar ben je naar op zoek?", "text": "Werkgever, werknemer of op zoek naar een nieuwe baan? Hier vind je de snelste weg.", "cards": [{"tone": "werkgever", "label": "Voor werkgevers", "href": "/werkgevers", "title": "Grip op verzuim, met één vaste casemanager", "links": [{"label": "Onze diensten", "href": "/diensten"}, {"label": "Zo werkt verzuimbegeleiding", "href": "/verzuimbegeleiding-wvp"}, {"label": "Verzuimabonnementen", "href": "/verzuimabonnementen"}], "button": {"label": "Offerte aanvragen", "href": "/contact"}}, {"tone": "werknemer", "label": "Voor werknemers", "href": "/werknemers", "title": "Ziek of vastgelopen?\nWe helpen je verder.", "links": [{"label": "Ziek, wat nu?", "href": "/werknemers"}, {"label": "Het verzuimprotocol", "href": "/verzuimprotocol"}, {"label": "Veelgestelde vragen", "href": "/werknemers#veelgestelde-vragen"}], "button": {"label": "Neem contact op", "href": "/contact"}}, {"tone": "werkzoekende", "label": "Voor werkzoekenden", "href": "/vacatures", "title": "Kom ons team versterken", "links": [{"label": "Vacatures", "href": "/vacatures"}, {"label": "Over React2u", "href": "/over-react2u"}, {"label": "Neem contact op", "href": "/contact"}], "button": {"label": "Bekijk vacatures", "href": "/vacatures"}}]},
+  },
+  homeEenMens: {
+    label: "Startpagina: Eén mens. Eén verhaal. Eén aanspreekpunt.",
+    data: {"eyebrow": "Waarom React2u", "lines": ["Eén mens.", "Eén verhaal.", "Eén aanspreekpunt."], "text": "Bij React2u krijg je geen keuzemenu, maar een vaste casemanager die jouw organisatie en je mensen kent. Van de eerste ziektedag tot volledig herstel.", "checks": [{"text": "Direct een mens aan de lijn"}, {"text": "SBCA en ISO gecertificeerd"}, {"text": "Medische informatie blijft bij de bedrijfsarts"}], "photos": [{"image": "/beeld/home/kring-gesprek.webp", "alt": "Een casemanager in gesprek met een werknemer aan tafel", "focus": "50% 40%"}, {"image": "/beeld/home/kring-samen-scherm.webp", "alt": "Twee collega’s overleggen samen achter een beeldscherm", "focus": "50% 45%"}, {"image": "/beeld/home/kring-werkvloer.webp", "alt": "Twee medewerkers in gesprek op de werkvloer", "focus": "50% 30%"}]},
+  },
+  homeReis: {
+    label: "Startpagina: Zo werkt het (stippenreis)",
+    data: {"eyebrow": "Zo werkt het", "heading": "Van gezond blijven tot weer aan de slag", "text": "We zijn er niet alleen bij ziekte. Van preventie en vitaliteit tot re-integratie en loopbaan: één partij, één vast aanspreekpunt.", "steps": [{"icon": "shield", "label": "Voorkomen", "title": "Gezond aan het werk", "text": "Risico-inventarisatie, preventief medisch onderzoek, vitaliteit en trainingen."}, {"icon": "chat", "label": "Signaleren", "title": "Er vroeg bij zijn", "text": "Coaching, een vertrouwenspersoon en hulp als iemand vastloopt, nog vóór uitval."}, {"icon": "heart", "label": "Begeleiden", "title": "Bij ziekte één aanspreekpunt", "text": "Je vaste casemanager, de bedrijfsarts en alle poortwachtertermijnen geregeld."}, {"icon": "route", "label": "Verder", "title": "Terug aan het werk of een nieuwe stap", "text": "Re-integratie, tweede spoor en loopbaanbegeleiding met nieuw perspectief."}], "buttons": [{"label": "Kennismaken", "href": "/contact"}, {"label": "Ziek? Lees wat je moet doen", "href": "/werknemers#wat-nu"}]},
+  },
+  contactSimpel: {
+    label: "Contactpagina: gegevens en formulier",
+    data: {"heading": "Contact", "text": "Bel, mail of stuur een bericht. We helpen je graag verder.", "rows": [{"label": "Telefoon", "value": "085 620 58 00", "href": "tel:+31856205800", "sub": "Op werkdagen direct een mens aan de lijn"}, {"label": "E-mail", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl", "sub": "We reageren binnen één werkdag"}, {"label": "Offerte en kennismaken", "value": "sales@react2u.nl", "href": "mailto:sales@react2u.nl", "sub": ""}, {"label": "Adres", "value": "Stratumsedijk 29\n5611 NB Eindhoven", "href": "https://maps.google.com/?q=Stratumsedijk+29+Eindhoven", "sub": "Bezoek op afspraak"}], "company": ["React2u II B.V.", "KvK 95076824", "Btw NL866991906B01"], "formHeading": "Stuur een bericht", "note": "Deel hier geen medische informatie."},
+  },
+  dienstLabel: {
+    label: "Dienstpagina per label (Resist, Recover, …)",
+    data: {"heading": "React2u Recover", "naam": "Recover", "kleur": "#E61674", "tint": "#FDECF4", "label": "Verzuimbegeleiding.", "tagline": "Van ziekmelding tot herstel", "text": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.", "checks": ["Casemanagement", "Bedrijfsarts en taakdelegatie", "Poortwachterdossier en UWV", "Online dossier en rapportages", "Verzuimadvies"], "de": "Dé arbopartner met één vast aanspreekpunt", "lead": "Grip op verzuim begint met aandacht en regie.", "intro": ["Als een medewerker ziek wordt, wil je weten waar je aan toe bent. Met React2u Recover heb je één vaste casemanager die je organisatie kent, met je medewerker in gesprek gaat en alles voor je regelt.", "Je casemanager werkt samen met de bedrijfsarts, bewaakt elke termijn en houdt jou op de hoogte. Zo loopt de begeleiding volgens de wet, en houdt je medewerker het gevoel dat er naar hem geluisterd wordt."], "herken": ["Verzuimbegeleiding voelt complex en tijdrovend", "Je weet niet altijd welke termijn eraan komt", "Je hebt steeds met iemand anders te maken", "Je bent bang voor een loonsanctie van het UWV"], "groepen": [{"titel": "Regie op verzuim", "tekst": "Eén casemanager die je organisatie kent.", "items": ["Vaste casemanager", "Verzuimadvies voor leidinggevenden", "Online verzuimdossier, altijd inzichtelijk"]}, {"titel": "Medische begeleiding", "tekst": "Deskundig, dichtbij en snel geregeld.", "items": ["Bedrijfsarts", "Taakdelegatie: praktijkondersteuner bedrijfsarts", "Open spreekuur, ook zonder verzuim"]}, {"titel": "Wet verbetering poortwachter", "tekst": "Elke stap op tijd en volledig.", "items": ["Probleemanalyse en plan van aanpak", "Termijnbewaking en evaluaties", "Melding week 42 en re-integratieverslag"]}, {"titel": "Sneller herstel", "tekst": "De juiste hulp op het juiste moment.", "items": ["Fysiotherapie, psycholoog of coach", "Arbeidsdeskundig advies", "Periodieke verzuimanalyse"]}], "stappen": [{"titel": "Ziekmelding", "tekst": "Je meldt je medewerker ziek, telefonisch of online."}, {"titel": "Eerste contact", "tekst": "Binnen één werkdag belt je casemanager met jou en je medewerker."}, {"titel": "Plan van aanpak", "tekst": "Samen met de bedrijfsarts leggen we de route naar herstel vast."}, {"titel": "Terug aan het werk", "tekst": "We begeleiden de terugkeer en evalueren tot het rond is."}], "waarom": [{"titel": "Vast aanspreekpunt", "tekst": "Geen wisselende gezichten. Je casemanager kent jou en je mensen."}, {"titel": "Poortwachterproof", "tekst": "Volg je onze aanpak, dan voldoe je aan de eisen van het UWV."}, {"titel": "Gecertificeerd", "tekst": "SBCA gecertificeerd en ISO 9001, 27001 en 27701 door DNV."}], "ook": [{"naam": "Resist", "wat": "Preventie en vitaliteit", "kleur": "#00A098", "href": "/resist"}, {"naam": "Restart", "wat": "Re-integratie en loopbaan", "kleur": "#F19001", "href": "/restart"}, {"naam": "Reflex", "wat": "Flexbranche en Ziektewet", "kleur": "#3AA5DD", "href": "/reflex"}, {"naam": "Ready", "wat": "HR en arbeidsrecht", "kleur": "#322E83", "href": "/ready"}]},
+  },
+  homeContact: {
+    label: "Startpagina: Contact",
+    data: {"eyebrow": "Contact", "heading": "Een vraag?\nBel gewoon even.", "text": "Je krijgt direct een mens aan de lijn die je verder helpt.", "image": "/beeld/home/even-bellen.webp", "alt": "Een vrouw belt ontspannen met React2u", "focus": "52% 22%", "routes": [{"icon": "phone", "label": "Bellen", "value": "085 620 58 00", "href": "tel:+31856205800"}, {"icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl"}, {"icon": "pin", "label": "Hoofdkantoor", "value": "Stratumsedijk 29, Eindhoven", "href": "https://maps.google.com/?q=Stratumsedijk+29+Eindhoven"}]},
+  },
+  wgSplit: {
+    label: "Werkgevers: Kop werkgever | werknemer (met h1)",
+    data: werkgevers("wgSplit"),
+  },
+  wgWaarom: {
+    label: "Werkgevers: Waarom React2u",
+    data: werkgevers("wgWaarom"),
+  },
+  wgDiensten: {
+    label: "Werkgevers: Diensten",
+    data: werkgevers("wgDiensten"),
+  },
+  wgWerkwijze: {
+    label: "Werkgevers: Poortwachter-tijdlijn",
+    data: werkgevers("wgWerkwijze"),
+  },
+  wgErd: {
+    label: "Werkgevers: Eigenrisicodrager (ERD/ZW)",
+    data: werkgevers("wgErd"),
+  },
+  wgStarten: {
+    label: "Werkgevers: Zo start je",
+    data: werkgevers("wgStarten"),
+  },
+  wgTarieven: {
+    label: "Werkgevers: Tarieven (drie pakketten)",
+    data: werkgevers("wgTarieven"),
+  },
+  wgBewijs: {
+    label: "Werkgevers: Klantlogo’s",
+    data: werkgevers("wgBewijs"),
+  },
+  wgVragen: {
+    label: "Werkgevers: Veelgestelde vragen",
+    data: werkgevers("wgVragen"),
+  },
+  wgOfferte: {
+    label: "Werkgevers: Offerte aanvragen (formulier)",
+    data: werkgevers("wgOfferte"),
+  },
+  wnSplit: { label: "Werknemers: Splitscreen werkgever | werknemer", data: wn("wnSplit") },
+  wnInhoud: { label: "Werknemers: Op deze pagina (ankerlinks)", data: wn("wnInhoud") },
+  wnWatNu: { label: "Werknemers: Net ziek, eerste stappen", data: wn("wnWatNu") },
+  wnTijdlijn: { label: "Werknemers: Je verzuimperiode (tijdlijn)", data: wn("wnTijdlijn") },
+  wnRechten: { label: "Werknemers: Rechten en plichten", data: wn("wnRechten") },
+  wnPrivacy: { label: "Werknemers: Wie weet wat (privacy)", data: wn("wnPrivacy") },
+  wnCasemanager: { label: "Werknemers: Je casemanager", data: wn("wnCasemanager") },
+  wnCoaching: { label: "Werknemers: Vastgelopen, coaching", data: wn("wnCoaching") },
+  wnVragen: { label: "Werknemers: Veelgestelde vragen", data: wn("wnVragen") },
+  wnContact: { label: "Werknemers: Contact en ziek melden", data: wn("wnContact") },
   hero: {
     label: "Hero (kop + foto van rand tot rand)",
     // imagePosition: "left" of "right". focus: welk deel van de foto in beeld blijft, bv. "30% 40%".

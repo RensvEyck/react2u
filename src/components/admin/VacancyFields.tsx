@@ -9,7 +9,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function VacancyFields({ v }: { v?: Vacancy | null }) {
+/**
+ * `engels` zegt of de Engelse kolommen (migratie 0013) in de database bestaan.
+ * Zonder die kolommen zijn de velden uitgeschakeld (en gaan ze niet mee in het
+ * formulier), met de uitleg erbij; anders zou opslaan mislukken.
+ */
+export default function VacancyFields({ v, engels = true }: { v?: Vacancy | null; engels?: boolean }) {
   return (
     <>
       <Section title="Basis">
@@ -60,6 +65,33 @@ export default function VacancyFields({ v }: { v?: Vacancy | null }) {
           <div>
             <label className="alabel">Omschrijving — &quot;### &quot; voor tussenkoppen, &quot;- &quot; voor bullets, **vet**</label>
             <textarea className="ainput font-mono text-[13.5px] leading-relaxed" name="description_md" rows={16} defaultValue={v?.description_md || ""} />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Engelse versie (optioneel)">
+        <p className="mb-4 text-[13.5px] text-black/50">
+          Voor de Engelse site (/en/jobs). Laat je deze velden leeg, dan toont de Engelse site de Nederlandse vacature
+          met bovenaan &quot;This vacancy is in Dutch&quot;. Locatie, uren en salaris zijn in beide talen hetzelfde.
+        </p>
+        {!engels && (
+          <p className="mb-4 rounded-xl bg-[#fff8ec] px-4 py-3 text-[13.5px] text-[#7a4a00]">
+            De Engelse velden bestaan nog niet in de database. Draai eerst migratie <code>0013_engels.sql</code>; tot die
+            tijd zijn deze velden uitgeschakeld.
+          </p>
+        )}
+        <div className="space-y-4">
+          <div>
+            <label className="alabel">Functietitel (Engels)</label>
+            <input className="ainput" name="title_en" defaultValue={v?.title_en || ""} disabled={!engels} lang="en" />
+          </div>
+          <div>
+            <label className="alabel">Korte intro (Engels)</label>
+            <textarea className="ainput" name="intro_en" rows={2} defaultValue={v?.intro_en || ""} disabled={!engels} lang="en" />
+          </div>
+          <div>
+            <label className="alabel">Omschrijving (Engels) — &quot;### &quot; voor tussenkoppen, &quot;- &quot; voor bullets, **vet**</label>
+            <textarea className="ainput font-mono text-[13.5px] leading-relaxed" name="description_en_md" rows={12} defaultValue={v?.description_en_md || ""} disabled={!engels} lang="en" />
           </div>
         </div>
       </Section>

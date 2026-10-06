@@ -1,0 +1,171 @@
+{
+  "_uitleg": "Engelse labelpagina React2u Restart (/en/services/restart): dezelfde blokken als restart.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "services/restart",
+  "title": "React2u Restart",
+  "seo_title": "React2u Restart: reintegration and careers • React2u",
+  "seo_description": "Is a return to the current job not possible? Then we look for new perspective together, inside or outside the organisation. Second track, career scan and labour expert.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Restart",
+      "data": {
+        "heading": "React2u Restart",
+        "naam": "Restart",
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "label": "Reintegration and careers.",
+        "tagline": "Moving forward together",
+        "text": "Is a return to the current job not possible? Then we look for new perspective together, inside or outside the organisation.",
+        "checks": [
+          "Second-track reintegration (tweede spoor)",
+          "Career scan",
+          "Coaching and burnout support",
+          "Labour expert assessment",
+          "Grief counselling"
+        ],
+        "de": "The expert in reintegration and careers",
+        "lead": "Looking at what someone can do.",
+        "intro": [
+          "Sometimes a return to the current role is no longer possible. Then you want to find a new direction carefully and in time, for your employee and for you as the employer.",
+          "With React2u Restart we look at what someone can still do. With an assessment by a labour expert (arbeidsdeskundige), career guidance and a solid second-track programme (tweede spoor: reintegration with another employer), so that you meet your reintegration obligations under Dutch law."
+        ],
+        "herken": [
+          "A return to the current job is no longer possible",
+          "You are unsure when to start the second track",
+          "An employee is stuck and sees no perspective",
+          "You want to avoid a wage sanction (loonsanctie) from UWV"
+        ],
+        "groepen": [
+          {
+            "titel": "Reintegration",
+            "tekst": "To suitable work, inside or outside your organisation.",
+            "items": [
+              "Second-track reintegration (tweede spoor)",
+              "Third-track reintegration (derde spoor)",
+              "Absence and perspective"
+            ]
+          },
+          {
+            "titel": "Careers and coaching",
+            "tekst": "Choosing a direction and keeping it up.",
+            "items": [
+              "Career scan",
+              "Career coaching",
+              "Individual coaching",
+              "Outplacement"
+            ]
+          },
+          {
+            "titel": "Labour expert",
+            "tekst": "Objective insight into possibilities.",
+            "items": [
+              "Labour expert assessment",
+              "Additional labour expert assessment",
+              "Help with the WIA application"
+            ]
+          },
+          {
+            "titel": "Personal support",
+            "tekst": "Attention for what weighs heavily.",
+            "items": [
+              "Burnout support",
+              "Grief counselling",
+              "Coaching on budget and balance"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Assess",
+            "tekst": "We map possibilities and capacity."
+          },
+          {
+            "titel": "Make a plan",
+            "tekst": "Together we choose a realistic direction."
+          },
+          {
+            "titel": "Guide",
+            "tekst": "A regular counsellor supports every step."
+          },
+          {
+            "titel": "New step",
+            "tekst": "Suitable work, inside or outside your organisation."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Coach and labour expert",
+            "tekst": "Two perspectives, one clear plan for the future."
+          },
+          {
+            "titel": "Solution-focused",
+            "tekst": "We focus on talents and possibilities, not on limitations."
+          },
+          {
+            "titel": "Clear goals",
+            "tekst": "Every programme starts with agreements, so progress stays visible."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Prevention and vitality",
+            "kleur": "#00A098",
+            "href": "/en/services/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Sickness absence support",
+            "kleur": "#E61674",
+            "href": "/en/services/recover"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Temporary staffing and the Sickness Benefits Act",
+            "kleur": "#3AA5DD",
+            "href": "/en/services/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR and employment law",
+            "kleur": "#322E83",
+            "href": "/en/services/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

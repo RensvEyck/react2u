@@ -4,9 +4,12 @@ import { notFound } from "next/navigation";
 import { getPublishedPosts, getPost } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
+import { kort, paginaTitel } from "@/lib/seo";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
+import { conceptenActief } from "@/lib/concept";
+import { BlogArtikel } from "@/components/blocks/Blog";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -23,14 +26,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const p = await getPost(slug);
   if (!p) return {};
   const image = p.og_image || p.cover_image;
+  const description = kort(p.seo_description || p.excerpt);
   return {
-    title: p.seo_title || p.title,
-    description: p.seo_description || p.excerpt || undefined,
+    // Zie vacatures/[slug]: het merk precies één keer achter de titel.
+    title: { absolute: paginaTitel(p.seo_title || p.title) },
+    description,
     alternates: { canonical: `/blog/${slug}` },
     openGraph: {
       type: "article",
       title: p.seo_title || p.title,
-      description: p.seo_description || p.excerpt || undefined,
+      description,
       url: `/blog/${slug}`,
       publishedTime: p.published_at || undefined,
       modifiedTime: p.updated_at,
@@ -80,6 +85,18 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       { "@type": "ListItem", position: 3, name: p.title, item: `${SITE}/blog/${p.slug}` },
     ],
   };
+
+  if (conceptenActief) {
+    // Op staging het nieuwe ontwerp "Blogartikel".
+    const andere = (await getPublishedPosts()).filter((x) => x.id !== p.id);
+    return (
+      <>
+        <BlogArtikel p={p} andere={andere} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} />
+      </>
+    );
+  }
 
   return (
     <>

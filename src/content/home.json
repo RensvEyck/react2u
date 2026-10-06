@@ -4,155 +4,157 @@
   "title": "Home",
   "blocks": [
     {
-      "type": "audienceChoice",
-      "label": "Startscherm",
+      "type": "homeSplit",
+      "label": "Splitscreen werkgever | werknemer",
       "data": {
-        "eyebrow": "Arbodienst in Eindhoven",
-        "heading": "Jouw mensen, onze aandacht",
-        "highlight": "",
-        "text": "De persoonlijke arbodienst voor werkgevers én werknemers. Vertel ons wie je bent, dan laten we zien wat we voor je doen.",
+        "heading": "React2u, de persoonlijke arbodienst voor werkgevers en werknemers",
         "choices": [
           {
             "doelgroep": "werkgever",
+            "eyebrow": "Voor werkgevers",
             "title": "Ik ben werkgever",
             "text": "Grip op verzuim, van preventie tot re-integratie.",
-            "button": "Bekijk onze diensten",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/RIE_-Risicomanagement-1.png",
-            "focus": "25% 55%",
-            "href": "/werkgevers"
+            "short": "Grip op verzuim",
+            "button": "Naar de werkgeverssite",
+            "href": "/werkgevers",
+            "aria": "Ik ben werkgever, naar de pagina voor werkgevers",
+            "image": "/beeld/home/samen-leren.webp",
+            "alt": "Vier collega’s lachen samen aan een ronde tafel",
+            "focus": "46% 30%"
           },
           {
             "doelgroep": "werknemer",
+            "eyebrow": "Voor werknemers",
             "title": "Ik ben werknemer",
             "text": "Ziek of vastgelopen? We helpen je weer op weg.",
-            "button": "Lees wat je kunt doen",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png",
-            "focus": "55% 45%",
-            "href": "/werknemers"
+            "short": "Ziek of vastgelopen?",
+            "button": "Naar de werknemerssite",
+            "href": "/werknemers",
+            "aria": "Ik ben werknemer, naar de pagina voor werknemers",
+            "image": "/beeld/home/samen-buiten.webp",
+            "alt": "Een vrouw en een man wandelen samen in het park",
+            "focus": "50% 20%"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeEenMens",
+      "label": "Eén mens. Eén verhaal. Eén aanspreekpunt.",
+      "data": {
+        "eyebrow": "Waarom React2u",
+        "lines": [
+          "Eén mens.",
+          "Eén verhaal.",
+          "Eén aanspreekpunt."
+        ],
+        "text": "Bij React2u krijg je geen keuzemenu, maar een vaste casemanager die jouw organisatie en je mensen kent. Van de eerste ziektedag tot volledig herstel.",
+        "checks": [
+          {
+            "text": "Direct een mens aan de lijn"
+          },
+          {
+            "text": "SBCA en ISO gecertificeerd"
+          },
+          {
+            "text": "Medische informatie blijft bij de bedrijfsarts"
           }
         ],
-        "trust": [
+        "photos": [
           {
-            "icon": "award",
-            "text": "Gecertificeerd volgens ISO 9001 en het Certificatieschema Arbodiensten",
-            "href": ""
+            "image": "/beeld/home/kring-gesprek.webp",
+            "alt": "Een casemanager in gesprek met een werknemer aan tafel",
+            "focus": "50% 40%"
           },
           {
-            "icon": "phone",
-            "text": "Bel ons: 085 - 620 58 00",
-            "href": "tel:0856205800"
+            "image": "/beeld/home/kring-samen-scherm.webp",
+            "alt": "Twee collega’s overleggen samen achter een beeldscherm",
+            "focus": "50% 45%"
+          },
+          {
+            "image": "/beeld/home/kring-werkvloer.webp",
+            "alt": "Twee medewerkers in gesprek op de werkvloer",
+            "focus": "50% 30%"
           }
         ]
       }
     },
     {
-      "type": "imageText",
-      "label": "Daar zorgen wij voor",
+      "type": "homeReis",
+      "label": "Zo werkt het",
       "data": {
-        "eyebrow": "Meer grip op inzetbaarheid",
-        "heading": "Daar zorgen wij voor",
-        "text": "Ziekteverzuim vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. React2u ondersteunt werkgevers bij verzuimbegeleiding en re-integratie, zowel binnen de Wet verbetering poortwachter (WVP) als bij eigenrisicodragerschap (ERD/ZW).\n\nWe werken altijd samen met werkgever én werknemer aan een oplossing. Zo brengen we mensen weer duurzaam in beweging.",
-        "button": {
-          "label": "Over React2u",
-          "href": "/over-react2u",
-          "style": "outline"
-        },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2023/06/happy-confident-agent-customer-meeting-cup-coffee-signing-agreement-e1716973040978.jpg",
-        "imageAlt": "Adviseur en klant in gesprek aan tafel",
-        "imagePosition": "right",
-        "imageFit": "cover",
-        "focus": "center 35%"
-      }
-    },
-    {
-      "type": "values",
-      "label": "Gezond, menselijk, duidelijk",
-      "data": {
-        "eyebrow": "Waar je op kunt rekenen",
-        "heading": "Voor iedereen gezond, menselijk en duidelijk",
-        "text": "De ene werknemer is de andere niet. Arbodienstverlening is maatwerk en vraagt iedere keer om een persoonlijke benadering.",
-        "cards": [
+        "eyebrow": "Zo werkt het",
+        "heading": "Van gezond blijven tot weer aan de slag",
+        "text": "We zijn er niet alleen bij ziekte. Van preventie en vitaliteit tot re-integratie en loopbaan: één partij, één vast aanspreekpunt.",
+        "steps": [
           {
-            "title": "Gezond",
-            "text": "Van preventie en een RI&E tot verzuimbegeleiding en coaching: we werken samen aan duurzaam herstel en een gezonde werkvloer.",
-            "value": "6",
-            "valueLabel": "diensten onder één dak",
-            "kleur": "teal"
+            "icon": "shield",
+            "label": "Voorkomen",
+            "title": "Gezond aan het werk",
+            "text": "Risico-inventarisatie, preventief medisch onderzoek, vitaliteit en trainingen."
           },
           {
-            "title": "Menselijk",
-            "text": "We bieden een luisterend oor, zijn kritisch en gebruiken humor. Iedere organisatie krijgt een vaste casemanager, die contact houdt met werknemer én werkgever.",
-            "value": "1",
-            "valueLabel": "vaste casemanager",
-            "kleur": "roze"
+            "icon": "chat",
+            "label": "Signaleren",
+            "title": "Er vroeg bij zijn",
+            "text": "Coaching, een vertrouwenspersoon en hulp als iemand vastloopt, nog vóór uitval."
           },
           {
-            "title": "Duidelijk",
-            "text": "Alle rapportages, afspraken en deadlines staan in één online dossier. Zo weet iedereen waar hij aan toe is.",
-            "value": "ISO 9001",
-            "valueLabel": "gecertificeerd",
-            "kleur": "blauw"
+            "icon": "heart",
+            "label": "Begeleiden",
+            "title": "Bij ziekte één aanspreekpunt",
+            "text": "Je vaste casemanager, de bedrijfsarts en alle poortwachtertermijnen geregeld."
+          },
+          {
+            "icon": "route",
+            "label": "Verder",
+            "title": "Terug aan het werk of een nieuwe stap",
+            "text": "Re-integratie, tweede spoor en loopbaanbegeleiding met nieuw perspectief."
           }
-        ]
-      }
-    },
-    {
-      "type": "logoCarousel",
-      "label": "Klanten",
-      "data": {
-        "eyebrow": "Een greep uit onze klanten",
-        "logos": [
-          {
-            "alt": "Klantlogo",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/05/5.png"
-          },
-          {
-            "alt": "Klantlogo",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/8.png"
-          },
-          {
-            "alt": "Klantlogo",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/9.png"
-          },
-          {
-            "alt": "Plus",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/7.png"
-          },
-          {
-            "alt": "Varkentje Lief",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/10.png"
-          }
-        ]
-      }
-    },
-    {
-      "type": "ctaBanner",
-      "label": "Kom met ons in contact",
-      "data": {
-        "eyebrow": "Contact",
-        "heading": "Kom met ons in contact",
-        "text": "Ben je nieuwsgierig naar onze werkwijze, of heb je een vraag over verzuim? We denken graag met je mee.",
+        ],
         "buttons": [
           {
-            "label": "Stuur een bericht",
-            "href": "/contact",
-            "style": "accent"
+            "label": "Kennismaken",
+            "href": "/contact"
+          },
+          {
+            "label": "Ziek? Lees wat je moet doen",
+            "href": "/werknemers#wat-nu"
           }
-        ],
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
         "routes": [
           {
             "icon": "phone",
-            "label": "Bel ons",
-            "sub": "085 - 620 58 00",
-            "href": "tel:0856205800"
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
           },
           {
             "icon": "mail",
-            "label": "Mail ons",
-            "sub": "info@react2u.nl",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
             "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
           }
-        ]
+        ],
+        "bg": "#ffffff"
       }
     }
   ]

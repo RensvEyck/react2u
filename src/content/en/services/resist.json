@@ -1,0 +1,188 @@
+{
+  "_uitleg": "Engelse labelpagina React2u Resist (/en/services/resist): dezelfde blokken als resist.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "services/resist",
+  "title": "React2u Resist",
+  "seo_title": "React2u Resist: prevention and vitality • React2u",
+  "seo_description": "We map the risks and help teams stay healthy and energised at work. Risk assessment (RI&E), preventive medical examination (PMO), training and a confidential adviser.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Resist",
+      "data": {
+        "heading": "React2u Resist",
+        "naam": "Resist",
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "label": "Prevention and vitality.",
+        "tagline": "Preventing absence starts before the sick report",
+        "text": "We map the risks and help teams stay healthy and energised at work.",
+        "checks": [
+          "Risk assessment (RI&E)",
+          "Preventive medical examination (PMO)",
+          "Workplace assessment",
+          "Training for managers",
+          "Confidential adviser"
+        ],
+        "de": "The specialist in prevention, physical and mental",
+        "lead": "Not doing more, but doing the right things.",
+        "intro": [
+          "Most absence starts long before the sick report. With rising workload, a workplace that is not right or worries at home. With React2u Resist you see it earlier and act in time.",
+          "We start with a clear picture of your organisation: what the risks are, how your people are doing and what the law requires. In the Netherlands every employer must have a risk assessment (RI&E) and offer a preventive medical examination (PMO). Then we choose together the measures that really make a difference."
+        ],
+        "herken": [
+          "Absence comes as a surprise, while the signs were already there",
+          "You invest in vitality, but see little effect",
+          "You are not sure whether your RI&E and PMO are in order",
+          "Managers find it hard to have the right conversation"
+        ],
+        "groepen": [
+          {
+            "titel": "Safety and working conditions",
+            "tekst": "A safe working environment is the basis.",
+            "items": [
+              "Risk assessment and evaluation (RI&E)",
+              "Preventive medical examination (PMO) and PAGO",
+              "Psychosocial workload (PSA)",
+              "Employee survey"
+            ]
+          },
+          {
+            "titel": "Physical employability",
+            "tekst": "Preventing complaints before they arise.",
+            "items": [
+              "Workplace assessment, at the office or at home",
+              "Occupational physiotherapy",
+              "Workshop on physical strain"
+            ]
+          },
+          {
+            "titel": "Mental support",
+            "tekst": "Structural attention for mental health.",
+            "items": [
+              "Psychological support",
+              "Coaching for workload and stress",
+              "Online guidance"
+            ]
+          },
+          {
+            "titel": "Training and development",
+            "tekst": "Knowledge and skills that stick.",
+            "items": [
+              "Training in absence conversations for managers",
+              "Workshops on healthy working",
+              "Resilience training"
+            ]
+          },
+          {
+            "titel": "Vitality and lifestyle",
+            "tekst": "Healthy people are more vital and more employable.",
+            "items": [
+              "Online vitality programme",
+              "Vitality coaching",
+              "Stopping smoking"
+            ]
+          },
+          {
+            "titel": "Wellbeing",
+            "tekst": "A safe place for difficult questions.",
+            "items": [
+              "External confidential adviser",
+              "Mediation"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Assess",
+            "tekst": "We map the risks and the health of your organisation."
+          },
+          {
+            "titel": "Advise",
+            "tekst": "You get a clear plan with priorities."
+          },
+          {
+            "titel": "Implement",
+            "tekst": "We put the measures in motion together with you."
+          },
+          {
+            "titel": "Evaluate",
+            "tekst": "We measure the effect and adjust where needed."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Insight first",
+            "tekst": "We start with what is really going on, not with a standard package."
+          },
+          {
+            "titel": "One contact",
+            "tekst": "Your case manager aligns prevention with what they see in the absence figures."
+          },
+          {
+            "titel": "Measurable results",
+            "tekst": "We agree goals in advance and show what they deliver."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Recover",
+            "wat": "Sickness absence support",
+            "kleur": "#E61674",
+            "href": "/en/services/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Reintegration and careers",
+            "kleur": "#F19001",
+            "href": "/en/services/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Temporary staffing and the Sickness Benefits Act",
+            "kleur": "#3AA5DD",
+            "href": "/en/services/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR and employment law",
+            "kleur": "#322E83",
+            "href": "/en/services/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

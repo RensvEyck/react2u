@@ -1,262 +1,391 @@
 {
-  "_uitleg": "Startpagina voor werkgevers. Zie CONTEXT.md, *Concepten*.",
+  "_uitleg": "Werkgeverspagina in het ontwerp van het canvas (Werkgevers). Zie CONTEXT.md, *Concepten*.",
   "slug": "werkgevers",
   "title": "Werkgevers",
-  "sort": 1,
   "seo_title": "Arbodienst voor werkgevers: verzuimbegeleiding en preventie • React2u",
   "seo_description": "React2u ondersteunt werkgevers bij ziekteverzuim, verzuimbegeleiding en re-integratie, binnen de WVP én bij eigenrisicodragerschap. Persoonlijk, menselijk en duidelijk.",
   "blocks": [
     {
-      "type": "heroStatement",
-      "label": "Hero",
+      "type": "dgKop",
+      "label": "Kop",
       "data": {
         "eyebrow": "Voor werkgevers",
-        "heading": "Grip op verzuim, van preventie tot re-integratie",
-        "highlight": "",
-        "text": "React2u ondersteunt werkgevers bij ziekteverzuim, verzuimbegeleiding en re-integratie, preventief én curatief. Met een vaste casemanager, duidelijke stappen en persoonlijke aandacht.",
-        "button": {
-          "label": "Maak een afspraak",
-          "href": "/contact"
-        },
-        "button2": {
-          "label": "Bekijk onze diensten",
-          "href": "/diensten",
-          "style": "outline"
-        },
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/06/RIE_-Risicomanagement-1.png",
-        "imageAlt": "Een werkgever en een adviseur geven elkaar een hand aan tafel",
-        "badge": "Gecertificeerde arbodienst · ISO 9001",
-        "imagePosition": "left",
-        "focus": "28% 40%",
-        "doelgroep": "werkgever"
-      }
-    },
-    {
-      "type": "pillars",
-      "label": "Diensten per situatie",
-      "data": {
-        "eyebrow": "Onze diensten",
-        "heading": "Waar kunnen we je mee helpen?",
-        "text": "Van het voorkomen van verzuim tot een duurzame terugkeer naar werk. Kies wat bij jouw situatie past — of bel ons, dan denken we met je mee."
-      }
-    },
-    {
-      "type": "method",
-      "label": "Werkwijze: het REACT-model",
-      "data": {
-        "eyebrow": "Onze werkwijze",
-        "heading": "Dit is React2u!",
-        "text": "Bij React2u staat de medewerker centraal in het verzuim- en re-integratietraject. Onze werkwijze vatten we samen in vijf letters.",
-        "button": {
-          "label": "Over React2u",
-          "href": "/over-react2u"
-        },
-        "steps": [
-          {
-            "title": "Results",
-            "text": "We werken toe naar een duurzame terugkeer naar werk.",
-            "kleur": "blauw"
-          },
-          {
-            "title": "Expertise",
-            "text": "Deskundigheid in wet- en regelgeving, met BIG-geregistreerde bedrijfsartsen en vakspecialisten.",
-            "kleur": "teal"
-          },
-          {
-            "title": "Attention",
-            "text": "Persoonlijke aandacht en een luisterend oor, voor werknemer én werkgever.",
-            "kleur": "rood"
-          },
-          {
-            "title": "Coaching",
-            "text": "We komen tot de kern en stimuleren het zelfoplossend vermogen van je medewerker.",
-            "kleur": "roze"
-          },
-          {
-            "title": "Together",
-            "text": "Samen met werknemer, leidinggevende en HR werken we aan een oplossing.",
-            "kleur": "oranje"
-          }
-        ],
-        "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/GOEDE-VERSIE-1-1024x1024.png",
-        "imageAlt": "Het REACT-model: Results, Expertise, Attention, Coaching en Together, met werknemer, leidinggevende en HR-functionaris in het midden",
-        "quote": "We denken in mogelijkheden, niet in belemmeringen of beperkingen.",
-        "imageRond": true
-      }
-    },
-    {
-      "type": "twoColumnLists",
-      "label": "Daar zorgen wij voor",
-      "data": {
-        "eyebrow": "Meer grip op inzetbaarheid",
-        "heading": "Daar zorgen wij voor",
-        "text": "Als werkgever ben je wettelijk verplicht om samen met je zieke medewerker actief te werken aan re-integratie. Dat vraagt om duidelijke regie, kennis van wetgeving en persoonlijke begeleiding. Wat doe jij, en wat nemen wij uit handen?",
-        "button": {
-          "label": "Meer over verzuimbegeleiding WVP",
-          "href": "/verzuimbegeleiding-wvp"
-        },
-        "columns": [
-          {
-            "title": "Wat doet de werkgever?",
-            "items": [
-              "In gesprek blijven met de werknemer",
-              "Samen een plan van aanpak opstellen",
-              "Mogelijkheden voor passend werk onderzoeken",
-              "Afspraken naleven en vastleggen"
-            ]
-          },
-          {
-            "title": "Wat neemt React2u uit handen?",
-            "items": [
-              "Professionele begeleiding van het WVP-traject",
-              "Holistische analyse van de situatie",
-              "Advies over passend werk en interventies",
-              "Correcte dossieropbouw en wettelijke borging"
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "type": "values",
-      "label": "Gezond, menselijk, duidelijk",
-      "data": {
-        "eyebrow": "Waar je op kunt rekenen",
-        "heading": "Voor iedereen gezond, menselijk en duidelijk",
-        "text": "De ene werknemer is de andere niet. Arbodienstverlening is maatwerk en vraagt iedere keer om een persoonlijke benadering.",
-        "cards": [
-          {
-            "title": "Gezond",
-            "text": "Van preventie en een RI&E tot verzuimbegeleiding en coaching: we werken samen aan duurzaam herstel en een gezonde werkvloer.",
-            "value": "6",
-            "valueLabel": "diensten onder één dak",
-            "kleur": "teal"
-          },
-          {
-            "title": "Menselijk",
-            "text": "We bieden een luisterend oor, zijn kritisch en gebruiken humor. Iedere organisatie krijgt een vaste casemanager, die contact houdt met werknemer én werkgever.",
-            "value": "1",
-            "valueLabel": "vaste casemanager",
-            "kleur": "roze"
-          },
-          {
-            "title": "Duidelijk",
-            "text": "Alle rapportages, afspraken en deadlines staan in één online dossier. Zo weet iedereen waar hij aan toe is.",
-            "value": "ISO 9001",
-            "valueLabel": "gecertificeerd",
-            "kleur": "blauw"
-          }
-        ]
-      }
-    },
-    {
-      "type": "logoCarousel",
-      "label": "Klanten",
-      "data": {
-        "eyebrow": "Een greep uit onze klanten",
-        "logos": [
-          {
-            "alt": "Klantlogo",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/05/5.png"
-          },
-          {
-            "alt": "Klantlogo",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/8.png"
-          },
-          {
-            "alt": "Klantlogo",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/9.png"
-          },
-          {
-            "alt": "Plus",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/7.png"
-          },
-          {
-            "alt": "Varkentje Lief",
-            "image": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2024/11/10.png"
-          }
-        ]
-      }
-    },
-    {
-      "type": "latestPosts",
-      "label": "Blog",
-      "data": {
-        "eyebrow": "Blog",
-        "heading": "Kennis die je verder helpt",
-        "text": "Artikelen over verzuim, preventie en vitaliteit — praktisch en zonder omhaal.",
-        "button": {
-          "label": "Naar het blog",
-          "href": "/blog"
-        },
-        "count": 3
-      }
-    },
-    {
-      "type": "faqAccordion",
-      "label": "Veelgestelde vragen",
-      "data": {
-        "heading": "Veelgestelde vragen",
-        "items": [
-          {
-            "answer": "Verzuim en re-integratie vereisen specialistische kennis en ervaring. React2u helpt bedrijven o.a. met de complexe wetgeving en bij het opstellen van een effectief en menselijk re-integratieplan waarmee iedereen geholpen is. Maar we bieden ook training en advies in het herkennen van vroege signalen van verzuim.",
-            "question": "Wat kan ik doen om mijn kennis van verzuim en re-integratie te verbeteren?"
-          },
-          {
-            "answer": "Preventie en vitaliteit dragen bij aan een gezonde, plezierige en productieve werkomgeving. Door het bevorderen van welzijn en het voorkomen van gezondheidsproblemen, verminderen we verzuim en verhogen we de motivatie en betrokkenheid van je mensen. Investeren in preventie en vitaliteit zorgt voor duurzame inzetbaarheid.",
-            "question": "Wat maakt preventie en vitaliteit zo belangrijk?"
-          },
-          {
-            "answer": "Zowel werkgevers als werknemers vragen vaak hoe een effectief re-integratieplan wordt gemaakt en welke stappen er worden ondernomen om een werknemer weer aan het werk te krijgen. Dit omvat het bepalen van de mate van arbeidsgeschiktheid, het opstellen van een Plan van Aanpak, en het inrichten van werkplekaanpassingen of passende arbeid.",
-            "question": "Hoe wordt een re-integratieplan opgesteld en uitgevoerd?"
-          },
-          {
-            "answer": "React2u helpt organisaties om de duurzame inzetbaarheid van hun personeel te verbeteren. Dit omvat onder andere het versterken van vitaliteit en werkgeluk, het ontwikkelen van veerkracht en stressmanagement, burn-out coaching, rouwbegeleiding, het begeleiden van loopbaantransities en het ondersteunen bij re-integratie na ziekte of langdurige afwezigheid.",
-            "question": "Waarvoor kan coaching van React2u worden ingezet?"
-          }
-        ]
-      }
-    },
-    {
-      "type": "ctaBanner",
-      "label": "Kom met ons in contact",
-      "data": {
-        "eyebrow": "Maak kennis met React2u",
-        "heading": "Kom met ons in contact",
-        "text": "Ben je nieuwsgierig naar onze werkwijze? Neem vrijblijvend contact met ons op, zodat we kennis met elkaar kunnen maken.",
+        "heading": "Grip op verzuim,\nvan preventie tot\nre-integratie",
+        "text": "Eén vaste casemanager die je mensen begeleidt en elke termijn bewaakt.",
+        "image": "/beeld/home/samen-leren.webp",
+        "alt": "Vier collega’s lachen samen aan een ronde tafel",
+        "focus": "60% 30%",
+        "panel": "#322E83",
         "buttons": [
           {
-            "label": "Maak een afspraak",
-            "href": "/contact",
-            "style": "accent"
+            "label": "Kennismaken",
+            "href": "/kennismaken"
+          },
+          {
+            "label": "Tarieven",
+            "href": "/verzuimabonnementen"
+          }
+        ]
+      }
+    },
+    {
+      "type": "dgLabels",
+      "label": "Diensten",
+      "data": {
+        "anchor": "diensten",
+        "heading": "5 diensten, onder één dak",
+        "text": "Elke dienst is een eigen specialisme. Je casemanager houdt het overzicht over alles.",
+        "items": [
+          {
+            "naam": "Recover",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "label": "Verzuimbegeleiding.",
+            "tagline": "Van ziekmelding tot herstel",
+            "text": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.",
+            "points": [
+              "Casemanagement",
+              "Bedrijfsarts en taakdelegatie",
+              "Poortwachterdossier en UWV",
+              "Online dossier en rapportages",
+              "Verzuimadvies"
+            ],
+            "href": "/recover"
+          },
+          {
+            "naam": "Resist",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "label": "Preventie en vitaliteit.",
+            "tagline": "Uitval voorkomen begint vóór de ziekmelding",
+            "text": "We brengen risico’s in kaart en helpen teams om gezond en met energie aan het werk te blijven.",
+            "points": [
+              "Risico-inventarisatie (RI&E)",
+              "Preventief medisch onderzoek (PMO)",
+              "Werkplekonderzoek",
+              "Trainingen voor leidinggevenden",
+              "Vertrouwenspersoon"
+            ],
+            "href": "/resist"
+          },
+          {
+            "naam": "Restart",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "label": "Re-integratie en loopbaan.",
+            "tagline": "Samen weer vooruit",
+            "text": "Lukt terugkeer in het eigen werk niet? Dan zoeken we samen naar nieuw perspectief, binnen of buiten de organisatie.",
+            "points": [
+              "Tweede spoor",
+              "Loopbaanscan",
+              "Coaching en burn-outbegeleiding",
+              "Arbeidsdeskundig onderzoek",
+              "Rouwverwerking"
+            ],
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC",
+            "label": "Voor de flexbranche.",
+            "tagline": "Ziektewet zonder zorgen",
+            "text": "Voor uitzendbureaus en eigenrisicodragers Ziektewet. We begeleiden zieke flexkrachten, ook na het einde van het dienstverband.",
+            "points": [
+              "Begeleiding zieke flexkrachten",
+              "Eigenrisicodragerschap Ziektewet",
+              "Ook na einde dienstverband",
+              "Gericht op passend werk"
+            ],
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5",
+            "label": "HR en arbeidsrecht.",
+            "tagline": "Helder advies, snel geregeld",
+            "text": "Vragen over contracten, verlof of ontslag bij ziekte? Je krijgt helder advies van mensen die verzuim kennen.",
+            "points": [
+              "HR-advies rond verzuim",
+              "Arbeidsrechtelijke ondersteuning",
+              "Advies bij conflicten",
+              "Second opinion en deskundigenoordeel"
+            ],
+            "href": "/ready"
           }
         ],
+        "strook": {
+          "heading": "Niet zeker wat je nodig hebt?",
+          "text": "In een kort gesprek kijken we samen welke combinatie past bij je organisatie.",
+          "label": "Plan een gesprek",
+          "href": "/kennismaken"
+        }
+      }
+    },
+    {
+      "type": "klantenStrook",
+      "label": "Klanten",
+      "data": {
+        "label": "We werken samen met"
+      }
+    },
+    {
+      "type": "dgFotoLijst",
+      "label": "Waarom React2u",
+      "data": {
+        "eyebrow": "Waarom React2u",
+        "heading": "Aandacht voor je mensen, grip voor jou",
+        "image": "/beeld/werkgevers/werkplezier.webp",
+        "alt": "Drie collega’s in een ontspannen gesprek aan een ronde tafel",
+        "focus": "50% 45%",
+        "items": [
+          {
+            "title": "Eén vaste casemanager",
+            "text": "Iemand die je organisatie en je mensen kent. Je belt gewoon, je hoeft niets opnieuw uit te leggen."
+          },
+          {
+            "title": "Alles in één online dossier",
+            "text": "Rapportages, afspraken en deadlines op één plek. Je ziet altijd wat de volgende stap is."
+          },
+          {
+            "title": "Samen met werkgever én werknemer",
+            "text": "We begeleiden je medewerker persoonlijk en houden jou op de hoogte. Zo werk je samen aan herstel."
+          }
+        ]
+      }
+    },
+    {
+      "type": "dgPoortwachter",
+      "label": "Wat moet jij doen als iemand ziek is?",
+      "data": {
+        "anchor": "werkwijze",
+        "eyebrow": "Wet verbetering poortwachter",
+        "heading": "Wat moet jij doen als iemand ziek is?",
+        "text": "De wet legt vaste stappen en termijnen op. Per moment zie je wat jouw verplichting is en wat wij voor je doen.",
+        "rows": [
+          {
+            "when": "Dag 1",
+            "title": "Ziekmelding",
+            "jij": "Meld je medewerker ziek, het liefst op de eerste ziektedag.",
+            "wij": "We nemen contact op en openen het dossier."
+          },
+          {
+            "when": "Week 6",
+            "title": "Probleemanalyse",
+            "jij": "De bedrijfsarts maakt uiterlijk in week 6 een probleemanalyse.",
+            "wij": "We plannen het spreekuur en delen het advies met jou."
+          },
+          {
+            "when": "Week 8",
+            "title": "Plan van aanpak",
+            "jij": "Stel samen met je medewerker een plan van aanpak op.",
+            "wij": "We begeleiden het plan en leggen de afspraken vast."
+          },
+          {
+            "when": "Elke 6 weken",
+            "title": "Evaluatie",
+            "jij": "Bespreek de voortgang en stel het plan bij waar nodig.",
+            "wij": "We plannen de evaluaties en verslaan ze in het dossier."
+          },
+          {
+            "when": "Week 42",
+            "title": "Ziekmelding bij UWV",
+            "jij": "Meld de ziekte uiterlijk in week 42 bij UWV.",
+            "wij": "We seinen je op tijd in voor de melding."
+          },
+          {
+            "when": "Week 52",
+            "title": "Eerstejaarsevaluatie",
+            "jij": "Evalueer het eerste ziektejaar en maak afspraken voor jaar twee.",
+            "wij": "We bereiden de evaluatie samen met je voor."
+          },
+          {
+            "when": "Rond week 91",
+            "title": "WIA-aanvraag",
+            "jij": "Je medewerker vraagt de WIA aan, jij levert het re-integratieverslag aan.",
+            "wij": "We stellen het verslag samen vanuit het dossier."
+          },
+          {
+            "when": "Tot 2 jaar",
+            "title": "Loondoorbetaling",
+            "jij": "Je betaalt maximaal 104 weken loon door, volgens de wet en je cao.",
+            "wij": "We zorgen dat het dossier compleet is voor UWV."
+          }
+        ],
+        "alert": {
+          "title": "Let op de loonsanctie",
+          "text": "Vindt UWV dat er te weinig aan re-integratie is gedaan, dan kan het een loonsanctie opleggen: tot een jaar extra loon doorbetalen. Daarom bewaken wij elke termijn.",
+          "label": "Meer over React2u Recover",
+          "href": "/recover"
+        }
+      }
+    },
+    {
+      "type": "klantenAanHetWoord",
+      "label": "Klanten aan het woord",
+      "data": {
+        "eyebrow": "Ervaringen",
+        "heading": "Wat werkgevers over ons zeggen",
+        "bg": "#ffffff"
+      }
+    },
+    {
+      "type": "dgPrijzen",
+      "label": "Wat kost het?",
+      "data": {
+        "anchor": "tarieven",
+        "eyebrow": "Tarieven",
+        "heading": "Wat kost het?",
+        "text": "Kies een vaste aansluiting per werknemer, of vraag een voorstel op maat aan. Je offerte stemmen we af op je organisatie.",
+        "cards": [
+          {
+            "badge": "Aansluiting",
+            "naam": "Verrichtingenbasis",
+            "prijs": "€ 35",
+            "per": "per werknemer per jaar",
+            "points": [
+              "Toegang tot de arbodienst",
+              "Wettelijk verplichte voorzieningen",
+              "Betalen per verrichting"
+            ],
+            "label": "Bekijk pakket",
+            "href": "/verzuimabonnementen"
+          },
+          {
+            "badge": "Meest gekozen",
+            "naam": "Casemanagement Compleet",
+            "prijs": "€ 135",
+            "per": "per werknemer per jaar",
+            "points": [
+              "Onbeperkt casemanagement",
+              "Verzuimadministratie",
+              "Alle WVP-documenten"
+            ],
+            "label": "Bekijk pakket",
+            "href": "/verzuimabonnementen",
+            "featured": true
+          },
+          {
+            "badge": "Liever maatwerk?",
+            "naam": "Maatwerk",
+            "prijs": "Op maat",
+            "per": "Offerte binnen twee werkdagen",
+            "points": [
+              "Voor uitzendbureaus",
+              "Voor grotere organisaties",
+              "In combinatie met RI&E en PMO"
+            ],
+            "label": "Vraag een offerte aan",
+            "href": "/kennismaken"
+          }
+        ],
+        "note": "Alle prijzen exclusief btw",
+        "link": {
+          "label": "Alle tarieven",
+          "href": "/verzuimabonnementen"
+        }
+      }
+    },
+    {
+      "type": "dgStarten",
+      "label": "Zo start je",
+      "data": {
+        "anchor": "starten",
+        "eyebrow": "Overstappen en starten",
+        "heading": "Zo start je",
+        "text": "Al een arbodienst? Overstappen is minder werk dan je denkt. Lopende verzuimdossiers nemen we over, zodat er geen termijn wordt gemist.",
+        "steps": [
+          {
+            "title": "Kennismaking",
+            "text": "Een gesprek over je organisatie en wat je nodig hebt."
+          },
+          {
+            "title": "Offerte op maat",
+            "text": "Een voorstel dat past bij je aantal medewerkers."
+          },
+          {
+            "title": "Overstap geregeld",
+            "text": "We regelen de overdracht met je huidige arbodienst."
+          },
+          {
+            "title": "Je casemanager start",
+            "text": "Eén aanspreekpunt, die ook je medewerkers informeert."
+          }
+        ],
+        "button": {
+          "label": "Offerte aanvragen",
+          "href": "/kennismaken"
+        },
+        "call": {
+          "label": "Liever eerst praten?",
+          "value": "Bel 085 620 58 00",
+          "href": "tel:+31856205800"
+        }
+      }
+    },
+    {
+      "type": "dgVragen",
+      "label": "Vragen van werkgevers",
+      "data": {
+        "anchor": "vragen",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen van\nwerkgevers",
+        "text": "Staat je vraag er niet bij? Bel of mail ons gerust.",
+        "phone": "085 620 58 00",
+        "bg": "#F6F5FB",
+        "items": [
+          {
+            "question": "Ben ik verplicht een arbodienst te hebben?",
+            "answer": "Ja. Volgens de Arbowet regel je deskundige hulp bij verzuim en gezond werken, met in elk geval een bedrijfsarts. Dat leg je vast in een basiscontract."
+          },
+          {
+            "question": "Wat staat er in het basiscontract?",
+            "answer": "Onder meer een open spreekuur bij de bedrijfsarts, het recht op een second opinion, een klachtenprocedure en ruimte voor de bedrijfsarts om de werkplek te bezoeken."
+          },
+          {
+            "question": "Kunnen we overstappen van een andere arbodienst?",
+            "answer": "Ja. Lopende verzuimdossiers nemen we over, zodat er geen termijn wordt gemist."
+          },
+          {
+            "question": "Hoe snel is er contact na een ziekmelding?",
+            "answer": "Je casemanager neemt binnen één werkdag contact op met je medewerker."
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Kennismaken?\nBel gewoon even.",
+        "text": "We horen graag hoe jouw organisatie in elkaar zit. Daarna krijg je een voorstel op maat.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
         "routes": [
           {
             "icon": "phone",
-            "label": "Bel ons",
-            "sub": "085 - 620 58 00",
-            "href": "tel:0856205800"
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
           },
           {
             "icon": "mail",
-            "label": "Mail ons",
-            "sub": "info@react2u.nl",
-            "href": "mailto:info@react2u.nl"
+            "label": "Offerte of kennismaken",
+            "value": "sales@react2u.nl",
+            "href": "mailto:sales@react2u.nl"
           },
           {
-            "icon": "message",
-            "label": "Stuur een bericht",
-            "sub": "We nemen zo snel mogelijk contact op",
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
             "href": "/contact"
-          },
-          {
-            "icon": "user",
-            "label": "Ben je werknemer?",
-            "sub": "Naar de pagina voor werknemers",
-            "href": "/werknemers"
           }
-        ]
+        ],
+        "bg": "#ffffff",
+        "anchor": "offerte"
       }
     }
   ]

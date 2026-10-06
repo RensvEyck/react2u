@@ -3,9 +3,14 @@ import { notFound } from "next/navigation";
 import { getPublishedVacancies, getVacancy } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
+import { kort, paginaTitel } from "@/lib/seo";
 import ApplicationForm from "@/components/site/ApplicationForm";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
+import { conceptenActief } from "@/lib/concept";
+import { VacatureDetail } from "@/components/blocks/WerkenBij";
+import { hreflangVoor } from "@/lib/taal";
+import { jobPostingLd } from "@/lib/vacatures";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -20,9 +25,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const v = await getVacancy(slug);
   if (!v) return {};
   return {
-    title: v.seo_title || `${v.title} | Vacature`,
-    description: v.seo_description || v.intro || undefined,
-    alternates: { canonical: `/vacatures/${slug}` },
+    // Absoluut, zonder het sjabloon uit app/layout.tsx: paginaTitel zet het merk
+    // er precies één keer achter, ook als de SEO-titel het al bevat.
+    title: { absolute: paginaTitel(v.seo_title || `${v.title} • Vacature`) },
+    description: kort(v.seo_description || v.intro),
+    alternates: { canonical: `/vacatures/${slug}`, languages: hreflangVoor(`/vacatures/${slug}`) ?? undefined },
   };
 }
 
@@ -31,32 +38,18 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
   const v = await getVacancy(slug);
   if (!v) notFound();
 
-  const jobLd = {
-    "@context": "https://schema.org",
-    "@type": "JobPosting",
-    title: v.title,
-    description: (v.description_md || v.intro || ""),
-    datePosted: v.published_at || v.created_at,
-    ...(v.valid_through ? { validThrough: v.valid_through } : {}),
-    employmentType: v.employment_type,
-    hiringOrganization: {
-      "@type": "Organization",
-      name: "React2u",
-      sameAs: process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl",
-      logo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp/2023/05/Logo-kleur.svg`,
-    },
-    jobLocation: {
-      "@type": "Place",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Stratumsedijk 29",
-        postalCode: "5611 NB",
-        addressLocality: v.location || "Eindhoven",
-        addressCountry: "NL",
-      },
-    },
-    directApply: true,
-  };
+  const jobLd = jobPostingLd(v, "nl");
+
+  if (conceptenActief) {
+    // Op staging het nieuwe ontwerp "Vacature" (versie B).
+    const andere = (await getPublishedVacancies()).filter((x) => x.id !== v.id);
+    return (
+      <>
+        <VacatureDetail v={v} andere={andere} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(jobLd) }} />
+      </>
+    );
+  }
 
   return (
     <>

@@ -1,0 +1,278 @@
+{
+  "_uitleg": "Engelse tarievenpagina (/en/pricing): dezelfde blokken als tarieven.json, zelfde bedragen, excl. VAT. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "pricing",
+  "title": "Pricing",
+  "seo_title": "Absence subscriptions and prices of our occupational health service • React2u",
+  "seo_description": "Clear prices for sickness absence support: Complete case management for € 135 or Pay per service for € 35 per employee per year, excl. VAT, plus all individual rates.",
+  "blocks": [
+    {
+      "type": "dgTarieven",
+      "label": "Pricing",
+      "data": {
+        "eyebrow": "Prices 2026",
+        "heading": "Clear prices, known in advance",
+        "abonnementen": [
+          {
+            "naam": "Pay per service",
+            "badge": "Basic",
+            "prijs": "€35",
+            "per": "per employee per year, excl. VAT",
+            "text": "A low fixed fee for your subscription (Verrichtingenbasis). On top of that you pay per service, only when you need us.",
+            "points": [
+              "Subscription with a certified occupational health service",
+              "Case manager, company doctor and specialists on call",
+              "Services charged per quarter hour started"
+            ],
+            "note": "Hourly rates and documents are listed below.",
+            "label": "Request a quote",
+            "href": "/en/lets-talk"
+          },
+          {
+            "naam": "Complete case management",
+            "badge": "All in one",
+            "prijs": "€135",
+            "per": "per employee per year, excl. VAT",
+            "text": "Unlimited case management for a fixed amount (Casemanagement Compleet). You know exactly where you stand.",
+            "points": [
+              "Unlimited case management by your regular case manager",
+              "Administration of sick and recovery reports",
+              "All documents for the Gatekeeper Improvement Act (Wet verbetering poortwachter)"
+            ],
+            "note": "Company doctor, labour expert, second track and specialists are charged separately.",
+            "label": "Request a quote",
+            "href": "/en/lets-talk",
+            "featured": true
+          }
+        ],
+        "groepen": [
+          {
+            "eyebrow": "Individual rates",
+            "heading": "Professionals, administration and documents",
+            "text": "Services are charged per quarter hour started. All prices excl. VAT.",
+            "links": [
+              {
+                "titel": "Professionals",
+                "per": "per hour",
+                "regels": [
+                  {
+                    "naam": "Senior case manager",
+                    "prijs": "€165",
+                    "sub": "Interim, also on site"
+                  },
+                  {
+                    "naam": "Case manager under task delegation",
+                    "prijs": "€180",
+                    "sub": "Under the direction of the company doctor"
+                  },
+                  {
+                    "naam": "Practice assistant to the company doctor (POH)",
+                    "prijs": "€180"
+                  },
+                  {
+                    "naam": "Company doctor (bedrijfsarts)",
+                    "prijs": "€230"
+                  },
+                  {
+                    "naam": "Confidential adviser",
+                    "prijs": "€185"
+                  },
+                  {
+                    "naam": "Administrative assistant",
+                    "prijs": "€85"
+                  }
+                ]
+              }
+            ],
+            "rechts": [
+              {
+                "titel": "Administration",
+                "per": "per item",
+                "regels": [
+                  {
+                    "naam": "Sick and recovery report",
+                    "prijs": "€19.50"
+                  },
+                  {
+                    "naam": "Report to UWV",
+                    "prijs": "€19.50"
+                  },
+                  {
+                    "naam": "Information from the curative sector",
+                    "prijs": "€125"
+                  }
+                ]
+              },
+              {
+                "titel": "Examinations and documents",
+                "per": "per item",
+                "regels": [
+                  {
+                    "naam": "Examination",
+                    "prijs": "€115"
+                  },
+                  {
+                    "naam": "Problem analysis (probleemanalyse)",
+                    "prijs": "€172.50"
+                  },
+                  {
+                    "naam": "Functional capacity list (FML)",
+                    "prijs": "€230"
+                  },
+                  {
+                    "naam": "Reintegration report (re-integratieverslag)",
+                    "prijs": "€345"
+                  },
+                  {
+                    "naam": "Second opinion",
+                    "prijs": "At cost price"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "eyebrow": "Coaching and training",
+            "heading": "Fixed prices per programme and per half day",
+            "links": [
+              {
+                "titel": "Coaching and programmes",
+                "per": "per programme",
+                "regels": [
+                  {
+                    "naam": "Coaching",
+                    "prijs": "€1,900",
+                    "sub": "4 sessions"
+                  },
+                  {
+                    "naam": "Career scan",
+                    "prijs": "€1,950",
+                    "sub": "3 sessions"
+                  },
+                  {
+                    "naam": "Standard programme",
+                    "prijs": "€2,850",
+                    "sub": "One-to-one guidance"
+                  },
+                  {
+                    "naam": "Burnout coaching",
+                    "prijs": "€2,850",
+                    "sub": "One-to-one guidance"
+                  },
+                  {
+                    "naam": "Life and career coaching",
+                    "prijs": "€3,250"
+                  },
+                  {
+                    "naam": "Extended grief counselling programme",
+                    "prijs": "€3,450"
+                  },
+                  {
+                    "naam": "Second-track reintegration (tweede spoor)",
+                    "prijs": "€3,250",
+                    "sub": "First six months"
+                  },
+                  {
+                    "naam": "Second track, continuation",
+                    "prijs": "€375",
+                    "sub": "Per month"
+                  }
+                ]
+              }
+            ],
+            "rechts": [
+              {
+                "titel": "Training",
+                "per": "per half day",
+                "regels": [
+                  {
+                    "naam": "Absence and prevention",
+                    "prijs": "€150",
+                    "sub": "The absence conversation and the rules around illness"
+                  },
+                  {
+                    "naam": "Vitality and health",
+                    "prijs": "€180",
+                    "sub": "Energy, workload and staying healthy at work"
+                  },
+                  {
+                    "naam": "Leadership and management",
+                    "prijs": "€230",
+                    "sub": "Managing sickness absence"
+                  }
+                ]
+              },
+              {
+                "titel": "On request",
+                "text": "Specialists, risk assessment (RI&E) and preventive medical examination (PMO). You receive a quote within two working days.",
+                "label": "Request a quote",
+                "href": "/en/lets-talk"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "dgVragen",
+      "label": "Frequently asked questions",
+      "data": {
+        "anchor": "faq",
+        "eyebrow": "Questions",
+        "heading": "Frequently asked\nquestions",
+        "text": "Can't find your question? Call us, you will speak to one of us straight away.",
+        "bg": "#F6F5FB",
+        "items": [
+          {
+            "question": "Do the prices include VAT?",
+            "answer": "No. All amounts on this page are excl. VAT and apply for 2026."
+          },
+          {
+            "question": "Which subscription suits us?",
+            "answer": "With little absence, Pay per service is often the cheaper option. If you want to know in advance where you stand, choose Complete case management. We are happy to work it out with you."
+          },
+          {
+            "question": "What does per quarter hour started mean?",
+            "answer": "A ten-minute phone call counts as one quarter hour; a twenty-minute conversation counts as two."
+          },
+          {
+            "question": "How quickly do I get a tailored quote?",
+            "answer": "Within two working days after we have discussed your question."
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Shall we talk?\nJust give us a call.",
+        "text": "We would love to hear how your organisation works. Then you get a tailored proposal.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Quote or introduction",
+            "value": "sales@react2u.nl",
+            "href": "mailto:sales@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "_uitleg": "Engels 'Je rechten en privacy' (/en/your-rights-and-privacy): dezelfde blokken als je-rechten-en-privacy.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "your-rights-and-privacy",
+  "title": "Your rights and privacy",
+  "seo_title": "Your rights and privacy when you are ill • React2u",
+  "seo_description": "What does your employer get to know when you are ill, and what can you do if you disagree with something? Your rights and privacy at React2u.",
+  "blocks": [
+    {
+      "type": "wnKop",
+      "label": "Header",
+      "data": {
+        "heading": "Your rights and privacy",
+        "text": "Even when you are ill, you have rights. Here you can read what your employer does and does not get to know, and what you can do if you disagree with something.",
+        "tint": "#E9F5FC",
+        "orb": "#3AA5DD",
+        "crumbs": [
+          { "label": "Employees", "href": "/en/employees" },
+          { "label": "Your rights and privacy" }
+        ],
+        "buttons": [
+          {
+            "label": "Ask your question",
+            "href": "tel:+31856205800"
+          },
+          {
+            "label": "Sick, what now?",
+            "href": "/en/sick-what-now"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnTekstKaart",
+      "label": "Confidentiality",
+      "data": {
+        "anchor": "confidentiality",
+        "eyebrow": "Confidentiality",
+        "heading": "Your health is yours",
+        "text": "Your employer only hears what is needed for your reintegration: what you can and cannot do, and roughly how long it will take. Your diagnosis and other medical information stay with the company doctor (bedrijfsarts), or with someone who works under the doctor's responsibility.",
+        "rows": [
+          {
+            "title": "What your employer does hear",
+            "text": "Whether you can work, what you can and cannot do, and when you expect to return."
+          },
+          {
+            "title": "What your employer does not hear",
+            "text": "Your diagnosis, your medical details and what you discuss in confidence with the company doctor."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnKaarten",
+      "label": "Your rights",
+      "data": {
+        "anchor": "rights",
+        "eyebrow": "Your rights",
+        "heading": "Disagree with an advice or decision?",
+        "text": "You are not on your own. These are your options.",
+        "columns": 4,
+        "cards": [
+          {
+            "icon": "hart",
+            "title": "Medical details stay private",
+            "text": "Your employer only hears what you can and cannot do, never your diagnosis. Medical information stays with the company doctor.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "icon": "chat",
+            "title": "Second opinion",
+            "text": "Do you disagree with the company doctor? You can ask for a second opinion from another company doctor.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          },
+          {
+            "icon": "koffer",
+            "title": "Expert opinion by UWV",
+            "text": "Do you and your employer disagree about your reintegration? Then UWV, the Dutch Employee Insurance Agency, can give an independent opinion (deskundigenoordeel).",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC"
+          },
+          {
+            "icon": "document",
+            "title": "Complaints procedure",
+            "text": "Not happy with us? You can file a complaint. We handle it with care. The procedure (PDF) is in Dutch.",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "href": "/documenten/klachtenregeling-react2u.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnChecklist",
+      "label": "Privacy",
+      "data": {
+        "anchor": "privacy",
+        "eyebrow": "Privacy",
+        "heading": "What you can ask about your data",
+        "text": "Send your request to info@react2u.nl. We reply within four weeks.",
+        "items": [
+          "See which data we hold about you",
+          "Have it corrected or completed",
+          "Have it deleted",
+          "Object to how it is used",
+          "Receive your data in a portable file",
+          "Withdraw consent you have given"
+        ],
+        "link": {
+          "label": "Read the full privacy statement (Dutch)",
+          "href": "/documenten/privacyverklaring-react2u.pdf"
+        }
+      }
+    },
+    {
+      "type": "wnContactStrook",
+      "label": "Contact",
+      "data": {
+        "heading": "Unsure about your rights?",
+        "text": "Feel free to call us. We explain it in plain language.",
+        "phoneDisplay": "+31 85 620 58 00"
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "_uitleg": "Inloggen: de twee portalen, allebei in XpertSuite. Zie CONTEXT.md, *Concepten*.",
+  "slug": "inloggen",
+  "title": "Inloggen",
+  "seo_title": "Inloggen • React2u",
+  "seo_description": "Log in op het werkgeversportaal of op je eigen dossier bij React2u.",
+  "blocks": [
+    {
+      "type": "inloggen",
+      "label": "Inloggen (portalen)",
+      "data": {
+        "heading": "Inloggen",
+        "text": "Kies hieronder of je inlogt als werkgever of als werknemer.",
+        "portals": [
+          {
+            "anchor": "werkgever",
+            "for": "Voor werkgevers",
+            "title": "Werkgeversportaal",
+            "icon": "koffer",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "text": "Volg het verzuim binnen je organisatie en meld medewerkers ziek of beter.",
+            "points": [
+              "Ziek- en betermeldingen doorgeven",
+              "Dossiers, rapportages en termijnen inzien",
+              "Verzuimcijfers per afdeling"
+            ],
+            "href": "https://login.xpertsuite.nl/Account/LogOn"
+          },
+          {
+            "anchor": "werknemer",
+            "for": "Voor werknemers",
+            "title": "Mijn dossier",
+            "icon": "mensen",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "text": "Bekijk je afspraken en documenten en houd contact met je casemanager.",
+            "points": [
+              "Afspraken en gespreksverslagen bekijken",
+              "Documenten veilig delen",
+              "Contact met je casemanager"
+            ],
+            "href": "https://login.xpertsuite.nl/Account/LogOn"
+          }
+        ],
+        "help": [
+          {
+            "icon": "telefoon",
+            "title": "Geen inloggegevens?",
+            "text": "Werkgevers krijgen hun inloggegevens bij de start van de samenwerking. Werknemers ontvangen ze na de ziekmelding. Niets ontvangen? Bel 085 620 58 00."
+          },
+          {
+            "icon": "document",
+            "title": "Wachtwoord vergeten?",
+            "text": "Gebruik de link Wachtwoord vergeten op het inlogscherm. Je ontvangt dan binnen een paar minuten een e-mail."
+          },
+          {
+            "icon": "slot",
+            "title": "Veilig en vertrouwelijk",
+            "text": "Je gegevens staan in een beveiligde omgeving. React2u is ISO 27001 en ISO 27701 gecertificeerd."
+          }
+        ]
+      }
+    }
+  ]
+}

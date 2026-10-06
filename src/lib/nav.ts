@@ -1,4 +1,6 @@
 import type { Kleur } from "./brand";
+import { nlPadVoor, pad, type Taal } from "./taal";
+import { woordenboek } from "./woordenboek";
 
 // Foto's uit de mediabibliotheek. Hier en niet onderaan het bestand: PIJLERS
 // hieronder gebruikt ze al bij het laden.
@@ -124,16 +126,20 @@ export const STARTPAGINA: Record<Doelgroep, NavLink> = {
   werknemer: { label: "Werknemers", href: "/werknemers" },
 };
 
-const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol"];
+const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol", "/je-rechten-en-privacy", "/je-casemanager"];
+/** De vijf labelpagina's (Resist, Recover, …) horen bij de werkgever. */
+const LABEL_PADEN = ["/resist", "/recover", "/restart", "/reflex", "/ready"];
 
 /**
  * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
  * gedeelde pagina's (contact, blog, over ons): daar geldt de laatste keuze
  * van de bezoeker (zie lib/doelgroep.ts).
  */
-export function doelgroepVoorPad(path: string): Doelgroep | null {
+export function doelgroepVoorPad(pathOfEnPath: string): Doelgroep | null {
+  // Een Engels pad (/en/employees) telt als zijn Nederlandse tegenhanger.
+  const path = nlPadVoor(pathOfEnPath);
   if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
-  if (path === "/werkgevers" || path === "/diensten" || dienstVoor(path)) return "werkgever";
+  if (path === "/werkgevers" || path === "/diensten" || LABEL_PADEN.includes(path) || dienstVoor(path)) return "werkgever";
   return null;
 }
 
@@ -206,12 +212,15 @@ export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | n
  * ziet in welk deel van de site je bent: Werkgevers › Diensten › Verzuim-
  * begeleiding WVP, of Werknemers › Verzuimprotocol.
  */
-export function crumbsVoor(path: string, title: string): NavLink[] {
+export function crumbsVoor(path: string, title: string, taal: Taal = "nl"): NavLink[] {
   const groep = doelgroepVoorPad(path);
   if (!groep) return [{ label: title, href: path }];
-  const start = STARTPAGINA[groep];
+  const t = woordenboek(taal).header;
+  const start: NavLink = taal === "nl"
+    ? STARTPAGINA[groep]
+    : { label: groep === "werkgever" ? t.werkgevers : t.werknemers, href: pad(taal, groep === "werkgever" ? "werkgevers" : "werknemers") };
   if (path === start.href) return [start];
-  const tussen = dienstVoor(path) ? [{ label: "Diensten", href: "/diensten" }] : [];
+  const tussen = taal === "nl" && dienstVoor(path) ? [{ label: "Diensten", href: "/diensten" }] : [];
   return [start, ...tussen, { label: title, href: path }];
 }
 
@@ -220,32 +229,31 @@ export const LINKEDIN_URL = "https://www.linkedin.com/company/react2u/";
 const MEDIA = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 
 export const LOGO_URL = `${MEDIA}/2023/07/cropped-cropped-Logo_react2u.png`;
-export const FAVICON_URL = `${MEDIA}/2023/05/cropped-favicon-react2u-32x32.png`;
+/** De favicon staat in de code: app/favicon.ico (met icon.png en apple-icon.png ernaast). */
+export const FAVICON_URL = "/favicon.ico";
 export const LOGO_SVG_URL = `${MEDIA}/2023/05/Logo-kleur.svg`;
 
 /* ---------- Footer: documenten ---------- */
 
 export type FooterDoc = { label: string; href: string };
 
-// Vroeger was dit een vast object met precies deze drie sleutels. Sinds de
-// footer een vrije lijst is, bestaat die vorm alleen nog als opgeslagen data in
+// Vroeger was dit een vast object met drie sleutels (ook `privacy_reglement`,
+// de oude WordPress-PDF die niet meer in de footer hoort). Sinds de footer een
+// vrije lijst is, bestaat die vorm alleen nog als opgeslagen data in
 // site_settings — zie normalizeDocs().
 type LegacyFooterDocs = {
   algemene_voorwaarden: string;
   klachtenprocedure: string;
-  privacy_reglement: string;
 };
 
 const LEGACY_DOC_LABELS: { key: keyof LegacyFooterDocs; label: string }[] = [
   { key: "algemene_voorwaarden", label: "Algemene voorwaarden" },
   { key: "klachtenprocedure", label: "Klachtenprocedure" },
-  { key: "privacy_reglement", label: "Privacy regelement" },
 ];
 
 const LEGACY_DOC_HREFS: LegacyFooterDocs = {
   algemene_voorwaarden: `${MEDIA}/2025/05/Algemene-voorwaarden-r2u.pdf`,
   klachtenprocedure: `${MEDIA}/2025/05/Klachtenprocedure-r2u.pdf`,
-  privacy_reglement: `${MEDIA}/2025/05/Privacy-reglement-r2u.pdf`,
 };
 
 export const FOOTER_DOCS_FALLBACK: FooterDoc[] = LEGACY_DOC_LABELS.map((d) => ({

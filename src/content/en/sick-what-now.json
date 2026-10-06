@@ -1,0 +1,162 @@
+{
+  "_uitleg": "Engels 'Ziek, wat nu?' (/en/sick-what-now): dezelfde blokken als verzuimprotocol.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "sick-what-now",
+  "title": "Sick, what now?",
+  "seo_title": "Sick, what now? The absence protocol • React2u",
+  "seo_description": "Reporting sick is not complicated. Read what to do, what happens next and what you can expect from your React2u case manager.",
+  "blocks": [
+    {
+      "type": "wnKop",
+      "label": "Header",
+      "data": {
+        "heading": "Sick, what now?",
+        "text": "Reporting sick is not complicated. Here you can read what to do, what happens next and what you can expect from us.",
+        "tint": "#FDECF4",
+        "orb": "#E61674",
+        "crumbs": [
+          { "label": "Employees", "href": "/en/employees" },
+          { "label": "Sick, what now?" }
+        ],
+        "buttons": [
+          {
+            "label": "Call your case manager",
+            "href": "tel:+31856205800"
+          },
+          {
+            "label": "Your rights",
+            "href": "/en/your-rights-and-privacy"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnStappen",
+      "label": "After you report sick",
+      "data": {
+        "anchor": "steps",
+        "eyebrow": "After you report sick",
+        "heading": "This is how it goes, step by step",
+        "text": "This is what you can expect from day one.",
+        "steps": [
+          {
+            "when": "Day 1",
+            "title": "Report sick to your manager",
+            "text": "You do not have to say what is wrong. Only that you are ill and how we can reach you."
+          },
+          {
+            "when": "Within one working day",
+            "title": "Your case manager contacts you",
+            "text": "We ask how you are doing and what you need. You get one regular contact straight away."
+          },
+          {
+            "when": "Around week 6",
+            "title": "A consultation with the company doctor",
+            "text": "Together you look at what you can and cannot do. Medical details stay with the company doctor (bedrijfsarts)."
+          },
+          {
+            "when": "Week 8",
+            "title": "A plan together",
+            "text": "With your employer you agree how you will return to work, step by step."
+          },
+          {
+            "when": "After that",
+            "title": "Back to work, at your own pace",
+            "text": "We check in regularly and adjust the plan when needed."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnKaarten",
+      "label": "The absence protocol",
+      "data": {
+        "anchor": "protocol",
+        "eyebrow": "The absence protocol",
+        "heading": "What you do yourself",
+        "text": "The React2u absence protocol (verzuimprotocol) in six steps.",
+        "columns": 2,
+        "layout": "naast",
+        "cards": [
+          {
+            "letter": "R",
+            "title": "Rights and duties",
+            "text": "You have the right to sick pay and good care. You have the duty to stay reachable and to look, together with us, for ways to work.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "letter": "E",
+            "title": "Ring your work",
+            "text": "Call your work as soon as you know you cannot work. Do you work through a staffing agency? Then call your legal employer, the agency, and the company where you work.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          },
+          {
+            "letter": "A",
+            "title": "Always let them know",
+            "text": "Say how long you expect to be ill, where you can be reached and what work you can still do. Your employer will also ask whether a safety net situation or an accident applies.",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC"
+          },
+          {
+            "letter": "C",
+            "title": "Contact with React2u",
+            "text": "After you report sick, we get in touch with you. Together with your employer we work on a good return to work.",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3"
+          },
+          {
+            "letter": "T",
+            "title": "The absence process",
+            "text": "We are bound by confidentiality. You can share everything with us, from medical information to problems with your employer.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "letter": "2U",
+            "title": "We are here for you",
+            "text": "Together with you and the company doctor we draw up an action plan (plan van aanpak). You and your employer are responsible; we support you along the way.",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnVragenLijst",
+      "label": "Questions about being ill",
+      "data": {
+        "anchor": "faq",
+        "eyebrow": "Frequently asked questions",
+        "heading": "Questions about being ill",
+        "items": [
+          {
+            "question": "What are the steps of the absence protocol?",
+            "answer": "From the moment you report sick, you follow the six steps above. If all the steps are followed, very little can go wrong. Is something still unclear? You can always reach us."
+          },
+          {
+            "question": "What are my rights and duties when I am off sick?",
+            "answer": "You have the right to continued payment of your salary and to good support. You must cooperate with your reintegration and stay reachable. Your employer must offer you a suitable reintegration plan."
+          },
+          {
+            "question": "How is a reintegration plan made?",
+            "answer": "Together with you, your employer and the company doctor we look at what you can do. Based on that we draw up an action plan (plan van aanpak), for example with adjusted work or fewer hours."
+          },
+          {
+            "question": "Can I do other or adjusted work?",
+            "answer": "Yes. Think of fewer hours, adjusted tasks or temporary other work inside or outside your company. We help you find what suits you."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnContactStrook",
+      "label": "Contact",
+      "data": {
+        "heading": "Questions about reporting sick?",
+        "text": "Call your case manager. Available on working days.",
+        "phoneDisplay": "+31 85 620 58 00"
+      }
+    }
+  ]
+}

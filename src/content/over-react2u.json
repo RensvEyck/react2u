@@ -1,0 +1,117 @@
+{
+  "_uitleg": "Over React2u in het nieuwe ontwerp (canvas: Over React2u). Zie CONTEXT.md, *Concepten*.",
+  "slug": "over-react2u",
+  "title": "Over React2u",
+  "seo_title": "Over React2u • Persoonlijke arbodienst uit Eindhoven",
+  "seo_description": "React2u is een persoonlijke arbodienst uit Eindhoven, opgericht in 2023. Eén vaste casemanager, korte lijnen en gecertificeerd door SBCA en DNV.",
+  "blocks": [
+    {
+      "type": "overReact2u",
+      "label": "Over React2u",
+      "data": {
+        "heading": "Aandacht raakt.",
+        "motto": "Aandacht\nraakt.",
+        "intro": "React2u is een persoonlijke arbodienst uit Eindhoven. We brengen mensen weer duurzaam in beweging, op een professionele en vooral menselijke manier.",
+        "citaat": "We weten wat het betekent om langdurig of, hopelijk, maar kort aan de zijlijn te staan. Verzuim vraagt om persoonlijke aandacht.",
+        "citaatLabel": "Waarom we doen wat we doen",
+        "verhaalEyebrow": "Ons verhaal",
+        "verhaalKop": "Hoe React2u begon",
+        "verhaal": [
+          "Vanuit een zusteronderneming van React2u merkten we dat verzuim bijna altijd hetzelfde liep. Een medewerker meldde zich ziek, de arbodienst nam het over en daarna bleef het stil. Rapportages kwamen laat, er zat steeds iemand anders aan de telefoon en niemand kon precies zeggen waar een traject stond.",
+          "Werkgevers voelden zich aan de zijlijn staan en werknemers voelden zich een dossiernummer."
+        ],
+        "uitspraak": "Dat moest anders, en we wisten ook hoe: als we het zelf zouden doen, zoals we het zelf graag hadden gehad.",
+        "slot": "Dat doen we nog steeds. Met een team van casemanagers, taakgedelegeerden en bedrijfsartsen helpen we werknemers zo veilig en voorspoedig mogelijk terug naar eigen, passend of ander werk.",
+        "stappen": [
+          {
+            "label": "Wat we zagen",
+            "titel": "Verzuim zonder overzicht",
+            "tekst": "Bij arbodiensten ontbraken persoonlijk contact en grip op het traject. Voor werkgever én werknemer."
+          },
+          {
+            "label": "Het idee",
+            "titel": "Eén vast gezicht en korte lijnen",
+            "tekst": "Werkgever en werknemer weten altijd bij wie ze terechtkunnen en waar het traject staat."
+          },
+          {
+            "label": "2023",
+            "titel": "React2u opgericht in Eindhoven",
+            "tekst": "Vanuit een zusteronderneming, om verzuim persoonlijk en overzichtelijk te begeleiden."
+          },
+          {
+            "label": "Nu",
+            "titel": "Vijf specialismen onder één dak",
+            "tekst": "Resist, Recover, Restart, Reflex en Ready. Gecertificeerd door SBCA en via DNV voor ISO 9001, 27001 en 27701."
+          }
+        ],
+        "foto": "/beeld/home/samen-leren.webp",
+        "fotoAlt": "Vier collega’s lachen samen aan een ronde tafel",
+        "fotoFocus": "50% 35%",
+        "fotoLabel": "Jouw mensen, onze aandacht",
+        "mvKop": "Waar we voor staan",
+        "missie": {
+          "label": "Onze missie",
+          "titel": "Mensen weer duurzaam in beweging brengen.",
+          "tekst": "Samen met werkgever en werknemer werken we aan een oplossing. We begeleiden, faciliteren en adviseren alle betrokkenen, professioneel en persoonlijk, zodat iemand veilig en voorspoedig terugkeert naar werk."
+        },
+        "visie": {
+          "label": "Onze visie",
+          "titel": "Wie zich gezien voelt, komt sneller in beweging.",
+          "tekst": "Verzuim heeft vaak meer oorzaken dan alleen ziekte. Daarom kijken we naar de hele mens en geven we elke organisatie één vast gezicht. Zo voorkomen we verzuim waar het kan en helpen we herstel waar het nodig is."
+        },
+        "waardenKop": "Gezond, menselijk en duidelijk",
+        "waardenTekst": "Drie woorden die we elke dag waarmaken, bij werkgevers én bij werknemers.",
+        "waarden": [
+          {
+            "titel": "Gezond",
+            "kleur": "#E61674",
+            "tekst": "We kijken verder dan het verzuim van vandaag. Met preventie, trainingen en begeleiding werken we aan een gezonde werkomgeving, nu en later."
+          },
+          {
+            "titel": "Menselijk",
+            "kleur": "#00A098",
+            "tekst": "We bieden een luisterend oor, zijn kritisch waar het moet en gebruiken humor. Achter elk dossier zit een mens, en zo behandelen we het ook."
+          },
+          {
+            "titel": "Duidelijk",
+            "kleur": "#3AA5DD",
+            "tekst": "Heldere afspraken, korte lijnen en alles terug te vinden in één online dossier. Werkgever en werknemer weten altijd waar ze aan toe zijn."
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

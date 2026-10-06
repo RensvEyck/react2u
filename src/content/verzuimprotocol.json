@@ -1,108 +1,156 @@
 {
-  "_uitleg": "Het verzuimprotocol als tekst in plaats van als afbeelding: leesbaar op een telefoon, voor schermlezers en voor zoekmachines. Zie CONTEXT.md, *Concepten*.",
+  "_uitleg": "Ziek, wat nu? in het nieuwe ontwerp (canvas: Werknemer: Ziek, wat nu?). Blijft op /verzuimprotocol, het bekende adres. Zie CONTEXT.md, *Concepten*.",
   "slug": "verzuimprotocol",
-  "title": "Verzuimprotocol",
-  "sort": 9,
+  "title": "Ziek, wat nu?",
+  "seo_title": "Ziek, wat nu? Het verzuimprotocol • React2u",
+  "seo_description": "Ziek melden is niet ingewikkeld. Lees wat je moet doen, wat er daarna gebeurt en wat je van je casemanager van React2u mag verwachten.",
   "blocks": [
     {
-      "type": "intro",
-      "label": "Verzuimprotocol",
+      "type": "wnKop",
+      "label": "Kop",
       "data": {
-        "eyebrow": "Voor werknemers",
-        "heading": "Verzuimprotocol",
-        "text": "Een medewerker meldt zich ziek. Wat gebeurt er dan? Aan welke eisen moet je als werkgever en werknemer voldoen? Waar heb je als werknemer en werkgever nou recht op?\n\nBij React2u hoef je je om die vragen niet druk te maken. Door ons korte, duidelijke en haalbare visuele verzuimprotocol dragen wij succesvol bij aan het verminderen van je verzuim en het bevorderen van de inzetbaarheid van je medewerkers.",
-        "button": {
-          "label": "",
-          "href": ""
-        }
-      }
-    },
-    {
-      "type": "steps",
-      "label": "De zes stappen",
-      "data": {
-        "anchor": "stappen",
-        "eyebrow": "R · E · A · C · T · 2U",
         "heading": "Ziek, wat nu?",
-        "text": "Het verzuimprotocol van React2u in zes stappen: wat je als werknemer moet doen, en wat je van ons kunt verwachten.",
-        "button": {
-          "label": "",
-          "href": ""
-        },
-        "steps": [
-          {
-            "badge": "R",
-            "title": "Rechten & plichten",
-            "text": "Helaas, je bent ziek en kunt niet komen werken. Dan heb je verschillende rechten en plichten: recht op ziekengeld en goede zorg; de plicht om bereikbaar te zijn en samen te zoeken naar mogelijkheden om te werken.",
-            "kleur": "roze"
-          },
-          {
-            "badge": "E",
-            "title": "Even je werk bellen",
-            "text": "Eén van je plichten is dat je je werk belt zodra je weet dat je niet kunt werken. Je belt je juridisch werkgever, uitzendbureau en de inlener waar je op dat moment werkt. Het is belangrijk dat je iedereen telefonisch inlicht!",
-            "kleur": "teal"
-          },
-          {
-            "badge": "A",
-            "title": "Altijd aangeven",
-            "text": "De vermoedelijke duur van je verzuim; het nummer en adres waarop je bereikbaar bent; welke werkzaamheden je wél uit kunt voeren. Je werkgever vraagt aan jou of er sprake is van een vangnetsituatie of regres (ongeval).",
-            "kleur": "blauw"
-          },
-          {
-            "badge": "C",
-            "title": "Contact met React2u",
-            "text": "Na je ziekmelding neemt arbodienst React2u contact met je op. Wij zijn de verbindende factor en willen jou, samen met je werkgever, op een goede manier weer terug naar de werkvloer brengen. Dat doen we samen!",
-            "kleur": "oranje"
-          },
-          {
-            "badge": "T",
-            "title": "Traject van verzuim",
-            "text": "React2u heeft een geheimhoudingsplicht: je kunt alles met ons delen, van medische informatie tot problemen met je werkgever. Daarnaast ondersteunen wij je bij je re-integratieproces.",
-            "kleur": "rood"
-          },
-          {
-            "badge": "2U",
-            "title": "Wij zijn er voor jou",
-            "text": "React2u kijkt samen met jou en de bedrijfsarts naar wat je nodig hebt en maakt een plan van aanpak. Jij bent samen met je werkgever verantwoordelijk om je daaraan te houden, maar wij ondersteunen je hierin.",
-            "kleur": "roze"
-          }
-        ]
-      }
-    },
-    {
-      "type": "ctaBanner",
-      "label": "Wij zijn altijd bereikbaar",
-      "data": {
-        "eyebrow": "Vragen?",
-        "heading": "Is er toch iets niet duidelijk?",
-        "text": "Wij zijn altijd bereikbaar. Neem contact met ons op, dan denken we met je mee.",
+        "text": "Ziek melden is niet ingewikkeld. Hier lees je wat je moet doen, wat er daarna gebeurt en wat je van ons mag verwachten.",
+        "tint": "#FDECF4",
+        "orb": "#E61674",
         "buttons": [
           {
-            "label": "Stel je vraag",
-            "href": "/contact",
-            "style": "accent"
-          }
-        ],
-        "routes": [
-          {
-            "icon": "phone",
-            "label": "Bel ons",
-            "sub": "085 - 620 58 00",
-            "href": "tel:0856205800"
+            "label": "Bel je casemanager",
+            "href": "tel:+31856205800"
           },
           {
-            "icon": "mail",
-            "label": "Mail ons",
-            "sub": "info@react2u.nl",
-            "href": "mailto:info@react2u.nl"
-          },
-          {
-            "icon": "message",
-            "label": "Stuur een bericht",
-            "sub": "We nemen zo snel mogelijk contact op",
-            "href": "/contact"
+            "label": "Je rechten",
+            "href": "/je-rechten-en-privacy"
           }
         ]
+      }
+    },
+    {
+      "type": "wnStappen",
+      "label": "Na je ziekmelding",
+      "data": {
+        "anchor": "stappen",
+        "eyebrow": "Na je ziekmelding",
+        "heading": "Zo gaat het, stap voor stap",
+        "text": "Dit kun je verwachten vanaf de eerste dag.",
+        "steps": [
+          {
+            "when": "Dag 1",
+            "title": "Meld je ziek bij je leidinggevende",
+            "text": "Je hoeft niet te vertellen wat je hebt, alleen dat je ziek bent en hoe je bereikbaar bent."
+          },
+          {
+            "when": "Binnen een werkdag",
+            "title": "Je casemanager neemt contact op",
+            "text": "We vragen hoe het gaat en wat je nodig hebt. Je krijgt meteen een vast aanspreekpunt."
+          },
+          {
+            "when": "Rond week 6",
+            "title": "Gesprek met de bedrijfsarts",
+            "text": "Samen kijken jullie wat je wel en niet kunt. Medische details blijven bij de bedrijfsarts."
+          },
+          {
+            "when": "Week 8",
+            "title": "Samen een plan",
+            "text": "Met je werkgever leg je vast hoe je stap voor stap weer aan het werk gaat."
+          },
+          {
+            "when": "Daarna",
+            "title": "Terug naar werk, in jouw tempo",
+            "text": "We evalueren regelmatig en passen het plan aan als dat nodig is."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnKaarten",
+      "label": "Het verzuimprotocol",
+      "data": {
+        "anchor": "protocol",
+        "eyebrow": "Het verzuimprotocol",
+        "heading": "Wat je zelf doet",
+        "text": "Het verzuimprotocol van React2u in zes stappen.",
+        "columns": 2,
+        "layout": "naast",
+        "cards": [
+          {
+            "letter": "R",
+            "title": "Rechten en plichten",
+            "text": "Je hebt recht op ziekengeld en goede zorg. Je hebt de plicht om bereikbaar te zijn en samen te zoeken naar mogelijkheden om te werken.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "letter": "E",
+            "title": "Even je werk bellen",
+            "text": "Bel je werk zodra je weet dat je niet kunt werken. Werk je via een uitzendbureau? Bel dan je juridisch werkgever, het uitzendbureau en de inlener.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          },
+          {
+            "letter": "A",
+            "title": "Altijd aangeven",
+            "text": "Geef door hoe lang je verwacht ziek te zijn, waar je bereikbaar bent en welk werk je wél kunt doen. Je werkgever vraagt ook of er sprake is van een vangnetsituatie of een ongeval.",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC"
+          },
+          {
+            "letter": "C",
+            "title": "Contact met React2u",
+            "text": "Na je ziekmelding nemen we contact met je op. Samen met je werkgever werken we aan een goede terugkeer naar je werk.",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3"
+          },
+          {
+            "letter": "T",
+            "title": "Traject van verzuim",
+            "text": "We hebben geheimhoudingsplicht. Je kunt alles met ons delen, van medische informatie tot problemen met je werkgever.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "letter": "2U",
+            "title": "Wij zijn er voor jou",
+            "text": "Samen met jou en de bedrijfsarts maken we een plan van aanpak. Jij en je werkgever zijn verantwoordelijk, wij ondersteunen je daarbij.",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnVragenLijst",
+      "label": "Vragen over ziek zijn",
+      "data": {
+        "anchor": "vragen",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over ziek zijn",
+        "items": [
+          {
+            "question": "Wat zijn de stappen van het verzuimprotocol?",
+            "answer": "Vanaf je ziekmelding volg je de zes stappen hierboven. Als alle stappen worden doorlopen kan er eigenlijk niets fout gaan. En is er toch iets niet duidelijk? We zijn altijd bereikbaar."
+          },
+          {
+            "question": "Wat zijn mijn rechten en plichten bij verzuim?",
+            "answer": "Je hebt recht op loondoorbetaling en goede begeleiding. Je bent verplicht om mee te werken aan je re-integratie en bereikbaar te zijn. Je werkgever moet je een passend re-integratieplan bieden."
+          },
+          {
+            "question": "Hoe wordt een re-integratieplan gemaakt?",
+            "answer": "Samen met jou, je werkgever en de bedrijfsarts kijken we wat je kunt. Op basis daarvan maken we een plan van aanpak, met bijvoorbeeld aangepast werk of minder uren."
+          },
+          {
+            "question": "Kan ik ander of aangepast werk doen?",
+            "answer": "Ja. Denk aan minder uren, aangepast werk of tijdelijk ander werk binnen of buiten je bedrijf. We helpen je bij het vinden van wat past."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnContactStrook",
+      "label": "Contact",
+      "data": {
+        "heading": "Vragen over je ziekmelding?",
+        "text": "Bel je casemanager. Op werkdagen krijg je direct iemand aan de lijn."
       }
     }
   ]

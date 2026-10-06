@@ -1,0 +1,187 @@
+{
+  "slug": "resist",
+  "title": "React2u Resist",
+  "seo_title": "React2u Resist: Preventie en vitaliteit • React2u",
+  "seo_description": "We brengen risico’s in kaart en helpen teams om gezond en met energie aan het werk te blijven.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Resist",
+      "data": {
+        "heading": "React2u Resist",
+        "naam": "Resist",
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "label": "Preventie en vitaliteit.",
+        "tagline": "Uitval voorkomen begint vóór de ziekmelding",
+        "text": "We brengen risico’s in kaart en helpen teams om gezond en met energie aan het werk te blijven.",
+        "checks": [
+          "Risico-inventarisatie (RI&E)",
+          "Preventief medisch onderzoek (PMO)",
+          "Werkplekonderzoek",
+          "Trainingen voor leidinggevenden",
+          "Vertrouwenspersoon"
+        ],
+        "de": "Dé specialist in preventie, fysiek én mentaal",
+        "lead": "Niet méér doen, maar de juiste dingen doen.",
+        "intro": [
+          "Het meeste verzuim begint lang voor de ziekmelding. Met werkdruk die oploopt, een werkplek die niet klopt of zorgen thuis. Met React2u Resist zie je dat eerder en grijp je op tijd in.",
+          "We starten met een helder beeld van je organisatie: welke risico’s zijn er, hoe gaat het met je mensen en wat is wettelijk verplicht. Daarna kiezen we samen de maatregelen die echt verschil maken."
+        ],
+        "herken": [
+          "Verzuim komt als een verrassing, terwijl de signalen er al waren",
+          "Je investeert in vitaliteit, maar ziet weinig effect",
+          "Je weet niet zeker of je RI&E en PMO op orde zijn",
+          "Leidinggevenden vinden het lastig om het goede gesprek te voeren"
+        ],
+        "groepen": [
+          {
+            "titel": "Veiligheid en arbo",
+            "tekst": "Een veilige werkomgeving is de basis.",
+            "items": [
+              "Risico-inventarisatie en -evaluatie (RI&E)",
+              "Preventief medisch onderzoek (PMO) en PAGO",
+              "Psychosociale arbeidsbelasting (PSA)",
+              "Medewerkersonderzoek"
+            ]
+          },
+          {
+            "titel": "Fysieke inzetbaarheid",
+            "tekst": "Klachten voorkomen voordat ze ontstaan.",
+            "items": [
+              "Werkplekonderzoek, op kantoor of thuis",
+              "Bedrijfsfysiotherapie",
+              "Workshop fysieke belasting"
+            ]
+          },
+          {
+            "titel": "Mentale ondersteuning",
+            "tekst": "Structurele aandacht voor mentale gezondheid.",
+            "items": [
+              "Psychologische ondersteuning",
+              "Coaching bij werkdruk en stress",
+              "Online begeleiding"
+            ]
+          },
+          {
+            "titel": "Training en ontwikkeling",
+            "tekst": "Kennis en vaardigheden die blijven hangen.",
+            "items": [
+              "Training verzuimgesprekken voor leidinggevenden",
+              "Workshops gezond werken",
+              "Training veerkracht"
+            ]
+          },
+          {
+            "titel": "Vitaliteit en leefstijl",
+            "tekst": "Gezonde mensen zijn vitaler en beter inzetbaar.",
+            "items": [
+              "Online vitaliteitsprogramma",
+              "Vitaliteitscoaching",
+              "Stoppen met roken"
+            ]
+          },
+          {
+            "titel": "Welzijn",
+            "tekst": "Een veilige plek voor lastige vragen.",
+            "items": [
+              "Externe vertrouwenspersoon",
+              "Mediation"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Inventariseren",
+            "tekst": "We brengen risico’s en de gezondheid van je organisatie in kaart."
+          },
+          {
+            "titel": "Adviseren",
+            "tekst": "Je krijgt een helder plan met prioriteiten."
+          },
+          {
+            "titel": "Uitvoeren",
+            "tekst": "We zetten de maatregelen samen met jou in gang."
+          },
+          {
+            "titel": "Evalueren",
+            "tekst": "We meten het effect en stellen bij waar nodig."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Eerst inzicht",
+            "tekst": "We beginnen bij wat er écht speelt, niet bij een standaardpakket."
+          },
+          {
+            "titel": "Eén aanspreekpunt",
+            "tekst": "Je casemanager stemt preventie af op wat hij in het verzuim ziet."
+          },
+          {
+            "titel": "Meetbaar resultaat",
+            "tekst": "We spreken vooraf doelen af en laten zien wat het oplevert."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Recover",
+            "wat": "Verzuimbegeleiding",
+            "kleur": "#E61674",
+            "href": "/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Flexbranche en Ziektewet",
+            "kleur": "#3AA5DD",
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR en arbeidsrecht",
+            "kleur": "#322E83",
+            "href": "/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

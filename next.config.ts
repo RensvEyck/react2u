@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { WORDPRESS_REDIRECTS } from "./src/lib/redirects";
+import { DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
 
 const SUPABASE = "https://tumwtappyegkjabtmold.supabase.co";
 
@@ -76,10 +76,26 @@ const nextConfig: NextConfig = {
   // later in de admin worden toegevoegd past de middleware toe — die komt pas
   // ná deze lijst aan de beurt, dus deze wint altijd.
   async redirects() {
-    return [WWW_REDIRECT, ...WORDPRESS_REDIRECTS.map((r) => ({ ...r, permanent: true }))];
+    return [
+      WWW_REDIRECT,
+      ...WORDPRESS_REDIRECTS.map((r) => ({ ...r, permanent: true })),
+      // De juridische documenten: een klassieke 301 naar de PDF.
+      ...DOCUMENT_REDIRECTS.map((r) => ({ ...r, statusCode: 301 })),
+    ];
   },
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/:path*", headers: SECURITY_HEADERS },
+      // Alleen react2u.nl hoort in Google. Het Vercel-adres van productie
+      // (react2u.vercel.app) en elke preview-deploy (*.vercel.app) serveren
+      // dezelfde pagina's; zonder deze header kon Google ze als dubbele site
+      // oppakken. Een preview sluit daarnaast zijn robots.txt (app/robots.ts).
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: ".*\\.vercel\\.app" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
   },
 };
 

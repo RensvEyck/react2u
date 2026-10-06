@@ -1,0 +1,270 @@
+{
+  "_uitleg": "Engelse werknemerspagina (/en/employees): dezelfde blokken als werknemers.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "employees",
+  "title": "Employees",
+  "seo_title": "Off sick or stuck? Help for employees • React2u",
+  "seo_description": "Off sick or stuck? You get one regular case manager who listens to you and helps you get back to work. Read what to do and what you can expect.",
+  "blocks": [
+    {
+      "type": "dgKop",
+      "label": "Header",
+      "data": {
+        "eyebrow": "For employees",
+        "heading": "Off sick or stuck?\nWe help you\nmove forward",
+        "text": "One regular case manager who listens to you and helps you get back to work.",
+        "image": "/beeld/werknemers/samen-buiten.webp",
+        "alt": "Two people walking together outside",
+        "focus": "60% 25%",
+        "panel": "#E61674",
+        "buttons": [
+          {
+            "label": "Sick, what now?",
+            "href": "/en/sick-what-now"
+          },
+          {
+            "label": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          }
+        ]
+      }
+    },
+    {
+      "type": "dgLabels",
+      "label": "How we help you",
+      "data": {
+        "anchor": "help",
+        "eyebrow": "Help for you",
+        "heading": "How we help you",
+        "text": "Whether you are ill, stuck or have a question: your case manager makes sure you get the right help.",
+        "items": [
+          {
+            "naam": "Recover",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "title": "We support you when you are ill",
+            "text": "From the first day until you are back at work.",
+            "points": [
+              "One regular case manager",
+              "A consultation with the company doctor (bedrijfsarts)",
+              "A plan at your own pace"
+            ],
+            "href": "/en/sick-what-now",
+            "link": "Find out more"
+          },
+          {
+            "naam": "Restart",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "title": "We help you find suitable work",
+            "text": "If your own job is no longer possible, we look ahead together.",
+            "points": [
+              "Career scan and coaching",
+              "Advice from a labour expert",
+              "Work with your own employer or elsewhere"
+            ],
+            "href": "/en/your-case-manager",
+            "link": "Find out more"
+          },
+          {
+            "naam": "Resist",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "title": "We help you stay fit",
+            "text": "Struggling with workload or stress? Talk about it in time.",
+            "points": [
+              "A coach for workload and stress",
+              "Open consultation hours with the company doctor",
+              "An external confidential adviser"
+            ],
+            "href": "/en/your-case-manager",
+            "link": "Find out more"
+          },
+          {
+            "naam": "Reflex",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC",
+            "title": "We also support you as a temp worker",
+            "text": "Do you work through a staffing agency? We help you just the same.",
+            "points": [
+              "Support after your contract ends",
+              "An explanation of the Sickness Benefits Act (Ziektewet)",
+              "Help finding suitable work"
+            ],
+            "href": "/en/sick-what-now",
+            "link": "Find out more"
+          },
+          {
+            "naam": "Ready",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5",
+            "title": "We explain your rights",
+            "text": "What may your employer ask, and what not? You get a clear answer.",
+            "points": [
+              "Your privacy when you are ill",
+              "Asking for a second opinion",
+              "Help with a UWV expert opinion"
+            ],
+            "href": "/en/your-rights-and-privacy",
+            "link": "Find out more"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnStappen",
+      "label": "Sick, what now?",
+      "data": {
+        "anchor": "what-now",
+        "eyebrow": "Sick, what now?",
+        "heading": "This is how it goes, step by step",
+        "numbered": true,
+        "bg": "#F6F5FB",
+        "steps": [
+          {
+            "when": "Day 1",
+            "title": "Report sick to your manager",
+            "text": "You do not have to say what is wrong. Only that you are ill and how we can reach you."
+          },
+          {
+            "when": "Within one working day",
+            "title": "Your case manager contacts you",
+            "text": "We ask how you are doing and what you need. You get one regular contact straight away."
+          },
+          {
+            "when": "Around week 6",
+            "title": "A consultation with the company doctor",
+            "text": "Together you look at what you can and cannot do. Medical details stay with the company doctor (bedrijfsarts)."
+          },
+          {
+            "when": "Week 8",
+            "title": "A plan together",
+            "text": "With your employer you agree how you will return to work, step by step."
+          },
+          {
+            "when": "After that",
+            "title": "Back to work, at your own pace",
+            "text": "We check in regularly and adjust the plan when needed."
+          }
+        ],
+        "cta": {
+          "heading": "Questions about reporting sick?",
+          "text": "Call your case manager. Available on working days.",
+          "label": "Call your case manager",
+          "href": "tel:+31856205800"
+        }
+      }
+    },
+    {
+      "type": "dgFotoLijst",
+      "label": "Your rights and privacy",
+      "data": {
+        "anchor": "rights",
+        "eyebrow": "Your rights and privacy",
+        "heading": "Your health is yours",
+        "image": "/beeld/werkgevers/persoonlijk-gesprek.webp",
+        "alt": "An employee in a calm conversation with her case manager",
+        "focus": "50% 40%",
+        "items": [
+          {
+            "title": "Medical details stay private",
+            "text": "Your employer only hears what you can and cannot do, never your diagnosis."
+          },
+          {
+            "title": "Second opinion",
+            "text": "Do you disagree with the company doctor? You can ask for a second opinion."
+          },
+          {
+            "title": "Expert opinion by UWV",
+            "text": "If you and your employer disagree, UWV, the Dutch Employee Insurance Agency, can give an independent opinion (deskundigenoordeel)."
+          },
+          {
+            "title": "Complaints procedure",
+            "text": "Not happy with us? Your complaint will be handled with care."
+          }
+        ],
+        "link": {
+          "label": "Everything about your rights and privacy",
+          "href": "/en/your-rights-and-privacy"
+        }
+      }
+    },
+    {
+      "type": "dgVragen",
+      "label": "What employees often ask us",
+      "data": {
+        "anchor": "faq",
+        "eyebrow": "Frequently asked questions",
+        "heading": "What employees\noften ask us",
+        "text": "Can't find your question? Call or email us. There are no silly questions.",
+        "phone": "+31 85 620 58 00",
+        "items": [
+          {
+            "question": "Do I have to tell my employer what is wrong with me?",
+            "answer": "No. Your employer may not ask about your diagnosis or the cause. You do say how long you expect to be away, what you can still do and how you can be reached."
+          },
+          {
+            "question": "Will I still be paid while I am ill?",
+            "answer": "Yes. In the Netherlands your employer keeps paying your salary while you are ill, for up to two years. How much exactly is set out in your employment contract or collective labour agreement (cao)."
+          },
+          {
+            "question": "What if I disagree with the company doctor?",
+            "answer": "Discuss it with the company doctor first. You may ask for a second opinion from another company doctor. If you and your employer disagree, you can ask UWV for an expert opinion (deskundigenoordeel)."
+          },
+          {
+            "question": "Can I go on holiday while I am ill?",
+            "answer": "Always discuss this with your employer first. The company doctor is often asked for advice too. The trip must not get in the way of your recovery or your return to work."
+          },
+          {
+            "question": "What if my contract ends while I am ill?",
+            "answer": "You may be entitled to sickness benefit under the Sickness Benefits Act (Ziektewet). It is paid by UWV, or by your employer if they are a self-insurer (eigenrisicodrager) for the Ziektewet."
+          },
+          {
+            "question": "How is a reintegration plan made and carried out?",
+            "answer": "First we look at what you can still do. Then you and your employer draw up an action plan (plan van aanpak), with a goal and the steps to get there. Think of changes to your workplace or suitable work. Your case manager guides you through this."
+          },
+          {
+            "question": "What are the options for adjusted work?",
+            "answer": "There is more possible than you might think: fewer hours, adjusted tasks, temporary other work within the company, or even reintegration with another employer. React2u is happy to help with a reintegration plan that suits you."
+          },
+          {
+            "question": "Can I contact React2u myself?",
+            "answer": "Yes. If you have a question about your support or an appointment, feel free to call or email us. Medical questions are for the company doctor."
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

@@ -7,8 +7,28 @@ import FotoTegel from "@/components/site/FotoTegel";
 import { Arrow } from "@/components/site/Arrow";
 import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
+import { kort } from "@/lib/seo";
 import { concept, conceptSlugs, reserveConcept, type Concept } from "@/lib/concept";
 import type { Block, Page } from "@/lib/types";
+import { isGeindexeerd, plaatsVoorSlug, provincieVoorSlug } from "@/lib/gemeenten";
+import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/Werkgebied";
+import { hreflangVoor } from "@/lib/taal";
+
+/**
+ * Werkgebied: /arbodienst-provincie-<provincie> en /arbodienst-<gemeente>.
+ * Geen database: de gemeenten staan in lib/gemeenten.ts.
+ */
+function werkgebied(slug: string) {
+  if (slug.startsWith("arbodienst-provincie-")) {
+    const p = provincieVoorSlug(slug.slice("arbodienst-provincie-".length));
+    return p ? { soort: "provincie" as const, naam: p.provincie.naam, ...p } : null;
+  }
+  if (slug.startsWith("arbodienst-")) {
+    const plaats = plaatsVoorSlug(slug.slice("arbodienst-".length));
+    return plaats ? { soort: "plaats" as const, naam: plaats.naam, plaats } : null;
+  }
+  return null;
+}
 
 type Inhoud = { page: Pick<Page, "title" | "seo_title" | "seo_description" | "og_image">; blocks: Block[] };
 
@@ -42,13 +62,28 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const gebied = werkgebied(slug);
+  if (gebied) {
+    const title = `Arbodienst ${gebied.naam} • Persoonlijke verzuimbegeleiding • React2u`;
+    // Alleen de gemeenten uit GEINDEXEERDE_GEMEENTEN horen in Google; de
+    // andere gemeentepagina's bestaan wel, maar met noindex (lib/gemeenten.ts).
+    const noindex = gebied.soort === "plaats" && !isGeindexeerd(gebied.plaats.slug);
+    return {
+      title: { absolute: title },
+      description: `Arbodienst in ${gebied.naam}: persoonlijke verzuimbegeleiding met één vaste casemanager, preventie en re-integratie. SBCA en ISO gecertificeerd.`,
+      alternates: { canonical: `/${slug}` },
+      ...(noindex ? { robots: { index: false, follow: true } } : {}),
+    };
+  }
   const res = await inhoud(slug);
   if (!res) return {};
   const title = res.page.seo_title || `${res.page.title} • React2u`;
+  const description = kort(res.page.seo_description);
   return {
     title: { absolute: title },
-    description: res.page.seo_description || undefined,
-    alternates: { canonical: `/${slug}` },
+    description,
+    // hreflang alleen voor pagina's die ook in het Engels bestaan (lib/taal.ts).
+    alternates: { canonical: `/${slug}`, languages: hreflangVoor(`/${slug}`) ?? undefined },
     // Alleen meesturen als er echt een eigen afbeelding is. `openGraph: undefined`
     // is niet hetzelfde als weglaten: de sleutel bestaat dan, en overschrijft de
     // defaults uit (site)/layout.tsx — waardoor de pagina hélemaal geen og-tags
@@ -62,7 +97,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             locale: "nl_NL",
             url: `/${slug}`,
             title,
-            description: res.page.seo_description || undefined,
+            description,
             images: [res.page.og_image],
           },
         }
@@ -72,6 +107,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ContentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const gebied = werkgebied(slug);
+  if (gebied?.soort === "plaats") return <PlaatsPagina plaats={gebied.plaats} />;
+  if (gebied?.soort === "provincie") return <ProvinciePagina provincie={gebied.provincie} regio={gebied.regio} />;
   const res = await inhoud(slug);
   if (!res) notFound();
   const path = `/${slug}`;

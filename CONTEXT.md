@@ -42,6 +42,8 @@ Gebruik deze termen; de code doet dat ook.
 | **404** (`missing_paths`) | Een adres waarop een bezoeker "niet gevonden" kreeg, met een teller en waar de link stond. Geen persoonsgegevens. |
 | **Versie** (`revisions`) | Momentopname van een pagina, blok, artikel, vacature of instelling, gemaakt door een databasetrigger bij elke opslag. Zie *Versies en prullenbak*. |
 | **Prullenbak** | Wat verwijderd is en nog terug kan (`/admin/prullenbak`). Geen tabel: de laatste versie van rijen die niet meer bestaan. Inzendingen en leads komen er nooit in. |
+| **Taal** (`Taal`) | `nl` of `en`. Nederlands op de gewone paden, Engels onder `/en`. Zie *Tweetalig*. |
+| **Koppeltabel** (`SLUGS`) | NL-slug ↔ EN-slug in [`src/lib/taal.ts`](src/lib/taal.ts), de enige plek die zegt welke Engelse URL bij een pagina hoort. |
 | **Bewaartermijn** | Voor sollicitaties: hoe lang ze mogen blijven staan. Bepaald in [`src/lib/retention.ts`](src/lib/retention.ts); het Postvak IN wijst aan wat erover is. |
 
 ## Architectuur
@@ -210,8 +212,9 @@ en zonder foutmelding. Tel je iets over veel rijen (bezoek), blader dan in
 blokken van 1000 — zie [`fetchPageViews()`](src/lib/analyticsDb.ts).
 
 **`site_settings.documents` bestaat in twee vormen.** Oorspronkelijk een vast
-object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure`,
-`privacy_reglement`), inmiddels een vrije lijst `{label, href}[]`. Rijen die
+object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure` en
+`privacy_reglement`; die laatste, de oude WordPress-PDF, leest `normalizeDocs()`
+niet meer en laten beide footers weg), inmiddels een vrije lijst `{label, href}[]`. Rijen die
 sinds de omzetting niet opnieuw zijn opgeslagen bevatten nog de oude vorm. Lees
 deze instelling daarom altijd via `normalizeDocs()` in `nav.ts` — die accepteert
 beide en valt terug op de standaardlinks. Hetzelfde geldt voor
@@ -404,6 +407,49 @@ overgenomen uit die afbeelding. Twee kleine aanpassingen: een ontbrekend "je"
 ("Helaas, je bent ziek") en de verwijzing "waarover je hieronder meer kunt
 lezen", die buiten de afbeelding niet meer klopte.
 
+## Tweetalig: Nederlands en Engels
+
+Nederlands staat op de gewone paden, Engels onder `/en` met Engelse slugs
+(`/en/employees`, `/en/sick-what-now`, `/en/jobs/...`). De keuzes staan in
+[`docs/adr/0001-tweetalig-nl-en.md`](docs/adr/0001-tweetalig-nl-en.md); in het kort:
+
+- **Drie root layouts** (`app/(site)`, `app/en`, `app/admin`) delen `RootHtml`,
+  omdat alleen een root layout `lang` op `<html>` zet. Er is geen
+  `app/not-found.tsx` meer: `app/(site)/[...rest]` en `app/en/[...slug]` vangen
+  onbekende adressen op binnen de juiste sitelayout.
+- **De koppeltabel NL-slug ↔ EN-slug** staat in [`src/lib/taal.ts`](src/lib/taal.ts)
+  (`SLUGS`), met `EN_KLAAR` voor de pagina's die er in het Engels al zijn.
+  `pad()`, `vertaalPad()` en `hreflangVoor()` rekenen daarop: menu's, footer,
+  taalknop, hreflang-tags en `sitemap.xml`. Een pagina zonder Engelse versie
+  linkt naar het Nederlandse adres; de taalknop gaat dan naar `/en`.
+- **Engelse inhoud** staat als JSON in `src/content/en/` (dezelfde blokstructuur
+  als het Nederlandse concept, Engelse slug als `slug`) en wordt gelezen door
+  `conceptEn()` in `lib/concept.ts`, in elke omgeving: er is geen Engelse
+  databasepagina. De Engelse site gebruikt altijd de header en footer van het
+  nieuwe ontwerp (`HeaderR2u`/`FooterR2u`).
+- **Vaste interfaceteksten** staan in één woordenboek per taal
+  (`src/lib/woordenboek/nl.ts`, de bron van het type, en `en.ts`). Server
+  components: `woordenboek(taal)`; client components: `useTaal()` uit
+  `components/site/Taal.tsx` (de provider zit in `SiteShell`). Blokken krijgen
+  de taal als `ctx.lang`.
+- **Formulieren** sturen een veld `taal` mee; de server action kiest de
+  foutmelding in die taal en bewaart de taal in `contact_messages.lang` en
+  `applications.lang` (migratie 0013), met een terugval zonder die kolom. Het
+  Postvak IN toont dan een EN-label.
+- **Vacatures** hebben optionele Engelse velden (`title_en`, `intro_en`,
+  `description_en_md`, migratie 0013). Zonder Engelse titel toont `/en/jobs/<slug>`
+  de Nederlandse tekst met "This vacancy is in Dutch".
+- **`/en/services`** toont de vijf labels in de blokken van het nieuwe ontwerp;
+  `/diensten` zelf gebruikt nog de oude blokken (`pillars` uit `nav.ts`).
+- **Blijft Nederlands:** gemeentepagina's, blog, de juridische PDF's (in de
+  Engelse footer met "(Dutch)" erachter), `/inloggen`, `/juridische-documenten`
+  en de HTML-sitemap.
+
+Een nieuwe vertaalde pagina: JSON in `src/content/en/`, de slug in `SLUGS` en
+`EN_KLAAR`, een import in `concept.ts`. `src/lib/taal.test.ts` controleert dat die
+drie kloppen en dat de Engelse teksten geen gedachtestreepjes of Nederlandse
+resten bevatten.
+
 ## Concepten
 
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
@@ -413,6 +459,15 @@ een nieuwe opbouw — `tarieven` en `begeleiding-en-coaching` — daar alleen de
 hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
 een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
+
+Het **werkgebied** staat niet in de database: `/arbodienst-provincie-<provincie>`
+en `/arbodienst-<gemeente>` komen uit [`src/lib/gemeenten.ts`](src/lib/gemeenten.ts)
+(alle 342 gemeenten), met eigen tekst per gemeente in `src/content/plaatsen.json`.
+Omdat die pagina's voor negentig procent dezelfde tekst hebben, staan alleen de
+gemeenten in `GEINDEXEERDE_GEMEENTEN` (vijftien rond Eindhoven en in Limburg) in
+Google, in `sitemap.xml` en op `/sitemap`; de overige gemeentepagina's bestaan
+wel, maar met `noindex, follow`. De twaalf provinciepagina's tonen alle gemeenten
+en blijven geïndexeerd.
 
 **Alleen op staging** (`VERCEL_ENV=preview`) tonen `/` en `[slug]` het concept
 in plaats van de databasepagina — zo zie je de site zoals hij live komt. In
@@ -428,7 +483,10 @@ branch dan `master` krijgt van Vercel een eigen URL, plus een vaste per branch
 (`react2u-git-<branch>-….vercel.app`). De redesign-branch
 `redesign-acture-opbouw` heeft daarnaast een korte vaste naam:
 **react2u-v5.vercel.app** (in Vercel als domein aan die branch gekoppeld, dus
-elke push komt daar vanzelf te staan). Staging vraagt om een Vercel-login. Let op: staging praat met de
+elke push komt daar vanzelf te staan). Staging vraagt om een Vercel-login. Alleen
+react2u.nl is indexeerbaar: elk `*.vercel.app`-adres (ook dat van productie)
+krijgt in `next.config.ts` een `X-Robots-Tag: noindex`, en een preview sluit
+zijn `robots.txt` (`app/robots.ts`). Let op: staging praat met de
 productiedatabase. Een contactformulier of sollicitatie die je daar invult komt
 echt binnen, en bezoeken tellen mee in `/admin/bezoek`.
 
@@ -856,10 +914,25 @@ filter *Bewaartermijn verstreken*; daar selecteer je ze en verwijder je ze in
 één keer, cv's inbegrepen (`bulkInbox`). Ander beleid? Pas de getallen daar aan,
 en de privacyverklaring mee.
 
-De **privacyverklaring** staat als gewone pagina in het CMS (`/privacyverklaring`),
-gelinkt in de footer en onder beide formulieren. Hij beschrijft precies wat de
-site nu doet. **Zet je `IPINFO_TOKEN` of Resend aan, dan moet die verklaring
-mee**: er komt dan een verwerker bij (ipinfo.io, Resend) die er nu niet in staat.
+De **privacyverklaring** is alleen nog een PDF (`/documenten/privacyverklaring-react2u.pdf`,
+zie [`src/lib/documenten.ts`](src/lib/documenten.ts)), gelinkt in de footer en
+onder alle formulieren. `/privacyverklaring` en `/cookieverklaring` verwijzen
+met een 301 door naar de PDF (`DOCUMENT_REDIRECTS` in `redirects.ts`); de oude
+databasepagina gaat met migratie 0011 uit publicatie. **Zet je `IPINFO_TOKEN`
+of Resend aan, dan moet die verklaring mee**: er komt dan een verwerker bij
+(ipinfo.io, Resend) die er nu niet in staat.
+
+De **cookiemelding** ([`CookieBanner.tsx`](src/components/site/CookieBanner.tsx))
+staat in `SiteShell`: wel op de 404, niet in het adminpaneel. Hij vraagt niets,
+want er is niets om toestemming voor te vragen: de site zet precies één cookie
+(`r2u_cookie_consent`, 12 maanden, onthoudt dat je de melding zag) en bewaart de
+doelgroepkeuze in `localStorage`; de bezoekstatistiek werkt zonder cookies.
+*Cookie-instellingen* in beide footers opent de melding opnieuw. Wat er in de
+browser staat, beschrijft de cookieverklaring, alleen als PDF
+(`/documenten/cookieverklaring-react2u.pdf`). Komt er statistiek of marketing
+bij: categorie toevoegen aan `OPTIONAL_CATEGORIES`, het script alleen laden als
+`hasConsent()` waar is, `CONSENT_VERSION` ophogen en een nieuwe PDF onder
+dezelfde naam neerzetten.
 
 Voor de bedrijfsherkenning zegt hij nu: "Komt een bezoek vanaf een
 bedrijfsnetwerk, dan kan daar de naam van dat bedrijf bij staan — nooit de naam

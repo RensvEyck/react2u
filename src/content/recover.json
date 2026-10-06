@@ -1,0 +1,169 @@
+{
+  "slug": "recover",
+  "title": "React2u Recover",
+  "seo_title": "React2u Recover: Verzuimbegeleiding • React2u",
+  "seo_description": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Recover",
+      "data": {
+        "heading": "React2u Recover",
+        "naam": "Recover",
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "label": "Verzuimbegeleiding.",
+        "tagline": "Van ziekmelding tot herstel",
+        "text": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.",
+        "checks": [
+          "Casemanagement",
+          "Bedrijfsarts en taakdelegatie",
+          "Poortwachterdossier en UWV",
+          "Online dossier en rapportages",
+          "Verzuimadvies"
+        ],
+        "de": "Dé arbopartner met één vast aanspreekpunt",
+        "lead": "Grip op verzuim begint met aandacht en regie.",
+        "intro": [
+          "Als een medewerker ziek wordt, wil je weten waar je aan toe bent. Met React2u Recover heb je één vaste casemanager die je organisatie kent, met je medewerker in gesprek gaat en alles voor je regelt.",
+          "Je casemanager werkt samen met de bedrijfsarts, bewaakt elke termijn en houdt jou op de hoogte. Zo loopt de begeleiding volgens de wet, en houdt je medewerker het gevoel dat er naar hem geluisterd wordt."
+        ],
+        "herken": [
+          "Verzuimbegeleiding voelt complex en tijdrovend",
+          "Je weet niet altijd welke termijn eraan komt",
+          "Je hebt steeds met iemand anders te maken",
+          "Je bent bang voor een loonsanctie van het UWV"
+        ],
+        "groepen": [
+          {
+            "titel": "Regie op verzuim",
+            "tekst": "Eén casemanager die je organisatie kent.",
+            "items": [
+              "Vaste casemanager",
+              "Verzuimadvies voor leidinggevenden",
+              "Online verzuimdossier, altijd inzichtelijk"
+            ]
+          },
+          {
+            "titel": "Medische begeleiding",
+            "tekst": "Deskundig, dichtbij en snel geregeld.",
+            "items": [
+              "Bedrijfsarts",
+              "Taakdelegatie: praktijkondersteuner bedrijfsarts",
+              "Open spreekuur, ook zonder verzuim"
+            ]
+          },
+          {
+            "titel": "Wet verbetering poortwachter",
+            "tekst": "Elke stap op tijd en volledig.",
+            "items": [
+              "Probleemanalyse en plan van aanpak",
+              "Termijnbewaking en evaluaties",
+              "Melding week 42 en re-integratieverslag"
+            ]
+          },
+          {
+            "titel": "Sneller herstel",
+            "tekst": "De juiste hulp op het juiste moment.",
+            "items": [
+              "Fysiotherapie, psycholoog of coach",
+              "Arbeidsdeskundig advies",
+              "Periodieke verzuimanalyse"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Ziekmelding",
+            "tekst": "Je meldt je medewerker ziek, telefonisch of online."
+          },
+          {
+            "titel": "Eerste contact",
+            "tekst": "Binnen één werkdag belt je casemanager met jou en je medewerker."
+          },
+          {
+            "titel": "Plan van aanpak",
+            "tekst": "Samen met de bedrijfsarts leggen we de route naar herstel vast."
+          },
+          {
+            "titel": "Terug aan het werk",
+            "tekst": "We begeleiden de terugkeer en evalueren tot het rond is."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Vast aanspreekpunt",
+            "tekst": "Geen wisselende gezichten. Je casemanager kent jou en je mensen."
+          },
+          {
+            "titel": "Poortwachterproof",
+            "tekst": "Volg je onze aanpak, dan voldoe je aan de eisen van het UWV."
+          },
+          {
+            "titel": "Gecertificeerd",
+            "tekst": "SBCA gecertificeerd en ISO 9001, 27001 en 27701 door DNV."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Preventie en vitaliteit",
+            "kleur": "#00A098",
+            "href": "/resist"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Flexbranche en Ziektewet",
+            "kleur": "#3AA5DD",
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR en arbeidsrecht",
+            "kleur": "#322E83",
+            "href": "/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

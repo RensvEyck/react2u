@@ -1,0 +1,170 @@
+{
+  "slug": "restart",
+  "title": "React2u Restart",
+  "seo_title": "React2u Restart: Re-integratie en loopbaan • React2u",
+  "seo_description": "Lukt terugkeer in het eigen werk niet? Dan zoeken we samen naar nieuw perspectief, binnen of buiten de organisatie.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Restart",
+      "data": {
+        "heading": "React2u Restart",
+        "naam": "Restart",
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "label": "Re-integratie en loopbaan.",
+        "tagline": "Samen weer vooruit",
+        "text": "Lukt terugkeer in het eigen werk niet? Dan zoeken we samen naar nieuw perspectief, binnen of buiten de organisatie.",
+        "checks": [
+          "Tweede spoor",
+          "Loopbaanscan",
+          "Coaching en burn-outbegeleiding",
+          "Arbeidsdeskundig onderzoek",
+          "Rouwverwerking"
+        ],
+        "de": "Dé expert in re-integratie en loopbaan",
+        "lead": "Kijken naar wat iemand wél kan.",
+        "intro": [
+          "Soms is terugkeer in de eigen functie niet meer mogelijk. Dan wil je zorgvuldig en op tijd een nieuwe richting vinden, voor je medewerker én voor jou als werkgever.",
+          "Met React2u Restart kijken we naar wat iemand nog wél kan. Met arbeidsdeskundig onderzoek, loopbaanbegeleiding en een stevig tweedespoortraject, zodat je aan je re-integratieverplichtingen voldoet."
+        ],
+        "herken": [
+          "Terugkeer in het eigen werk lukt niet meer",
+          "Je twijfelt wanneer je met het tweede spoor moet starten",
+          "Een medewerker zit vast en ziet geen perspectief",
+          "Je wilt voorkomen dat het UWV een loonsanctie oplegt"
+        ],
+        "groepen": [
+          {
+            "titel": "Re-integratie",
+            "tekst": "Naar passend werk, binnen of buiten je organisatie.",
+            "items": [
+              "Re-integratie tweede spoor",
+              "Re-integratie derde spoor",
+              "Verzuim en perspectief"
+            ]
+          },
+          {
+            "titel": "Loopbaan en coaching",
+            "tekst": "Richting kiezen en volhouden.",
+            "items": [
+              "Loopbaanscan",
+              "Loopbaancoaching",
+              "Individuele coaching",
+              "Outplacement"
+            ]
+          },
+          {
+            "titel": "Arbeidsdeskundig",
+            "tekst": "Objectief inzicht in mogelijkheden.",
+            "items": [
+              "Arbeidsdeskundig onderzoek",
+              "Aanvullend arbeidsdeskundig onderzoek",
+              "Hulp bij de WIA-aanvraag"
+            ]
+          },
+          {
+            "titel": "Persoonlijke begeleiding",
+            "tekst": "Aandacht voor wat zwaar weegt.",
+            "items": [
+              "Burn-outbegeleiding",
+              "Rouwverwerking",
+              "Coaching budget en balans"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Onderzoeken",
+            "tekst": "We brengen mogelijkheden en belastbaarheid in kaart."
+          },
+          {
+            "titel": "Plan maken",
+            "tekst": "Samen kiezen we een haalbare richting."
+          },
+          {
+            "titel": "Begeleiden",
+            "tekst": "Een vaste begeleider ondersteunt bij elke stap."
+          },
+          {
+            "titel": "Nieuwe stap",
+            "tekst": "Passend werk, binnen of buiten je organisatie."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Coach én arbeidsdeskundige",
+            "tekst": "Twee perspectieven, één helder plan voor de toekomst."
+          },
+          {
+            "titel": "Oplossingsgericht",
+            "tekst": "We richten ons op talenten en mogelijkheden, niet op beperkingen."
+          },
+          {
+            "titel": "Heldere doelen",
+            "tekst": "Elk traject start met afspraken, zodat voortgang zichtbaar blijft."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Preventie en vitaliteit",
+            "kleur": "#00A098",
+            "href": "/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Verzuimbegeleiding",
+            "kleur": "#E61674",
+            "href": "/recover"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Flexbranche en Ziektewet",
+            "kleur": "#3AA5DD",
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR en arbeidsrecht",
+            "kleur": "#322E83",
+            "href": "/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

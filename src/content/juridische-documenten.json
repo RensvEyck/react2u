@@ -1,0 +1,43 @@
+{
+  "_uitleg": "Juridische documenten als PDF (canvas: Juridische documenten). De PDF's staan in public/documenten/. Zie CONTEXT.md, *Concepten*.",
+  "slug": "juridische-documenten",
+  "title": "Juridische documenten",
+  "seo_title": "Juridische documenten • React2u",
+  "seo_description": "De privacyverklaring, algemene voorwaarden, klachtenregeling en cookieverklaring van React2u, als PDF.",
+  "blocks": [
+    {
+      "type": "juridischeDocumenten",
+      "label": "Juridische documenten",
+      "data": {
+        "heading": "Juridische documenten",
+        "text": "Onze privacyverklaring, algemene voorwaarden, klachtenregeling en cookieverklaring. Je opent ze als PDF.",
+        "documents": [
+          {
+            "title": "Privacyverklaring",
+            "text": "Hoe React2u omgaat met persoonsgegevens, waaronder gegevens over gezondheid, en welke rechten je hebt.",
+            "meta": "Versie oktober 2026, 9 pagina’s",
+            "href": "/documenten/privacyverklaring-react2u.pdf"
+          },
+          {
+            "title": "Algemene voorwaarden",
+            "text": "De voorwaarden voor het basiscontract en alle offertes, aanbiedingen en overeenkomsten van React2u.",
+            "meta": "Versie oktober 2026, 9 pagina’s",
+            "href": "/documenten/algemene-voorwaarden-react2u.pdf"
+          },
+          {
+            "title": "Klachtenregeling",
+            "text": "Niet tevreden? Zo dien je een klacht in en zo behandelen we die.",
+            "meta": "Versie oktober 2026, 3 pagina’s",
+            "href": "/documenten/klachtenregeling-react2u.pdf"
+          },
+          {
+            "title": "Cookieverklaring",
+            "text": "Welke cookies react2u.nl gebruikt, waarom, en hoe je ze zelf beheert.",
+            "meta": "Versie oktober 2026, 3 pagina’s",
+            "href": "/documenten/cookieverklaring-react2u.pdf"
+          }
+        ]
+      }
+    }
+  ]
+}

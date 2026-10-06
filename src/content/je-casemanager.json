@@ -1,0 +1,126 @@
+{
+  "_uitleg": "Je casemanager (canvas: Werknemer: Je casemanager). Zie CONTEXT.md, *Concepten*.",
+  "slug": "je-casemanager",
+  "title": "Je casemanager",
+  "seo_title": "Je casemanager bij verzuim • React2u",
+  "seo_description": "Na je ziekmelding krijg je een vaste casemanager van React2u. Wat doet je casemanager, en hoe bereik je hem of haar?",
+  "blocks": [
+    {
+      "type": "wnKop",
+      "label": "Kop",
+      "data": {
+        "heading": "Je casemanager",
+        "text": "Na je ziekmelding krijg je een vaste casemanager. Die begeleidt je tot je weer aan het werk bent, samen met je werkgever en de bedrijfsarts.",
+        "tint": "#E5F5F4",
+        "orb": "#00A098",
+        "buttons": [
+          {
+            "label": "Bel je casemanager",
+            "href": "tel:+31856205800"
+          }
+        ],
+        "cardTitle": "Je casemanager bereiken",
+        "card": [
+          {
+            "icon": "telefoon",
+            "label": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          }
+        ],
+        "cardNote": "Op werkdagen krijg je direct iemand aan de lijn. Vraag naar je casemanager, of laat een bericht achter."
+      }
+    },
+    {
+      "type": "wnKaarten",
+      "label": "Wat je casemanager doet",
+      "data": {
+        "anchor": "wat",
+        "eyebrow": "Wat je casemanager doet",
+        "heading": "Iemand die naast je staat",
+        "text": "Je casemanager is er voor jou én voor je werkgever, met respect voor ieders rol en privacy.",
+        "cards": [
+          {
+            "icon": "mensen",
+            "title": "Eén vast aanspreekpunt",
+            "text": "Je casemanager blijft het hele traject hetzelfde. Je vertelt je verhaal maar één keer.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "icon": "chat",
+            "title": "Luistert en denkt mee",
+            "text": "We vragen hoe het met je gaat en wat je nodig hebt, en kijken samen naar wat je wél kunt.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          },
+          {
+            "icon": "klembord",
+            "title": "Houdt het overzicht",
+            "text": "Afspraken, gesprekken en documenten staan in één online dossier, zodat jij ook weet waar je aan toe bent.",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC"
+          },
+          {
+            "icon": "koffer",
+            "title": "Schakelt met je werkgever",
+            "text": "Je casemanager stemt af met je werkgever en de bedrijfsarts, zodat jij je op je herstel kunt richten.",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3"
+          },
+          {
+            "icon": "hart",
+            "title": "Heeft geheimhoudingsplicht",
+            "text": "Je kunt alles delen, ook problemen met je werkgever. Medische informatie blijft bij de bedrijfsarts.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "icon": "diploma",
+            "title": "Zet de juiste hulp in",
+            "text": "Een fysiotherapeut, psycholoog of coach als dat helpt. We regelen het samen met je werkgever.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnWaarden",
+      "label": "Waar je op kunt rekenen",
+      "data": {
+        "eyebrow": "Waar je op kunt rekenen",
+        "heading": "Gezond, menselijk en duidelijk",
+        "items": [
+          {
+            "title": "Gezond",
+            "kleur": "#00A098",
+            "text": "Werk is belangrijk. Het zorgt voor een inkomen en voor een nuttige en waardevolle dagbesteding. Daarom doen we er alles aan om iedereen daaraan te laten deelnemen."
+          },
+          {
+            "title": "Menselijk",
+            "kleur": "#E61674",
+            "text": "Aandacht raakt. We willen luisteren en er voor je zijn, en je op een menselijke manier terugbrengen in het arbeidsproces."
+          },
+          {
+            "title": "Duidelijk",
+            "kleur": "#3AA5DD",
+            "text": "Als je een tijdje uit de running bent, is het soms lastig om alles op orde te houden. In ons online platform vind je alle gesprekken, afspraken en documenten terug."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnContactStrook",
+      "label": "Contact",
+      "data": {
+        "heading": "Weet je niet wie je casemanager is?",
+        "text": "Bel ons, dan zoeken we het voor je uit en verbinden we je door."
+      }
+    }
+  ]
+}

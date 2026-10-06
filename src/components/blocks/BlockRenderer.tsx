@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
 import type { Block, Post } from "@/lib/types";
+import type { Taal } from "@/lib/taal";
 import { MiniMarkdown } from "@/lib/md";
 import { zinsletters } from "@/lib/tekst";
 import Icon from "@/components/site/Icon";
@@ -14,6 +15,22 @@ import Breadcrumbs from "@/components/site/Breadcrumbs";
 import VorigeKeuze from "@/components/site/VorigeKeuze";
 import FotoTegel from "@/components/site/FotoTegel";
 import Tarieven from "@/components/site/Tarieven";
+import { HomeSplit, HomeWaarom, HomeSnelNaar, HomeContact } from "./HomeNeutraal";
+import { HomeEenMens, HomeReis } from "./HomeVerhaal";
+import { ContactSimpel } from "./ContactSimpel";
+import { DienstLabel } from "./DienstLabel";
+import { OverReact2u } from "./OverReact2u";
+import { SitemapOverzicht } from "./Werkgebied";
+import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen } from "./Doelgroep";
+import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
+import { Kennismaken } from "./Kennismaken";
+import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
+import {
+  WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
+} from "./Werkgevers";
+import {
+  WnSplit, WnInhoud, WnWatNu, WnTijdlijn, WnRechten, WnPrivacy, WnCasemanager, WnCoaching, WnVragen, WnContact,
+} from "./Werknemers";
 import { PIJLERS, CONTACT_FOTO, dienstVoor } from "@/lib/nav";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
 
@@ -43,6 +60,8 @@ export type BlockCtx = {
   crumbs?: Crumb[];
   /** Knoppen voor een paginakop die er zelf geen heeft (de dienstpagina's). */
   knoppen?: Btn[];
+  /** De taal van de pagina; de blokdata is al in die taal, dit is voor de paar vaste woorden in een blok. */
+  lang?: Taal;
 };
 
 type BlockProps = {
@@ -325,7 +344,8 @@ function Hero(p: BlockProps) {
 /**
  * Het startscherm: een splitscreen. Werkgever en werknemer zoeken iets heel
  * anders, dus het scherm is in tweeën gedeeld — elk een paginavullende foto met
- * de keuze erop. Daarboven alleen een smalle kopregel met de h1.
+ * de keuze erop, direct onder de kop van de site. De h1 en de inleiding staan
+ * er alleen voor schermlezers en zoekmachines; in beeld spreken de helften.
  *
  * `choices` (twee) met { doelgroep, title, text, button, image, focus, href };
  * `focus` is de object-position van de foto (bv. "30% 25%"). De foto is sfeer
@@ -336,21 +356,18 @@ function AudienceChoice({ d, asH1 }: BlockProps) {
   const trust = ((d.trust as any[]) || []).filter((t) => t?.text);
   return (
     <section data-tone="band" className="bg-soft">
-      <div className="container-site flex flex-col gap-3 pb-7 pt-7 md:flex-row md:items-end md:justify-between md:gap-12 md:pb-8 md:pt-9">
-        <div>
-          {d.eyebrow && <p className="eyebrow mb-2">{d.eyebrow}</p>}
-          <PageHeading asH1={asH1} className="text-[1.9rem] font-bold leading-[1.1] tracking-[-0.022em] sm:text-[2.3rem] lg:text-[2.6rem]">
-            <Highlighted text={d.heading || ""} highlight={d.highlight} />
-          </PageHeading>
-        </div>
-        {d.text && <MiniMarkdown text={d.text} className="max-w-[440px] text-[16.5px] leading-relaxed md:pb-1 lg:text-[17px]" />}
+      <div className="sr-only">
+        {d.eyebrow && <p>{d.eyebrow}</p>}
+        <PageHeading asH1={asH1}>{d.heading}</PageHeading>
+        {d.text && <MiniMarkdown text={d.text} />}
       </div>
 
       {/* De twee helften, van rand tot rand en ook op de telefoon naast elkaar: zo
-          ziet iedereen beide keuzes meteen. De hoogte vult het scherm tot de vouw
-          (min de kopregel), met een onder- en bovengrens. De smalle naad
-          ertussen is de zandkleur van de sectie. */}
-      <div className="split flex h-[clamp(300px,calc(100svh-372px),560px)] gap-1 md:h-[clamp(440px,calc(100svh-280px),720px)]">
+          ziet iedereen beide keuzes meteen. Ze sluiten direct aan op de kop van
+          de site en vullen het scherm tot de vouw, min topbalk + kop (114px,
+          vanaf lg 126px) en de vertrouwensregel eronder; met een onder- en
+          bovengrens. De smalle naad ertussen is de zandkleur van de sectie. */}
+      <div className="split flex h-[clamp(340px,calc(100svh-240px),640px)] gap-1 md:h-[clamp(460px,calc(100svh-184px),800px)] lg:h-[clamp(460px,calc(100svh-196px),800px)]">
         {choices.map((c, i) => (
           <Link key={i} href={c.href}
             className="split-half group relative isolate flex flex-1 basis-0 flex-col justify-end overflow-hidden bg-primary-deep text-white">
@@ -1109,6 +1126,59 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   values: Values,
   latestPosts: LatestPosts,
   tarieven: ({ d, asH1 }: BlockProps) => <Tarieven d={d} asH1={asH1} />,
+  homeSplit: HomeSplit,
+  homeWaarom: HomeWaarom,
+  homeSnelNaar: HomeSnelNaar,
+  homeEenMens: HomeEenMens,
+  homeReis: HomeReis,
+  contactSimpel: ContactSimpel,
+  dienstLabel: DienstLabel,
+  overReact2u: OverReact2u,
+  sitemapOverzicht: SitemapOverzicht,
+  dgKop: DgKop,
+  dgLabels: DgLabels,
+  dgFotoLijst: DgFotoLijst,
+  dgPoortwachter: DgPoortwachter,
+  dgPrijzen: DgPrijzen,
+  dgStarten: DgStarten,
+  dgVragen: DgVragen,
+  dgTarieven: DgTarieven,
+  dgCertificeringen: DgCertificeringen,
+  wnKop: WnKop,
+  wnStappen: WnStappen,
+  wnKaarten: WnKaarten,
+  wnTekstKaart: WnTekstKaart,
+  wnChecklist: WnChecklist,
+  wnVragenLijst: WnVragenLijst,
+  wnWaarden: WnWaarden,
+  wnContactStrook: WnContactStrook,
+  inloggen: Inloggen,
+  juridischeDocumenten: JuridischeDocumenten,
+  kennismaken: Kennismaken,
+  klantenStrook: ({ d, ctx }: BlockProps) => <KlantenStrook label={d?.label} taal={ctx?.lang} />,
+  klantenAanHetWoord: ({ d, ctx }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} taal={ctx?.lang} />,
+  keurmerken: ({ ctx }: BlockProps) => <Keurmerken taal={ctx?.lang} />,
+  homeContact: HomeContact,
+  wgSplit: WgSplit,
+  wgWaarom: WgWaarom,
+  wgDiensten: WgDiensten,
+  wgWerkwijze: WgWerkwijze,
+  wgErd: WgErd,
+  wgStarten: WgStarten,
+  wgTarieven: WgTarieven,
+  wgBewijs: WgBewijs,
+  wgVragen: WgVragen,
+  wgOfferte: WgOfferte,
+  wnSplit: WnSplit,
+  wnInhoud: WnInhoud,
+  wnWatNu: WnWatNu,
+  wnTijdlijn: WnTijdlijn,
+  wnRechten: WnRechten,
+  wnPrivacy: WnPrivacy,
+  wnCasemanager: WnCasemanager,
+  wnCoaching: WnCoaching,
+  wnVragen: WnVragen,
+  wnContact: WnContact,
 };
 
 export const BLOCK_TYPES = Object.keys(REGISTRY);
@@ -1126,6 +1196,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
@@ -1145,7 +1216,7 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
   const out: { question: string; answer: string }[] = [];
   for (const b of blocks) {
     const d = b.data as { items?: unknown; faq?: unknown };
-    const raw = b.type === "faqAccordion" ? d.items : b.type === "contactFaq" ? d.faq : null;
+    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" || b.type === "wnVragenLijst" || b.type === "dgVragen" ? d.items : b.type === "contactFaq" ? d.faq : null;
     if (!Array.isArray(raw)) continue;
     for (const item of raw) {
       const q = String((item as { question?: string })?.question ?? "").trim();

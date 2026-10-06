@@ -7,15 +7,24 @@ import PageHeader from "@/components/site/PageHeader";
 import { Arrow } from "@/components/site/Arrow";
 import FotoTegel from "@/components/site/FotoTegel";
 import { PIJLERS } from "@/lib/nav";
+import { conceptenActief } from "@/lib/concept";
+import { BlogOverzicht } from "@/components/blocks/Blog";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description:
-    "Artikelen over verzuim, preventie en vitaliteit. Praktische kennis van React2u voor werkgevers en werknemers.",
-  alternates: { canonical: "/blog" },
-};
+// Zolang er geen artikelen zijn, hoort de lege blogpagina niet in Google:
+// noindex, en sitemap.ts laat hem dan ook weg. Verschijnt het eerste artikel,
+// dan verdwijnt de noindex vanzelf (na de revalidatie van vijf minuten).
+export async function generateMetadata(): Promise<Metadata> {
+  const posts = await getPublishedPosts();
+  return {
+    title: "Blog",
+    description:
+      "Artikelen over verzuim, preventie en vitaliteit. Praktische kennis van React2u voor werkgevers en werknemers.",
+    alternates: { canonical: "/blog" },
+    ...(posts.length === 0 ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 function fmt(d: string | null) {
   if (!d) return null;
@@ -24,6 +33,8 @@ function fmt(d: string | null) {
 
 export default async function BlogIndex() {
   const posts = await getPublishedPosts();
+  // Op staging het nieuwe ontwerp "Blog"; productie houdt deze pagina.
+  if (conceptenActief) return <BlogOverzicht posts={posts} />;
 
   return (
     <>
