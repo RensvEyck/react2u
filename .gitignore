@@ -45,3 +45,6 @@ next-env.d.ts
 
 # artefacten van browsertests
 /.playwright-mcp
+
+# lokale databaseback-ups (zie backups/*.sql), nooit committen
+/backups
