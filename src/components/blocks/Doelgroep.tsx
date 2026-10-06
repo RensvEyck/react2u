@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN } from "./Gedeeld";
+import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, BLEED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN } from "./Gedeeld";
 import Beeld from "@/components/site/Beeld";
 import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
 import { datumInTaal, pad, vul, type Taal } from "@/lib/taal";
@@ -53,8 +53,8 @@ export function DgKop({ d, asH1 }: { d: any; asH1?: boolean }) {
   const knoppen: any[] = d.buttons || [];
   return (
     <section aria-label={d.eyebrow || d.heading} className={`hv ${outfit.variable} px-[6px] pt-2 md:px-2`}>
-      <div className="relative overflow-hidden rounded-[24px] md:rounded-[28px]">
-        <Beeld src={d.image} alt={d.alt || ""} priority sizes="100vw" className="h-[300px] w-full object-cover md:h-[640px]" style={{ objectPosition: d.focus || "50% 35%" }} />
+      <div className={`${BLEED} relative overflow-hidden rounded-[24px] md:rounded-[28px]`}>
+        <Beeld src={d.image} alt={d.alt || ""} priority sizes="(min-width: 1920px) 1920px, 100vw" className="h-[300px] w-full object-cover md:h-[640px]" style={{ objectPosition: d.focus || "50% 35%" }} />
         {/* Op een tablet is het vlak breder en de kop kleiner: in 46% met een rand
             van 72px brak "re-integratie" in drieën. Vanaf 1280px de maten van het ontwerp. */}
         <div className="relative -mt-10 flex flex-col gap-5 rounded-t-[28px] px-6 pb-9 pt-9 md:absolute md:bottom-0 md:left-0 md:mt-0 md:w-[58%] md:max-w-[640px] md:rounded-none md:rounded-tr-[300px] md:px-12 md:pb-12 md:pt-12 lg:w-[54%] lg:px-14 lg:pb-14 lg:pt-14 xl:w-[46%] xl:px-[72px] xl:pb-[72px] xl:pt-[72px]"

@@ -29,6 +29,15 @@ export const kop = "hv-kop font-semibold";
  */
 export const BREED = "mx-auto w-full max-w-[1440px] px-5 md:px-10 lg:px-16 xl:px-[120px]";
 
+/**
+ * Secties die van rand tot rand lopen (de paginakop met foto). Op een heel
+ * breed scherm (ultrawide, 5120 px) werd de foto een band over de volle
+ * breedte met een piepklein tekstpaneel, terwijl de rest van de pagina in
+ * 1440 px bleef staan. Daarom een plafond van 1920 px, gecentreerd: nog steeds
+ * breder dan de inhoud, maar in verhouding. Tot 1920 px verandert er niets.
+ */
+export const BLEED = "mx-auto w-full max-w-[1920px]";
+
 export const KLANTEN = [
   { src: "/beeld/klanten/jumbo.png", alt: "Jumbo Supermarkten" },
   { src: "/beeld/klanten/werkhelden.png", alt: "Werkhelden" },
