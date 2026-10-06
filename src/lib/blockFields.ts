@@ -45,9 +45,6 @@ export const FIELD_LABELS: Record<string, string> = {
   verhaal: "Verhaal (alinea's)", uitspraak: "Uitspraak (uitgelicht)", slot: "Slotalinea", foto: "Foto", fotoAlt: "Alt-tekst foto", fotoFocus: "Beeldfocus foto",
   fotoLabel: "Label op de foto", mvKop: "Kop missie en visie", missie: "Missie", visie: "Visie", waardenKop: "Kop waarden", waardenTekst: "Tekst bij de waarden",
   waarden: "Waarden",
-  // prijsblad
-  aansluitingen: "Aansluitingen (abonnementen)", uitgesloten: "Niet inbegrepen", opAanvraag: "Op aanvraag", banden: "Prijsbanden", kolommen: "Kolommen",
-  alineas: "Alinea's", voetnoot: "Voetnoot", adres: "Adresregel", printLabel: "Knoptekst downloaden",
 };
 
 /** Welke velden van de blokdata verschillen tussen twee versies. */
