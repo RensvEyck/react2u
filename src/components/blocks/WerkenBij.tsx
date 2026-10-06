@@ -146,7 +146,7 @@ export function WerkenBijPagina({ vacatures }: { vacatures: Vacancy[] }) {
       <section aria-label="Je werk" className="bg-white">
         <div className={`${BREED} grid gap-10 py-20 md:py-[112px] lg:grid-cols-12 lg:items-center lg:gap-6`}>
           <div className="relative h-[340px] overflow-hidden rounded-[28px] md:h-[480px] lg:col-span-6">
-            <img src="/beeld/werkgevers/gezonde-werkplek.webp" alt="Twee collega’s overleggen samen achter een beeldscherm" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 40%" }} loading="lazy" />
+            <img src="/beeld/kantoor/scherm.webp" alt="Drie collega’s van React2u kijken samen naar een scherm op kantoor" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 45%" }} loading="lazy" />
           </div>
           <div className="flex flex-col gap-5 lg:col-span-5 lg:col-start-8">
             <Eyebrow>Je werk</Eyebrow>
