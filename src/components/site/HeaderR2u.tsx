@@ -277,15 +277,19 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
         style={{ color: K.indigo, borderColor: K.lijn }}>
         <div ref={rijRef}
           className="relative mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-4 pl-5 pr-4 md:px-10 lg:h-[88px] xl:px-[120px]">
+          {/* Het logo gaat vanaf elke pagina naar het startscherm (werkgever |
+              werknemer); de doelgroep ernaast naar het begin van die eigen site. */}
           {groep ? (
-            <Link href={SITE[groep].href} onClick={sluit} aria-label={`React2u voor ${SITE[groep].naam}, naar het begin`}
-              className="flex shrink-0 items-center gap-4">
-              <Logo title="" className="h-[36px] w-auto lg:h-[44px]" />
+            <div className="flex shrink-0 items-center gap-4">
+              <Link href="/" aria-label="React2u, naar de homepage" className="flex shrink-0" onClick={sluit}>
+                <Logo title="" className="h-[36px] w-auto lg:h-[44px]" />
+              </Link>
               <span aria-hidden className="h-7 w-px" style={{ background: K.lijn }} />
-              <span className="text-[15px] font-bold" style={{ color: K.indigo }}>
+              <Link href={SITE[groep].href} onClick={sluit} aria-label={`React2u voor ${SITE[groep].naam}, naar het begin`}
+                className="rk-link text-[15px] font-bold" style={{ color: K.indigo }}>
                 {groep === "werkgever" ? "Werkgevers" : "Werknemers"}
-              </span>
-            </Link>
+              </Link>
+            </div>
           ) : (
             <Link href="/" aria-label="React2u, naar de homepage" className="flex shrink-0" onClick={sluit}>
               <Logo title="" className="h-[40px] w-auto lg:h-[48px]" />
