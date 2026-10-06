@@ -7,7 +7,7 @@ import PageHeader from "@/components/site/PageHeader";
 import { Arrow } from "@/components/site/Arrow";
 import FotoTegel from "@/components/site/FotoTegel";
 import { DOELGROEP_FOTO } from "@/lib/nav";
-import { conceptenActief } from "@/lib/concept";
+import { nieuwOntwerp } from "@/lib/concept";
 import { BlogOverzicht } from "@/components/blocks/Blog";
 
 export const revalidate = 300;
@@ -33,8 +33,8 @@ function fmt(d: string | null) {
 
 export default async function BlogIndex() {
   const posts = await getPublishedPosts();
-  // Op staging het nieuwe ontwerp "Blog"; productie houdt deze pagina.
-  if (conceptenActief) return <BlogOverzicht posts={posts} />;
+  // Het nieuwe ontwerp "Blog"; de oude pagina hieronder is de terugvaloptie.
+  if (nieuwOntwerp) return <BlogOverzicht posts={posts} />;
 
   return (
     <>

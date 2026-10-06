@@ -26,6 +26,28 @@ export const FIELD_LABELS: Record<string, string> = {
   vergelijk: "Vergelijking", rows: "Rijen", a: "Compleet", b: "Verrichtingenbasis", rekenhulp: "Rekenhulp",
   lijst: "Tarievenlijst", geldig: "Geldigheid", noot: "Voetnoot", pdf: "Pdf (link)", categorieen: "Categorieën",
   titel: "Titel", toelichting: "Toelichting", regels: "Regels", tone: "Kleur (indigo of warm)", doelgroep: "Doelgroep (werkgever of werknemer)",
+  // Velden van de blokken die bij de livegang van oktober 2026 naar de database
+  // gingen (werkgevers, werknemers, labels, prijsblad, over ons, kennismaken).
+  tekst: "Tekst", kop: "Kop", kicker: "Bovenkop (klein)", short: "Korte tekst (telefoon)", aria: "Toegankelijkheidstekst (schermlezer)",
+  focus: "Beeldfocus (bv. 50% 30%)", imageFit: "Beeldvulling (cover of contain)", bg: "Achtergrondkleur (hex)", tint: "Lichte achtergrondkleur (hex)",
+  panel: "Kleur van het paneel (hex)", orb: "Kleur van de bol (hex)", featured: "Uitgelicht", numbered: "Genummerd", breed: "Volle breedte",
+  link: "Link (tekst en adres)", cta: "Oproep (knop)", call: "Belregel (tekst, nummer, link)", strook: "Strook onderaan", alert: "Waarschuwingskader",
+  points: "Punten", lines: "Regels van de kop", checks: "Vinkjes", photos: "Foto's", groups: "Groepen", groepen: "Groepen", portals: "Portalen",
+  documents: "Documenten", meta: "Regel onder de kop", help: "Hulptekst onderaan", for: "Voor wie", per: "Eenheid (bv. per werknemer per jaar)",
+  card: "Kaart (regels)", cardTitle: "Kop van de kaart", cardNote: "Regel onder de kaart", formKop: "Kop boven het formulier",
+  lijstEyebrow: "Bovenkop van de lijst", lijstKop: "Kop van de lijst", lijstTekst: "Tekst bij de lijst",
+  company: "Bedrijfsgegevens (regels)", letter: "Letter of cijfer op de kaart", when: "Wanneer (moment of termijn)", jij: "Wat jij doet", wij: "Wat wij doen",
+  // dienstLabel (Resist, Recover, …)
+  de: "Dé-regel (positionering)", lead: "Leadzin", herken: "Herken je dit? (regels)", waarom: "Waarom React2u (kaarten)", wat: "Wat (korte omschrijving)",
+  ook: "Ook van React2u (andere labels)", stappen: "Stappen", tagline: "Slogan",
+  // overReact2u
+  motto: "Motto (met regeleinde)", citaat: "Citaat", citaatLabel: "Label bij het citaat", verhaalEyebrow: "Bovenkop verhaal", verhaalKop: "Kop verhaal",
+  verhaal: "Verhaal (alinea's)", uitspraak: "Uitspraak (uitgelicht)", slot: "Slotalinea", foto: "Foto", fotoAlt: "Alt-tekst foto", fotoFocus: "Beeldfocus foto",
+  fotoLabel: "Label op de foto", mvKop: "Kop missie en visie", missie: "Missie", visie: "Visie", waardenKop: "Kop waarden", waardenTekst: "Tekst bij de waarden",
+  waarden: "Waarden",
+  // prijsblad
+  aansluitingen: "Aansluitingen (abonnementen)", uitgesloten: "Niet inbegrepen", opAanvraag: "Op aanvraag", banden: "Prijsbanden", kolommen: "Kolommen",
+  alineas: "Alinea's", voetnoot: "Voetnoot", adres: "Adresregel", printLabel: "Knoptekst downloaden",
 };
 
 /** Welke velden van de blokdata verschillen tussen twee versies. */
