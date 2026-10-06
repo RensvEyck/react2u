@@ -861,16 +861,16 @@ een link én bij navigeren via het commandopalet
 - **Schema binnenhalen.** De live database heeft wijzigingen die niet in de
   migraties staan (zie *Valkuilen*). Eén keer `supabase db dump` naar de repo
   maakt het weer één bron.
-- **Audit oktober 2026: migratie 0014 opnieuw draaien zodra deze code op
-  `master` staat.** Stand 6 oktober 2026: 0013 (limiet per IP, conversies,
-  `retain_longer`) is gedraaid, `CRON_SECRET` en `SUPABASE_SERVICE_ROLE_KEY`
-  staan in productie én preview. 0014 (anon-upload op `cvs` weg) is gedraaid
-  en meteen teruggedraaid: productie draait nog `master`, en die uploadt cv's
-  met de anon-sleutel — zonder die policy faalt daar elke sollicitatie met cv.
-  Zodra de redesign (met `src/lib/cvs.ts`) op `master` staat: 0014 draaien.
-  Optioneel Turnstile: `TURNSTILE_SECRET_KEY` en `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
-  Let op: Vercel Cron draait alleen op productie, dus ook de opschoning begint
-  pas als deze code op `master` staat.
+- **Audit oktober 2026: database en Vercel zijn bij; de code moet nog naar
+  `master`.** Stand 6 oktober 2026: migraties 0013 en 0014 zijn gedraaid,
+  `CRON_SECRET` en `SUPABASE_SERVICE_ROLE_KEY` staan in productie én preview.
+  Omdat 0014 het anonieme uploadrecht op `cvs` weghaalt, **mislukt op de
+  huidige productieversie (`master`, nog zonder `src/lib/cvs.ts`) elke
+  sollicitatie met cv** tot de redesign live is — bewust zo gekozen op
+  6 oktober, met productie in onderhoudsmodus. Optioneel Turnstile:
+  `TURNSTILE_SECRET_KEY` en `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Vercel Cron
+  draait alleen op productie, dus de opschoning begint pas als deze code op
+  `master` staat.
 - **Privacy- en cookieverklaring**: op 6 oktober 2026 is achter beide PDF's een
   gedateerde aanvulling gezet (`scripts/juridische-aanvulling.mjs`): de keuze
   Statistiek, bedrijfsherkenning op toestemming met ipinfo.io als verwerker,

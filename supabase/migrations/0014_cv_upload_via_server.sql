@@ -9,7 +9,9 @@
 -- `master` STAAT. Zonder sleutel valt uploadCv() terug op de anon-sleutel, en
 -- een oudere productieversie kent alleen die sleutel; na deze migratie mag die
 -- niets meer, en dan faalt elke sollicitatie met cv. Op 6 oktober 2026 is dit
--- daarom gedraaid en meteen teruggedraaid (productie draaide nog `master`):
+-- gedraaid terwijl productie nog `master` draaide (in onderhoudsmodus), op
+-- uitdrukkelijk verzoek; tot de livegang van de redesign mislukt een
+-- sollicitatie met cv daar dus. Terugdraaien kan altijd met:
 --
 --   create policy "anyone upload cv" on storage.objects
 --     for insert to anon, authenticated with check (bucket_id = 'cvs');
