@@ -1,8 +1,7 @@
-import type { Kleur } from "./brand";
 import { nlPadVoor, pad, type Taal } from "./taal";
 import { woordenboek } from "./woordenboek";
 
-// Foto's uit de mediabibliotheek. Hier en niet onderaan het bestand: PIJLERS
+// Foto's uit de mediabibliotheek. Hier en niet onderaan het bestand: LABELS
 // hieronder gebruikt ze al bij het laden.
 const FOTO = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp`;
 
@@ -10,107 +9,58 @@ const FOTO = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/m
 export const CONTACT_FOTO = `${FOTO}/2023/06/front-view-older-woman-talking-phone-while-working.jpg`;
 /** Samenwerken op kantoor: de kop van "Werken bij React2u". */
 export const WERKEN_BIJ_FOTO = `${FOTO}/2023/05/partnering-up-project-shot-two-coworkers-meeting-office.jpg`;
+/** De fototegels "Ik ben werkgever" en "Ik ben werknemer" op de 404 en de lege blog. */
+export const DOELGROEP_FOTO = {
+  werkgever: `${FOTO}/2024/06/RIE_-Risicomanagement-1.png`,
+  werknemer: `${FOTO}/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png`,
+} as const;
 
-/* ---------- Diensten: drie stappen, zes diensten ---------- */
+/* ---------- Diensten: vijf labels ---------- */
 
 /**
- * `situatie` beschrijft de dienst vanuit de werkgever: waar loop je tegenaan?
+ * Een label is een specialisme met een eigen pagina (/resist, /recover, …).
+ * `situatie` beschrijft het label vanuit de werkgever: waar loop je tegenaan?
  * Zo kiest een bezoeker op herkenning in plaats van op vakjargon.
  */
-export type Dienst = { label: string; href: string; description: string; situatie: string; kleur: Kleur; image: string };
-/** `stap` is de plek in de route van voorkomen naar versterken; `icon` een naam uit Icon.tsx. */
-export type Pijler = { key: string; stap: string; title: string; text: string; kleur: Kleur; icon: string; diensten: Dienst[] };
+export type Label = {
+  naam: string;
+  /** "React2u Recover": zo heet het label in menu's en lijsten. */
+  titel: string;
+  href: string;
+  /** Wat het label is, in twee of drie woorden: "Verzuimbegeleiding". */
+  omschrijving: string;
+  situatie: string;
+  /** De labelkleur (hex), dezelfde als op de labelpagina. */
+  kleur: string;
+  image: string;
+};
+
+const LABEL_EXTRA: Record<string, Pick<Label, "situatie" | "image">> = {
+  resist: { situatie: "Je wilt uitval voorkomen", image: `${FOTO}/2024/06/Preventie-Vitaliteit-2.png` },
+  recover: { situatie: "Een medewerker meldt zich ziek", image: `${FOTO}/2024/06/Verzuimbegeleiding-WVP-Rood-2.png` },
+  restart: { situatie: "Terugkeer in het eigen werk lukt niet", image: `${FOTO}/2024/06/Begeleiding-Coaching-1.png` },
+  reflex: { situatie: "Je werkt met flexkrachten of bent eigenrisicodrager", image: `${FOTO}/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png` },
+  ready: { situatie: "Je hebt een HR-vraag rond verzuim", image: `${FOTO}/2023/06/serious-colleagues-discussing-documents-meeting-e1717497004999.jpg` },
+};
 
 /**
- * De zes diensten in drie stappen: voorkomen, begeleiden, versterken. Voedt het
- * menu, de footer en het blok "Diensten per situatie" (`pillars`).
+ * De vijf labels, in de volgorde van het dienstenmenu: van voorkomen via
+ * verzuim naar re-integratie, dan de twee specialismen. Naam, omschrijving en
+ * kleur komen uit het woordenboek (header.diensten), zodat het nieuwe menu en
+ * deze lijst nooit uit elkaar lopen. Voedt het oude menu en de oude footer, de
+ * 404, en de blokken `pillars` en `servicesGrid`.
  *
- * Kleur hoort bij de pijler, niet bij de dienst: drie kleuren uit het logo,
- * zodat je in menu, footer en overzichten in één oogopslag ziet wat bij
- * elkaar hoort. Zes kleuren voor zes diensten werd een regenboog waarin kleur
- * niets meer betekende. `kleur` staat per dienst zodat het later nog kan
- * afwijken, maar is nu gelijk aan die van de pijler.
+ * Tot oktober 2026 waren dit zes diensten in drie stappen; die oude pagina's
+ * sturen nu met een 301 door naar hun label (DIENST_REDIRECTS in redirects.ts).
  */
-export const PIJLERS: Pijler[] = [
-  {
-    key: "preventie",
-    stap: "Voorkomen",
-    title: "Preventie",
-    text: "Gezonde medewerkers vallen minder snel uit. We signaleren vroeg en pakken risico's aan voordat ze verzuim worden.",
-    kleur: "blauw",
-    icon: "shield",
-    diensten: [
-      {
-        label: "Preventie & Vitaliteit",
-        href: "/preventie-en-vitaliteit",
-        description: "Preventief medisch onderzoek, consulten en tevredenheidsonderzoek.",
-        situatie: "Je wilt verzuim voorkomen",
-        kleur: "blauw",
-        image: `${FOTO}/2024/06/Preventie-Vitaliteit-2.png`,
-      },
-      {
-        label: "Risicomanagement (RI&E)",
-        href: "/risicomanagement",
-        description: "Samen met kerndeskundigen de risico's in je organisatie in kaart.",
-        situatie: "Je wilt de risico's in je organisatie in kaart",
-        kleur: "blauw",
-        image: `${FOTO}/2024/06/RIE_-Risicomanagement-1.png`,
-      },
-    ],
-  },
-  {
-    key: "verzuim",
-    stap: "Begeleiden",
-    title: "Verzuim",
-    text: "Valt er toch iemand uit? Dan begeleiden we je medewerker doelgericht terug naar werk, met een vaste casemanager en duidelijke stappen.",
-    kleur: "rood",
-    icon: "route",
-    diensten: [
-      {
-        label: "Verzuimbegeleiding WVP",
-        href: "/verzuimbegeleiding-wvp",
-        description: "Het volledige poortwachtertraject, van ziekmelding tot WIA-aanvraag.",
-        situatie: "Een medewerker meldt zich ziek",
-        kleur: "rood",
-        image: `${FOTO}/2024/06/Verzuimbegeleiding-WVP-Rood-2.png`,
-      },
-      {
-        label: "Verzuimbegeleiding ERD/ZW",
-        href: "/verzuimbegeleiding-erd-zw",
-        description: "Voor eigenrisicodragers Ziektewet, ook in de flexbranche.",
-        situatie: "Je bent eigenrisicodrager voor de Ziektewet",
-        kleur: "rood",
-        image: `${FOTO}/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png`,
-      },
-    ],
-  },
-  {
-    key: "ontwikkeling",
-    stap: "Versterken",
-    title: "Ontwikkeling",
-    text: "Soms is er meer nodig dan een plan van aanpak. Met coaching en training brengen we mensen en teams weer in beweging.",
-    kleur: "teal",
-    icon: "leaf",
-    diensten: [
-      {
-        label: "Begeleiding & Coaching",
-        href: "/begeleiding-en-coaching",
-        description: "Eén-op-één, burn-out- en loopbaancoaching op maat.",
-        situatie: "Een medewerker loopt vast of dreigt uit te vallen",
-        kleur: "teal",
-        image: `${FOTO}/2024/06/Begeleiding-Coaching-1.png`,
-      },
-      {
-        label: "Trainingen & Workshops",
-        href: "/trainingen-en-workshops",
-        description: "Verzuim-, management- en communicatietrainingen voor je team.",
-        situatie: "Je wilt leidinggevenden en je team versterken",
-        kleur: "teal",
-        image: `${FOTO}/2024/06/Trainingen-Cursussen-2.png`,
-      },
-    ],
-  },
-];
+export const LABELS: Label[] = woordenboek("nl").header.diensten.map((d) => ({
+  naam: d.naam,
+  titel: `React2u ${d.naam}`,
+  href: `/${d.slug}`,
+  omschrijving: d.sub,
+  kleur: d.kleur,
+  ...LABEL_EXTRA[d.slug],
+}));
 
 /* ---------- Werkgever en werknemer ---------- */
 
@@ -127,9 +77,6 @@ export const STARTPAGINA: Record<Doelgroep, NavLink> = {
 };
 
 const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol", "/je-rechten-en-privacy", "/je-casemanager"];
-/** De vijf labelpagina's (Resist, Recover, …) horen bij de werkgever. */
-const LABEL_PADEN = ["/resist", "/recover", "/restart", "/reflex", "/ready"];
-
 /**
  * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
  * gedeelde pagina's (contact, blog, over ons): daar geldt de laatste keuze
@@ -139,7 +86,8 @@ export function doelgroepVoorPad(pathOfEnPath: string): Doelgroep | null {
   // Een Engels pad (/en/employees) telt als zijn Nederlandse tegenhanger.
   const path = nlPadVoor(pathOfEnPath);
   if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
-  if (path === "/werkgevers" || path === "/diensten" || LABEL_PADEN.includes(path) || dienstVoor(path)) return "werkgever";
+  // De vijf labelpagina's (Resist, Recover, …) horen bij de werkgever.
+  if (path === "/werkgevers" || path === "/diensten" || labelVoor(path)) return "werkgever";
   return null;
 }
 
@@ -148,7 +96,7 @@ export function doelgroepVoorPad(pathOfEnPath: string): Doelgroep | null {
 export type NavLink = { label: string; href: string };
 /**
  * Een menu-item is een gewone link, een uitklapmenu (`children`) of het
- * dienstenmenu met de pijlers (`mega`). Het dienstenmenu leest uit PIJLERS.
+ * dienstenmenu met de labels (`mega`). Het dienstenmenu leest uit LABELS.
  */
 export type NavItem = NavLink & { children?: NavLink[]; mega?: true };
 
@@ -197,20 +145,17 @@ export const HEADER_CTA: Record<Doelgroep | "algemeen", NavLink> = {
   algemeen: { label: "Neem contact op", href: "/contact" },
 };
 
-/** De dienst achter een pad, met zijn pijler — of null als het geen dienstpagina is. */
-export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | null {
-  for (const pijler of PIJLERS) {
-    const dienst = pijler.diensten.find((d) => d.href === path);
-    if (dienst) return { dienst, pijler };
-  }
-  return null;
+/** Het label achter een Nederlands pad, of null als het geen labelpagina is. */
+export function labelVoor(path: string): Label | null {
+  return LABELS.find((l) => l.href === path) ?? null;
 }
 
 /**
  * Het kruimelpad naar een pagina, zonder "Home" (dat zet de weergave ervoor).
  * Pagina's van een doelgroep hangen onder hun startpagina, zodat je altijd
- * ziet in welk deel van de site je bent: Werkgevers › Diensten › Verzuim-
- * begeleiding WVP, of Werknemers › Verzuimprotocol.
+ * ziet in welk deel van de site je bent: Werkgevers › Diensten › React2u
+ * Recover, of Werknemers › Verzuimprotocol. Dezelfde stappen als het zichtbare
+ * kruimelpad op een labelpagina (DienstLabel), in beide talen.
  */
 export function crumbsVoor(path: string, title: string, taal: Taal = "nl"): NavLink[] {
   const groep = doelgroepVoorPad(path);
@@ -220,7 +165,9 @@ export function crumbsVoor(path: string, title: string, taal: Taal = "nl"): NavL
     ? STARTPAGINA[groep]
     : { label: groep === "werkgever" ? t.werkgevers : t.werknemers, href: pad(taal, groep === "werkgever" ? "werkgevers" : "werknemers") };
   if (path === start.href) return [start];
-  const tussen = taal === "nl" && dienstVoor(path) ? [{ label: "Diensten", href: "/diensten" }] : [];
+  const tussen = labelVoor(nlPadVoor(path))
+    ? [{ label: woordenboek(taal).dienstLabel.kruimelDiensten, href: pad(taal, "diensten") }]
+    : [];
   return [start, ...tussen, { label: title, href: path }];
 }
 

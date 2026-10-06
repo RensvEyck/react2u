@@ -4,10 +4,11 @@ import { deleteRedirect, saveRedirect, setMissingIgnored } from "@/app/admin/act
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import PathField, { type PathOption } from "@/components/admin/PathField";
 import SeoTabs from "@/components/admin/SeoTabs";
+import { LABELS } from "@/lib/nav";
 import { waited } from "@/lib/dashboard";
 import { isMissingTable } from "@/lib/dbErrors";
 import {
-  suggestDestination, WORDPRESS_REDIRECTS, type MissingPath, type Redirect,
+  coveredByWordpress, suggestDestination, VASTE_REDIRECTS, type MissingPath, type Redirect,
 } from "@/lib/redirects";
 import {
   LuArrowRight, LuTrash2, LuEyeOff, LuEye, LuCircleCheck, LuExternalLink, LuLink2Off, LuTriangleAlert,
@@ -45,11 +46,16 @@ export default async function RedirectsAdmin({
   const shown = filter === "open" ? open : ignored;
 
   // Alleen wat live staat: een doorverwijzing naar een concept is een 404.
+  // Een pagina die zelf al doorverwijst (zoals de oude dienstpagina's) valt
+  // af: daarheen sturen geeft een keten. De labels staan er altijd bij; die
+  // bestaan ook zonder databasepagina (reserveConcept).
+  const pages = ((pagesRes.data as { slug: string; title: string; published: boolean }[]) || [])
+    .filter((p) => p.published && p.slug !== "home" && !coveredByWordpress(`/${p.slug}`));
   const options: PathOption[] = [
     { path: "/", label: "Home", kind: "Pagina" },
-    ...((pagesRes.data as { slug: string; title: string; published: boolean }[]) || [])
-      .filter((p) => p.published && p.slug !== "home")
-      .map((p) => ({ path: `/${p.slug}`, label: p.title, kind: "Pagina" })),
+    ...pages.map((p) => ({ path: `/${p.slug}`, label: p.title, kind: "Pagina" })),
+    ...LABELS.filter((l) => !pages.some((p) => `/${p.slug}` === l.href))
+      .map((l) => ({ path: l.href, label: l.titel, kind: "Label" })),
     { path: "/blog", label: "Blog", kind: "Overzicht" },
     ...((postsRes.data as { slug: string; title: string; status: string }[]) || [])
       .filter((p) => p.status === "published")
@@ -294,15 +300,15 @@ export default async function RedirectsAdmin({
       <details className="acard group overflow-hidden">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-6 py-4 [&::-webkit-details-marker]:hidden">
           <span>
-            <span className="block font-heading text-[15px] font-bold text-[#312e82]">Vaste lijst van de oude website</span>
+            <span className="block font-heading text-[15px] font-bold text-[#312e82]">Vaste lijst in de code</span>
             <span className="block text-[13px] text-black/45">
-              {WORDPRESS_REDIRECTS.length} regels uit de WordPress-tijd. Staan in de code en gaan altijd voor.
+              {VASTE_REDIRECTS.length} regels: de oude WordPress-site, de documenten en de oude dienstpagina&apos;s. Gaan altijd voor.
             </span>
           </span>
           <LuChevronDown className="shrink-0 text-black/35 transition group-open:rotate-180" />
         </summary>
         <ul className="divide-y divide-black/[0.05] border-t border-black/[0.06]">
-          {WORDPRESS_REDIRECTS.map((r) => (
+          {VASTE_REDIRECTS.map((r) => (
             <li key={r.source} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-6 py-2.5 font-mono text-[13px]">
               <span className="break-all text-[#1c1a4e]">{r.source.replace(/\/:\w+\*$/, "/*")}</span>
               <LuArrowRight className="shrink-0 text-[12px] text-black/30" />

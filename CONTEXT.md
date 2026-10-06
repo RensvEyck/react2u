@@ -463,8 +463,8 @@ Nederlands staat op de gewone paden, Engels onder `/en` met Engelse slugs
 - **Vacatures** hebben optionele Engelse velden (`title_en`, `intro_en`,
   `description_en_md`, migratie 0015). Zonder Engelse titel toont `/en/jobs/<slug>`
   de Nederlandse tekst met "This vacancy is in Dutch".
-- **`/en/services`** toont de vijf labels in de blokken van het nieuwe ontwerp;
-  `/diensten` zelf gebruikt nog de oude blokken (`pillars` uit `nav.ts`).
+- **`/en/services`** en **`/diensten`** tonen allebei de vijf labels in de
+  blokken van het nieuwe ontwerp, met dezelfde opbouw.
 - **Blijft Nederlands:** gemeentepagina's, blog, de juridische PDF's (in de
   Engelse footer met "(Dutch)" erachter), `/inloggen`, `/juridische-documenten`
   en de HTML-sitemap.
@@ -478,10 +478,10 @@ resten bevatten.
 
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
-`werkgevers`, `werknemers`, `verzuimprotocol`, `diensten` — dezelfde teksten in
-een nieuwe opbouw — `tarieven` en `begeleiding-en-coaching` — daar alleen de volgorde
-hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
-een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
+`werkgevers`, `werknemers`, `verzuimprotocol`, `diensten` (het overzicht van de
+vijf labels) en `tarieven`, waar alleen de volgorde is hersteld: de oproep stond
+boven de paginakop): de blokken, de titel en voor een nieuwe pagina de
+SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
 
 Het **werkgebied** staat niet in de database: `/arbodienst-provincie-<provincie>`
@@ -692,9 +692,17 @@ server draait in UTC.
 
 Onder **SEO → Doorverwijzingen**. Twee lagen, en de volgorde telt:
 
-1. `WORDPRESS_REDIRECTS` (code, via `next.config.ts`) — Next voert die uit vóór
+1. `VASTE_REDIRECTS` (code, via `next.config.ts`) — Next voert die uit vóór
    de middleware, dus die wint altijd. De admin toont de lijst en weigert een
-   bron die er al onder valt.
+   bron die er al onder valt. Drie delen: `WORDPRESS_REDIRECTS` (308),
+   `DOCUMENT_REDIRECTS` en `DIENST_REDIRECTS` (301). Die laatste stuurt de zes
+   dienstpagina's van vóór oktober 2026 naar hun label (`/verzuimbegeleiding-wvp`
+   → `/recover`, `/verzuimbegeleiding-erd-zw` → `/reflex`,
+   `/preventie-en-vitaliteit`, `/risicomanagement` en `/trainingen-en-workshops`
+   → `/resist`, `/begeleiding-en-coaching` → `/restart`). Ze staan in de code en
+   niet in de tabel omdat ze bij de code van de labels horen en een 301 moeten
+   zijn; de middleware geeft alleen 308 en 307. `sitemap.xml` laat elke pagina
+   weg waarvan het adres onder deze lijst valt.
 2. De tabel `redirects` — toegepast door de middleware, met dezelfde
    voorzorgen als de onderhoudsmodus: 15 seconden onthouden, 1 seconde timeout,
    bij een storing de laatst bekende lijst. Faalt alleen die query (bijvoorbeeld
@@ -922,7 +930,8 @@ De permanente redirects van de oude WordPress-site staan als
 worden door `next.config.ts` toegepast. Die lijst komt uit `wp-sitemap.xml` van
 react2u.nl en is opgehaald toen die site nog live was — na de DNS-omzetting is
 die bron weg. Nieuwe doorverwijzingen horen niet meer in de code maar in de
-admin; zie *Doorverwijzingen en 404's*.
+admin, tenzij ze bij een codewijziging horen (zoals `DIENST_REDIRECTS`); zie
+*Doorverwijzingen en 404's*.
 
 FAQ-blokken (`faqAccordion` en `contactFaq`) leveren samen één
 `FAQPage`-structured-data per pagina, samengesteld in `BlockRenderer`. Google

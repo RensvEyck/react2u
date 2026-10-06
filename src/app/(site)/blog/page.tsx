@@ -6,7 +6,7 @@ import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
 import { Arrow } from "@/components/site/Arrow";
 import FotoTegel from "@/components/site/FotoTegel";
-import { PIJLERS } from "@/lib/nav";
+import { DOELGROEP_FOTO } from "@/lib/nav";
 import { conceptenActief } from "@/lib/concept";
 import { BlogOverzicht } from "@/components/blocks/Blog";
 
@@ -58,11 +58,11 @@ export default async function BlogIndex() {
               </div>
               <ul className="grid gap-4 sm:grid-cols-2 lg:col-span-7">
                 <li>
-                  <FotoTegel href="/werkgevers#veelgestelde-vragen" image={PIJLERS[0].diensten[1].image}
+                  <FotoTegel href="/werkgevers#veelgestelde-vragen" image={DOELGROEP_FOTO.werkgever}
                     kicker="Voor werkgevers" title="Veelgestelde vragen over verzuim" sizes="(min-width: 1024px) 340px, (min-width: 640px) 50vw, 100vw" />
                 </li>
                 <li>
-                  <FotoTegel href="/werknemers#ziek-wat-nu" image={PIJLERS[1].diensten[1].image}
+                  <FotoTegel href="/werknemers#ziek-wat-nu" image={DOELGROEP_FOTO.werknemer}
                     kicker="Voor werknemers" title="Ziek, wat nu?" sizes="(min-width: 1024px) 340px, (min-width: 640px) 50vw, 100vw" />
                 </li>
               </ul>

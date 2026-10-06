@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PIJLERS, LINKEDIN_URL, type FooterDoc, type Certificate } from "@/lib/nav";
+import { LABELS, LINKEDIN_URL, type FooterDoc, type Certificate } from "@/lib/nav";
 import type { ContactInfo } from "@/lib/content";
 import { LuPhone, LuMail, LuMapPin, LuAward, LuLinkedin, LuClock } from "react-icons/lu";
 import SiteImage from "./SiteImage";
@@ -74,11 +74,14 @@ export default function Footer({
         <div className="lg:col-span-3 lg:col-start-6">
           <Kop><Link href="/werkgevers" className="hover:underline">Voor werkgevers</Link></Kop>
           <ul className="space-y-2.5">
-            {PIJLERS.flatMap((p) => p.diensten).map((d) => (
-              <li key={d.href}>
-                <Link href={d.href} className="hover:text-white">{d.label}</Link>
+            {LABELS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="hover:text-white">{l.titel}</Link>
               </li>
             ))}
+            <li>
+              <Link href="/diensten" className="hover:text-white">Alle diensten</Link>
+            </li>
           </ul>
         </div>
 

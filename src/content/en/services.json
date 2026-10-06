@@ -1,5 +1,5 @@
 {
-  "_uitleg": "Engels dienstenoverzicht (/en/services). Het Nederlandse /diensten gebruikt nog de oude blokken (pillars uit nav.ts, zes oude dienstpagina's zonder Engelse versie); de Engelse pagina toont daarom de vijf labels in de blokken van het nieuwe ontwerp. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "_uitleg": "Engels dienstenoverzicht (/en/services): de vijf labels in de blokken van het nieuwe ontwerp, met dezelfde opbouw als het Nederlandse /diensten (src/content/diensten.json). Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services",
   "title": "Services",
   "seo_title": "Our services: five specialisms for sickness absence • React2u",
@@ -31,16 +31,6 @@
         "text": "Each service is a specialism in its own right. Your case manager keeps the overview of everything.",
         "items": [
           {
-            "naam": "Recover",
-            "kleur": "#E61674",
-            "tint": "#FDECF4",
-            "label": "Sickness absence support.",
-            "tagline": "From sick report to recovery",
-            "text": "Your regular case manager guides every absence case in line with the Gatekeeper Improvement Act (Wet verbetering poortwachter), the Dutch law that sets the steps and deadlines for employer and employee.",
-            "points": ["Case management", "Company doctor (bedrijfsarts) and task delegation", "Gatekeeper file and UWV", "Online file and reports", "Absence advice"],
-            "href": "/en/services/recover"
-          },
-          {
             "naam": "Resist",
             "kleur": "#00A098",
             "tint": "#E5F5F4",
@@ -49,6 +39,16 @@
             "text": "We map the risks and help teams stay healthy and energised at work.",
             "points": ["Risk assessment (RI&E)", "Preventive medical examination (PMO)", "Workplace assessment", "Training for managers", "Confidential adviser"],
             "href": "/en/services/resist"
+          },
+          {
+            "naam": "Recover",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "label": "Sickness absence support.",
+            "tagline": "From sick report to recovery",
+            "text": "Your regular case manager guides every absence case in line with the Gatekeeper Improvement Act (Wet verbetering poortwachter), the Dutch law that sets the steps and deadlines for employer and employee.",
+            "points": ["Case management", "Company doctor (bedrijfsarts) and task delegation", "Gatekeeper file and UWV", "Online file and reports", "Absence advice"],
+            "href": "/en/services/recover"
           },
           {
             "naam": "Restart",
@@ -87,6 +87,25 @@
           "label": "Book a conversation",
           "href": "/en/lets-talk"
         }
+      }
+    },
+    {
+      "type": "dgSituaties",
+      "label": "Which service fits your question?",
+      "data": {
+        "anchor": "situations",
+        "eyebrow": "What are you facing?",
+        "heading": "Start from what you recognise",
+        "text": "You don't need to know what a service is called. Start with your question and see which label fits.",
+        "items": [
+          { "vraag": "An employee reports sick", "naam": "Recover", "wat": "Sickness absence support", "kleur": "#E61674", "tint": "#FDECF4", "href": "/en/services/recover" },
+          { "vraag": "You want to prevent absence or need a risk assessment (RI&E)", "naam": "Resist", "wat": "Prevention and vitality", "kleur": "#00A098", "tint": "#E5F5F4", "href": "/en/services/resist" },
+          { "vraag": "Managers are unsure how to handle sickness absence", "naam": "Resist", "wat": "Prevention and vitality", "kleur": "#00A098", "tint": "#E5F5F4", "href": "/en/services/resist" },
+          { "vraag": "An employee is stuck or at risk of dropping out", "naam": "Restart", "wat": "Reintegration and careers", "kleur": "#F19001", "tint": "#FEF3E3", "href": "/en/services/restart" },
+          { "vraag": "Returning to their own job is no longer possible", "naam": "Restart", "wat": "Reintegration and careers", "kleur": "#F19001", "tint": "#FEF3E3", "href": "/en/services/restart" },
+          { "vraag": "You work with temp workers or are a self-insurer (eigenrisicodrager)", "naam": "Reflex", "wat": "Staffing sector and Ziektewet", "kleur": "#3AA5DD", "tint": "#E9F5FC", "href": "/en/services/reflex" },
+          { "vraag": "You have doubts about a contract, leave or dismissal during illness", "naam": "Ready", "wat": "HR and employment law", "kleur": "#322E83", "tint": "#ECEBF5", "href": "/en/services/ready" }
+        ]
       }
     },
     {

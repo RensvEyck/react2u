@@ -15,7 +15,7 @@ describe("formulieren", () => {
 
   it("toont de belbalk alleen op werkgeverspagina's", () => {
     expect(toontBelbalk("/werkgevers")).toBe(true);
-    expect(toontBelbalk("/verzuimbegeleiding-wvp")).toBe(true);
+    expect(toontBelbalk("/recover")).toBe(true);
     expect(toontBelbalk("/recover")).toBe(true);
     expect(toontBelbalk("/verzuimabonnementen")).toBe(true);
     expect(toontBelbalk("/")).toBe(false);

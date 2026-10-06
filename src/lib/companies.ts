@@ -236,7 +236,7 @@ export function sessions(views: CompanyView[]): Session[] {
  */
 export const INTENT: { test: RegExp; weight: number; label: string }[] = [
   { test: /^\/contact(\/|$)/, weight: 4, label: "contact" },
-  { test: /^\/(diensten|verzuimbegeleiding|preventie|begeleiding|trainingen|risicomanagement)/, weight: 2, label: "diensten" },
+  { test: /^\/(diensten|resist|recover|restart|reflex|ready|verzuimbegeleiding|preventie|begeleiding|trainingen|risicomanagement)/, weight: 2, label: "diensten" },
   { test: /^\/over-react2u(\/|$)/, weight: 1, label: "over ons" },
   { test: /^\/blog\/./, weight: 0.5, label: "blog" },
 ];

@@ -256,8 +256,8 @@ const MEDIA = "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public
 export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   // Oude structuur met /werkgever en /werknemer ervoor
   { source: "/werkgever/diensten/arbodienstverlening", destination: "/diensten" },
-  { source: "/werkgever/diensten/verzuimbegeleiding", destination: "/verzuimbegeleiding-wvp" },
-  { source: "/werkgever/diensten/ziektewetuitvoering", destination: "/verzuimbegeleiding-erd-zw" },
+  { source: "/werkgever/diensten/verzuimbegeleiding", destination: "/recover" },
+  { source: "/werkgever/diensten/ziektewetuitvoering", destination: "/reflex" },
   { source: "/werkgever/diensten", destination: "/diensten" },
   { source: "/werkgever/over-ons", destination: "/over-react2u" },
   { source: "/werkgever/contact", destination: "/contact" },
@@ -269,13 +269,13 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
 
   // Adviseurssectie, bestaat niet meer als aparte ingang
   { source: "/adviseurs/arbodienstverlening", destination: "/diensten" },
-  { source: "/adviseurs/ziektewet-uitvoering", destination: "/verzuimbegeleiding-erd-zw" },
-  { source: "/adviseurs/ziekteverzuimbegeleiding", destination: "/verzuimbegeleiding-wvp" },
+  { source: "/adviseurs/ziektewet-uitvoering", destination: "/reflex" },
+  { source: "/adviseurs/ziekteverzuimbegeleiding", destination: "/recover" },
   { source: "/adviseurs", destination: "/diensten" },
 
   // Losse oude paden
   { source: "/xdiensten", destination: "/diensten" },
-  { source: "/xbegeleidingx-xcoachingx", destination: "/begeleiding-en-coaching" },
+  { source: "/xbegeleidingx-xcoachingx", destination: "/restart" },
 
   // Hernoemd op deze site: de tarievenpagina heet sinds september 2026
   // Verzuimabonnementen. De tabel `redirects` bestaat in productie nog niet
@@ -321,8 +321,30 @@ export const DOCUMENT_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/cookieverklaring", destination: DOCUMENTEN.cookieverklaring },
 ];
 
+/**
+ * De zes dienstpagina's van vóór oktober 2026, nu opgegaan in de vijf labels
+ * (Resist, Recover, Restart, Reflex, Ready; zie LABELS in nav.ts). Een echte
+ * 301, net als de documenten: Google moet de oude adressen definitief door het
+ * label vervangen. De pagina's staan nog in de database, maar deze regels gaan
+ * vóór elke pagina, en sitemap.xml laat ze weg (coveredByWordpress).
+ *
+ * Engelse versies van deze pagina's hebben nooit bestaan: de Engelse site
+ * kende vanaf het begin alleen /en/services/<label>.
+ *
+ * De WordPress-lijst hierboven wijst rechtstreeks naar dezelfde labels, zodat
+ * er nergens een keten van twee doorverwijzingen ontstaat.
+ */
+export const DIENST_REDIRECTS: { source: string; destination: string }[] = [
+  { source: "/verzuimbegeleiding-wvp", destination: "/recover" },
+  { source: "/verzuimbegeleiding-erd-zw", destination: "/reflex" },
+  { source: "/preventie-en-vitaliteit", destination: "/resist" },
+  { source: "/risicomanagement", destination: "/resist" },
+  { source: "/trainingen-en-workshops", destination: "/resist" },
+  { source: "/begeleiding-en-coaching", destination: "/restart" },
+];
+
 /** Alle vaste regels uit de code, in de volgorde waarin next.config.ts ze toepast. */
-export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS];
+export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS];
 
 /** Valt dit pad al onder de vaste lijst? Dan zou een regel in de tabel nooit werken. */
 export function coveredByWordpress(path: string): { source: string; destination: string } | null {

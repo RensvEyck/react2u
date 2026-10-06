@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PIJLERS } from "@/lib/nav";
+import { DOELGROEP_FOTO, LABELS } from "@/lib/nav";
 import { Arrow } from "./Arrow";
 import FotoTegel from "./FotoTegel";
 
@@ -33,7 +33,7 @@ function Lijst({ items }: { items: { label: string; href: string }[] }) {
  * admin onder SEO → Doorverwijzingen verschijnt en daar door te sturen is.
  */
 export default function NietGevonden() {
-  const diensten = PIJLERS.flatMap((p) => p.diensten).map((d) => ({ label: d.label, href: d.href }));
+  const diensten = [...LABELS.map((l) => ({ label: l.titel, href: l.href })), { label: "Alle diensten", href: "/diensten" }];
   return (
     <div data-niet-gevonden>
       <section className="bg-soft">
@@ -55,11 +55,11 @@ export default function NietGevonden() {
         {/* Dezelfde keuze als op het startscherm, met dezelfde foto's. */}
         <ul className="container-site mb-14 grid gap-4 sm:grid-cols-2">
           <li>
-            <FotoTegel href="/werkgevers" image={PIJLERS[0].diensten[1].image} kicker="Grip op verzuim, van preventie tot re-integratie"
+            <FotoTegel href="/werkgevers" image={DOELGROEP_FOTO.werkgever} kicker="Grip op verzuim, van preventie tot re-integratie"
               title="Ik ben werkgever" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
           </li>
           <li>
-            <FotoTegel href="/werknemers" image={PIJLERS[1].diensten[1].image} kicker="Ziek of vastgelopen? We helpen je weer verder"
+            <FotoTegel href="/werknemers" image={DOELGROEP_FOTO.werknemer} kicker="Ziek of vastgelopen? We helpen je weer verder"
               title="Ik ben werknemer" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
           </li>
         </ul>

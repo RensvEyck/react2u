@@ -80,9 +80,12 @@ export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} bg-white`}>
       <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
         <SectieKop d={d} />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:gap-3">
+        {/* Vijf naast elkaar pas vanaf 1400px; daaronder werden de kaarten zo smal
+            dat woorden midden in braken ("Werkplekonderzoe-k"). Op een laptop drie
+            en twee, die samen de volle breedte vullen (zes kolommen: 2+2+2, 3+3). */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 min-[87.5rem]:grid-cols-5">
           {kaarten.map((c, i) => (
-            <div key={i} className="relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-6 pb-7 pt-7" style={{ background: c.tint }}>
+            <div key={i} className={`relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-6 pb-7 pt-7 min-[87.5rem]:col-span-1 ${kaarten.length === 5 ? (i < 3 ? "lg:col-span-2" : "lg:col-span-3") : "lg:col-span-2"}`} style={{ background: c.tint }}>
               <span aria-hidden className="absolute right-[-40px] top-[-40px] h-[120px] w-[120px] rounded-full" style={{ background: c.kleur, opacity: 0.16 }} />
               <span className={`${kop} relative flex flex-col text-[19px] leading-[1.1]`} style={{ color: NAVY }}>
                 React2u<span className="text-[30px] tracking-[-0.6px]" style={{ color: c.kleur === NAVY ? NAVY : c.kleur }}>{c.naam}<sup className="text-[13px]" style={{ color: NAVY }}>®</sup></span>
@@ -462,5 +465,42 @@ export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ct
         </div>
       </section>
     </div>
+  );
+}
+
+/* ---------- Situaties: welk label past bij je vraag? ---------- */
+
+/*
+ * Kiezen op herkenning in plaats van op labelnaam: per rij een situatie zoals
+ * een werkgever hem zelf zou omschrijven, met het label dat erbij hoort. De
+ * hele rij is de link; bij aanwijzen kleurt hij in de tint van het label.
+ */
+export function DgSituaties({ d }: { d: any }) {
+  const rijen: any[] = d.items || [];
+  return (
+    <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: d.bg || SOFT }}>
+      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+        <SectieKop d={d} />
+        <ul className="m-0 flex list-none flex-col overflow-hidden rounded-[24px] bg-white p-0">
+          {rijen.map((r, i) => (
+            <li key={i} className="border-t first:border-t-0" style={{ borderColor: LINE }}>
+              <Link href={r.href} className="hn-row flex items-center gap-4 px-6 py-5 transition-colors duration-300 hover:bg-(--tint) md:gap-8 md:px-8 md:py-6"
+                style={{ "--tint": r.tint || SOFT } as React.CSSProperties}>
+                <span className="grid min-w-0 flex-1 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,340px)] md:items-center md:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
+                  <span className="text-[17px] font-bold leading-[1.4] md:text-[19px]" style={{ color: NAVY }}>{r.vraag}</span>
+                  <span className="flex items-center gap-2.5 text-[15px] leading-[1.45]" style={{ color: BODY }}>
+                    <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: r.kleur }} />
+                    <span><strong style={{ color: NAVY }}>React2u {r.naam}</strong>{r.wat && <> · {r.wat}</>}</span>
+                  </span>
+                </span>
+                <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[1.5px] md:h-11 md:w-11" style={{ borderColor: LINE, color: NAVY }}>
+                  <Pijl />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }

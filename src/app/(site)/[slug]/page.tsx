@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { CONTACT_FALLBACK, getPage, getPublishedPages, getPublishedPosts, getSetting } from "@/lib/content";
+import { getPage, getPublishedPages, getPublishedPosts, getSetting } from "@/lib/content";
 import BlockRenderer, { needsPosts, needsTarieven } from "@/components/blocks/BlockRenderer";
 import { normalizeTarieven } from "@/lib/tarieven";
-import FotoTegel from "@/components/site/FotoTegel";
-import { Arrow } from "@/components/site/Arrow";
-import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
+import { crumbsVoor } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
 import { kort } from "@/lib/seo";
 import { concept, conceptSlugs, reserveConcept, type Concept } from "@/lib/concept";
@@ -14,6 +11,7 @@ import type { Block, Page } from "@/lib/types";
 import { isGeindexeerd, plaatsVoorSlug, provincieVoorSlug } from "@/lib/gemeenten";
 import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/Werkgebied";
 import { hreflangVoor } from "@/lib/taal";
+import { coveredByWordpress } from "@/lib/redirects";
 
 /**
  * Werkgebied: /arbodienst-provincie-<provincie> en /arbodienst-<gemeente>.
@@ -58,7 +56,9 @@ export async function generateStaticParams() {
   const pages = await getPublishedPages();
   const slugs = new Set([...pages.map((p) => p.slug), ...conceptSlugs()]);
   slugs.delete("home");
-  return [...slugs].map((slug) => ({ slug }));
+  // Een pagina met een vaste doorverwijzing (zoals de oude dienstpagina's,
+  // nu een label) bereikt niemand: de redirect gaat voor. Niet bouwen.
+  return [...slugs].filter((slug) => !coveredByWordpress(`/${slug}`)).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -120,52 +120,11 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
     needsTarieven(res.blocks) ? getSetting<unknown>("tarieven").then(normalizeTarieven) : undefined,
   ]);
   const crumbs = crumbsVoor(path, res.page.title);
-  const hit = dienstVoor(path);
 
   return (
     <>
-      {/* Een dienstpagina zonder knoppen in de kop krijgt de twee die daar horen:
-          een afspraak maken en direct bellen. */}
-      <BlockRenderer blocks={res.blocks} ctx={{
-        posts, crumbs, tarieven,
-        knoppen: hit
-          ? [{ label: "Maak een afspraak", href: "/contact" }, { label: `Bel ${CONTACT_FALLBACK.phoneDisplay}`, href: `tel:${CONTACT_FALLBACK.phone}` }]
-          : undefined,
-      }} />
-      {hit && <MeerDiensten huidig={path} />}
+      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
     </>
-  );
-}
-
-/**
- * Onder elke dienstpagina: de andere vijf diensten als fototegels, zodat een
- * bezoeker niet terug hoeft naar het menu. Op de telefoon een rij om door te
- * vegen (snap), vanaf een laptop vijf naast elkaar.
- */
-function MeerDiensten({ huidig }: { huidig: string }) {
-  const andere = PIJLERS.flatMap((p) => p.diensten).filter((d) => d.href !== huidig);
-  return (
-    <section data-tone="white" className="py-16 md:py-20">
-      <div className="container-site">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="eyebrow mb-3">Diensten</p>
-            <h2 className="text-[1.85rem] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[2.2rem]">Meer van React2u</h2>
-          </div>
-          <Link href="/diensten" className="link-arrow shrink-0">Alle diensten <Arrow /></Link>
-        </div>
-      </div>
-      {/* De rij loopt op de telefoon door tot de rand van het scherm; de eerste
-          tegel lijnt uit met de tekst erboven (scroll-padding). */}
-      <ul className="container-site flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scroll-padding-inline:1.25rem] sm:[scroll-padding-inline:2rem] lg:grid lg:snap-none lg:grid-cols-5 lg:overflow-visible lg:pb-0">
-        {andere.map((d) => (
-          <li key={d.href} className="w-[64%] shrink-0 snap-start sm:w-[40%] lg:w-auto">
-            <FotoTegel href={d.href} image={d.image} kicker={d.situatie} title={d.label} klein
-              ratio="aspect-[4/5]" sizes="(min-width: 1024px) 240px, 64vw" />
-          </li>
-        ))}
-      </ul>
-    </section>
   );
 }

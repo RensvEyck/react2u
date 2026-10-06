@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
+import { DIENST_REDIRECTS, DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
 
 const SUPABASE = "https://tumwtappyegkjabtmold.supabase.co";
 
@@ -88,6 +88,8 @@ const nextConfig: NextConfig = {
       ...WORDPRESS_REDIRECTS.map((r) => ({ ...r, permanent: true })),
       // De juridische documenten: een klassieke 301 naar de PDF.
       ...DOCUMENT_REDIRECTS.map((r) => ({ ...r, statusCode: 301 })),
+      // De zes oude dienstpagina's: een 301 naar hun label.
+      ...DIENST_REDIRECTS.map((r) => ({ ...r, statusCode: 301 })),
     ];
   },
   async headers() {
