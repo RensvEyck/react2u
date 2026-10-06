@@ -239,8 +239,6 @@ export function suggestDestination(missing: string, candidates: { path: string; 
 
 /* ---------- de vaste lijst van de oude site ---------- */
 
-const MEDIA = "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2025/05";
-
 /**
  * Redirects van de oude WordPress-site.
  *
@@ -265,7 +263,17 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/werknemer/faq-werknemer", destination: "/werknemers" },
   { source: "/werknemer/contact", destination: "/contact" },
   { source: "/werknemer", destination: "/werknemers" },
-  { source: "/werkgever", destination: "/diensten" },
+  { source: "/werkgever", destination: "/werkgevers" },
+
+  // Varianten met "-niet": WordPress-pagina's die uit het menu waren gehaald
+  // en een "-niet"-slug kregen, maar wel in Google stonden. Specifiek vóór
+  // algemeen, anders slokt /werkgever-niet/* de dienstenpaden op.
+  { source: "/werkgever-niet/diensten-niet/:slug*", destination: "/diensten" },
+  { source: "/werkgever-niet/diensten/:slug*", destination: "/diensten" },
+  { source: "/werkgever-niet/:slug*", destination: "/werkgevers" },
+  { source: "/werknemer-niet/:slug*", destination: "/werknemers" },
+  { source: "/diensten-niet/:slug*", destination: "/diensten" },
+  { source: "/adviseurs-niet/:slug*", destination: "/diensten" },
 
   // Adviseurssectie, bestaat niet meer als aparte ingang
   { source: "/adviseurs/arbodienstverlening", destination: "/diensten" },
@@ -281,11 +289,6 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   // Verzuimabonnementen. De tabel `redirects` bestaat in productie nog niet
   // (migratie 0007), dus deze staat hier.
   { source: "/tarieven", destination: "/verzuimabonnementen" },
-
-  // Documenten waren aparte pagina's, nu PDF's in de footer
-  { source: "/privacy-reglement", destination: `${MEDIA}/Privacy-reglement-r2u.pdf` },
-  { source: "/klachtenprocedure", destination: `${MEDIA}/Klachtenprocedure-r2u.pdf` },
-  { source: "/algemene-voorwaarden", destination: `${MEDIA}/Algemene-voorwaarden-r2u.pdf` },
 
   // Restanten van het WordPress-thema: Engelstalige demo-artikelen, teamleden
   // met plaatshouder-namen, categorieën en auteursarchieven. Geen echte
@@ -319,6 +322,11 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
 export const DOCUMENT_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/privacyverklaring", destination: DOCUMENTEN.privacyverklaring },
   { source: "/cookieverklaring", destination: DOCUMENTEN.cookieverklaring },
+  // De documentpagina's van de oude WordPress-site. Tot oktober 2026 wezen ze
+  // naar de WordPress-PDF's in media/wp/; nu naar de definitieve versies.
+  { source: "/privacy-reglement", destination: DOCUMENTEN.privacyverklaring },
+  { source: "/klachtenprocedure", destination: DOCUMENTEN.klachtenregeling },
+  { source: "/algemene-voorwaarden", destination: DOCUMENTEN.algemeneVoorwaarden },
 ];
 
 /**

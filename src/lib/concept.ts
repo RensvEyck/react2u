@@ -72,6 +72,16 @@ const CONCEPTEN_EN: ConceptBestand[] = [
  */
 export const conceptenActief = process.env.VERCEL_ENV === "preview";
 
+/**
+ * Het nieuwe ontwerp (header en footer uit het Design-canvas, blog, "Werken
+ * bij", vacature en 404) stond tot de livegang van oktober 2026 alleen op
+ * staging aan, achter `conceptenActief`. Sindsdien is het overal het ontwerp
+ * van de site; alleen de pagina-inhoud zelf komt in productie nog uit de
+ * database en op staging uit de concepten. De oude componenten (Header,
+ * Footer, PageHeader-pagina's) staan er nog als terugvaloptie.
+ */
+export const nieuwOntwerp = true;
+
 export type Concept = { slug: string; title: string; seo_title?: string; seo_description?: string; blocks: Block[] };
 
 export function concept(slug: string): Concept | null {

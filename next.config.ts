@@ -78,6 +78,12 @@ const WWW_REDIRECT = {
 };
 
 const nextConfig: NextConfig = {
+  images: {
+    // Next 16 staat alleen kwaliteiten uit deze lijst toe. 75 is de standaard;
+    // 85 is voor de foto's (Beeld): de AI-serie heeft fijne details en werd bij
+    // 75 na de her-encodering van de optimizer zichtbaar zacht.
+    qualities: [75, 85],
+  },
   // De vaste lijst van de oude WordPress-site staat in src/lib/redirects.ts,
   // zodat de admin kan tonen welke paden al vergeven zijn. Doorverwijzingen die
   // later in de admin worden toegevoegd past de middleware toe — die komt pas

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ApplicationForm from "@/components/site/ApplicationForm";
 import PageHeader from "@/components/site/PageHeader";
 import { WERKEN_BIJ_FOTO } from "@/lib/nav";
-import { conceptenActief } from "@/lib/concept";
+import { nieuwOntwerp } from "@/lib/concept";
 import { OpenSollicitatiePagina } from "@/components/blocks/WerkenBij";
 import { hreflangVoor } from "@/lib/taal";
 
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default function OpenSollicitatiePage() {
-  // Op staging het nieuwe ontwerp, zoals de rest van Werken bij; productie houdt deze pagina.
-  if (conceptenActief) return <OpenSollicitatiePagina taal="nl" />;
+  // Het nieuwe ontwerp, zoals de rest van Werken bij; de oude pagina hieronder is de terugvaloptie.
+  if (nieuwOntwerp) return <OpenSollicitatiePagina taal="nl" />;
   return (
     <>
       <PageHeader crumbs={[{ label: "Werken bij React2u", href: "/vacatures" }, { label: "Open sollicitatie", href: "/vacatures/open-sollicitatie" }]}

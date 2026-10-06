@@ -7,7 +7,7 @@ import { kort, paginaTitel } from "@/lib/seo";
 import ApplicationForm from "@/components/site/ApplicationForm";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
-import { conceptenActief } from "@/lib/concept";
+import { nieuwOntwerp } from "@/lib/concept";
 import { VacatureDetail } from "@/components/blocks/WerkenBij";
 import { hreflangVoor } from "@/lib/taal";
 import { jobPostingLd } from "@/lib/vacatures";
@@ -40,8 +40,8 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
 
   const jobLd = jobPostingLd(v, "nl");
 
-  if (conceptenActief) {
-    // Op staging het nieuwe ontwerp "Vacature" (versie B).
+  if (nieuwOntwerp) {
+    // Het nieuwe ontwerp "Vacature" (versie B); de oude weergave hieronder is de terugvaloptie.
     const andere = (await getPublishedVacancies()).filter((x) => x.id !== v.id);
     return (
       <>

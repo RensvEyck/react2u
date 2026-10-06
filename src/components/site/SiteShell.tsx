@@ -10,7 +10,7 @@ import Reveal from "./Reveal";
 import { TaalProvider } from "./Taal";
 import { getSetting, CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
-import { conceptenActief } from "@/lib/concept";
+import { nieuwOntwerp } from "@/lib/concept";
 import { normalizeTracking } from "@/lib/tracking";
 import type { Taal } from "@/lib/taal";
 
@@ -31,11 +31,12 @@ export default async function SiteShell({ children, taal = "nl" }: { children: R
   ]);
   const c = contact || CONTACT_FALLBACK;
   const { bedrijfsherkenning } = normalizeTracking(tracking);
-  // Op staging (concepten) de header en footer uit het nieuwe ontwerp;
-  // productie houdt Header en Footer. De Engelse site is geschreven op de
-  // blokken van het nieuwe ontwerp en krijgt die header en footer dus altijd.
-  // `r2u-kop` zet --hh op hun hoogte.
-  const nieuw = conceptenActief || taal === "en";
+  // Header en footer uit het nieuwe ontwerp: sinds de livegang van oktober
+  // 2026 overal (`nieuwOntwerp`), en op de Engelse site hoe dan ook, want die
+  // is geschreven op de blokken van het nieuwe ontwerp en de oude Header en
+  // Footer kennen het woordenboek niet. `r2u-kop` zet --hh op hun hoogte.
+  // Header en Footer blijven als terugvaloptie staan.
+  const nieuw = nieuwOntwerp || taal === "en";
   return (
     <TaalProvider taal={taal}>
       <div className={nieuw ? "site-root r2u-kop" : "site-root"}>

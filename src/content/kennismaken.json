@@ -39,7 +39,7 @@
     {
       "type": "klantenAanHetWoord",
       "label": "Klanten aan het woord",
-      "data": {}
+      "data": { "eyebrow": "Klanten aan het woord", "heading": "Wat klanten over ons zeggen", "bg": "#F6F5FB" }
     }
   ]
 }

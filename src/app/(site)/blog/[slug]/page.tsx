@@ -8,7 +8,7 @@ import { kort, paginaTitel } from "@/lib/seo";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
-import { conceptenActief } from "@/lib/concept";
+import { nieuwOntwerp } from "@/lib/concept";
 import { BlogArtikel } from "@/components/blocks/Blog";
 
 export const revalidate = 300;
@@ -86,8 +86,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     ],
   };
 
-  if (conceptenActief) {
-    // Op staging het nieuwe ontwerp "Blogartikel".
+  if (nieuwOntwerp) {
+    // Het nieuwe ontwerp "Blogartikel"; de oude weergave hieronder is de terugvaloptie.
     const andere = (await getPublishedPosts()).filter((x) => x.id !== p.id);
     return (
       <>

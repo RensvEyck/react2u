@@ -2,6 +2,24 @@
 import tarievenPagina from "@/content/tarieven.json";
 import werkgeversPagina from "@/content/werkgevers.json";
 import werknemersPagina from "@/content/werknemers.json";
+import certificeringenPagina from "@/content/certificeringen.json";
+import inloggenPagina from "@/content/inloggen.json";
+import juridischPagina from "@/content/juridische-documenten.json";
+import kennismakenPagina from "@/content/kennismaken.json";
+import overReact2uPagina from "@/content/over-react2u.json";
+import sitemapPagina from "@/content/sitemap.json";
+import verzuimprotocolPagina from "@/content/verzuimprotocol.json";
+import jeRechtenPagina from "@/content/je-rechten-en-privacy.json";
+import jeCasemanagerPagina from "@/content/je-casemanager.json";
+import dienstenPagina from "@/content/diensten.json";
+
+/**
+ * De data van het eerste blok van dit type op een conceptpagina, als sjabloon
+ * voor een nieuw blok. Een kopie, zodat de editor het concept niet aanraakt.
+ */
+function uit(pagina: { blocks: { type: string; data?: unknown }[] }, type: string): any {
+  return JSON.parse(JSON.stringify(pagina.blocks.find((b) => b.type === type)?.data ?? {}));
+}
 
 /** De data van een blok uit de werknemerspagina, als sjabloon. */
 function wn(type: string) {
@@ -234,4 +252,33 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
     // tarief vergelijkt de rekenhulp alleen de vaste kosten. Zie CONTEXT.md, *Tarieven*.
     data: tarievenPagina.blocks[0].data,
   },
+
+  // Blokken uit het ontwerp van oktober 2026, met de data van de pagina waar
+  // ze op staan als sjabloon. Zo kan een redacteur ze ook op een nieuwe
+  // pagina zetten.
+  dgKop: { label: "Werkgevers/werknemers: paginakop met foto en paneel", data: uit(werkgeversPagina, "dgKop") },
+  dgLabels: { label: "Werkgevers: de vijf diensten (labels) met strook", data: uit(werkgeversPagina, "dgLabels") },
+  dgSituaties: { label: "Diensten: kies op situatie (vijf labels)", data: uit(dienstenPagina, "dgSituaties") },
+  dgFotoLijst: { label: "Werkgevers/werknemers: foto met puntenlijst", data: uit(werkgeversPagina, "dgFotoLijst") },
+  dgPoortwachter: { label: "Werkgevers: Wet verbetering poortwachter (tijdlijn)", data: uit(werkgeversPagina, "dgPoortwachter") },
+  dgPrijzen: { label: "Werkgevers: tarieven in het kort", data: uit(werkgeversPagina, "dgPrijzen") },
+  dgStarten: { label: "Werkgevers: zo start je (overstappen)", data: uit(werkgeversPagina, "dgStarten") },
+  dgVragen: { label: "Werkgevers/werknemers: veelgestelde vragen", data: uit(werkgeversPagina, "dgVragen") },
+  dgTarieven: { label: "Verzuimabonnementen: abonnementen en tarieven (nieuw ontwerp)", data: uit(tarievenPagina, "dgTarieven") },
+  dgCertificeringen: { label: "Certificeringen: keurmerken met uitleg", data: uit(certificeringenPagina, "dgCertificeringen") },
+  klantenStrook: { label: "Klantenlogo's (strook)", data: uit(kennismakenPagina, "klantenStrook") },
+  klantenAanHetWoord: { label: "Klanten aan het woord", data: uit(kennismakenPagina, "klantenAanHetWoord") },
+  kennismaken: { label: "Kennismaken: stappen en offerteformulier", data: uit(kennismakenPagina, "kennismaken") },
+  overReact2u: { label: "Over React2u: verhaal, missie, visie en waarden", data: uit(overReact2uPagina, "overReact2u") },
+  inloggen: { label: "Inloggen: portalen voor werkgever en werknemer", data: uit(inloggenPagina, "inloggen") },
+  juridischeDocumenten: { label: "Juridische documenten (lijst met pdf's)", data: uit(juridischPagina, "juridischeDocumenten") },
+  sitemapOverzicht: { label: "Sitemap (overzicht in groepen)", data: uit(sitemapPagina, "sitemapOverzicht") },
+  wnKop: { label: "Werknemers: paginakop (kleurvlak met bol)", data: uit(verzuimprotocolPagina, "wnKop") },
+  wnStappen: { label: "Werknemers: stappen (na je ziekmelding)", data: uit(verzuimprotocolPagina, "wnStappen") },
+  wnKaarten: { label: "Werknemers: kaarten (protocol, rechten)", data: uit(verzuimprotocolPagina, "wnKaarten") },
+  wnVragenLijst: { label: "Werknemers: vragen en antwoorden (lijst)", data: uit(verzuimprotocolPagina, "wnVragenLijst") },
+  wnContactStrook: { label: "Werknemers: contactstrook onderaan", data: uit(verzuimprotocolPagina, "wnContactStrook") },
+  wnTekstKaart: { label: "Werknemers: tekstkaart (geheimhoudingsplicht)", data: uit(jeRechtenPagina, "wnTekstKaart") },
+  wnChecklist: { label: "Werknemers: checklist met link", data: uit(jeRechtenPagina, "wnChecklist") },
+  wnWaarden: { label: "Werknemers: waar je op kunt rekenen (waarden)", data: uit(jeCasemanagerPagina, "wnWaarden") },
 };
