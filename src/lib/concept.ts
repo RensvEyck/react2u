@@ -18,6 +18,7 @@ import jeRechten from "@/content/je-rechten-en-privacy.json";
 import jeCasemanager from "@/content/je-casemanager.json";
 import inloggen from "@/content/inloggen.json";
 import juridisch from "@/content/juridische-documenten.json";
+import sitemap from "@/content/sitemap.json";
 import cookieverklaring from "@/content/cookieverklaring.json";
 
 /**
@@ -33,7 +34,7 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact, resist, recover, restart, reflex, ready, cookieverklaring, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch];
+const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact, resist, recover, restart, reflex, ready, cookieverklaring, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap];
 
 /**
  * Concepten zijn alleen zichtbaar op een preview-deploy (staging): daar wil je
@@ -77,6 +78,11 @@ function uitBestand(slug: string): Concept | null {
       updated_at: "",
     })),
   };
+}
+
+/** Alle conceptpagina's, ook in productie aanwezig als reserve; voor sitemap.xml. */
+export function alleConceptSlugs(): string[] {
+  return CONCEPTEN.map((c) => c.slug).filter((s) => s !== "home");
 }
 
 /** Slugs van concepten die nog niet als pagina bestaan, voor generateStaticParams. */

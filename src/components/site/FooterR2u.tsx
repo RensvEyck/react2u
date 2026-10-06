@@ -156,6 +156,7 @@ export default function FooterR2u({ contact, docs, certificates }: {
                 <a key={d.href + d.naam} href={d.href} target={/\.pdf($|\?)/i.test(d.href) ? "_blank" : undefined} rel="noopener" className="rk-flink font-semibold" style={{ color: K.indigo }}>{d.naam}</a>
               ))}
               <CookieSettingsLink className="rk-flink font-semibold" style={{ color: K.indigo }} />
+              <Link href="/sitemap" className="rk-flink font-semibold" style={{ color: K.indigo }}>Sitemap</Link>
             </span>
           )}
         </div>

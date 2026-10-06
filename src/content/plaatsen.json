@@ -1,0 +1,3 @@
+{
+  "_uitleg": "Eigen tekst per gemeente voor /arbodienst-<gemeente>. Sleutel = de slug (bijv. \"eindhoven\", \"s-hertogenbosch\"), waarde = { \"tekst\": [\"alinea\", \"alinea\"] }. Zonder eigen tekst toont de pagina een algemene alinea. Schrijf per gemeente echt iets anders, anders ziet Google de pagina's als dubbel."
+}

@@ -19,6 +19,7 @@ import { HomeEenMens, HomeReis } from "./HomeVerhaal";
 import { ContactSimpel } from "./ContactSimpel";
 import { DienstLabel } from "./DienstLabel";
 import { OverReact2u } from "./OverReact2u";
+import { SitemapOverzicht } from "./Werkgebied";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
@@ -1129,6 +1130,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   contactSimpel: ContactSimpel,
   dienstLabel: DienstLabel,
   overReact2u: OverReact2u,
+  sitemapOverzicht: SitemapOverzicht,
   wnKop: WnKop,
   wnStappen: WnStappen,
   wnKaarten: WnKaarten,
@@ -1181,7 +1183,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,

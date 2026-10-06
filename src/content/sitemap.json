@@ -1,0 +1,161 @@
+{
+  "_uitleg": "Sitemap (canvas: Sitemap). De gemeenten komen uit src/lib/gemeenten.ts. Zie CONTEXT.md, *Concepten*.",
+  "slug": "sitemap",
+  "title": "Sitemap",
+  "seo_title": "Sitemap • React2u, arbodienst in 342 gemeenten",
+  "seo_description": "Alle pagina's van react2u.nl op één plek: per onderwerp, en per provincie en gemeente waar React2u werkgevers helpt met verzuim.",
+  "blocks": [
+    {
+      "type": "sitemapOverzicht",
+      "label": "Sitemap",
+      "data": {
+        "heading": "Sitemap",
+        "text": "Alle pagina’s van react2u.nl op één plek. Per onderwerp, en per provincie en gemeente waar we werkgevers helpen met verzuim.",
+        "groups": [
+          {
+            "title": "Hoofdpagina’s",
+            "links": [
+              {
+                "label": "Home",
+                "href": "/"
+              },
+              {
+                "label": "Werkgevers",
+                "href": "/werkgevers"
+              },
+              {
+                "label": "Werknemers",
+                "href": "/werknemers"
+              },
+              {
+                "label": "Over React2u",
+                "href": "/over-react2u"
+              },
+              {
+                "label": "Werken bij",
+                "href": "/vacatures"
+              },
+              {
+                "label": "Blog",
+                "href": "/blog"
+              },
+              {
+                "label": "Contact",
+                "href": "/contact"
+              }
+            ]
+          },
+          {
+            "title": "Specialismen",
+            "links": [
+              {
+                "label": "React2u Resist",
+                "href": "/resist"
+              },
+              {
+                "label": "React2u Recover",
+                "href": "/recover"
+              },
+              {
+                "label": "React2u Restart",
+                "href": "/restart"
+              },
+              {
+                "label": "React2u Reflex",
+                "href": "/reflex"
+              },
+              {
+                "label": "React2u Ready",
+                "href": "/ready"
+              },
+              {
+                "label": "Tarieven",
+                "href": "/werkgevers#tarieven"
+              }
+            ]
+          },
+          {
+            "title": "Voor werknemers",
+            "links": [
+              {
+                "label": "Ziek, wat nu?",
+                "href": "/verzuimprotocol"
+              },
+              {
+                "label": "Je rechten en privacy",
+                "href": "/je-rechten-en-privacy"
+              },
+              {
+                "label": "Je casemanager",
+                "href": "/je-casemanager"
+              },
+              {
+                "label": "Inloggen",
+                "href": "/inloggen"
+              }
+            ]
+          },
+          {
+            "title": "Aan de slag",
+            "links": [
+              {
+                "label": "Plan een kennismaking",
+                "href": "/kennismaken"
+              },
+              {
+                "label": "Vacatures",
+                "href": "/vacatures#vacatures"
+              },
+              {
+                "label": "Open sollicitatie",
+                "href": "/vacatures#solliciteren"
+              },
+              {
+                "label": "Werkgebied: 342 gemeenten",
+                "href": "#werkgebied"
+              }
+            ]
+          },
+          {
+            "title": "Juridisch",
+            "links": [
+              {
+                "label": "Juridische documenten",
+                "href": "/juridische-documenten"
+              },
+              {
+                "label": "Privacyverklaring (PDF)",
+                "href": "/documenten/privacyverklaring-react2u.pdf"
+              },
+              {
+                "label": "Algemene voorwaarden (PDF)",
+                "href": "/documenten/algemene-voorwaarden-react2u.pdf"
+              },
+              {
+                "label": "Klachtenregeling (PDF)",
+                "href": "/documenten/klachtenregeling-react2u.pdf"
+              },
+              {
+                "label": "Cookieverklaring (PDF)",
+                "href": "/documenten/cookieverklaring-react2u.pdf"
+              }
+            ]
+          },
+          {
+            "title": "Machineleesbaar",
+            "links": [
+              {
+                "label": "sitemap.xml",
+                "href": "/sitemap.xml"
+              },
+              {
+                "label": "robots.txt",
+                "href": "/robots.txt"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
