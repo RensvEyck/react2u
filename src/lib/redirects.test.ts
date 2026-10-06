@@ -104,7 +104,7 @@ describe("de oude dienstpagina's", () => {
       "/verzuimbegeleiding-erd-zw": "/reflex",
       "/preventie-en-vitaliteit": "/resist",
       "/risicomanagement": "/resist",
-      "/trainingen-en-workshops": "/resist",
+      "/trainingen-en-workshops": "/restart",
       "/begeleiding-en-coaching": "/restart",
     });
     for (const r of DIENST_REDIRECTS) {

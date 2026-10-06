@@ -149,14 +149,6 @@
             "href": "/resist"
           },
           {
-            "vraag": "Leidinggevenden weten niet goed wat ze moeten doen bij verzuim",
-            "naam": "Resist",
-            "wat": "Preventie en vitaliteit",
-            "kleur": "#00A098",
-            "tint": "#E5F5F4",
-            "href": "/resist"
-          },
-          {
             "vraag": "Een medewerker loopt vast of dreigt uit te vallen",
             "naam": "Restart",
             "wat": "Re-integratie en loopbaan",
@@ -166,6 +158,14 @@
           },
           {
             "vraag": "Terugkeer in het eigen werk lukt niet meer",
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "href": "/restart"
+          },
+          {
+            "vraag": "Je wilt leidinggevenden of je team laten trainen",
             "naam": "Restart",
             "wat": "Re-integratie en loopbaan",
             "kleur": "#F19001",

@@ -698,8 +698,8 @@ Onder **SEO → Doorverwijzingen**. Twee lagen, en de volgorde telt:
    `DOCUMENT_REDIRECTS` en `DIENST_REDIRECTS` (301). Die laatste stuurt de zes
    dienstpagina's van vóór oktober 2026 naar hun label (`/verzuimbegeleiding-wvp`
    → `/recover`, `/verzuimbegeleiding-erd-zw` → `/reflex`,
-   `/preventie-en-vitaliteit`, `/risicomanagement` en `/trainingen-en-workshops`
-   → `/resist`, `/begeleiding-en-coaching` → `/restart`). Ze staan in de code en
+   `/preventie-en-vitaliteit` en `/risicomanagement` → `/resist`,
+   `/begeleiding-en-coaching` en `/trainingen-en-workshops` → `/restart`). Ze staan in de code en
    niet in de tabel omdat ze bij de code van de labels horen en een 301 moeten
    zijn; de middleware geeft alleen 308 en 307. `sitemap.xml` laat elke pagina
    weg waarvan het adres onder deze lijst valt.

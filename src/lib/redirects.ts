@@ -339,7 +339,7 @@ export const DIENST_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/verzuimbegeleiding-erd-zw", destination: "/reflex" },
   { source: "/preventie-en-vitaliteit", destination: "/resist" },
   { source: "/risicomanagement", destination: "/resist" },
-  { source: "/trainingen-en-workshops", destination: "/resist" },
+  { source: "/trainingen-en-workshops", destination: "/restart" },
   { source: "/begeleiding-en-coaching", destination: "/restart" },
 ];
 

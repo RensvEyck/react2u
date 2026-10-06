@@ -100,9 +100,9 @@
         "items": [
           { "vraag": "An employee reports sick", "naam": "Recover", "wat": "Sickness absence support", "kleur": "#E61674", "tint": "#FDECF4", "href": "/en/services/recover" },
           { "vraag": "You want to prevent absence or need a risk assessment (RI&E)", "naam": "Resist", "wat": "Prevention and vitality", "kleur": "#00A098", "tint": "#E5F5F4", "href": "/en/services/resist" },
-          { "vraag": "Managers are unsure how to handle sickness absence", "naam": "Resist", "wat": "Prevention and vitality", "kleur": "#00A098", "tint": "#E5F5F4", "href": "/en/services/resist" },
           { "vraag": "An employee is stuck or at risk of dropping out", "naam": "Restart", "wat": "Reintegration and careers", "kleur": "#F19001", "tint": "#FEF3E3", "href": "/en/services/restart" },
           { "vraag": "Returning to their own job is no longer possible", "naam": "Restart", "wat": "Reintegration and careers", "kleur": "#F19001", "tint": "#FEF3E3", "href": "/en/services/restart" },
+          { "vraag": "You want training for your managers or team", "naam": "Restart", "wat": "Reintegration and careers", "kleur": "#F19001", "tint": "#FEF3E3", "href": "/en/services/restart" },
           { "vraag": "You work with temp workers or are a self-insurer (eigenrisicodrager)", "naam": "Reflex", "wat": "Staffing sector and Ziektewet", "kleur": "#3AA5DD", "tint": "#E9F5FC", "href": "/en/services/reflex" },
           { "vraag": "You have doubts about a contract, leave or dismissal during illness", "naam": "Ready", "wat": "HR and employment law", "kleur": "#322E83", "tint": "#ECEBF5", "href": "/en/services/ready" }
         ]
