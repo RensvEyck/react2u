@@ -10,22 +10,15 @@
  *   kennismaking". Leeg: geen knop.
  * - `sollicitatie_werkdagen`: binnen hoeveel werkdagen een sollicitant van ons
  *   hoort; staat op de bedankmelding en in de bevestigingsmail.
- * - `ziekmelden_url`: het klantportaal (XpertSuite) achter de knop "Ziek
- *   melden" in de werkgevers-header. Leeg valt terug op de standaard: zonder
- *   adres zou een klant een dode knop zien.
  */
 export type Koppelingen = {
   kennismaking_url: string;
   sollicitatie_werkdagen: number;
-  ziekmelden_url: string;
 };
-
-export const ZIEKMELDEN_STANDAARD = "https://login.xpertsuite.nl/Account/LogOn";
 
 export const KOPPELINGEN_STANDAARD: Koppelingen = {
   kennismaking_url: "",
   sollicitatie_werkdagen: 5,
-  ziekmelden_url: ZIEKMELDEN_STANDAARD,
 };
 
 /**
@@ -50,7 +43,6 @@ export function normalizeKoppelingen(value: unknown): Koppelingen {
     kennismaking_url: geldigeUrl(v.kennismaking_url),
     sollicitatie_werkdagen:
       Number.isFinite(dagen) && dagen >= 1 && dagen <= 30 ? dagen : KOPPELINGEN_STANDAARD.sollicitatie_werkdagen,
-    ziekmelden_url: geldigeUrl(v.ziekmelden_url) || ZIEKMELDEN_STANDAARD,
   };
 }
 

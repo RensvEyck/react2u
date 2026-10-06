@@ -7,7 +7,7 @@ import {
 } from "@/lib/nav";
 import { bewaarDoelgroep, useBewaardeDoelgroep } from "@/lib/doelgroep";
 import type { ContactInfo } from "@/lib/content";
-import { LuPhone, LuMail, LuMenu, LuX, LuChevronDown, LuPlus } from "react-icons/lu";
+import { LuPhone, LuMail, LuMenu, LuX, LuChevronDown } from "react-icons/lu";
 import Logo from "./Logo";
 import SiteImage from "./SiteImage";
 import { Arrow } from "./Arrow";
@@ -27,22 +27,8 @@ function isActive(item: NavItem, path: string): boolean {
  * Header: een topbalk met de keuze werkgever/werknemer en telefoon en e-mail,
  * daaronder de balk met het menu van die doelgroep, die bij het scrollen
  * blijft staan. De hoogte van die balk moet kloppen met `--hh` in globals.css.
- *
- * Werkgevers krijgen naast de hoofdknop een rustige knop "Ziek melden" naar
- * het klantportaal (`ziekmeldenUrl`, instelling); op mobiel bovenaan het
- * menu. Werknemers niet: die melden zich bij hun leidinggevende.
  */
-const ZIEKMELDEN_TITEL = "Medewerker ziek melden in het klantportaal";
-
-function ZiekMelden({ href, className = "" }: { href: string; className?: string }) {
-  return (
-    <a href={href} target="_blank" rel="noopener" aria-label={ZIEKMELDEN_TITEL} title={ZIEKMELDEN_TITEL}
-      className={`btn btn-outline btn-sm whitespace-nowrap ${className}`}>
-      <LuPlus aria-hidden /> Ziek melden
-    </a>
-  );
-}
-export default function Header({ contact, ziekmeldenUrl }: { contact: ContactInfo; ziekmeldenUrl: string }) {
+export default function Header({ contact }: { contact: ContactInfo }) {
   const [open, setOpen] = useState<string | null>(null);
   const [mobile, setMobile] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -282,7 +268,6 @@ export default function Header({ contact, ziekmeldenUrl }: { contact: ContactInf
           </nav>
 
           <div className="flex items-center gap-1.5">
-            {doelgroep === "werkgever" && <ZiekMelden href={ziekmeldenUrl} className="hidden lg:inline-flex" />}
             <Link href={cta.href} className="btn btn-sm hidden whitespace-nowrap sm:inline-flex" onClick={closeAll}>
               {cta.label} <Arrow />
             </Link>
@@ -317,8 +302,6 @@ export default function Header({ contact, ziekmeldenUrl }: { contact: ContactInf
               </nav>
             </div>
             <nav aria-label="Hoofdmenu mobiel" className="container-site flex flex-col pb-2 pt-2">
-              {/* Voor een klant die snel een ziekmelding wil doen: als eerste. */}
-              {doelgroep === "werkgever" && <ZiekMelden href={ziekmeldenUrl} className="mb-2 mt-1 w-full" />}
               {nav.map((item) =>
                 item.mega || item.children ? (
                   <details key={item.label} className="group border-b border-line" open={!!item.mega}>

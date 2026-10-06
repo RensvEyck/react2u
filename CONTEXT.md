@@ -23,7 +23,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
 | **Onbehandeld** | Wat in het Postvak IN als ongelezen telt. Per soort verschillend: een bericht heeft `read = false`, een sollicitatie heeft `status = 'nieuw'`. |
 | **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents`, `certificates`, `seo`, `maintenance` en `koppelingen`. |
-| **Koppeling** (`koppelingen`) | Links naar systemen buiten de site en de reactietermijn voor sollicitanten: `kennismaking_url` (agenda achter *Plan direct een kennismaking*, leeg = geen knop), `sollicitatie_werkdagen` (standaard 5) en `ziekmelden_url` (klantportaal achter *Ziek melden*, standaard het inlogscherm van XpertSuite). Zie [`src/lib/koppelingen.ts`](src/lib/koppelingen.ts), *Bevestigingsmail* en *Ziek melden*. |
+| **Koppeling** (`koppelingen`) | Links naar systemen buiten de site en de reactietermijn voor sollicitanten: `kennismaking_url` (agenda achter *Plan direct een kennismaking*, leeg = geen knop) en `sollicitatie_werkdagen` (standaard 5). Zie [`src/lib/koppelingen.ts`](src/lib/koppelingen.ts) en *Bevestigingsmail*. |
 | **Onderhoudsmodus** (`maintenance`) | Instelling `{enabled, message}`. Aan: bezoekers krijgen op elke publieke URL een onderhoudspagina (503), ingelogde beheerders zien de site gewoon. Schakelaar op `/admin/instellingen`. Zie *Onderhoudsmodus*. |
 | **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
 | **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
@@ -400,14 +400,6 @@ Daarom:
 Een nieuwe pagina voor werknemers? Zet het pad in `WERKNEMER_PADEN` in
 `nav.ts`, anders krijgt hij het werkgeversmenu.
 
-**Ziek melden.** In de werkgevers-header staat naast de hoofdknop een rustige
-outline-knop *Ziek melden* die in een nieuw tabblad het klantportaal opent
-(`koppelingen.ziekmelden_url`, te wijzigen op `/admin/instellingen` zonder
-deploy; aria-label en tooltip "Medewerker ziek melden in het klantportaal").
-Op mobiel staat hij als eerste in het menu. Alleen bij de doelgroep werkgever:
-een werknemer meldt zich ziek bij zijn leidinggevende, niet in het portaal.
-Beide headers (`Header` en `HeaderR2u`) krijgen het adres van `SiteShell`.
-
 Het **verzuimprotocol** stond alleen als afbeelding online. Het staat nu als
 tekst (blok `steps`) op `/werknemers` en `/verzuimprotocol`, letterlijk
 overgenomen uit die afbeelding. Twee kleine aanpassingen: een ontbrekend "je"
@@ -618,8 +610,8 @@ anders weigert het scherm hem.
 - de drie formulieren: verplichte velden geven een foutmelding (de test zet
   de browservalidatie uit, zodat de controle op de server aan bod komt), een
   geldige inzending toont de bedankmelding;
-- de werkgevers-header heeft Kennismaken en Ziek melden, het menu werkt op
-  390px breed;
+- de werkgevers-header heeft Kennismaken en past binnen het scherm, het menu
+  werkt op 390px breed;
 - WCAG-contrast met axe-core (alleen `color-contrast`) op de zes pagina's, op
   mobiel ook met het menu open;
 - de taalknop NL/EN gaat heen en terug (overgeslagen zolang er geen taalknop

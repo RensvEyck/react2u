@@ -42,7 +42,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "SEO", href: "/admin/seo", icon: LuSearch, keywords: "google zoekmachine meta titel omschrijving" },
   { label: "Doorverwijzingen", href: "/admin/seo/doorverwijzingen", icon: LuSignpost, keywords: "redirect 404 niet gevonden oude url kapotte link", paletteOnly: true },
   { label: "Gebruikers", href: "/admin/gebruikers", icon: LuUserCog, keywords: "rollen rechten collega's uitnodigen" },
-  { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings, keywords: "contactgegevens footer documenten certificaten onderhoud koppelingen kennismaking agenda bevestigingsmail ziek melden klantportaal xpertsuite" },
+  { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings, keywords: "contactgegevens footer documenten certificaten onderhoud koppelingen kennismaking agenda bevestigingsmail" },
   { label: "Account", href: "/admin/account", icon: LuUserRound, keywords: "wachtwoord tweestapsverificatie 2fa profiel" },
   { label: "Prullenbak", href: "/admin/prullenbak", icon: LuTrash2, keywords: "verwijderd terugzetten herstellen ongedaan maken", paletteOnly: true },
 ];
