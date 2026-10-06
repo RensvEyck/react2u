@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import Link from "next/link";
 
 /**
  * Cookiemelding op de publieke site. Gemonteerd in SiteShell: zo staat hij ook
@@ -12,8 +11,8 @@ import Link from "next/link";
  * later statistiek of marketing bij, voeg dan een categorie toe. De banner
  * vraagt dan om toestemming, met Accepteren en Weigeren even zichtbaar. Laad
  * zulke scripts alleen als hasConsent('<id>') waar is, hoog CONSENT_VERSION op
- * (dan wordt opnieuw gevraagd) en werk /cookieverklaring bij
- * (src/content/cookieverklaring.json). Zie CONTEXT.md, *Bewaartermijnen en privacy*.
+ * (dan wordt opnieuw gevraagd) en vervang de PDF in public/documenten/
+ * (de melding en de footer linken ernaar). Zie CONTEXT.md, *Bewaartermijnen en privacy*.
  *
  * De keuze staat 12 maanden in de cookie r2u_cookie_consent.
  */
@@ -29,7 +28,8 @@ const CONSENT_VERSION = 1;
 const MAX_AGE = 60 * 60 * 24 * 365;
 const OPEN_EVENT = "r2u:open-cookie-settings";
 const CHANGED_EVENT = "r2u:consent-changed";
-const POLICY_URL = "/cookieverklaring";
+/** De definitieve cookieverklaring (versie oktober 2026), als PDF. */
+const POLICY_URL = "/documenten/cookieverklaring-react2u.pdf";
 
 type Consent = { v: number; ts: string; choices: Record<string, boolean> };
 
@@ -161,9 +161,9 @@ export default function CookieBanner() {
             cookies. Je keuze pas je altijd aan via Cookie-instellingen onderaan de pagina.{" "}
           </>
         )}
-        <Link href={POLICY_URL} className="font-semibold text-primary underline underline-offset-[3px] hover:text-primary-deep">
+        <a href={POLICY_URL} target="_blank" rel="noopener" className="font-semibold text-primary underline underline-offset-[3px] hover:text-primary-deep">
           Lees de cookieverklaring
-        </Link>
+        </a>
         .
       </p>
 
