@@ -891,7 +891,7 @@ een link én bij navigeren via het commandopalet
   (idempotent, één transactie, registreert zichzelf in `schema_migrations`),
   `01b-migratie-0014.sql` (pas als de service-role-sleutel ook in Preview
   staat), `02-concepten-20261006.sql` (alle 21 concepten; oude blokken naar
-  `<slug>-oud-20261006`) en `03-migratie-0015-rechten-functies.sql`. Vooraf is
+  `<slug>-oud-20261006`) en `03-migratie-0016-rechten-functies.sql`. Vooraf is
   een data-export gemaakt (`backups/2026-10-06-voor-livegang.sql`); Supabase
   maakt daarnaast dagelijks een fysieke back-up. Na de SQL: productie-build
   vergelijken met de preview-build, adminschermen nalopen, `-oud-20260929`
@@ -1103,7 +1103,7 @@ og_image leeg), `0013_formulieren_conversies_bewaren.sql` (`rate_limits`,
 `throttle()`, `conversions`, `applications.retain_longer`),
 `0014_cv_upload_via_server.sql` (publieke uploadpolicy op `cvs` weg — pas als
 `SUPABASE_SERVICE_ROLE_KEY` ook in Preview staat) en
-`0015_rechten_functies.sql` (EXECUTE op security definer-functies alleen voor
+`0016_rechten_functies.sql` (EXECUTE op security definer-functies alleen voor
 wie ze nodig heeft; `has_perm()` houdt anon, want de policies "public read …"
 roepen hem aan). Supabase-project `tumwtappyegkjabtmold`.
 
