@@ -587,6 +587,12 @@ p {
   .r2u-kop { --hh: 88px; }
 }
 .r2u-dm { font-family: var(--font-dm-sans), system-ui, sans-serif; }
+/* Werkgeversheader tussen 1280 en 1360px: met de knop Ziek melden erbij past
+   de rij net niet binnen de marge van 120px; de marge wijkt daar iets naar
+   binnen (80px op 1280, 120px vanaf 1360) en loopt dan weer gelijk met de inhoud. */
+@media (min-width: 1280px) {
+  .rk-krap { padding-inline: clamp(80px, calc((100vw - 1120px) / 2), 120px); }
+}
 .rk-roze { background: var(--color-accent); border-color: var(--color-accent); color: #ffffff; }
 @media (hover: hover) {
   .rk .rk-roze:hover { background: var(--color-accent-deep); border-color: var(--color-accent-deep); color: #ffffff; }

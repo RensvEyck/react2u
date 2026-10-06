@@ -19,8 +19,14 @@ import {
  * Daaronder de witte header die blijft plakken:
  *  - neutraal (startpagina): logo, gecentreerd menu, Kennismaken;
  *  - werkgever/werknemer: logo | doelgroep, eigen menu en eigen knop.
+ * Werkgevers krijgen naast Kennismaken een rustige tweede knop "Ziek melden"
+ * naar het klantportaal (`ziekmeldenUrl`, instelling); op mobiel staat die
+ * bovenaan het menu. Werknemers niet: die melden zich bij hun leidinggevende.
  * De hoogte van de witte header moet kloppen met `--hh` onder `.r2u-kop`.
  */
+
+export const ZIEKMELDEN_LABEL = "Ziek melden";
+export const ZIEKMELDEN_TITEL = "Medewerker ziek melden in het klantportaal";
 
 const SLUIT_NA_MS = 160;
 
@@ -161,7 +167,7 @@ function Uitklap({ label, icoon, items, rechts = false }: {
 function TopBalk({ groep, tel, telHref }: { groep: Doelgroep | null; tel: string; telHref: string }) {
   return (
     <div data-r2u-tabs className={`rk rk-balk relative z-[60] ${letter.className}`} style={{ background: K.indigo }}>
-      <div className="mx-auto flex h-10 max-w-[1440px] items-end justify-between px-1.5 md:h-11 md:px-10 xl:px-[120px]">
+      <div className={`mx-auto flex h-10 max-w-[1440px] items-end justify-between px-1.5 md:h-11 md:px-10 xl:px-[120px] ${groep === "werkgever" ? "rk-krap" : ""}`}>
         <nav aria-label="Kies je doelgroep" className="flex flex-1 gap-1 text-[14px] font-bold md:flex-none">
           {(["werkgever", "werknemer"] as const).map((g) => {
             const actief = g === groep;
@@ -187,6 +193,26 @@ function TopBalk({ groep, tel, telHref }: { groep: Doelgroep | null; tel: string
   );
 }
 
+/** De knop "Ziek melden": outline, in een nieuw tabblad, met uitleg voor schermlezers en als tooltip. */
+function ZiekMelden({ href, className = "" }: { href: string; className?: string }) {
+  return (
+    <a href={href} target="_blank" rel="noopener" aria-label={ZIEKMELDEN_TITEL} title={ZIEKMELDEN_TITEL}
+      className={`rk-pill inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border-[1.5px] bg-white font-bold ${className}`}
+      style={{ borderColor: K.lijn, color: K.indigo }}>
+      <Plus />{ZIEKMELDEN_LABEL}
+    </a>
+  );
+}
+
+function Plus() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"
+      strokeLinecap="round" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 function HoofdKnop({ href, children, className = "" }: { href: string; children: React.ReactNode; className?: string }) {
   return (
     <Go href={href} className={`rk-btn rk-roze inline-flex items-center gap-2.5 whitespace-nowrap rounded-full border-[1.5px] font-bold ${className}`}>
@@ -202,7 +228,7 @@ const BREED = {
   groep: { toon: "xl:flex", verberg: "xl:hidden", px: 1280 },
 };
 
-export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
+export default function HeaderR2u({ contact, ziekmeldenUrl }: { contact: ContactInfo; ziekmeldenUrl: string }) {
   const variant = useVariant({ bewaar: true });
   const [mobiel, setMobiel] = useState(false);
   const [gescrold, setGescrold] = useState(false);
@@ -217,6 +243,10 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
   const neutraal = variant === "neutraal";
   const groep = neutraal ? null : (variant as Doelgroep);
   const B = neutraal ? BREED.neutraal : BREED.groep;
+  // Het werkgeversmenu met Inloggen, Ziek melden en Kennismaken past tussen
+  // 1280 en 1440px alleen met kleinere tussenruimte en knoppen (en een iets
+  // smallere marge, .rk-krap in globals.css); vanaf 1440 de maten van het ontwerp.
+  const krap = groep === "werkgever";
 
   useEffect(() => {
     const onScroll = () => setGescrold(window.scrollY > 8);
@@ -277,7 +307,7 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
           gescrold || mobiel ? "shadow-[0_10px_28px_-22px_rgba(42,38,119,0.45)]" : ""}`}
         style={{ color: K.indigo, borderColor: K.lijn }}>
         <div ref={rijRef}
-          className="relative mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-4 pl-5 pr-4 md:px-10 lg:h-[88px] xl:px-[120px]">
+          className={`relative mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-4 pl-5 pr-4 md:px-10 lg:h-[88px] xl:px-[120px] ${krap ? "rk-krap" : ""}`}>
           {/* Het logo gaat vanaf elke pagina naar het startscherm (werkgever |
               werknemer); de doelgroep ernaast naar het begin van die eigen site. */}
           {groep ? (
@@ -300,7 +330,7 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
           {/* Menu op een breed scherm. Neutraal staat het precies in het midden. */}
           <nav aria-label={groep ? `Menu ${SITE[groep].naam}` : "Hoofdmenu"}
             className={`hidden h-full items-center text-[15px] font-bold ${B.toon} ${
-              neutraal ? "absolute left-1/2 -translate-x-1/2 gap-8" : "gap-[26px]"}`}>
+              neutraal ? "absolute left-1/2 -translate-x-1/2 gap-8" : krap ? "gap-4 min-[1440px]:gap-[26px]" : "gap-[26px]"}`}>
             {neutraal
               ? MENU_NEUTRAAL.map((l) => l.overOns
                 ? <Uitklap key={l.label} label={l.label} items={OVER_ONS} />
@@ -311,9 +341,13 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
           </nav>
 
           <div className="flex h-full items-center gap-2 text-[15px] font-bold">
-            <div className={`hidden h-full items-center gap-3 ${B.toon}`}>
+            <div className={`hidden h-full items-center ${krap ? "gap-2 min-[1440px]:gap-3" : "gap-3"} ${B.toon}`}>
               {portalen.length > 0 && <Uitklap label="Inloggen" icoon={<Slot />} items={portalen} rechts />}
-              <HoofdKnop href={knopHref} className="h-14 px-7 text-[16px]">{knop.label}<Pijl /></HoofdKnop>
+              {krap && <ZiekMelden href={ziekmeldenUrl} className="h-11 px-4 text-[14.5px] min-[1440px]:h-12 min-[1440px]:px-5 min-[1440px]:text-[15px]" />}
+              <HoofdKnop href={knopHref}
+                className={krap ? "h-12 px-5 text-[15px] min-[1440px]:h-14 min-[1440px]:px-7 min-[1440px]:text-[16px]" : "h-14 px-7 text-[16px]"}>
+                {knop.label}<Pijl />
+              </HoofdKnop>
             </div>
             <a href={telHref} aria-label={`Bel ons: ${tel}`}
               className={`rk-rond grid h-11 w-11 place-items-center rounded-full ${B.verberg}`} style={{ background: K.zacht, color: K.indigo }}>
@@ -334,7 +368,7 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
           <div id={paneelId} onClick={(e) => { if ((e.target as HTMLElement).closest("a")) sluit(); }}
             className={`menu-panel overflow-y-auto overscroll-contain border-t ${B.verberg}`}
             style={{ height: `calc(100dvh - ${paneelTop}px)`, borderColor: K.lijn, background: "#ffffff" }}>
-            <MobielPaneel variant={variant} contact={contact} tel={tel} knopHref={knopHref} />
+            <MobielPaneel variant={variant} contact={contact} tel={tel} knopHref={knopHref} ziekmeldenUrl={ziekmeldenUrl} />
           </div>
         )}
       </header>
@@ -343,12 +377,16 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
 }
 
 /** Het paneel achter de menuknop: dezelfde links als op een breed scherm, onder elkaar. */
-function MobielPaneel({ variant, contact, tel, knopHref }: { variant: Variant; contact: ContactInfo; tel: string; knopHref: string }) {
+function MobielPaneel({ variant, contact, tel, knopHref, ziekmeldenUrl }: {
+  variant: Variant; contact: ContactInfo; tel: string; knopHref: string; ziekmeldenUrl: string;
+}) {
   const groep = variant === "neutraal" ? null : variant;
   const links: Link2[] = groep ? MENU[groep] : MENU_NEUTRAAL.filter((l) => !l.overOns);
   const portalen = PORTALEN[variant];
   return (
     <div className="mx-auto flex max-w-[640px] flex-col gap-7 px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
+      {/* Voor een klant die snel een ziekmelding wil doen: als eerste, boven het menu. */}
+      {groep === "werkgever" && <ZiekMelden href={ziekmeldenUrl} className="h-[52px] text-[16px]" />}
       <nav aria-label="Menu">
         <ul className="flex flex-col">
           {links.map((l) => (

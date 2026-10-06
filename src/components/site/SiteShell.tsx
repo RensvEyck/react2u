@@ -9,6 +9,7 @@ import Reveal from "./Reveal";
 import { getSetting, CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
 import { conceptenActief } from "@/lib/concept";
+import { normalizeKoppelingen } from "@/lib/koppelingen";
 
 /**
  * Alles om de inhoud van een publieke pagina heen. Gedeeld door de site-layout
@@ -19,17 +20,20 @@ import { conceptenActief } from "@/lib/concept";
  * header doorloopt.
  */
 export default async function SiteShell({ children }: { children: React.ReactNode }) {
-  const [contact, docs, certificates] = await Promise.all([
+  const [contact, docs, certificates, koppelingen] = await Promise.all([
     getSetting<ContactInfo>("contact"),
     getSetting<unknown>("documents"),
     getSetting<unknown>("certificates"),
+    getSetting<unknown>("koppelingen"),
   ]);
   const c = contact || CONTACT_FALLBACK;
+  // De knop "Ziek melden" voor werkgevers; het adres is een instelling.
+  const ziekmeldenUrl = normalizeKoppelingen(koppelingen).ziekmelden_url;
   return (
     // Op staging (concepten) de header en footer uit het nieuwe ontwerp;
     // productie houdt Header en Footer. `r2u-kop` zet --hh op hun hoogte.
     <div className={conceptenActief ? "site-root r2u-kop" : "site-root"}>
-      {conceptenActief ? <HeaderR2u contact={c} /> : <Header contact={c} />}
+      {conceptenActief ? <HeaderR2u contact={c} ziekmeldenUrl={ziekmeldenUrl} /> : <Header contact={c} ziekmeldenUrl={ziekmeldenUrl} />}
       <main id="inhoud">{children}</main>
       {conceptenActief ? (
         <FooterR2u contact={c} docs={normalizeDocs(docs)} certificates={normalizeCertificates(certificates)} />

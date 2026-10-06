@@ -6,7 +6,7 @@ import {
 import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
 import { normalizeMaintenance, MAINTENANCE_DEFAULT_MESSAGE } from "@/lib/maintenance";
-import { normalizeKoppelingen } from "@/lib/koppelingen";
+import { normalizeKoppelingen, ZIEKMELDEN_STANDAARD } from "@/lib/koppelingen";
 import ListEditor from "@/components/admin/ListEditor";
 
 const FIELDS: { name: keyof ContactInfo; label: string }[] = [
@@ -91,9 +91,18 @@ export default async function SettingsAdmin() {
       <form action={saveKoppelingenSettings} id="koppelingen" className="acard scroll-mt-24 p-6">
         <h2 className="mb-1 font-heading text-[16px] font-bold text-[#312e82]">Koppelingen en reactietermijn</h2>
         <p className="mb-4 text-[13px] text-black/45">
-          Wat een bezoeker na het versturen van een formulier ziet en per mail krijgt.
+          Links naar systemen buiten de site, en wat een bezoeker na het versturen van een formulier ziet en per mail krijgt.
         </p>
         <div className="grid gap-4">
+          <div>
+            <label className="alabel" htmlFor="ziekmelden_url">Link ziek melden (klantportaal)</label>
+            <input className="ainput" id="ziekmelden_url" name="ziekmelden_url" type="url" inputMode="url"
+              defaultValue={koppelingen.ziekmelden_url} placeholder={ZIEKMELDEN_STANDAARD} />
+            <p className="mt-1.5 text-[12.5px] text-black/45">
+              Achter de knop &ldquo;Ziek melden&rdquo; in de header voor werkgevers; opent in een nieuw tabblad. Leeg: het
+              inlogscherm van XpertSuite.
+            </p>
+          </div>
           <div>
             <label className="alabel" htmlFor="kennismaking_url">Link voor kennismaking inplannen</label>
             <input className="ainput" id="kennismaking_url" name="kennismaking_url" type="url" inputMode="url"

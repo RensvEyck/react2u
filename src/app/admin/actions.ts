@@ -425,19 +425,23 @@ export async function saveContactSettings(formData: FormData) {
 }
 
 /**
- * Koppelingen: de agendalink voor "Plan direct een kennismaking" en de
- * reactietermijn voor sollicitanten (lib/koppelingen.ts). Een ingevulde link
- * moet een volledig https-adres zijn; anders zou er een dode knop op de site
- * komen. De bedankmelding leest de instelling bij elke inzending, dus die is
- * meteen actueel; revalidateSite() is voor wat er in statische pagina's staat.
+ * Koppelingen: de agendalink voor "Plan direct een kennismaking", de
+ * reactietermijn voor sollicitanten en het klantportaal achter "Ziek melden"
+ * (lib/koppelingen.ts). Een ingevulde link moet een volledig https-adres
+ * zijn; anders zou er een dode knop op de site komen. De bedankmelding leest
+ * de instelling bij elke inzending; de header staat in de statische pagina's,
+ * vandaar revalidateSite().
  */
 export async function saveKoppelingenSettings(formData: FormData) {
   const { sb } = await requirePerm("instellingen");
   const kennismaking = String(formData.get("kennismaking_url") || "").trim();
   if (kennismaking && !geldigeUrl(kennismaking)) redirect("/admin/instellingen?fout=koppeling-url#koppelingen");
+  const ziekmelden = String(formData.get("ziekmelden_url") || "").trim();
+  if (ziekmelden && !geldigeUrl(ziekmelden)) redirect("/admin/instellingen?fout=koppeling-url#koppelingen");
   const value = normalizeKoppelingen({
     kennismaking_url: kennismaking,
     sollicitatie_werkdagen: formData.get("sollicitatie_werkdagen"),
+    ziekmelden_url: ziekmelden,
   });
   const { error } = await sb.from("site_settings").upsert({ key: "koppelingen", value });
   if (error) redirect("/admin/instellingen?fout=opslaan");
