@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Beeld from "@/components/site/Beeld";
+import { pad, type Taal } from "@/lib/taal";
+import { woordenboek } from "@/lib/woordenboek";
 
 /*
  * Bouwstenen die op meerdere pagina's uit het Design-canvas terugkomen:
@@ -70,9 +72,9 @@ export function Eyebrow({ children, kleur = PINK }: { children: React.ReactNode;
   );
 }
 
-export function Kruimels({ items }: { items: { label: string; href?: string }[] }) {
+export function Kruimels({ items, taal = "nl" }: { items: { label: string; href?: string }[]; taal?: Taal }) {
   return (
-    <nav aria-label="Kruimelpad" className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
+    <nav aria-label={woordenboek(taal).algemeen.kruimelpad} className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
       {items.map((c, i) => (
         <span key={i} className="flex items-center gap-2.5">
           {i > 0 && <span aria-hidden>/</span>}
@@ -103,11 +105,12 @@ export function KopBlok({ eyebrow, kopTekst, tekst, size = 44 }: { eyebrow: stri
   );
 }
 
-export function KlantenStrook({ label = "We werken samen met:" }: { label?: string }) {
+export function KlantenStrook({ label, taal = "nl" }: { label?: string; taal?: Taal }) {
+  const t = woordenboek(taal);
   return (
-    <section aria-label="Klanten" className="bg-white">
+    <section aria-label={t.algemeen.klanten} className="bg-white">
       <div className={`${BREED} flex flex-col items-center gap-7 py-12 md:py-14`}>
-        <span className="text-[14px] font-semibold" style={{ color: MUTE }}>{label}</span>
+        <span className="text-[14px] font-semibold" style={{ color: MUTE }}>{label || t.gedeeld.klantenLabel}</span>
         <ul className="m-0 flex w-full list-none flex-wrap items-center justify-center gap-x-10 gap-y-6 p-0 md:justify-between">
           {KLANTEN.map((k) => (
             <li key={k.src} className="flex h-10 items-center md:h-11">
@@ -120,27 +123,18 @@ export function KlantenStrook({ label = "We werken samen met:" }: { label?: stri
   );
 }
 
-const QUOTES = [
-  {
-    tekst: "Korte lijnen, snelle communicatie en altijd bereid om mee te denken. Een fijne arbodienst met oog voor zowel werkgever als werknemer.",
-    naam: "Maxime Boonstra", rol: "Algemeen directeur, Kester uitzendbureau", logo: "/beeld/klanten/kester.png",
-  },
-  {
-    tekst: "In een dynamische supermarktorganisatie is snel schakelen essentieel. Dankzij de korte lijnen, deskundige begeleiding en persoonlijke benadering ervaren wij de samenwerking als zeer prettig en betrouwbaar.",
-    naam: "Afdeling HR", rol: "De Jumbo’s van Ralf & René", logo: "/beeld/klanten/jumbo.png",
-  },
-];
-
-export function KlantenAanHetWoord({ bg = SOFT, eyebrow = "Klanten aan het woord", heading = "Wat klanten over ons zeggen" }: { bg?: string; eyebrow?: string; heading?: string }) {
+/** De citaten staan in het woordenboek (lib/woordenboek), zodat de Engelse site ze in het Engels toont. */
+export function KlantenAanHetWoord({ bg = SOFT, eyebrow, heading, taal = "nl" }: { bg?: string; eyebrow?: string; heading?: string; taal?: Taal }) {
+  const t = woordenboek(taal).gedeeld;
   return (
-    <section aria-label="Klanten aan het woord" style={{ background: bg }}>
+    <section aria-label={eyebrow || t.ervaringenEyebrow} style={{ background: bg }}>
       <div className={`${BREED} flex flex-col gap-10 py-20 md:gap-12 md:py-[104px]`}>
         <div className="flex flex-col gap-4">
-          <Eyebrow>{eyebrow}</Eyebrow>
-          <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{heading}</h2>
+          <Eyebrow>{eyebrow || t.ervaringenEyebrow}</Eyebrow>
+          <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{heading || t.ervaringenKop}</h2>
         </div>
         <div className="grid gap-5 md:grid-cols-2 md:gap-6">
-          {QUOTES.map((q) => (
+          {t.citaten.map((q) => (
             <figure key={q.naam} className="m-0 flex flex-col justify-between gap-8 rounded-[28px] bg-white p-8 md:p-10">
               <blockquote className="m-0 flex flex-col gap-4">
                 <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: PINK }}>“</span>
@@ -161,31 +155,31 @@ export function KlantenAanHetWoord({ bg = SOFT, eyebrow = "Klanten aan het woord
   );
 }
 
-export function Keurmerken() {
+export function Keurmerken({ taal = "nl" }: { taal?: Taal }) {
+  const t = woordenboek(taal);
+  const g = t.gedeeld;
   return (
-    <section aria-label="Kwaliteit" className="bg-white">
+    <section aria-label={g.kwaliteit} className="bg-white">
       <div className={`${BREED} flex flex-col gap-10 pb-20 md:gap-12 md:pb-[112px]`}>
         <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
           <div className="flex flex-col gap-4 lg:col-span-6">
-            <Eyebrow>Kwaliteit</Eyebrow>
-            <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>Getoetst en gecertificeerd</h2>
+            <Eyebrow>{g.kwaliteit}</Eyebrow>
+            <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{g.getoetst}</h2>
           </div>
           <div className="flex flex-col items-start gap-4 lg:col-span-5 lg:col-start-8">
-            <p className="m-0 text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>
-              Je werkt met gevoelige informatie. Daarom laten we onze kwaliteit, beveiliging en privacy onafhankelijk toetsen.
-            </p>
-            <Link href="/certificeringen" className="inline-flex items-center gap-2 text-[16px] font-bold underline underline-offset-[5px]" style={{ color: NAVY, textDecorationColor: "rgba(50,46,131,0.35)" }}>
-              Meer over onze certificeringen<Pijl />
+            <p className="m-0 text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{g.kwaliteitTekst}</p>
+            <Link href={pad(taal, "certificeringen")} className="inline-flex items-center gap-2 text-[16px] font-bold underline underline-offset-[5px]" style={{ color: NAVY, textDecorationColor: "rgba(50,46,131,0.35)" }}>
+              {g.meerCertificeringen}<Pijl />
             </Link>
           </div>
         </div>
         <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
-          {KEURMERKEN.map((k) => (
+          {KEURMERKEN.map((k, i) => (
             <li key={k.src} className="flex flex-col items-center gap-4 rounded-[22px] border bg-white px-5 py-7 text-center" style={{ borderColor: LINE }}>
-              <span className="flex h-[72px] items-center"><Beeld src={k.src} alt={k.alt} sizes="72px" className="max-h-full w-auto max-w-[110px] object-contain" /></span>
+              <span className="flex h-[72px] items-center"><Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="72px" className="max-h-full w-auto max-w-[110px] object-contain" /></span>
               <span className="flex flex-col gap-0.5">
-                <span className="text-[16px] font-bold" style={{ color: NAVY }}>{k.naam}</span>
-                <span className="text-[14px]" style={{ color: MUTE }}>{k.wat}</span>
+                <span className="text-[16px] font-bold" style={{ color: NAVY }}>{g.keurmerken[i]?.naam || k.naam}</span>
+                <span className="text-[14px]" style={{ color: MUTE }}>{g.keurmerken[i]?.wat || k.wat}</span>
               </span>
             </li>
           ))}

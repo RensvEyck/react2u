@@ -10,6 +10,8 @@ import { submitTerugbel, type FormState } from "@/app/(site)/actions";
 import { Bedankt, Field, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
 import TurnstileField from "./TurnstileField";
+import { useTaal } from "./Taal";
+import { telefoonInTaal, vul } from "@/lib/taal";
 
 /**
  * Vaste balk onderaan het scherm op de telefoon, alleen op de
@@ -23,6 +25,9 @@ import TurnstileField from "./TurnstileField";
  * ruimte en schuift de cookiemelding erboven.
  */
 export default function BelBalk({ contact }: { contact: ContactInfo }) {
+  const { taal, t } = useTaal();
+  const b = t.belbalk;
+  const f = t.formulier;
   const path = usePathname() || "/";
   const zichtbaar = toontBelbalk(path);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -39,7 +44,7 @@ export default function BelBalk({ contact }: { contact: ContactInfo }) {
 
   if (!zichtbaar) return null;
 
-  const nummer = contact.phoneDisplay.replace(/\s*[-–]\s*/g, " ");
+  const nummer = telefoonInTaal(contact.phoneDisplay, taal);
   const sluit = () => dialog.current?.close();
 
   return (
@@ -48,11 +53,11 @@ export default function BelBalk({ contact }: { contact: ContactInfo }) {
         <div className="grid grid-cols-2 gap-2">
           {/* Alleen het nummer: "Bel 085 620 58 00" past niet op een halve
               telefoonbreedte; het pictogram zegt al wat de knop doet. */}
-          <a href={`tel:${contact.phone}`} aria-label={`Bel ${nummer}`} className="btn btn-outline whitespace-nowrap !px-2.5 text-[14.5px]">
+          <a href={`tel:${contact.phone}`} aria-label={vul(t.algemeen.belOns, { tel: nummer })} className="btn btn-outline whitespace-nowrap !px-2.5 text-[14.5px]">
             <LuPhone aria-hidden className="shrink-0 text-[18px]" /> {nummer}
           </a>
           <button type="button" onClick={() => dialog.current?.showModal()} className="btn !px-3 text-[15px]">
-            <LuPhoneCall aria-hidden className="text-[18px]" /> Bel mij terug
+            <LuPhoneCall aria-hidden className="text-[18px]" /> {b.belMijTerug}
           </button>
         </div>
       </div>
@@ -64,42 +69,44 @@ export default function BelBalk({ contact }: { contact: ContactInfo }) {
         className="belbalk-paneel m-0 mb-0 mt-auto w-full max-w-none rounded-t-[20px] bg-white p-0 text-body backdrop:bg-[rgba(25,23,38,0.55)]"
       >
         <div className="relative px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5">
-          <button type="button" onClick={sluit} aria-label="Sluiten" className="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-soft text-primary hover:bg-line">
+          <button type="button" onClick={sluit} aria-label={b.sluiten} className="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-soft text-primary hover:bg-line">
             <LuX aria-hidden className="text-[18px]" />
           </button>
-          <p className="eyebrow mb-2">Terugbelverzoek</p>
-          <h2 id={titleId} className="pr-12 text-[22px] font-bold leading-tight tracking-[-0.01em] text-primary">Wanneer mogen we je bellen?</h2>
+          <p className="eyebrow mb-2">{b.eyebrow}</p>
+          <h2 id={titleId} className="pr-12 text-[22px] font-bold leading-tight tracking-[-0.01em] text-primary">{b.kop}</h2>
           {state?.ok ? (
             <div className="mt-5">
-              <Bedankt>Bedankt! We bellen je zoals afgesproken. Liever nu al iemand spreken? Bel {nummer}.</Bedankt>
+              <Bedankt>{vul(b.bedankt, { tel: nummer })}</Bedankt>
             </div>
           ) : (
             <form action={action} className="mt-4 space-y-3.5">
+              <input type="hidden" name="taal" value={taal} />
               <div className="grid gap-3.5 sm:grid-cols-2">
-                <Field label="Naam">
+                <Field label={f.naam}>
                   <input className={fieldClass} name="name" autoComplete="name" required maxLength={200} />
                 </Field>
-                <Field label="Telefoonnummer">
+                <Field label={f.telefoon}>
                   <input className={fieldClass} name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={40} />
                 </Field>
               </div>
-              <Field label="Organisatie" optional>
+              <Field label={f.organisatie} optional>
                 <input className={fieldClass} name="company" autoComplete="organization" maxLength={200} />
               </Field>
-              <Field label="Wanneer">
+              <Field label={b.wanneer}>
+                {/* De waarde blijft de Nederlandse tekst (die leest het team in het Postvak IN); het label staat in de taal van de pagina. */}
                 <select className={fieldClass} name="moment" defaultValue={TERUGBEL_MOMENTEN[0]}>
-                  {TERUGBEL_MOMENTEN.map((m) => <option key={m} value={m}>{m}</option>)}
+                  {TERUGBEL_MOMENTEN.map((m, i) => <option key={m} value={m}>{b.momenten[i] ?? m}</option>)}
                 </select>
               </Field>
               <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
               <TurnstileField resetKey={state?.error} />
               {state?.error && <p role="alert" className="text-[15px] font-medium text-accent">{state.error}</p>}
               <button className="btn w-full" disabled={pending}>
-                {pending ? "Versturen…" : <>Bel mij terug <Arrow /></>}
+                {pending ? f.bezig : <>{b.belMijTerug} <Arrow /></>}
               </button>
               <p className="text-[13px] leading-snug">
-                We bellen op werkdagen tussen 9.00 en 17.00 uur.{" "}
-                <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-accent">Privacy</a>
+                {b.tijden}{" "}
+                <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-accent">{f.privacy}</a>
               </p>
             </form>
           )}

@@ -1,4 +1,6 @@
 import type { Kleur } from "./brand";
+import { nlPadVoor, pad, type Taal } from "./taal";
+import { woordenboek } from "./woordenboek";
 
 // Foto's uit de mediabibliotheek. Hier en niet onderaan het bestand: PIJLERS
 // hieronder gebruikt ze al bij het laden.
@@ -133,7 +135,9 @@ const LABEL_PADEN = ["/resist", "/recover", "/restart", "/reflex", "/ready"];
  * gedeelde pagina's (contact, blog, over ons): daar geldt de laatste keuze
  * van de bezoeker (zie lib/doelgroep.ts).
  */
-export function doelgroepVoorPad(path: string): Doelgroep | null {
+export function doelgroepVoorPad(pathOfEnPath: string): Doelgroep | null {
+  // Een Engels pad (/en/employees) telt als zijn Nederlandse tegenhanger.
+  const path = nlPadVoor(pathOfEnPath);
   if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
   if (path === "/werkgevers" || path === "/diensten" || LABEL_PADEN.includes(path) || dienstVoor(path)) return "werkgever";
   return null;
@@ -208,12 +212,15 @@ export function dienstVoor(path: string): { dienst: Dienst; pijler: Pijler } | n
  * ziet in welk deel van de site je bent: Werkgevers › Diensten › Verzuim-
  * begeleiding WVP, of Werknemers › Verzuimprotocol.
  */
-export function crumbsVoor(path: string, title: string): NavLink[] {
+export function crumbsVoor(path: string, title: string, taal: Taal = "nl"): NavLink[] {
   const groep = doelgroepVoorPad(path);
   if (!groep) return [{ label: title, href: path }];
-  const start = STARTPAGINA[groep];
+  const t = woordenboek(taal).header;
+  const start: NavLink = taal === "nl"
+    ? STARTPAGINA[groep]
+    : { label: groep === "werkgever" ? t.werkgevers : t.werknemers, href: pad(taal, groep === "werkgever" ? "werkgevers" : "werknemers") };
   if (path === start.href) return [start];
-  const tussen = dienstVoor(path) ? [{ label: "Diensten", href: "/diensten" }] : [];
+  const tussen = taal === "nl" && dienstVoor(path) ? [{ label: "Diensten", href: "/diensten" }] : [];
   return [start, ...tussen, { label: title, href: path }];
 }
 

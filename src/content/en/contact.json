@@ -1,0 +1,50 @@
+{
+  "_uitleg": "Engelse contactpagina (/en/contact): dezelfde blokken als contact.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "contact",
+  "title": "Contact",
+  "seo_title": "Contact • React2u",
+  "seo_description": "Get in touch with React2u. Call +31 85 620 58 00, email info@react2u.nl or send a message. Available Monday to Friday, 9:00 to 17:00.",
+  "blocks": [
+    {
+      "type": "contactSimpel",
+      "label": "Contact (details and form)",
+      "data": {
+        "heading": "Contact",
+        "text": "Call, email or send a message. We are happy to help.",
+        "rows": [
+          {
+            "label": "Phone",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800",
+            "sub": "Monday to Friday, 9:00 to 17:00"
+          },
+          {
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl",
+            "sub": "We reply within one working day"
+          },
+          {
+            "label": "Quote and introduction",
+            "value": "sales@react2u.nl",
+            "href": "mailto:sales@react2u.nl",
+            "sub": ""
+          },
+          {
+            "label": "Address",
+            "value": "Stratumsedijk 29\n5611 NB Eindhoven",
+            "href": "https://maps.google.com/?q=Stratumsedijk+29+Eindhoven",
+            "sub": "Visits by appointment"
+          }
+        ],
+        "company": [
+          "React2u II B.V.",
+          "Chamber of Commerce (KvK) 95076824",
+          "VAT NL866991906B01"
+        ],
+        "formHeading": "Send a message",
+        "note": "Please do not share medical information here."
+      }
+    }
+  ]
+}

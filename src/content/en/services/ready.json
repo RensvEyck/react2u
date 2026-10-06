@@ -1,0 +1,169 @@
+{
+  "_uitleg": "Engelse labelpagina React2u Ready (/en/services/ready): dezelfde blokken als ready.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "services/ready",
+  "title": "React2u Ready",
+  "seo_title": "React2u Ready: HR and employment law • React2u",
+  "seo_description": "Questions about contracts, leave or dismissal during illness? You get clear advice from people who know sickness absence.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Ready",
+      "data": {
+        "heading": "React2u Ready",
+        "naam": "Ready",
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "label": "HR and employment law.",
+        "tagline": "Clear advice, quickly arranged",
+        "text": "Questions about contracts, leave or dismissal during illness? You get clear advice from people who know sickness absence.",
+        "checks": [
+          "HR advice on sickness absence",
+          "Employment law support",
+          "Advice in conflicts",
+          "Second opinion and expert opinion by UWV"
+        ],
+        "de": "Your go-to for HR and employment law",
+        "lead": "Clear advice you can act on straight away.",
+        "intro": [
+          "Sickness absence often raises HR and employment law questions. May I extend a contract during illness? What do I do in a conflict? How do I avoid a wage sanction (loonsanctie)?",
+          "With React2u Ready you get clear advice from people who know the Dutch rules on sickness absence inside and out. Without detours, and in a form you can act on straight away."
+        ],
+        "herken": [
+          "You are unsure whether you may end a contract during illness",
+          "A conflict is making the absence complicated",
+          "You disagree with a decision by UWV, the Dutch Employee Insurance Agency",
+          "You finally want your absence policy properly on paper"
+        ],
+        "groepen": [
+          {
+            "titel": "HR advice",
+            "tekst": "Practical and directly applicable.",
+            "items": [
+              "Absence policy and absence protocol",
+              "Contracts and leave during illness",
+              "Performance and absence"
+            ]
+          },
+          {
+            "titel": "Employment law",
+            "tekst": "Certainty in difficult situations.",
+            "items": [
+              "Termination and settlement agreement (vaststellingsovereenkomst)",
+              "Dispute about continued salary payment",
+              "Dismissal after two years of illness"
+            ]
+          },
+          {
+            "titel": "Conflicts",
+            "tekst": "Back in conversation with each other.",
+            "items": [
+              "Mediation",
+              "Advice in a labour dispute",
+              "Guidance during the conversation"
+            ]
+          },
+          {
+            "titel": "UWV",
+            "tekst": "A strong position towards UWV.",
+            "items": [
+              "Expert opinion by UWV (deskundigenoordeel)",
+              "Objection and appeal",
+              "Avoiding a wage sanction"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Your question",
+            "tekst": "You call or email us with your question."
+          },
+          {
+            "titel": "Analysis",
+            "tekst": "We set out the facts and your options."
+          },
+          {
+            "titel": "Advice",
+            "tekst": "You get clear advice, in writing if needed."
+          },
+          {
+            "titel": "Follow-up",
+            "tekst": "Where needed we help with the implementation."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Absence and HR",
+            "tekst": "Advisers who know both worlds from the inside."
+          },
+          {
+            "titel": "Quick answer",
+            "tekst": "Your question is picked up the same working day."
+          },
+          {
+            "titel": "Without detours",
+            "tekst": "Clear advice, in writing if needed."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Prevention and vitality",
+            "kleur": "#00A098",
+            "href": "/en/services/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Sickness absence support",
+            "kleur": "#E61674",
+            "href": "/en/services/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Reintegration and careers",
+            "kleur": "#F19001",
+            "href": "/en/services/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Temporary staffing and the Sickness Benefits Act",
+            "kleur": "#3AA5DD",
+            "href": "/en/services/reflex"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

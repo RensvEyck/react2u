@@ -1,0 +1,168 @@
+{
+  "_uitleg": "Engelse labelpagina React2u Reflex (/en/services/reflex): dezelfde blokken als reflex.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "services/reflex",
+  "title": "React2u Reflex",
+  "seo_title": "React2u Reflex: temporary staffing and the Sickness Benefits Act • React2u",
+  "seo_description": "For staffing agencies and self-insurers under the Sickness Benefits Act (Ziektewet). We support sick temp workers, also after their contract ends.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Reflex",
+      "data": {
+        "heading": "React2u Reflex",
+        "naam": "Reflex",
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "label": "For the temporary staffing sector.",
+        "tagline": "The Sickness Benefits Act without worries",
+        "text": "For staffing agencies and self-insurers (eigenrisicodragers) under the Sickness Benefits Act (Ziektewet). We support sick temp workers, also after their contract ends.",
+        "checks": [
+          "Support for sick temp workers",
+          "Self-insurance under the Ziektewet",
+          "Also after the contract ends",
+          "Focused on suitable work"
+        ],
+        "de": "The absence partner for the temporary staffing sector",
+        "lead": "Acting fast, even when the contract has already ended.",
+        "intro": [
+          "In the staffing sector a sick report often continues after the contract ends. As a self-insurer (eigenrisicodrager) under the Sickness Benefits Act (Ziektewet) you then carry the costs and the reintegration yourself, instead of UWV, the Dutch Employee Insurance Agency.",
+          "React2u Reflex knows that world. We guide sick temp workers quickly and purposefully towards suitable work, also after the contract has ended, and help you limit the inflow into the WGA, the Dutch benefit for partial or temporary incapacity for work."
+        ],
+        "herken": [
+          "Sick temp workers continue after their contract ends",
+          "Sickness benefit costs and WGA premiums are rising",
+          "You lack a partner who knows the staffing sector",
+          "Reintegration of temp workers gets too little attention"
+        ],
+        "groepen": [
+          {
+            "titel": "Support for temp workers",
+            "tekst": "Quick contact, even when the assignment stops.",
+            "items": [
+              "A case manager who knows the staffing sector",
+              "Support after the contract ends",
+              "Reintegration towards suitable work"
+            ]
+          },
+          {
+            "titel": "Self-insurer under the Ziektewet",
+            "tekst": "We take over the tasks of UWV.",
+            "items": [
+              "Carrying out Sickness Benefits Act tasks",
+              "File building and deadline monitoring",
+              "First-year Ziektewet assessment"
+            ]
+          },
+          {
+            "titel": "Costs under control",
+            "tekst": "Less absence, less inflow.",
+            "items": [
+              "Limiting WGA inflow",
+              "Insight into Ziektewet costs",
+              "Reports per branch or client"
+            ]
+          },
+          {
+            "titel": "Insurance",
+            "tekst": "Certainty for the first 104 weeks.",
+            "items": [
+              "Absence insurance for the staffing sector",
+              "Advice on self-insurance"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Sick report",
+            "tekst": "Your temp worker reports sick to you or to us."
+          },
+          {
+            "titel": "Quick action",
+            "tekst": "Contact and a first assessment within one working day."
+          },
+          {
+            "titel": "Suitable work",
+            "tekst": "We search purposefully for work that fits."
+          },
+          {
+            "titel": "Closing",
+            "tekst": "We close the file neatly on recovery or at the end of the Ziektewet period."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Knows the sector",
+            "tekst": "Phases, contracts and payroll: we speak your language."
+          },
+          {
+            "titel": "Speed",
+            "tekst": "Contact with the sick temp worker within one working day."
+          },
+          {
+            "titel": "Control of costs",
+            "tekst": "Good support now prevents high costs later."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Prevention and vitality",
+            "kleur": "#00A098",
+            "href": "/en/services/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Sickness absence support",
+            "kleur": "#E61674",
+            "href": "/en/services/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Reintegration and careers",
+            "kleur": "#F19001",
+            "href": "/en/services/restart"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR and employment law",
+            "kleur": "#322E83",
+            "href": "/en/services/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

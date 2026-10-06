@@ -1,0 +1,129 @@
+{
+  "_uitleg": "Engels dienstenoverzicht (/en/services). Het Nederlandse /diensten gebruikt nog de oude blokken (pillars uit nav.ts, zes oude dienstpagina's zonder Engelse versie); de Engelse pagina toont daarom de vijf labels in de blokken van het nieuwe ontwerp. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "services",
+  "title": "Services",
+  "seo_title": "Our services: five specialisms for sickness absence • React2u",
+  "seo_description": "React2u offers five specialisms under one roof: Recover, Resist, Restart, Reflex and Ready. From prevention to reintegration, with one regular case manager.",
+  "blocks": [
+    {
+      "type": "dgKop",
+      "label": "Header",
+      "data": {
+        "eyebrow": "Services",
+        "heading": "Five specialisms,\none regular\ncontact",
+        "text": "From preventing absence to reintegration and HR advice. Your case manager keeps the overview.",
+        "image": "/beeld/werkgevers/gezonde-werkplek.webp",
+        "alt": "Two colleagues looking at a screen together",
+        "focus": "50% 40%",
+        "panel": "#322E83",
+        "buttons": [
+          { "label": "Let's talk", "href": "/en/lets-talk" },
+          { "label": "Pricing", "href": "/en/pricing" }
+        ]
+      }
+    },
+    {
+      "type": "dgLabels",
+      "label": "Services",
+      "data": {
+        "anchor": "labels",
+        "heading": "5 services, under one roof",
+        "text": "Each service is a specialism in its own right. Your case manager keeps the overview of everything.",
+        "items": [
+          {
+            "naam": "Recover",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "label": "Sickness absence support.",
+            "tagline": "From sick report to recovery",
+            "text": "Your regular case manager guides every absence case in line with the Gatekeeper Improvement Act (Wet verbetering poortwachter), the Dutch law that sets the steps and deadlines for employer and employee.",
+            "points": ["Case management", "Company doctor (bedrijfsarts) and task delegation", "Gatekeeper file and UWV", "Online file and reports", "Absence advice"],
+            "href": "/en/services/recover"
+          },
+          {
+            "naam": "Resist",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "label": "Prevention and vitality.",
+            "tagline": "Preventing absence starts before the sick report",
+            "text": "We map the risks and help teams stay healthy and energised at work.",
+            "points": ["Risk assessment (RI&E)", "Preventive medical examination (PMO)", "Workplace assessment", "Training for managers", "Confidential adviser"],
+            "href": "/en/services/resist"
+          },
+          {
+            "naam": "Restart",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "label": "Reintegration and careers.",
+            "tagline": "Moving forward together",
+            "text": "Is a return to the current job not possible? Then we look for new perspective together, inside or outside the organisation.",
+            "points": ["Second-track reintegration (tweede spoor)", "Career scan", "Coaching and burnout support", "Labour expert assessment", "Grief counselling"],
+            "href": "/en/services/restart"
+          },
+          {
+            "naam": "Reflex",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC",
+            "label": "For the temporary staffing sector.",
+            "tagline": "The Sickness Benefits Act without worries",
+            "text": "For staffing agencies and self-insurers (eigenrisicodragers) under the Sickness Benefits Act (Ziektewet). We support sick temp workers, also after their contract ends.",
+            "points": ["Support for sick temp workers", "Self-insurance under the Ziektewet", "Also after the contract ends", "Focused on suitable work"],
+            "href": "/en/services/reflex"
+          },
+          {
+            "naam": "Ready",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5",
+            "label": "HR and employment law.",
+            "tagline": "Clear advice, quickly arranged",
+            "text": "Questions about contracts, leave or dismissal during illness? You get clear advice from people who know sickness absence.",
+            "points": ["HR advice on sickness absence", "Employment law support", "Advice in conflicts", "Second opinion and expert opinion by UWV"],
+            "href": "/en/services/ready"
+          }
+        ],
+        "strook": {
+          "heading": "Not sure what you need?",
+          "text": "In a short conversation we work out together which combination suits your organisation.",
+          "label": "Book a conversation",
+          "href": "/en/lets-talk"
+        }
+      }
+    },
+    {
+      "type": "dgStarten",
+      "label": "How you get started",
+      "data": {
+        "anchor": "switching",
+        "eyebrow": "Switching and getting started",
+        "heading": "How you get started",
+        "text": "Already have an occupational health service? Switching is less work than you think. We take over ongoing absence cases, so no deadline is missed.",
+        "steps": [
+          { "title": "Introduction", "text": "A conversation about your organisation and what you need." },
+          { "title": "Tailored quote", "text": "A proposal that fits your number of employees." },
+          { "title": "Switch arranged", "text": "We arrange the handover with your current provider." },
+          { "title": "Your case manager starts", "text": "One contact, who also informs your employees." }
+        ],
+        "button": { "label": "Request a quote", "href": "/en/lets-talk" },
+        "call": { "label": "Prefer to talk first?", "value": "Call +31 85 620 58 00", "href": "tel:+31856205800" }
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Shall we talk?\nJust give us a call.",
+        "text": "We would love to hear how your organisation works. Then you get a tailored proposal.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Call · Monday to Friday, 9:00 to 17:00", "value": "+31 85 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Quote or introduction", "value": "sales@react2u.nl", "href": "mailto:sales@react2u.nl" },
+          { "icon": "clock", "label": "Prefer a call back?", "value": "Ask us to call you back", "href": "/en/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

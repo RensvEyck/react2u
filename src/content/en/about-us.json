@@ -1,0 +1,117 @@
+{
+  "_uitleg": "Engels Over React2u (/en/about-us): dezelfde blokken als over-react2u.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "about-us",
+  "title": "About React2u",
+  "seo_title": "About React2u • A personal occupational health service from Eindhoven",
+  "seo_description": "React2u is a personal occupational health service (arbodienst) from Eindhoven, founded in 2023. One regular case manager, short lines and certified by SBCA and DNV.",
+  "blocks": [
+    {
+      "type": "overReact2u",
+      "label": "About React2u",
+      "data": {
+        "heading": "Attention moves people.",
+        "motto": "Attention\nmoves people.",
+        "intro": "React2u is a personal occupational health service (arbodienst) from Eindhoven. We get people moving again for the long term, in a professional and above all human way.",
+        "citaat": "We know what it means to be on the sidelines, for a long time or, hopefully, only briefly. Sickness absence calls for personal attention.",
+        "citaatLabel": "Why we do what we do",
+        "verhaalEyebrow": "Our story",
+        "verhaalKop": "How React2u began",
+        "verhaal": [
+          "From a sister company of React2u we noticed that sickness absence almost always went the same way. An employee reported sick, the occupational health service took over, and then it went quiet. Reports came late, there was always someone different on the phone, and nobody could say exactly where a case stood.",
+          "Employers felt left on the sidelines and employees felt like a file number."
+        ],
+        "uitspraak": "That had to change, and we knew how: by doing it ourselves, the way we would have liked it done for us.",
+        "slot": "That is still what we do. With a team of case managers, delegated practitioners and company doctors we help employees return to their own, suitable or other work as safely and smoothly as possible.",
+        "stappen": [
+          {
+            "label": "What we saw",
+            "titel": "Absence without overview",
+            "tekst": "At occupational health services, personal contact and control of the process were missing. For employer and employee alike."
+          },
+          {
+            "label": "The idea",
+            "titel": "One regular face and short lines",
+            "tekst": "Employer and employee always know who to turn to and where the case stands."
+          },
+          {
+            "label": "2023",
+            "titel": "React2u founded in Eindhoven",
+            "tekst": "From a sister company, to guide sickness absence personally and clearly."
+          },
+          {
+            "label": "Now",
+            "titel": "Five specialisms under one roof",
+            "tekst": "Resist, Recover, Restart, Reflex and Ready. Certified by SBCA and through DNV for ISO 9001, 27001 and 27701."
+          }
+        ],
+        "foto": "/beeld/kantoor/overleg.webp",
+        "fotoAlt": "React2u colleagues in a meeting at the large table in our office",
+        "fotoFocus": "50% 55%",
+        "fotoLabel": "Our office in the heart of Eindhoven",
+        "mvKop": "What we stand for",
+        "missie": {
+          "label": "Our mission",
+          "titel": "Getting people moving again, for the long term.",
+          "tekst": "Together with employer and employee we work on a solution. We guide, facilitate and advise everyone involved, professionally and personally, so that someone returns to work safely and smoothly."
+        },
+        "visie": {
+          "label": "Our vision",
+          "titel": "People who feel seen get moving sooner.",
+          "tekst": "Sickness absence often has more causes than illness alone. That is why we look at the whole person and give every organisation one regular face. That way we prevent absence where we can and support recovery where it is needed."
+        },
+        "waardenKop": "Healthy, human and clear",
+        "waardenTekst": "Three words we live up to every day, for employers and employees.",
+        "waarden": [
+          {
+            "titel": "Healthy",
+            "kleur": "#E61674",
+            "tekst": "We look beyond today's absence. With prevention, training and guidance we work on a healthy working environment, now and later."
+          },
+          {
+            "titel": "Human",
+            "kleur": "#00A098",
+            "tekst": "We listen, we are critical where we need to be, and we use humour. Behind every file is a person, and that is how we treat it."
+          },
+          {
+            "titel": "Clear",
+            "kleur": "#3AA5DD",
+            "tekst": "Clear agreements, short lines and everything to be found in one online file. Employer and employee always know where they stand."
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

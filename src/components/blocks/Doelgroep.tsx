@@ -3,6 +3,10 @@ import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN } from "./Gedeeld";
 import Beeld from "@/components/site/Beeld";
 import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
+import { datumInTaal, pad, vul, type Taal } from "@/lib/taal";
+import { woordenboek } from "@/lib/woordenboek";
+
+type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -69,8 +73,9 @@ export function DgKop({ d, asH1 }: { d: any; asH1?: boolean }) {
 
 /* ---------- Specialismen als vijf gekleurde kaarten ---------- */
 
-export function DgLabels({ d }: { d: any }) {
+export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
   const kaarten: any[] = d.items || [];
+  const t = woordenboek(ctx?.lang ?? "nl");
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} bg-white`}>
       <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
@@ -91,14 +96,14 @@ export function DgLabels({ d }: { d: any }) {
               {c.text && <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{c.text}</span>}
               <ul className="m-0 flex list-none flex-col gap-2 p-0">
                 {(c.points || []).map((p: string, j: number) => (
-                  <li key={j} className="flex gap-2.5 text-[14.5px] leading-[1.45]" style={{ color: NAVY }}>
+                  <li key={j} className="flex min-w-0 gap-2.5 text-[14.5px] leading-[1.45] [overflow-wrap:anywhere]" style={{ color: NAVY }}>
                     <span className="mt-0.5 shrink-0" style={{ color: c.kleur }}><Vink size={14} /></span>{p}
                   </li>
                 ))}
               </ul>
               {c.href && (
                 <Link href={c.href} className="hv-btn hv-btn-rand mt-auto inline-flex h-11 items-center gap-2 self-start rounded-full px-5 text-[14.5px] font-bold" style={{ background: "transparent" }}>
-                  {c.link || "Lees meer"}<Pijl size={14} />
+                  {c.link || t.algemeen.leesMeer}<Pijl size={14} />
                 </Link>
               )}
             </div>
@@ -152,15 +157,16 @@ export function DgFotoLijst({ d }: { d: any }) {
 
 /* ---------- Poortwachter: wat jij doet, wat wij doen ---------- */
 
-export function DgPoortwachter({ d }: { d: any }) {
+export function DgPoortwachter({ d, ctx }: { d: any; ctx?: Ctx }) {
   const rijen: any[] = d.rows || [];
+  const t = woordenboek(ctx?.lang ?? "nl").werkgevers;
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: SOFT }}>
       <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
         <SectieKop d={d} />
         <div className="overflow-hidden rounded-[24px] bg-white">
           <div className="hidden grid-cols-[220px_1fr_1fr] gap-6 px-8 py-4 text-[12.5px] font-bold uppercase tracking-[1.2px] md:grid" style={{ background: NAVY, color: "rgba(255,255,255,0.85)" }}>
-            <span>Moment</span><span>Jij als werkgever</span><span>React2u</span>
+            <span>{t.poortwachterMoment}</span><span>{t.poortwachterJij}</span><span>{t.poortwachterWij}</span>
           </div>
           {rijen.map((r, i) => (
             <div key={i} className="grid gap-2 border-t px-6 py-5 md:grid-cols-[220px_1fr_1fr] md:gap-6 md:px-8" style={{ borderColor: LINE }}>
@@ -322,19 +328,21 @@ function Prijslijst({ titel, per, regels }: { titel: string; per: string; regels
   );
 }
 
-export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { tarieven?: TarievenSettings } }) {
+export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx }) {
+  const taal: Taal = ctx?.lang ?? "nl";
+  const t = woordenboek(taal);
   const H = asH1 ? "h1" : "h2";
   const abonnementen: any[] = d.abonnementen || [];
   const groepen: any[] = d.groepen || [];
   // Het jaartal komt uit Instellingen → Tarievenjaar, niet uit de bloktekst;
   // in de blokeditor (zonder ctx) staat de tekst zoals ingevoerd.
-  const t = ctx?.tarieven;
-  const eyebrow = t ? metJaar(d.eyebrow, t.jaar) : d.eyebrow;
+  const tar = ctx?.tarieven;
+  const eyebrow = tar ? metJaar(d.eyebrow, tar.jaar) : d.eyebrow;
   return (
     <div className={`hv ${outfit.variable}`}>
       <section aria-label={d.eyebrow || "Tarieven"} className="bg-white">
         <div className={`${BREED} flex flex-col gap-5 pb-14 pt-10 md:pb-16 md:pt-14`}>
-          <Kruimels items={[{ label: "Home", href: "/" }, { label: "Tarieven" }]} />
+          <Kruimels items={[{ label: t.algemeen.home, href: pad(taal, "home") }, { label: t.werkgevers.tarievenKruimel }]} taal={taal} />
           {eyebrow && <Eyebrow kleur={TEAL}>{eyebrow}</Eyebrow>}
           <H className={`${kop} m-0 text-[42px] leading-[1.04] tracking-[-1.4px] md:text-[60px]`} style={{ color: NAVY }}>{d.heading}</H>
           {d.text && <p className="m-0 max-w-[640px] text-[17px] leading-[1.65]" style={{ color: BODY }}>{d.text}</p>}
@@ -363,11 +371,15 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { t
                   ))}
                 </ul>
                 {a.note && <p className="m-0 text-[14px]" style={{ color: zacht }}>{a.note}</p>}
-                <div className="mt-auto pt-2"><Knop2 href={a.href || "/kennismaken"} stijl={donker ? "wit" : "navy"}>{a.label || "Offerte aanvragen"}</Knop2></div>
+                <div className="mt-auto pt-2"><Knop2 href={a.href || pad(taal, "kennismaken")} stijl={donker ? "wit" : "navy"}>{a.label || t.werkgevers.offerteAanvragen}</Knop2></div>
               </div>
             );
           })}
-          {t && <p className="m-0 text-[14px] md:col-span-2" style={{ color: MUTE }}>{geldigheidsregel(t)}</p>}
+          {tar && (
+            <p className="m-0 text-[14px] md:col-span-2" style={{ color: MUTE }}>
+              {taal === "nl" ? geldigheidsregel(tar) : vul(t.werkgevers.geldigheid, { jaar: tar.jaar, tot: datumInTaal(tar.geldigTot, taal) })}
+            </p>
+          )}
         </div>
       </section>
       {groepen.map((g, gi) => (
@@ -404,31 +416,33 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { t
 
 /* ---------- Certificeringen ---------- */
 
-export function DgCertificeringen({ d, asH1 }: { d: any; asH1?: boolean }) {
+export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx }) {
+  const taal: Taal = ctx?.lang ?? "nl";
+  const t = woordenboek(taal);
   const H = asH1 ? "h1" : "h2";
   const items: any[] = d.items || [];
   return (
     <div className={`hv ${outfit.variable}`}>
-      <section aria-label="Certificeringen" className="bg-white">
+      <section aria-label={d.eyebrow || t.werkgevers.certificeringenKruimel} className="bg-white">
         <div className={`${BREED} grid gap-6 pb-14 pt-10 md:pb-16 md:pt-14 lg:grid-cols-12`}>
           <div className="flex flex-col gap-5 lg:col-span-6">
-            <Kruimels items={[{ label: "Home", href: "/" }, { label: "Over ons", href: "/over-react2u" }, { label: "Certificeringen" }]} />
-            <Eyebrow kleur={TEAL}>{d.eyebrow || "Certificeringen"}</Eyebrow>
+            <Kruimels items={[{ label: t.algemeen.home, href: pad(taal, "home") }, { label: t.werkgevers.overOnsKruimel, href: pad(taal, "over-react2u") }, { label: t.werkgevers.certificeringenKruimel }]} taal={taal} />
+            <Eyebrow kleur={TEAL}>{d.eyebrow || t.werkgevers.certificeringenKruimel}</Eyebrow>
             <H className={`${kop} m-0 whitespace-pre-line text-[42px] leading-[1.04] tracking-[-1.4px] md:text-[58px]`} style={{ color: NAVY }}>{d.heading}</H>
           </div>
           {d.text && <p className="m-0 self-end text-[17px] leading-[1.7] lg:col-span-5 lg:col-start-8" style={{ color: BODY }}>{d.text}</p>}
         </div>
       </section>
-      <section aria-label="Keurmerken" style={{ background: SOFT }}>
+      <section aria-label={t.footer.keurmerken} style={{ background: SOFT }}>
         <ul className={`${BREED} m-0 grid list-none grid-cols-2 gap-3 py-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4`}>
-          {KEURMERKEN.map((k) => (
+          {KEURMERKEN.map((k, i) => (
             <li key={k.src} className="grid h-[110px] place-items-center rounded-[20px] bg-white p-4 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)]">
-              <Beeld src={k.src} alt={k.alt} sizes="70px" className="max-h-[70px] w-auto object-contain" />
+              <Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="70px" className="max-h-[70px] w-auto object-contain" />
             </li>
           ))}
         </ul>
       </section>
-      <section aria-label="Onze certificeringen" className="bg-white">
+      <section aria-label={d.lijstKop || d.heading} className="bg-white">
         <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
           <SectieKop d={{ eyebrow: d.lijstEyebrow, heading: d.lijstKop, text: d.lijstTekst }} />
           <div className="flex flex-col border-t" style={{ borderColor: LINE }}>

@@ -1,0 +1,170 @@
+{
+  "_uitleg": "Engelse labelpagina React2u Recover (/en/services/recover): dezelfde blokken als recover.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "services/recover",
+  "title": "React2u Recover",
+  "seo_title": "React2u Recover: sickness absence support • React2u",
+  "seo_description": "Your regular case manager guides every absence case in line with the Gatekeeper Improvement Act (Wet verbetering poortwachter). You keep control, your employee gets attention.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Recover",
+      "data": {
+        "heading": "React2u Recover",
+        "naam": "Recover",
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "label": "Sickness absence support.",
+        "tagline": "From sick report to recovery",
+        "text": "Your regular case manager guides every absence case in line with the Gatekeeper Improvement Act (Wet verbetering poortwachter), the Dutch law that sets the steps and deadlines for employer and employee. You keep control, your employee gets attention.",
+        "checks": [
+          "Case management",
+          "Company doctor (bedrijfsarts) and task delegation",
+          "Gatekeeper file and UWV",
+          "Online file and reports",
+          "Absence advice"
+        ],
+        "de": "The occupational health partner with one regular contact",
+        "lead": "Control of sickness absence starts with attention and direction.",
+        "intro": [
+          "When an employee falls ill, you want to know where you stand. With React2u Recover you have one regular case manager who knows your organisation, talks with your employee and arranges everything for you.",
+          "Your case manager works with the company doctor, keeps track of every legal deadline and keeps you informed. That way the support follows the law, and your employee feels heard."
+        ],
+        "herken": [
+          "Sickness absence support feels complex and time-consuming",
+          "You do not always know which deadline is coming up",
+          "You keep dealing with a different person",
+          "You are worried about a wage sanction (loonsanctie) from UWV, the Dutch Employee Insurance Agency"
+        ],
+        "groepen": [
+          {
+            "titel": "Direction over absence",
+            "tekst": "One case manager who knows your organisation.",
+            "items": [
+              "Regular case manager",
+              "Absence advice for managers",
+              "Online absence file, always available"
+            ]
+          },
+          {
+            "titel": "Medical support",
+            "tekst": "Expert, close by and quickly arranged.",
+            "items": [
+              "Company doctor",
+              "Task delegation: practice assistant to the company doctor",
+              "Open consultation hours, also without absence"
+            ]
+          },
+          {
+            "titel": "Gatekeeper Improvement Act",
+            "tekst": "Every step on time and complete.",
+            "items": [
+              "Problem analysis and action plan",
+              "Deadline monitoring and evaluations",
+              "Week 42 report and reintegration report"
+            ]
+          },
+          {
+            "titel": "Faster recovery",
+            "tekst": "The right help at the right time.",
+            "items": [
+              "Physiotherapy, psychologist or coach",
+              "Advice from a labour expert (arbeidsdeskundige)",
+              "Periodic absence analysis"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Sick report",
+            "tekst": "You report your employee sick, by phone or online."
+          },
+          {
+            "titel": "First contact",
+            "tekst": "Within one working day your case manager calls you and your employee."
+          },
+          {
+            "titel": "Action plan",
+            "tekst": "Together with the company doctor we set out the route to recovery."
+          },
+          {
+            "titel": "Back to work",
+            "tekst": "We guide the return and evaluate until it is complete."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Regular contact",
+            "tekst": "No changing faces. Your case manager knows you and your people."
+          },
+          {
+            "titel": "Gatekeeper-proof",
+            "tekst": "Follow our approach and you meet the requirements of UWV."
+          },
+          {
+            "titel": "Certified",
+            "tekst": "SBCA certified and ISO 9001, 27001 and 27701 through DNV."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Prevention and vitality",
+            "kleur": "#00A098",
+            "href": "/en/services/resist"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Reintegration and careers",
+            "kleur": "#F19001",
+            "href": "/en/services/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Temporary staffing and the Sickness Benefits Act",
+            "kleur": "#3AA5DD",
+            "href": "/en/services/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR and employment law",
+            "kleur": "#322E83",
+            "href": "/en/services/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

@@ -42,6 +42,8 @@ Gebruik deze termen; de code doet dat ook.
 | **404** (`missing_paths`) | Een adres waarop een bezoeker "niet gevonden" kreeg, met een teller en waar de link stond. Geen persoonsgegevens. |
 | **Versie** (`revisions`) | Momentopname van een pagina, blok, artikel, vacature of instelling, gemaakt door een databasetrigger bij elke opslag. Zie *Versies en prullenbak*. |
 | **Prullenbak** | Wat verwijderd is en nog terug kan (`/admin/prullenbak`). Geen tabel: de laatste versie van rijen die niet meer bestaan. Inzendingen en leads komen er nooit in. |
+| **Taal** (`Taal`) | `nl` of `en`. Nederlands op de gewone paden, Engels onder `/en`. Zie *Tweetalig*. |
+| **Koppeltabel** (`SLUGS`) | NL-slug ↔ EN-slug in [`src/lib/taal.ts`](src/lib/taal.ts), de enige plek die zegt welke Engelse URL bij een pagina hoort. |
 | **Bewaartermijn** | Voor sollicitaties: hoe lang ze mogen blijven staan. Bepaald in [`src/lib/retention.ts`](src/lib/retention.ts); het Postvak IN wijst aan wat erover is, en `api/cron/opruimen` verwijdert het dagelijks. |
 | **Conversie** (`conversions`) | Eén verstuurd formulier: het soort (`contact`, `offerte`, `sollicitatie`, `terugbel`) en de pagina waar het stond. Geen persoonsgegevens. Zie *Bewaartermijnen en privacy*, "Conversies". |
 | **Belbalk** | Vaste balk onderaan het scherm op de telefoon, alleen op werkgeverspagina's: bellen of een terugbelmoment aanvragen (`BelBalk.tsx`, `lib/belbalk.ts`). Een terugbelverzoek is een bericht met onderwerp "Terugbelverzoek". |
@@ -428,6 +430,49 @@ tekst (blok `steps`) op `/werknemers` en `/verzuimprotocol`, letterlijk
 overgenomen uit die afbeelding. Twee kleine aanpassingen: een ontbrekend "je"
 ("Helaas, je bent ziek") en de verwijzing "waarover je hieronder meer kunt
 lezen", die buiten de afbeelding niet meer klopte.
+
+## Tweetalig: Nederlands en Engels
+
+Nederlands staat op de gewone paden, Engels onder `/en` met Engelse slugs
+(`/en/employees`, `/en/sick-what-now`, `/en/jobs/...`). De keuzes staan in
+[`docs/adr/0001-tweetalig-nl-en.md`](docs/adr/0001-tweetalig-nl-en.md); in het kort:
+
+- **Drie root layouts** (`app/(site)`, `app/en`, `app/admin`) delen `RootHtml`,
+  omdat alleen een root layout `lang` op `<html>` zet. Er is geen
+  `app/not-found.tsx` meer: `app/(site)/[...rest]` en `app/en/[...slug]` vangen
+  onbekende adressen op binnen de juiste sitelayout.
+- **De koppeltabel NL-slug ↔ EN-slug** staat in [`src/lib/taal.ts`](src/lib/taal.ts)
+  (`SLUGS`), met `EN_KLAAR` voor de pagina's die er in het Engels al zijn.
+  `pad()`, `vertaalPad()` en `hreflangVoor()` rekenen daarop: menu's, footer,
+  taalknop, hreflang-tags en `sitemap.xml`. Een pagina zonder Engelse versie
+  linkt naar het Nederlandse adres; de taalknop gaat dan naar `/en`.
+- **Engelse inhoud** staat als JSON in `src/content/en/` (dezelfde blokstructuur
+  als het Nederlandse concept, Engelse slug als `slug`) en wordt gelezen door
+  `conceptEn()` in `lib/concept.ts`, in elke omgeving: er is geen Engelse
+  databasepagina. De Engelse site gebruikt altijd de header en footer van het
+  nieuwe ontwerp (`HeaderR2u`/`FooterR2u`).
+- **Vaste interfaceteksten** staan in één woordenboek per taal
+  (`src/lib/woordenboek/nl.ts`, de bron van het type, en `en.ts`). Server
+  components: `woordenboek(taal)`; client components: `useTaal()` uit
+  `components/site/Taal.tsx` (de provider zit in `SiteShell`). Blokken krijgen
+  de taal als `ctx.lang`.
+- **Formulieren** sturen een veld `taal` mee; de server action kiest de
+  foutmelding in die taal en bewaart de taal in `contact_messages.lang` en
+  `applications.lang` (migratie 0015), met een terugval zonder die kolom. Het
+  Postvak IN toont dan een EN-label.
+- **Vacatures** hebben optionele Engelse velden (`title_en`, `intro_en`,
+  `description_en_md`, migratie 0015). Zonder Engelse titel toont `/en/jobs/<slug>`
+  de Nederlandse tekst met "This vacancy is in Dutch".
+- **`/en/services`** toont de vijf labels in de blokken van het nieuwe ontwerp;
+  `/diensten` zelf gebruikt nog de oude blokken (`pillars` uit `nav.ts`).
+- **Blijft Nederlands:** gemeentepagina's, blog, de juridische PDF's (in de
+  Engelse footer met "(Dutch)" erachter), `/inloggen`, `/juridische-documenten`
+  en de HTML-sitemap.
+
+Een nieuwe vertaalde pagina: JSON in `src/content/en/`, de slug in `SLUGS` en
+`EN_KLAAR`, een import in `concept.ts`. `src/lib/taal.test.ts` controleert dat die
+drie kloppen en dat de Engelse teksten geen gedachtestreepjes of Nederlandse
+resten bevatten.
 
 ## Concepten
 

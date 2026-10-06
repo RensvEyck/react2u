@@ -14,7 +14,14 @@
 // wordt de mail geweigerd — niet als spam bezorgd. Gebruik het (sub)domein dat
 // je in Resend hebt geverifieerd.
 
+import type { Taal } from "./taal";
+
 const ENDPOINT = "https://api.resend.com/emails";
+
+/** In de mail: via welke taal van de site de inzending kwam; alleen vermeld als dat Engels was. */
+function taalVeld(taal?: Taal): Field {
+  return { label: "Taal", value: taal === "en" ? "Engelse site (/en)" : null };
+}
 const TIMEOUT_MS = 8000;
 
 function esc(s: string) {
@@ -108,7 +115,7 @@ export async function sendInvite(i: { to: string; link: string; invitedBy: strin
 }
 
 export async function notifyContactMessage(m: {
-  name: string; email: string; phone: string; subject: string; message: string;
+  name: string; email: string; phone: string; subject: string; message: string; taal?: Taal;
 }) {
   await send(
     `Nieuw bericht via de website${m.subject ? `: ${m.subject}` : ""}`,
@@ -117,13 +124,14 @@ export async function notifyContactMessage(m: {
       { label: "E-mail", value: m.email },
       { label: "Telefoon", value: m.phone },
       { label: "Onderwerp", value: m.subject || "(geen onderwerp)" },
+      taalVeld(m.taal),
     ], m.message)
   );
 }
 
 export async function notifyApplication(a: {
   name: string; email: string; phone: string | null; vacancyTitle: string | null;
-  motivation: string | null; hasCv: boolean;
+  motivation: string | null; hasCv: boolean; taal?: Taal;
 }) {
   await send(
     `Nieuwe sollicitatie: ${a.vacancyTitle || "open sollicitatie"}`,
@@ -132,6 +140,7 @@ export async function notifyApplication(a: {
       { label: "E-mail", value: a.email },
       { label: "Telefoon", value: a.phone },
       { label: "CV", value: a.hasCv ? "meegestuurd — bekijk in het Postvak IN" : "niet meegestuurd" },
+      taalVeld(a.taal),
     ], a.motivation)
   );
 }
@@ -142,7 +151,7 @@ export async function notifyApplication(a: {
  */
 export async function notifyOfferte(o: {
   name: string; company: string; email: string; phone: string;
-  pakket: string; employees: number; message: string | null;
+  pakket: string; employees: number; message: string | null; taal?: Taal;
 }) {
   await send(
     `Offerteaanvraag ${o.pakket}: ${o.company}`,
@@ -153,6 +162,7 @@ export async function notifyOfferte(o: {
       { label: "Naam", value: o.name },
       { label: "E-mail", value: o.email },
       { label: "Telefoon", value: o.phone },
+      taalVeld(o.taal),
     ], o.message),
     process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
   );

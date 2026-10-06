@@ -25,6 +25,9 @@ export default async function MessagesAdmin() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
                   {!m.read && <span className="h-2 w-2 shrink-0 rounded-full bg-[#e75387]" />}
+                  {m.lang === "en" && (
+                    <span className="apill bg-[#e6f0fb] text-[#1d5fa8]" title="Binnengekomen via de Engelse site (/en)" lang="en">EN</span>
+                  )}
                   <p className="text-[15.5px] font-bold text-[#1c1a4e]">{m.subject || "(geen onderwerp)"}</p>
                 </div>
                 <p className="mt-0.5 text-[13px] text-black/45">

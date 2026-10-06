@@ -1,4 +1,6 @@
+"use client";
 import { LuCircleCheck } from "react-icons/lu";
+import { useTaal } from "./Taal";
 
 export const fieldClass =
   "w-full rounded-lg border border-[#8480ab] bg-white px-4 py-3 text-[16px] text-primary outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-black/40 hover:border-primary/50 focus:border-primary focus:shadow-[0_0_0_3px_rgba(49,46,130,0.12)]";
@@ -15,11 +17,12 @@ export function Field({
   optional?: boolean;
   children: React.ReactNode;
 }) {
+  const { t } = useTaal();
   return (
     <label className="block">
       <span className="mb-1.5 flex items-baseline justify-between text-[14.5px] font-semibold text-primary">
         {label}
-        {optional && <span className="text-[13px] font-normal text-body">optioneel</span>}
+        {optional && <span className="text-[13px] font-normal text-body">{t.algemeen.optioneel}</span>}
       </span>
       {children}
     </label>

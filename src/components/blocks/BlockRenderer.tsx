@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
 import type { Block, Post } from "@/lib/types";
+import type { Taal } from "@/lib/taal";
 import { MiniMarkdown } from "@/lib/md";
 import { zinsletters } from "@/lib/tekst";
 import Icon from "@/components/site/Icon";
@@ -62,6 +63,8 @@ export type BlockCtx = {
   knoppen?: Btn[];
   /** Het tarievenjaar en de geldigheid uit de instellingen; voor de tariefblokken. */
   tarieven?: TarievenSettings;
+  /** De taal van de pagina; de blokdata is al in die taal, dit is voor de paar vaste woorden in een blok. */
+  lang?: Taal;
 };
 
 type BlockProps = {
@@ -1155,9 +1158,9 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   inloggen: Inloggen,
   juridischeDocumenten: JuridischeDocumenten,
   kennismaken: Kennismaken,
-  klantenStrook: ({ d }: BlockProps) => <KlantenStrook label={d?.label} />,
-  klantenAanHetWoord: ({ d }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} />,
-  keurmerken: () => <Keurmerken />,
+  klantenStrook: ({ d, ctx }: BlockProps) => <KlantenStrook label={d?.label} taal={ctx?.lang} />,
+  klantenAanHetWoord: ({ d, ctx }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} taal={ctx?.lang} />,
+  keurmerken: ({ ctx }: BlockProps) => <Keurmerken taal={ctx?.lang} />,
   homeContact: HomeContact,
   wgSplit: WgSplit,
   wgWaarom: WgWaarom,

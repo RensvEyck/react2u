@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Post } from "@/lib/types";
+import { pad, type Taal } from "@/lib/taal";
+import { woordenboek } from "@/lib/woordenboek";
 import { MiniMarkdown } from "@/lib/md";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
@@ -210,11 +212,12 @@ export function BlogArtikel({ p, andere }: { p: Post; andere: Post[] }) {
 const STIPPEN_BOVEN = [[44, 0, TEAL], [64, 10, TEAL], [80, 26, TEAL], [20, 30, "#3AA5DD"], [42, 30, "#3AA5DD"], [62, 40, "#3AA5DD"], [100, 26, NAVY]] as const;
 const STIPPEN_ONDER = [[10, 0, "#F19001"], [34, 6, PINK], [60, 4, "#CB152B"], [80, 10, "#CB152B"], [98, 6, "#CB152B"], [116, 0, "#CB152B"], [12, 22, "#F19001"], [44, 20, PINK], [64, 30, PINK], [84, 34, PINK]] as const;
 
-export function NietGevonden404() {
+export function NietGevonden404({ taal = "nl" }: { taal?: Taal }) {
+  const t = woordenboek(taal).nietGevonden;
   return (
-    <section data-niet-gevonden aria-label="Pagina niet gevonden" className={`hv ${outfit.variable}`} style={{ background: "linear-gradient(180deg, #F6F5FB 0%, #ffffff 70%)" }}>
+    <section data-niet-gevonden aria-label={t.titel} className={`hv ${outfit.variable}`} style={{ background: "linear-gradient(180deg, #F6F5FB 0%, #ffffff 70%)" }}>
       <div className="mx-auto flex max-w-[720px] flex-col items-center gap-6 px-5 pb-24 pt-16 text-center md:pb-32 md:pt-20">
-        <Eyebrow kleur={TEAL}>Pagina niet gevonden</Eyebrow>
+        <Eyebrow kleur={TEAL}>{t.eyebrow}</Eyebrow>
         <div aria-hidden className="relative h-[60px] w-[130px]">
           {STIPPEN_BOVEN.map(([x, y, c], i) => <span key={i} className="absolute h-[14px] w-[14px] rounded-full" style={{ left: x, top: y, background: c }} />)}
         </div>
@@ -222,13 +225,11 @@ export function NietGevonden404() {
         <div aria-hidden className="relative h-[50px] w-[130px]">
           {STIPPEN_ONDER.map(([x, y, c], i) => <span key={i} className="absolute h-[14px] w-[14px] rounded-full" style={{ left: x, top: y, background: c }} />)}
         </div>
-        <p className="m-0 text-[18px] leading-[1.6]" style={{ color: BODY }}>
-          De pagina die je zoekt bestaat niet (meer) of is verplaatst. Geen zorgen, we helpen je graag verder.
-        </p>
-        <p className="m-0 text-[15.5px]" style={{ color: BODY }}><strong style={{ color: NAVY }}>Deze pagina is even kwijt, wij niet.</strong> Ga terug naar de homepage of neem contact op.</p>
+        <p className="m-0 text-[18px] leading-[1.6]" style={{ color: BODY }}>{t.tekst}</p>
+        <p className="m-0 text-[15.5px]" style={{ color: BODY }}><strong style={{ color: NAVY }}>{t.sterk}</strong> {t.rest}</p>
         <div className="flex flex-wrap justify-center gap-2.5 pt-2">
-          <Link href="/" className="hv-btn hv-btn-roze inline-flex h-[52px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">Naar de homepage<Pijl /></Link>
-          <Link href="/contact" className="hv-btn hv-btn-rand inline-flex h-[52px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">Contact<Pijl /></Link>
+          <Link href={pad(taal, "home")} className="hv-btn hv-btn-roze inline-flex h-[52px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">{t.naarHome}<Pijl /></Link>
+          <Link href={pad(taal, "contact")} className="hv-btn hv-btn-rand inline-flex h-[52px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">{t.contact}<Pijl /></Link>
         </div>
       </div>
     </section>

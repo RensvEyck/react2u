@@ -85,7 +85,9 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
                 style={{ background: kleur, transformOrigin: links ? "28% 72%" : "72% 72%" }}>
                 <span className="hn-orb-e hidden font-bold uppercase md:block" style={{ color: label }}>{c.eyebrow}</span>
                 <span className="hn-kop hn-orb-kop leading-none">
-                  {String(c.title).replace(/^Ik ben /, "Ik ben ").split(" ").map((t, k) => (
+                  {/* "Ik ben" op één regel, de doelgroep eronder; een titel met regeleinden
+                      (het Engels: "I am an" / "employer") bepaalt zijn regels zelf. */}
+                  {(String(c.title).includes("\n") ? String(c.title).split("\n") : String(c.title).replace(/^Ik ben /, "Ik ben ").split(" ")).map((t, k) => (
                     <span key={k} className="block">{t}</span>
                   ))}
                 </span>

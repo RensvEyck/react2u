@@ -7,6 +7,7 @@ import { Arrow } from "@/components/site/Arrow";
 import { WERKEN_BIJ_FOTO } from "@/lib/nav";
 import { conceptenActief } from "@/lib/concept";
 import { WerkenBijPagina } from "@/components/blocks/WerkenBij";
+import { hreflangVoor } from "@/lib/taal";
 
 export const revalidate = 300;
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   title: "Vacatures",
   description:
     "Werken bij React2u? Bekijk onze openstaande vacatures en kom werken bij dé persoonlijke arbodienstverlener in Eindhoven.",
-  alternates: { canonical: "/vacatures" },
+  alternates: { canonical: "/vacatures", languages: hreflangVoor("/vacatures") ?? undefined },
 };
 
 export default async function VacaturesPage() {

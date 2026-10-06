@@ -4,6 +4,7 @@ import { submitContact, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
+import { useTaal } from "@/components/site/Taal";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -32,51 +33,55 @@ function Pijl() {
   );
 }
 
-function Label({ children, optioneel }: { children: React.ReactNode; optioneel?: boolean }) {
+function Label({ children, optioneel, optioneelTekst }: { children: React.ReactNode; optioneel?: boolean; optioneelTekst?: string }) {
   return (
     <span className="flex items-baseline justify-between text-[14px] font-semibold" style={{ color: NAVY }}>
       {children}
-      {optioneel && <span className="text-[13px] font-normal" style={{ color: MUTE }}>optioneel</span>}
+      {optioneel && <span className="text-[13px] font-normal" style={{ color: MUTE }}>{optioneelTekst}</span>}
     </span>
   );
 }
 
-function Formulier({ heading, note }: { heading: string; note?: string }) {
+/** De teksten komen uit het woordenboek; `taal` gaat mee zodat de foutmelding in dezelfde taal terugkomt. */
+function Formulier({ heading, note }: { heading?: string; note?: string }) {
+  const { taal, t } = useTaal();
+  const f = t.formulier;
   const [state, action, pending] = useActionState<FormState, FormData>(submitContact, null);
   if (state?.ok) {
     return (
       <div role="status" className="flex flex-col gap-3">
-        <h2 className="hv-kop m-0 text-[28px] leading-[1.2] tracking-[-0.4px]" style={{ color: NAVY }}>Bedankt voor je bericht</h2>
-        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>We nemen binnen één werkdag contact met je op.</p>
+        <h2 className="hv-kop m-0 text-[28px] leading-[1.2] tracking-[-0.4px]" style={{ color: NAVY }}>{f.contact.bedankt}</h2>
+        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>{f.contact.bedanktTekst}</p>
       </div>
     );
   }
   return (
     <form action={action} className="flex flex-col gap-[22px]">
-      <h2 className="hv-kop m-0 text-[26px] leading-[1.2] tracking-[-0.4px] md:text-[28px]" style={{ color: NAVY }}>{heading}</h2>
+      <h2 className="hv-kop m-0 text-[26px] leading-[1.2] tracking-[-0.4px] md:text-[28px]" style={{ color: NAVY }}>{heading || f.contact.kop}</h2>
+      <input type="hidden" name="taal" value={taal} />
       <div className="grid gap-x-4 gap-y-[18px] sm:grid-cols-2">
-        <label className="flex flex-col gap-2"><Label>Naam</Label>
-          <input className={veld} name="name" autoComplete="name" required maxLength={200} placeholder="Voor- en achternaam" /></label>
-        <label className="flex flex-col gap-2"><Label optioneel>Organisatie</Label>
-          <input className={veld} name="subject" autoComplete="organization" maxLength={200} placeholder="Naam organisatie" /></label>
-        <label className="flex flex-col gap-2"><Label>E-mailadres</Label>
-          <input className={veld} name="email" type="email" autoComplete="email" required maxLength={200} placeholder="naam@bedrijf.nl" /></label>
-        <label className="flex flex-col gap-2"><Label>Telefoonnummer</Label>
-          <input className={veld} name="phone" type="tel" autoComplete="tel" required maxLength={40} placeholder="06 12 34 56 78" /></label>
-        <label className="flex flex-col gap-2 sm:col-span-2"><Label>Bericht</Label>
-          <textarea className={`${veld} h-[160px] resize-none py-3.5 leading-[1.6]`} name="message" required maxLength={4000} placeholder="Waar kunnen we je mee helpen?" /></label>
+        <label className="flex flex-col gap-2"><Label>{f.naam}</Label>
+          <input className={veld} name="name" autoComplete="name" required maxLength={200} placeholder={f.contact.naamPlaceholder} /></label>
+        <label className="flex flex-col gap-2"><Label optioneel optioneelTekst={f.optioneel}>{f.organisatie}</Label>
+          <input className={veld} name="subject" autoComplete="organization" maxLength={200} placeholder={f.organisatiePlaceholder} /></label>
+        <label className="flex flex-col gap-2"><Label>{f.email}</Label>
+          <input className={veld} name="email" type="email" autoComplete="email" required maxLength={200} placeholder={f.contact.emailPlaceholder} /></label>
+        <label className="flex flex-col gap-2"><Label>{f.telefoon}</Label>
+          <input className={veld} name="phone" type="tel" autoComplete="tel" required maxLength={40} placeholder={f.contact.telefoonPlaceholder} /></label>
+        <label className="flex flex-col gap-2 sm:col-span-2"><Label>{f.bericht}</Label>
+          <textarea className={`${veld} h-[160px] resize-none py-3.5 leading-[1.6]`} name="message" required maxLength={4000} placeholder={f.berichtPlaceholder} /></label>
       </div>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
       <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="m-0 text-[15px] font-medium" style={{ color: PINK }}>{state.error}</p>}
       <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-[14px] leading-[1.55]" style={{ color: MUTE }}>
-          {note || "Deel hier geen medische informatie."}{" "}
-          <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2">Privacy</a>
+          {note || f.contact.geenMedisch}{" "}
+          <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2">{f.privacy}</a>
         </span>
         <button disabled={pending}
           className="hv-btn hv-btn-roze inline-flex h-[52px] items-center justify-center gap-2.5 self-start whitespace-nowrap rounded-full px-[26px] text-[16px] font-bold disabled:opacity-60 sm:self-auto">
-          {pending ? "Versturen…" : <>Versturen<Pijl /></>}
+          {pending ? f.bezig : <>{f.versturen}<Pijl /></>}
         </button>
       </div>
     </form>
@@ -115,7 +120,7 @@ export function ContactSimpel({ d, asH1 }: { d: any; asH1?: boolean }) {
           )}
         </div>
         <div className="self-start rounded-[20px] p-6 md:p-12 lg:col-span-7 lg:col-start-6" style={{ background: SOFT }}>
-          <Formulier heading={d.formHeading || "Stuur een bericht"} note={d.note} />
+          <Formulier heading={d.formHeading} note={d.note} />
         </div>
       </div>
     </section>
