@@ -4,6 +4,7 @@ import Footer from "./Footer";
 import HeaderR2u from "./HeaderR2u";
 import FooterR2u from "./FooterR2u";
 import VisitTracker from "./VisitTracker";
+import CookieBanner from "./CookieBanner";
 import Reveal from "./Reveal";
 import { getSetting, CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
@@ -38,6 +39,8 @@ export default async function SiteShell({ children }: { children: React.ReactNod
       {/* Alleen op de publieke site: adminverkeer is jouw eigen verkeer en
           hoort niet in de statistieken. */}
       <VisitTracker />
+      {/* Hier en niet in de root-layout: wel op de 404, niet in het adminpaneel. */}
+      <CookieBanner />
       <Reveal />
       <Analytics />
     </div>

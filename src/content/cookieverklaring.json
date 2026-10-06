@@ -1,0 +1,48 @@
+{
+  "_uitleg": "Cookieverklaring: wat react2u.nl in de browser bewaart. Hoort bij de cookiemelding (CookieBanner.tsx). Zie CONTEXT.md, *Bewaartermijnen en privacy*.",
+  "slug": "cookieverklaring",
+  "title": "Cookieverklaring",
+  "seo_description": "Welke cookies react2u.nl gebruikt en waarom: één functionele cookie, geen tracking en geen cookies van derden.",
+  "blocks": [
+    {
+      "type": "richText",
+      "label": "Inleiding",
+      "data": {
+        "eyebrow": "PRIVACY",
+        "heading": "Cookieverklaring",
+        "body": "Een cookie is een klein tekstbestand dat een website in je browser zet, bijvoorbeeld om te onthouden wat je eerder koos. Deze verklaring beschrijft wat react2u.nl in jouw browser bewaart en waarom.\n\nKort samengevat: we plaatsen **één functionele cookie** en bewaren **één voorkeur** in je browser. We gebruiken geen cookies voor statistiek of marketing en plaatsen geen cookies van derden. Daarom vragen we geen toestemming: de melding onderaan de pagina is een mededeling, geen keuze die je moet maken.\n\nDeze verklaring is voor het laatst bijgewerkt op 6 oktober 2026.",
+        "button": { "label": "", "href": "" }
+      }
+    },
+    {
+      "type": "richText",
+      "label": "Wat we bewaren",
+      "data": {
+        "eyebrow": "",
+        "heading": "Wat we in je browser bewaren",
+        "body": "### r2u_cookie_consent\nEen functionele cookie van react2u.nl. Hij onthoudt dat je de cookiemelding hebt gezien, zodat die niet op elke pagina terugkomt. Vragen we in de toekomst om toestemming voor andere cookies, dan staat ook jouw keuze erin. Bewaartermijn: **12 maanden**. Er staat niets in waarmee we jou kunnen herkennen.\n\n### r2u-doelgroep\nGeen cookie, maar een voorkeur in de opslag van je browser (localStorage). Kies je op de site voor werkgever of werknemer, dan onthouden we dat woord, zodat het menu op andere pagina's bij jouw keuze past. Het blijft staan tot je je browsergegevens wist en bevat alleen het woord werkgever of werknemer.\n\n### Inloggen voor medewerkers\nMedewerkers van React2u die inloggen op het beheer van de website krijgen een inlogcookie van onze databaseleverancier Supabase (de naam begint met sb-). Die is nodig om ingelogd te blijven. Bezoekers krijgen deze cookie niet.",
+        "button": { "label": "", "href": "" }
+      }
+    },
+    {
+      "type": "richText",
+      "label": "Statistiek en derden",
+      "data": {
+        "eyebrow": "",
+        "heading": "Statistieken zonder cookies",
+        "body": "We willen weten welke pagina's bezocht worden, maar daar zijn geen cookies voor nodig. Onze eigen telling en Vercel Web Analytics werken zonder cookies en zonder je over websites heen te volgen. We slaan geen IP-adressen op; hoe dat werkt staat in de privacyverklaring.\n\nWe gebruiken geen advertentienetwerken, geen socialemediaknoppen die meekijken en geen ingesloten video's of kaarten die cookies plaatsen. De link naar LinkedIn onderaan de pagina is een gewone link.",
+        "button": { "label": "", "href": "" }
+      }
+    },
+    {
+      "type": "richText",
+      "label": "Wijzigen en verwijderen",
+      "data": {
+        "eyebrow": "",
+        "heading": "Je keuze wijzigen of cookies verwijderen",
+        "body": "Onderaan elke pagina staat **Cookie-instellingen**. Daarmee open je de cookiemelding opnieuw. Komen er ooit cookies bij waarvoor toestemming nodig is, dan kun je die daar aan- of uitzetten; weigeren is dan even makkelijk als accepteren.\n\nCookies verwijderen kan altijd in je browser, meestal onder de privacy- of geschiedenisinstellingen. Verwijder je de cookie r2u_cookie_consent, dan zie je de melding opnieuw.\n\nGaan we meer cookies gebruiken, dan vragen we eerst toestemming en werken we deze pagina bij.\n\nVragen over cookies of privacy? Mail naar info@react2u.nl of bel 085 - 620 58 00. React2u, Stratumsedijk 29, 5611 NB Eindhoven.",
+        "button": { "label": "Lees de privacyverklaring", "href": "/privacyverklaring" }
+      }
+    }
+  ]
+}

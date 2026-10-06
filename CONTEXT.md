@@ -410,7 +410,8 @@ Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
 `werkgevers`, `werknemers`, `verzuimprotocol`, `diensten` — dezelfde teksten in
 een nieuwe opbouw — `tarieven` en `begeleiding-en-coaching` — daar alleen de volgorde
-hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
+hersteld: de oproep stond boven de paginakop — en `cookieverklaring`, een nieuwe
+pagina bij de cookiemelding): de blokken, de titel en voor
 een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
 
@@ -860,6 +861,21 @@ De **privacyverklaring** staat als gewone pagina in het CMS (`/privacyverklaring
 gelinkt in de footer en onder beide formulieren. Hij beschrijft precies wat de
 site nu doet. **Zet je `IPINFO_TOKEN` of Resend aan, dan moet die verklaring
 mee**: er komt dan een verwerker bij (ipinfo.io, Resend) die er nu niet in staat.
+
+De **cookiemelding** ([`CookieBanner.tsx`](src/components/site/CookieBanner.tsx))
+staat in `SiteShell`: wel op de 404, niet in het adminpaneel. Hij vraagt niets,
+want er is niets om toestemming voor te vragen: de site zet precies één cookie
+(`r2u_cookie_consent`, 12 maanden, onthoudt dat je de melding zag) en bewaart de
+doelgroepkeuze in `localStorage`; de bezoekstatistiek werkt zonder cookies.
+*Cookie-instellingen* in beide footers opent de melding opnieuw. Wat er in de
+browser staat, beschrijft `/cookieverklaring`
+([`src/content/cookieverklaring.json`](src/content/cookieverklaring.json)): een
+concept dat in productie als reserve dient zolang de pagina niet in de database
+staat. Komt er statistiek of marketing bij: categorie toevoegen aan
+`OPTIONAL_CATEGORIES`, het script alleen laden als `hasConsent()` waar is,
+`CONSENT_VERSION` ophogen en de cookieverklaring bijwerken. **Let op:** de
+privacyverklaring in de database zegt nog "geen cookies … daarom geen
+cookiemelding"; die alinea moet mee zodra de melding live staat.
 
 Voor de bedrijfsherkenning zegt hij nu: "Komt een bezoek vanaf een
 bedrijfsnetwerk, dan kan daar de naam van dat bedrijf bij staan — nooit de naam

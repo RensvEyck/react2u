@@ -4,6 +4,7 @@ import type { ContactInfo } from "@/lib/content";
 import type { Certificate, FooterDoc } from "@/lib/nav";
 import Logo from "./Logo";
 import { letter, K, telefoon, type Link2 } from "./r2uStijl";
+import { CookieSettingsLink } from "./CookieBanner";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -72,18 +73,28 @@ function kolommen(contact: ContactInfo): Kolom[] {
   ];
 }
 
-/** De documenten uit de instellingen, met vaste namen en in vaste volgorde. */
+/**
+ * De documenten uit de instellingen, met vaste namen en in vaste volgorde. De
+ * cookieverklaring is een vaste pagina (src/content/cookieverklaring.json) en
+ * komt er altijd bij, direct na de privacyverklaring.
+ */
 function documenten(docs: FooterDoc[]) {
+  // "Privacy reglement" (de PDF voor verzuimdossiers) is iets anders dan de
+  // privacyverklaring van de website; zonder de uitsluiting heetten ze allebei
+  // "Privacyverklaring".
   const soorten = [
-    { test: /privacy/i, naam: "Privacyverklaring" },
+    { test: /privacy(?!.*reglement)/i, naam: "Privacyverklaring" },
+    { test: /cookie/i, naam: "Cookieverklaring" },
     { test: /voorwaarden/i, naam: "Algemene voorwaarden" },
     { test: /klacht/i, naam: "Klachtenregeling" },
+    { test: /reglement/i, naam: "Privacyreglement" },
   ];
+  const alle = docs.some((d) => /cookie/i.test(d.label)) ? docs : [...docs, { label: "Cookieverklaring", href: "/cookieverklaring" }];
   const rang = (d: FooterDoc) => {
     const i = soorten.findIndex((s) => s.test.test(d.label));
     return i < 0 ? soorten.length : i;
   };
-  return [...docs].sort((a, b) => rang(a) - rang(b)).map((d) => ({
+  return alle.sort((a, b) => rang(a) - rang(b)).map((d) => ({
     href: d.href,
     naam: soorten.find((x) => x.test.test(d.label))?.naam ?? d.label,
   }));
@@ -148,6 +159,7 @@ export default function FooterR2u({ contact, docs, certificates }: {
               {docLinks.map((d) => (
                 <a key={d.href + d.naam} href={d.href} className="rk-flink font-semibold" style={{ color: K.indigo }}>{d.naam}</a>
               ))}
+              <CookieSettingsLink className="rk-flink font-semibold" style={{ color: K.indigo }} />
             </span>
           )}
         </div>

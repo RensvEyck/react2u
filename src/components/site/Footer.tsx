@@ -5,6 +5,7 @@ import { LuPhone, LuMail, LuMapPin, LuAward, LuLinkedin } from "react-icons/lu";
 import SiteImage from "./SiteImage";
 import Logo from "./Logo";
 import { zinsletters } from "@/lib/tekst";
+import { CookieSettingsLink } from "./CookieBanner";
 
 // Net als op de oude site: een kolom voor werkgevers en een voor werknemers.
 const WERKNEMERS = [
@@ -149,6 +150,16 @@ export default function Footer({
                 <a href={d.href} target="_blank" rel="noopener" className="hover:text-white">{d.label}</a>
               </li>
             ))}
+            {/* De cookieverklaring is een vaste pagina (src/content/cookieverklaring.json),
+                geen document uit de instellingen; staat hij daar toch, dan niet dubbel. */}
+            {!docs.some((d) => /cookie/i.test(d.label)) && (
+              <li>
+                <Link href="/cookieverklaring" className="hover:text-white">Cookieverklaring</Link>
+              </li>
+            )}
+            <li>
+              <CookieSettingsLink className="hover:text-white" />
+            </li>
           </ul>
         </div>
       </div>

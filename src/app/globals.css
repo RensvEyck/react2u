@@ -487,6 +487,16 @@ h1, h2, h3 {
   .acard:target { animation: none; outline: 3px solid rgba(231, 83, 135, 0.45); }
 }
 
+/* Cookiemelding (components/site/CookieBanner.tsx): schuift zacht in. */
+@keyframes cb-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.cb-in { animation: cb-in 0.45s var(--ease-out-soft) both; }
+@media (prefers-reduced-motion: reduce) {
+  .cb-in { animation: none; }
+}
+
 /* Proza (mini-markdown) */
 .prose-r2u > * + * { margin-top: 1em; }
 .prose-r2u ul { padding-left: 0; }
