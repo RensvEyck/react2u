@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PIJLERS, LINKEDIN_URL, type FooterDoc, type Certificate } from "@/lib/nav";
 import type { ContactInfo } from "@/lib/content";
-import { LuPhone, LuMail, LuMapPin, LuAward, LuLinkedin } from "react-icons/lu";
+import { LuPhone, LuMail, LuMapPin, LuAward, LuLinkedin, LuClock } from "react-icons/lu";
 import SiteImage from "./SiteImage";
 import Logo from "./Logo";
 import { zinsletters } from "@/lib/tekst";
@@ -54,6 +54,10 @@ export default function Footer({
               <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-3 font-semibold text-white underline-offset-4 hover:underline">
                 <LuPhone className="text-[16px]" aria-hidden /> {contact.phoneDisplay}
               </a>
+            </li>
+            <li className="flex gap-3">
+              <LuClock className="mt-1 shrink-0 text-[16px]" aria-hidden />
+              <span>Ma t/m vr 9.00 tot 17.00 uur</span>
             </li>
             <li>
               <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-3 font-semibold text-white underline-offset-4 hover:underline">

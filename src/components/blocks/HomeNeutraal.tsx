@@ -268,7 +268,7 @@ export function HomeContact({ d }: BlockProps) {
                   <Ic className="text-[18px] md:text-[20px]" aria-hidden />
                 </span>
                 <span className="flex grow flex-col gap-0.5">
-                  <span className="text-[13px] font-semibold" style={{ color: "#B4ADF2" }}>{r.label}</span>
+                  <span className="text-balance text-[13px] font-semibold" style={{ color: "#B4ADF2" }}>{r.label}</span>
                   <span className="text-[17px] font-extrabold tracking-[-0.3px] md:text-[18px] xl:whitespace-nowrap xl:text-[20px]">{r.value}</span>
                 </span>
                 <span style={{ color: "#B4ADF2" }}><Pijl /></span>

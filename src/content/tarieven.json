@@ -219,7 +219,7 @@
         "anchor": "vragen",
         "eyebrow": "Vragen",
         "heading": "Veelgestelde\nvragen",
-        "text": "Staat je vraag er niet bij? Bel ons gerust, je krijgt direct iemand aan de lijn.",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, we zijn op werkdagen bereikbaar.",
         "bg": "#F6F5FB",
         "items": [
           {
@@ -254,7 +254,7 @@
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen · op werkdagen",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },

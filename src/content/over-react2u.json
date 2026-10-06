@@ -9,15 +9,15 @@
       "type": "overReact2u",
       "label": "Over React2u",
       "data": {
-        "heading": "Aandacht raakt.",
-        "motto": "Aandacht\nraakt.",
+        "heading": "Een arbodienst die je mensen echt kent",
+        "motto": "Een arbodienst\ndie je mensen\necht kent",
         "intro": "React2u is een persoonlijke arbodienst uit Eindhoven. We brengen mensen weer duurzaam in beweging, op een professionele en vooral menselijke manier.",
-        "citaat": "We weten wat het betekent om langdurig of, hopelijk, maar kort aan de zijlijn te staan. Verzuim vraagt om persoonlijke aandacht.",
+        "citaat": "We weten hoe het voelt om aan de zijlijn te staan, kort of lang. Verzuim vraagt om persoonlijke aandacht.",
         "citaatLabel": "Waarom we doen wat we doen",
         "verhaalEyebrow": "Ons verhaal",
         "verhaalKop": "Hoe React2u begon",
         "verhaal": [
-          "Vanuit een zusteronderneming van React2u merkten we dat verzuim bijna altijd hetzelfde liep. Een medewerker meldde zich ziek, de arbodienst nam het over en daarna bleef het stil. Rapportages kwamen laat, er zat steeds iemand anders aan de telefoon en niemand kon precies zeggen waar een traject stond.",
+          "Als werkgever merkten we zelf dat verzuim bijna altijd hetzelfde liep. Een medewerker meldde zich ziek, de arbodienst nam het over en daarna bleef het stil. Rapportages kwamen laat, er zat steeds iemand anders aan de telefoon en niemand kon precies zeggen waar een traject stond.",
           "Werkgevers voelden zich aan de zijlijn staan en werknemers voelden zich een dossiernummer."
         ],
         "uitspraak": "Dat moest anders, en we wisten ook hoe: als we het zelf zouden doen, zoals we het zelf graag hadden gehad.",
@@ -60,7 +60,6 @@
           "tekst": "Verzuim heeft vaak meer oorzaken dan alleen ziekte. Daarom kijken we naar de hele mens en geven we elke organisatie één vast gezicht. Zo voorkomen we verzuim waar het kan en helpen we herstel waar het nodig is."
         },
         "waardenKop": "Gezond, menselijk en duidelijk",
-        "waardenTekst": "Drie woorden die we elke dag waarmaken, bij werkgevers én bij werknemers.",
         "waarden": [
           {
             "titel": "Gezond",
@@ -70,7 +69,7 @@
           {
             "titel": "Menselijk",
             "kleur": "#00A098",
-            "tekst": "We bieden een luisterend oor, zijn kritisch waar het moet en gebruiken humor. Achter elk dossier zit een mens, en zo behandelen we het ook."
+            "tekst": "We luisteren, zeggen eerlijk wat we zien en houden het luchtig waar het kan. Achter elk dossier zit een mens, en zo behandelen we het ook."
           },
           {
             "titel": "Duidelijk",
@@ -86,14 +85,14 @@
       "data": {
         "eyebrow": "Contact",
         "heading": "Een vraag?\nBel gewoon even.",
-        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
         "image": "/beeld/home/even-bellen.webp",
         "alt": "Een vrouw belt ontspannen met React2u",
         "focus": "52% 22%",
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen · op werkdagen",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },

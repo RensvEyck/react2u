@@ -8,7 +8,7 @@ import Beeld from "@/components/site/Beeld";
 
 /*
  * Middensecties van de startpagina (ontwerp "Home S-tier"):
- *  - homeEenMens: "Eén mens. Eén verhaal. Eén aanspreekpunt." met een
+ *  - homeEenMens: "Eén casemanager die je kent. Van dag één tot herstel." met een
  *    foto-constellatie in de stippen van het logo.
  *  - homeReis: "Zo werkt het", een stippenspoor dat zichzelf tekent langs
  *    Voorkomen, Signaleren, Begeleiden en Verder.
@@ -66,7 +66,7 @@ function Label({ children, kleur = TEAL, zacht = "#D7F0EE" }: { children: React.
   );
 }
 
-/* ---------- Eén mens. Eén verhaal. Eén aanspreekpunt. ---------- */
+/* ---------- Eén casemanager die je kent. Van dag één tot herstel. ---------- */
 
 // Constellatie op een vlak van 640×620; alles in procenten zodat hij meeschaalt.
 const CW = 640, CH = 620;
@@ -82,7 +82,7 @@ const FOTOPLEKKEN: [number, number, number, number][] = [
 ];
 
 export function HomeEenMens({ d }: BlockProps) {
-  const lines: string[] = (d.lines as string[]) || ["Eén mens.", "Eén verhaal.", "Eén aanspreekpunt."];
+  const lines: string[] = (d.lines as string[]) || ["Eén casemanager die je kent.", "Van dag één tot herstel."];
   const checks = ((d.checks as any[]) || []).filter((c) => c?.text);
   const photos = ((d.photos as any[]) || []).filter((p) => p?.image).slice(0, 3);
   const lineColors = [NAVY, TEAL, PINK];
@@ -91,7 +91,7 @@ export function HomeEenMens({ d }: BlockProps) {
       <div className="mx-auto grid max-w-[1440px] items-center gap-12 px-5 py-20 md:grid-cols-12 md:gap-6 md:px-10 md:py-28 lg:px-16 xl:px-[120px] lg:py-[120px]">
         <div className="flex flex-col gap-6 md:col-span-6 lg:col-span-5">
           {d.eyebrow && <Label>{d.eyebrow}</Label>}
-          <h2 className="hv-kop text-[38px] leading-[1.05] tracking-[-1px] md:text-[44px] lg:whitespace-nowrap lg:text-[54px] lg:tracking-[-1.4px]">
+          <h2 className="hv-kop text-balance text-[38px] leading-[1.05] tracking-[-1px] md:text-[44px] lg:text-[54px] lg:tracking-[-1.4px]">
             {lines.map((l, i) => (
               <span key={i} className="block" style={{ color: lineColors[i % 3] }}>{l}</span>
             ))}

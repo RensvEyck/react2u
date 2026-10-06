@@ -33,7 +33,7 @@
       "label": "Diensten",
       "data": {
         "anchor": "diensten",
-        "heading": "5 diensten, onder één dak",
+        "heading": "Vijf diensten onder één dak",
         "text": "Elke dienst is een eigen specialisme. Je casemanager houdt het overzicht over alles.",
         "items": [
           {
@@ -186,13 +186,13 @@
             "when": "Elke 6 weken",
             "title": "Evaluatie",
             "jij": "Bespreek de voortgang en stel het plan bij waar nodig.",
-            "wij": "We plannen de evaluaties en verslaan ze in het dossier."
+            "wij": "We plannen de evaluaties en leggen ze vast in het dossier."
           },
           {
             "when": "Week 42",
             "title": "Ziekmelding bij UWV",
             "jij": "Meld de ziekte uiterlijk in week 42 bij UWV.",
-            "wij": "We seinen je op tijd in voor de melding."
+            "wij": "We herinneren je op tijd en bereiden de melding voor."
           },
           {
             "when": "Week 52",
@@ -310,7 +310,7 @@
           },
           {
             "title": "Je casemanager start",
-            "text": "Eén aanspreekpunt, die ook je medewerkers informeert."
+            "text": "Je casemanager start en informeert ook je medewerkers."
           }
         ],
         "button": {
@@ -367,7 +367,7 @@
         "routes": [
           {
             "icon": "phone",
-            "label": "Bellen · op werkdagen",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
             "value": "085 620 58 00",
             "href": "tel:+31856205800"
           },

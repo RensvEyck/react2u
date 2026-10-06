@@ -32,7 +32,7 @@
             "href": "mailto:info@react2u.nl"
           }
         ],
-        "cardNote": "Op werkdagen krijg je direct iemand aan de lijn. Vraag naar je casemanager, of laat een bericht achter."
+        "cardNote": "Op werkdagen bereikbaar. Vraag naar je casemanager, of laat een bericht achter."
       }
     },
     {
@@ -74,8 +74,8 @@
           },
           {
             "icon": "hart",
-            "title": "Heeft geheimhoudingsplicht",
-            "text": "Je kunt alles delen, ook problemen met je werkgever. Medische informatie blijft bij de bedrijfsarts.",
+            "title": "Vertrouwelijk",
+            "text": "Je kunt vertrouwelijk met je casemanager praten. Medische informatie deel je alleen met de bedrijfsarts.",
             "kleur": "#E61674",
             "tint": "#FDECF4"
           },
@@ -99,12 +99,12 @@
           {
             "title": "Gezond",
             "kleur": "#00A098",
-            "text": "Werk is belangrijk. Het zorgt voor een inkomen en voor een nuttige en waardevolle dagbesteding. Daarom doen we er alles aan om iedereen daaraan te laten deelnemen."
+            "text": "Werk geeft structuur, contact en inkomen. Daarom helpen we je terug naar werk dat bij je past."
           },
           {
             "title": "Menselijk",
             "kleur": "#E61674",
-            "text": "Aandacht raakt. We willen luisteren en er voor je zijn, en je op een menselijke manier terugbrengen in het arbeidsproces."
+            "text": "We luisteren, zijn er voor je en helpen je in jouw tempo terug naar werk."
           },
           {
             "title": "Duidelijk",

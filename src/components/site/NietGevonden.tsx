@@ -59,7 +59,7 @@ export default function NietGevonden() {
               title="Ik ben werkgever" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
           </li>
           <li>
-            <FotoTegel href="/werknemers" image={PIJLERS[1].diensten[1].image} kicker="Ziek of vastgelopen? We helpen je weer op weg"
+            <FotoTegel href="/werknemers" image={PIJLERS[1].diensten[1].image} kicker="Ziek of vastgelopen? We helpen je weer verder"
               title="Ik ben werknemer" kop="h2" groot ratio="aspect-[16/9]" sizes="(min-width: 1240px) 600px, (min-width: 640px) 50vw, 100vw" />
           </li>
         </ul>
