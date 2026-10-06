@@ -4,9 +4,16 @@
 -- de anon-sleutel uit de browser onbeperkt bestanden in `cvs` zetten, buiten
 -- elk formulier om.
 --
--- PAS DRAAIEN ALS `SUPABASE_SERVICE_ROLE_KEY` IN VERCEL STAAT (production én
--- preview). Zonder die sleutel valt uploadCv() terug op de anon-sleutel, en
--- die mag na deze migratie niets meer: dan faalt elke sollicitatie met cv.
+-- PAS DRAAIEN ALS (1) `SUPABASE_SERVICE_ROLE_KEY` IN VERCEL STAAT (production
+-- én preview — staging deelt de database) EN (2) DE CODE MET src/lib/cvs.ts OP
+-- `master` STAAT. Zonder sleutel valt uploadCv() terug op de anon-sleutel, en
+-- een oudere productieversie kent alleen die sleutel; na deze migratie mag die
+-- niets meer, en dan faalt elke sollicitatie met cv. Op 6 oktober 2026 is dit
+-- daarom gedraaid en meteen teruggedraaid (productie draaide nog `master`):
+--
+--   create policy "anyone upload cv" on storage.objects
+--     for insert to anon, authenticated with check (bucket_id = 'cvs');
+--
 -- Het dashboard toont of de sleutel er is (controle "Collega's uitnodigen").
 
 drop policy if exists "anyone upload cv" on storage.objects;
