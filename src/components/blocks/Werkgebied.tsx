@@ -2,7 +2,7 @@ import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Knop, Vink, Pijl, KopBlok } from "./Gedeeld";
 import {
-  REGIOS, AANTAL_GEMEENTEN, AANTAL_PROVINCIES, plaatsHref, provincieHref, slugVan,
+  REGIOS, AANTAL_PROVINCIES, geindexeerdePlaatsen, isGeindexeerd, plaatsHref, provincieHref, slugVan,
   type Plaats, type Provincie, type Regio,
 } from "@/lib/gemeenten";
 import lokaleTeksten from "@/content/plaatsen.json";
@@ -11,8 +11,9 @@ import lokaleTeksten from "@/content/plaatsen.json";
 
 /*
  * Werkgebied (canvas: "Sitemap" en "Arbodienst in [plaats]"):
- *  - SitemapOverzicht: alle pagina's per onderwerp en alle gemeenten per
- *    regio en provincie (blok `sitemapOverzicht` op /sitemap);
+ *  - SitemapOverzicht: alle pagina's per onderwerp, de gemeenten die in Google
+ *    horen (GEINDEXEERDE_GEMEENTEN in lib/gemeenten.ts) en een link per
+ *    provincie (blok `sitemapOverzicht` op /sitemap);
  *  - PlaatsPagina: /arbodienst-<gemeente>;
  *  - ProvinciePagina: /arbodienst-provincie-<provincie>.
  * Een gemeente kan een eigen tekst krijgen in src/content/plaatsen.json
@@ -42,17 +43,18 @@ function ContactStrook({ titel, tekst }: { titel: string; tekst: string }) {
 
 /* ---------- Sitemap ---------- */
 
-function GemeentenBlok({ provincie, regio }: { provincie: Provincie; regio: Regio }) {
+/** Een provincie met haar gemeenten. `gemeenten` beperkt de lijst: de sitemap toont alleen de geïndexeerde. */
+function GemeentenBlok({ provincie, regio, gemeenten = provincie.gemeenten }: { provincie: Provincie; regio: Regio; gemeenten?: string[] }) {
   return (
     <div id={slugVan(provincie.naam)} className="flex scroll-mt-28 flex-col gap-[18px] rounded-[24px] border bg-white px-6 py-7 md:px-8" style={{ borderColor: LINE }}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href={provincieHref(provincie.naam)} className={`${kop} flex items-center gap-3 text-[20px] md:text-[22px]`} style={{ color: NAVY }}>
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: regio.kleur }} />Arbodienst in {provincie.naam}
         </Link>
-        <span className="rounded-full px-3 py-1.5 text-[13.5px] font-bold" style={{ background: SOFT, color: NAVY }}>{provincie.gemeenten.length} gemeenten</span>
+        <span className="rounded-full px-3 py-1.5 text-[13.5px] font-bold" style={{ background: SOFT, color: NAVY }}>{gemeenten.length} gemeenten</span>
       </div>
       <ul className="m-0 list-none columns-2 gap-6 p-0 sm:columns-3 lg:columns-6">
-        {provincie.gemeenten.map((g) => (
+        {gemeenten.map((g) => (
           <li key={g} className="break-inside-avoid py-[5px] text-[15px] leading-[1.4]">
             <Link href={plaatsHref(g)} title={`Arbodienst ${g}`} className="hover:underline" style={{ color: BODY }}>{g}</Link>
           </li>
@@ -62,11 +64,25 @@ function GemeentenBlok({ provincie, regio }: { provincie: Provincie; regio: Regi
   );
 }
 
+/** "Noord-Brabant en Limburg", "A, B en C". */
+function opsomming(items: string[]): string {
+  return items.length > 1 ? `${items.slice(0, -1).join(", ")} en ${items[items.length - 1]}` : items[0] ?? "";
+}
+
 export function SitemapOverzicht({ d, asH1 }: { d: any; asH1?: boolean }) {
   const H = asH1 ? "h1" : "h2";
   const groepen: any[] = d.groups || [];
+  // Alleen de gemeenten met een eigen plek in Google staan op de sitemap; de
+  // provinciepagina's tonen alle 342. Zie GEINDEXEERDE_GEMEENTEN in lib/gemeenten.ts.
+  const plaatsen = geindexeerdePlaatsen();
+  const perProvincie = REGIOS.flatMap((regio) =>
+    regio.provincies
+      .map((provincie) => ({ regio, provincie, gemeenten: plaatsen.filter((p) => p.provincie === provincie).map((p) => p.naam) }))
+      .filter((x) => x.gemeenten.length > 0),
+  );
+  const provincieNamen = opsomming(perProvincie.map((x) => x.provincie.naam));
   const stats = [
-    [String(AANTAL_GEMEENTEN), "gemeenten"], [String(AANTAL_PROVINCIES), "provincies"], ["5", "specialismen"], ["1", "vaste casemanager"],
+    [String(plaatsen.length), `gemeenten in ${provincieNamen}`], [String(AANTAL_PROVINCIES), "provincies"], ["5", "specialismen"], ["1", "vaste casemanager"],
   ];
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
@@ -117,26 +133,24 @@ export function SitemapOverzicht({ d, asH1 }: { d: any; asH1?: boolean }) {
 
       <section id="werkgebied" aria-label="Werkgebied" className="scroll-mt-28" style={{ background: SOFT }}>
         <div className={`${BREED} flex flex-col gap-5 py-16 md:py-[104px]`}>
-          <KopBlok eyebrow="Werkgebied" kopTekst="Arbodienst in jouw gemeente" tekst={d.geoText || "We begeleiden werkgevers in heel Nederland. Kies je gemeente voor meer over onze aanpak bij jou in de buurt."} />
-          <nav aria-label="Provincies" className="flex flex-wrap gap-2 pb-1 pt-2">
-            {REGIOS.flatMap((r) => r.provincies.map((p) => (
-              <a key={p.naam} href={`#${slugVan(p.naam)}`} className="inline-flex h-10 items-center gap-2 rounded-full border bg-white px-4 text-[14.5px] font-semibold" style={{ borderColor: LINE, color: NAVY }}>
-                <span className="h-2 w-2 rounded-full" style={{ background: r.kleur }} />{p.naam}
-              </a>
-            )))}
-          </nav>
-          {REGIOS.map((r) => (
-            <div key={r.regio} className="flex flex-col gap-5">
-              <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 pt-6">
-                <span className="h-3 w-3 rounded-full" style={{ background: r.kleur }} />
-                <h3 className={`${kop} m-0 text-[24px] tracking-[-0.5px] md:text-[28px]`}>{r.regio}</h3>
-                <span className="text-[15px]" style={{ color: MUTE }}>
-                  {r.provincies.length} provincies, {r.provincies.reduce((n, p) => n + p.gemeenten.length, 0)} gemeenten
-                </span>
-              </div>
-              {r.provincies.map((p) => <GemeentenBlok key={p.naam} provincie={p} regio={r} />)}
-            </div>
+          <KopBlok eyebrow="Werkgebied" kopTekst="Arbodienst in jouw gemeente"
+            tekst={d.geoText || `We begeleiden werkgevers in heel Nederland, met de meeste klanten in ${provincieNamen}. Kies je gemeente voor meer over onze aanpak bij jou in de buurt.`} />
+          {perProvincie.map(({ regio, provincie, gemeenten }) => (
+            <GemeentenBlok key={provincie.naam} provincie={provincie} regio={regio} gemeenten={gemeenten} />
           ))}
+          <div className="flex flex-col gap-4 pt-8">
+            <h3 className={`${kop} m-0 text-[24px] tracking-[-0.5px] md:text-[28px]`}>Per provincie</h3>
+            <p className="m-0 max-w-[600px] text-[16px] leading-[1.7]" style={{ color: BODY }}>
+              Ook buiten {provincieNamen} helpen we werkgevers. Elke provinciepagina toont alle gemeenten die eronder vallen.
+            </p>
+            <nav aria-label="Provincies" className="flex flex-wrap gap-2 pt-1">
+              {REGIOS.flatMap((r) => r.provincies.map((p) => (
+                <Link key={p.naam} href={provincieHref(p.naam)} className="inline-flex h-10 items-center gap-2 rounded-full border bg-white px-4 text-[14.5px] font-semibold" style={{ borderColor: LINE, color: NAVY }}>
+                  <span className="h-2 w-2 rounded-full" style={{ background: r.kleur }} />{p.naam}
+                </Link>
+              )))}
+            </nav>
+          </div>
         </div>
       </section>
       <div className="pt-20 md:pt-[104px]" />
@@ -218,7 +232,7 @@ function Gemeentelinks({ titel, gemeenten, provincie }: { titel: string; gemeent
             </Link>
           ))}
         </div>
-        <Link href={`/sitemap#${slugVan(provincie.naam)}`} className="inline-flex items-center gap-2.5 self-start text-[16px] font-bold underline underline-offset-[5px]"
+        <Link href={provincieHref(provincie.naam)} className="inline-flex items-center gap-2.5 self-start text-[16px] font-bold underline underline-offset-[5px]"
           style={{ color: NAVY, textDecorationColor: "rgba(50,46,131,0.35)" }}>
           Alle {provincie.gemeenten.length} gemeenten in {provincie.naam}<Pijl />
         </Link>
@@ -227,12 +241,17 @@ function Gemeentelinks({ titel, gemeenten, provincie }: { titel: string; gemeent
   );
 }
 
-/** Andere gemeenten uit dezelfde provincie: de alfabetische buren, niet de geografische. */
+/**
+ * Andere gemeenten uit dezelfde provincie: eerst de gemeenten met een eigen
+ * plek in Google (zo verwijzen die naar elkaar), aangevuld met de alfabetische
+ * buren, niet de geografische.
+ */
 function buren(plaats: Plaats, aantal = 9): string[] {
   const lijst = plaats.provincie.gemeenten;
   const i = lijst.indexOf(plaats.naam);
   const rest = [...lijst.slice(i + 1), ...lijst.slice(0, i)];
-  return rest.slice(0, aantal);
+  const eerst = rest.filter((g) => isGeindexeerd(slugVan(g)));
+  return [...eerst, ...rest.filter((g) => !eerst.includes(g))].slice(0, aantal);
 }
 
 export function PlaatsPagina({ plaats }: { plaats: Plaats }) {

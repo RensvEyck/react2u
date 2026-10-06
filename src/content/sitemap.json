@@ -2,15 +2,15 @@
   "_uitleg": "Sitemap (canvas: Sitemap). De gemeenten komen uit src/lib/gemeenten.ts. Zie CONTEXT.md, *Concepten*.",
   "slug": "sitemap",
   "title": "Sitemap",
-  "seo_title": "Sitemap • React2u, arbodienst in 342 gemeenten",
-  "seo_description": "Alle pagina's van react2u.nl op één plek: per onderwerp, en per provincie en gemeente waar React2u werkgevers helpt met verzuim.",
+  "seo_title": "Sitemap • React2u, arbodienst in Brabant en Limburg",
+  "seo_description": "Alle pagina's van react2u.nl op één plek: per onderwerp, per gemeente in Brabant en Limburg en per provincie waar React2u werkgevers helpt met verzuim.",
   "blocks": [
     {
       "type": "sitemapOverzicht",
       "label": "Sitemap",
       "data": {
         "heading": "Sitemap",
-        "text": "Alle pagina’s van react2u.nl op één plek. Per onderwerp, en per provincie en gemeente waar we werkgevers helpen met verzuim.",
+        "text": "Alle pagina’s van react2u.nl op één plek. Per onderwerp, per gemeente in Brabant en Limburg en per provincie waar we werkgevers helpen met verzuim.",
         "groups": [
           {
             "title": "Hoofdpagina’s",
@@ -115,7 +115,7 @@
                 "href": "/vacatures#solliciteren"
               },
               {
-                "label": "Werkgebied: 342 gemeenten",
+                "label": "Werkgebied: gemeenten en provincies",
                 "href": "#werkgebied"
               }
             ]

@@ -415,6 +415,15 @@ pagina bij de cookiemelding): de blokken, de titel en voor
 een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
 
+Het **werkgebied** staat niet in de database: `/arbodienst-provincie-<provincie>`
+en `/arbodienst-<gemeente>` komen uit [`src/lib/gemeenten.ts`](src/lib/gemeenten.ts)
+(alle 342 gemeenten), met eigen tekst per gemeente in `src/content/plaatsen.json`.
+Omdat die pagina's voor negentig procent dezelfde tekst hebben, staan alleen de
+gemeenten in `GEINDEXEERDE_GEMEENTEN` (vijftien rond Eindhoven en in Limburg) in
+Google, in `sitemap.xml` en op `/sitemap`; de overige gemeentepagina's bestaan
+wel, maar met `noindex, follow`. De twaalf provinciepagina's tonen alle gemeenten
+en blijven geïndexeerd.
+
 **Alleen op staging** (`VERCEL_ENV=preview`) tonen `/` en `[slug]` het concept
 in plaats van de databasepagina — zo zie je de site zoals hij live komt. In
 productie komt alles uit de database. Lokaal staging nabootsen, zonder

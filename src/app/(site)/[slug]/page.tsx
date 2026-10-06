@@ -9,7 +9,7 @@ import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
 import { concept, conceptSlugs, reserveConcept, type Concept } from "@/lib/concept";
 import type { Block, Page } from "@/lib/types";
-import { plaatsVoorSlug, provincieVoorSlug } from "@/lib/gemeenten";
+import { isGeindexeerd, plaatsVoorSlug, provincieVoorSlug } from "@/lib/gemeenten";
 import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/Werkgebied";
 
 /**
@@ -63,10 +63,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const gebied = werkgebied(slug);
   if (gebied) {
     const title = `Arbodienst ${gebied.naam} • Persoonlijke verzuimbegeleiding • React2u`;
+    // Alleen de gemeenten uit GEINDEXEERDE_GEMEENTEN horen in Google; de
+    // andere gemeentepagina's bestaan wel, maar met noindex (lib/gemeenten.ts).
+    const noindex = gebied.soort === "plaats" && !isGeindexeerd(gebied.plaats.slug);
     return {
       title: { absolute: title },
       description: `Arbodienst in ${gebied.naam}: persoonlijke verzuimbegeleiding met één vaste casemanager, preventie en re-integratie. SBCA en ISO gecertificeerd.`,
       alternates: { canonical: `/${slug}` },
+      ...(noindex ? { robots: { index: false, follow: true } } : {}),
     };
   }
   const res = await inhoud(slug);
