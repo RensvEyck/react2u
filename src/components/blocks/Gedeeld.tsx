@@ -128,13 +128,13 @@ const QUOTES = [
   },
 ];
 
-export function KlantenAanHetWoord({ bg = SOFT }: { bg?: string }) {
+export function KlantenAanHetWoord({ bg = SOFT, eyebrow = "Klanten aan het woord", heading = "Wat klanten over ons zeggen" }: { bg?: string; eyebrow?: string; heading?: string }) {
   return (
     <section aria-label="Klanten aan het woord" style={{ background: bg }}>
       <div className={`${BREED} flex flex-col gap-10 py-20 md:gap-12 md:py-[104px]`}>
         <div className="flex flex-col gap-4">
-          <Eyebrow>Klanten aan het woord</Eyebrow>
-          <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>Wat klanten over ons zeggen</h2>
+          <Eyebrow>{eyebrow}</Eyebrow>
+          <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{heading}</h2>
         </div>
         <div className="grid gap-5 md:grid-cols-2 md:gap-6">
           {QUOTES.map((q) => (
@@ -171,6 +171,9 @@ export function Keurmerken() {
             <p className="m-0 text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>
               Je werkt met gevoelige informatie. Daarom laten we onze kwaliteit, beveiliging en privacy onafhankelijk toetsen.
             </p>
+            <Link href="/certificeringen" className="inline-flex items-center gap-2 text-[16px] font-bold underline underline-offset-[5px]" style={{ color: NAVY, textDecorationColor: "rgba(50,46,131,0.35)" }}>
+              Meer over onze certificeringen<Pijl />
+            </Link>
           </div>
         </div>
         <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 lg:grid-cols-5">

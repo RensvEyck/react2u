@@ -1,407 +1,202 @@
 {
-  "_uitleg": "Werknemerspagina (ontwerp D-Werknemers). Blokken met prefix wn, zie src/components/blocks/Werknemers.tsx. Zie CONTEXT.md, *Concepten*.",
+  "_uitleg": "Werknemerspagina in het ontwerp van het canvas (Werknemers). Zie CONTEXT.md, *Concepten*.",
   "slug": "werknemers",
   "title": "Werknemers",
-  "sort": 8,
+  "seo_title": "Ziek of vastgelopen? Hulp voor werknemers • React2u",
+  "seo_description": "Ziek of vastgelopen? Je krijgt één vaste casemanager die naar je luistert en je helpt om weer aan het werk te gaan. Lees wat je doet en wat je mag verwachten.",
   "blocks": [
     {
-      "type": "wnSplit",
-      "label": "Splitscreen werkgever | werknemer",
+      "type": "dgKop",
+      "label": "Kop",
       "data": {
         "eyebrow": "Voor werknemers",
-        "heading": "Ziek of vastgelopen?\nWe helpen je verder.",
-        "text": "Je werkgever heeft React2u gevraagd je te begeleiden. Hier lees je rustig wat je nu doet, wat je kunt verwachten en wie je kunt bellen.",
-        "textShort": "Hier lees je rustig wat je nu doet, wat je kunt verwachten en wie je kunt bellen.",
+        "heading": "Ziek of vastgelopen?\nWe helpen je\nweer verder",
+        "text": "Eén vaste casemanager die naar je luistert en je helpt om weer aan het werk te gaan.",
         "image": "/beeld/werknemers/samen-buiten.webp",
-        "alt": "Een vrouw en een man wandelen samen in het park",
-        "focus": "28% 20%",
-        "focusMobile": "46% 18%",
-        "button": {
-          "label": "Bel 085 620 58 00",
-          "labelShort": "085 620 58 00",
-          "href": "tel:+31856205800"
-        },
-        "button2": {
-          "label": "Ziek melden",
-          "href": "#ziekmelden"
-        },
-        "werkgever": {
-          "eyebrow": "Voor werkgevers",
-          "title": "Ik ben werkgever",
-          "button": "Naar werkgevers",
-          "href": "/werkgevers",
-          "aria": "Ik ben werkgever, naar de pagina voor werkgevers",
-          "image": "/beeld/werknemers/samen-leren.webp",
-          "alt": "Collega’s lachen samen aan een ronde tafel",
-          "focus": "52% 30%",
-          "focusMobile": "40% 22%"
-        }
-      }
-    },
-    {
-      "type": "wnInhoud",
-      "label": "Op deze pagina",
-      "data": {
-        "label": "Op deze pagina",
-        "links": [
+        "alt": "Twee mensen wandelen samen buiten",
+        "focus": "60% 25%",
+        "panel": "#E61674",
+        "buttons": [
           {
-            "label": "Wat nu",
-            "href": "#wat-nu"
+            "label": "Ziek, wat nu?",
+            "href": "/verzuimprotocol"
           },
           {
-            "label": "Je verzuimperiode",
-            "href": "#tijdlijn"
-          },
-          {
-            "label": "Rechten en plichten",
-            "href": "#rechten"
-          },
-          {
-            "label": "Wie weet wat",
-            "href": "#privacy"
-          },
-          {
-            "label": "Je casemanager",
-            "href": "#casemanager"
-          },
-          {
-            "label": "Vastgelopen",
-            "href": "#coaching"
-          },
-          {
-            "label": "Vragen",
-            "href": "#vragen"
+            "label": "085 620 58 00",
+            "href": "tel:+31856205800"
           }
         ]
       }
     },
     {
-      "type": "wnWatNu",
-      "label": "Net ziek? Eerste stappen",
+      "type": "dgLabels",
+      "label": "Zo helpen we je",
+      "data": {
+        "anchor": "hulp",
+        "eyebrow": "Hulp voor jou",
+        "heading": "Zo helpen we je",
+        "text": "Of je nu ziek bent, vastloopt of een vraag hebt: je casemanager zorgt dat je de juiste hulp krijgt.",
+        "items": [
+          {
+            "naam": "Recover",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "title": "We begeleiden je als je ziek bent",
+            "text": "Van de eerste dag tot je weer aan het werk bent.",
+            "points": [
+              "Eén vaste casemanager",
+              "Gesprek met de bedrijfsarts",
+              "Een plan in jouw tempo"
+            ],
+            "href": "/verzuimprotocol",
+            "link": "Meer weten"
+          },
+          {
+            "naam": "Restart",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "title": "We helpen je aan passend werk",
+            "text": "Als je eigen werk niet meer lukt, kijken we samen vooruit.",
+            "points": [
+              "Loopbaanscan en coaching",
+              "Arbeidsdeskundig advies",
+              "Werk binnen of buiten je werkgever"
+            ],
+            "href": "/je-casemanager",
+            "link": "Meer weten"
+          },
+          {
+            "naam": "Resist",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "title": "We helpen je fit te blijven",
+            "text": "Loop je vast door werkdruk of stress? Praat er op tijd over.",
+            "points": [
+              "Coach bij werkdruk en stress",
+              "Open spreekuur bedrijfsarts",
+              "Externe vertrouwenspersoon"
+            ],
+            "href": "/je-casemanager",
+            "link": "Meer weten"
+          },
+          {
+            "naam": "Reflex",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC",
+            "title": "We begeleiden je ook als flexkracht",
+            "text": "Werk je via een uitzendbureau? Dan helpen we je net zo goed.",
+            "points": [
+              "Begeleiding na einde contract",
+              "Uitleg over de Ziektewet",
+              "Hulp bij passend werk"
+            ],
+            "href": "/verzuimprotocol",
+            "link": "Meer weten"
+          },
+          {
+            "naam": "Ready",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5",
+            "title": "We leggen je rechten uit",
+            "text": "Wat mag je werkgever wel en niet vragen? Je krijgt een helder antwoord.",
+            "points": [
+              "Je privacy bij ziekte",
+              "Second opinion aanvragen",
+              "Hulp bij een deskundigenoordeel"
+            ],
+            "href": "/je-rechten-en-privacy",
+            "link": "Meer weten"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnStappen",
+      "label": "Ziek, wat nu?",
       "data": {
         "anchor": "wat-nu",
-        "eyebrow": "Wat moet je nu doen",
-        "heading": "Net ziek? Dit zijn\nje eerste stappen",
-        "text": "Meer hoef je vandaag niet te regelen. De rest komt vanzelf aan bod, samen met je casemanager.",
-        "image": "/beeld/werknemers/even-bellen.webp",
-        "alt": "Een vrouw belt rustig vanuit huis",
-        "badgeLabel": "Je casemanager",
-        "badgeText": "belt je\nsnel op",
-        "steps": [
-          {
-            "title": "Meld je ziek bij je werkgever",
-            "text": "Zoals dat in je organisatie is afgesproken, meestal bij je leidinggevende. Je hoeft niet te vertellen wat je hebt.",
-            "textShort": "Zoals afgesproken. Je hoeft niet te vertellen wat je hebt.",
-            "action": "Geef door hoe je bereikbaar bent"
-          },
-          {
-            "title": "Houd je telefoon bij de hand",
-            "text": "Je werkgever geeft je ziekmelding aan ons door. Je casemanager neemt snel contact met je op voor een eerste gesprek.",
-            "textShort": "Je casemanager belt je snel voor een eerste gesprek.",
-            "action": "Neem op of bel even terug"
-          },
-          {
-            "title": "Rust uit en kom naar afspraken",
-            "text": "Werk aan je herstel. Word je uitgenodigd door de bedrijfsarts of je casemanager, dan ga je daar naartoe.",
-            "textShort": "Bij de bedrijfsarts of je casemanager.",
-            "action": "Kun je niet? Geef het op tijd door"
-          }
-        ]
-      }
-    },
-    {
-      "type": "wnTijdlijn",
-      "label": "Je verzuimperiode stap voor stap",
-      "data": {
-        "anchor": "tijdlijn",
-        "eyebrow": "Wet verbetering poortwachter",
-        "heading": "Je verzuimperiode\nstap voor stap",
-        "text": "Ben je langer ziek, dan legt de wet vaste stappen vast. Ben je eerder beter, dan stopt het traject ook eerder.",
-        "chips": [
-          {
-            "text": "Maximaal 104 weken"
-          },
-          {
-            "text": "Weer beter? Meld het bij je werkgever"
-          }
-        ],
-        "youLabel": "Wat jij doet",
+        "eyebrow": "Ziek, wat nu?",
+        "heading": "Zo gaat het, stap voor stap",
+        "numbered": true,
+        "bg": "#F6F5FB",
         "steps": [
           {
             "when": "Dag 1",
-            "title": "Je meldt je ziek",
-            "text": "Je werkgever geeft je ziekmelding aan ons door. Je verzuimperiode begint.",
-            "textShort": "Je werkgever geeft het aan ons door.",
-            "you": "Meld je ziek volgens de afspraken en geef door hoe je bereikbaar bent.",
-            "youShort": "meld je ziek en geef door hoe je bereikbaar bent."
+            "title": "Meld je ziek bij je leidinggevende",
+            "text": "Je hoeft niet te vertellen wat je hebt, alleen dat je ziek bent en hoe je bereikbaar bent."
           },
           {
-            "when": "Kort daarna",
-            "title": "Eerste contact met je casemanager",
-            "titleShort": "Eerste contact casemanager",
-            "text": "Een rustig gesprek over hoe het gaat, wat je nodig hebt en wat misschien al wel lukt.",
-            "textShort": "Een rustig gesprek over hoe het gaat.",
-            "you": "Zorg dat je bereikbaar bent. Stel gerust je vragen.",
-            "youShort": "zorg dat je bereikbaar bent."
+            "when": "Binnen een werkdag",
+            "title": "Je casemanager neemt contact op",
+            "text": "We vragen hoe het gaat en wat je nodig hebt. Je krijgt meteen een vast aanspreekpunt."
           },
           {
-            "when": "Week 6",
-            "title": "Probleemanalyse door de bedrijfsarts",
-            "titleShort": "Probleemanalyse",
-            "text": "De bedrijfsarts kijkt wat je nog kunt. Je werkgever krijgt advies, zonder medische details.",
-            "textShort": "De bedrijfsarts kijkt wat je nog kunt.",
-            "you": "Ga naar het spreekuur en vertel eerlijk wat je wel en niet kunt.",
-            "youShort": "ga naar het spreekuur, vertel eerlijk hoe het gaat."
+            "when": "Rond week 6",
+            "title": "Gesprek met de bedrijfsarts",
+            "text": "Samen kijken jullie wat je wel en niet kunt. Medische details blijven bij de bedrijfsarts."
           },
           {
             "when": "Week 8",
-            "title": "Plan van aanpak met je werkgever",
-            "titleShort": "Plan van aanpak",
-            "text": "Jij en je werkgever spreken een doel af en de stappen ernaartoe.",
-            "textShort": "Jij en je werkgever spreken een doel af.",
-            "you": "Denk mee over het plan. Het is ook jouw plan.",
-            "youShort": "denk mee. Het is ook jouw plan."
+            "title": "Samen een plan",
+            "text": "Met je werkgever leg je vast hoe je stap voor stap weer aan het werk gaat."
           },
           {
-            "when": "Elke 6 weken",
-            "title": "Evaluatie en bijstelling",
-            "titleShort": "Evaluatie",
-            "text": "Jullie bespreken hoe het gaat en stellen het plan zo nodig bij.",
-            "textShort": "Jullie stellen het plan zo nodig bij.",
-            "you": "Zeg wat goed gaat en wat niet. Zo blijft het plan passend.",
-            "youShort": "zeg wat goed gaat en wat niet."
-          },
-          {
-            "when": "Week 42",
-            "title": "Ziekmelding bij UWV door je werkgever",
-            "titleShort": "Melding bij UWV",
-            "text": "Ben je dan nog ziek, dan meldt je werkgever dat bij UWV. Dat is verplicht.",
-            "textShort": "Je werkgever meldt je ziekte bij UWV.",
-            "you": "Je hoeft zelf niets te doen. UWV stuurt je daarna informatie.",
-            "youShort": "je hoeft zelf niets te doen."
-          },
-          {
-            "when": "Week 52",
-            "title": "Eerstejaarsevaluatie",
-            "text": "Je kijkt met je werkgever terug op het eerste jaar en kijkt vooruit.",
-            "textShort": "Terugkijken en vooruitkijken.",
-            "you": "Bespreek wat je doel is voor het komende jaar.",
-            "youShort": "bespreek je doel voor het tweede jaar."
-          },
-          {
-            "when": "Rond week 91",
-            "title": "WIA-aanvraag",
-            "text": "Ben je na bijna twee jaar nog ziek, dan vraag je bij UWV een WIA-uitkering aan.",
-            "textShort": "Nog ziek? Dan vraag je een WIA-uitkering aan.",
-            "you": "Je casemanager helpt je met de stukken.",
-            "youShort": "je casemanager helpt met de stukken."
+            "when": "Daarna",
+            "title": "Terug naar werk, in jouw tempo",
+            "text": "We evalueren regelmatig en passen het plan aan als dat nodig is."
           }
         ],
-        "note": "Dit zijn de wettelijke stappen. Welke afspraken voor jou gelden, bespreek je met je werkgever en je casemanager."
-      }
-    },
-    {
-      "type": "wnRechten",
-      "label": "Rechten en plichten",
-      "data": {
-        "anchor": "rechten",
-        "eyebrow": "Rechten en plichten",
-        "heading": "Wat mag je verwachten?",
-        "text": "Ziek zijn is geen keuze. Toch hebben jij en je werkgever allebei rechten en plichten. Zo weet je waar je aan toe bent.",
-        "textShort": "Ziek zijn is geen keuze. Jij en je werkgever hebben allebei rechten en plichten.",
-        "rightsTitle": "Je rechten",
-        "rights": [
-          {
-            "title": "Je medische informatie blijft bij de bedrijfsarts",
-            "text": "Je werkgever hoort wat je wel en niet kunt en hoe lang het naar verwachting duurt. Niet wat je hebt.",
-            "textShort": "Je werkgever hoort wat je kunt, niet wat je hebt."
-          },
-          {
-            "title": "Je mag een second opinion vragen",
-            "text": "Twijfel je aan het advies van de bedrijfsarts, dan mag je het laten toetsen door een andere bedrijfsarts.",
-            "textShort": "Bij een andere bedrijfsarts."
-          },
-          {
-            "title": "Je kunt een deskundigenoordeel aanvragen",
-            "text": "Ben je het met je werkgever oneens, bijvoorbeeld over of je kunt werken, dan vraag je UWV om een onafhankelijk oordeel.",
-            "textShort": "Bij UWV, als je het oneens bent met je werkgever."
-          },
-          {
-            "title": "Je krijgt loon doorbetaald",
-            "text": "Bij ziekte betaalt je werkgever je loon door, maximaal twee jaar. Hoeveel precies hangt af van je contract en je cao.",
-            "textShort": "Maximaal twee jaar, volgens je contract of cao."
-          }
-        ],
-        "dutiesTitle": "Wat er van jou verwacht wordt",
-        "duties": [
-          {
-            "title": "Je meldt je ziek volgens de regels",
-            "text": "Je werkgever heeft afspraken over ziekmelden, vaak in een verzuimprotocol. Die volg je."
-          },
-          {
-            "title": "Je bent bereikbaar en komt naar afspraken",
-            "text": "Bij de bedrijfsarts en je casemanager. Kun je echt niet, laat het dan op tijd weten."
-          },
-          {
-            "title": "Je werkt mee aan je re-integratie",
-            "text": "Je denkt mee over het plan van aanpak en doet passend werk als je dat kunt."
-          },
-          {
-            "title": "Je doet niets wat je herstel in de weg zit",
-            "text": "Twijfel je of iets kan, zoals op reis gaan? Overleg het vooraf."
-          }
-        ],
-        "note": "Werk je zonder goede reden niet mee, dan kan dat gevolgen hebben voor je loon. Dit is algemene informatie. Wat voor jou geldt, hangt af van je contract, je cao en de afspraken in je organisatie.",
-        "noteShort": "Twijfel je, bijvoorbeeld over een reis? Overleg vooraf. Dit is algemene informatie: wat voor jou geldt, hangt af van je contract en je cao."
-      }
-    },
-    {
-      "type": "wnPrivacy",
-      "label": "Wie weet wat over jou",
-      "data": {
-        "anchor": "privacy",
-        "eyebrow": "Privacy",
-        "heading": "Wie weet wat\nover jou?",
-        "text": "Je gezondheid is privé. Daarom is precies vastgelegd wie welke informatie krijgt.",
-        "cards": [
-          {
-            "tone": "indigo",
-            "label": "Weet het meest",
-            "title": "De bedrijfsarts",
-            "text": "Wat nodig is voor medisch advies: je klachten, je behandeling en wat je aankunt.",
-            "textShort": "Je klachten, behandeling en wat je aankunt.",
-            "note": "Heeft een medisch beroepsgeheim en deelt geen diagnose met je werkgever.",
-            "noteShort": "Deelt geen diagnose met je werkgever."
-          },
-          {
-            "tone": "oranje",
-            "label": "Weet wat nodig is",
-            "title": "Je werkgever",
-            "text": "Wat je wel en niet kunt, hoe lang het naar verwachting duurt en hoe je bereikbaar bent.",
-            "textShort": "Wat je kunt, hoe lang het duurt en hoe je bereikbaar bent.",
-            "note": "Mag niet vragen wat je hebt of waardoor het komt.",
-            "noteShort": "Mag niet vragen wat je hebt."
-          },
-          {
-            "tone": "roze",
-            "label": "Weet wat helpt",
-            "title": "Je casemanager",
-            "text": "Wat nodig is voor je begeleiding: afspraken, voortgang en het advies over wat je kunt.",
-            "textShort": "Afspraken, voortgang en advies over wat je kunt.",
-            "note": "Heeft een geheimhoudingsplicht: je kunt alles met ons delen.",
-            "noteShort": "Heeft een geheimhoudingsplicht."
-          }
-        ],
-        "footStrong": "Je mag je gegevens inzien.",
-        "footText": "Wil je weten wat er is vastgelegd, of klopt er iets niet? Vraag het ons of de bedrijfsarts.",
-        "footTextShort": "Klopt er iets niet? Vraag het ons of de bedrijfsarts.",
-        "link": {
-          "label": "Lees ons privacyreglement",
-          "href": "https://tumwtappyegkjabtmold.supabase.co/storage/v1/object/public/media/wp/2025/05/Privacy-reglement-r2u.pdf"
+        "cta": {
+          "heading": "Vragen over je ziekmelding?",
+          "text": "Bel je casemanager. Op werkdagen krijg je direct iemand aan de lijn.",
+          "label": "Bel je casemanager",
+          "href": "tel:+31856205800"
         }
       }
     },
     {
-      "type": "wnCasemanager",
-      "label": "Je casemanager",
+      "type": "dgFotoLijst",
+      "label": "Je rechten en privacy",
       "data": {
-        "anchor": "casemanager",
-        "eyebrow": "Je casemanager",
-        "heading": "Iemand die je\nverhaal kent",
-        "text": "Zolang je ziek bent, heb je één vast aanspreekpunt. Zo hoef je je verhaal niet steeds opnieuw te vertellen.",
+        "anchor": "rechten",
+        "eyebrow": "Je rechten en privacy",
+        "heading": "Jouw gezondheid is van jou",
+        "image": "/beeld/kantoor/overleg.webp",
+        "alt": "Collega’s van React2u in overleg aan tafel",
+        "focus": "45% 50%",
         "items": [
           {
-            "title": "Luistert en denkt mee",
-            "text": "Hoe gaat het, wat heb je nodig en wat lukt al wel? Daar begint het mee."
+            "title": "Medisch blijft privé",
+            "text": "Je werkgever hoort alleen wat je wel en niet kunt, nooit je diagnose."
           },
           {
-            "title": "Regelt de afspraken",
-            "text": "Plant het spreekuur bij de bedrijfsarts en houdt je op de hoogte."
+            "title": "Second opinion",
+            "text": "Niet eens met de bedrijfsarts? Je kunt een second opinion aanvragen."
           },
           {
-            "title": "Bewaakt de stappen",
-            "titleShort": "Bewaakt de termijnen",
-            "text": "Houdt de termijnen in de gaten, zodat jij dat niet hoeft te doen."
+            "title": "Deskundigenoordeel UWV",
+            "text": "Bij een verschil van mening met je werkgever kan UWV een oordeel geven."
           },
           {
-            "title": "Schakelt met je werkgever",
-            "text": "Zoekt samen met jou en je werkgever naar wat werkt."
+            "title": "Klachtenregeling",
+            "text": "Ben je niet tevreden over ons? Je klacht wordt zorgvuldig behandeld."
           }
         ],
-        "note": "Je casemanager is geen arts. Medische vragen bespreek je met de bedrijfsarts. Je casemanager regelt dat je daar terechtkunt.",
-        "noteShort": "Je casemanager is geen arts. Medische vragen bespreek je met de bedrijfsarts.",
-        "image": "/beeld/werknemers/persoonlijk-gesprek.webp",
-        "alt": "Twee vrouwen in een persoonlijk gesprek",
-        "focus": "50% 40%",
-        "badgeLabel": "Je vaste casemanager",
-        "badgeTitle": "Eén vast gezicht",
-        "badgeText": "Van je ziekmelding tot je herstel"
+        "link": {
+          "label": "Alles over je rechten en privacy",
+          "href": "/je-rechten-en-privacy"
+        }
       }
     },
     {
-      "type": "wnCoaching",
-      "label": "Vastgelopen, maar niet ziek",
-      "data": {
-        "anchor": "coaching",
-        "eyebrow": "Begeleiding en coaching",
-        "eyebrowShort": "Coaching",
-        "heading": "Vastgelopen,\nmaar niet ziek?",
-        "text": "Soms zit het niet lekker, zonder dat je ziek bent. Praten helpt, het liefst voordat je uitvalt. Een coach kijkt met je naar wat er speelt en wat jou weer lucht geeft.",
-        "textShort": "Soms zit het niet lekker, zonder dat je ziek bent. Praten helpt, het liefst voordat je uitvalt.",
-        "image": "/beeld/werknemers/ruimte-buiten.webp",
-        "alt": "Een vrouw en een man wandelen en praten langs het water",
-        "focus": "50% 30%",
-        "topics": [
-          {
-            "title": "Werkdruk en stress",
-            "text": "Te veel op je bord, slecht slapen."
-          },
-          {
-            "title": "Spanning of conflict op het werk",
-            "text": "Iets dat je niet loslaat."
-          },
-          {
-            "title": "Zorgen thuis die doorwerken",
-            "text": "Mantelzorg of een lastige periode."
-          }
-        ],
-        "startTitle": "Zo begin je",
-        "startText": "Drie rustige stappen, zonder ziekmelding.",
-        "steps": [
-          {
-            "text": "Bespreek het met je werkgever, of bel ons om te overleggen.",
-            "textShort": "Bel ons of praat met je werkgever."
-          },
-          {
-            "text": "Een kennismakingsgesprek met een coach over wat je wilt bereiken.",
-            "textShort": "Kennismaken met een coach."
-          },
-          {
-            "text": "Samen stel je haalbare doelen en werk je stap voor stap verder.",
-            "textShort": "Samen stap voor stap aan haalbare doelen."
-          }
-        ],
-        "button": {
-          "label": "Bel ons",
-          "labelShort": "Bel om te overleggen",
-          "href": "tel:+31856205800"
-        },
-        "note": "Ook als je niet ziek bent, mag je met vragen over je gezondheid en werk naar de bedrijfsarts. Bel ons, dan helpen we je op weg.",
-        "noteShort": "Ook zonder ziekmelding mag je met vragen over gezondheid en werk naar de bedrijfsarts. Bel ons, dan helpen we je op weg."
-      }
-    },
-    {
-      "type": "wnVragen",
-      "label": "Veelgestelde vragen",
+      "type": "dgVragen",
+      "label": "Wat werknemers ons vaak vragen",
       "data": {
         "anchor": "vragen",
         "eyebrow": "Veelgestelde vragen",
-        "heading": "Wat werknemers ons vaak vragen",
+        "heading": "Wat werknemers\nons vaak vragen",
         "text": "Staat je vraag er niet bij? Bel of mail ons gerust. Er is geen domme vraag.",
-        "textShort": "Staat je vraag er niet bij? Bel of mail ons gerust.",
-        "image": "/beeld/werknemers/aandacht-definitief.webp",
-        "alt": "Een vrouw en een man in gesprek aan tafel",
-        "focus": "12% 35%",
+        "phone": "085 620 58 00",
         "items": [
           {
             "question": "Moet ik mijn werkgever vertellen wat ik heb?",
@@ -439,36 +234,36 @@
       }
     },
     {
-      "type": "wnContact",
-      "label": "Contact en ziek melden",
+      "type": "homeContact",
+      "label": "Contact",
       "data": {
-        "anchor": "contact",
         "eyebrow": "Contact",
-        "heading": "Vragen?\nBel ons gerust",
-        "text": "Over je begeleiding, een afspraak of iets waar je over twijfelt. We denken met je mee.",
-        "textShort": "We denken graag met je mee.",
-        "phone": {
-          "label": "Bellen",
-          "value": "085 620 58 00",
-          "sub": "Een mens aan de lijn, geen keuzemenu.",
-          "href": "tel:+31856205800"
-        },
-        "mail": {
-          "label": "Mailen",
-          "value": "info@react2u.nl",
-          "sub": "Zet geen medische details in je mail.",
-          "href": "mailto:info@react2u.nl"
-        },
-        "ziek": {
-          "label": "Ziek melden",
-          "text": "Meld je altijd eerst ziek bij je werkgever, volgens het verzuimprotocol.",
-          "textShort": "Meld je altijd eerst ziek bij je werkgever. Hoe dat gaat, lees je in het verzuimprotocol.",
-          "button": {
-            "label": "Verzuimprotocol",
-            "labelShort": "Bekijk het verzuimprotocol",
-            "href": "/verzuimprotocol"
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Tijdens openingstijden krijg je altijd direct iemand van ons aan de lijn.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
           }
-        }
+        ],
+        "bg": "#ffffff"
       }
     }
   ]

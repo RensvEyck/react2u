@@ -19,6 +19,7 @@ import jeCasemanager from "@/content/je-casemanager.json";
 import inloggen from "@/content/inloggen.json";
 import juridisch from "@/content/juridische-documenten.json";
 import sitemap from "@/content/sitemap.json";
+import certificeringen from "@/content/certificeringen.json";
 import cookieverklaring from "@/content/cookieverklaring.json";
 
 /**
@@ -34,7 +35,7 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact, resist, recover, restart, reflex, ready, cookieverklaring, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap];
+const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact, resist, recover, restart, reflex, ready, cookieverklaring, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen];
 
 /**
  * Concepten zijn alleen zichtbaar op een preview-deploy (staging): daar wil je

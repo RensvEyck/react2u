@@ -58,7 +58,7 @@ function kolommen(contact: ContactInfo): Kolom[] {
       kop: "Voor werkgevers",
       regels: [
         { label: "Diensten", href: "/werkgevers#diensten" },
-        { label: "Tarieven", href: "/werkgevers#tarieven" },
+        { label: "Tarieven", href: "/verzuimabonnementen" },
         { label: "Kennismaken", href: "/kennismaken" },
       ],
     },

@@ -20,6 +20,7 @@ import { ContactSimpel } from "./ContactSimpel";
 import { DienstLabel } from "./DienstLabel";
 import { OverReact2u } from "./OverReact2u";
 import { SitemapOverzicht } from "./Werkgebied";
+import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen } from "./Doelgroep";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
@@ -1131,6 +1132,15 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   dienstLabel: DienstLabel,
   overReact2u: OverReact2u,
   sitemapOverzicht: SitemapOverzicht,
+  dgKop: DgKop,
+  dgLabels: DgLabels,
+  dgFotoLijst: DgFotoLijst,
+  dgPoortwachter: DgPoortwachter,
+  dgPrijzen: DgPrijzen,
+  dgStarten: DgStarten,
+  dgVragen: DgVragen,
+  dgTarieven: DgTarieven,
+  dgCertificeringen: DgCertificeringen,
   wnKop: WnKop,
   wnStappen: WnStappen,
   wnKaarten: WnKaarten,
@@ -1143,7 +1153,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   juridischeDocumenten: JuridischeDocumenten,
   kennismaken: Kennismaken,
   klantenStrook: ({ d }: BlockProps) => <KlantenStrook label={d?.label} />,
-  klantenAanHetWoord: () => <KlantenAanHetWoord />,
+  klantenAanHetWoord: ({ d }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} />,
   keurmerken: () => <Keurmerken />,
   homeContact: HomeContact,
   wgSplit: WgSplit,
@@ -1183,7 +1193,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
@@ -1203,7 +1213,7 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
   const out: { question: string; answer: string }[] = [];
   for (const b of blocks) {
     const d = b.data as { items?: unknown; faq?: unknown };
-    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" || b.type === "wnVragenLijst" ? d.items : b.type === "contactFaq" ? d.faq : null;
+    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" || b.type === "wnVragenLijst" || b.type === "dgVragen" ? d.items : b.type === "contactFaq" ? d.faq : null;
     if (!Array.isArray(raw)) continue;
     for (const item of raw) {
       const q = String((item as { question?: string })?.question ?? "").trim();

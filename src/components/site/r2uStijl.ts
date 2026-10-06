@@ -59,6 +59,7 @@ export const DIENSTEN: Link2[] = [
 export const OVER_ONS: Link2[] = [
   { label: "Over React2u", href: "/over-react2u" },
   { label: "Werken bij", href: "/vacatures" },
+  { label: "Certificeringen", href: "/certificeringen" },
   { label: "Blog", href: "/blog" },
 ];
 

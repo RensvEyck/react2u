@@ -7,6 +7,8 @@ import { jsonLd } from "@/lib/jsonld";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
+import { conceptenActief } from "@/lib/concept";
+import { BlogArtikel } from "@/components/blocks/Blog";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -80,6 +82,18 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       { "@type": "ListItem", position: 3, name: p.title, item: `${SITE}/blog/${p.slug}` },
     ],
   };
+
+  if (conceptenActief) {
+    // Op staging het nieuwe ontwerp "Blogartikel".
+    const andere = (await getPublishedPosts()).filter((x) => x.id !== p.id);
+    return (
+      <>
+        <BlogArtikel p={p} andere={andere} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} />
+      </>
+    );
+  }
 
   return (
     <>

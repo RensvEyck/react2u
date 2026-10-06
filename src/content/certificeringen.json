@@ -1,0 +1,76 @@
+{
+  "_uitleg": "Certificeringen (canvas: Certificeringen). Zie CONTEXT.md, *Concepten*.",
+  "slug": "certificeringen",
+  "title": "Certificeringen",
+  "seo_title": "Certificeringen • SBCA, ISO 9001, 27001, 27701 • React2u",
+  "seo_description": "React2u is een gecertificeerde arbodienst en heeft ISO 9001, ISO/IEC 27001 en ISO/IEC 27701. Zo kun je zien dat onze kwaliteit, beveiliging en privacy kloppen.",
+  "blocks": [
+    {
+      "type": "dgCertificeringen",
+      "label": "Certificeringen",
+      "data": {
+        "eyebrow": "Certificeringen",
+        "heading": "Kwaliteit die je kunt\ncontroleren",
+        "text": "Bij verzuim en re-integratie vertrouw je ons gevoelige informatie en de gezondheid van je mensen toe. Daarom willen we dat je kunt zien dat onze kwaliteit klopt, en niet alleen hoeft te geloven dat we het goed doen.",
+        "lijstEyebrow": "Onafhankelijk getoetst",
+        "lijstKop": "Onze certificeringen",
+        "lijstTekst": "Onafhankelijke instanties toetsen onze processen, onze deskundigheid en de manier waarop we met gegevens omgaan.",
+        "items": [
+          {
+            "title": "Gecertificeerde arbodienst",
+            "text": "React2u is gecertificeerd volgens het Certificatieschema Arbodiensten. Dat betekent dat onze begeleiding bij verzuim, onze adviezen en onze inzet van bedrijfsartsen en andere kerndeskundigen voldoen aan de wettelijke kwaliteitseisen. Je kunt dus met een gerust hart je verplichtingen uit de Arbowet bij ons onderbrengen."
+          },
+          {
+            "title": "ISO 9001: kwaliteitsmanagement",
+            "text": "Onze werkwijze is vastgelegd, wordt getoetst en blijft zich verbeteren. Het ISO 9001 certificaat laat zien dat we afspraken nakomen en onze dienstverlening steeds een stap beter maken."
+          },
+          {
+            "title": "ISO/IEC 27001: informatiebeveiliging",
+            "text": "Verzuimdossiers bevatten gevoelige gegevens. Met ISO/IEC 27001 tonen we aan dat we die informatie technisch en organisatorisch goed beveiligen."
+          },
+          {
+            "title": "ISO/IEC 27701: privacy",
+            "text": "Privacy zit bij ons in de basis van onze processen. ISO/IEC 27701 bevestigt dat we persoonsgegevens zorgvuldig en volgens de AVG verwerken. Zo blijven medische gegevens waar ze horen: bij de bedrijfsarts."
+          },
+          {
+            "title": "Lid van OVAL",
+            "text": "React2u is lid van OVAL, de branchevereniging voor vitaliteit, activering en loopbaan. Samen met andere dienstverleners werken we eraan dat mensen gezond en met plezier aan het werk blijven, of weer aan het werk komen."
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Kennismaken?\nBel gewoon even.",
+        "text": "We horen graag hoe jouw organisatie in elkaar zit. Daarna krijg je een voorstel op maat.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · op werkdagen",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Offerte of kennismaken",
+            "value": "sales@react2u.nl",
+            "href": "mailto:sales@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

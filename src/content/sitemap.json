@@ -70,7 +70,11 @@
               },
               {
                 "label": "Tarieven",
-                "href": "/werkgevers#tarieven"
+                "href": "/verzuimabonnementen"
+              },
+              {
+                "label": "Certificeringen",
+                "href": "/certificeringen"
               }
             ]
           },

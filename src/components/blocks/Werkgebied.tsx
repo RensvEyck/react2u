@@ -167,7 +167,7 @@ function Kop({ crumbs, titel, intro }: { crumbs: { label: string; href?: string 
           <p className="m-0 max-w-[600px] text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }}>{intro}</p>
           <div className="flex flex-wrap gap-2.5 pt-1.5">
             <Knop href="/kennismaken">Plan een kennismaking</Knop>
-            <Knop href="/werkgevers#tarieven" rand>Bekijk tarieven</Knop>
+            <Knop href="/verzuimabonnementen" rand>Bekijk tarieven</Knop>
           </div>
         </div>
         <div className="relative flex flex-col gap-[18px] rounded-[24px] bg-white p-7 md:p-8">

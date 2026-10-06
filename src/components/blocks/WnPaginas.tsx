@@ -97,13 +97,28 @@ export function WnStappen({ d }: { d: any }) {
         <SectieKop d={d} />
         <ol className="m-0 grid list-none gap-8 p-0 sm:grid-cols-2 lg:grid-cols-5 lg:gap-5">
           {stappen.map((s, i) => (
-            <li key={i} className="flex flex-col gap-2.5 border-t-[3px] pt-[18px]" style={{ borderColor: i === 0 ? PINK : LINE }}>
-              <span className="text-[14px] font-bold" style={{ color: PINK }}>{s.when}</span>
+            <li key={i} className={`flex flex-col gap-2.5 ${d.numbered ? "" : "border-t-[3px] pt-[18px]"}`} style={{ borderColor: i === 0 ? PINK : LINE }}>
+              {d.numbered && (
+                <span className="flex items-center gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[14px] font-bold text-white" style={{ background: i === 0 ? PINK : NAVY }}>{i + 1}</span>
+                  {i < stappen.length - 1 && <span className="hidden h-0.5 flex-1 lg:block" style={{ background: LINE }} />}
+                </span>
+              )}
+              <span className={d.numbered ? "self-start rounded-full px-2.5 py-1 text-[12.5px] font-bold" : "text-[14px] font-bold"} style={{ color: PINK, background: d.numbered ? "#FDECF4" : undefined }}>{s.when}</span>
               <span className={`${kop} text-[19px] leading-[1.25]`} style={{ color: NAVY }}>{s.title}</span>
               <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{s.text}</span>
             </li>
           ))}
         </ol>
+        {d.cta && (
+          <div className="flex flex-col gap-4 rounded-[20px] border bg-white px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8" style={{ borderColor: LINE }}>
+            <span className="flex flex-col gap-1">
+              <span className="text-[16px] font-bold" style={{ color: NAVY }}>{d.cta.heading}</span>
+              <span className="text-[15px]" style={{ color: BODY }}>{d.cta.text}</span>
+            </span>
+            <a href={d.cta.href} className="hv-btn hv-btn-roze inline-flex h-[50px] items-center gap-2.5 self-start rounded-full px-6 text-[15px] font-bold md:self-auto">{d.cta.label}<Pijl /></a>
+          </div>
+        )}
       </div>
     </section>
   );
