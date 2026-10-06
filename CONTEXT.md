@@ -495,8 +495,12 @@ en blijven geïndexeerd.
 
 **Alleen op staging** (`VERCEL_ENV=preview`) tonen `/` en `[slug]` het concept
 in plaats van de databasepagina — zo zie je de site zoals hij live komt. In
-productie komt alles uit de database. Lokaal staging nabootsen, zonder
-onderhoudspagina en met de concepten:
+productie komt alles uit de database. Het *ontwerp* eromheen (header en footer
+uit het Design-canvas, blog, Werken bij, vacature, 404) hangt sinds de livegang
+van oktober 2026 aan `nieuwOntwerp` in `lib/concept.ts` en staat overal aan;
+tot die tijd zat ook dat achter `conceptenActief`, waardoor productie na het
+overzetten van de concepten nog de oude header en footer zou tonen. Lokaal
+staging nabootsen, zonder onderhoudspagina en met de concepten:
 
 ```bash
 VERCEL_ENV=preview npm run dev
@@ -518,20 +522,30 @@ Overzetten naar de database:
 
 ```bash
 node scripts/concept-naar-sql.mjs --alle > concept.sql
+node scripts/concept-naar-sql.mjs --alle --datum 20261006 --seo > concept.sql   # zoals bij de livegang
 ```
 
 (of een paar namen: `… home werkgevers`) en plak `concept.sql` in de SQL-editor
-van Supabase. Het script praat zelf niet met de database. Alles gebeurt in één
-transactie, en er wordt niets verwijderd:
+van Supabase, of draai hem met `supabase db query --linked -f concept.sql`. Het
+script praat zelf niet met de database en slaat bestanden zonder
+`slug`/`blocks` over (`plaatsen.json`). Alles gebeurt in één transactie, en er
+wordt niets verwijderd:
 
 - bestaat een pagina nog niet (zoals `/werkgevers`), dan wordt hij aangemaakt,
   met de titel en SEO-teksten uit het concept;
-- een bestaande pagina houdt zijn titel en SEO; zijn huidige blokken verhuizen
-  naar een verborgen pagina `<slug>-oud-<datum>-<tijd>` (UTC, alleen als er
-  blokken zijn).
+- een bestaande pagina houdt zijn rij (en dus zijn id); zijn huidige blokken
+  verhuizen met zijn oude titel en SEO naar een verborgen pagina
+  `<slug>-oud-<datum>` (standaard datum én tijd in UTC, met `--datum` zelf te
+  kiezen; alleen als er blokken zijn);
+- met `--seo` krijgt een bestaande pagina ook de titel en SEO-teksten uit het
+  concept — precies wat staging toont (`[slug]/page.tsx` leest die daar uit het
+  concept). Zonder de vlag houdt hij zijn eigen; lege velden in het concept
+  laten de huidige waarde staan. De homepage leest zijn SEO altijd uit de
+  database (`(site)/page.tsx`), ook op staging.
 
-Terugdraaien kan via het adminpaneel. Door de tijd in de naam kan het script
-ook twee keer op één dag draaien.
+Terugdraaien kan via het adminpaneel. Bestaat `<slug>-oud-<datum>` al (het
+script twee keer met dezelfde `--datum`), dan faalt de transactie en gebeurt er
+niets.
 
 **Een pagina die alleen als concept bestaat** (zoals `/werkgevers` vóór de
 SQL) toont ook in productie het concept, zodat de links ernaar niet op een 404
@@ -703,6 +717,13 @@ Onder **SEO → Doorverwijzingen**. Twee lagen, en de volgorde telt:
    niet in de tabel omdat ze bij de code van de labels horen en een 301 moeten
    zijn; de middleware geeft alleen 308 en 307. `sitemap.xml` laat elke pagina
    weg waarvan het adres onder deze lijst valt.
+   De oude documentpagina's (`/privacy-reglement`, `/klachtenprocedure`,
+   `/algemene-voorwaarden`) horen bij `DOCUMENT_REDIRECTS` en gaan naar de pdf's
+   in `public/documenten/`; de `-niet`-slugs van de oude WordPress-site
+   (`/werkgever-niet/…`) komen op de dichtstbijzijnde nieuwe pagina uit.
+   `www.react2u.nl` → `react2u.nl` (308) staat sinds 6 oktober 2026 als
+   domeininstelling in Vercel (Project → Domains → www.react2u.nl → Redirect);
+   `WWW_REDIRECT` in `next.config.ts` blijft als terugval.
 2. De tabel `redirects` — toegepast door de middleware, met dezelfde
    voorzorgen als de onderhoudsmodus: 15 seconden onthouden, 1 seconde timeout,
    bij een storing de laatst bekende lijst. Faalt alleen die query (bijvoorbeeld
@@ -854,18 +875,30 @@ een link én bij navigeren via het commandopalet
 - **E-mailnotificaties zijn gebouwd maar staan uit.** De code staat er
   (zie *Notificatiemail*); zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
   niet in Vercel staan, wordt er niets verstuurd en mist wie niet inlogt nog
-  steeds inzendingen.
+  steeds inzendingen. Stand 6 oktober 2026: in Production ontbreken
+  `RESEND_API_KEY`, `NOTIFY_FROM`, `NOTIFY_TO`, `NOTIFY_OFFERTE_TO`
+  (sales@react2u.nl) en `NEXT_PUBLIC_SITE_URL` (https://react2u.nl; de code valt
+  daar zelf op terug). In DNS staat niets van Resend (geen
+  `resend._domainkey`, geen `send.`-subdomein, SPF zonder amazonses) en DMARC
+  staat op `p=reject`: zonder DKIM via Resend wordt mail namens @react2u.nl
+  geweigerd. Eerst het domein in Resend verifiëren, dan de sleutels zetten.
 - **Toegang.** Het adminwachtwoord en een Vercel-token zijn buiten de repo gedeeld;
   het wachtwoord moet gewijzigd en het token ingetrokken worden.
-- **Migraties 0007, 0008 en 0009 moeten in Supabase worden uitgevoerd**, vóór
-  of met de deploy van doorverwijzingen, versies en de cv-reparatie. Zonder
-  draait alles door, maar tonen die schermen een melding in plaats van inhoud,
-  en wordt er geen geschiedenis bewaard. 0009 legt de cv-verwijderpolicy vast
-  die live waarschijnlijk al bestaat.
-- **Bedrijfsherkenning aanzetten**: `ANALYTICS_SALT` in Vercel (zonder
-  registreert de tracker niets), migratie 0010, en eventueel een gratis
-  ipinfo-token (Lite) als `IPINFO_TOKEN`. Daarna de privacyverklaring bijwerken
-  — zie het voorstel onder *Bewaartermijnen en privacy*.
+- **Livegang redesign (voorbereid 6 oktober 2026, branch `livegang`)**. De
+  productiedatabase stopte bij `applications_updated_at` (6 augustus); 0007
+  t/m 0010 en 0013 ontbreken, 0011 en 0012 zijn los gedraaid. De SQL staat
+  klaar in `backups/` (lokaal, niet in git): `01-migraties-0007-0013.sql`
+  (idempotent, één transactie, registreert zichzelf in `schema_migrations`),
+  `01b-migratie-0014.sql` (pas als de service-role-sleutel ook in Preview
+  staat), `02-concepten-20261006.sql` (alle 21 concepten; oude blokken naar
+  `<slug>-oud-20261006`) en `03-migratie-0015-rechten-functies.sql`. Vooraf is
+  een data-export gemaakt (`backups/2026-10-06-voor-livegang.sql`); Supabase
+  maakt daarnaast dagelijks een fysieke back-up. Na de SQL: productie-build
+  vergelijken met de preview-build, adminschermen nalopen, `-oud-20260929`
+  opruimen, onderhoudsmodus uit.
+- **Bedrijfsherkenning aanzetten**: `ANALYTICS_SALT` en `IPINFO_TOKEN` staan in
+  Vercel; migratie 0010 hoort bij de livegang-SQL. Daarna de privacyverklaring
+  bijwerken — zie het voorstel onder *Bewaartermijnen en privacy*.
 - **Schema binnenhalen.** De live database heeft wijzigingen die niet in de
   migraties staan (zie *Valkuilen*). Eén keer `supabase db dump` naar de repo
   maakt het weer één bron.
@@ -1063,9 +1096,26 @@ Migraties in [`supabase/migrations/`](supabase/migrations/) — `0001_init.sql`
 `0006_superadmin.sql` (super admin boven beheerder),
 `0007_doorverwijzingen.sql` (`redirects`, `missing_paths`),
 `0008_versies.sql` (`revisions` en de trigger), `0009_cv_verwijderen.sql`
-(verwijderpolicy op de bucket `cvs`) en `0010_bedrijfsbezoek.sql`
+(verwijderpolicy op de bucket `cvs`), `0010_bedrijfsbezoek.sql`
 (`company_domain`/`company_source` op `page_views`, `company_profiles`,
-`company_ignored()`). Supabase-project `tumwtappyegkjabtmold`.
+`company_ignored()`), `0011` en `0012` (data: privacyverklaring uit publicatie,
+og_image leeg), `0013_formulieren_conversies_bewaren.sql` (`rate_limits`,
+`throttle()`, `conversions`, `applications.retain_longer`),
+`0014_cv_upload_via_server.sql` (publieke uploadpolicy op `cvs` weg — pas als
+`SUPABASE_SERVICE_ROLE_KEY` ook in Preview staat) en
+`0015_rechten_functies.sql` (EXECUTE op security definer-functies alleen voor
+wie ze nodig heeft; `has_perm()` houdt anon, want de policies "public read …"
+roepen hem aan). Supabase-project `tumwtappyegkjabtmold`.
+
+De tabel `supabase_migrations.schema_migrations` in de live database gebruikt
+tijdstempelversies met eigen namen (`init_react2u_cms` = 0001, enz.) en
+bevat ook vier wijzigingen die rechtstreeks live zijn gedaan
+(`security_hardening`, `anon_velden_vastzetten`, `opruimen_weesobjecten`,
+`bewaartermijnen`: o.a. `force_submission_defaults()`, aparte policies
+"settings seo"/"settings overig", `opruimen_verlopen_gegevens()` met zijn
+pg_cron-job). Migraties die met `supabase db query` worden gedraaid komen daar
+niet vanzelf in; de livegang-SQL (`backups/01-migraties-0007-0013.sql`,
+lokaal) registreert ze expliciet.
 
 **Tests:** `npm test` draait Vitest over de pure modules in `src/lib`
 (zoeken, doorverwijzingen, versies, dashboard, bewaartermijn, mediagebruik,
