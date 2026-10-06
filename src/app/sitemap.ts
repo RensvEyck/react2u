@@ -31,11 +31,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .map((s) => ({ url: `${base}/${s}`, priority: 0.7 })),
     // Werkgebied: een pagina per provincie en per gemeente.
     ...werkgebiedPaden().map((p) => ({ url: `${base}${p}`, priority: 0.5 })),
-    {
-      url: `${base}/blog`,
-      lastModified: newest(posts.map((p) => p.updated_at)),
-      priority: 0.7,
-    },
+    // Zonder artikelen staat de blog op noindex (blog/page.tsx) en hoort hij
+    // hier niet; met het eerste artikel komt hij vanzelf terug.
+    ...(posts.length > 0
+      ? [{ url: `${base}/blog`, lastModified: newest(posts.map((p) => p.updated_at)), priority: 0.7 }]
+      : []),
     ...posts.map((p) => ({
       url: `${base}/blog/${p.slug}`,
       lastModified: new Date(p.updated_at),
