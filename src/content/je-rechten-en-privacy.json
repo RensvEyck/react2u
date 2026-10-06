@@ -59,8 +59,8 @@
             "icon": "hart",
             "title": "Medisch blijft privé",
             "text": "Je werkgever hoort alleen wat je wel en niet kunt, nooit je diagnose. Medische informatie blijft bij de bedrijfsarts.",
-            "kleur": "#E61674",
-            "tint": "#FDECF4"
+            "kleur": "#d4136c",
+            "tint": "#fef0f7"
           },
           {
             "icon": "chat",

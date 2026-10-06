@@ -48,8 +48,8 @@
             "icon": "mensen",
             "title": "Eén vast aanspreekpunt",
             "text": "Je casemanager blijft het hele traject hetzelfde. Je vertelt je verhaal maar één keer.",
-            "kleur": "#E61674",
-            "tint": "#FDECF4"
+            "kleur": "#d4136c",
+            "tint": "#fef0f7"
           },
           {
             "icon": "chat",
@@ -76,8 +76,8 @@
             "icon": "hart",
             "title": "Heeft geheimhoudingsplicht",
             "text": "Je kunt alles delen, ook problemen met je werkgever. Medische informatie blijft bij de bedrijfsarts.",
-            "kleur": "#E61674",
-            "tint": "#FDECF4"
+            "kleur": "#d4136c",
+            "tint": "#fef0f7"
           },
           {
             "icon": "diploma",
@@ -103,7 +103,7 @@
           },
           {
             "title": "Menselijk",
-            "kleur": "#E61674",
+            "kleur": "#d4136c",
             "text": "Aandacht raakt. We willen luisteren en er voor je zijn, en je op een menselijke manier terugbrengen in het arbeidsproces."
           },
           {

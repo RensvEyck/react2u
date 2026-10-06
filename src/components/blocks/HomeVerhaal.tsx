@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ROZE, kopKleur, tekstKleur } from "@/lib/kleuren";
 import { Outfit } from "next/font/google";
 import { LuShieldCheck, LuMessageSquare, LuHeart, LuRoute, LuCheck } from "react-icons/lu";
 import ReisSpeler from "./ReisSpeler";
@@ -25,7 +26,7 @@ export const outfit = Outfit({
 const TEAL = "#00A098";
 const SKY = "#3AA5DD";
 const ORANGE = "#F19001";
-const PINK = "#E61674";
+const PINK = ROZE;
 const RED = "#CB152B";
 const NAVY = "#322E83";
 const TEKST = "#5E5C78";
@@ -56,7 +57,7 @@ function Pijl() {
 /** Label met een stip, zoals in het logo. */
 function Label({ children, kleur = TEAL, zacht = "#D7F0EE" }: { children: React.ReactNode; kleur?: string; zacht?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 self-start text-[12px] font-bold uppercase tracking-[1.6px] md:text-[13px]" style={{ color: kleur }}>
+    <span className="inline-flex items-center gap-2 self-start text-[12px] font-bold uppercase tracking-[1.6px] md:text-[13px]" style={{ color: tekstKleur(kleur) }}>
       <span className="grid h-[18px] w-[18px] place-items-center rounded-full" style={{ background: zacht }}>
         <span className="h-[7px] w-[7px] rounded-full" style={{ background: kleur }} />
       </span>
@@ -92,7 +93,7 @@ export function HomeEenMens({ d }: BlockProps) {
           {d.eyebrow && <Label>{d.eyebrow}</Label>}
           <h2 className="hv-kop text-[38px] leading-[1.05] tracking-[-1px] md:text-[44px] lg:whitespace-nowrap lg:text-[54px] lg:tracking-[-1.4px]">
             {lines.map((l, i) => (
-              <span key={i} className="block" style={{ color: lineColors[i % 3] }}>{l}</span>
+              <span key={i} className="block" style={{ color: kopKleur(lineColors[i % 3]) }}>{l}</span>
             ))}
           </h2>
           {d.text && <p className="text-[17px] leading-[1.75] md:text-[19px]" style={{ color: TEKST }}>{d.text}</p>}
@@ -223,7 +224,7 @@ export function HomeReis({ d }: BlockProps) {
             <ol className="mx-auto mt-2 grid max-w-[1200px] grid-cols-4 gap-10">
               {steps.map((s, i) => (
                 <li key={i} className="hv-jc flex flex-col items-center gap-2 px-2 text-center" style={{ animationDelay: `${(tStation(i) + 0.12).toFixed(2)}s` }}>
-                  <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: STAP_KLEUR[i] }}>{s.label}</span>
+                  <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: tekstKleur(STAP_KLEUR[i]) }}>{s.label}</span>
                   <span className="hv-kop text-[20px] leading-[1.3] lg:text-[22px]" style={{ color: NAVY }}>{s.title}</span>
                   <span className="text-[15px] leading-[1.75] lg:text-[16px]" style={{ color: TEKST }}>{s.text}</span>
                 </li>

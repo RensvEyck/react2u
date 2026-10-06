@@ -1,3 +1,4 @@
+import { tekstKleur } from "@/lib/kleuren";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, kop, BREED, Eyebrow, Kruimels, Knop, Vink, Pijl } from "./Gedeeld";
 
@@ -45,7 +46,7 @@ export function WnKop({ d, asH1 }: { d: any; asH1?: boolean }) {
   return (
     <section aria-label={d.heading} className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]`}>
       <div className={`relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:items-center lg:gap-16 lg:p-[72px] ${kaart.length ? "lg:grid-cols-[minmax(0,1fr)_380px]" : ""}`}
-        style={{ background: d.tint || "#FDECF4" }}>
+        style={{ background: d.tint || "#fef0f7" }}>
         <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: d.orb || PINK, opacity: 0.12 }} />
         <div className="relative flex max-w-[640px] flex-col gap-6">
           <Kruimels items={crumbs} />
@@ -104,7 +105,7 @@ export function WnStappen({ d }: { d: any }) {
                   {i < stappen.length - 1 && <span className="hidden h-0.5 flex-1 lg:block" style={{ background: LINE }} />}
                 </span>
               )}
-              <span className={d.numbered ? "self-start rounded-full px-2.5 py-1 text-[12.5px] font-bold" : "text-[14px] font-bold"} style={{ color: PINK, background: d.numbered ? "#FDECF4" : undefined }}>{s.when}</span>
+              <span className={d.numbered ? "self-start rounded-full px-2.5 py-1 text-[12.5px] font-bold" : "text-[14px] font-bold"} style={{ color: PINK, background: d.numbered ? "#fef0f7" : undefined }}>{s.when}</span>
               <span className={`${kop} text-[19px] leading-[1.25]`} style={{ color: NAVY }}>{s.title}</span>
               <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{s.text}</span>
             </li>
@@ -139,7 +140,7 @@ export function WnKaarten({ d }: { d: any }) {
             const inner = (
               <>
                 <span className={`grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[16px] ${c.letter ? `${kop} text-[20px]` : ""}`}
-                  style={{ background: c.tint || "#FDECF4", color: c.kleur || PINK }}>
+                  style={{ background: c.tint || "#fef0f7", color: c.kleur || PINK }}>
                   {c.letter ? c.letter : <Icoon naam={c.icon} size={22} />}
                 </span>
                 <span className="flex flex-col gap-1.5">
@@ -302,7 +303,7 @@ export function Inloggen({ d, asH1 }: { d: any; asH1?: boolean }) {
               <div key={i} id={p.anchor} className="flex flex-col gap-5 rounded-[28px] border bg-white p-7 shadow-[0_24px_48px_-32px_rgba(50,46,131,0.30)] md:p-10" style={{ borderColor: LINE }}>
                 <span className="grid h-14 w-14 place-items-center rounded-[16px]" style={{ background: p.tint, color: p.kleur }}><Icoon naam={p.icon} size={26} /></span>
                 <span className="flex flex-col gap-1.5">
-                  <span className="text-[14px] font-bold" style={{ color: p.kleur }}>{p.for}</span>
+                  <span className="text-[14px] font-bold" style={{ color: tekstKleur(p.kleur) }}>{p.for}</span>
                   <span className={`${kop} text-[28px] md:text-[30px]`} style={{ color: NAVY }}>{p.title}</span>
                 </span>
                 <span className="text-[16.5px] leading-[1.65]" style={{ color: BODY }}>{p.text}</span>
@@ -349,7 +350,7 @@ export function JuridischeDocumenten({ d, asH1 }: { d: any; asH1?: boolean }) {
         <div className="grid gap-4 md:grid-cols-2 md:gap-5">
           {docs.map((doc, i) => (
             <a key={i} href={doc.href} target="_blank" rel="noopener" className="hv-btn group flex gap-5 rounded-[24px] border p-7 md:p-8" style={{ borderColor: LINE }}>
-              <span className="grid h-14 w-12 shrink-0 place-items-center rounded-[10px] text-[12px] font-bold" style={{ background: "#FDECF4", color: PINK }}>PDF</span>
+              <span className="grid h-14 w-12 shrink-0 place-items-center rounded-[10px] text-[12px] font-bold" style={{ background: "#fef0f7", color: PINK }}>PDF</span>
               <span className="flex flex-1 flex-col gap-2">
                 <span className={`${kop} text-[22px]`} style={{ color: NAVY }}>{doc.title}</span>
                 <span className="text-[15.5px] leading-[1.6]" style={{ color: BODY }}>{doc.text}</span>

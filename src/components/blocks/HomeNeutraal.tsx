@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ROZE, ROZE_DONKER } from "@/lib/kleuren";
 import { outfit } from "./HomeVerhaal";
 import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin, LuClock } from "react-icons/lu";
 
@@ -13,7 +14,7 @@ import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin, LuClock } f
 
 
 const INDIGO = "#322E83";
-const MAGENTA = "#E61674";
+const MAGENTA = ROZE;
 const IVOOR = "#F8F5F1";
 const TEKST2 = "#55518A";
 
@@ -41,7 +42,7 @@ function Pijl({ size = 16 }: { size?: number }) {
   );
 }
 
-function Label({ children, kleur = "#C40F60" }: { children: React.ReactNode; kleur?: string }) {
+function Label({ children, kleur = ROZE_DONKER }: { children: React.ReactNode; kleur?: string }) {
   return (
     <span className="text-[12px] font-bold uppercase tracking-[1.4px] md:text-[13px]" style={{ color: kleur }}>
       {children}
@@ -71,8 +72,9 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
         {choices.map((c, i) => {
           const links = i === 0;
           const kleur = links ? INDIGO : MAGENTA;
-          const zacht = links ? "#D6D2F7" : "#FFE3EC";
-          const label = links ? "#B4ADF2" : "#FFD0E0";
+          // Op indigo mag de tekst lila; op roze haalt lichtroze geen 4,5:1, dus wit.
+          const zacht = links ? "#D6D2F7" : "#ffffff";
+          const label = links ? "#B4ADF2" : "#ffffff";
           return (
             <Link key={i} href={c.href} aria-label={c.aria || c.title}
               className="hn-tile group relative h-[380px] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]"

@@ -3,10 +3,12 @@ import { usePathname } from "next/navigation";
 import { doelgroepVoorPad, type Doelgroep } from "@/lib/nav";
 import { bewaarDoelgroep, useBewaardeDoelgroep } from "@/lib/doelgroep";
 import type { ContactInfo } from "@/lib/content";
+import { BIJTEKST, ROZE, ROZE_DONKER } from "@/lib/kleuren";
 
 /*
  * Gedeeld door HeaderR2u en FooterR2u (het nieuwe ontwerp, alleen op staging):
- * letter, kleuren (exact uit het logo), welke variant er geldt en de menu's per doelgroep.
+ * letter, kleuren (uit het logo; roze en bijtekst via lib/kleuren.ts, zodat ze
+ * WCAG AA halen), welke variant er geldt en de menu's per doelgroep.
  */
 
 /** Letter van header en footer: DM Sans (uit de root-layout), zoals in het ontwerp. */
@@ -14,11 +16,11 @@ export const letter = { className: "r2u-dm" };
 
 export const K = {
   indigo: "#322E83",
-  magenta: "#E61674",
-  magentaDonker: "#C40F60",
+  magenta: ROZE,
+  magentaDonker: ROZE_DONKER,
   ivoor: "#F8F5F1",
   tekst2: "#55518A",
-  klein: "#6D6A92",
+  klein: BIJTEKST,
   lijn: "#E6E5EF",
   zacht: "#F3F1FA",
   roze: "#FCE9F0",
@@ -50,7 +52,7 @@ export type Link2 = { label: string; href: string; sub?: string; kleur?: string;
 /** De vijf labels, voor het uitklapmenu Diensten. Elk label heeft zijn eigen kleur. */
 export const DIENSTEN: Link2[] = [
   { label: "React2u Resist", sub: "Preventie en vitaliteit", href: "/resist", kleur: "#00A098" },
-  { label: "React2u Recover", sub: "Verzuimbegeleiding", href: "/recover", kleur: "#E61674" },
+  { label: "React2u Recover", sub: "Verzuimbegeleiding", href: "/recover", kleur: ROZE },
   { label: "React2u Restart", sub: "Re-integratie en loopbaan", href: "/restart", kleur: "#F19001" },
   { label: "React2u Reflex", sub: "Flexbranche en Ziektewet", href: "/reflex", kleur: "#3AA5DD" },
   { label: "React2u Ready", sub: "HR en arbeidsrecht", href: "/ready", kleur: "#322E83" },

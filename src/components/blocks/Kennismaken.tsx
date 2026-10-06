@@ -4,6 +4,7 @@ import { submitOfferte, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, BODY, MUTE, LAV, kop, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { BIJTEKST_DONKER, ROZE_DONKER } from "@/lib/kleuren";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -15,7 +16,7 @@ import { DOCUMENTEN } from "@/lib/documenten";
  */
 
 const veld =
-  "h-[52px] w-full rounded-[12px] border border-[#DCDBEA] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-[#9C9AB5] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)]";
+  "h-[52px] w-full rounded-[12px] border border-[#DCDBEA] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-bijtekst focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)]";
 
 const AANTALLEN = [
   { v: "10", l: "1 tot 10" },
@@ -104,8 +105,9 @@ export function Kennismaken({ d, asH1 }: { d: any; asH1?: boolean }) {
       <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-5 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-12 lg:gap-6 lg:p-12 xl:p-[72px]" style={{ background: LAV }}>
         <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
         <div className="relative flex flex-col gap-6 lg:col-span-5">
-          <Kruimels items={[{ label: "Home", href: "/" }, { label: "Werkgevers", href: "/werkgevers" }, { label: "Kennismaken" }]} />
-          <Eyebrow>{d.eyebrow || "Kennismaken en offerte"}</Eyebrow>
+          {/* Op het lavendel vlak (LAV) halen MUTE en ROZE net geen 4,5:1; een tint donkerder wel. */}
+          <Kruimels kleur={BIJTEKST_DONKER} items={[{ label: "Home", href: "/" }, { label: "Werkgevers", href: "/werkgevers" }, { label: "Kennismaken" }]} />
+          <Eyebrow kleur={ROZE_DONKER}>{d.eyebrow || "Kennismaken en offerte"}</Eyebrow>
           <H className={`${kop} m-0 text-[44px] leading-[1.02] tracking-[-1.4px] md:text-[52px] md:tracking-[-1.6px] xl:text-[60px] xl:tracking-[-1.8px]`} style={{ color: NAVY }}>{d.heading || "Zullen we kennismaken?"}</H>
           {d.text && <p className="m-0 text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }}>{d.text}</p>}
           <ol className="m-0 flex list-none flex-col gap-5 p-0 pt-2">

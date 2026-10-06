@@ -6,6 +6,7 @@
  *
  * Niet elke gemeentepagina hoort in Google: zie GEINDEXEERDE_GEMEENTEN onderaan.
  */
+import { ROZE } from "./kleuren";
 
 export type Provincie = { naam: string; gemeenten: string[] };
 export type Regio = { regio: string; kleur: string; provincies: Provincie[] };
@@ -13,7 +14,7 @@ export type Regio = { regio: string; kleur: string; provincies: Provincie[] };
 export const REGIOS: Regio[] = [
   {
     regio: "Zuid-Nederland",
-    kleur: "#E61674",
+    kleur: ROZE,
     provincies: [
       { naam: "Noord-Brabant", gemeenten: ["'s-Hertogenbosch", "Alphen-Chaam", "Altena", "Asten", "Baarle-Nassau", "Bergeijk", "Bergen op Zoom", "Bernheze", "Best", "Bladel", "Boekel", "Boxtel", "Breda", "Cranendonck", "Deurne", "Dongen", "Drimmelen", "Eersel", "Eindhoven", "Etten-Leur", "Geertruidenberg", "Geldrop-Mierlo", "Gemert-Bakel", "Gilze en Rijen", "Goirle", "Halderberge", "Heeze-Leende", "Helmond", "Heusden", "Hilvarenbeek", "Laarbeek", "Land van Cuijk", "Loon op Zand", "Maashorst", "Meierijstad", "Moerdijk", "Nuenen c.a.", "Oirschot", "Oisterwijk", "Oosterhout", "Oss", "Reusel-De Mierden", "Roosendaal", "Rucphen", "Sint-Michielsgestel", "Someren", "Son en Breugel", "Steenbergen", "Tilburg", "Valkenswaard", "Veldhoven", "Vught", "Waalre", "Waalwijk", "Woensdrecht", "Zundert"] },
       { naam: "Limburg", gemeenten: ["Beek", "Beekdaelen", "Beesel", "Bergen (L)", "Brunssum", "Echt-Susteren", "Eijsden-Margraten", "Gennep", "Gulpen-Wittem", "Heerlen", "Horst aan de Maas", "Kerkrade", "Landgraaf", "Leudal", "Maasgouw", "Maastricht", "Meerssen", "Mook en Middelaar", "Nederweert", "Peel en Maas", "Roerdalen", "Roermond", "Simpelveld", "Sittard-Geleen", "Stein", "Vaals", "Valkenburg aan de Geul", "Venlo", "Venray", "Voerendaal", "Weert"] },

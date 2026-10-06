@@ -105,7 +105,7 @@ export function WerkenBijPagina({ vacatures }: { vacatures: Vacancy[] }) {
             <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1 rounded-[20px] bg-white p-5 shadow-[0_30px_60px_-30px_rgba(50,46,131,0.45)] md:bottom-6 md:left-auto md:right-6 md:w-[340px]">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-[15px] font-bold">Open vacatures</span>
-                <span className="rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={{ background: "#FDECF4", color: PINK }}>{vacatures.length} open</span>
+                <span className="rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={{ background: "#fef0f7", color: PINK }}>{vacatures.length} open</span>
               </div>
               {vacatures.map((v, i) => (
                 <Link key={v.id} href={`/vacatures/${v.slug}`} className="hv-btn group flex items-center justify-between gap-3 border-t py-3" style={{ borderColor: LINE }}>
@@ -184,7 +184,7 @@ export function WerkenBijPagina({ vacatures }: { vacatures: Vacancy[] }) {
                   {v.location && <Chip>{v.location}</Chip>}
                   {v.hours && <Chip>{v.hours}</Chip>}
                   {v.salary && <Chip>{v.salary}</Chip>}
-                  <span className="ml-2 grid h-12 w-12 shrink-0 place-items-center rounded-full text-white transition-colors group-hover:bg-[#E61674]" style={{ background: NAVY }}><Pijl /></span>
+                  <span className="ml-2 grid h-12 w-12 shrink-0 place-items-center rounded-full text-white transition-colors group-hover:bg-accent" style={{ background: NAVY }}><Pijl /></span>
                 </span>
               </Link>
             ))}

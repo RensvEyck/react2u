@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ROZE } from "@/lib/kleuren";
 import { useRef, useState } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { LuPhone, LuMail } from "react-icons/lu";
@@ -25,7 +26,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 const INDIGO = "#2A2677";
-const MAGENTA = "#C8306A";
+const MAGENTA = ROZE;
 const ORANJE = "#F29A3A";
 const LILA = "#8C7FE8";
 const TEKST2 = "#55518A";

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BIJTEKST, kopKleur } from "@/lib/kleuren";
 import { outfit } from "./HomeVerhaal";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -14,7 +15,7 @@ type BlockProps = { d: any; asH1?: boolean };
 
 const NAVY = "#322E83";
 const BODY = "#5E5C78";
-const MUTE = "#77758F";
+const MUTE = BIJTEKST;
 const LINE = "#E6E5EF";
 const SOFT = "#F6F5FB";
 
@@ -77,7 +78,7 @@ export function DienstLabel({ d, asH1 }: BlockProps) {
             <H className={`${kop} m-0 text-[26px] leading-[1.05] tracking-[-0.4px] md:text-[34px]`} style={{ color: NAVY }}>
               React2u<br />
               <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[76px] md:tracking-[-2px]">
-                <span style={{ color: c }}>{naam}</span>
+                <span style={{ color: kopKleur(c, NAVY) }}>{naam}</span>
                 <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
               </span>
             </H>

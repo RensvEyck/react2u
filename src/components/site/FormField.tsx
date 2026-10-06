@@ -1,7 +1,7 @@
 import { LuCircleCheck } from "react-icons/lu";
 
 export const fieldClass =
-  "w-full rounded-lg border border-[#8480ab] bg-white px-4 py-3 text-[16px] text-primary outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-black/40 hover:border-primary/50 focus:border-primary focus:shadow-[0_0_0_3px_rgba(49,46,130,0.12)]";
+  "w-full rounded-lg border border-[#8480ab] bg-white px-4 py-3 text-[16px] text-primary outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-bijtekst hover:border-primary/50 focus:border-primary focus:shadow-[0_0_0_3px_rgba(49,46,130,0.12)]";
 
 /**
  * Een formulierveld met een zichtbaar label. Alleen een placeholder is niet

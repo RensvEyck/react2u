@@ -58,7 +58,7 @@ export function maintenancePage(m: Maintenance, contact: Partial<ContactInfo> | 
 <style>
   @font-face{font-family:"Figtree";src:url(/fonts/figtree-latin.woff2) format("woff2");font-weight:300 900;font-display:swap}
   @font-face{font-family:"DM Sans";src:url(/fonts/dm-sans-latin.woff2) format("woff2");font-weight:100 1000;font-display:swap}
-  :root{--indigo:#312e82;--pink:#e75387;--teal:#00aa98;--ink:rgba(0,0,0,.61)}
+  :root{--indigo:#312e82;--pink:#d4136c;--teal:#00aa98;--ink:rgba(0,0,0,.61)}
   *{box-sizing:border-box}
   html{height:100%}
   body{margin:0;min-height:100%;display:flex;flex-direction:column;color:var(--ink);
@@ -94,7 +94,7 @@ export function maintenancePage(m: Maintenance, contact: Partial<ContactInfo> | 
   .btn-primary:hover{background:transparent;color:var(--pink)}
   .btn-ghost{border-color:rgba(49,46,130,.25);color:var(--indigo)}
   .btn-ghost:hover{border-color:var(--indigo);background:#f6f5fb}
-  .btn:focus-visible{outline:3px solid rgba(231,83,135,.35);outline-offset:3px}
+  .btn:focus-visible{outline:3px solid rgba(212,19,108,.5);outline-offset:3px}
   footer{padding:20px 16px 28px;text-align:center;font-size:14px;color:rgba(0,0,0,.45)}
   @keyframes in{from{opacity:0;scale:.2}}
   @keyframes float{50%{translate:0 -.9px}}

@@ -11,8 +11,8 @@
       "data": {
         "heading": "Ziek, wat nu?",
         "text": "Ziek melden is niet ingewikkeld. Hier lees je wat je moet doen, wat er daarna gebeurt en wat je van ons mag verwachten.",
-        "tint": "#FDECF4",
-        "orb": "#E61674",
+        "tint": "#fef0f7",
+        "orb": "#d4136c",
         "buttons": [
           {
             "label": "Bel je casemanager",
@@ -77,8 +77,8 @@
             "letter": "R",
             "title": "Rechten en plichten",
             "text": "Je hebt recht op ziekengeld en goede zorg. Je hebt de plicht om bereikbaar te zijn en samen te zoeken naar mogelijkheden om te werken.",
-            "kleur": "#E61674",
-            "tint": "#FDECF4"
+            "kleur": "#d4136c",
+            "tint": "#fef0f7"
           },
           {
             "letter": "E",
@@ -105,8 +105,8 @@
             "letter": "T",
             "title": "Traject van verzuim",
             "text": "We hebben geheimhoudingsplicht. Je kunt alles met ons delen, van medische informatie tot problemen met je werkgever.",
-            "kleur": "#E61674",
-            "tint": "#FDECF4"
+            "kleur": "#d4136c",
+            "tint": "#fef0f7"
           },
           {
             "letter": "2U",

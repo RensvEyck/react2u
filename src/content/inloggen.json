@@ -32,8 +32,8 @@
             "for": "Voor werknemers",
             "title": "Mijn dossier",
             "icon": "mensen",
-            "kleur": "#E61674",
-            "tint": "#FDECF4",
+            "kleur": "#d4136c",
+            "tint": "#fef0f7",
             "text": "Bekijk je afspraken en documenten en houd contact met je casemanager.",
             "points": [
               "Afspraken en gespreksverslagen bekijken",

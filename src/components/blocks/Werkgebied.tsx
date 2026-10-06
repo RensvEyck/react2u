@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { tekstKleur } from "@/lib/kleuren";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Knop, Vink, Pijl, KopBlok } from "./Gedeeld";
 import {
@@ -206,7 +207,7 @@ function Specialismen() {
           {SPECIALISMEN.map((s) => (
             <Link key={s.naam} href={s.href} className="hv-btn flex flex-col gap-3 rounded-[22px] border border-t-[3px] bg-white px-6 py-6" style={{ borderColor: LINE, borderTopColor: s.kleur }}>
               <span className={`${kop} text-[21px]`} style={{ color: NAVY }}>React2u {s.naam}</span>
-              <span className="text-[14px] font-bold" style={{ color: s.kleur }}>{s.sub}</span>
+              <span className="text-[14px] font-bold" style={{ color: tekstKleur(s.kleur) }}>{s.sub}</span>
               <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{s.tekst}</span>
               <span className="mt-auto inline-flex items-center gap-2 pt-1.5 text-[14.5px] font-bold" style={{ color: NAVY }}>Lees meer<Pijl size={14} /></span>
             </Link>

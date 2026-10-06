@@ -11,7 +11,7 @@ import { DOCUMENTEN } from "@/lib/documenten";
  */
 
 const veld =
-  "h-[52px] w-full rounded-[12px] border border-[#DCDBEA] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-[#9C9AB5] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)]";
+  "h-[52px] w-full rounded-[12px] border border-[#DCDBEA] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-bijtekst focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)]";
 
 export type Keuze = { id: string; title: string };
 
@@ -52,7 +52,7 @@ export default function Solliciteren({ keuzes, vast, kopTekst = "Snel solliciter
               return (
                 <button key={o.title} type="button" onClick={() => setKeuze(o)} aria-pressed={aan}
                   className="inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-left text-[14.5px] font-semibold leading-[1.3] transition-colors"
-                  style={{ borderColor: aan ? PINK : "#D9D8E6", background: aan ? "#FDECF4" : "#ffffff", color: NAVY }}>
+                  style={{ borderColor: aan ? PINK : "#D9D8E6", background: aan ? "#fef0f7" : "#ffffff", color: NAVY }}>
                   {o.title}
                 </button>
               );

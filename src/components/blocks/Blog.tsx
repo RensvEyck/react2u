@@ -14,7 +14,7 @@ import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kru
 
 const ONDERWERPEN = [
   { label: "React2u Resist", titel: "Preventie", tekst: "Gezond werken en uitval voorkomen.", href: "/resist", kleur: TEAL, tint: "#E5F5F4" },
-  { label: "React2u Recover", titel: "Verzuim", tekst: "Van ziekmelding tot herstel.", href: "/recover", kleur: PINK, tint: "#FDECF4" },
+  { label: "React2u Recover", titel: "Verzuim", tekst: "Van ziekmelding tot herstel.", href: "/recover", kleur: PINK, tint: "#fef0f7" },
   { label: "React2u Restart", titel: "Re-integratie", tekst: "Nieuwe stappen, binnen of buiten.", href: "/restart", kleur: "#F19001", tint: "#FEF3E3" },
   { label: "React2u Reflex", titel: "Flex en Ziektewet", tekst: "Voor uitzenders en eigenrisicodragers.", href: "/reflex", kleur: "#3AA5DD", tint: "#E9F5FC" },
 ];

@@ -9,13 +9,21 @@
   --color-secondary: #00aa98;
   /* Teal voor tekst, zoals bovenkopjes: 5,2:1 op wit. */
   --color-secondary-ink: #007a6d;
-  /* Roze voor knoppen en accenten. Het oude #e75387 haalde met witte tekst
-     maar 3,5:1; deze tint 5,1:1 (WCAG AA). */
-  --color-accent: #c8306a;
-  --color-accent-deep: #a92656;
+  /* Hét roze voor tekst en knoppen, overal op de site: 5,1:1 met witte tekst
+     en als tekst op wit, 4,6:1 op het lichtste vlak (#f3f1fa). Het roze uit
+     het logo (#e61674) haalde 4,4:1 en op de lichte vlakken 4,1:1; de oude
+     #e75387 maar 3,5:1. Zelfde waarde als ROZE in lib/kleuren.ts — de test
+     daar bewaakt dat. Decoratief roze (stippen, vlakken zonder tekst) houdt
+     de logokleur, zie lib/brand.ts. */
+  --color-accent: #d4136c;
+  /* Eén tint donkerder: hover op roze knoppen (6,4:1 met wit). */
+  --color-accent-deep: #b8105e;
   --color-accent-blue: #39a5dd;
-  --color-accent-pink: #e51673;
   --color-accent-orange: #f19000;
+  /* Grijs voor bijschriften en kleine tekst: 5,3:1 op wit, 4,7:1 op #f3f1fa.
+     Het oude #77758f haalde 4,1 tot 4,4:1. Zelfde waarde als BIJTEKST in
+     lib/kleuren.ts. */
+  --color-bijtekst: #6b6984;
   /* Grijs met een zweem indigo, zodat het bij de rest past: 6,85:1 op wit. */
   --color-body: #5a5870;
   /* Het warme, zandkleurige vlak dat met wit afwisselt: warm en menselijk,
@@ -73,7 +81,7 @@ p {
 }
 
 ::selection {
-  background: rgba(200, 48, 106, 0.18);
+  background: rgba(212, 19, 108, 0.18);
   color: var(--color-primary);
 }
 
@@ -84,7 +92,7 @@ p {
    ronding van het element zelf. Formuliervelden hebben hun eigen focusstijl
    (FormField.tsx). */
 :where(a, button, summary, [tabindex]) {
-  outline-color: rgba(200, 48, 106, 0.5);
+  outline-color: rgba(212, 19, 108, 0.5);
 }
 .on-dark :where(a, button) {
   outline-color: rgba(255, 255, 255, 0.75);
@@ -536,7 +544,7 @@ p {
 .hn-card { transition: transform .5s cubic-bezier(.2,.75,.2,1), box-shadow .5s cubic-bezier(.2,.75,.2,1); }
 .hn-pijl { transition: transform .35s ease; }
 .hn-btn { transition: transform .35s ease, box-shadow .35s ease; }
-.hn a:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
+.hn a:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
 
 /* Kop van de startpagina: alles schaalt mee met het scherm. */
 .hn-split { --h: 380px; }
@@ -579,18 +587,18 @@ p {
   .r2u-kop { --hh: 88px; }
 }
 .r2u-dm { font-family: var(--font-dm-sans), system-ui, sans-serif; }
-.rk-roze { background: #E61674; border-color: #E61674; color: #ffffff; }
+.rk-roze { background: var(--color-accent); border-color: var(--color-accent); color: #ffffff; }
 @media (hover: hover) {
-  .rk .rk-roze:hover { background: #C40F60; border-color: #C40F60; color: #ffffff; }
+  .rk .rk-roze:hover { background: var(--color-accent-deep); border-color: var(--color-accent-deep); color: #ffffff; }
 }
 .rk h2 { font-family: inherit; }
-.rk a:focus-visible, .rk button:focus-visible { outline: 3px solid #E61674; outline-offset: 3px; border-radius: 14px; }
+.rk a:focus-visible, .rk button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; border-radius: 14px; }
 .rk-balk nav a:focus-visible, .rk-balk .rk-tab:focus-visible { outline-color: #ffffff; }
 .rk-link, .rk-pilllink, .rk-flink, .rk-pill, .rk-tab, .rk-dd-link { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
 .rk-btn, .rk-rond { transition: transform .35s ease, box-shadow .35s ease; }
 .rk-pijl { transition: transform .35s ease; }
 @media (hover: hover) {
-  .rk .rk-link:hover, .rk .rk-pilllink:hover, .rk .rk-flink:hover { color: #E61674 !important; }
+  .rk .rk-link:hover, .rk .rk-pilllink:hover, .rk .rk-flink:hover { color: var(--color-accent) !important; }
   .rk .rk-pill:hover { border-color: #322E83 !important; }
   .rk .rk-tab:hover { color: #ffffff !important; }
   .rk .rk-dd-link:hover { background: #F3F1FA; }
@@ -608,7 +616,7 @@ p {
    Tailwind-klassen op deze koppen overschrijven; revert-layer geeft ze terug. */
 .wg :is(h1, h2, h3) { font-weight: revert-layer; color: revert-layer; line-height: revert-layer; letter-spacing: revert-layer; text-wrap: pretty; }
 .wg a { text-decoration: none; }
-.wg a:focus-visible, .wg button:focus-visible, .wg summary:focus-visible, .wg-rail:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
+.wg a:focus-visible, .wg button:focus-visible, .wg summary:focus-visible, .wg-rail:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
 .wg-tile img { transition: transform 1.4s cubic-bezier(.2,.75,.2,1), filter .8s ease; }
 .wg-orb { transition: transform .8s cubic-bezier(.2,.75,.2,1); }
 .wg-card { transition: transform .5s cubic-bezier(.2,.75,.2,1), box-shadow .5s cubic-bezier(.2,.75,.2,1); }
@@ -634,7 +642,7 @@ p {
 .wg-form form > .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 @media (min-width: 1024px) { .wg-form form > .grid { gap: 14px; } }
 .wg-form textarea { height: auto; min-height: 84px; padding: 14px 16px; resize: vertical; }
-.wg-form input::placeholder, .wg-form textarea::placeholder { color: #6D6A92; }
+.wg-form input::placeholder, .wg-form textarea::placeholder { color: var(--color-bijtekst); }
 .wg-form input:focus, .wg-form textarea:focus { border-color: #2A2677; box-shadow: 0 0 0 3px rgba(42,38,119,.12); }
 .wg-form .btn { width: 100%; min-height: 58px; border-radius: 999px; border-color: #2A2677; background: #2A2677; color: #fff; font-weight: 700; }
 .wg-form .btn:hover { background: #1F1B5E; border-color: #1F1B5E; }
@@ -675,7 +683,7 @@ p {
 .wn { font-size: 16px; line-height: normal; }
 .wn :is(h1, h2, h3) { font-family: inherit; font-weight: revert-layer; letter-spacing: revert-layer; line-height: revert-layer; text-wrap: wrap; }
 .wn a { text-decoration: none; }
-.wn a:focus-visible, .wn summary:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; border-radius: 12px; }
+.wn a:focus-visible, .wn summary:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; border-radius: 12px; }
 .wn-foto-f { object-position: var(--f-m); }
 .wn-foto { transition: transform 1.4s cubic-bezier(.2,.75,.2,1), filter .8s ease; }
 .wn-orb { transition: transform .8s cubic-bezier(.2,.75,.2,1); }
@@ -741,8 +749,8 @@ p {
 .hv-reis.hv-go .hv-js { animation: hvPop .8s cubic-bezier(.2,.9,.25,1) both; }
 .hv-reis.hv-go .hv-jc { animation: hvUp .7s cubic-bezier(.2,.75,.2,1) both; }
 .hv-btn { transition: background .2s ease, color .2s ease, border-color .2s ease, transform .35s ease; }
-.hv-btn-roze { background: #E61674; color: #ffffff; border: 1.5px solid #E61674; }
-.hv-btn-roze:hover { background: #C40F60; border-color: #C40F60; }
+.hv-btn-roze { background: var(--color-accent); color: #ffffff; border: 1.5px solid var(--color-accent); }
+.hv-btn-roze:hover { background: var(--color-accent-deep); border-color: var(--color-accent-deep); }
 .hv-btn-rand { background: #ffffff; color: #322E83; border: 1.5px solid #D9D8E6; }
 .hv-btn-rand:hover { background: #322E83; border-color: #322E83; color: #ffffff; }
 .hv-btn:hover .hn-pijl { transform: translateX(5px); }

@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import { submitContact, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { BIJTEKST, ROZE } from "@/lib/kleuren";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -13,14 +14,14 @@ import { DOCUMENTEN } from "@/lib/documenten";
  */
 
 const NAVY = "#322E83";
-const PINK = "#E61674";
+const PINK = ROZE;
 const BODY = "#5E5C78";
-const MUTE = "#77758F";
+const MUTE = BIJTEKST;
 const LINE = "#E6E5EF";
 const SOFT = "#F6F5FB";
 
 const veld =
-  "h-[52px] w-full rounded-[10px] border border-[#DCDBEA] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-[#9C9AB5] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)]";
+  "h-[52px] w-full rounded-[10px] border border-[#DCDBEA] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-bijtekst focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)]";
 
 function Pijl() {
   return (
@@ -98,7 +99,7 @@ export function ContactSimpel({ d, asH1 }: { d: any; asH1?: boolean }) {
               <div key={i} className="flex flex-col gap-1.5 border-t py-6" style={{ borderColor: LINE }}>
                 <span className="text-[14px]" style={{ color: MUTE }}>{r.label}</span>
                 {r.href ? (
-                  <a href={r.href} className="hv-kop whitespace-pre-line text-[22px] leading-[1.3] hover:text-[#E61674]" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</a>
+                  <a href={r.href} className="hv-kop whitespace-pre-line text-[22px] leading-[1.3] hover:text-accent" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</a>
                 ) : (
                   <span className="hv-kop whitespace-pre-line text-[22px] leading-[1.3]" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</span>
                 )}

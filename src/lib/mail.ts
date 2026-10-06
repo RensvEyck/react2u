@@ -40,7 +40,7 @@ function render(title: string, intro: string, fields: Field[], body?: string | n
   <p style="margin:0 0 16px;font-size:14px;color:#666">${esc(intro)}</p>
   <table style="border-collapse:collapse;margin-bottom:16px">${rows}</table>
   ${body ? `<div style="white-space:pre-line;background:#fafafd;border-radius:10px;padding:14px;font-size:14px;line-height:1.6;color:#333">${esc(body)}</div>` : ""}
-  <p style="margin:20px 0 0;font-size:13px;color:#888">Behandel deze inzending in het <a href="${esc(adminUrl())}" style="color:#e75387">Postvak IN</a>.</p>
+  <p style="margin:20px 0 0;font-size:13px;color:#888">Behandel deze inzending in het <a href="${esc(adminUrl())}" style="color:#d4136c">Postvak IN</a>.</p>
 </div>`;
 }
 
@@ -99,7 +99,7 @@ export async function sendInvite(i: { to: string; link: string; invitedBy: strin
   const html = `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:520px;color:#1c1a4e">
   <h2 style="margin:0 0 8px;font-size:20px;color:#312e82">Je bent uitgenodigd voor het beheer van react2u.nl</h2>
   <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#444">${esc(i.invitedBy)} heeft je toegang gegeven als <strong>${esc(i.roleLabel)}</strong>. Kies een wachtwoord en je kunt meteen aan de slag.</p>
-  <p style="margin:0 0 24px"><a href="${esc(i.link)}" style="display:inline-block;background:#e75387;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:12px">Wachtwoord kiezen</a></p>
+  <p style="margin:0 0 24px"><a href="${esc(i.link)}" style="display:inline-block;background:#d4136c;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:12px">Wachtwoord kiezen</a></p>
   <p style="margin:0 0 6px;font-size:13px;color:#888">Werkt de knop niet? Kopieer deze link naar je browser:</p>
   <p style="margin:0 0 20px;font-size:12px;word-break:break-all;color:#312e82">${esc(i.link)}</p>
   <p style="margin:0;font-size:13px;color:#888">De link werkt één keer. Verwachtte je deze mail niet, dan kun je hem negeren.</p>

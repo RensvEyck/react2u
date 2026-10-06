@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ContactInfo } from "@/lib/content";
 import type { Doelgroep } from "@/lib/nav";
 import Logo from "./Logo";
+import { tekstKleur } from "@/lib/kleuren";
 import {
   letter, K, useVariant, telefoon, OVER_ONS, TOPLINKS, MENU_NEUTRAAL, MENU, KNOPPEN, PORTALEN, SITE,
   type Link2, type Variant,
@@ -144,7 +145,7 @@ function Uitklap({ label, icoon, items, rechts = false }: {
                   {l.kleur && <span aria-hidden className="mt-[6px] h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: l.kleur }} />}
                   <span className="flex flex-col gap-0.5">
                     {l.label}
-                    {l.sub && <span className="text-[13px] font-semibold" style={{ color: "#77758F" }}>{l.sub}</span>}
+                    {l.sub && <span className="text-[13px] font-semibold" style={{ color: K.klein }}>{l.sub}</span>}
                   </span>
                 </Go>
               </li>
@@ -383,7 +384,7 @@ function MobielPaneel({ variant, contact, tel, knopHref }: { variant: Variant; c
       </div>
 
       <div>
-        <p className="mb-1 text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: "#00A098" }}>Over React2u</p>
+        <p className="mb-1 text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: tekstKleur("#00A098") }}>Over React2u</p>
         <ul className="-mx-3.5 flex flex-col">
           {OVER_ONS.map((l) => (
             <li key={l.href}>

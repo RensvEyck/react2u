@@ -15,7 +15,7 @@
         "image": "/beeld/werknemers/samen-buiten.webp",
         "alt": "Twee mensen wandelen samen buiten",
         "focus": "60% 25%",
-        "panel": "#E61674",
+        "panel": "#d4136c",
         "buttons": [
           {
             "label": "Ziek, wat nu?",
@@ -39,8 +39,8 @@
         "items": [
           {
             "naam": "Recover",
-            "kleur": "#E61674",
-            "tint": "#FDECF4",
+            "kleur": "#d4136c",
+            "tint": "#fef0f7",
             "title": "We begeleiden je als je ziek bent",
             "text": "Van de eerste dag tot je weer aan het werk bent.",
             "points": [

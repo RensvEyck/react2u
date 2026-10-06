@@ -1,20 +1,22 @@
 import Link from "next/link";
+import { BIJTEKST, ROZE, tekstKleur } from "@/lib/kleuren";
 
 /* eslint-disable @next/next/no-img-element */
 
 /*
  * Bouwstenen die op meerdere pagina's uit het Design-canvas terugkomen:
  * de klantenstrook, "Klanten aan het woord" en de keurmerken. Kleuren en
- * maten zoals op het canvas; koppen in Outfit via `.hv-kop`.
+ * maten zoals op het canvas, behalve roze en bijtekst: die komen uit
+ * lib/kleuren.ts, zodat tekst erin WCAG AA haalt; koppen in Outfit via `.hv-kop`.
  */
 
 export const NAVY = "#322E83";
-export const PINK = "#E61674";
+export const PINK = ROZE;
 export const TEAL = "#00A098";
 export const SKY = "#3AA5DD";
 export const ORANGE = "#F19001";
 export const BODY = "#5E5C78";
-export const MUTE = "#77758F";
+export const MUTE = BIJTEKST;
 export const LINE = "#E6E5EF";
 export const SOFT = "#F6F5FB";
 export const LAV = "#ECEBF5";
@@ -63,21 +65,23 @@ export function Vink({ size = 14 }: { size?: number }) {
   );
 }
 
+/** De stip in de labelkleur zelf; de tekst in de tint die 4,5:1 haalt (lib/kleuren.ts). */
 export function Eyebrow({ children, kleur = PINK }: { children: React.ReactNode; kleur?: string }) {
   return (
-    <span className="inline-flex items-center gap-2.5 text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: kleur }}>
+    <span className="inline-flex items-center gap-2.5 text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: tekstKleur(kleur) }}>
       <span className="h-2 w-2 rounded-full" style={{ background: kleur }} />{children}
     </span>
   );
 }
 
-export function Kruimels({ items }: { items: { label: string; href?: string }[] }) {
+/** `kleur`: op een lavendel vlak is MUTE net te licht; geef dan BIJTEKST_DONKER mee. */
+export function Kruimels({ items, kleur = MUTE }: { items: { label: string; href?: string }[]; kleur?: string }) {
   return (
-    <nav aria-label="Kruimelpad" className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
+    <nav aria-label="Kruimelpad" className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: kleur }}>
       {items.map((c, i) => (
         <span key={i} className="flex items-center gap-2.5">
           {i > 0 && <span aria-hidden>/</span>}
-          {c.href ? <Link href={c.href} style={{ color: MUTE }}>{c.label}</Link> : <span aria-current="page" style={{ color: NAVY }}>{c.label}</span>}
+          {c.href ? <Link href={c.href} style={{ color: kleur }}>{c.label}</Link> : <span aria-current="page" style={{ color: NAVY }}>{c.label}</span>}
         </span>
       ))}
     </nav>
