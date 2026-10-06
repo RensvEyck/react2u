@@ -6,6 +6,8 @@ import { jsonLd } from "@/lib/jsonld";
 import ApplicationForm from "@/components/site/ApplicationForm";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
+import { conceptenActief } from "@/lib/concept";
+import { VacatureDetail } from "@/components/blocks/WerkenBij";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -57,6 +59,17 @@ export default async function VacancyPage({ params }: { params: Promise<{ slug: 
     },
     directApply: true,
   };
+
+  if (conceptenActief) {
+    // Op staging het nieuwe ontwerp "Vacature" (versie B).
+    const andere = (await getPublishedVacancies()).filter((x) => x.id !== v.id);
+    return (
+      <>
+        <VacatureDetail v={v} andere={andere} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(jobLd) }} />
+      </>
+    );
+  }
 
   return (
     <>

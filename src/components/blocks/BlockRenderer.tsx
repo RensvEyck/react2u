@@ -18,6 +18,9 @@ import { HomeSplit, HomeWaarom, HomeSnelNaar, HomeContact } from "./HomeNeutraal
 import { HomeEenMens, HomeReis } from "./HomeVerhaal";
 import { ContactSimpel } from "./ContactSimpel";
 import { DienstLabel } from "./DienstLabel";
+import { OverReact2u } from "./OverReact2u";
+import { Kennismaken } from "./Kennismaken";
+import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
 import {
   WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
 } from "./Werkgevers";
@@ -1124,6 +1127,11 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   homeReis: HomeReis,
   contactSimpel: ContactSimpel,
   dienstLabel: DienstLabel,
+  overReact2u: OverReact2u,
+  kennismaken: Kennismaken,
+  klantenStrook: ({ d }: BlockProps) => <KlantenStrook label={d?.label} />,
+  klantenAanHetWoord: () => <KlantenAanHetWoord />,
+  keurmerken: () => <Keurmerken />,
   homeContact: HomeContact,
   wgSplit: WgSplit,
   wgWaarom: WgWaarom,
@@ -1162,7 +1170,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,

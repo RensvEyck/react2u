@@ -5,6 +5,8 @@ import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
 import { Arrow } from "@/components/site/Arrow";
 import { WERKEN_BIJ_FOTO } from "@/lib/nav";
+import { conceptenActief } from "@/lib/concept";
+import { WerkenBijPagina } from "@/components/blocks/WerkenBij";
 
 export const revalidate = 300;
 
@@ -17,6 +19,8 @@ export const metadata: Metadata = {
 
 export default async function VacaturesPage() {
   const vacancies = await getPublishedVacancies();
+  // Op staging het nieuwe ontwerp "Werken bij"; productie houdt deze pagina.
+  if (conceptenActief) return <WerkenBijPagina vacatures={vacancies} />;
   return (
     <>
       <PageHeader crumbs={[{ label: "Werken bij React2u", href: "/vacatures" }]} eyebrow="Werken bij React2u" title="Vacatures"

@@ -1,0 +1,45 @@
+{
+  "_uitleg": "Kennismaken en offerte in het nieuwe ontwerp (canvas: Kennismaken). Zie CONTEXT.md, *Concepten*.",
+  "slug": "kennismaken",
+  "title": "Kennismaken",
+  "seo_title": "Kennismaken en offerte aanvragen • React2u",
+  "seo_description": "Vertel ons kort over je organisatie. We maken kennis, denken mee en sturen binnen twee werkdagen een offerte op maat.",
+  "blocks": [
+    {
+      "type": "kennismaken",
+      "label": "Kennismaken (stappen en formulier)",
+      "data": {
+        "eyebrow": "Kennismaken en offerte",
+        "heading": "Zullen we kennismaken?",
+        "text": "Vertel ons kort over je organisatie. We denken mee over wat bij je past en sturen je een voorstel dat klopt.",
+        "stappen": [
+          {
+            "titel": "Je laat je gegevens achter",
+            "tekst": "Het formulier kost je twee minuten."
+          },
+          {
+            "titel": "We maken kennis",
+            "tekst": "Op ons kantoor, bij jou of online."
+          },
+          {
+            "titel": "Je krijgt een offerte op maat",
+            "tekst": "Binnen twee werkdagen, helder en zonder kleine lettertjes."
+          }
+        ],
+        "formKop": "Vraag een offerte aan"
+      }
+    },
+    {
+      "type": "klantenStrook",
+      "label": "Klanten",
+      "data": {
+        "label": "We werken samen met:"
+      }
+    },
+    {
+      "type": "klantenAanHetWoord",
+      "label": "Klanten aan het woord",
+      "data": {}
+    }
+  ]
+}

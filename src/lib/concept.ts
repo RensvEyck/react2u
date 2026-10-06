@@ -12,6 +12,8 @@ import recover from "@/content/recover.json";
 import restart from "@/content/restart.json";
 import reflex from "@/content/reflex.json";
 import ready from "@/content/ready.json";
+import overReact2u from "@/content/over-react2u.json";
+import kennismaken from "@/content/kennismaken.json";
 import cookieverklaring from "@/content/cookieverklaring.json";
 
 /**
@@ -27,7 +29,7 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact, resist, recover, restart, reflex, ready, cookieverklaring];
+const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, begeleidingEnCoaching, diensten, tarieven, contact, resist, recover, restart, reflex, ready, cookieverklaring, overReact2u, kennismaken];
 
 /**
  * Concepten zijn alleen zichtbaar op een preview-deploy (staging): daar wil je
