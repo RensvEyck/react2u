@@ -26,6 +26,7 @@ export const nl = {
     belOns: "Bel ons: {tel}",
     openingstijden: "Ma t/m vr 9.00 tot 17.00 uur",
     optioneel: "optioneel",
+    leesMeer: "Lees meer",
     /** Achter een document dat alleen in het Nederlands bestaat; leeg in het Nederlands zelf. */
     alleenNederlands: "",
     taal: "Taal",
@@ -308,6 +309,92 @@ export const nl = {
       tekst: "Staat jouw functie er niet tussen, maar denk je dat je bij ons past? We komen graag met je in contact. Laat je gegevens achter en upload je cv.",
       formKop: "Vertel ons wie je bent",
     },
+  },
+
+  /** Blokken van de werkgeverskant met vaste woorden buiten de blokdata. */
+  werkgevers: {
+    poortwachterMoment: "Moment",
+    poortwachterJij: "Jij als werkgever",
+    poortwachterWij: "React2u",
+    tarievenKruimel: "Tarieven",
+    offerteAanvragen: "Offerte aanvragen",
+    certificeringenKruimel: "Certificeringen",
+    overOnsKruimel: "Over ons",
+    overReact2uKruimel: "Over React2u",
+    kernwaarden: "Kernwaarden",
+  },
+
+  /** De labelpagina's (React2u Recover, Resist, …): de vaste woorden rond de blokdata. */
+  dienstLabel: {
+    kruimelDiensten: "Diensten",
+    adviesgesprek: "Adviesgesprek",
+    alleDiensten: "Alle diensten",
+    watJeKrijgt: "Wat je krijgt",
+    herken: "Herken je dit?",
+    danIs: "Dan is React2u {naam} er voor jou.",
+    omvat: "Wat React2u {naam} omvat",
+    omvatTekst: "We zetten één onderdeel in of combineren ze tot een aanpak die past bij jouw organisatie.",
+    aanpak: "Onze aanpak",
+    waarom: "Waarom React2u {naam}",
+    gecertificeerd: "Gecertificeerd en aangesloten",
+    bekijkOok: "Bekijk ook",
+    bekijk: "Bekijk",
+  },
+
+  /** Klantenstrook, klanten aan het woord en het keurmerkenblok (Gedeeld.tsx). */
+  gedeeld: {
+    klantenLabel: "We werken samen met:",
+    ervaringenEyebrow: "Klanten aan het woord",
+    ervaringenKop: "Wat klanten over ons zeggen",
+    citaten: [
+      {
+        tekst: "Korte lijnen, snelle communicatie en altijd bereid om mee te denken. Een fijne arbodienst met oog voor zowel werkgever als werknemer.",
+        naam: "Maxime Boonstra", rol: "Algemeen directeur, Kester uitzendbureau", logo: "/beeld/klanten/kester.png",
+      },
+      {
+        tekst: "In een dynamische supermarktorganisatie is snel schakelen essentieel. Dankzij de korte lijnen, deskundige begeleiding en persoonlijke benadering ervaren wij de samenwerking als zeer prettig en betrouwbaar.",
+        naam: "Afdeling HR", rol: "De Jumbo’s van Ralf & René", logo: "/beeld/klanten/jumbo.png",
+      },
+    ],
+    kwaliteit: "Kwaliteit",
+    getoetst: "Getoetst en gecertificeerd",
+    kwaliteitTekst: "Je werkt met gevoelige informatie. Daarom laten we onze kwaliteit, beveiliging en privacy onafhankelijk toetsen.",
+    meerCertificeringen: "Meer over onze certificeringen",
+    /** Naam en omschrijving van de vijf keurmerken, in de volgorde van KEURMERKEN. */
+    keurmerken: [
+      { naam: "SBCA", wat: "Gecertificeerde arbodienst" },
+      { naam: "ISO 9001", wat: "Kwaliteitsmanagement" },
+      { naam: "ISO 27001", wat: "Informatiebeveiliging" },
+      { naam: "ISO 27701", wat: "Privacy" },
+      { naam: "OVAL", wat: "Branchevereniging" },
+    ],
+  },
+
+  /** Kennismaken en offerte: de stappen staan in de blokdata, het formulier hier. */
+  kennismaken: {
+    kruimel: "Kennismaken",
+    eyebrow: "Kennismaken en offerte",
+    kop: "Zullen we kennismaken?",
+    formKop: "Vraag een offerte aan",
+    bedrijfsnaam: "Bedrijfsnaam",
+    bedrijfsnaamPlaceholder: "Naam van je organisatie",
+    naamPlaceholder: "Voor- en achternaam",
+    functie: "Functie",
+    functiePlaceholder: "Bijvoorbeeld HR-manager",
+    emailPlaceholder: "naam@bedrijf.nl",
+    telefoonPlaceholder: "06 12 34 56 78",
+    aantal: "Aantal medewerkers",
+    maakKeuze: "Maak een keuze",
+    aantallen: ["1 tot 10", "11 tot 50", "51 tot 100", "101 tot 250", "Meer dan 250"],
+    interesse: "Interesse",
+    interessePlaceholder: "Bijvoorbeeld verzuimbegeleiding",
+    toelichting: "Toelichting",
+    toelichtingPlaceholder: "Waar kunnen we je mee helpen?",
+    verstuur: "Verstuur aanvraag",
+    voet: "Je aanvraag gaat naar ons salesteam via sales@react2u.nl. We gebruiken je gegevens alleen om contact met je op te nemen.",
+    lieverBellen: "Liever direct bellen?",
+    bedankt: "Bedankt voor je aanvraag",
+    bedanktTekst: "We nemen binnen twee werkdagen contact met je op om kennis te maken.",
   },
 
   seo: {

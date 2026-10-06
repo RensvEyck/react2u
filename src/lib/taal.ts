@@ -42,20 +42,12 @@ export const SLUGS: Record<string, string> = {
 };
 
 /**
- * Welke Engelse pagina's er al zijn. Fase 1: de werknemerskant, de
- * vacatures en de startpagina. Een slug die hier niet in staat krijgt geen
+ * Welke Engelse pagina's er zijn. Een slug die hier niet in staat krijgt geen
  * /en-adres: links ernaartoe wijzen dan naar de Nederlandse pagina en de
- * taalknop naar /en. De test in taal.test.ts bewaakt dat deze lijst klopt met
- * de bestanden in src/content/en/.
+ * taalknop naar /en. Sinds fase 2 is dat de hele koppeltabel; de test in
+ * taal.test.ts bewaakt dat deze lijst klopt met de bestanden in src/content/en/.
  */
-export const EN_KLAAR: ReadonlySet<string> = new Set([
-  "home",
-  "werknemers",
-  "verzuimprotocol",
-  "je-rechten-en-privacy",
-  "je-casemanager",
-  "vacatures",
-]);
+export const EN_KLAAR: ReadonlySet<string> = new Set(Object.keys(SLUGS));
 
 const EN_NAAR_NL: Record<string, string> = Object.fromEntries(
   Object.entries(SLUGS).filter(([, en]) => en).map(([nl, en]) => [en, nl]),

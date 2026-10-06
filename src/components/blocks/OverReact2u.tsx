@@ -1,4 +1,6 @@
 import { outfit } from "./HomeVerhaal";
+import { pad, type Taal } from "@/lib/taal";
+import { woordenboek } from "@/lib/woordenboek";
 import {
   NAVY, PINK, BODY, LINE, SOFT, LAV, kop, BREED,
   Eyebrow, Kruimels, Keurmerken, KlantenStrook, KlantenAanHetWoord,
@@ -13,7 +15,9 @@ import {
  * Eén blok zodat de volgorde vastligt; alle tekst komt uit `data`.
  */
 
-export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
+export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { lang?: Taal } }) {
+  const taal: Taal = ctx?.lang ?? "nl";
+  const t = woordenboek(taal);
   const H = asH1 ? "h1" : "h2";
   const stappen: any[] = d.stappen || [];
   const waarden: any[] = d.waarden || [];
@@ -21,13 +25,13 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. Het motto */}
-      <section aria-label="Over React2u" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
+      <section aria-label={d.heading || t.werkgevers.overReact2uKruimel} className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
         <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-12 md:rounded-[36px] md:px-14 md:py-16 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end lg:gap-16 lg:px-20 lg:pb-20 lg:pt-[88px]"
           style={{ background: LAV }}>
           <span aria-hidden className="absolute right-[-160px] top-[-200px] h-[640px] w-[640px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <span aria-hidden className="absolute bottom-[-220px] right-[260px] h-[360px] w-[360px] rounded-full" style={{ background: PINK, opacity: 0.08 }} />
           <div className="relative flex flex-col gap-7">
-            <Kruimels items={[{ label: "Home", href: "/" }, { label: "Over React2u" }]} />
+            <Kruimels items={[{ label: t.algemeen.home, href: pad(taal, "home") }, { label: t.werkgevers.overReact2uKruimel }]} taal={taal} />
             <H className={`${kop} m-0 text-[72px] leading-[0.92] tracking-[-2.4px] md:text-[104px] lg:text-[128px] lg:tracking-[-4.6px]`}>
               {(d.motto || "Aandacht\nraakt.").split("\n").map((r: string, i: number) => <span key={i} className="block">{r}</span>)}
             </H>
@@ -43,7 +47,7 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
       </section>
 
       {/* 2. Het verhaal, met de stappen ernaast */}
-      <section aria-label="Ons verhaal" className="bg-white">
+      <section aria-label={d.verhaalEyebrow || d.verhaalKop} className="bg-white">
         <div className={`${BREED} grid gap-12 py-20 md:py-[120px] lg:grid-cols-12 lg:items-start lg:gap-6 lg:pb-[112px]`}>
           <div className="flex flex-col gap-[22px] lg:col-span-6">
             <Eyebrow>{d.verhaalEyebrow || "Ons verhaal"}</Eyebrow>
@@ -78,7 +82,7 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
 
       {/* 3. Kantoor */}
       {d.foto && (
-        <section aria-label="Ons kantoor" className="bg-white">
+        <section aria-label={d.fotoLabel || d.fotoAlt} className="bg-white">
           <div className={`${BREED} pb-20 md:pb-[112px]`}>
             <div className="relative h-[340px] overflow-hidden rounded-[24px] md:h-[600px] md:rounded-[32px]" style={{ background: LAV }}>
               <img src={d.foto} alt={d.fotoAlt || ""} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.fotoFocus || "50% 55%" }} loading="lazy" />
@@ -93,7 +97,7 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
       )}
 
       {/* 4. Missie en visie */}
-      <section aria-label="Missie en visie" className="bg-white">
+      <section aria-label={d.mvKop} className="bg-white">
         <div className={`${BREED} pb-20 md:pb-[112px]`}>
           <div className="relative flex flex-col gap-10 overflow-hidden rounded-[28px] p-7 md:rounded-[36px] md:p-[72px]" style={{ background: NAVY }}>
             <span aria-hidden className="absolute bottom-[-240px] left-[-180px] h-[560px] w-[560px] rounded-full" style={{ background: "#B4ADF2", opacity: 0.12 }} />
@@ -113,11 +117,11 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
 
       {/* 5. Kernwaarden */}
       {waarden.length > 0 && (
-        <section aria-label="Kernwaarden" className="bg-white">
+        <section aria-label={t.werkgevers.kernwaarden} className="bg-white">
           <div className={`${BREED} flex flex-col gap-12 pb-20 md:pb-[120px]`}>
             <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
               <div className="flex flex-col gap-[18px] lg:col-span-6">
-                <Eyebrow>Kernwaarden</Eyebrow>
+                <Eyebrow>{t.werkgevers.kernwaarden}</Eyebrow>
                 <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`}>{d.waardenKop || "Gezond, menselijk en duidelijk"}</h2>
               </div>
               {d.waardenTekst && <p className="m-0 text-[17px] leading-[1.7] lg:col-span-5 lg:col-start-8" style={{ color: BODY }}>{d.waardenTekst}</p>}
@@ -135,10 +139,10 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
       )}
 
       {/* 6. Kwaliteit en klanten */}
-      <Keurmerken />
+      <Keurmerken taal={taal} />
       <div className="border-t" style={{ borderColor: LINE }} />
-      <KlantenStrook />
-      <KlantenAanHetWoord />
+      <KlantenStrook taal={taal} />
+      <KlantenAanHetWoord taal={taal} />
     </div>
   );
 }

@@ -439,6 +439,8 @@ Nederlands staat op de gewone paden, Engels onder `/en` met Engelse slugs
 - **Vacatures** hebben optionele Engelse velden (`title_en`, `intro_en`,
   `description_en_md`, migratie 0013). Zonder Engelse titel toont `/en/jobs/<slug>`
   de Nederlandse tekst met "This vacancy is in Dutch".
+- **`/en/services`** toont de vijf labels in de blokken van het nieuwe ontwerp;
+  `/diensten` zelf gebruikt nog de oude blokken (`pillars` uit `nav.ts`).
 - **Blijft Nederlands:** gemeentepagina's, blog, de juridische PDF's (in de
   Engelse footer met "(Dutch)" erachter), `/inloggen`, `/juridische-documenten`
   en de HTML-sitemap.

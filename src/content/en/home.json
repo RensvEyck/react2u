@@ -18,7 +18,7 @@
             "text": "Keep control of sickness absence, from prevention to reintegration.",
             "short": "Control of sickness absence",
             "button": "To the employer site",
-            "href": "/werkgevers",
+            "href": "/en/employers",
             "aria": "I am an employer, to the page for employers",
             "image": "/beeld/home/samen-leren.webp",
             "alt": "Four colleagues laughing together at a round table",
@@ -116,7 +116,7 @@
         "buttons": [
           {
             "label": "Let's talk",
-            "href": "/kennismaken"
+            "href": "/en/lets-talk"
           },
           {
             "label": "Ill? Read what to do",
@@ -152,7 +152,7 @@
             "icon": "clock",
             "label": "Prefer a call back?",
             "value": "Ask us to call you back",
-            "href": "/contact"
+            "href": "/en/contact"
           }
         ],
         "bg": "#ffffff"

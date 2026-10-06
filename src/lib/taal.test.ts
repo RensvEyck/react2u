@@ -7,9 +7,10 @@ import { nl } from "./woordenboek/nl";
 
 const EN_MAP = join(__dirname, "../content/en");
 
-/** De Engelse concepten op schijf: bestandsnaam → slug uit het bestand. */
+/** De Engelse concepten op schijf (ook in submappen zoals services/): bestandsnaam → slug uit het bestand. */
 function engelseConcepten(): { bestand: string; slug: string }[] {
-  return readdirSync(EN_MAP)
+  return readdirSync(EN_MAP, { recursive: true })
+    .map(String)
     .filter((f) => f.endsWith(".json"))
     .map((f) => ({ bestand: f, slug: (JSON.parse(readFileSync(join(EN_MAP, f), "utf8")) as { slug: string }).slug }));
 }
@@ -130,10 +131,11 @@ const GEDACHTESTREEP = /[–—]/;
 const UITZONDERINGEN = new Set(["taal", "locale", "ogLocale", "formulier.honeypot"]);
 
 describe("Engelse teksten", () => {
-  const woordenboekTeksten = teksten(en).filter(([p]) => !UITZONDERINGEN.has(p) && !/talen|kleur|slug|anker|dienstverband|href/.test(p));
+  // Merknamen (de rol en het logo bij een citaat) tellen niet mee.
+  const woordenboekTeksten = teksten(en).filter(([p]) => !UITZONDERINGEN.has(p) && !/talen|kleur|slug|anker|dienstverband|href|\.rol$|\.logo$|\.naam$/.test(p));
   const inhoud = engelseConcepten().flatMap((c) => {
     const json = JSON.parse(readFileSync(join(EN_MAP, c.bestand), "utf8")) as { blocks: unknown };
-    return teksten(json.blocks, c.bestand).filter(([p]) => !/\.(href|image|icon|focus|kleur|tint|panel|orb|bg|type|naam|letter|anchor|doelgroep)$/.test(p));
+    return teksten(json.blocks, c.bestand).filter(([p]) => !/\.(href|image|icon|focus|kleur|tint|panel|orb|bg|type|naam|letter|anchor|doelgroep|foto|fotoFocus)$/.test(p));
   });
 
   it("bevatten geen gedachtestreepjes", () => {

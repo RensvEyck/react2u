@@ -61,6 +61,13 @@ er is geen Engelse databasepagina. De blokcomponenten blijven één set: een blo
 rendert wat in `data` staat, in welke taal dan ook. Later kan Engels alsnog naar
 de database (bv. een `lang`-kolom op `pages`); dan verhuist alleen `conceptEn()`.
 
+**`/en/services` wijkt af van `/diensten`.** Het Nederlandse `/diensten` gebruikt
+nog de blokken van het oude ontwerp (`pillars` leest de zes oude dienstpagina's
+uit `nav.ts`, die geen Engelse versie hebben). De Engelse pagina toont daarom
+de vijf labels in de blokken van het nieuwe ontwerp (`dgKop`, `dgLabels`,
+`dgStarten`), zoals de werkgeverspagina. Krijgt `/diensten` die opbouw ook, dan
+lopen de twee weer gelijk.
+
 **Vaste interfaceteksten in één woordenboek per taal.** `src/lib/woordenboek/nl.ts`
 is de bron (het type `Woordenboek`), `en.ts` moet dezelfde vorm hebben. Server
 components roepen `woordenboek(taal)` aan; client components (header, footer,

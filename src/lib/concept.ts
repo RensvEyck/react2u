@@ -26,6 +26,18 @@ import enEmployees from "@/content/en/employees.json";
 import enSickWhatNow from "@/content/en/sick-what-now.json";
 import enYourRights from "@/content/en/your-rights-and-privacy.json";
 import enYourCaseManager from "@/content/en/your-case-manager.json";
+import enEmployers from "@/content/en/employers.json";
+import enServices from "@/content/en/services.json";
+import enRecover from "@/content/en/services/recover.json";
+import enResist from "@/content/en/services/resist.json";
+import enRestart from "@/content/en/services/restart.json";
+import enReflex from "@/content/en/services/reflex.json";
+import enReady from "@/content/en/services/ready.json";
+import enPricing from "@/content/en/pricing.json";
+import enLetsTalk from "@/content/en/lets-talk.json";
+import enContact from "@/content/en/contact.json";
+import enAboutUs from "@/content/en/about-us.json";
+import enCertifications from "@/content/en/certifications.json";
 
 /**
  * Concepten: een nieuwe opbouw van een pagina die nog niet in de database
@@ -49,7 +61,10 @@ const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotoc
  * Engels: deze bestanden zíjn de Engelse site, ook in productie. Zie
  * docs/adr/0001-tweetalig-nl-en.md.
  */
-const CONCEPTEN_EN: ConceptBestand[] = [enHome, enEmployees, enSickWhatNow, enYourRights, enYourCaseManager];
+const CONCEPTEN_EN: ConceptBestand[] = [
+  enHome, enEmployees, enSickWhatNow, enYourRights, enYourCaseManager,
+  enEmployers, enServices, enRecover, enResist, enRestart, enReflex, enReady, enPricing, enLetsTalk, enContact, enAboutUs, enCertifications,
+];
 
 /**
  * Concepten zijn alleen zichtbaar op een preview-deploy (staging): daar wil je

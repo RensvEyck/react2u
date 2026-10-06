@@ -1,0 +1,76 @@
+{
+  "_uitleg": "Engelse certificeringenpagina (/en/certifications): dezelfde blokken als certificeringen.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "certifications",
+  "title": "Certifications",
+  "seo_title": "Certifications • SBCA, ISO 9001, 27001, 27701 • React2u",
+  "seo_description": "React2u is a certified occupational health service and holds ISO 9001, ISO/IEC 27001 and ISO/IEC 27701. So you can see that our quality, security and privacy are right.",
+  "blocks": [
+    {
+      "type": "dgCertificeringen",
+      "label": "Certifications",
+      "data": {
+        "eyebrow": "Certifications",
+        "heading": "Quality you can\ncheck",
+        "text": "With sickness absence and reintegration you trust us with sensitive information and the health of your people. That is why we want you to be able to see that our quality is right, instead of having to take our word for it.",
+        "lijstEyebrow": "Independently tested",
+        "lijstKop": "Our certifications",
+        "lijstTekst": "Independent bodies test our processes, our expertise and the way we handle data.",
+        "items": [
+          {
+            "title": "Certified occupational health service",
+            "text": "React2u is certified under the Dutch Certification Scheme for Occupational Health Services (Certificatieschema Arbodiensten). This means our absence support, our advice and our use of company doctors (bedrijfsartsen) and other core experts meet the legal quality requirements. You can place your obligations under the Working Conditions Act (Arbowet) with us with confidence."
+          },
+          {
+            "title": "ISO 9001: quality management",
+            "text": "Our way of working is documented, tested and keeps improving. The ISO 9001 certificate shows that we keep our agreements and make our services a step better all the time."
+          },
+          {
+            "title": "ISO/IEC 27001: information security",
+            "text": "Absence files contain sensitive data. With ISO/IEC 27001 we show that we protect that information well, both technically and organisationally."
+          },
+          {
+            "title": "ISO/IEC 27701: privacy",
+            "text": "Privacy is built into the foundation of our processes. ISO/IEC 27701 confirms that we process personal data carefully and in line with the GDPR (AVG). That way medical data stays where it belongs: with the company doctor."
+          },
+          {
+            "title": "Member of OVAL",
+            "text": "React2u is a member of OVAL, the Dutch trade association for vitality, activation and careers. Together with other providers we work to keep people healthy and happy at work, or to get them back to work."
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Shall we talk?\nJust give us a call.",
+        "text": "We would love to hear how your organisation works. Then you get a tailored proposal.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Quote or introduction",
+            "value": "sales@react2u.nl",
+            "href": "mailto:sales@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

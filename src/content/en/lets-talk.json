@@ -1,0 +1,45 @@
+{
+  "_uitleg": "Engels Kennismaken en offerte (/en/lets-talk): dezelfde blokken als kennismaken.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "lets-talk",
+  "title": "Let's talk",
+  "seo_title": "Let's talk and request a quote • React2u",
+  "seo_description": "Tell us a little about your organisation. We get to know each other, think along and send a tailored quote within two working days.",
+  "blocks": [
+    {
+      "type": "kennismaken",
+      "label": "Let's talk (steps and form)",
+      "data": {
+        "eyebrow": "Introduction and quote",
+        "heading": "Shall we talk?",
+        "text": "Tell us a little about your organisation. We think along about what suits you and send you a proposal that fits.",
+        "stappen": [
+          {
+            "titel": "You leave your details",
+            "tekst": "The form takes two minutes."
+          },
+          {
+            "titel": "We get to know each other",
+            "tekst": "At our office, at yours or online."
+          },
+          {
+            "titel": "You receive a tailored quote",
+            "tekst": "Within two working days, clear and without small print."
+          }
+        ],
+        "formKop": "Request a quote"
+      }
+    },
+    {
+      "type": "klantenStrook",
+      "label": "Clients",
+      "data": {
+        "label": "We work with:"
+      }
+    },
+    {
+      "type": "klantenAanHetWoord",
+      "label": "What clients say",
+      "data": {}
+    }
+  ]
+}
