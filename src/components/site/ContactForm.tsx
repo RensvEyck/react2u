@@ -4,10 +4,11 @@ import { submitContact, type FormState } from "@/app/(site)/actions";
 import { Field, Bedankt, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { BEVESTIGING } from "@/lib/bevestiging";
 
 export default function ContactForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(submitContact, null);
-  if (state?.ok) return <Bedankt>Bedankt voor je bericht! We nemen zo snel mogelijk contact met je op.</Bedankt>;
+  if (state?.ok) return <Bedankt kop={BEVESTIGING.contact.kop} naar={state.bevestigdNaar}>{BEVESTIGING.contact.tekst}</Bedankt>;
   return (
     <form action={action} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">

@@ -5,6 +5,7 @@ import {
   LuReceipt, LuShieldCheck, LuSlidersHorizontal, LuX,
 } from "react-icons/lu";
 import { submitOfferte, type FormState } from "@/app/(site)/actions";
+import { BEVESTIGING } from "@/lib/bevestiging";
 import { kleur } from "@/lib/brand";
 import { Arrow } from "./Arrow";
 import { Bedankt, Field, fieldClass } from "./FormField";
@@ -458,7 +459,12 @@ function OfferteDialog({
         </button>
         <h2 id="offerte-titel" className="pr-12 text-[26px] font-bold tracking-[-0.02em] sm:text-[30px]">Offerte aanvragen</h2>
         {state?.ok ? (
-          <div className="mt-6"><Bedankt>Bedankt! We hebben je aanvraag ontvangen en nemen binnen twee werkdagen contact met je op.</Bedankt></div>
+          <div className="mt-6">
+            <Bedankt kop={BEVESTIGING.offerte.kop} naar={state.bevestigdNaar}
+              knop={state.kennismakingUrl ? { label: BEVESTIGING.offerte.knop, href: state.kennismakingUrl } : undefined}>
+              {BEVESTIGING.offerte.tekst}
+            </Bedankt>
+          </div>
         ) : (
           <form action={action} className="mt-2 space-y-4">
             <p className="text-[15.5px]">Je hoort binnen twee werkdagen van ons.</p>

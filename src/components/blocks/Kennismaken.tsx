@@ -4,6 +4,7 @@ import { submitOfferte, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, BODY, MUTE, LAV, kop, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { BEVESTIGING, bevestigdNaarTekst } from "@/lib/bevestiging";
 import { BIJTEKST_DONKER, ROZE_DONKER } from "@/lib/kleuren";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -33,9 +34,9 @@ function Label({ children, verplicht }: { children: React.ReactNode; verplicht?:
 async function verstuur(prev: FormState, fd: FormData): Promise<FormState> {
   // submitOfferte kent geen functie, bandbreedte of interesse: die gaan mee in de toelichting.
   const aantal = AANTALLEN.find((a) => a.v === String(fd.get("employees") || ""));
+  if (aantal) fd.set("employees_label", aantal.l);
   const regels = [
     fd.get("functie") ? `Functie: ${fd.get("functie")}` : "",
-    aantal ? `Aantal medewerkers: ${aantal.l}` : "",
     fd.get("pakket") ? `Interesse: ${fd.get("pakket")}` : "",
     String(fd.get("toelichting") || ""),
   ].filter(Boolean);
@@ -48,9 +49,16 @@ function Formulier({ d }: { d: any }) {
   const [state, action, pending] = useActionState<FormState, FormData>(verstuur, null);
   if (state?.ok) {
     return (
-      <div role="status" className="flex flex-col gap-3">
-        <h2 className={`${kop} m-0 text-[28px] leading-[1.2]`} style={{ color: NAVY }}>Bedankt voor je aanvraag</h2>
-        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>We nemen binnen twee werkdagen contact met je op om kennis te maken.</p>
+      <div role="status" className="flex flex-col gap-4">
+        <h2 className={`${kop} m-0 text-[28px] leading-[1.2]`} style={{ color: NAVY }}>{BEVESTIGING.offerte.kop}</h2>
+        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>{BEVESTIGING.offerte.tekst}</p>
+        {state.kennismakingUrl && (
+          <a href={state.kennismakingUrl} target="_blank" rel="noopener"
+            className="hv-btn hv-btn-roze inline-flex h-[52px] items-center gap-2.5 self-start rounded-full px-6 text-[15px] font-bold">
+            {BEVESTIGING.offerte.knop}<Pijl />
+          </a>
+        )}
+        {state.bevestigdNaar && <p className="m-0 text-[14px]" style={{ color: MUTE }}>{bevestigdNaarTekst(state.bevestigdNaar)}</p>}
       </div>
     );
   }

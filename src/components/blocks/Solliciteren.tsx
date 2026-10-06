@@ -3,6 +3,8 @@ import { useActionState, useState } from "react";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
 import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { BEVESTIGING, bevestigdNaarTekst } from "@/lib/bevestiging";
+import { KOPPELINGEN_STANDAARD } from "@/lib/koppelingen";
 
 /*
  * Snel solliciteren (canvas: Werken bij en Vacature). Kort formulier:
@@ -29,8 +31,9 @@ export default function Solliciteren({ keuzes, vast, kopTekst = "Snel solliciter
   if (state?.ok) {
     return (
       <div role="status" className="flex flex-col gap-3">
-        <h3 className={`${kop} m-0 text-[26px] leading-[1.2]`} style={{ color: NAVY }}>Bedankt voor je sollicitatie</h3>
-        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>Je hoort binnen vijf werkdagen van ons.</p>
+        <h3 className={`${kop} m-0 text-[26px] leading-[1.2]`} style={{ color: NAVY }}>{BEVESTIGING.sollicitatie.kop(keuze.title)}</h3>
+        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>{BEVESTIGING.sollicitatie.tekst(state.werkdagen ?? KOPPELINGEN_STANDAARD.sollicitatie_werkdagen)}</p>
+        {state.bevestigdNaar && <p className="m-0 text-[14px]" style={{ color: MUTE }}>{bevestigdNaarTekst(state.bevestigdNaar)}</p>}
       </div>
     );
   }

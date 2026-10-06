@@ -1,4 +1,5 @@
-import { LuCircleCheck } from "react-icons/lu";
+import { LuCircleCheck, LuExternalLink } from "react-icons/lu";
+import { bevestigdNaarTekst } from "@/lib/bevestiging";
 
 export const fieldClass =
   "w-full rounded-lg border border-[#8480ab] bg-white px-4 py-3 text-[16px] text-primary outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-bijtekst hover:border-primary/50 focus:border-primary focus:shadow-[0_0_0_3px_rgba(49,46,130,0.12)]";
@@ -26,12 +27,33 @@ export function Field({
   );
 }
 
-/** Bevestiging na een geslaagde inzending. */
-export function Bedankt({ children }: { children: React.ReactNode }) {
+/**
+ * Bevestiging na een geslaagde inzending: wat er nu gebeurt (dezelfde tekst
+ * als in de bevestigingsmail, lib/bevestiging.ts), eventueel een knop en waar
+ * de bevestiging per mail heen is.
+ */
+export function Bedankt({
+  kop, children, knop, naar,
+}: {
+  kop?: string;
+  children: React.ReactNode;
+  knop?: { label: string; href: string };
+  /** E-mailadres waar een bevestiging heen is; alleen als die echt verstuurd is. */
+  naar?: string;
+}) {
   return (
     <div role="status" className="flex gap-4 rounded-xl border border-line bg-white p-6 text-primary">
       <LuCircleCheck className="mt-0.5 shrink-0 text-[24px] text-primary" aria-hidden />
-      <p className="font-medium">{children}</p>
+      <div className="space-y-3">
+        {kop && <p className="font-heading text-[20px] font-bold leading-tight">{kop}</p>}
+        <p className="font-medium">{children}</p>
+        {knop && (
+          <a href={knop.href} target="_blank" rel="noopener" className="btn btn-sm">
+            {knop.label} <LuExternalLink aria-hidden className="text-[15px]" />
+          </a>
+        )}
+        {naar && <p className="text-[14px] text-body">{bevestigdNaarTekst(naar)}</p>}
+      </div>
     </div>
   );
 }

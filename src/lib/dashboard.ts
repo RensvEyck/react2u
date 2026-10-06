@@ -111,7 +111,7 @@ export function systemChecks(env: Record<string, string | undefined>): SystemChe
       key: "mail",
       ok: set("RESEND_API_KEY") && set("NOTIFY_TO") && set("NOTIFY_FROM"),
       label: "Mail bij nieuwe inzendingen",
-      impact: "Nieuwe berichten en sollicitaties komen alleen in het Postvak IN — niemand krijgt een mail.",
+      impact: "Nieuwe berichten en sollicitaties komen alleen in het Postvak IN — niemand krijgt een mail, en de invuller geen bevestiging.",
     },
     {
       key: "salt",

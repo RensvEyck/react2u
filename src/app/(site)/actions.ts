@@ -1,8 +1,33 @@
 "use server";
 import { supabasePublic } from "@/lib/supabase/public";
-import { notifyContactMessage, notifyApplication, notifyOfferte } from "@/lib/mail";
+import {
+  notifyContactMessage, notifyApplication, notifyOfferte,
+  bevestigContact, bevestigOfferte, bevestigSollicitatie,
+} from "@/lib/mail";
+import { CONTACT_FALLBACK, getSettings, type ContactInfo } from "@/lib/content";
+import { normalizeKoppelingen, type Koppelingen } from "@/lib/koppelingen";
 
-export type FormState = { ok: boolean; error?: string } | null;
+/**
+ * Wat het formulier na het versturen te zien krijgt. Bij `ok`:
+ * - `kennismakingUrl`: de agendalink uit de instellingen, voor de knop
+ *   "Plan direct een kennismaking" na een offerteaanvraag (leeg = geen knop);
+ * - `werkdagen`: binnen hoeveel werkdagen een sollicitant van ons hoort;
+ * - `bevestigdNaar`: het adres waar een bevestigingsmail heen is, alleen als
+ *   Resend hem aannam — anders belooft de bedankmelding geen mail.
+ */
+export type FormState =
+  | { ok: true; kennismakingUrl?: string; werkdagen?: number; bevestigdNaar?: string }
+  | { ok: false; error: string }
+  | null;
+
+/** Contactgegevens en koppelingen, voor de bedankmelding en de bevestigingsmail. */
+async function siteGegevens(): Promise<{ contact: ContactInfo; koppelingen: Koppelingen }> {
+  const s = await getSettings(["contact", "koppelingen"]);
+  return {
+    contact: { ...CONTACT_FALLBACK, ...((s.contact as Partial<ContactInfo>) || {}) },
+    koppelingen: normalizeKoppelingen(s.koppelingen),
+  };
+}
 
 export async function submitContact(_prev: FormState, formData: FormData): Promise<FormState> {
   const name = String(formData.get("name") || "").trim();
@@ -16,10 +41,18 @@ export async function submitContact(_prev: FormState, formData: FormData): Promi
     return { ok: false, error: "Vul naam, e-mailadres, telefoonnummer en bericht in." };
 
   const sb = supabasePublic();
-  const { error } = await sb.from("contact_messages").insert({ name, email, phone, subject, message });
+  const [{ error }, { contact }] = await Promise.all([
+    sb.from("contact_messages").insert({ name, email, phone, subject, message }),
+    siteGegevens(),
+  ]);
   if (error) return { ok: false, error: "Er ging iets mis. Probeer het later opnieuw." };
-  await notifyContactMessage({ name, email, phone, subject, message });
-  return { ok: true };
+  // De melding aan het team en de bevestiging aan de invuller staan los van
+  // elkaar en van de inzending: mislukt er een, dan is het bericht toch binnen.
+  const [, bevestigd] = await Promise.all([
+    notifyContactMessage({ name, email, phone, subject, message }),
+    bevestigContact({ name, email, contact }),
+  ]);
+  return { ok: true, bevestigdNaar: bevestigd ? email : undefined };
 }
 
 const MAX_CV_BYTES = 8 * 1024 * 1024;
@@ -52,31 +85,41 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     if (upErr) return { ok: false, error: "CV uploaden is niet gelukt. Probeer het opnieuw." };
   }
 
-  const { error } = await sb.from("applications").insert({
-    vacancy_id: vacancyId || null,
-    vacancy_title: vacancyTitle || null,
-    name, email,
-    phone: phone || null,
-    motivation: motivation || null,
-    cv_path: cvPath,
-  });
+  const [{ error }, { contact, koppelingen }] = await Promise.all([
+    sb.from("applications").insert({
+      vacancy_id: vacancyId || null,
+      vacancy_title: vacancyTitle || null,
+      name, email,
+      phone: phone || null,
+      motivation: motivation || null,
+      cv_path: cvPath,
+    }),
+    siteGegevens(),
+  ]);
   if (error) return { ok: false, error: "Er ging iets mis bij het versturen. Probeer het later opnieuw." };
-  await notifyApplication({
-    name, email,
-    phone: phone || null,
-    vacancyTitle: vacancyTitle || null,
-    motivation: motivation || null,
-    hasCv: Boolean(cvPath),
-  });
-  return { ok: true };
+  const werkdagen = koppelingen.sollicitatie_werkdagen;
+  const [, bevestigd] = await Promise.all([
+    notifyApplication({
+      name, email,
+      phone: phone || null,
+      vacancyTitle: vacancyTitle || null,
+      motivation: motivation || null,
+      hasCv: Boolean(cvPath),
+    }),
+    bevestigSollicitatie({ name, email, vacancyTitle: vacancyTitle || null, werkdagen, contact }),
+  ]);
+  return { ok: true, werkdagen, bevestigdNaar: bevestigd ? email : undefined };
 }
 
 const PAKKETTEN = ["Casemanagement Compleet", "Verrichtingenbasis", "Maatwerk"];
 
 /**
- * Offerteaanvraag vanaf de tarievenpagina. Komt als bericht in het Postvak IN
- * (geen eigen tabel: het is een lead zoals een contactbericht) en gaat per mail
- * naar sales.
+ * Offerteaanvraag vanaf de tarievenpagina of Kennismaken. Komt als bericht in
+ * het Postvak IN (geen eigen tabel: het is een lead zoals een contactbericht),
+ * gaat per mail naar sales, en de aanvrager krijgt een bevestiging.
+ *
+ * `employees` is een getal; Kennismaken stuurt daarnaast `employees_label`
+ * mee ("11 tot 50"), zodat de samenvatting zegt wat er gekozen is.
  */
 export async function submitOfferte(_prev: FormState, formData: FormData): Promise<FormState> {
   const name = String(formData.get("name") || "").trim();
@@ -85,6 +128,7 @@ export async function submitOfferte(_prev: FormState, formData: FormData): Promi
   const phone = String(formData.get("phone") || "").trim();
   const extra = String(formData.get("message") || "").trim();
   const employees = Math.round(Number(formData.get("employees")) || 0);
+  const employeesLabel = String(formData.get("employees_label") || "").trim().slice(0, 40) || String(employees);
   const gekozen = String(formData.get("pakket") || "").trim();
   const pakket = PAKKETTEN.includes(gekozen) ? gekozen : gekozen.slice(0, 80) || "Onbekend";
   const honeypot = String(formData.get("website") || "");
@@ -95,15 +139,22 @@ export async function submitOfferte(_prev: FormState, formData: FormData): Promi
   const message = [
     `Aansluiting: ${pakket}`,
     `Bedrijf: ${company}`,
-    `Aantal medewerkers: ${employees}`,
+    `Aantal medewerkers: ${employeesLabel}`,
     extra ? `\n${extra}` : "",
   ].filter(Boolean).join("\n");
 
   const sb = supabasePublic();
-  const { error } = await sb.from("contact_messages").insert({
-    name, email, phone, subject: `Offerteaanvraag: ${pakket}`, message,
-  });
+  const [{ error }, { contact, koppelingen }] = await Promise.all([
+    sb.from("contact_messages").insert({
+      name, email, phone, subject: `Offerteaanvraag: ${pakket}`, message,
+    }),
+    siteGegevens(),
+  ]);
   if (error) return { ok: false, error: "Er ging iets mis. Probeer het later opnieuw." };
-  await notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null });
-  return { ok: true };
+  const kennismakingUrl = koppelingen.kennismaking_url;
+  const [, bevestigd] = await Promise.all([
+    notifyOfferte({ name, company, email, phone, pakket, employees: employeesLabel, message: extra || null }),
+    bevestigOfferte({ name, email, company, pakket, employees: employeesLabel, kennismakingUrl, contact }),
+  ]);
+  return { ok: true, kennismakingUrl: kennismakingUrl || undefined, bevestigdNaar: bevestigd ? email : undefined };
 }

@@ -25,6 +25,7 @@ const FOUT_TEKST: Record<string, string> = {
   "geen-rechten": "Je hebt geen toegang tot dat onderdeel.",
   "cv-verwijderen": "Het cv kon niet verwijderd worden, dus de sollicitatie staat er nog. Mogelijk ontbreekt het verwijderrecht op de opslag (migratie 0009).",
   opslaan: "Opslaan mislukt.",
+  "koppeling-url": "Dat is geen geldig adres — begin met https://.",
   // Doorverwijzingen
   "bron-leeg": "Vul het oude adres in.",
   "bron-home": "De homepage (en de hele site met /*) kun je niet doorsturen.",

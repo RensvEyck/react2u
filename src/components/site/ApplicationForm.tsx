@@ -4,10 +4,18 @@ import { submitApplication, type FormState } from "@/app/(site)/actions";
 import { Field, Bedankt, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { BEVESTIGING } from "@/lib/bevestiging";
+import { KOPPELINGEN_STANDAARD } from "@/lib/koppelingen";
 
 export default function ApplicationForm({ vacancyId, vacancyTitle }: { vacancyId?: string; vacancyTitle: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(submitApplication, null);
-  if (state?.ok) return <Bedankt>Bedankt voor je sollicitatie! We nemen zo snel mogelijk contact met je op.</Bedankt>;
+  if (state?.ok) {
+    return (
+      <Bedankt kop={BEVESTIGING.sollicitatie.kop(vacancyTitle)} naar={state.bevestigdNaar}>
+        {BEVESTIGING.sollicitatie.tekst(state.werkdagen ?? KOPPELINGEN_STANDAARD.sollicitatie_werkdagen)}
+      </Bedankt>
+    );
+  }
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="vacancy_id" value={vacancyId || ""} />

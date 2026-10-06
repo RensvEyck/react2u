@@ -21,6 +21,13 @@ export async function getSetting<T = Record<string, unknown>>(key: string): Prom
   return (data?.value as T) ?? null;
 }
 
+/** Meerdere instellingen in één query, als map op sleutel; ontbrekende sleutels staan er niet in. */
+export async function getSettings(keys: string[]): Promise<Record<string, unknown>> {
+  const sb = supabasePublic();
+  const { data } = await sb.from("site_settings").select("key, value").in("key", keys);
+  return Object.fromEntries(((data as { key: string; value: unknown }[]) || []).map((r) => [r.key, r.value]));
+}
+
 export async function getPublishedVacancies(): Promise<Vacancy[]> {
   const sb = supabasePublic();
   const { data } = await sb
@@ -64,3 +71,6 @@ export const CONTACT_FALLBACK = {
   iban: "NL67INGB0107832259",
 };
 export type ContactInfo = typeof CONTACT_FALLBACK;
+
+/** Wanneer we bereikbaar zijn; staat in de footer en in bevestigingsmails. */
+export const OPENINGSTIJDEN = "ma t/m vr 9.00 tot 17.00 uur";

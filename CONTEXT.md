@@ -22,7 +22,8 @@ Gebruik deze termen; de code doet dat ook.
 | **Bericht** (`contact_messages`) | Inzending van het contactformulier. Bevat sinds `0005` een telefoonnummer: het formulier vraagt er verplicht om, zodat een bericht een belbare lead oplevert. Berichten van vóór die migratie hebben er geen — de kolom is nullable. |
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
 | **Onbehandeld** | Wat in het Postvak IN als ongelezen telt. Per soort verschillend: een bericht heeft `read = false`, een sollicitatie heeft `status = 'nieuw'`. |
-| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents`, `certificates`, `seo` en `maintenance`. |
+| **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents`, `certificates`, `seo`, `maintenance` en `koppelingen`. |
+| **Koppeling** (`koppelingen`) | Links naar systemen buiten de site en de reactietermijn voor sollicitanten: `kennismaking_url` (agenda achter *Plan direct een kennismaking*, leeg = geen knop) en `sollicitatie_werkdagen` (standaard 5). Zie [`src/lib/koppelingen.ts`](src/lib/koppelingen.ts) en *Bevestigingsmail*. |
 | **Onderhoudsmodus** (`maintenance`) | Instelling `{enabled, message}`. Aan: bezoekers krijgen op elke publieke URL een onderhoudspagina (503), ingelogde beheerders zien de site gewoon. Schakelaar op `/admin/instellingen`. Zie *Onderhoudsmodus*. |
 | **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
 | **Certificaat** (`certificates`) | Keurmerklogo in de footer, vrije lijst van `{image, alt, href}`. `href` mag leeg — dan toont het logo zich zonder doorklik. |
@@ -499,7 +500,7 @@ database gaat zoals bij de andere concepten (`node scripts/concept-naar-sql.mjs 
   bedrijf en aantal medewerkers in de tekst) en gaat per mail naar
   `sales@react2u.nl`, of naar `NOTIFY_OFFERTE_TO` als die gezet is. Zonder
   Resend-configuratie staat hij alleen in het Postvak IN, net als een
-  contactbericht.
+  contactbericht. De aanvrager krijgt een bevestiging, zie *Bevestigingsmail*.
 
 ## Onderhoudsmodus
 
@@ -572,6 +573,31 @@ gelukt is. Om dezelfde reden vangt de module al zijn eigen fouten af.
 Kies voor `NOTIFY_FROM` het (sub)domein dat je in Resend hebt geverifieerd; zie
 de DMARC-valkuil hierboven. Een apart subdomein (`send.react2u.nl`) laat de SPF
 van het hoofddomein met rust.
+
+## Bevestigingsmail
+
+Wie een formulier invult krijgt, naast de melding aan het team, zelf een mail
+in de huisstijl (logo, roze knop): `bevestigOfferte`, `bevestigContact` en
+`bevestigSollicitatie` in [`src/lib/mail.ts`](src/lib/mail.ts). Dezelfde
+Resend-configuratie en dezelfde twee regels: zonder configuratie gebeurt er
+niets, en een mislukte mail laat de inzending nooit mislukken. De server action
+geeft `bevestigdNaar` alleen terug als Resend de mail aannam; de bedankmelding
+zegt dan "We hebben een bevestiging gestuurd naar …" en belooft anders niets.
+
+De zinnen staan één keer, in [`src/lib/bevestiging.ts`](src/lib/bevestiging.ts),
+en zijn op het scherm en in de mail gelijk:
+
+| Formulier | Wat er nu gebeurt | Reply-to |
+|---|---|---|
+| Offerte (Tarieven, Kennismaken) | Bellen binnen twee werkdagen, daarna een voorstel op maat; samenvatting (interesse, bedrijf, aantal medewerkers); knop *Plan direct een kennismaking* als `koppelingen.kennismaking_url` gevuld is | `NOTIFY_OFFERTE_TO`, anders `sales@react2u.nl` |
+| Contact | Reactie binnen één werkdag. **Zonder de inhoud van het bericht**: die kan medische informatie bevatten en hoort niet in een mail die onderweg en in postvakken bewaard blijft | `contact.email` uit de instellingen (info@react2u.nl) |
+| Sollicitatie | Contact binnen `koppelingen.sollicitatie_werkdagen` werkdagen (standaard vijf); bewaartermijn (tot vier weken na de procedure, zie *Bewaartermijnen*) en link naar de privacyverklaring (PDF) | het eerste adres van `NOTIFY_TO` |
+
+Elke mail eindigt met het telefoonnummer en de openingstijden
+(`OPENINGSTIJDEN` in `content.ts`, ma t/m vr 9.00 tot 17.00 uur). De
+agendalink en de reactietermijn staan op `/admin/instellingen` onder
+*Koppelingen en reactietermijn*; een link moet een volledig https-adres zijn,
+anders weigert het scherm hem.
 
 ## Van Postvak IN naar bellijst
 

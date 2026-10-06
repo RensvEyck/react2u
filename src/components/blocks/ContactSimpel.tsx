@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import { submitContact, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { BEVESTIGING, bevestigdNaarTekst } from "@/lib/bevestiging";
 import { BIJTEKST, ROZE } from "@/lib/kleuren";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -46,8 +47,9 @@ function Formulier({ heading, note }: { heading: string; note?: string }) {
   if (state?.ok) {
     return (
       <div role="status" className="flex flex-col gap-3">
-        <h2 className="hv-kop m-0 text-[28px] leading-[1.2] tracking-[-0.4px]" style={{ color: NAVY }}>Bedankt voor je bericht</h2>
-        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>We nemen binnen één werkdag contact met je op.</p>
+        <h2 className="hv-kop m-0 text-[28px] leading-[1.2] tracking-[-0.4px]" style={{ color: NAVY }}>{BEVESTIGING.contact.kop}</h2>
+        <p className="m-0 text-[17px] leading-[1.65]" style={{ color: BODY }}>{BEVESTIGING.contact.tekst}</p>
+        {state.bevestigdNaar && <p className="m-0 text-[14px]" style={{ color: MUTE }}>{bevestigdNaarTekst(state.bevestigdNaar)}</p>}
       </div>
     );
   }
