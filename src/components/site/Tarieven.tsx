@@ -8,7 +8,9 @@ import { submitOfferte, type FormState } from "@/app/(site)/actions";
 import { kleur } from "@/lib/brand";
 import { Arrow } from "./Arrow";
 import { Bedankt, Field, fieldClass } from "./FormField";
+import TurnstileField from "./TurnstileField";
 import { DOCUMENTEN } from "@/lib/documenten";
+import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
 
 /**
  * Het blok `tarieven`: de abonnementen, een vergelijking, de rekenhulp en de
@@ -92,8 +94,12 @@ function Stepper({ label, value, onMin, onPlus, suffix, breed }: { label: string
   );
 }
 
-export default function Tarieven({ d, asH1 }: { d: TarievenData; asH1?: boolean }) {
+export default function Tarieven({ d, asH1, tarieven }: { d: TarievenData; asH1?: boolean; tarieven?: TarievenSettings }) {
   const pakketten = (d.pakketten || []).filter((p) => p && p.naam);
+  // Het jaartal komt uit de instellingen (Instellingen → Tarievenjaar), niet
+  // uit de bloktekst: dan hoef je per 1 januari maar op één plek te zijn.
+  const eyebrow = tarieven ? metJaar(d.eyebrow, tarieven.jaar) : d.eyebrow;
+  const geldig = tarieven ? geldigheidsregel(tarieven) : d.lijst?.geldig;
   const [perMaand, setPerMaand] = useState(false);
   const [n, setN] = useState(() => Math.max(1, num(d.medewerkers) || 25));
   const [uren, setUren] = useState(40);
@@ -137,7 +143,7 @@ export default function Tarieven({ d, asH1 }: { d: TarievenData; asH1?: boolean 
       <div className="relative overflow-hidden bg-soft pb-44 pt-14 md:pb-56 md:pt-20">
         <Stippen />
         <div className="container-site relative flex flex-col items-center text-center">
-          {d.eyebrow && <p className="eyebrow mb-5">{d.eyebrow}</p>}
+          {eyebrow && <p className="eyebrow mb-5">{eyebrow}</p>}
           {d.heading && (
             <Kop asH1={asH1} className="max-w-[16ch] text-[2.4rem] font-bold leading-[1.02] tracking-[-0.03em] sm:text-[3.2rem] lg:text-[4rem]">
               <MetAccent text={d.heading} highlight={d.highlight} />
@@ -299,7 +305,7 @@ export default function Tarieven({ d, asH1 }: { d: TarievenData; asH1?: boolean 
                 {d.lijst?.eyebrow && <p className="eyebrow mb-4">{d.lijst.eyebrow}</p>}
                 {d.lijst?.heading && <h2 className="text-[1.85rem] font-bold leading-[1.08] tracking-[-0.02em] sm:text-[2.2rem] lg:text-[2.75rem]">{d.lijst.heading}</h2>}
               </div>
-              {d.lijst?.geldig && <p className="whitespace-pre-line text-[15px] leading-relaxed text-body md:text-right">{d.lijst.geldig}</p>}
+              {geldig && <p className="whitespace-pre-line text-[15px] leading-relaxed text-body md:text-right">{geldig}</p>}
             </div>
             <div className="mt-9 flex flex-col gap-4 rounded-3xl bg-soft p-3 sm:p-4 lg:flex-row">
               <div role="tablist" aria-label="Categorieën" className="flex flex-wrap gap-2 p-1 lg:w-80 lg:shrink-0 lg:flex-col lg:gap-1 lg:p-2">
@@ -486,6 +492,7 @@ function OfferteDialog({
               <textarea className={fieldClass} name="message" rows={3} maxLength={4000} />
             </Field>
             <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+            <TurnstileField resetKey={state?.error} />
             {state?.error && <p role="alert" className="text-[15px] font-medium text-accent">{state.error}</p>}
             <button className="btn w-full" disabled={pending}>
               {pending ? "Versturen…" : <>Offerte aanvragen <Arrow /></>}

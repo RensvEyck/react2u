@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CONTACT_FALLBACK, getPage, getPublishedPages, getPublishedPosts } from "@/lib/content";
-import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
+import { CONTACT_FALLBACK, getPage, getPublishedPages, getPublishedPosts, getSetting } from "@/lib/content";
+import BlockRenderer, { needsPosts, needsTarieven } from "@/components/blocks/BlockRenderer";
+import { normalizeTarieven } from "@/lib/tarieven";
 import FotoTegel from "@/components/site/FotoTegel";
 import { Arrow } from "@/components/site/Arrow";
 import { PIJLERS, crumbsVoor, dienstVoor } from "@/lib/nav";
@@ -111,7 +112,11 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   const res = await inhoud(slug);
   if (!res) notFound();
   const path = `/${slug}`;
-  const posts = needsPosts(res.blocks) ? await getPublishedPosts() : [];
+  const [posts, tarieven] = await Promise.all([
+    needsPosts(res.blocks) ? getPublishedPosts() : [],
+    // Het tarievenjaar uit de instellingen, alleen voor pagina's met een tariefblok.
+    needsTarieven(res.blocks) ? getSetting<unknown>("tarieven").then(normalizeTarieven) : undefined,
+  ]);
   const crumbs = crumbsVoor(path, res.page.title);
   const hit = dienstVoor(path);
 
@@ -120,7 +125,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
       {/* Een dienstpagina zonder knoppen in de kop krijgt de twee die daar horen:
           een afspraak maken en direct bellen. */}
       <BlockRenderer blocks={res.blocks} ctx={{
-        posts, crumbs,
+        posts, crumbs, tarieven,
         knoppen: hit
           ? [{ label: "Maak een afspraak", href: "/contact" }, { label: `Bel ${CONTACT_FALLBACK.phoneDisplay}`, href: `tel:${CONTACT_FALLBACK.phone}` }]
           : undefined,

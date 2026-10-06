@@ -3,6 +3,7 @@ import { useActionState, useState } from "react";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
 import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
+import TurnstileField from "@/components/site/TurnstileField";
 
 /*
  * Snel solliciteren (canvas: Werken bij en Vacature). Kort formulier:
@@ -76,6 +77,14 @@ export default function Solliciteren({ keuzes, vast, kopTekst = "Snel solliciter
         </label>
       </div>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <label className="flex items-start gap-3 text-[14.5px] leading-[1.5]" style={{ color: BODY }}>
+        <input type="checkbox" name="retain_longer" className="mt-1 h-4 w-4 shrink-0 accent-[#322E83]" />
+        <span>
+          Bewaar mijn gegevens een jaar, ook voor toekomstige vacatures.{" "}
+          <span style={{ color: MUTE }}>Zonder vinkje verwijderen we ze uiterlijk vier weken na afloop van de procedure.</span>
+        </span>
+      </label>
+      <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="m-0 text-[15px] font-medium" style={{ color: PINK }}>{state.error}</p>}
       <button disabled={pending}
         className="hv-btn hv-btn-roze mt-1 inline-flex h-[56px] items-center justify-center gap-2.5 rounded-full px-7 text-[16px] font-bold disabled:opacity-60">

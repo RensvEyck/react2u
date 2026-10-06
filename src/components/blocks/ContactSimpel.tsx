@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import { submitContact, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { DOCUMENTEN } from "@/lib/documenten";
+import TurnstileField from "@/components/site/TurnstileField";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -66,6 +67,7 @@ function Formulier({ heading, note }: { heading: string; note?: string }) {
           <textarea className={`${veld} h-[160px] resize-none py-3.5 leading-[1.6]`} name="message" required maxLength={4000} placeholder="Waar kunnen we je mee helpen?" /></label>
       </div>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="m-0 text-[15px] font-medium" style={{ color: PINK }}>{state.error}</p>}
       <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-[14px] leading-[1.55]" style={{ color: MUTE }}>
