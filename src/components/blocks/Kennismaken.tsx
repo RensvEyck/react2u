@@ -1,9 +1,9 @@
 "use client";
 import { useActionState } from "react";
-import Link from "next/link";
 import { submitOfferte, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, BODY, MUTE, LAV, kop, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -88,7 +88,7 @@ function Formulier({ d }: { d: any }) {
       </button>
       <p className="m-0 text-center text-[13.5px] leading-[1.55]" style={{ color: MUTE }}>
         Je aanvraag gaat naar ons salesteam via sales@react2u.nl. We gebruiken je gegevens alleen om contact met je op te nemen.{" "}
-        <Link href="/privacyverklaring" className="underline underline-offset-2">Privacy</Link>
+        <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2">Privacy</a>
       </p>
     </form>
   );

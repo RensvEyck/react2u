@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getPublishedPages, getPublishedVacancies, getPublishedPosts } from "@/lib/content";
 import { alleConceptSlugs } from "@/lib/concept";
 import { werkgebiedPaden } from "@/lib/gemeenten";
+import { coveredByWordpress } from "@/lib/redirects";
 
 export const revalidate = 3600;
 
@@ -24,6 +25,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: base, lastModified: newest(pages.map((p) => p.updated_at)), priority: 1 },
     ...pages
       .filter((p) => p.slug !== "home")
+      // Een pagina met een vaste doorverwijzing (zoals de oude /privacyverklaring,
+      // nu een PDF) is onbereikbaar en hoort niet in de sitemap.
+      .filter((p) => !coveredByWordpress(`/${p.slug}`))
       .map((p) => ({ url: `${base}/${p.slug}`, lastModified: new Date(p.updated_at), priority: 0.8 })),
     // Pagina's die (nog) alleen als concept bestaan, zoals /kennismaken en /sitemap.
     ...alleConceptSlugs()

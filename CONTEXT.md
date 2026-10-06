@@ -210,8 +210,9 @@ en zonder foutmelding. Tel je iets over veel rijen (bezoek), blader dan in
 blokken van 1000 — zie [`fetchPageViews()`](src/lib/analyticsDb.ts).
 
 **`site_settings.documents` bestaat in twee vormen.** Oorspronkelijk een vast
-object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure`,
-`privacy_reglement`), inmiddels een vrije lijst `{label, href}[]`. Rijen die
+object met drie sleutels (`algemene_voorwaarden`, `klachtenprocedure` en
+`privacy_reglement`; die laatste, de oude WordPress-PDF, leest `normalizeDocs()`
+niet meer en laten beide footers weg), inmiddels een vrije lijst `{label, href}[]`. Rijen die
 sinds de omzetting niet opnieuw zijn opgeslagen bevatten nog de oude vorm. Lees
 deze instelling daarom altijd via `normalizeDocs()` in `nav.ts` — die accepteert
 beide en valt terug op de standaardlinks. Hetzelfde geldt voor
@@ -410,8 +411,7 @@ Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
 `werkgevers`, `werknemers`, `verzuimprotocol`, `diensten` — dezelfde teksten in
 een nieuwe opbouw — `tarieven` en `begeleiding-en-coaching` — daar alleen de volgorde
-hersteld: de oproep stond boven de paginakop — en `cookieverklaring`, een nieuwe
-pagina bij de cookiemelding): de blokken, de titel en voor
+hersteld: de oproep stond boven de paginakop): de blokken, de titel en voor
 een nieuwe pagina de SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
 
@@ -866,10 +866,13 @@ filter *Bewaartermijn verstreken*; daar selecteer je ze en verwijder je ze in
 één keer, cv's inbegrepen (`bulkInbox`). Ander beleid? Pas de getallen daar aan,
 en de privacyverklaring mee.
 
-De **privacyverklaring** staat als gewone pagina in het CMS (`/privacyverklaring`),
-gelinkt in de footer en onder beide formulieren. Hij beschrijft precies wat de
-site nu doet. **Zet je `IPINFO_TOKEN` of Resend aan, dan moet die verklaring
-mee**: er komt dan een verwerker bij (ipinfo.io, Resend) die er nu niet in staat.
+De **privacyverklaring** is alleen nog een PDF (`/documenten/privacyverklaring-react2u.pdf`,
+zie [`src/lib/documenten.ts`](src/lib/documenten.ts)), gelinkt in de footer en
+onder alle formulieren. `/privacyverklaring` en `/cookieverklaring` verwijzen
+met een 301 door naar de PDF (`DOCUMENT_REDIRECTS` in `redirects.ts`); de oude
+databasepagina gaat met migratie 0011 uit publicatie. **Zet je `IPINFO_TOKEN`
+of Resend aan, dan moet die verklaring mee**: er komt dan een verwerker bij
+(ipinfo.io, Resend) die er nu niet in staat.
 
 De **cookiemelding** ([`CookieBanner.tsx`](src/components/site/CookieBanner.tsx))
 staat in `SiteShell`: wel op de 404, niet in het adminpaneel. Hij vraagt niets,
@@ -877,14 +880,11 @@ want er is niets om toestemming voor te vragen: de site zet precies één cookie
 (`r2u_cookie_consent`, 12 maanden, onthoudt dat je de melding zag) en bewaart de
 doelgroepkeuze in `localStorage`; de bezoekstatistiek werkt zonder cookies.
 *Cookie-instellingen* in beide footers opent de melding opnieuw. Wat er in de
-browser staat, beschrijft `/cookieverklaring`
-([`src/content/cookieverklaring.json`](src/content/cookieverklaring.json)): een
-concept dat in productie als reserve dient zolang de pagina niet in de database
-staat. Komt er statistiek of marketing bij: categorie toevoegen aan
-`OPTIONAL_CATEGORIES`, het script alleen laden als `hasConsent()` waar is,
-`CONSENT_VERSION` ophogen en de cookieverklaring bijwerken. **Let op:** de
-privacyverklaring in de database zegt nog "geen cookies … daarom geen
-cookiemelding"; die alinea moet mee zodra de melding live staat.
+browser staat, beschrijft de cookieverklaring, alleen als PDF
+(`/documenten/cookieverklaring-react2u.pdf`). Komt er statistiek of marketing
+bij: categorie toevoegen aan `OPTIONAL_CATEGORIES`, het script alleen laden als
+`hasConsent()` waar is, `CONSENT_VERSION` ophogen en een nieuwe PDF onder
+dezelfde naam neerzetten.
 
 Voor de bedrijfsherkenning zegt hij nu: "Komt een bezoek vanaf een
 bedrijfsnetwerk, dan kan daar de naam van dat bedrijf bij staan — nooit de naam

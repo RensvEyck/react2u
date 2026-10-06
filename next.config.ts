@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { WORDPRESS_REDIRECTS } from "./src/lib/redirects";
+import { DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
 
 const SUPABASE = "https://tumwtappyegkjabtmold.supabase.co";
 
@@ -76,7 +76,12 @@ const nextConfig: NextConfig = {
   // later in de admin worden toegevoegd past de middleware toe — die komt pas
   // ná deze lijst aan de beurt, dus deze wint altijd.
   async redirects() {
-    return [WWW_REDIRECT, ...WORDPRESS_REDIRECTS.map((r) => ({ ...r, permanent: true }))];
+    return [
+      WWW_REDIRECT,
+      ...WORDPRESS_REDIRECTS.map((r) => ({ ...r, permanent: true })),
+      // De juridische documenten: een klassieke 301 naar de PDF.
+      ...DOCUMENT_REDIRECTS.map((r) => ({ ...r, statusCode: 301 })),
+    ];
   },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];

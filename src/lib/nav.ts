@@ -229,25 +229,23 @@ export const LOGO_SVG_URL = `${MEDIA}/2023/05/Logo-kleur.svg`;
 
 export type FooterDoc = { label: string; href: string };
 
-// Vroeger was dit een vast object met precies deze drie sleutels. Sinds de
-// footer een vrije lijst is, bestaat die vorm alleen nog als opgeslagen data in
+// Vroeger was dit een vast object met drie sleutels (ook `privacy_reglement`,
+// de oude WordPress-PDF die niet meer in de footer hoort). Sinds de footer een
+// vrije lijst is, bestaat die vorm alleen nog als opgeslagen data in
 // site_settings — zie normalizeDocs().
 type LegacyFooterDocs = {
   algemene_voorwaarden: string;
   klachtenprocedure: string;
-  privacy_reglement: string;
 };
 
 const LEGACY_DOC_LABELS: { key: keyof LegacyFooterDocs; label: string }[] = [
   { key: "algemene_voorwaarden", label: "Algemene voorwaarden" },
   { key: "klachtenprocedure", label: "Klachtenprocedure" },
-  { key: "privacy_reglement", label: "Privacy regelement" },
 ];
 
 const LEGACY_DOC_HREFS: LegacyFooterDocs = {
   algemene_voorwaarden: `${MEDIA}/2025/05/Algemene-voorwaarden-r2u.pdf`,
   klachtenprocedure: `${MEDIA}/2025/05/Klachtenprocedure-r2u.pdf`,
-  privacy_reglement: `${MEDIA}/2025/05/Privacy-reglement-r2u.pdf`,
 };
 
 export const FOOTER_DOCS_FALLBACK: FooterDoc[] = LEGACY_DOC_LABELS.map((d) => ({

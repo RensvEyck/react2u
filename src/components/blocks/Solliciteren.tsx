@@ -1,8 +1,8 @@
 "use client";
 import { useActionState, useState } from "react";
-import Link from "next/link";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
 import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 /*
  * Snel solliciteren (canvas: Werken bij en Vacature). Kort formulier:
@@ -82,7 +82,7 @@ export default function Solliciteren({ keuzes, vast, kopTekst = "Snel solliciter
         {pending ? "Versturen…" : <>Verstuur sollicitatie<Pijl size={18} /></>}
       </button>
       <span className="text-center text-[13px] leading-[1.5]" style={{ color: MUTE }}>
-        We gaan zorgvuldig om met je gegevens, lees onze <Link href="/privacyverklaring" className="font-semibold underline underline-offset-2" style={{ color: NAVY }}>privacyverklaring</Link>.
+        We gaan zorgvuldig om met je gegevens, lees onze <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="font-semibold underline underline-offset-2" style={{ color: NAVY }}>privacyverklaring</a>.
       </span>
     </form>
   );

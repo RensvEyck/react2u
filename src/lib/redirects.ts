@@ -15,6 +15,8 @@
  * dezelfde regels gebruiken.
  */
 
+import { DOCUMENTEN } from "./documenten";
+
 export type Redirect = {
   id: string;
   source: string;
@@ -308,10 +310,24 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/comments/feed", destination: "/blog" },
 ];
 
+/**
+ * De juridische documenten waren webpagina's; nu zijn het alleen nog PDF's
+ * (src/lib/documenten.ts). Een echte 301 (geen 308), zodat Google de oude
+ * adressen definitief door de PDF vervangt. Net als de WordPress-lijst past
+ * next.config.ts ze toe, vóór de middleware en de tabel.
+ */
+export const DOCUMENT_REDIRECTS: { source: string; destination: string }[] = [
+  { source: "/privacyverklaring", destination: DOCUMENTEN.privacyverklaring },
+  { source: "/cookieverklaring", destination: DOCUMENTEN.cookieverklaring },
+];
+
+/** Alle vaste regels uit de code, in de volgorde waarin next.config.ts ze toepast. */
+export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS];
+
 /** Valt dit pad al onder de vaste lijst? Dan zou een regel in de tabel nooit werken. */
 export function coveredByWordpress(path: string): { source: string; destination: string } | null {
   const p = normalizePath(path);
-  for (const r of WORDPRESS_REDIRECTS) {
+  for (const r of VASTE_REDIRECTS) {
     const wildcard = r.source.match(/^(.*)\/:\w+\*$/);
     if (wildcard) {
       const prefix = wildcard[1];

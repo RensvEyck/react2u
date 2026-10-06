@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 /**
  * Cookiemelding op de publieke site. Gemonteerd in SiteShell: zo staat hij ook
@@ -29,7 +30,7 @@ const MAX_AGE = 60 * 60 * 24 * 365;
 const OPEN_EVENT = "r2u:open-cookie-settings";
 const CHANGED_EVENT = "r2u:consent-changed";
 /** De definitieve cookieverklaring (versie oktober 2026), als PDF. */
-const POLICY_URL = "/documenten/cookieverklaring-react2u.pdf";
+const POLICY_URL = DOCUMENTEN.cookieverklaring;
 
 type Consent = { v: number; ts: string; choices: Record<string, boolean> };
 

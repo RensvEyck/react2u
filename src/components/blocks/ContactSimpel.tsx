@@ -1,8 +1,8 @@
 "use client";
 import { useActionState } from "react";
-import Link from "next/link";
 import { submitContact, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -70,7 +70,7 @@ function Formulier({ heading, note }: { heading: string; note?: string }) {
       <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-[14px] leading-[1.55]" style={{ color: MUTE }}>
           {note || "Deel hier geen medische informatie."}{" "}
-          <Link href="/privacyverklaring" className="underline underline-offset-2">Privacy</Link>
+          <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2">Privacy</a>
         </span>
         <button disabled={pending}
           className="hv-btn hv-btn-roze inline-flex h-[52px] items-center justify-center gap-2.5 self-start whitespace-nowrap rounded-full px-[26px] text-[16px] font-bold disabled:opacity-60 sm:self-auto">

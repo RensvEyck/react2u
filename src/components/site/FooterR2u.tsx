@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { ContactInfo } from "@/lib/content";
 import type { Certificate, FooterDoc } from "@/lib/nav";
+import { DOCUMENTEN } from "@/lib/documenten";
 import Logo from "./Logo";
 import { letter, K, telefoon, type Link2 } from "./r2uStijl";
 import { CookieSettingsLink } from "./CookieBanner";
@@ -74,25 +75,21 @@ function kolommen(contact: ContactInfo): Kolom[] {
 }
 
 /**
- * De vier definitieve juridische documenten (versie oktober 2026) staan als
- * PDF in public/documenten/ en staan altijd in de footer. Wat de instellingen
- * daarnaast nog hebben, zoals het privacyreglement voor verzuimdossiers, komt
- * erachter. Oude versies van dezelfde documenten uit de instellingen vallen weg.
+ * De vier definitieve juridische documenten (versie oktober 2026, zie
+ * lib/documenten.ts) staan altijd in de footer. Wat de instellingen daarnaast
+ * nog hebben, komt erachter; oude versies van dezelfde documenten en het oude
+ * privacyreglement (de WordPress-PDF) vallen weg.
  */
 const VASTE_DOCUMENTEN = [
-  { naam: "Privacyverklaring", href: "/documenten/privacyverklaring-react2u.pdf" },
-  { naam: "Algemene voorwaarden", href: "/documenten/algemene-voorwaarden-react2u.pdf" },
-  { naam: "Klachtenregeling", href: "/documenten/klachtenregeling-react2u.pdf" },
-  { naam: "Cookieverklaring", href: "/documenten/cookieverklaring-react2u.pdf" },
+  { naam: "Privacyverklaring", href: DOCUMENTEN.privacyverklaring },
+  { naam: "Algemene voorwaarden", href: DOCUMENTEN.algemeneVoorwaarden },
+  { naam: "Klachtenregeling", href: DOCUMENTEN.klachtenregeling },
+  { naam: "Cookieverklaring", href: DOCUMENTEN.cookieverklaring },
 ];
 
 function documenten(docs: FooterDoc[]) {
-  // "Privacy reglement" (de PDF voor verzuimdossiers) is iets anders dan de
-  // privacyverklaring van de website, en blijft dus staan.
-  const vervangen = /privacy(?!.*reglement)|cookie|voorwaarden|klacht/i;
-  const overig = docs
-    .filter((d) => !vervangen.test(d.label))
-    .map((d) => ({ href: d.href, naam: /reglement/i.test(d.label) ? "Privacyreglement" : d.label }));
+  const vervangen = /privacy|cookie|voorwaarden|klacht|reglement/i;
+  const overig = docs.filter((d) => !vervangen.test(d.label)).map((d) => ({ href: d.href, naam: d.label }));
   return [...VASTE_DOCUMENTEN, ...overig];
 }
 

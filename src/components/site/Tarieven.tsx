@@ -1,6 +1,5 @@
 "use client";
 import { useActionState, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import {
   LuAward, LuCheck, LuClock, LuDownload, LuLightbulb, LuMinus, LuPlus,
   LuReceipt, LuShieldCheck, LuSlidersHorizontal, LuX,
@@ -9,6 +8,7 @@ import { submitOfferte, type FormState } from "@/app/(site)/actions";
 import { kleur } from "@/lib/brand";
 import { Arrow } from "./Arrow";
 import { Bedankt, Field, fieldClass } from "./FormField";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 /**
  * Het blok `tarieven`: de abonnementen, een vergelijking, de rekenhulp en de
@@ -491,7 +491,7 @@ function OfferteDialog({
               {pending ? "Versturen…" : <>Offerte aanvragen <Arrow /></>}
             </button>
             <p className="text-[13.5px]">
-              Lees in onze <Link href="/privacyverklaring" className="underline underline-offset-2 hover:text-accent">privacyverklaring</Link> wat we met je gegevens doen.
+              Lees in onze <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-accent">privacyverklaring</a> wat we met je gegevens doen.
             </p>
           </form>
         )}

@@ -6,6 +6,7 @@ import SiteImage from "./SiteImage";
 import Logo from "./Logo";
 import { zinsletters } from "@/lib/tekst";
 import { CookieSettingsLink } from "./CookieBanner";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 // Net als op de oude site: een kolom voor werkgevers en een voor werknemers.
 const WERKNEMERS = [
@@ -145,16 +146,17 @@ export default function Footer({
             <span>IBAN {contact.iban}</span>
           </p>
           <ul className="flex flex-wrap gap-x-5 gap-y-1">
-            {docs.map((d, i) => (
+            {/* Het oude privacyreglement (WordPress-PDF) hoort niet meer in de footer. */}
+            {docs.filter((d) => !/reglement/i.test(d.label)).map((d, i) => (
               <li key={`${d.label}-${i}`}>
                 <a href={d.href} target="_blank" rel="noopener" className="hover:text-white">{d.label}</a>
               </li>
             ))}
-            {/* De cookieverklaring is een vaste pagina (src/content/cookieverklaring.json),
-                geen document uit de instellingen; staat hij daar toch, dan niet dubbel. */}
+            {/* De cookieverklaring is een vaste PDF (lib/documenten.ts), geen document
+                uit de instellingen; staat hij daar toch, dan niet dubbel. */}
             {!docs.some((d) => /cookie/i.test(d.label)) && (
               <li>
-                <Link href="/cookieverklaring" className="hover:text-white">Cookieverklaring</Link>
+                <a href={DOCUMENTEN.cookieverklaring} target="_blank" rel="noopener" className="hover:text-white">Cookieverklaring</a>
               </li>
             )}
             <li>

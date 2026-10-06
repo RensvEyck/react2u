@@ -1,9 +1,9 @@
 "use client";
 import { useActionState } from "react";
 import { submitContact, type FormState } from "@/app/(site)/actions";
-import Link from "next/link";
 import { Field, Bedankt, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
+import { DOCUMENTEN } from "@/lib/documenten";
 
 export default function ContactForm() {
   const [state, action, pending] = useActionState<FormState, FormData>(submitContact, null);
@@ -34,7 +34,7 @@ export default function ContactForm() {
           {pending ? "Versturen…" : <>Verstuur bericht <Arrow /></>}
         </button>
         <p className="text-[13.5px] text-body">
-          Lees in onze <Link href="/privacyverklaring" className="underline underline-offset-2 hover:text-accent">privacyverklaring</Link> wat we met je gegevens doen.
+          Lees in onze <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-accent">privacyverklaring</a> wat we met je gegevens doen.
         </p>
       </div>
     </form>

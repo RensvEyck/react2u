@@ -65,6 +65,9 @@ describe("doorverwijzingen", () => {
     expect(coveredByWordpress("/team/jan")).not.toBeNull();
     expect(coveredByWordpress("/team")).not.toBeNull();
     expect(coveredByWordpress("/teams")).toBeNull();
+    // De juridische documenten: webpagina's die een PDF zijn geworden.
+    expect(coveredByWordpress("/privacyverklaring")?.destination).toBe("/documenten/privacyverklaring-react2u.pdf");
+    expect(coveredByWordpress("/Cookieverklaring/")?.destination).toBe("/documenten/cookieverklaring-react2u.pdf");
   });
 
   it("stelt een bestemming voor, of niets als het een gok zou zijn", () => {
