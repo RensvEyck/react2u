@@ -237,22 +237,26 @@ export function HomeContact({ d }: BlockProps) {
   const routes = ((d.routes as any[]) || []).filter((r) => r?.value);
   return (
     <section id="contact" className={`hn hn-type ${outfit.variable}`} style={{ background: d.bg || IVOOR, paddingBottom: d.bg ? "clamp(8px, 6vw, 96px)" : 8 }}>
-      <div className={`relative ${d.bg ? "mx-[6px] md:mx-10 xl:mx-auto xl:max-w-[1200px]" : "mx-[6px] md:mx-2"} flex flex-col gap-[18px] overflow-hidden rounded-[32px] px-5 pb-4 pt-9 text-white md:grid md:min-h-[480px] md:grid-cols-12 md:items-center md:gap-x-6 md:rounded-[40px] md:px-10 md:py-16 lg:px-[72px]`}
+      {/* Tot 1024px staan foto, tekst en contactopties onder elkaar: in drie
+          kolommen brak de kop ("Kennismak-en?") en liep "Plan een terugbelmoment"
+          de kaart uit. Vanaf 1024px drie kolommen met vaste randen, op xl de
+          maten van het ontwerp. */}
+      <div className={`relative ${d.bg ? "mx-[6px] md:mx-10 xl:mx-auto xl:max-w-[1200px]" : "mx-[6px] md:mx-2"} flex flex-col gap-[18px] overflow-hidden rounded-[32px] px-5 pb-4 pt-9 text-white md:gap-6 md:rounded-[40px] md:px-10 md:py-14 lg:grid lg:min-h-[480px] lg:grid-cols-[220px_minmax(0,1fr)_280px] lg:items-center lg:gap-x-8 lg:px-10 lg:py-16 xl:grid-cols-[300px_minmax(0,1fr)_320px] xl:gap-x-12 xl:px-[72px]`}
         style={{ background: INDIGO, marginTop: d.bg ? "clamp(64px, 7vw, 96px)" : "clamp(80px, 10vw, 144px)" }}>
         <span aria-hidden className="absolute right-[-90px] top-[-90px] h-[300px] w-[300px] rounded-full md:left-[-120px] md:right-auto md:top-[-140px] md:h-[620px] md:w-[620px]" style={{ background: "#3B378F" }} />
         {d.image && (
-          <span className="relative block h-[150px] w-[150px] overflow-hidden rounded-full border-[6px] md:col-span-3 md:h-[240px] md:w-[240px] md:border-8 lg:h-[300px] lg:w-[300px]" style={{ borderColor: MAGENTA, background: "#E9E3F9" }}>
+          <span className="relative block h-[150px] w-[150px] overflow-hidden rounded-full border-[6px] md:h-[240px] md:w-[240px] md:border-8 lg:h-[220px] lg:w-[220px] xl:h-[300px] xl:w-[300px]" style={{ borderColor: MAGENTA, background: "#E9E3F9" }}>
             <img src={d.image} alt={d.alt || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "52% 22%" }} />
           </span>
         )}
-        <div className="relative mt-1.5 flex flex-col gap-3 md:col-span-4 md:col-start-5 md:mt-0 md:gap-5">
+        <div className="relative mt-1.5 flex flex-col gap-3 md:mt-0 md:gap-5">
           <Label kleur="#B4ADF2">{d.eyebrow}</Label>
-          <h2 className="text-[34px] font-extrabold leading-[1.02] tracking-[-1.4px] md:text-[40px] lg:text-[46px] lg:tracking-[-1.8px]" style={{ color: "#ffffff" }}>
+          <h2 className="text-[34px] font-extrabold leading-[1.02] tracking-[-1.4px] md:text-[40px] lg:tracking-[-1.5px] xl:text-[46px] xl:tracking-[-1.8px]" style={{ color: "#ffffff" }}>
             {String(d.heading).split("\n").map((x: string, k: number) => <span key={k} className="block">{x}</span>)}
           </h2>
           {d.text && <p className="text-[16px] leading-[1.6] md:text-[17px]" style={{ color: "#D6D2F7" }}>{d.text}</p>}
         </div>
-        <div className="relative flex flex-col border-b-[1.5px] md:col-span-4 md:col-start-9" style={{ borderColor: "#423E97" }}>
+        <div className="relative flex flex-col border-b-[1.5px]" style={{ borderColor: "#423E97" }}>
           {routes.map((r, i) => {
             const Ic = ROUTE_ICON[r.icon] || LuPhone;
             return (
@@ -262,7 +266,7 @@ export function HomeContact({ d }: BlockProps) {
                 </span>
                 <span className="flex grow flex-col gap-0.5">
                   <span className="text-[13px] font-semibold" style={{ color: "#B4ADF2" }}>{r.label}</span>
-                  <span className="text-[17px] font-extrabold tracking-[-0.3px] md:whitespace-nowrap md:text-[18px] xl:text-[20px]">{r.value}</span>
+                  <span className="text-[17px] font-extrabold tracking-[-0.3px] md:text-[18px] xl:whitespace-nowrap xl:text-[20px]">{r.value}</span>
                 </span>
                 <span style={{ color: "#B4ADF2" }}><Pijl /></span>
               </Go>

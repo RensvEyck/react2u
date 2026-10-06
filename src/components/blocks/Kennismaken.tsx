@@ -98,13 +98,15 @@ export function Kennismaken({ d, asH1 }: { d: any; asH1?: boolean }) {
   const H = asH1 ? "h1" : "h2";
   const stappen: any[] = d.stappen || [];
   return (
-    <section aria-label="Kennismaken" className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 lg:px-[120px] xl:mx-auto xl:max-w-[1440px]`}>
-      <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-5 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-12 lg:gap-6 lg:p-[72px]" style={{ background: LAV }}>
+    <section aria-label="Kennismaken" className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]`}>
+      {/* Tussen 1024 en 1280px minder rand en een kleinere kop: met 72px rand en
+          60px brak "kennismaken?" naast het formulier midden in het woord. */}
+      <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-5 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-12 lg:gap-6 lg:p-12 xl:p-[72px]" style={{ background: LAV }}>
         <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
         <div className="relative flex flex-col gap-6 lg:col-span-5">
           <Kruimels items={[{ label: "Home", href: "/" }, { label: "Werkgevers", href: "/werkgevers" }, { label: "Kennismaken" }]} />
           <Eyebrow>{d.eyebrow || "Kennismaken en offerte"}</Eyebrow>
-          <H className={`${kop} m-0 text-[44px] leading-[1.02] tracking-[-1.4px] md:text-[60px] md:tracking-[-1.8px]`} style={{ color: NAVY }}>{d.heading || "Zullen we kennismaken?"}</H>
+          <H className={`${kop} m-0 text-[44px] leading-[1.02] tracking-[-1.4px] md:text-[52px] md:tracking-[-1.6px] xl:text-[60px] xl:tracking-[-1.8px]`} style={{ color: NAVY }}>{d.heading || "Zullen we kennismaken?"}</H>
           {d.text && <p className="m-0 text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }}>{d.text}</p>}
           <ol className="m-0 flex list-none flex-col gap-5 p-0 pt-2">
             {stappen.map((s, i) => (

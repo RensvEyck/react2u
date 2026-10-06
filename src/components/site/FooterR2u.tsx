@@ -113,7 +113,9 @@ export default function FooterR2u({ contact, docs, certificates }: {
           <Link href="/" aria-label="React2u, naar de homepage" className="self-start">
             <Logo title="" className="h-[48px] w-auto md:h-[56px]" />
           </Link>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-9 md:grid-cols-4 md:gap-x-8">
+          {/* Tot 1024px twee kolommen: in vier werd elke kolom op een tablet zo
+              smal dat "Alle contactgegevens" en "Je rechten en privacy" braken. */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-9 lg:grid-cols-4 lg:gap-x-8">
             {kolommen(contact).map((k) => (
               <div key={k.kop} className="flex flex-col gap-[18px]">
                 <span className="text-[15px] font-bold" style={{ color: K.indigo }}>{k.kop}</span>

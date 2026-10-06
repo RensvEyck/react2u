@@ -254,7 +254,7 @@ export function VacatureDetail({ v, andere }: { v: Vacancy; andere: Vacancy[] })
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. Kop met het belangrijkste */}
-      <section aria-label="Vacature" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-[120px] xl:mx-auto xl:max-w-[1440px]">
+      <section aria-label="Vacature" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
         <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-center lg:gap-[72px] lg:p-[72px]" style={{ background: LAV }}>
           <span aria-hidden className="absolute right-[-140px] top-[-170px] h-[560px] w-[560px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <div className="relative flex flex-col gap-6">

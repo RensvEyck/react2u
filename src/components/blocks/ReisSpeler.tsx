@@ -25,6 +25,8 @@ export default function ReisSpeler({ children, className }: { children: React.Re
       play();
       return () => el.removeEventListener("click", play);
     }
+    // Al bij een klein stuk in beeld afspelen: op een telefoon is de reis
+    // hoger dan het scherm, en wie snel doorscrolt moet de stappen niet missen.
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
@@ -32,7 +34,7 @@ export default function ReisSpeler({ children, className }: { children: React.Re
           io.disconnect();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.15 }
     );
     io.observe(el);
     return () => {

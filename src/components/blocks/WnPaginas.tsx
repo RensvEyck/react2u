@@ -43,7 +43,7 @@ export function WnKop({ d, asH1 }: { d: any; asH1?: boolean }) {
   const kaart: any[] = d.card || [];
   const crumbs = d.crumbs || [{ label: "Werknemers", href: "/werknemers" }, { label: d.heading }];
   return (
-    <section aria-label={d.heading} className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 lg:px-[120px] xl:mx-auto xl:max-w-[1440px]`}>
+    <section aria-label={d.heading} className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]`}>
       <div className={`relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:items-center lg:gap-16 lg:p-[72px] ${kaart.length ? "lg:grid-cols-[minmax(0,1fr)_380px]" : ""}`}
         style={{ background: d.tint || "#FDECF4" }}>
         <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: d.orb || PINK, opacity: 0.12 }} />
@@ -289,7 +289,7 @@ export function Inloggen({ d, asH1 }: { d: any; asH1?: boolean }) {
   const hulp: any[] = d.help || [];
   return (
     <div className={`hv ${outfit.variable}`}>
-      <section aria-label="Inloggen" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-[120px] xl:mx-auto xl:max-w-[1440px]">
+      <section aria-label="Inloggen" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
         <div className="relative flex flex-col gap-12 overflow-hidden rounded-[28px] px-5 py-10 md:rounded-[36px] md:p-14 lg:p-[72px]" style={{ background: "#ECEBF5" }}>
           <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <div className="relative flex max-w-[640px] flex-col gap-[18px]">

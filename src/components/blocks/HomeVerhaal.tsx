@@ -87,7 +87,7 @@ export function HomeEenMens({ d }: BlockProps) {
   const lineColors = [NAVY, TEAL, PINK];
   return (
     <section aria-label={d.eyebrow || "Waarom React2u"} className={`hv ${outfit.variable}`} style={{ background: GRIJS }}>
-      <div className="mx-auto grid max-w-[1440px] items-center gap-12 px-5 py-20 md:grid-cols-12 md:gap-6 md:px-10 md:py-28 lg:px-[120px] lg:py-[120px]">
+      <div className="mx-auto grid max-w-[1440px] items-center gap-12 px-5 py-20 md:grid-cols-12 md:gap-6 md:px-10 md:py-28 lg:px-16 xl:px-[120px] lg:py-[120px]">
         <div className="flex flex-col gap-6 md:col-span-6 lg:col-span-5">
           {d.eyebrow && <Label>{d.eyebrow}</Label>}
           <h2 className="hv-kop text-[38px] leading-[1.05] tracking-[-1px] md:text-[44px] lg:whitespace-nowrap lg:text-[54px] lg:tracking-[-1.4px]">
@@ -139,9 +139,14 @@ const STAP_KLEUR = [TEAL, SKY, PINK, ORANGE];
 const STAP_ICOON: Record<string, any> = { shield: LuShieldCheck, chat: LuMessageSquare, heart: LuHeart, route: LuRoute };
 
 // Reis op een vlak van 1200×250: vier stations, daartussen een S-bocht van stippen.
-const JW = 1200, JH = 250, R = 66, SEG = 1.0;
+const JW = 1200, JH = 250, R = 66, SEG = 0.9;
 const SX = [150, 450, 750, 1050], SY = [110, 150, 110, 150];
-const tStation = (i: number) => 0.2 + i * (SEG + 0.35);
+// Stations en teksten staan binnen een seconde; alleen de stippen reizen
+// daarna nog van station naar station. Eerder wachtten station en tekst op de
+// stippen (de laatste tot 4,5 s), en wie meteen naar de knoppen scrolde zag
+// een leeg vlak waar stap 3 en 4 hoorden te staan.
+const tStation = (i: number) => 0.15 + i * 0.22;
+const tSpoor = (i: number) => 0.5 + i * SEG;
 
 function hex(c: string) { return [1, 3, 5].map((k) => parseInt(c.slice(k, k + 2), 16)); }
 function mix(a: string, b: string, t: number) {
@@ -166,7 +171,7 @@ const SPOOR: Stip[] = (() => {
       if (acc >= 19) { gekozen.push(p); acc = 0; }
     }
     gekozen = gekozen.filter((p) => Math.hypot(p[0] - x0, p[1] - y0) > R + 14 && Math.hypot(p[0] - x1, p[1] - y1) > R + 14);
-    const start = tStation(i) + 0.35;
+    const start = tSpoor(i);
     gekozen.forEach((p, j) => {
       const t = j / Math.max(gekozen.length - 1, 1);
       out.push({ x: p[0], y: p[1], s: 8 + 4 * Math.sin(Math.PI * t), c: mix(STAP_KLEUR[i], STAP_KLEUR[i + 1], t), delay: start + t * SEG });
@@ -180,7 +185,7 @@ export function HomeReis({ d }: BlockProps) {
   const buttons = ((d.buttons as any[]) || []).filter((b) => b?.label && b?.href);
   return (
     <section aria-label={d.eyebrow || "Zo werkt het"} className={`hv ${outfit.variable}`} style={{ background: d.bg || "#ffffff" }}>
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-12 px-5 pt-20 md:px-10 md:pt-28 lg:px-[120px] lg:pt-[120px]">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-12 px-5 pt-20 md:px-10 md:pt-28 lg:px-16 xl:px-[120px] lg:pt-[120px]">
         <div className="grid gap-5 md:grid-cols-12 md:items-end md:gap-6">
           <div className="flex flex-col gap-4 md:col-span-7 lg:col-span-6">
             {d.eyebrow && <Label>{d.eyebrow}</Label>}
@@ -217,7 +222,7 @@ export function HomeReis({ d }: BlockProps) {
             </div>
             <ol className="mx-auto mt-2 grid max-w-[1200px] grid-cols-4 gap-10">
               {steps.map((s, i) => (
-                <li key={i} className="hv-jc flex flex-col items-center gap-2 px-2 text-center" style={{ animationDelay: `${(tStation(i) + 0.3).toFixed(2)}s` }}>
+                <li key={i} className="hv-jc flex flex-col items-center gap-2 px-2 text-center" style={{ animationDelay: `${(tStation(i) + 0.12).toFixed(2)}s` }}>
                   <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: STAP_KLEUR[i] }}>{s.label}</span>
                   <span className="hv-kop text-[20px] leading-[1.3] lg:text-[22px]" style={{ color: NAVY }}>{s.title}</span>
                   <span className="text-[15px] leading-[1.75] lg:text-[16px]" style={{ color: TEKST }}>{s.text}</span>
@@ -236,19 +241,19 @@ export function HomeReis({ d }: BlockProps) {
                 <li key={i} className="grid grid-cols-[64px_1fr] gap-x-5">
                   <div className="flex flex-col items-center">
                     <span className="hv-js grid h-16 w-16 shrink-0 place-items-center rounded-full text-white"
-                      style={{ background: c, boxShadow: `0 0 0 6px #ffffff, 0 20px 40px -22px ${c}`, animationDelay: `${(i * 0.9).toFixed(2)}s` }}>
+                      style={{ background: c, boxShadow: `0 0 0 6px #ffffff, 0 20px 40px -22px ${c}`, animationDelay: `${tStation(i).toFixed(2)}s` }}>
                       <Ic className="text-[26px]" strokeWidth={1.7} aria-hidden />
                     </span>
                     {!laatste && (
                       <span aria-hidden className="flex grow flex-col items-center justify-around gap-2 py-3">
                         {[0, 1, 2, 3].map((k) => (
                           <span key={k} className="hv-jd h-2 w-2 rounded-full"
-                            style={{ background: mix(c, STAP_KLEUR[i + 1], k / 3), animationDelay: `${(i * 0.9 + 0.35 + k * 0.12).toFixed(2)}s` }} />
+                            style={{ background: mix(c, STAP_KLEUR[i + 1], k / 3), animationDelay: `${(tStation(i) + 0.3 + k * 0.08).toFixed(2)}s` }} />
                         ))}
                       </span>
                     )}
                   </div>
-                  <div className={`hv-jc flex flex-col gap-1.5 pt-2 ${laatste ? "" : "pb-8"}`} style={{ animationDelay: `${(i * 0.9 + 0.2).toFixed(2)}s` }}>
+                  <div className={`hv-jc flex flex-col gap-1.5 pt-2 ${laatste ? "" : "pb-8"}`} style={{ animationDelay: `${(tStation(i) + 0.12).toFixed(2)}s` }}>
                     <span className="text-[12px] font-bold uppercase tracking-[1.3px]" style={{ color: c }}>{i + 1}. {s.label}</span>
                     <span className="hv-kop text-[20px] leading-[1.3]" style={{ color: NAVY }}>{s.title}</span>
                     <span className="text-[15px] leading-[1.7]" style={{ color: TEKST }}>{s.text}</span>

@@ -21,7 +21,7 @@ export function OverReact2u({ d, asH1 }: { d: any; asH1?: boolean }) {
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. Het motto */}
-      <section aria-label="Over React2u" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-[120px] xl:mx-auto xl:max-w-[1440px]">
+      <section aria-label="Over React2u" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
         <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-12 md:rounded-[36px] md:px-14 md:py-16 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-end lg:gap-16 lg:px-20 lg:pb-20 lg:pt-[88px]"
           style={{ background: LAV }}>
           <span aria-hidden className="absolute right-[-160px] top-[-200px] h-[640px] w-[640px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />

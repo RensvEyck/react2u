@@ -49,10 +49,12 @@ export function DgKop({ d, asH1 }: { d: any; asH1?: boolean }) {
     <section aria-label={d.eyebrow || d.heading} className={`hv ${outfit.variable} px-[6px] pt-2 md:px-2`}>
       <div className="relative overflow-hidden rounded-[24px] md:rounded-[28px]">
         <img src={d.image} alt={d.alt || ""} className="h-[300px] w-full object-cover md:h-[640px]" style={{ objectPosition: d.focus || "50% 35%" }} />
-        <div className="relative -mt-10 flex flex-col gap-5 rounded-t-[28px] px-6 pb-9 pt-9 md:absolute md:bottom-0 md:left-0 md:mt-0 md:w-[46%] md:max-w-[640px] md:rounded-none md:rounded-tr-[300px] md:px-[72px] md:pb-[72px] md:pt-[72px]"
+        {/* Op een tablet is het vlak breder en de kop kleiner: in 46% met een rand
+            van 72px brak "re-integratie" in drieën. Vanaf 1280px de maten van het ontwerp. */}
+        <div className="relative -mt-10 flex flex-col gap-5 rounded-t-[28px] px-6 pb-9 pt-9 md:absolute md:bottom-0 md:left-0 md:mt-0 md:w-[58%] md:max-w-[640px] md:rounded-none md:rounded-tr-[300px] md:px-12 md:pb-12 md:pt-12 lg:w-[54%] lg:px-14 lg:pb-14 lg:pt-14 xl:w-[46%] xl:px-[72px] xl:pb-[72px] xl:pt-[72px]"
           style={{ background: vlak }}>
           {d.eyebrow && <span className="text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: "rgba(255,255,255,0.8)" }}>{d.eyebrow}</span>}
-          <H className={`${kop} m-0 whitespace-pre-line text-[38px] leading-[1.02] tracking-[-1.2px] md:text-[54px] md:tracking-[-1.6px]`} style={{ color: "#ffffff" }}>{d.heading}</H>
+          <H className={`${kop} m-0 whitespace-pre-line text-[38px] leading-[1.02] tracking-[-1.2px] md:text-[44px] md:tracking-[-1.3px] lg:text-[50px] lg:tracking-[-1.5px] xl:text-[54px] xl:tracking-[-1.6px]`} style={{ color: "#ffffff" }}>{d.heading}</H>
           {d.text && <p className="m-0 max-w-[460px] text-[16px] leading-[1.6] md:text-[17px]" style={{ color: "rgba(255,255,255,0.85)" }}>{d.text}</p>}
           <div className="flex flex-wrap gap-2.5 pt-2">
             {knoppen.map((b, i) => <Knop2 key={i} href={b.href} stijl={i ? "witrand" : "wit"}>{b.label}</Knop2>)}

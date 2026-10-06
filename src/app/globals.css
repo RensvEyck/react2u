@@ -246,12 +246,17 @@ p {
   padding-top: 0;
 }
 
-/* Een woord dat niet in de regel past, mag breken in plaats van uit beeld te
-   lopen. Echt afbreken met een streepje (hyphens-auto) staat alleen op koppen
-   waar lange samenstellingen voorkomen, zoals de dienstpagina's
-   ("Verzuimbegeleiding"): op andere koppen gaf dat "werk-gevers". */
-h1, h2, h3 {
-  overflow-wrap: break-word;
+/* Koppen breken nooit midden in een woord: geen afbreekstreepjes en geen
+   noodbreuk zonder streepje ("Kennismak-en?" op een tablet). Past een woord
+   niet, dan moet de kolom breder of de letter kleiner; dat is een opmaakfout
+   die je wilt zien, geen tekst die stilletjes verminkt wordt. In de base-laag,
+   zodat een bewuste utility als `max-sm:hyphens-auto` op de oude paginakop
+   ("Verzuimbegeleiding") blijft winnen. */
+@layer base {
+  h1, h2, h3, .hv-kop {
+    hyphens: none;
+    overflow-wrap: normal;
+  }
 }
 
 /* Onthullen bij scrollen. De klasse js-reveal zet Reveal.tsx pas nadat alles

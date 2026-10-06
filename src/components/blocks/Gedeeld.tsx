@@ -21,8 +21,12 @@ export const LAV = "#ECEBF5";
 
 export const kop = "hv-kop font-semibold";
 
-/** Standaardbreedte van de inhoud: 1200 px met 120 px marge op het canvas. */
-export const BREED = "mx-auto w-full max-w-[1440px] px-5 md:px-10 lg:px-[120px]";
+/**
+ * Standaardbreedte van de inhoud: 1200 px met 120 px marge op het canvas.
+ * Tussen 1024 en 1280 px is die marge 64 px: met 120 px aan weerszijden bleef
+ * er op een kleine laptop te weinig over en braken koppen midden in een woord.
+ */
+export const BREED = "mx-auto w-full max-w-[1440px] px-5 md:px-10 lg:px-16 xl:px-[120px]";
 
 export const KLANTEN = [
   { src: "/beeld/klanten/jumbo.png", alt: "De Jumbo’s van Ralf & René" },

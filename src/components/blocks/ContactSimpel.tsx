@@ -87,7 +87,7 @@ export function ContactSimpel({ d, asH1 }: { d: any; asH1?: boolean }) {
   const bedrijf = ((d.company as string[]) || []).filter(Boolean);
   return (
     <section aria-label="Contact" className={`hv bg-white ${outfit.variable}`}>
-      <div className="mx-auto grid max-w-[1440px] gap-12 px-5 pb-24 pt-14 md:px-10 lg:grid-cols-12 lg:gap-6 lg:px-[120px] lg:pb-[120px] lg:pt-20">
+      <div className="mx-auto grid max-w-[1440px] gap-12 px-5 pb-24 pt-14 md:px-10 lg:grid-cols-12 lg:gap-6 lg:px-16 xl:px-[120px] lg:pb-[120px] lg:pt-20">
         <div className="flex flex-col lg:col-span-4">
           <H className="hv-kop m-0 mb-4 text-[44px] leading-[1.05] tracking-[-1.1px] md:text-[56px] md:tracking-[-1.4px]" style={{ color: NAVY }}>
             {d.heading || "Contact"}

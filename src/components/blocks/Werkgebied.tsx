@@ -86,8 +86,8 @@ export function SitemapOverzicht({ d, asH1 }: { d: any; asH1?: boolean }) {
   ];
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
-      <section aria-label="Sitemap" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-[120px] xl:mx-auto xl:max-w-[1440px]">
-        <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-center lg:gap-16 lg:p-[72px]" style={{ background: LAV }}>
+      <section aria-label="Sitemap" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
+        <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 xl:grid-cols-[minmax(0,1fr)_400px] xl:items-center xl:gap-16 xl:p-[72px]" style={{ background: LAV }}>
           <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <div className="relative flex flex-col gap-6">
             <Kruimels items={[{ label: "Home", href: "/" }, { label: "Sitemap" }]} />
@@ -172,8 +172,8 @@ const SPECIALISMEN = [
 function Kop({ crumbs, titel, intro }: { crumbs: { label: string; href?: string }[]; titel: string; intro: string }) {
   const punten = ["Contact binnen een werkdag na de ziekmelding", "Casemanager en bedrijfsarts in één team", "SBCA gecertificeerd, en via DNV ISO 9001, 27001 en 27701"];
   return (
-    <section aria-label={titel} className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-[120px] xl:mx-auto xl:max-w-[1440px]">
-      <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-center lg:gap-16 lg:p-[72px]" style={{ background: LAV }}>
+    <section aria-label={titel} className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
+      <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 xl:grid-cols-[minmax(0,1fr)_400px] xl:items-center xl:gap-16 xl:p-[72px]" style={{ background: LAV }}>
         <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: PINK, opacity: 0.12 }} />
         <div className="relative flex flex-col gap-6">
           <Kruimels items={crumbs} />
