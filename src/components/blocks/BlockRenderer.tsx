@@ -19,6 +19,7 @@ import { HomeEenMens, HomeReis } from "./HomeVerhaal";
 import { ContactSimpel } from "./ContactSimpel";
 import { DienstLabel } from "./DienstLabel";
 import { OverReact2u } from "./OverReact2u";
+import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
 import {
@@ -1128,6 +1129,16 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   contactSimpel: ContactSimpel,
   dienstLabel: DienstLabel,
   overReact2u: OverReact2u,
+  wnKop: WnKop,
+  wnStappen: WnStappen,
+  wnKaarten: WnKaarten,
+  wnTekstKaart: WnTekstKaart,
+  wnChecklist: WnChecklist,
+  wnVragenLijst: WnVragenLijst,
+  wnWaarden: WnWaarden,
+  wnContactStrook: WnContactStrook,
+  inloggen: Inloggen,
+  juridischeDocumenten: JuridischeDocumenten,
   kennismaken: Kennismaken,
   klantenStrook: ({ d }: BlockProps) => <KlantenStrook label={d?.label} />,
   klantenAanHetWoord: () => <KlantenAanHetWoord />,
@@ -1170,7 +1181,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
@@ -1190,7 +1201,7 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
   const out: { question: string; answer: string }[] = [];
   for (const b of blocks) {
     const d = b.data as { items?: unknown; faq?: unknown };
-    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" ? d.items : b.type === "contactFaq" ? d.faq : null;
+    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" || b.type === "wnVragenLijst" ? d.items : b.type === "contactFaq" ? d.faq : null;
     if (!Array.isArray(raw)) continue;
     for (const item of raw) {
       const q = String((item as { question?: string })?.question ?? "").trim();

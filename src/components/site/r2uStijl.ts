@@ -81,10 +81,14 @@ export const MENU_NEUTRAAL: (Link2 & { overOns?: boolean })[] = [
  * Inloggen (portalen). Leeg tot de adressen bekend zijn: zonder adres
  * verschijnt de knop niet, zodat er geen dode link op de site staat.
  */
+const XPERTSUITE = "https://login.xpertsuite.nl/Account/LogOn";
+const WERKGEVERSPORTAAL: Link2 = { label: "Werkgeversportaal", sub: "Verzuim volgen, ziek- en betermelden", href: XPERTSUITE };
+const MIJN_DOSSIER: Link2 = { label: "Mijn dossier", sub: "Afspraken en documenten als werknemer", href: XPERTSUITE };
+/** Beide portalen draaien in XpertSuite; /inloggen legt het uit. */
 export const PORTALEN: Record<"neutraal" | Doelgroep, Link2[]> = {
-  neutraal: [],
-  werkgever: [],
-  werknemer: [],
+  neutraal: [WERKGEVERSPORTAAL, MIJN_DOSSIER],
+  werkgever: [WERKGEVERSPORTAAL],
+  werknemer: [MIJN_DOSSIER],
 };
 
 /** Het pill-menu per doelgroep. Ankers met pad ervoor, zodat ze ook van elders werken. */
@@ -97,17 +101,17 @@ export const MENU: Record<Doelgroep, Link2[]> = {
     { label: "Vragen", href: "/werkgevers#vragen" },
   ],
   werknemer: [
-    { label: "Ziek, wat nu?", href: "/werknemers#wat-nu" },
-    { label: "Je rechten", href: "/werknemers#rechten" },
-    { label: "Hulp bij herstel", href: "/werknemers#casemanager" },
+    { label: "Ziek, wat nu?", href: "/verzuimprotocol" },
+    { label: "Je rechten", href: "/je-rechten-en-privacy" },
+    { label: "Je casemanager", href: "/je-casemanager" },
     { label: "Vragen", href: "/werknemers#vragen" },
   ],
 };
 
 /** Rechts in de header: een tweede link en de hoofdknop. */
 export const KNOPPEN: Record<"neutraal" | Doelgroep, Link2> = {
-  neutraal: { label: "Kennismaken", href: "/contact" },
-  werkgever: { label: "Kennismaken", href: "/werkgevers#offerte" },
+  neutraal: { label: "Kennismaken", href: "/kennismaken" },
+  werkgever: { label: "Kennismaken", href: "/kennismaken" },
   werknemer: { label: "Bel je casemanager", href: "tel:" },
 };
 

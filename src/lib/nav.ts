@@ -124,7 +124,7 @@ export const STARTPAGINA: Record<Doelgroep, NavLink> = {
   werknemer: { label: "Werknemers", href: "/werknemers" },
 };
 
-const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol"];
+const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol", "/je-rechten-en-privacy", "/je-casemanager"];
 /** De vijf labelpagina's (Resist, Recover, …) horen bij de werkgever. */
 const LABEL_PADEN = ["/resist", "/recover", "/restart", "/reflex", "/ready"];
 

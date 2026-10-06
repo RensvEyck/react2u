@@ -59,45 +59,41 @@ function kolommen(contact: ContactInfo): Kolom[] {
       regels: [
         { label: "Diensten", href: "/werkgevers#diensten" },
         { label: "Tarieven", href: "/werkgevers#tarieven" },
-        { label: "Kennismaken", href: "/werkgevers#offerte" },
+        { label: "Kennismaken", href: "/kennismaken" },
       ],
     },
     {
       kop: "Voor werknemers",
       regels: [
-        { label: "Ziek, wat nu?", href: "/werknemers#wat-nu" },
-        { label: "Je rechten en privacy", href: "/werknemers#rechten" },
-        { label: "Je casemanager", href: "/werknemers#casemanager" },
+        { label: "Ziek, wat nu?", href: "/verzuimprotocol" },
+        { label: "Je rechten en privacy", href: "/je-rechten-en-privacy" },
+        { label: "Je casemanager", href: "/je-casemanager" },
       ],
     },
   ];
 }
 
 /**
- * De documenten uit de instellingen, met vaste namen en in vaste volgorde. De
- * cookieverklaring is een vaste pagina (src/content/cookieverklaring.json) en
- * komt er altijd bij, direct na de privacyverklaring.
+ * De vier definitieve juridische documenten (versie oktober 2026) staan als
+ * PDF in public/documenten/ en staan altijd in de footer. Wat de instellingen
+ * daarnaast nog hebben, zoals het privacyreglement voor verzuimdossiers, komt
+ * erachter. Oude versies van dezelfde documenten uit de instellingen vallen weg.
  */
+const VASTE_DOCUMENTEN = [
+  { naam: "Privacyverklaring", href: "/documenten/privacyverklaring-react2u.pdf" },
+  { naam: "Algemene voorwaarden", href: "/documenten/algemene-voorwaarden-react2u.pdf" },
+  { naam: "Klachtenregeling", href: "/documenten/klachtenregeling-react2u.pdf" },
+  { naam: "Cookieverklaring", href: "/documenten/cookieverklaring-react2u.pdf" },
+];
+
 function documenten(docs: FooterDoc[]) {
   // "Privacy reglement" (de PDF voor verzuimdossiers) is iets anders dan de
-  // privacyverklaring van de website; zonder de uitsluiting heetten ze allebei
-  // "Privacyverklaring".
-  const soorten = [
-    { test: /privacy(?!.*reglement)/i, naam: "Privacyverklaring" },
-    { test: /cookie/i, naam: "Cookieverklaring" },
-    { test: /voorwaarden/i, naam: "Algemene voorwaarden" },
-    { test: /klacht/i, naam: "Klachtenregeling" },
-    { test: /reglement/i, naam: "Privacyreglement" },
-  ];
-  const alle = docs.some((d) => /cookie/i.test(d.label)) ? docs : [...docs, { label: "Cookieverklaring", href: "/cookieverklaring" }];
-  const rang = (d: FooterDoc) => {
-    const i = soorten.findIndex((s) => s.test.test(d.label));
-    return i < 0 ? soorten.length : i;
-  };
-  return alle.sort((a, b) => rang(a) - rang(b)).map((d) => ({
-    href: d.href,
-    naam: soorten.find((x) => x.test.test(d.label))?.naam ?? d.label,
-  }));
+  // privacyverklaring van de website, en blijft dus staan.
+  const vervangen = /privacy(?!.*reglement)|cookie|voorwaarden|klacht/i;
+  const overig = docs
+    .filter((d) => !vervangen.test(d.label))
+    .map((d) => ({ href: d.href, naam: /reglement/i.test(d.label) ? "Privacyreglement" : d.label }));
+  return [...VASTE_DOCUMENTEN, ...overig];
 }
 
 function Regel({ r }: { r: Link2 & { sterk?: boolean } }) {
@@ -157,7 +153,7 @@ export default function FooterR2u({ contact, docs, certificates }: {
           {docLinks.length > 0 && (
             <span className="flex flex-wrap gap-x-8 gap-y-2">
               {docLinks.map((d) => (
-                <a key={d.href + d.naam} href={d.href} className="rk-flink font-semibold" style={{ color: K.indigo }}>{d.naam}</a>
+                <a key={d.href + d.naam} href={d.href} target={/\.pdf($|\?)/i.test(d.href) ? "_blank" : undefined} rel="noopener" className="rk-flink font-semibold" style={{ color: K.indigo }}>{d.naam}</a>
               ))}
               <CookieSettingsLink className="rk-flink font-semibold" style={{ color: K.indigo }} />
             </span>

@@ -1,0 +1,121 @@
+{
+  "_uitleg": "Je rechten en privacy (canvas: Werknemer: Je rechten en privacy). Zie CONTEXT.md, *Concepten*.",
+  "slug": "je-rechten-en-privacy",
+  "title": "Je rechten en privacy",
+  "seo_title": "Je rechten en privacy bij ziekte • React2u",
+  "seo_description": "Wat hoort je werkgever wel en niet als je ziek bent, en wat kun je doen als je het ergens niet mee eens bent? Je rechten en privacy bij React2u.",
+  "blocks": [
+    {
+      "type": "wnKop",
+      "label": "Kop",
+      "data": {
+        "heading": "Je rechten en privacy",
+        "text": "Ook als je ziek bent, heb je rechten. Hier lees je wat je werkgever wel en niet te horen krijgt, en wat je kunt doen als je het ergens niet mee eens bent.",
+        "tint": "#E9F5FC",
+        "orb": "#3AA5DD",
+        "buttons": [
+          {
+            "label": "Stel je vraag",
+            "href": "tel:+31856205800"
+          },
+          {
+            "label": "Ziek, wat nu?",
+            "href": "/verzuimprotocol"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnTekstKaart",
+      "label": "Geheimhoudingsplicht",
+      "data": {
+        "anchor": "geheim",
+        "eyebrow": "Geheimhoudingsplicht",
+        "heading": "Jouw gezondheid is van jou",
+        "text": "Je werkgever hoort alleen wat nodig is voor je re-integratie: wat je wel en niet kunt, en hoe lang het ongeveer duurt. Je diagnose en andere medische informatie blijven bij de bedrijfsarts of bij iemand die onder zijn verantwoordelijkheid werkt.",
+        "rows": [
+          {
+            "title": "Wat je werkgever wel hoort",
+            "text": "Of je kunt werken, wat je wel en niet kunt en wanneer je verwacht terug te komen."
+          },
+          {
+            "title": "Wat je werkgever niet hoort",
+            "text": "Je diagnose, je medische gegevens en wat je in vertrouwen met de bedrijfsarts bespreekt."
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnKaarten",
+      "label": "Je rechten",
+      "data": {
+        "anchor": "rechten",
+        "eyebrow": "Je rechten",
+        "heading": "Niet eens met een advies of besluit?",
+        "text": "Je staat er niet alleen voor. Dit zijn je mogelijkheden.",
+        "columns": 4,
+        "cards": [
+          {
+            "icon": "hart",
+            "title": "Medisch blijft privé",
+            "text": "Je werkgever hoort alleen wat je wel en niet kunt, nooit je diagnose. Medische informatie blijft bij de bedrijfsarts.",
+            "kleur": "#E61674",
+            "tint": "#FDECF4"
+          },
+          {
+            "icon": "chat",
+            "title": "Second opinion",
+            "text": "Ben je het niet eens met de bedrijfsarts? Dan kun je een second opinion aanvragen bij een andere bedrijfsarts.",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4"
+          },
+          {
+            "icon": "koffer",
+            "title": "Deskundigenoordeel UWV",
+            "text": "Verschil je met je werkgever van mening over je re-integratie? Dan kan UWV een onafhankelijk oordeel geven.",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC"
+          },
+          {
+            "icon": "document",
+            "title": "Klachtenregeling",
+            "text": "Ben je niet tevreden over ons? Dan kun je een klacht indienen. We behandelen die zorgvuldig.",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "href": "/documenten/klachtenregeling-react2u.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnChecklist",
+      "label": "Privacy",
+      "data": {
+        "anchor": "privacy",
+        "eyebrow": "Privacy",
+        "heading": "Wat je kunt vragen over je gegevens",
+        "text": "Stuur je verzoek naar info@react2u.nl. We reageren binnen vier weken.",
+        "items": [
+          "Inzien welke gegevens we van je hebben",
+          "Die laten corrigeren of aanvullen",
+          "Die laten verwijderen",
+          "Bezwaar maken tegen het gebruik ervan",
+          "Je gegevens ontvangen in een overdraagbaar bestand",
+          "Gegeven toestemming weer intrekken"
+        ],
+        "link": {
+          "label": "Lees de volledige privacyverklaring",
+          "href": "/documenten/privacyverklaring-react2u.pdf"
+        }
+      }
+    },
+    {
+      "type": "wnContactStrook",
+      "label": "Contact",
+      "data": {
+        "heading": "Twijfel je over je rechten?",
+        "text": "Bel ons gerust. We leggen het je in gewone taal uit."
+      }
+    }
+  ]
+}
