@@ -71,6 +71,18 @@ describe("doorverwijzingen", () => {
     // De juridische documenten: webpagina's die een PDF zijn geworden.
     expect(coveredByWordpress("/privacyverklaring")?.destination).toBe("/documenten/privacyverklaring-react2u.pdf");
     expect(coveredByWordpress("/Cookieverklaring/")?.destination).toBe("/documenten/cookieverklaring-react2u.pdf");
+    // De oude WordPress-documentpagina's wijzen naar de nieuwe pdf's, niet meer naar media/wp/.
+    expect(coveredByWordpress("/privacy-reglement")?.destination).toBe("/documenten/privacyverklaring-react2u.pdf");
+    expect(coveredByWordpress("/klachtenprocedure")?.destination).toBe("/documenten/klachtenregeling-react2u.pdf");
+    expect(coveredByWordpress("/algemene-voorwaarden")?.destination).toBe("/documenten/algemene-voorwaarden-react2u.pdf");
+    expect(VASTE_REDIRECTS.some((r) => r.destination.includes("/media/wp/"))).toBe(false);
+  });
+
+  it("vangt de -niet-varianten van de oude site af, specifiek vóór algemeen", () => {
+    expect(coveredByWordpress("/werkgever-niet/diensten-niet/verzuim")?.destination).toBe("/diensten");
+    expect(coveredByWordpress("/werkgever-niet/over-ons")?.destination).toBe("/werkgevers");
+    expect(coveredByWordpress("/werknemer-niet/faq")?.destination).toBe("/werknemers");
+    expect(coveredByWordpress("/werkgever")?.destination).toBe("/werkgevers");
   });
 
   it("stelt een bestemming voor, of niets als het een gok zou zijn", () => {
