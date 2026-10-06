@@ -884,18 +884,19 @@ een link én bij navigeren via het commandopalet
   geweigerd. Eerst het domein in Resend verifiëren, dan de sleutels zetten.
 - **Toegang.** Het adminwachtwoord en een Vercel-token zijn buiten de repo gedeeld;
   het wachtwoord moet gewijzigd en het token ingetrokken worden.
-- **Livegang redesign (voorbereid 6 oktober 2026, branch `livegang`)**. De
-  productiedatabase stopte bij `applications_updated_at` (6 augustus); 0007
-  t/m 0010 en 0013 ontbreken, 0011 en 0012 zijn los gedraaid. De SQL staat
-  klaar in `backups/` (lokaal, niet in git): `01-migraties-0007-0013.sql`
-  (idempotent, één transactie, registreert zichzelf in `schema_migrations`),
-  `01b-migratie-0014.sql` (pas als de service-role-sleutel ook in Preview
-  staat), `02-concepten-20261006.sql` (alle 21 concepten; oude blokken naar
-  `<slug>-oud-20261006`) en `03-migratie-0016-rechten-functies.sql`. Vooraf is
-  een data-export gemaakt (`backups/2026-10-06-voor-livegang.sql`); Supabase
-  maakt daarnaast dagelijks een fysieke back-up. Na de SQL: productie-build
-  vergelijken met de preview-build, adminschermen nalopen, `-oud-20260929`
-  opruimen, onderhoudsmodus uit.
+- **Livegang redesign (6 oktober 2026, branch `livegang`, PR #4)**. De
+  productiedatabase stopte bij `applications_updated_at` (6 augustus). Op
+  6 oktober zijn met akkoord van Rens gedraaid: 0007 t/m 0010 en 0013 (idempotent,
+  `backups/01-migraties-0007-0013.sql`), 0014, 0015_engels, 0016 en de concept-SQL
+  (`backups/02-concepten-20261006.sql`, 20 pagina's; de oude blokken van acht
+  pagina's staan op `<slug>-oud-20261006`). Alle 20 pagina's zijn daarna blok
+  voor blok gelijk aan `src/content/` bevestigd. Vooraf is een data-export
+  gemaakt (`backups/2026-10-06-voor-livegang.sql`); Supabase maakt daarnaast
+  dagelijks een fysieke back-up. Nog te doen bij de livegang: de code van
+  `livegang` op master (anders oude header en footer, en cv-upload zonder
+  policy), adminschermen nalopen, optioneel `backups/04` (zes oude
+  dienstpagina's uit publicatie) en `backups/05` (`-oud-20260929` weg),
+  onderhoudsmodus uit.
 - **Bedrijfsherkenning aanzetten**: `ANALYTICS_SALT` en `IPINFO_TOKEN` staan in
   Vercel; migratie 0010 hoort bij de livegang-SQL. Daarna de privacyverklaring
   bijwerken — zie het voorstel onder *Bewaartermijnen en privacy*.
