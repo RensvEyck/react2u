@@ -26,7 +26,7 @@ import afmetingen from "@/lib/beeldAfmetingen.json";
  * en dan is de hele optimalisatie voor niets.
  */
 export default function Beeld({
-  src, alt, sizes, className, style, fill = false, priority = false, loading, fetchPriority, decoding, quality,
+  src, alt, sizes, className, style, fill = false, priority = false, loading, fetchPriority, decoding, quality = 85,
   "aria-hidden": ariaHidden,
 }: {
   src?: string | null;
@@ -42,6 +42,7 @@ export default function Beeld({
   loading?: "eager" | "lazy";
   fetchPriority?: "high" | "low" | "auto";
   decoding?: "sync" | "async" | "auto";
+  /** Kwaliteit van de optimizer (next.config.ts, images.qualities); standaard 85 voor foto's. */
   quality?: number;
   "aria-hidden"?: boolean | "true" | "false";
 }) {
