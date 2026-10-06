@@ -6,6 +6,7 @@ import {
 } from "@/lib/mail";
 import { CONTACT_FALLBACK, getSettings, type ContactInfo } from "@/lib/content";
 import { normalizeKoppelingen, type Koppelingen } from "@/lib/koppelingen";
+import { testModus } from "@/lib/testmodus";
 
 /**
  * Wat het formulier na het versturen te zien krijgt. Bij `ok`:
@@ -39,6 +40,9 @@ export async function submitContact(_prev: FormState, formData: FormData): Promi
   if (honeypot) return { ok: true };
   if (!name || !email || !phone || !message)
     return { ok: false, error: "Vul naam, e-mailadres, telefoonnummer en bericht in." };
+
+  // In testmodus (e2e-tests) niets opslaan of mailen, wel de gewone bedankmelding.
+  if (await testModus()) return { ok: true };
 
   const sb = supabasePublic();
   const [{ error }, { contact }] = await Promise.all([
@@ -79,6 +83,9 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   if (cv && cv.size > 0) {
     if (cv.size > MAX_CV_BYTES) return { ok: false, error: "CV is te groot (max 8 MB)." };
     if (!CV_TYPES.includes(cv.type)) return { ok: false, error: "Upload je CV als PDF of Word-bestand." };
+  }
+  if (await testModus()) return { ok: true, werkdagen: (await siteGegevens()).koppelingen.sollicitatie_werkdagen };
+  if (cv && cv.size > 0) {
     const ext = cv.name.split(".").pop() || "pdf";
     cvPath = `${crypto.randomUUID()}/${cv.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || `cv.${ext}`}`;
     const { error: upErr } = await sb.storage.from("cvs").upload(cvPath, cv, { contentType: cv.type });
@@ -142,6 +149,11 @@ export async function submitOfferte(_prev: FormState, formData: FormData): Promi
     `Aantal medewerkers: ${employeesLabel}`,
     extra ? `\n${extra}` : "",
   ].filter(Boolean).join("\n");
+
+  if (await testModus()) {
+    const { koppelingen } = await siteGegevens();
+    return { ok: true, kennismakingUrl: koppelingen.kennismaking_url || undefined };
+  }
 
   const sb = supabasePublic();
   const [{ error }, { contact, koppelingen }] = await Promise.all([

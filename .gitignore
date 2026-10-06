@@ -45,3 +45,5 @@ next-env.d.ts
 
 # artefacten van browsertests
 /.playwright-mcp
+/test-results
+/playwright-report

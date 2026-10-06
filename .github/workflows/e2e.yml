@@ -1,0 +1,50 @@
+# Bouwt de site en draait de end-to-end tests (tests/e2e) bij elke push en
+# pull request. Productie deployt pas als deze check slaagt: zie CONTEXT.md,
+# *End-to-end tests*, voor de branchbeveiliging op master.
+name: e2e
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # De build haalt pagina-inhoud uit Supabase; de anon key is publiek.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      # Staging-opbouw (concepten, HeaderR2u, geen onderhoudspoort) en
+      # testmodus: formulieren schrijven niets en mailen niet.
+      VERCEL_ENV: preview
+      TEST_MODE: "1"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Unit tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: End-to-end tests
+        run: npx playwright test
+        env:
+          E2E_SKIP_BUILD: "1"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14

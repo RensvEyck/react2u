@@ -607,6 +607,50 @@ agendalink en de reactietermijn staan op `/admin/instellingen` onder
 *Koppelingen en reactietermijn*; een link moet een volledig https-adres zijn,
 anders weigert het scherm hem.
 
+## End-to-end tests
+
+[`tests/e2e`](tests/e2e) draait met Playwright (`playwright.config.ts`,
+`npm run test:e2e`) in twee projecten, desktop (1440) en mobiel (390):
+
+- elke URL uit `sitemap.xml` geeft 200 en heeft precies één h1;
+- geen consolefouten op `/`, `/werkgevers`, `/werknemers`,
+  `/verzuimabonnementen`, `/kennismaken` en `/contact`;
+- de drie formulieren: verplichte velden geven een foutmelding (de test zet
+  de browservalidatie uit, zodat de controle op de server aan bod komt), een
+  geldige inzending toont de bedankmelding;
+- de werkgevers-header heeft Kennismaken en Ziek melden, het menu werkt op
+  390px breed;
+- WCAG-contrast met axe-core (alleen `color-contrast`) op de zes pagina's, op
+  mobiel ook met het menu open;
+- de taalknop NL/EN gaat heen en terug (overgeslagen zolang er geen taalknop
+  is).
+
+**Lokaal** bouwt `npm run test:e2e` de site (`next build`) en start hem met
+`VERCEL_ENV=preview` (staging-opbouw) en `TEST_MODE=1`; `E2E_SKIP_BUILD=1`
+slaat de build over. **Tegen een deploy** geef je `BASE_URL` mee, en voor een
+preview met Vercel-login `VERCEL_AUTOMATION_BYPASS_SECRET`.
+
+**Testmodus** ([`src/lib/testmodus.ts`](src/lib/testmodus.ts)): de server
+actions controleren de invoer en geven de gewone bedankmelding, maar schrijven
+niets naar Supabase, uploaden geen cv en mailen niet. Aan met `TEST_MODE=1`
+(alleen lokaal en in CI, nooit in productie) of met de header `x-test-mode`
+die precies `TEST_MODE_SECRET` bevat. Zonder dat geheim doet de header niets.
+Wil je de tests tegen staging draaien zonder echte leads, zet dan
+`TEST_MODE_SECRET` in Vercel bij de preview-omgeving en geef dezelfde waarde
+aan Playwright mee. Let op: staging deelt de database met productie, dus
+zonder testmodus komen de testinzendingen echt in het Postvak IN.
+
+**CI** ([`.github/workflows/e2e.yml`](.github/workflows/e2e.yml)) draait bij
+elke push en pull request de unittests, de build en de e2e-tests, met de
+twee `NEXT_PUBLIC_SUPABASE_*`-waarden als repository secrets. Productie
+deployt bij een push naar `master` (zie *Deployen gaat via git*); dat Vercel
+pas deployt als de tests slagen regel je op GitHub, niet in code: zet op
+`master` een branch protection rule met *Require status checks to pass before
+merging* en kies de check `e2e`. Wijzigingen komen dan via een pull request
+binnen en Vercel deployt pas de merge, dus na een groene check. Rechtstreeks
+naar `master` pushen moet je daarvoor ook uitzetten (*Restrict who can push*
+of gewoon de regel voor iedereen laten gelden, inclusief beheerders).
+
 ## Van Postvak IN naar bellijst
 
 Elke kaart in het Postvak IN heeft een knop **Op bellijst**. Die maakt een lead

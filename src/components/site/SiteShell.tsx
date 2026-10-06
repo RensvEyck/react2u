@@ -46,7 +46,9 @@ export default async function SiteShell({ children }: { children: React.ReactNod
       {/* Hier en niet in de root-layout: wel op de 404, niet in het adminpaneel. */}
       <CookieBanner />
       <Reveal />
-      <Analytics />
+      {/* Alleen op Vercel: elders bestaat /_vercel/insights/script.js niet en
+          geeft elke pagina een 404 in de console (lokaal, CI). */}
+      {process.env.VERCEL && <Analytics />}
     </div>
   );
 }
