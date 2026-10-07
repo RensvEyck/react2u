@@ -6,6 +6,7 @@ import RoleEditor from "@/components/admin/RoleEditor";
 import InviteForm, { NewLinkButton } from "@/components/admin/InviteForm";
 import { canInvite, supabaseAdmin } from "@/lib/supabase/admin";
 import { inviteErrorText } from "@/lib/invite";
+import { mailReady } from "@/lib/mail";
 import { PERMISSIONS, normalizePermissions, type Permission } from "@/lib/permissions";
 import { LuTrash2, LuShieldCheck, LuShieldOff, LuShieldX, LuTriangleAlert, LuCheck, LuMinus } from "react-icons/lu";
 
@@ -118,7 +119,7 @@ export default async function GebruikersAdmin() {
         </div>
       )}
 
-      <InviteForm roles={roles.map((r) => ({ id: r.id, label: r.label }))} ready={inviteReady} />
+      <InviteForm roles={roles.map((r) => ({ id: r.id, label: r.label }))} ready={inviteReady} mailAan={mailReady()} />
 
       <div className="acard overflow-hidden">
         <div className="border-b border-black/[0.06] px-6 py-4">

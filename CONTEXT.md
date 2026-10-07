@@ -123,8 +123,8 @@ Had het adres al een account, dan wordt het een herstellink (`type=recovery`):
 wie nooit inlogde kent zijn wachtwoord niet. Bij wie wel eens inlogde heet de
 knop *Wachtwoordlink*: dat is de route voor een vergeten wachtwoord. *Wachtwoord
 vergeten?* op het inlogscherm verwijst ernaar; een zelfbedieningsmail is er bewust
-niet, want die zou leunen op Resend (nog niet ingesteld) en een publiek formulier
-openzetten dat accounts laat raden.
+niet: een publiek formulier dat mailt laat accounts raden en vraagt eigen
+spambescherming, terwijl de wachtwoordlink via een collega even snel is.
 
 **Tweestapsverificatie herstellen** (Gebruikers → *Tweestaps herstellen*) wist
 alle authenticators van een collega; bij de volgende inlog stelt die een nieuwe
@@ -674,28 +674,41 @@ pagina draait, zou een haperend Supabase de hele site laten hangen. Daarom:
 Node.js in plaats van de edge). Nog niet omgezet; bij het omzetten verhuist de
 poort mee.
 
-## Notificatiemail
+## E-mail vanuit het systeem
 
-[`src/lib/mail.ts`](src/lib/mail.ts) stuurt een melding bij een nieuw
-contactbericht of een nieuwe sollicitatie, via de REST-API van Resend (geen SDK).
+[`src/lib/mail.ts`](src/lib/mail.ts) mailt zelf, via de REST-API van Resend (geen
+SDK): een melding aan het team bij elk nieuw contactbericht, elke sollicitatie,
+offerteaanvraag en elk terugbelverzoek; aan collega's de uitnodiging en de
+wachtwoordlink (antwoorden gaat naar wie hem stuurde); en de melding dat iemands
+tweestapsverificatie is gewist. Alles gaat via één functie (`verstuur`), die
+nooit gooit en wel de reden teruggeeft als Resend weigert.
 
-Drie variabelen, alle drie verplicht — ontbreekt er één, dan slaat de module
-**stil** over en gebeurt er verder niets:
+| Variabele | Voorbeeld | Nodig voor |
+|---|---|---|
+| `RESEND_API_KEY` | `re_…` | alles |
+| `NOTIFY_FROM` | `React2u <noreply@react2u.nl>` | alles |
+| `NOTIFY_TO` | `info@react2u.nl` (meerdere: komma-gescheiden) | meldingen bij berichten en sollicitaties |
+| `NOTIFY_OFFERTE_TO` | standaard `sales@react2u.nl` | offertes en terugbelverzoeken |
+| `RESEND_API_URL` | alleen in tests: een nepserver die vastlegt wat er zou gaan | |
 
-| Variabele | Voorbeeld |
-|---|---|
-| `RESEND_API_KEY` | `re_…` |
-| `NOTIFY_TO` | `info@react2u.nl` (meerdere: komma-gescheiden) |
-| `NOTIFY_FROM` | `Website <geen-antwoord@send.react2u.nl>` |
+Ontbreekt de sleutel of de afzender, dan slaat de module **stil** over. Dat is
+opzet: een inzending staat dan al in Supabase en in het Postvak IN, en een
+mailstoring mag een bezoeker nooit een foutmelding geven voor iets wat wél gelukt
+is. Bij een uitnodiging staat de link dan op het scherm om zelf door te sturen;
+is hij wel gemaild, dan zit de link achter *Komt de mail niet aan?*.
 
-Dat stil overslaan is opzet: de inzending staat dan al in Supabase en is
-zichtbaar in het Postvak IN. De mail is een extra, geen voorwaarde — en een
-mailstoring mag een bezoeker nooit een foutmelding geven voor iets wat wél
-gelukt is. Om dezelfde reden vangt de module al zijn eigen fouten af.
+**Instellingen → E-mail** toont per variabele of hij staat, of het domein van de
+afzender bij Resend geverifieerd is (lukt alleen met een sleutel die domeinen mag
+lezen; anders "onbekend") en heeft een knop *Stuur testmail naar mij* die de
+precieze reden van Resend toont als het misgaat.
 
-Kies voor `NOTIFY_FROM` het (sub)domein dat je in Resend hebt geverifieerd; zie
-de DMARC-valkuil hierboven. Een apart subdomein (`send.react2u.nl`) laat de SPF
-van het hoofddomein met rust.
+**Aanzetten.** Domein `react2u.nl` toevoegen in Resend (regio Ireland), de DNS-records
+die Resend toont in Vercel zetten, sleutel en adressen in Vercel, opnieuw deployen,
+testmail. De records van Resend staan op eigen namen (`resend._domainkey` voor
+DKIM, `send.` voor het retourpad met eigen MX en SPF); de MX en SPF van het
+hoofddomein, en daarmee de mail van Microsoft 365, blijven ongemoeid. DMARC
+(`p=reject`, relaxed) slaagt via de DKIM-handtekening van react2u.nl. Komt de
+testmail niet binnen, kijk dan in de quarantaine van Sophos.
 
 ## Van Postvak IN naar bellijst
 
@@ -914,7 +927,8 @@ een link én bij navigeren via het commandopalet
   `MS=ms23148887` (Microsoft 365) is daarbij verdwenen, en de oude
   WordPress-hosting kan pas weg als de nieuwe site een paar dagen goed draait.
 - **E-mailnotificaties zijn gebouwd maar staan uit.** De code staat er
-  (zie *Notificatiemail*); zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
+  (zie *E-mail vanuit het systeem*, en Instellingen → E-mail met testmail);
+  zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
   niet in Vercel staan, wordt er niets verstuurd en mist wie niet inlogt nog
   steeds inzendingen. Stand 6 oktober 2026: in Production ontbreken
   `RESEND_API_KEY`, `NOTIFY_FROM`, `NOTIFY_TO`, `NOTIFY_OFFERTE_TO`
