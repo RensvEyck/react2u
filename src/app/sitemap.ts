@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPages, getPublishedVacancies, getPublishedPosts } from "@/lib/content";
-import { alleConceptSlugs, alleConceptSlugsEn } from "@/lib/concept";
+import { alleConceptSlugsEn, reserveSlugs } from "@/lib/concept";
 import { werkgebiedPaden } from "@/lib/gemeenten";
 import { coveredByWordpress } from "@/lib/redirects";
 import { OPEN_SOLLICITATIE, heeftVertaling, vertaalPad } from "@/lib/taal";
@@ -37,7 +37,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const engels = (nlPath: string, extra: Omit<MetadataRoute.Sitemap[number], "url">) =>
     heeftVertaling(nlPath) ? [{ url: `${base}${vertaalPad(nlPath, "en")}`, ...extra, ...alternates(nlPath) }] : [];
 
-  const conceptSlugs = alleConceptSlugs()
+  // Reserve-inhoud staat alleen in een migratiefase aan (lib/concept.ts);
+  // daarbuiten is dit leeg en bepaalt de publicatiestatus in de database de sitemap.
+  const conceptSlugs = reserveSlugs()
     .filter((s) => !pages.some((p) => p.slug === s))
     .filter((s) => !coveredByWordpress(`/${s}`));
   // Engelse pagina's waarvan de Nederlandse tegenhanger noch in de database

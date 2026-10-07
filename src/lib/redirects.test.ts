@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   checkDestination, checkSource, coveredByWordpress, coveringSources, createsLoop, matchRedirect, missingReferrer,
-  normalizePath, suggestDestination, targetUrl, DIENST_REDIRECTS, VASTE_REDIRECTS, type RedirectRule,
+  metSlash, normalizePath, suggestDestination, targetUrl, DIENST_REDIRECTS, VASTE_REDIRECTS, type RedirectRule,
 } from "./redirects";
 import { LABELS, labelVoor } from "./nav";
 
@@ -150,5 +150,13 @@ describe("de oude dienstpagina's", () => {
         expect(coveredByWordpress(h.split(/[?#]/)[0]), `${f}: ${h}`).toBeNull();
       }
     }
+  });
+});
+
+describe("metSlash", () => {
+  it("laat elke vaste bron ook de versie met schuine streep afvangen, in één stap", () => {
+    expect(metSlash("/verzuimbegeleiding-wvp")).toBe("/verzuimbegeleiding-wvp{/}?");
+    expect(metSlash("/team/:slug*")).toBe("/team/:slug*{/}?");
+    expect(metSlash("/")).toBe("/");
   });
 });

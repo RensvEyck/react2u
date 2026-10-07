@@ -354,6 +354,20 @@ export const DIENST_REDIRECTS: { source: string; destination: string }[] = [
 /** Alle vaste regels uit de code, in de volgorde waarin next.config.ts ze toepast. */
 export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS];
 
+/**
+ * De bron zoals next.config.ts hem aan Next geeft: mét een optionele
+ * afsluitende schuine streep (`/oud{/}?`, de notatie van path-to-regexp).
+ *
+ * Zonder dat ging een oud adres mét streep in twee stappen: Next's eigen
+ * 308 van `/verzuimbegeleiding-wvp/` naar `/verzuimbegeleiding-wvp`, en pas
+ * daarna de 301 naar `/recover`. Die ingebouwde redirect staat uit
+ * (`skipTrailingSlashRedirect`); de middleware haalt de streep af voor alle
+ * overige adressen, ná deze lijst. Zo is elke vaste doorverwijzing één stap.
+ */
+export function metSlash(source: string): string {
+  return source === "/" ? source : `${source}{/}?`;
+}
+
 /** Valt dit pad al onder de vaste lijst? Dan zou een regel in de tabel nooit werken. */
 export function coveredByWordpress(path: string): { source: string; destination: string } | null {
   const p = normalizePath(path);
