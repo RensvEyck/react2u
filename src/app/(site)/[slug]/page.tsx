@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPage, getPublishedPages, getPublishedPosts, getSetting } from "@/lib/content";
+import { getPublishedPages, getPublishedPosts, getSetting } from "@/lib/content";
 import BlockRenderer, { needsPosts, needsTarieven } from "@/components/blocks/BlockRenderer";
 import { normalizeTarieven } from "@/lib/tarieven";
 import { crumbsVoor } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
-import { kort } from "@/lib/seo";
-import { concept, conceptSlugs, reserveConcept, type Concept } from "@/lib/concept";
-import type { Block, Page } from "@/lib/types";
+import { metOmschrijving, omschrijving } from "@/lib/seo";
+import { openGraphVoor } from "@/lib/og";
+import { conceptSlugs } from "@/lib/concept";
+import { inhoud } from "@/lib/pagina";
 import { isGeindexeerd, plaatsVoorSlug, provincieHref, provincieVoorSlug } from "@/lib/gemeenten";
 import { plaatsTekst } from "@/lib/plaatsteksten";
 import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/PlaatsPagina";
@@ -30,25 +31,8 @@ function werkgebied(slug: string) {
   return null;
 }
 
-type Inhoud = { page: Pick<Page, "title" | "seo_title" | "seo_description" | "og_image">; blocks: Block[] };
-
-function alsInhoud(c: Concept): Inhoud {
-  return { page: { title: c.title, seo_title: c.seo_title ?? null, seo_description: c.seo_description ?? null, og_image: null }, blocks: c.blocks };
-}
-
-/**
- * Pagina-inhoud: op staging het concept als dat er is (zie lib/concept.ts),
- * anders de gepubliceerde pagina uit de database, en bestaat die niet, het
- * concept als reserve (zodat een nieuwe pagina als /werkgevers er meteen is).
- */
-async function inhoud(slug: string): Promise<Inhoud | null> {
-  const c = concept(slug);
-  if (c) return alsInhoud(c);
-  const db = await getPage(slug);
-  if (db) return db;
-  const reserve = reserveConcept(slug);
-  return reserve ? alsInhoud(reserve) : null;
-}
+// Welke inhoud een pagina toont (concept, database of reserve) staat in
+// lib/pagina.ts, samen met de regel dat de publicatiestatus leidend is.
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -74,38 +58,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const eigen = gebied.soort === "plaats" ? plaatsTekst(gebied.plaats.slug)?.seo : undefined;
     return {
       title: { absolute: title },
-      description: kort(eigen) ?? `Arbodienst in ${gebied.naam}: persoonlijke verzuimbegeleiding met één vaste casemanager, preventie en re-integratie. SBCA en ISO gecertificeerd.`,
+      description: omschrijving(eigen) ?? `Arbodienst in ${gebied.naam}: persoonlijke verzuimbegeleiding met één vaste casemanager, preventie en re-integratie. SBCA en ISO gecertificeerd.`,
       alternates: { canonical: `/${slug}` },
+      openGraph: await openGraphVoor({ pad: `/${slug}` }),
       ...(noindex ? { robots: { index: false, follow: true } } : {}),
     };
   }
   const res = await inhoud(slug);
   if (!res) return {};
   const title = res.page.seo_title || `${res.page.title} • React2u`;
-  const description = kort(res.page.seo_description);
   return {
     title: { absolute: title },
-    description,
+    // Zonder eigen omschrijving de sleutel weglaten: dan erft de pagina de
+    // site-brede standaardtekst uit (site)/layout.tsx. `description: undefined`
+    // zou die juist wissen (shallow merge). Zie lib/seo.ts en CONTEXT.md, *SEO*.
+    ...metOmschrijving(omschrijving(res.page.seo_description)),
     // hreflang alleen voor pagina's die ook in het Engels bestaan (lib/taal.ts).
     alternates: { canonical: `/${slug}`, languages: hreflangVoor(`/${slug}`) ?? undefined },
-    // Alleen meesturen als er echt een eigen afbeelding is. `openGraph: undefined`
-    // is niet hetzelfde als weglaten: de sleutel bestaat dan, en overschrijft de
-    // defaults uit (site)/layout.tsx — waardoor de pagina hélemaal geen og-tags
-    // krijgt. Zetten we hem wel, dan vervangt hij het hele object, dus type,
-    // siteName en locale moeten mee.
-    ...(res.page.og_image
-      ? {
-          openGraph: {
-            type: "website" as const,
-            siteName: "React2u",
-            locale: "nl_NL",
-            url: `/${slug}`,
-            title,
-            description,
-            images: [res.page.og_image],
-          },
-        }
-      : {}),
+    // Het hele Open Graph-object, met de eigen url en de eigen of de
+    // standaardafbeelding; zie lib/og.ts voor waarom dat compleet moet.
+    openGraph: await openGraphVoor({ pad: `/${slug}`, afbeelding: res.page.og_image }),
   };
 }
 

@@ -431,7 +431,8 @@ export const nl = {
   seo: {
     /** Standaardomschrijving als de pagina er geen heeft; in het Nederlands komt die uit de instellingen. */
     siteOmschrijving: "Jouw mensen, onze aandacht! React2u is een moderne arbodienst.",
-    homeTitel: "Home • React2u",
+    /** Zonder eigen SEO-titel op de homepage: zegt wat React2u is, niet "Home". */
+    homeTitel: "Persoonlijke arbodienst en verzuimbegeleiding • React2u",
     merk: "React2u",
   },
 };

@@ -547,11 +547,21 @@ Terugdraaien kan via het adminpaneel. Bestaat `<slug>-oud-<datum>` al (het
 script twee keer met dezelfde `--datum`), dan faalt de transactie en gebeurt er
 niets.
 
-**Een pagina die alleen als concept bestaat** (zoals `/werkgevers` vóór de
-SQL) toont ook in productie het concept, zodat de links ernaar niet op een 404
-uitkomen. Zodra de pagina in de database staat, wint de database. Bestaande
-pagina's (`/`, `/werknemers`) tonen in productie tot de SQL gewoon hun oude
-inhoud. De publieke pagina's zijn 5 minuten gecachet.
+**Reserve-inhoud alleen in een migratiefase.** Tot 7 oktober 2026 toonde een
+pagina die de database niet (gepubliceerd) had ook in productie het concept,
+zodat `/werkgevers` vóór de SQL geen 404 gaf. De SEO-scan van SiteJob liet zien
+wat dat kost: een pagina die een beheerder verbergt of verwijdert kwam via het
+JSON-bestand gewoon terug, openbaar, indexeerbaar en in `sitemap.xml`. De
+publieke sleutel ziet een verborgen pagina niet, dus "verborgen" en "bestaat
+niet" zijn voor de code hetzelfde. Daarom is de **publicatiestatus leidend**:
+`reserveActief` in [`src/lib/concept.ts`](src/lib/concept.ts) staat op
+`false`, een verborgen pagina is een 404 en staat niet in de sitemap. Komt er
+een nieuw concept bij, zet de reserve dan aan in dezelfde commit en weer uit
+zodra de SQL gedraaid is. Welke inhoud een pagina toont (staging het concept,
+anders de database, anders de reserve) staat op één plek,
+[`src/lib/pagina.ts`](src/lib/pagina.ts); de Engelse route gebruikt dezelfde
+regel om alleen een hreflang naar een Nederlandse pagina te zetten die echt
+publiek is. De publieke pagina's zijn 5 minuten gecachet.
 
 ## Tarieven
 
@@ -724,6 +734,13 @@ Onder **SEO → Doorverwijzingen**. Twee lagen, en de volgorde telt:
    `www.react2u.nl` → `react2u.nl` (308) staat sinds 6 oktober 2026 als
    domeininstelling in Vercel (Project → Domains → www.react2u.nl → Redirect);
    `WWW_REDIRECT` in `next.config.ts` blijft als terugval.
+   **Eén stap, ook met schuine streep:** Next's eigen 308 van `/pad/` naar
+   `/pad` liep vóór deze lijst, zodat `/verzuimbegeleiding-wvp/` twee keer
+   doorverwees. Die ingebouwde redirect staat uit (`skipTrailingSlashRedirect`);
+   elke vaste bron accepteert de streep zelf (`metSlash()`, `/oud{/}?`) en de
+   middleware haalt hem voor alle andere adressen af, mét querystring. Gebruik
+   daarvoor een gewone `URL`, geen `nextUrl.clone()`: NextURL onthoudt de
+   streep en zet hem terug.
 2. De tabel `redirects` — toegepast door de middleware, met dezelfde
    voorzorgen als de onderhoudsmodus: 15 seconden onthouden, 1 seconde timeout,
    bij een storing de laatst bekende lijst. Faalt alleen die query (bijvoorbeeld
@@ -940,7 +957,36 @@ Concepten tellen niet mee in de aandachtspunten — die staan niet in Google.
 Site-brede standaardomschrijving en deelafbeelding zijn instelbaar
 (`site_settings.seo`) en worden toegepast in
 [`src/app/(site)/layout.tsx`](src/app/(site)/layout.tsx) — niet in de
-root-layout, zodat het adminpaneel die query niet draait.
+root-layout, zodat het adminpaneel die query niet draait. Een pagina zonder
+eigen omschrijving **laat de sleutel weg** (`metOmschrijving()` in
+`seo.ts`) en erft zo die standaardtekst; `description: undefined` wiste hem
+juist. De eigen SEO-omschrijving gaat compleet mee (`omschrijving()`), alleen
+een afgeleide tekst (intro, samenvatting) wordt met `kort()` ingekort: de
+155 tekens zijn een redactiehulp in het overzicht, geen mes. De homepage
+zonder eigen SEO-titel heet "Persoonlijke arbodienst en verzuimbegeleiding •
+React2u" (`seo.homeTitel` in het woordenboek), niet "Home".
+
+**`og:url` per pagina.** Next voegt metadata shallow samen, dus een pagina
+die geen `openGraph` zet erft het hele object van de layout, inclusief de
+`og:url` van de homepage. Daarom levert [`src/lib/og.ts`](src/lib/og.ts)
+(`openGraphVoor()`) voor elke route het complete object: eigen url, eigen of
+standaardafbeelding, type, siteName en locale. Titel en omschrijving blijven
+weg; Next vult die zelf uit de pagina.
+
+**Niet in Google:** het adminpaneel (noindex in `admin/layout.tsx` plus een
+`X-Robots-Tag` in `next.config.ts`; `robots.txt` laat `/admin` bewust open,
+anders ziet een crawler die noindex nooit) en de 404-pagina's (eigen
+`robots: noindex` naast de tag die Next zelf zet, zodat er niet ook een
+"index, follow" uit de layout in staat). De hoofdkop van een labelpagina
+(`DienstLabel`) noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
+
+**Databasefouten zijn geen 404.** De helpers in
+[`src/lib/content.ts`](src/lib/content.ts) gooien een `DatabaseFout` als
+Supabase een fout geeft, in plaats van `null` of een lege lijst terug te
+geven. Zo wordt een storing geen 404, lege sitemap of oude inhoud: Next houdt
+bij een fout tijdens de revalidatie de laatst gelukte versie in de cache, en
+een verse aanvraag krijgt een 500 (voor Google tijdelijk). Een build zonder
+bereikbare database faalt daardoor ook, en dat is de bedoeling.
 
 > **`openGraph: undefined` is niet hetzelfde als weglaten.** Next voegt metadata
 > van layout en pagina samen als een shallow merge. Zet een pagina de sleutel

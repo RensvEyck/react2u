@@ -71,8 +71,9 @@ export default async function SeoAdmin() {
     sb.from("missing_paths").select("path", { count: "exact", head: true }).eq("ignored", false),
   ]);
 
+  const seo = normalizeSeoSettings(seoRes.data?.value);
   const rows: SeoRow[] = [
-    ...((pagesRes.data as Page[]) || []).map(analysePage),
+    ...((pagesRes.data as Page[]) || []).map((p) => analysePage(p, seo.description)),
     ...((postsRes.data as Post[]) || []).map(analysePost),
     ...((vacanciesRes.data as Vacancy[]) || []).map(analyseVacancy),
   ];
@@ -82,7 +83,6 @@ export default async function SeoAdmin() {
   const sorted = [...rows].sort((a, b) => order[a.worst] - order[b.worst]);
 
   const { errors, warnings, ok } = countIssues(rows);
-  const seo = normalizeSeoSettings(seoRes.data?.value);
 
   return (
     <div className="space-y-6">

@@ -81,16 +81,23 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
               <Link href={pad(taal, "diensten")} style={{ color: MUTE }}>{t2.kruimelDiensten}</Link><span>/</span>
               <span aria-current="page" style={{ color: NAVY }}>{naam}</span>
             </nav>
-            <H className={`${kop} m-0 text-[26px] leading-[1.05] tracking-[-0.4px] md:text-[34px]`} style={{ color: NAVY }}>
-              React2u<br />
-              <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[76px] md:tracking-[-2px]">
-                <span style={{ color: c }}>{naam}</span>
-                <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
-              </span>
-            </H>
-            <p className="m-0 text-[18px] leading-[1.5] md:text-[21px]" style={{ color: NAVY }}>
-              <strong className="font-bold">{d.label}</strong><br /><em>{d.tagline}</em>
-            </p>
+            {/* De hoofdkop noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
+                Alleen de merknaam als H1 zei Google niet waar de pagina over gaat;
+                de dienst stond er als losse alinea onder. De weergave is gelijk
+                gebleven: de dienst staat in de kop, maar in de bodyletter. */}
+            <div>
+              <H className={`${kop} m-0 text-[26px] leading-[1.05] tracking-[-0.4px] md:text-[34px]`} style={{ color: NAVY }}>
+                React2u<br />
+                <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[76px] md:tracking-[-2px]">
+                  <span style={{ color: c }}>{naam}</span>
+                  <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
+                </span>
+                <span className="hv-dienst mt-5 block text-[18px] font-bold leading-[1.5] tracking-normal md:mt-[22px] md:text-[21px]">{d.label}</span>
+              </H>
+              <p className="m-0 text-[18px] leading-[1.5] md:text-[21px]" style={{ color: NAVY }}>
+                <em>{d.tagline}</em>
+              </p>
+            </div>
             {d.text && <p className="m-0 max-w-[520px] text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{d.text}</p>}
             <div className="flex flex-wrap gap-2.5 pt-2">
               <Link href={pad(taal, "contact")} className="hv-btn hv-btn-roze inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">{t2.adviesgesprek} <Pijl /></Link>

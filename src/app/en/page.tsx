@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 import { conceptEn } from "@/lib/concept";
-import { kort } from "@/lib/seo";
+import { openGraphVoor } from "@/lib/og";
+import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { hreflangVoor } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 
@@ -17,8 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = c?.seo_title || woordenboek("en").seo.homeTitel;
   return {
     title: { absolute: title },
-    description: kort(c?.seo_description),
+    // Zonder eigen omschrijving erft /en de Engelse standaardtekst uit en/layout.tsx.
+    ...metOmschrijving(omschrijving(c?.seo_description)),
     alternates: { canonical: "/en", languages: hreflangVoor("/") ?? undefined },
+    openGraph: await openGraphVoor({ pad: "/en", taal: "en" }),
   };
 }
 
