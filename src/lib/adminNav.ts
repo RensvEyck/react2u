@@ -2,7 +2,7 @@ import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
-  LuShieldCheck, LuSignpost, LuTrash2, LuBuilding,
+  LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -47,6 +47,9 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Prullenbak", href: "/admin/prullenbak", icon: LuTrash2, keywords: "verwijderd terugzetten herstellen ongedaan maken", paletteOnly: true },
 ];
 
+/** Geen adres maar een teken voor het palet: deze actie roept de uitlog-action aan. */
+export const SIGN_OUT_HREF = "#uitloggen";
+
 /** Snelle acties in het palet. `href` bepaalt ook welk recht nodig is. */
 export type PaletteAction = NavItem & { external?: boolean };
 
@@ -61,6 +64,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "Collega uitnodigen", href: "/admin/gebruikers", icon: LuUserPlus, keywords: "gebruiker toevoegen uitnodiging" },
   { label: "Tweestapsverificatie", href: "/admin/account", icon: LuShieldCheck, keywords: "2fa beveiliging authenticator" },
   { label: "Bekijk website", href: "/", icon: LuExternalLink, external: true, keywords: "site openen live" },
+  { label: "Uitloggen", href: SIGN_OUT_HREF, icon: LuLogOut, keywords: "afmelden log out logout weg stoppen account" },
 ];
 
 export const CRUMBS: Record<string, string> = {

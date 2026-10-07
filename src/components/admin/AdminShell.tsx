@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LuExternalLink, LuMenu, LuX, LuLogOut, LuConstruction, LuSearch } from "react-icons/lu";
+import { LuExternalLink, LuMenu, LuX, LuConstruction, LuSearch } from "react-icons/lu";
 import { permissionForPath, type Permission } from "@/lib/permissions";
 import { ADMIN_NAV, CRUMBS, type Counts } from "@/lib/adminNav";
 import CommandPalette from "./CommandPalette";
+import AccountMenu, { Avatar, UitlogForm } from "./AccountMenu";
 
 export default function AdminShell({
   email, roleLabel, permissions, counts, maintenance, signOut, children,
@@ -21,6 +22,7 @@ export default function AdminShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [palette, setPalette] = useState(false);
+  const [, startSignOut] = useTransition();
 
   // Onderdelen waar je geen recht op hebt verdwijnen uit het menu. Dit is
   // gemak, geen beveiliging: de pagina's controleren zelf via requirePerm() en
@@ -56,7 +58,10 @@ export default function AdminShell({
   const crumbLabels = crumbs.map((c) => CRUMBS[c] || decodeURIComponent(c));
 
   const nav = (
-    <nav className="flex-1 space-y-0.5 px-3 py-4">
+    // Het menu scrolt zelf. Zonder dat viel op een laptopscherm (768 px hoog)
+    // of een telefoon de onderkant met Uitloggen buiten beeld, onbereikbaar,
+    // want de zijbalk staat vast.
+    <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-3 py-4 [scrollbar-color:rgba(255,255,255,0.18)_transparent] [scrollbar-width:thin]">
       {visible.map((n) => {
         const active = n.href === "/admin" ? pathname === "/admin" : pathname.startsWith(n.href);
         const badge = n.badge ? counts[n.badge] : 0;
@@ -82,26 +87,28 @@ export default function AdminShell({
 
   const sidebarInner = (
     <>
-      <div className="border-b border-white/10 px-6 py-5">
+      <div className="shrink-0 border-b border-white/10 px-6 py-5">
         <p className="font-heading text-[19px] font-bold text-white">React2u</p>
         <p className="text-[12.5px] font-medium tracking-wide text-white/45">SYSTEEMBEHEER</p>
       </div>
       {nav}
-      <div className="border-t border-white/10 px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e75387] text-[14px] font-bold text-white">
-            {(email[0] || "?").toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-medium text-white/85">{email}</p>
-            <p className="truncate text-[11.5px] text-white/40">{roleLabel}</p>
-            <form action={signOut}>
-              <button className="flex items-center gap-1.5 text-[12.5px] text-white/50 hover:text-white">
-                <LuLogOut className="text-[12px]" /> Uitloggen
-              </button>
-            </form>
-          </div>
-        </div>
+      <div className="shrink-0 border-t border-white/10 px-3 pb-3 pt-3">
+        <Link
+          href="/admin/account"
+          onClick={() => setOpen(false)}
+          className="flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-white/[0.07]"
+          title="Account en beveiliging"
+        >
+          <Avatar email={email} className="h-9 w-9 text-[14px]" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-medium text-white/85">{email}</span>
+            <span className="block truncate text-[11.5px] text-white/40">{roleLabel}</span>
+          </span>
+        </Link>
+        <UitlogForm
+          signOut={signOut}
+          className="mt-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[14.5px] font-medium text-white/65 transition-colors hover:bg-white/[0.07] hover:text-white disabled:opacity-60"
+        />
       </div>
     </>
   );
@@ -153,15 +160,25 @@ export default function AdminShell({
                 <span className="hidden sm:inline">Zoeken…</span>
                 <kbd className="akbd ml-auto hidden sm:inline-flex">⌘K</kbd>
               </button>
-              <a href="/" target="_blank" className="abtn-ghost whitespace-nowrap !px-2.5 !py-2 text-[13.5px] sm:!px-4" aria-label="Bekijk website">
-                <span className="hidden sm:inline">Bekijk website</span> <LuExternalLink className="text-[13px]" />
-              </a>
+              {/* Op een telefoon staat Bekijk website in het accountmenu; daar is de balk te smal voor allebei.
+                  De wrapper verbergt hem: .abtn-ghost zet zelf display en wint van `hidden`. */}
+              <span className="hidden sm:contents">
+                <a href="/" target="_blank" className="abtn-ghost whitespace-nowrap !px-3 !py-2 text-[13.5px] md:!px-4" aria-label="Bekijk website">
+                  <span className="hidden md:inline">Bekijk website</span> <LuExternalLink className="text-[13px]" />
+                </a>
+              </span>
+              <AccountMenu email={email} roleLabel={roleLabel} signOut={signOut} />
             </div>
           </div>
         </header>
         <main className="mx-auto max-w-[1160px] px-5 py-8 lg:px-8">{children}</main>
       </div>
-      <CommandPalette open={palette} onOpenChange={setPalette} permissions={permissions} />
+      <CommandPalette
+        open={palette}
+        onOpenChange={setPalette}
+        permissions={permissions}
+        onSignOut={() => startSignOut(async () => { await signOut(); })}
+      />
     </div>
   );
 }

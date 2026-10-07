@@ -1,5 +1,5 @@
 import { requirePerm } from "@/lib/admin";
-import { setUserRole, removeUser, saveRole, deleteRole } from "@/app/admin/actions";
+import { setUserRole, removeUser, saveRole, deleteRole, resetMfa } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import RoleEditor from "@/components/admin/RoleEditor";
@@ -7,7 +7,7 @@ import InviteForm, { NewLinkButton } from "@/components/admin/InviteForm";
 import { canInvite, supabaseAdmin } from "@/lib/supabase/admin";
 import { inviteErrorText } from "@/lib/invite";
 import { PERMISSIONS, normalizePermissions, type Permission } from "@/lib/permissions";
-import { LuTrash2, LuShieldCheck, LuTriangleAlert, LuCheck, LuMinus } from "react-icons/lu";
+import { LuTrash2, LuShieldCheck, LuShieldOff, LuShieldX, LuTriangleAlert, LuCheck, LuMinus } from "react-icons/lu";
 
 type RoleRow = {
   id: string; key: string; label: string; permissions: string[];
@@ -18,7 +18,12 @@ type AdminRow = {
   invited_at: string | null; created_at: string;
 };
 
-type AuthStatus = { confirmed: boolean; lastSignIn: string | null };
+type AuthStatus = {
+  confirmed: boolean;
+  lastSignIn: string | null;
+  /** Een geverifieerde authenticator: inloggen vraagt een code. */
+  mfa: boolean;
+};
 
 /**
  * Wie de uitnodiging al gebruikte en wanneer iemand voor het laatst inlogde.
@@ -28,17 +33,31 @@ type AuthStatus = { confirmed: boolean; lastSignIn: string | null };
  * controle of die sleutel werkt: een verkeerde sleutel (de anon-sleutel, of die
  * van een ander project) valt hier op, niet pas bij de eerste uitnodiging.
  */
-async function authStatuses(): Promise<{ byId: Map<string, AuthStatus>; keyProblem: string | null }> {
+async function authStatuses(adminIds: string[]): Promise<{ byId: Map<string, AuthStatus>; keyProblem: string | null }> {
   const byId = new Map<string, AuthStatus>();
   if (!canInvite()) return { byId, keyProblem: null };
   try {
-    const { data, error } = await supabaseAdmin().auth.admin.listUsers({ perPage: 1000 });
+    const sa = supabaseAdmin();
+    // De gebruikerslijst van Supabase bevat de authenticators niet; die komen
+    // per beheerder. Dat zijn er een handvol, dus een paar parallelle vragen.
+    const [{ data, error }, factors] = await Promise.all([
+      sa.auth.admin.listUsers({ perPage: 1000 }),
+      Promise.all(adminIds.map(async (id) => {
+        const { data: f } = await sa.auth.admin.mfa.listFactors({ userId: id });
+        return [id, (f?.factors ?? []).some((x) => x.status === "verified")] as const;
+      })),
+    ]);
+    const mfaById = new Map(factors);
     if (error) {
       console.error("[gebruikers] listUsers: %s %s %s", error.status, error.code, error.message);
       return { byId, keyProblem: inviteErrorText(error) };
     }
     for (const u of data.users) {
-      byId.set(u.id, { confirmed: Boolean(u.email_confirmed_at), lastSignIn: u.last_sign_in_at ?? null });
+      byId.set(u.id, {
+        confirmed: Boolean(u.email_confirmed_at),
+        lastSignIn: u.last_sign_in_at ?? null,
+        mfa: mfaById.get(u.id) ?? false,
+      });
     }
   } catch (err) {
     console.error("[gebruikers] listUsers:", err);
@@ -54,13 +73,13 @@ function datum(iso: string) {
 export default async function GebruikersAdmin() {
   const { sb, admin } = await requirePerm("gebruikers");
 
-  const [usersRes, rolesRes, auth] = await Promise.all([
+  const [usersRes, rolesRes] = await Promise.all([
     sb.from("admins").select("user_id, email, role_id, invited_at, created_at").order("created_at"),
     sb.from("roles").select("*").order("sort").order("label"),
-    authStatuses(),
   ]);
 
   const users = (usersRes.data as AdminRow[]) || [];
+  const auth = await authStatuses(users.map((u) => u.user_id));
   const roles = (rolesRes.data as RoleRow[]) || [];
   const roleOptions: [string, string][] = roles.map((r) => [r.id, r.label]);
   const roleById = new Map(roles.map((r) => [r.id, r]));
@@ -113,8 +132,11 @@ export default async function GebruikersAdmin() {
             const isSelf = u.user_id === admin.userId;
             const status = auth.byId.get(u.user_id);
             const openstaand = status ? !status.confirmed : false;
-            // Nooit ingelogd: die kent zijn wachtwoord waarschijnlijk niet, dus ook een link.
-            const linkNodig = !isSelf && status && (openstaand || !status.lastSignIn);
+            // Nooit ingelogd: die kent zijn wachtwoord waarschijnlijk niet, dus een
+            // nieuwe uitnodigingslink. Wel eens ingelogd: een link om een nieuw
+            // wachtwoord te kiezen, voor wie het vergeten is ("wachtwoord vergeten"
+            // op het inlogscherm verwijst hierheen).
+            const nooitIngelogd = Boolean(status && (openstaand || !status.lastSignIn));
             return (
               <div key={u.user_id} className="flex flex-wrap items-center gap-4 px-6 py-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[14px] font-bold text-[#312e82]">
@@ -134,7 +156,36 @@ export default async function GebruikersAdmin() {
                   </p>
                 </div>
                 {openstaand && <span className="apill bg-[#fff4e5] text-[#c77700]">Uitnodiging openstaand</span>}
-                {linkNodig && <NewLinkButton email={u.email} roleId={u.role_id} />}
+                {status && !openstaand && (
+                  status.mfa ? (
+                    <span className="apill gap-1 bg-[#e6f7f4] text-[#0e9f8a]" title="Inloggen vraagt een code uit een authenticator-app">
+                      <LuShieldCheck className="text-[12px]" /> Tweestaps aan
+                    </span>
+                  ) : (
+                    <span className="apill gap-1 bg-[#fff4e5] text-[#c77700]" title="Inloggen vraagt alleen een wachtwoord">
+                      <LuShieldOff className="text-[12px]" /> Geen tweestaps
+                    </span>
+                  )
+                )}
+                {!isSelf && status && (
+                  <NewLinkButton
+                    email={u.email}
+                    roleId={u.role_id}
+                    label={nooitIngelogd ? "Nieuwe link" : "Wachtwoordlink"}
+                    title={nooitIngelogd
+                      ? "Een nieuwe uitnodigingslink; de vorige vervalt"
+                      : "Een link waarmee deze collega zelf een nieuw wachtwoord kiest"}
+                  />
+                )}
+                {!isSelf && status?.mfa && (
+                  <ConfirmButton
+                    action={resetMfa.bind(null, u.user_id)}
+                    message={`Tweestapsverificatie van ${u.email} wissen? Doe dit alleen als je zeker weet dat het om die collega gaat, bijvoorbeeld na een kwijtgeraakte telefoon. Bij de volgende inlog stelt die een nieuwe telefoon in.`}
+                    className="abtn-ghost !px-3 !py-1.5 text-[13px]"
+                  >
+                    <LuShieldX className="text-[13px]" /> Tweestaps herstellen
+                  </ConfirmButton>
+                )}
                 <StatusSelect
                   action={setUserRole.bind(null, u.user_id)}
                   current={u.role_id}

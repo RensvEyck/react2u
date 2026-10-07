@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 import { DIENST_REDIRECTS, DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
 
-const SUPABASE = "https://tumwtappyegkjabtmold.supabase.co";
+// Uit de omgeving, zodat een lokale stack (`supabase start`) ook door de CSP
+// komt; op Vercel staat hier de vaste project-URL.
+const SUPABASE = (process.env.NEXT_PUBLIC_SUPABASE_URL || "https://tumwtappyegkjabtmold.supabase.co").replace(/\/$/, "");
 
 // Cloudflare Turnstile (spamcontrole op de formulieren) is optioneel; alleen
 // als de site-sleutel gezet is, mag het widget laden. Zie src/lib/turnstile.ts.

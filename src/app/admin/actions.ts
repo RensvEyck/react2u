@@ -1,7 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireAdmin, requirePerm } from "@/lib/admin";
+import { veiligTerugPad } from "@/lib/terug";
 import { supabaseServer } from "@/lib/supabase/server";
 import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads";
 import { removeCvs } from "@/lib/cvs";
@@ -14,10 +16,37 @@ function revalidateSite() {
   revalidatePath("/", "layout");
 }
 
+/**
+ * Uitloggen op dit apparaat. Je telefoon of de computer thuis blijft ingelogd.
+ *
+ * Supabase logt standaard overal uit (`scope: "global"`): wie op kantoor op
+ * Uitloggen klikte, was daarmee ook op zijn telefoon uitgelogd. Dat is nu een
+ * aparte, bewuste keuze op Account (`signOutEverywhereAction`).
+ */
 export async function signOutAction() {
+  await uitloggen("local");
+  redirect("/admin/login?uitgelogd=1");
+}
+
+/** Overal uitloggen: elke sessie van dit account vervalt, op elk apparaat. */
+export async function signOutEverywhereAction() {
+  await requireAdmin();
+  await uitloggen("global");
+  redirect("/admin/login?uitgelogd=overal");
+}
+
+async function uitloggen(scope: "local" | "global") {
   const sb = await supabaseServer();
-  await sb.auth.signOut();
-  redirect("/admin/login");
+  const { error } = await sb.auth.signOut({ scope });
+  if (!error) return;
+  // Bereikt het afmelden Supabase niet (storing, time-out), dan laat
+  // supabase-js de sessie staan en blijf je gewoon ingelogd. Uitloggen moet
+  // altijd lukken: dan in elk geval de sessiecookies van dit apparaat weg.
+  console.error("[uitloggen] %s: %s", scope, error.message);
+  const store = await cookies();
+  for (const c of store.getAll()) {
+    if (c.name.startsWith("sb-") && c.name.includes("-auth-token")) store.delete(c.name);
+  }
 }
 
 export async function updatePageMeta(slug: string, formData: FormData) {
@@ -182,7 +211,11 @@ export async function updateLead(id: string, formData: FormData) {
     })
     .eq("id", id);
   revalidatePath("/admin/bellijst");
-  redirect("/admin/bellijst?opgeslagen=1");
+  // Terug naar dezelfde pagina, filter en zoekvraag, en naar deze lead: wie op
+  // pagina 4 een notitie opslaat, wil niet op pagina 1 bovenaan uitkomen.
+  const terug = veiligTerugPad(String(formData.get("terug") || ""));
+  const basis = terug?.startsWith("/admin/bellijst") ? terug : "/admin/bellijst";
+  redirect(`${basis}${basis.includes("?") ? "&" : "?"}opgeslagen=notitie#lead-${id}`);
 }
 
 export async function deleteLead(id: string) {
@@ -536,6 +569,46 @@ export async function inviteUser(_prev: InviteState, formData: FormData): Promis
   if (!mailReady()) return { status: "ok", email, roleLabel, existing, link, mail: "uit" };
   const sent = await sendInvite({ to: email, link, invitedBy: admin.email, roleLabel });
   return { status: "ok", email, roleLabel, existing, link, mail: sent ? "verstuurd" : "mislukt" };
+}
+
+/**
+ * Tweestapsverificatie van een collega opnieuw laten instellen, bijvoorbeeld
+ * na een kwijtgeraakte of vervangen telefoon. Verwijdert alle authenticators
+ * van dat account; bij de volgende inlog stelt die collega een nieuwe in.
+ *
+ * Twee voorwaarden bovenop het recht `gebruikers`:
+ * - niet voor jezelf: dat kan op Account, en daar vraagt Supabase je code;
+ * - wie dit doet is zelf met een code ingelogd (aal2). Anders kan een gestolen
+ *   wachtwoord van een beheerder de beveiliging van iedereen uitzetten.
+ */
+export async function resetMfa(userId: string) {
+  const { sb, admin } = await requirePerm("gebruikers");
+  if (userId === admin.userId) redirect("/admin/gebruikers?fout=mfa-jezelf");
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel !== "aal2") redirect("/admin/gebruikers?fout=mfa-eerst-zelf");
+
+  // Alleen voor mensen met toegang tot dit paneel, niet voor elk auth-account.
+  const { data: row } = await sb.from("admins").select("email").eq("user_id", userId).maybeSingle();
+  if (!row) redirect("/admin/gebruikers?fout=opslaan");
+
+  const { supabaseAdmin, canInvite } = await import("@/lib/supabase/admin");
+  if (!canInvite()) redirect("/admin/gebruikers?fout=geen-sleutel");
+  const sa = supabaseAdmin();
+  const { data, error } = await sa.auth.admin.mfa.listFactors({ userId });
+  if (error) {
+    console.error("[tweestaps herstellen] listFactors %s: %s", userId, error.message);
+    redirect("/admin/gebruikers?fout=mfa-herstellen");
+  }
+  for (const f of data.factors) {
+    const { error: e } = await sa.auth.admin.mfa.deleteFactor({ userId, id: f.id });
+    if (e) {
+      console.error("[tweestaps herstellen] deleteFactor %s: %s", f.id, e.message);
+      redirect("/admin/gebruikers?fout=mfa-herstellen");
+    }
+  }
+  console.info("[tweestaps herstellen] %s door %s", (row as { email: string }).email, admin.email);
+  revalidatePath("/admin/gebruikers");
+  redirect("/admin/gebruikers?opgeslagen=mfa-hersteld");
 }
 
 async function addAdminRow(sb: Sb, userId: string, email: string, roleId: string, invitedBy: string) {

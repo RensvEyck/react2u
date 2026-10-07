@@ -93,8 +93,10 @@ een verwijderde gebruiker, een gewijzigde rol of een uitgeklede rechtenlijst.
 Zonder dat slot is één verkeerde klik genoeg om iedereen buiten te sluiten, en
 is alleen een ingreep in de database nog een uitweg.
 
-**Er is nu wél een service-role-sleutel**, voor precies drie dingen waar geen
-ingelogde beheerder voor bestaat: een auth-account aanmaken bij het uitnodigen,
+**Er is nu wél een service-role-sleutel**, voor precies drie dingen waar de
+sleutel van een ingelogde beheerder niet bij kan: auth-beheer voor iemand anders
+(een account aanmaken bij het uitnodigen, en bij Gebruikers zien wie
+tweestapsverificatie aan heeft en die herstellen na een kwijtgeraakte telefoon),
 het cv uit het publieke sollicitatieformulier in de bucket zetten
 ([`src/lib/cvs.ts`](src/lib/cvs.ts), ná honeypot, limiet, type- en
 groottecontrole — zodat de publieke sleutel geen schrijfrecht op `cvs` meer
@@ -118,8 +120,17 @@ PKCE-client van `@supabase/ssr` weigert. Nu wordt de link gemaild via Resend als
 om zelf door te sturen (kopiëren of *Open in mail*). Wie een link niet op tijd
 gebruikte, krijgt bij Gebruikers met *Nieuwe link* een nieuwe; de oude vervalt.
 Had het adres al een account, dan wordt het een herstellink (`type=recovery`):
-wie nooit inlogde kent zijn wachtwoord niet, en een "wachtwoord vergeten" is er
-niet. Die knop staat daarom ook bij iedereen die nog nooit ingelogd is.
+wie nooit inlogde kent zijn wachtwoord niet. Bij wie wel eens inlogde heet de
+knop *Wachtwoordlink*: dat is de route voor een vergeten wachtwoord. *Wachtwoord
+vergeten?* op het inlogscherm verwijst ernaar; een zelfbedieningsmail is er bewust
+niet, want die zou leunen op Resend (nog niet ingesteld) en een publiek formulier
+openzetten dat accounts laat raden.
+
+**Tweestapsverificatie herstellen** (Gebruikers → *Tweestaps herstellen*) wist
+alle authenticators van een collega; bij de volgende inlog stelt die een nieuwe
+in. Alleen met het recht `gebruikers`, niet voor jezelf (dat kan op Account, met
+je code), en alleen als je zelf met een code bent ingelogd (aal2): anders kon een
+gestolen wachtwoord van één beheerder de beveiliging van iedereen uitzetten.
 
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
 zijn is niet genoeg, er moet ook een rij in `admins` staan. Schermen achter een
@@ -127,6 +138,22 @@ recht gebruiken `requirePerm('<recht>')`.
 [`src/middleware.ts`](src/middleware.ts) ververst op `/admin` alleen de sessie
 — het is géén autorisatiepoort. De echte controle staat in de pagina's zelf. Op
 de publieke routes is de middleware de poort van de onderhoudsmodus.
+
+**Terug naar waar je was.** De middleware geeft op `/admin` het huidige pad mee
+in de request-header `x-admin-pad`; verloopt de sessie, dan stuurt
+`requireAdmin()` naar `/admin/login?terug=<pad>` en na het inloggen ga je daar
+weer heen. Dat pad komt van buiten, dus [`veiligTerugPad()`](src/lib/terug.ts)
+laat alleen paden binnen `/admin` door (geen `//`, geen andere host, niet terug
+naar het inlogscherm): anders is het een open redirect. Wie al ingelogd is en
+`/admin/login` opent, gaat meteen door.
+
+**Uitloggen geldt voor dit apparaat** (`signOut({ scope: "local" })`). Supabase
+logt standaard overal uit; zo was wie op kantoor uitlogde ook op zijn telefoon
+uit. *Overal uitloggen* staat apart op Account. Lukt het afmelden bij Supabase
+niet, dan gaan de sessiecookies van dit apparaat alsnog weg: uitloggen moet
+altijd lukken. Uitloggen staat in het accountmenu rechtsboven, onderaan het
+zijmenu (dat zelf scrolt, zodat het op een laptopscherm in beeld blijft) en in
+het commandopalet.
 
 **Rendering.** Publieke pagina's zijn statisch met revalidatie (5 min; sitemap 1 uur).
 Alles onder `/admin` is dynamisch.

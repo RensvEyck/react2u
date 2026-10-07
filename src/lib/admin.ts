@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "./supabase/server";
+import { ADMIN_PAD_HEADER, terugQuery } from "./terug";
 import { normalizePermissions, type Permission } from "./permissions";
 
 export type CurrentAdmin = {
@@ -12,6 +14,16 @@ export type CurrentAdmin = {
 };
 
 /**
+ * Het inlogscherm, met waar je was. Na het inloggen ga je daar weer heen in
+ * plaats van naar het dashboard (zie lib/terug.ts).
+ */
+async function naarLogin(extra?: string): Promise<never> {
+  const terug = terugQuery((await headers()).get(ADMIN_PAD_HEADER));
+  const q = [extra, terug].filter(Boolean).join("&");
+  redirect(`/admin/login${q ? `?${q}` : ""}`);
+}
+
+/**
  * Ingelogd én bekend als beheerder. Zonder rij in `admins` geen toegang, ook
  * niet met een geldig auth-account.
  *
@@ -21,7 +33,7 @@ export type CurrentAdmin = {
 export async function requireAdmin() {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
-  if (!user) redirect("/admin/login");
+  if (!user) return naarLogin();
 
   // Tweestapsverificatie afdwingen. Wie een authenticator heeft ingesteld maar
   // in deze sessie alleen zijn wachtwoord gaf, staat op aal1 terwijl aal2
@@ -30,7 +42,7 @@ export async function requireAdmin() {
   // stap niet meer dan een schermpje.
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
-    redirect("/admin/login?stap=code");
+    return naarLogin("stap=code");
   }
 
   const { data } = await sb

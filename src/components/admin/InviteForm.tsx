@@ -45,19 +45,22 @@ export default function InviteForm({ roles, ready }: { roles: Role[]; ready: boo
 }
 
 /**
- * Een nieuwe link voor wie de vorige niet gebruikte. Dezelfde actie als het
- * formulier: voor een account dat nog niet bevestigd is maakt Supabase een
- * nieuwe link, en vervalt de oude.
+ * Een nieuwe link voor wie de vorige niet gebruikte, of een wachtwoordlink
+ * voor wie zijn wachtwoord kwijt is. Dezelfde actie als het formulier: voor een
+ * account dat nog niet bevestigd is maakt Supabase een nieuwe uitnodiging (de
+ * oude vervalt), voor een bestaand account een herstellink.
  */
-export function NewLinkButton({ email, roleId }: { email: string; roleId: string }) {
+export function NewLinkButton({
+  email, roleId, label = "Nieuwe link", title,
+}: { email: string; roleId: string; label?: string; title?: string }) {
   const [state, action, pending] = useActionState(inviteUser, IDLE);
   return (
     <>
       <form action={action}>
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="role_id" value={roleId} />
-        <button className="abtn-ghost !px-3 !py-1.5 text-[13px]" disabled={pending}>
-          <LuRefreshCw className={`text-[13px] ${pending ? "animate-spin" : ""}`} /> Nieuwe link
+        <button className="abtn-ghost !px-3 !py-1.5 text-[13px]" disabled={pending} title={title}>
+          <LuRefreshCw className={`text-[13px] ${pending ? "animate-spin" : ""}`} /> {label}
         </button>
       </form>
       {state.status !== "idle" && <div className="order-last basis-full"><InviteResult state={state} /></div>}

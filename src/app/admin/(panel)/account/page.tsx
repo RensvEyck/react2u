@@ -1,8 +1,12 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { signOutAction, signOutEverywhereAction } from "@/app/admin/actions";
 import TweeStapsInstellen from "@/components/admin/TweeStapsInstellen";
-import { LuLock, LuShieldCheck, LuShieldOff, LuShieldPlus } from "react-icons/lu";
+import { UitlogForm } from "@/components/admin/AccountMenu";
+import { confirmLeave } from "@/lib/unsaved";
+import { LuLoaderCircle, LuLock, LuLogOut, LuMonitorSmartphone, LuShieldCheck, LuShieldOff, LuShieldPlus } from "react-icons/lu";
 
 type Factor = { id: string; friendly_name?: string; status: string };
 
@@ -143,6 +147,47 @@ export default function AccountAdmin() {
           <button className="abtn" disabled={busy}>{busy ? "Opslaan…" : "Opslaan"}</button>
         </div>
       </form>
+
+      <div className="acard space-y-4 p-6" id="uitloggen">
+        <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]">
+          <LuLogOut className="text-[15px]" /> Uitloggen
+        </h2>
+        <p className="text-[13.5px] text-black/55">
+          Uitloggen sluit alleen dit apparaat af. Op je telefoon of een andere computer blijf je ingelogd.
+        </p>
+        <UitlogForm
+          signOut={signOutAction}
+          className="abtn-ghost !py-2 text-[13.5px] disabled:opacity-60"
+        />
+        <div className="rounded-xl bg-[#fafafd] p-4">
+          <p className="flex items-center gap-2 text-[14px] font-semibold text-[#1c1a4e]">
+            <LuMonitorSmartphone className="text-[15px] text-[#312e82]" /> Overal uitloggen
+          </p>
+          <p className="mt-1 text-[13px] text-black/50">
+            Telefoon kwijt, of ingelogd gebleven op een computer die niet van jou is? Hiermee vervalt elke sessie
+            van je account, op elk apparaat, ook deze. Daarna log je opnieuw in.
+          </p>
+          <form
+            action={signOutEverywhereAction}
+            className="mt-3"
+            onSubmit={(e) => {
+              if (!confirmLeave() || !window.confirm("Op alle apparaten uitloggen, ook hier?")) e.preventDefault();
+            }}
+          >
+            <OveralKnop />
+          </form>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function OveralKnop() {
+  const { pending } = useFormStatus();
+  return (
+    <button className="abtn-ghost !py-2 text-[13.5px] !text-[#e0356b] disabled:opacity-60" disabled={pending}>
+      {pending ? <LuLoaderCircle className="animate-spin text-[13px]" /> : <LuMonitorSmartphone className="text-[13px]" />}
+      {pending ? "Bezig…" : "Overal uitloggen"}
+    </button>
   );
 }
