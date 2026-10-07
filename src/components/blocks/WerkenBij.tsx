@@ -135,7 +135,7 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
 
       {/* 2. Wat je bij ons krijgt */}
       <section aria-label={w.voordelenEyebrow} style={{ background: SOFT }}>
-        <div className={`${BREED} flex flex-col gap-10 py-20 md:gap-12 md:py-[104px]`}>
+        <div className={`${BREED} flex flex-col gap-10 py-14 md:gap-12 md:py-[104px]`}>
           <KopBlok eyebrow={w.voordelenEyebrow} kopTekst={w.voordelenKop} />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
             {w.voordelen.map((x) => (
@@ -150,7 +150,7 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
 
       {/* 3. Je werk */}
       <section aria-label={w.werkEyebrow} className="bg-white">
-        <div className={`${BREED} grid gap-10 py-20 md:py-[112px] lg:grid-cols-12 lg:items-center lg:gap-6`}>
+        <div className={`${BREED} grid gap-10 py-14 md:py-[112px] lg:grid-cols-12 lg:items-center lg:gap-6`}>
           <div className="relative h-[340px] overflow-hidden rounded-[28px] md:h-[480px] lg:col-span-6">
             <Beeld src="/beeld/kantoor/scherm.webp" alt={w.fotoWerkAlt} fill sizes="(min-width: 1024px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 45%" }} />
           </div>
@@ -171,7 +171,7 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
 
       {/* 4. Vacatures */}
       <section id="vacatures" aria-label={w.vacaturesEyebrow} className="scroll-mt-28" style={{ background: SOFT }}>
-        <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+        <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
           <KopBlok eyebrow={w.vacaturesEyebrow} kopTekst={vacatures.length ? w.vacaturesKop : w.geenVacaturesKop}
             tekst={vacatures.length ? w.vacaturesTekst : w.geenVacaturesTekst} />
           <div className="flex flex-col gap-4">
@@ -210,7 +210,7 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
 
       {/* 5. Zo solliciteer je */}
       <section aria-label={w.procesEyebrow} className="bg-white">
-        <div className={`${BREED} flex flex-col gap-12 py-20 md:py-[104px]`}>
+        <div className={`${BREED} flex flex-col gap-9 py-14 md:gap-12 md:py-[104px]`}>
           <KopBlok eyebrow={w.procesEyebrow} kopTekst={w.procesKop} tekst={w.procesTekst} />
           <ol className="m-0 grid list-none gap-8 p-0 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {w.stappen.map((x, i) => (
@@ -229,7 +229,7 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
 
       {/* 6. Snel solliciteren */}
       <section id="solliciteren" aria-label={w.solliciterenEyebrow} className="scroll-mt-28 bg-white">
-        <div className={`${BREED} pb-20 md:pb-[112px]`}>
+        <div className={`${BREED} pb-14 md:pb-[112px]`}>
           <div className="relative grid gap-10 overflow-hidden rounded-[28px] p-6 md:rounded-[32px] md:p-16 lg:grid-cols-12 lg:items-center lg:gap-6" style={{ background: NAVY }}>
             <span aria-hidden className="absolute bottom-[-200px] left-[-160px] h-[520px] w-[520px] rounded-full" style={{ background: "radial-gradient(circle, rgba(180,173,242,0.30), rgba(180,173,242,0) 70%)" }} />
             <div className="relative flex flex-col gap-5 lg:col-span-5">
@@ -301,7 +301,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
 
       {/* 2. De tekst uit de admin, met een vaste kolom ernaast */}
       <section aria-label={w.kruimelVacatures} className="bg-white">
-        <div className={`${BREED} grid gap-12 py-20 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
+        <div className={`${BREED} grid gap-12 py-14 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
           <div className="vacature-tekst lg:col-span-7" style={{ color: BODY }} lang={langAttr}>
             <MiniMarkdown text={tekst.description_md || ""} className="text-[17px] leading-[1.75]" kop="h2" />
           </div>
@@ -332,7 +332,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
 
       {/* 3. Solliciteren */}
       <section id="solliciteren" aria-label={w.solliciterenEyebrow} className="scroll-mt-28" style={{ background: SOFT }}>
-        <div className={`${BREED} grid gap-10 py-20 md:py-[104px] lg:grid-cols-12 lg:items-start lg:gap-6`}>
+        <div className={`${BREED} grid gap-10 py-14 md:py-[104px] lg:grid-cols-12 lg:items-start lg:gap-6`}>
           <div className="flex flex-col gap-5 lg:col-span-5">
             <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`}>{d.solliciterenKop}</h2>
             <p className="m-0 text-[17px] leading-[1.7]" style={{ color: BODY }}>{d.solliciterenTekst}</p>
@@ -346,7 +346,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
 
       {/* 4. Andere vacatures */}
       <section aria-label={d.bekijkOok} className="bg-white">
-        <div className={`${BREED} flex flex-col gap-8 py-20 md:py-[96px]`}>
+        <div className={`${BREED} flex flex-col gap-8 py-14 md:py-[96px]`}>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className={`${kop} m-0 text-[30px] tracking-[-0.6px] md:text-[36px]`}>{d.bekijkOok}</h2>
             <Link href={p.basis} className="inline-flex items-center gap-2 text-[15px] font-bold underline underline-offset-4" style={{ textDecorationColor: "rgba(50,46,131,0.35)" }}>{d.allesOverWerken} <Pijl /></Link>
@@ -399,7 +399,7 @@ export function OpenSollicitatiePagina({ taal = "nl" }: { taal?: Taal }) {
           </div>
         </div>
       </section>
-      <div className="pb-20 md:pb-[112px]" />
+      <div className="pb-14 md:pb-[112px]" />
     </div>
   );
 }

@@ -44,7 +44,7 @@ function Pijl({ size = 16 }: { size?: number }) {
 
 function Label({ children, kleur = "#C40F60" }: { children: React.ReactNode; kleur?: string }) {
   return (
-    <span className="text-[12px] font-bold uppercase tracking-[1.4px] md:text-[13px]" style={{ color: kleur }}>
+    <span className="text-[13px] font-bold uppercase tracking-[1.4px]" style={{ color: kleur }}>
       {children}
     </span>
   );
@@ -76,7 +76,7 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
           const label = links ? "#B4ADF2" : "#FFD0E0";
           return (
             <Link key={i} href={c.href} aria-label={c.aria || c.title}
-              className="hn-tile group relative h-[380px] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]"
+              className="hn-tile group relative h-[var(--h)] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]"
               style={{ background: links ? "#D9D3F0" : "#F5D9E4" }}>
               <Beeld src={c.image} alt={c.alt || ""} fill priority sizes="(min-width: 768px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: c.focus || "50% 30%" }} />
@@ -244,8 +244,8 @@ export function HomeContact({ d }: BlockProps) {
           kolommen brak de kop ("Kennismak-en?") en liep "Plan een terugbelmoment"
           de kaart uit. Vanaf 1024px drie kolommen met vaste randen, op xl de
           maten van het ontwerp. */}
-      <div className={`relative ${d.bg ? "mx-[6px] md:mx-10 xl:mx-auto xl:max-w-[1200px]" : "mx-[6px] md:mx-2"} flex flex-col gap-[18px] overflow-hidden rounded-[32px] px-5 pb-4 pt-9 text-white md:gap-6 md:rounded-[40px] md:px-10 md:py-14 lg:grid lg:min-h-[480px] lg:grid-cols-[220px_minmax(0,1fr)_280px] lg:items-center lg:gap-x-8 lg:px-10 lg:py-16 xl:grid-cols-[300px_minmax(0,1fr)_320px] xl:gap-x-12 xl:px-[72px]`}
-        style={{ background: INDIGO, marginTop: d.bg ? "clamp(64px, 7vw, 96px)" : "clamp(80px, 10vw, 144px)" }}>
+      <div className={`relative ${d.bg ? "mx-[6px] md:mx-10 xl:mx-auto xl:max-w-[1200px]" : "mx-[6px] md:mx-2"} flex flex-col gap-[18px] overflow-hidden rounded-[32px] px-5 pb-4 pt-8 text-white md:gap-6 md:rounded-[40px] md:px-10 md:py-14 lg:grid lg:min-h-[480px] lg:grid-cols-[220px_minmax(0,1fr)_280px] lg:items-center lg:gap-x-8 lg:px-10 lg:py-16 xl:grid-cols-[300px_minmax(0,1fr)_320px] xl:gap-x-12 xl:px-[72px]`}
+        style={{ background: INDIGO, marginTop: d.bg ? "clamp(56px, 7vw, 96px)" : "clamp(56px, 10vw, 144px)" }}>
         <span aria-hidden className="absolute right-[-90px] top-[-90px] h-[300px] w-[300px] rounded-full md:left-[-120px] md:right-auto md:top-[-140px] md:h-[620px] md:w-[620px]" style={{ background: "#3B378F" }} />
         {d.image && (
           <span className="relative block h-[150px] w-[150px] overflow-hidden rounded-full border-[6px] md:h-[240px] md:w-[240px] md:border-8 lg:h-[220px] lg:w-[220px] xl:h-[300px] xl:w-[300px]" style={{ borderColor: MAGENTA, background: "#E9E3F9" }}>
