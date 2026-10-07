@@ -1,7 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireAdmin, requirePerm } from "@/lib/admin";
+import { veiligTerugPad } from "@/lib/terug";
 import { supabaseServer } from "@/lib/supabase/server";
 import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads";
 import { removeCvs } from "@/lib/cvs";
@@ -14,10 +16,37 @@ function revalidateSite() {
   revalidatePath("/", "layout");
 }
 
+/**
+ * Uitloggen op dit apparaat. Je telefoon of de computer thuis blijft ingelogd.
+ *
+ * Supabase logt standaard overal uit (`scope: "global"`): wie op kantoor op
+ * Uitloggen klikte, was daarmee ook op zijn telefoon uitgelogd. Dat is nu een
+ * aparte, bewuste keuze op Account (`signOutEverywhereAction`).
+ */
 export async function signOutAction() {
+  await uitloggen("local");
+  redirect("/admin/login?uitgelogd=1");
+}
+
+/** Overal uitloggen: elke sessie van dit account vervalt, op elk apparaat. */
+export async function signOutEverywhereAction() {
+  await requireAdmin();
+  await uitloggen("global");
+  redirect("/admin/login?uitgelogd=overal");
+}
+
+async function uitloggen(scope: "local" | "global") {
   const sb = await supabaseServer();
-  await sb.auth.signOut();
-  redirect("/admin/login");
+  const { error } = await sb.auth.signOut({ scope });
+  if (!error) return;
+  // Bereikt het afmelden Supabase niet (storing, time-out), dan laat
+  // supabase-js de sessie staan en blijf je gewoon ingelogd. Uitloggen moet
+  // altijd lukken: dan in elk geval de sessiecookies van dit apparaat weg.
+  console.error("[uitloggen] %s: %s", scope, error.message);
+  const store = await cookies();
+  for (const c of store.getAll()) {
+    if (c.name.startsWith("sb-") && c.name.includes("-auth-token")) store.delete(c.name);
+  }
 }
 
 export async function updatePageMeta(slug: string, formData: FormData) {
@@ -182,7 +211,11 @@ export async function updateLead(id: string, formData: FormData) {
     })
     .eq("id", id);
   revalidatePath("/admin/bellijst");
-  redirect("/admin/bellijst?opgeslagen=1");
+  // Terug naar dezelfde pagina, filter en zoekvraag, en naar deze lead: wie op
+  // pagina 4 een notitie opslaat, wil niet op pagina 1 bovenaan uitkomen.
+  const terug = veiligTerugPad(String(formData.get("terug") || ""));
+  const basis = terug?.startsWith("/admin/bellijst") ? terug : "/admin/bellijst";
+  redirect(`${basis}${basis.includes("?") ? "&" : "?"}opgeslagen=notitie#lead-${id}`);
 }
 
 export async function deleteLead(id: string) {
@@ -461,6 +494,24 @@ export async function saveTarievenSettings(formData: FormData) {
 // Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt
 // bezoekers tegen. Wél de fout controleren — wie denkt dat de site dicht is
 // terwijl hij openstaat (of andersom), hoort dat te weten.
+export type TestMailState =
+  | { status: "idle" }
+  | { status: "ok"; naar: string }
+  | { status: "fout"; melding: string };
+
+/** Stuurt een testmail naar wie op de knop drukt; zegt precies wat er misging. */
+export async function sendTestMailAction(): Promise<TestMailState> {
+  const { admin } = await requirePerm("instellingen");
+  const { sendTestMail } = await import("@/lib/mail");
+  const r = await sendTestMail(admin.email);
+  if (r.ok) return { status: "ok", naar: admin.email };
+  if (r.reden === "uit") {
+    return { status: "fout", melding: "Mailen staat uit: RESEND_API_KEY of NOTIFY_FROM ontbreekt in Vercel." };
+  }
+  if (r.reden === "onbereikbaar") return { status: "fout", melding: "Resend was niet bereikbaar. Probeer het zo opnieuw." };
+  return { status: "fout", melding: `Resend weigerde de mail: ${r.melding || "geen reden opgegeven"}` };
+}
+
 export async function saveMaintenanceSettings(formData: FormData) {
   const { sb } = await requirePerm("instellingen");
   const value = {
@@ -479,7 +530,12 @@ export type InviteState =
   | { status: "idle" }
   | { status: "error"; message: string }
   // `existing`: het adres had al een account. Dan is de link een herstellink.
-  | { status: "ok"; email: string; roleLabel: string; existing: boolean; link: string; mail: "verstuurd" | "uit" | "mislukt" };
+  | {
+      status: "ok"; email: string; roleLabel: string; existing: boolean; link: string;
+      mail: "verstuurd" | "uit" | "mislukt";
+      /** Waarom het mailen mislukte, zoals Resend het zei (bijv. domein niet geverifieerd). */
+      mailMelding?: string;
+    };
 
 /**
  * Nodigt een collega uit, of stuurt iemand een nieuwe link.
@@ -532,10 +588,62 @@ export async function inviteUser(_prev: InviteState, formData: FormData): Promis
   if (rowError) return { status: "error", message: rowError };
 
   const link = inviteLink(siteUrl(), properties.hashed_token, existing ? "recovery" : "invite");
-  const { mailReady, sendInvite } = await import("@/lib/mail");
-  if (!mailReady()) return { status: "ok", email, roleLabel, existing, link, mail: "uit" };
-  const sent = await sendInvite({ to: email, link, invitedBy: admin.email, roleLabel });
-  return { status: "ok", email, roleLabel, existing, link, mail: sent ? "verstuurd" : "mislukt" };
+  const { sendInvite } = await import("@/lib/mail");
+  // Het systeem mailt de link zelf, net als de meldingen bij inzendingen. Lukt
+  // dat niet (nog geen mailkoppeling, of Resend weigert), dan staat de link op
+  // het scherm om zelf door te sturen.
+  const sent = await sendInvite({
+    to: email, link, invitedBy: admin.email, roleLabel,
+    soort: existing ? "recovery" : "invite", replyTo: admin.email,
+  });
+  const mail = sent.ok ? "verstuurd" : sent.reden === "uit" ? "uit" : "mislukt";
+  const mailMelding = !sent.ok && sent.reden === "geweigerd" ? sent.melding : undefined;
+  return { status: "ok", email, roleLabel, existing, link, mail, mailMelding };
+}
+
+/**
+ * Tweestapsverificatie van een collega opnieuw laten instellen, bijvoorbeeld
+ * na een kwijtgeraakte of vervangen telefoon. Verwijdert alle authenticators
+ * van dat account; bij de volgende inlog stelt die collega een nieuwe in.
+ *
+ * Twee voorwaarden bovenop het recht `gebruikers`:
+ * - niet voor jezelf: dat kan op Account, en daar vraagt Supabase je code;
+ * - wie dit doet is zelf met een code ingelogd (aal2). Anders kan een gestolen
+ *   wachtwoord van een beheerder de beveiliging van iedereen uitzetten.
+ */
+export async function resetMfa(userId: string) {
+  const { sb, admin } = await requirePerm("gebruikers");
+  if (userId === admin.userId) redirect("/admin/gebruikers?fout=mfa-jezelf");
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel !== "aal2") redirect("/admin/gebruikers?fout=mfa-eerst-zelf");
+
+  // Alleen voor mensen met toegang tot dit paneel, niet voor elk auth-account.
+  const { data: row } = await sb.from("admins").select("email").eq("user_id", userId).maybeSingle();
+  if (!row) redirect("/admin/gebruikers?fout=opslaan");
+
+  const { supabaseAdmin, canInvite } = await import("@/lib/supabase/admin");
+  if (!canInvite()) redirect("/admin/gebruikers?fout=geen-sleutel");
+  const sa = supabaseAdmin();
+  const { data, error } = await sa.auth.admin.mfa.listFactors({ userId });
+  if (error) {
+    console.error("[tweestaps herstellen] listFactors %s: %s", userId, error.message);
+    redirect("/admin/gebruikers?fout=mfa-herstellen");
+  }
+  for (const f of data.factors) {
+    const { error: e } = await sa.auth.admin.mfa.deleteFactor({ userId, id: f.id });
+    if (e) {
+      console.error("[tweestaps herstellen] deleteFactor %s: %s", f.id, e.message);
+      redirect("/admin/gebruikers?fout=mfa-herstellen");
+    }
+  }
+  const collega = (row as { email: string }).email;
+  console.info("[tweestaps herstellen] %s door %s", collega, admin.email);
+  // Een wijziging aan iemands beveiliging hoort hij te weten. Lukt de mail
+  // niet, dan is het herstellen niet minder gelukt.
+  const { sendMfaResetNotice } = await import("@/lib/mail");
+  await sendMfaResetNotice({ to: collega, door: admin.email });
+  revalidatePath("/admin/gebruikers");
+  redirect("/admin/gebruikers?opgeslagen=mfa-hersteld");
 }
 
 async function addAdminRow(sb: Sb, userId: string, email: string, roleId: string, invitedBy: string) {

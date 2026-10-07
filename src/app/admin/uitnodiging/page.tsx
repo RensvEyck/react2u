@@ -126,7 +126,8 @@ export default function UitnodigingPage() {
               Welkom bij React2u
             </h1>
             <p className="mb-6 text-center text-[13.5px] text-black/45">
-              Kies een wachtwoord voor <span className="font-medium text-black/70">{email}</span>
+              Kies een wachtwoord voor <span className="font-medium text-black/70">{email}</span>.
+              Daarna vragen we een code uit een app op je telefoon; heb je die nog niet, dan stel je hem meteen in.
             </p>
             <div className="space-y-3">
               <div>

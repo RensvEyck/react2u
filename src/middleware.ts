@@ -4,9 +4,18 @@ import { supabasePublic } from "@/lib/supabase/public";
 import type { ContactInfo } from "@/lib/content";
 import { maintenancePage, normalizeMaintenance, type Maintenance } from "@/lib/maintenance";
 import { matchRedirect, targetUrl, type RedirectRule } from "@/lib/redirects";
+import { ADMIN_PAD_HEADER } from "@/lib/terug";
 
-function sessionClient(request: NextRequest) {
-  let response = NextResponse.next({ request });
+function sessionClient(request: NextRequest, extraHeaders?: Record<string, string>) {
+  // De headers pas opbouwen als de response gemaakt wordt: setAll hieronder
+  // zet ververste cookies op `request`, en die moeten mee naar de pagina.
+  const next = () => {
+    if (!extraHeaders) return NextResponse.next({ request });
+    const headers = new Headers(request.headers);
+    for (const [k, v] of Object.entries(extraHeaders)) headers.set(k, v);
+    return NextResponse.next({ request: { headers } });
+  };
+  let response = next();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,7 +24,7 @@ function sessionClient(request: NextRequest) {
         getAll: () => request.cookies.getAll(),
         setAll: (toSet) => {
           toSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          response = next();
           toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         },
       },
@@ -159,7 +168,12 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   // Adminpaneel: alleen de sessie verversen. Dit is géén autorisatiepoort; die
   // staat in de pagina's zelf (requireAdmin/requirePerm).
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    const { supabase, response } = sessionClient(request);
+    // Het pad gaat mee naar de pagina: verloopt de sessie, dan stuurt
+    // requireAdmin() na het inloggen hierheen terug. Altijd overschrijven, zodat
+    // een meegestuurde header van de browser niets doet.
+    const { supabase, response } = sessionClient(request, {
+      [ADMIN_PAD_HEADER]: `${pathname}${request.nextUrl.search}`,
+    });
     await supabase.auth.getUser();
     return response();
   }

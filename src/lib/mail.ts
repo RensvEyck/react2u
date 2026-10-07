@@ -1,4 +1,6 @@
-// Notificatiemail bij binnenkomende inzendingen, en de uitnodiging voor collega's.
+// Mail die het systeem zelf verstuurt: de melding bij binnenkomende inzendingen,
+// de uitnodiging en wachtwoordlink voor collega's, de melding dat iemands
+// tweestapsverificatie is gewist, en de testmail vanuit Instellingen.
 //
 // Bewust zonder SDK: de Resend-API is één POST, dat is geen dependency waard.
 //
@@ -16,7 +18,9 @@
 
 import type { Taal } from "./taal";
 
-const ENDPOINT = "https://api.resend.com/emails";
+// RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
+// zou worden); in productie staat hij niet en is dit gewoon Resend.
+const api = (pad: string) => `${(process.env.RESEND_API_URL || "https://api.resend.com").replace(/\/$/, "")}${pad}`;
 
 /** In de mail: via welke taal van de site de inzending kwam; alleen vermeld als dat Engels was. */
 function taalVeld(taal?: Taal): Field {
@@ -51,46 +55,68 @@ function render(title: string, intro: string, fields: Field[], body?: string | n
 </div>`;
 }
 
-function adminUrl() {
+function siteBasis() {
   const base =
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
     "https://react2u.nl";
-  return `${base.replace(/\/$/, "")}/admin/postvak-in`;
+  return base.replace(/\/$/, "");
 }
 
+function adminUrl() {
+  return `${siteBasis()}/admin/postvak-in`;
+}
+
+/** Uitkomst van één verzendpoging, met de reden als het niet lukte. */
+export type Verzonden =
+  | { ok: true }
+  | { ok: false; reden: "uit" | "geweigerd" | "onbereikbaar"; melding?: string };
+
 /**
- * Eén POST naar Resend. Geeft terug of de mail is aangenomen; gooit nooit.
+ * Eén POST naar Resend. Gooit nooit; zegt wel waarom het niet lukte.
  *
  * Zonder sleutel of afzender doet dit niets — stil, zie regel 1 bovenaan.
+ * `replyTo` is waar "beantwoorden" uitkomt: bij een uitnodiging de collega die
+ * uitnodigde, niet een adres waar niemand meeleest.
  */
-async function post(to: string[], subject: string, html: string): Promise<boolean> {
+async function verstuur(to: string[], subject: string, html: string, replyTo?: string): Promise<Verzonden> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.NOTIFY_FROM;
-  if (!key || !from || !to.length) return false;
+  if (!key || !from || !to.length) return { ok: false, reden: "uit" };
 
   try {
-    const res = await fetch(ENDPOINT, {
+    const res = await fetch(api("/emails"), {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) {
-      // Alleen loggen. De aanroeper heeft zijn werk al gedaan; hier stoppen zou
-      // een foutmelding geven voor iets wat wél gelukt is.
-      console.error("[mail] Resend gaf %s: %s", res.status, await res.text().catch(() => ""));
+    if (res.ok) return { ok: true };
+    // Alleen loggen en teruggeven. De aanroeper heeft zijn werk al gedaan;
+    // hier stoppen zou een foutmelding geven voor iets wat wél gelukt is.
+    const tekst = await res.text().catch(() => "");
+    console.error("[mail] Resend gaf %s: %s", res.status, tekst);
+    let melding = tekst;
+    try {
+      melding = (JSON.parse(tekst) as { message?: string }).message || tekst;
+    } catch {
+      // geen JSON: dan de ruwe tekst
     }
-    return res.ok;
+    return { ok: false, reden: "geweigerd", melding: melding.slice(0, 300) };
   } catch (err) {
     console.error("[mail] versturen mislukt:", err);
-    return false;
+    return { ok: false, reden: "onbereikbaar" };
   }
 }
 
+async function post(to: string[], subject: string, html: string, replyTo?: string): Promise<boolean> {
+  return (await verstuur(to, subject, html, replyTo)).ok;
+}
+
+const adressen = (s: string | undefined) => (s || "").split(",").map((x) => x.trim()).filter(Boolean);
+
 async function send(subject: string, html: string, toOverride?: string) {
-  const to = (toOverride || process.env.NOTIFY_TO || "").split(",").map((s) => s.trim()).filter(Boolean);
-  await post(to, subject, html);
+  await post(adressen(toOverride || process.env.NOTIFY_TO), subject, html);
 }
 
 /** Of er gemaild kan worden. Alleen of het gezet is, nooit de waarde. */
@@ -98,20 +124,136 @@ export function mailReady() {
   return Boolean(process.env.RESEND_API_KEY && process.env.NOTIFY_FROM);
 }
 
-/**
- * De uitnodiging voor een collega. `true` als Resend hem heeft aangenomen;
- * anders toont het scherm de link om zelf door te sturen.
- */
-export async function sendInvite(i: { to: string; link: string; invitedBy: string; roleLabel: string }) {
-  const html = `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:520px;color:#1c1a4e">
-  <h2 style="margin:0 0 8px;font-size:20px;color:#312e82">Je bent uitgenodigd voor het beheer van react2u.nl</h2>
-  <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#444">${esc(i.invitedBy)} heeft je toegang gegeven als <strong>${esc(i.roleLabel)}</strong>. Kies een wachtwoord en je kunt meteen aan de slag.</p>
-  <p style="margin:0 0 24px"><a href="${esc(i.link)}" style="display:inline-block;background:#e75387;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:12px">Wachtwoord kiezen</a></p>
+/** Opmaak van de mails aan collega's: kop, tekst, één knop, en de link als tekst. */
+function persoonlijk(kop: string, alineas: string[], knop?: { tekst: string; link: string }, voet?: string) {
+  const p = alineas
+    .map((a) => `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#444">${a}</p>`)
+    .join("");
+  const k = knop
+    ? `<p style="margin:8px 0 24px"><a href="${esc(knop.link)}" style="display:inline-block;background:#e75387;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:12px">${esc(knop.tekst)}</a></p>
   <p style="margin:0 0 6px;font-size:13px;color:#888">Werkt de knop niet? Kopieer deze link naar je browser:</p>
-  <p style="margin:0 0 20px;font-size:12px;word-break:break-all;color:#312e82">${esc(i.link)}</p>
-  <p style="margin:0;font-size:13px;color:#888">De link werkt één keer. Verwachtte je deze mail niet, dan kun je hem negeren.</p>
+  <p style="margin:0 0 20px;font-size:12px;word-break:break-all;color:#312e82">${esc(knop.link)}</p>`
+    : "";
+  return `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:520px;color:#1c1a4e">
+  <h2 style="margin:0 0 12px;font-size:20px;color:#312e82">${esc(kop)}</h2>
+  ${p}${k}
+  ${voet ? `<p style="margin:0;font-size:13px;color:#888">${voet}</p>` : ""}
 </div>`;
-  return post([i.to], "Je uitnodiging voor het beheer van react2u.nl", html);
+}
+
+/**
+ * De uitnodiging voor een collega, of de link voor een nieuw wachtwoord
+ * (`soort: "recovery"`, de knop Wachtwoordlink bij Gebruikers). Antwoorden gaat
+ * naar wie de link maakte.
+ */
+export async function sendInvite(i: {
+  to: string; link: string; invitedBy: string; roleLabel: string;
+  soort?: "invite" | "recovery"; replyTo?: string;
+}): Promise<Verzonden> {
+  const nieuw = i.soort !== "recovery";
+  const html = nieuw
+    ? persoonlijk(
+        "Je bent uitgenodigd voor het beheer van react2u.nl",
+        [
+          `${esc(i.invitedBy)} heeft je toegang gegeven als <strong>${esc(i.roleLabel)}</strong>. Kies een wachtwoord en je kunt meteen aan de slag.`,
+          "Daarna stel je tweestapsverificatie in met een app op je telefoon, zoals Microsoft Authenticator of Google Authenticator. Dat is één keer, twee minuten.",
+        ],
+        { tekst: "Wachtwoord kiezen", link: i.link },
+        "De link werkt één keer en een beperkte tijd. Verwachtte je deze mail niet, dan kun je hem negeren."
+      )
+    : persoonlijk(
+        "Kies een nieuw wachtwoord voor het beheer van react2u.nl",
+        [
+          `${esc(i.invitedBy)} heeft een link voor je gemaakt waarmee je een nieuw wachtwoord kiest voor je account (${esc(i.roleLabel)}).`,
+          "Daarna log je in zoals altijd, met de code uit je authenticator-app.",
+        ],
+        { tekst: "Nieuw wachtwoord kiezen", link: i.link },
+        "De link werkt één keer en een beperkte tijd. Vroeg je hier niet om, laat het dan weten aan wie hem stuurde."
+      );
+  const onderwerp = nieuw ? "Je uitnodiging voor het beheer van react2u.nl" : "Nieuw wachtwoord kiezen voor het beheer van react2u.nl";
+  return verstuur([i.to], onderwerp, html, i.replyTo);
+}
+
+/**
+ * Melding aan een collega dat zijn tweestapsverificatie is gewist. Hoort bij
+ * elke wijziging aan iemands beveiliging: was het niet de bedoeling, dan weet
+ * hij het meteen.
+ */
+export async function sendMfaResetNotice(n: { to: string; door: string }): Promise<Verzonden> {
+  const html = persoonlijk(
+    "Je tweestapsverificatie is gewist",
+    [
+      `${esc(n.door)} heeft de tweestapsverificatie van je account voor het beheer van react2u.nl gewist, bijvoorbeeld omdat je een nieuwe telefoon hebt.`,
+      "De volgende keer dat je inlogt, stel je hem opnieuw in met een app op je telefoon.",
+    ],
+    undefined,
+    `Was dit niet de bedoeling? Neem dan meteen contact op met ${esc(n.door)}.`
+  );
+  return verstuur([n.to], "Je tweestapsverificatie voor react2u.nl is gewist", html, n.door);
+}
+
+/** Testmail vanuit Instellingen: werkt de koppeling, en komt het aan? */
+export async function sendTestMail(to: string): Promise<Verzonden> {
+  const html = persoonlijk(
+    "Testmail van react2u.nl",
+    [
+      "Deze mail komt van de website zelf. Komt hij aan, dan werken ook de meldingen bij nieuwe berichten en sollicitaties, de uitnodigingen voor collega's en de wachtwoordlinks.",
+      `Verstuurd vanaf ${esc(process.env.NOTIFY_FROM || "")} op ${esc(new Date().toLocaleString("nl-NL", { timeZone: "Europe/Amsterdam" }))}.`,
+    ],
+    { tekst: "Naar het beheer", link: `${siteBasis()}/admin` }
+  );
+  return verstuur([to], "Testmail van react2u.nl", html);
+}
+
+/* ---------- status, voor Instellingen ---------- */
+
+export type MailStatus = {
+  sleutel: boolean;
+  afzender: string | null;
+  meldingenNaar: string[];
+  offertesNaar: string[];
+};
+
+/** Hoe het mailen is ingesteld. Adressen zijn geen geheim; de sleutel alleen of hij er is. */
+export function mailStatus(): MailStatus {
+  return {
+    sleutel: Boolean(process.env.RESEND_API_KEY),
+    afzender: process.env.NOTIFY_FROM || null,
+    meldingenNaar: adressen(process.env.NOTIFY_TO),
+    offertesNaar: adressen(process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"),
+  };
+}
+
+export type DomeinStatus =
+  | { soort: "geverifieerd"; domein: string }
+  | { soort: "wacht"; domein: string; status: string }
+  | { soort: "ontbreekt"; domein: string }
+  | { soort: "onbekend" };
+
+/**
+ * Staat het domein van de afzender geverifieerd bij Resend? Zonder dat
+ * weigert Resend elke mail (en zou DMARC p=reject hem toch tegenhouden).
+ * Een sleutel met alleen verzendrecht mag de domeinen niet lezen: dan
+ * "onbekend", en geeft de testmail uitsluitsel.
+ */
+export async function domeinStatus(): Promise<DomeinStatus> {
+  const key = process.env.RESEND_API_KEY;
+  const domein = (process.env.NOTIFY_FROM || "").match(/@([^>\s]+)/)?.[1]?.toLowerCase();
+  if (!key || !domein) return { soort: "onbekend" };
+  try {
+    const res = await fetch(api("/domains"), {
+      headers: { Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+      cache: "no-store",
+    });
+    if (!res.ok) return { soort: "onbekend" };
+    const lijst = ((await res.json()) as { data?: { name: string; status: string }[] }).data ?? [];
+    const d = lijst.find((x) => x.name.toLowerCase() === domein);
+    if (!d) return { soort: "ontbreekt", domein };
+    return d.status === "verified" ? { soort: "geverifieerd", domein } : { soort: "wacht", domein, status: d.status };
+  } catch {
+    return { soort: "onbekend" };
+  }
 }
 
 export async function notifyContactMessage(m: {

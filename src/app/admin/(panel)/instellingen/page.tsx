@@ -10,6 +10,9 @@ import { normalizeMaintenance, MAINTENANCE_DEFAULT_MESSAGE } from "@/lib/mainten
 import { normalizeTracking } from "@/lib/tracking";
 import { normalizeTarieven } from "@/lib/tarieven";
 import ListEditor from "@/components/admin/ListEditor";
+import TestMail from "@/components/admin/TestMail";
+import { domeinStatus, mailStatus, type DomeinStatus } from "@/lib/mail";
+import { LuCheck, LuX, LuMail } from "react-icons/lu";
 
 const FIELDS: { name: keyof ContactInfo; label: string }[] = [
   { name: "phoneDisplay", label: "Telefoonnummer (weergave)" },
@@ -23,7 +26,7 @@ const FIELDS: { name: keyof ContactInfo; label: string }[] = [
 ];
 
 export default async function SettingsAdmin() {
-  const { sb } = await requirePerm("instellingen");
+  const { sb, admin } = await requirePerm("instellingen");
   const [{ data }, { data: docsData }, { data: certsData }, { data: maintenanceData }, { data: trackingData }, { data: tarievenData }] = await Promise.all([
     sb.from("site_settings").select("value").eq("key", "contact").maybeSingle(),
     sb.from("site_settings").select("value").eq("key", "documents").maybeSingle(),
@@ -39,11 +42,13 @@ export default async function SettingsAdmin() {
   const tracking = normalizeTracking(trackingData?.value);
   const tarieven = normalizeTarieven(tarievenData?.value);
   const ipinfoAan = Boolean(process.env.IPINFO_TOKEN);
+  const mail = mailStatus();
+  const domein = await domeinStatus();
   return (
     <div className="max-w-[720px] space-y-6">
       <div>
         <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Instellingen</h1>
-        <p className="text-[14.5px] text-black/50">Onderhoudsmodus, privacy, tarievenjaar, en de gegevens die site-breed in de header en footer staan.</p>
+        <p className="text-[14.5px] text-black/50">Onderhoudsmodus, e-mail, privacy, tarievenjaar, en de gegevens die site-breed in de header en footer staan.</p>
       </div>
 
       <form action={saveMaintenanceSettings} id="onderhoud" className="acard scroll-mt-24 p-6">
@@ -77,6 +82,8 @@ export default async function SettingsAdmin() {
           <button className="abtn">Opslaan</button>
         </div>
       </form>
+
+      <MailKaart mail={mail} domein={domein} email={admin.email} />
 
       <form action={saveTrackingSettings} id="privacy" className="acard scroll-mt-24 p-6">
         <div className="mb-1 flex items-center justify-between gap-3">
@@ -191,5 +198,87 @@ export default async function SettingsAdmin() {
         </div>
       </form>
     </div>
+  );
+}
+
+/* ---------- e-mail ---------- */
+
+function Regel({ ok, label, children }: { ok: boolean | null; label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid gap-1 py-2.5 sm:grid-cols-[220px_1fr] sm:gap-4">
+      <dt className="flex items-center gap-2 text-[13.5px] font-medium text-black/55">
+        {ok === null ? <span className="h-[14px] w-[14px]" /> : ok
+          ? <LuCheck className="shrink-0 text-[14px] text-[#0e9f8a]" aria-label="in orde" />
+          : <LuX className="shrink-0 text-[14px] text-[#e0356b]" aria-label="ontbreekt" />}
+        {label}
+      </dt>
+      <dd className="text-[13.5px] text-[#1c1a4e]">{children}</dd>
+    </div>
+  );
+}
+
+const code = "rounded bg-black/[0.05] px-1.5 py-0.5 font-mono text-[12px]";
+
+function MailKaart({ mail, domein, email }: { mail: ReturnType<typeof mailStatus>; domein: DomeinStatus; email: string }) {
+  const aan = mail.sleutel && Boolean(mail.afzender);
+  const domeinOk = domein.soort === "geverifieerd";
+  const domeinFout = domein.soort === "wacht" || domein.soort === "ontbreekt";
+  const pill = !aan
+    ? { tekst: "Staat uit", cls: "bg-[#fff4e5] text-[#c77700]" }
+    : domeinFout
+      ? { tekst: "Domein nog niet geverifieerd", cls: "bg-[#fff4e5] text-[#c77700]" }
+      : { tekst: "Staat aan", cls: "bg-[#e6f7f4] text-[#0e9f8a]" };
+
+  return (
+    <section id="email" className="acard scroll-mt-24 p-6">
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]">
+          <LuMail className="text-[15px]" /> E-mail
+        </h2>
+        <span className={`apill ${pill.cls}`}>{pill.tekst}</span>
+      </div>
+      <p className="mb-3 text-[13px] text-black/45">
+        Het systeem mailt zelf: een melding bij elk nieuw bericht, elke sollicitatie en offerteaanvraag, en de
+        uitnodigingen en wachtwoordlinks voor collega&apos;s. Dat gaat via Resend, namens react2u.nl. Staat het uit,
+        dan komt alles nog steeds binnen in het Postvak IN, maar krijgt niemand een mail.
+      </p>
+
+      <dl className="divide-y divide-black/[0.05] border-y border-black/[0.05]">
+        <Regel ok={mail.sleutel} label="Koppeling met Resend">
+          {mail.sleutel ? "De sleutel staat in Vercel." : <><code className={code}>RESEND_API_KEY</code> ontbreekt in Vercel.</>}
+        </Regel>
+        <Regel ok={Boolean(mail.afzender)} label="Afzender">
+          {mail.afzender ?? <><code className={code}>NOTIFY_FROM</code> ontbreekt, bijvoorbeeld <code className={code}>React2u &lt;noreply@react2u.nl&gt;</code>.</>}
+        </Regel>
+        <Regel ok={domein.soort === "onbekend" ? null : domeinOk} label="Domein bij Resend">
+          {domein.soort === "geverifieerd" && <>{domein.domein} is geverifieerd.</>}
+          {domein.soort === "wacht" && <>{domein.domein} is toegevoegd maar nog niet geverifieerd (status: {domein.status}). Controleer de DNS-records die Resend toont.</>}
+          {domein.soort === "ontbreekt" && <>{domein.domein} staat niet bij Resend. Voeg het toe onder Domains, anders weigert Resend elke mail.</>}
+          {domein.soort === "onbekend" && (aan
+            ? "Niet te zien met deze sleutel (alleen verzendrecht). De testmail geeft uitsluitsel."
+            : "Volgt zodra de koppeling staat.")}
+        </Regel>
+        <Regel ok={mail.meldingenNaar.length > 0} label="Meldingen naar">
+          {mail.meldingenNaar.length
+            ? mail.meldingenNaar.join(", ")
+            : <><code className={code}>NOTIFY_TO</code> ontbreekt: meldingen bij berichten en sollicitaties gaan nergens heen.</>}
+        </Regel>
+        <Regel ok={mail.offertesNaar.length > 0} label="Offertes en terugbelverzoeken">
+          {mail.offertesNaar.join(", ")}
+        </Regel>
+      </dl>
+
+      {!aan && (
+        <ol className="mt-4 list-decimal space-y-1.5 rounded-xl bg-[#fafafd] py-4 pl-9 pr-4 text-[13px] text-black/60">
+          <li>Maak een account op resend.com en voeg onder <em>Domains</em> het domein <strong>react2u.nl</strong> toe (regio Ireland).</li>
+          <li>Zet de DNS-records die Resend toont bij react2u.nl in Vercel (<em>Domains</em>). Die raken de bestaande mail van Microsoft 365 niet.</li>
+          <li>Maak onder <em>API Keys</em> een sleutel en zet die in Vercel als <code className={code}>RESEND_API_KEY</code>, met <code className={code}>NOTIFY_FROM</code> en <code className={code}>NOTIFY_TO</code>. Daarna opnieuw deployen en hier een testmail sturen.</li>
+        </ol>
+      )}
+
+      <div className="mt-4">
+        <TestMail aan={aan} email={email} />
+      </div>
+    </section>
   );
 }

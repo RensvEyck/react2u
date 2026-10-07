@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "./supabase/server";
+import { ADMIN_PAD_HEADER, terugQuery } from "./terug";
 import { normalizePermissions, type Permission } from "./permissions";
 
 export type CurrentAdmin = {
@@ -12,6 +14,16 @@ export type CurrentAdmin = {
 };
 
 /**
+ * Het inlogscherm, met waar je was. Na het inloggen ga je daar weer heen in
+ * plaats van naar het dashboard (zie lib/terug.ts).
+ */
+async function naarLogin(extra?: string): Promise<never> {
+  const terug = terugQuery((await headers()).get(ADMIN_PAD_HEADER));
+  const q = [extra, terug].filter(Boolean).join("&");
+  redirect(`/admin/login${q ? `?${q}` : ""}`);
+}
+
+/**
  * Ingelogd én bekend als beheerder. Zonder rij in `admins` geen toegang, ook
  * niet met een geldig auth-account.
  *
@@ -21,16 +33,20 @@ export type CurrentAdmin = {
 export async function requireAdmin() {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
-  if (!user) redirect("/admin/login");
+  if (!user) return naarLogin();
 
-  // Tweestapsverificatie afdwingen. Wie een authenticator heeft ingesteld maar
-  // in deze sessie alleen zijn wachtwoord gaf, staat op aal1 terwijl aal2
-  // haalbaar is. Zonder deze controle kun je de codestap overslaan door na het
-  // inloggen rechtstreeks een adminpagina te openen — dan is de hele tweede
-  // stap niet meer dan een schermpje.
+  // Tweestapsverificatie is verplicht: zonder code (aal2) geen beheer. Dit
+  // beheer geeft toegang tot sollicitaties, cv's en persoonsgegevens, en het
+  // privacyreglement belooft een tweede factor voor wie daarbij kan.
+  // - Wel een authenticator, maar in deze sessie alleen het wachtwoord gegeven:
+  //   eerst de code. Zonder deze controle sloeg je de codestap over door na het
+  //   inloggen rechtstreeks een adminpagina te openen.
+  // - Nog geen authenticator: eerst instellen. Tot 7 okt 2026 kon je dat
+  //   overslaan door /admin te openen, en hadden drie van de vier beheerders
+  //   het niet aan.
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
-    redirect("/admin/login?stap=code");
+  if (aal?.currentLevel !== "aal2") {
+    return naarLogin(aal?.nextLevel === "aal2" ? "stap=code" : "stap=instellen");
   }
 
   const { data } = await sb

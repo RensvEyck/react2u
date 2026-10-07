@@ -93,8 +93,10 @@ een verwijderde gebruiker, een gewijzigde rol of een uitgeklede rechtenlijst.
 Zonder dat slot is één verkeerde klik genoeg om iedereen buiten te sluiten, en
 is alleen een ingreep in de database nog een uitweg.
 
-**Er is nu wél een service-role-sleutel**, voor precies drie dingen waar geen
-ingelogde beheerder voor bestaat: een auth-account aanmaken bij het uitnodigen,
+**Er is nu wél een service-role-sleutel**, voor precies drie dingen waar de
+sleutel van een ingelogde beheerder niet bij kan: auth-beheer voor iemand anders
+(een account aanmaken bij het uitnodigen, en bij Gebruikers zien wie
+tweestapsverificatie aan heeft en die herstellen na een kwijtgeraakte telefoon),
 het cv uit het publieke sollicitatieformulier in de bucket zetten
 ([`src/lib/cvs.ts`](src/lib/cvs.ts), ná honeypot, limiet, type- en
 groottecontrole — zodat de publieke sleutel geen schrijfrecht op `cvs` meer
@@ -118,8 +120,17 @@ PKCE-client van `@supabase/ssr` weigert. Nu wordt de link gemaild via Resend als
 om zelf door te sturen (kopiëren of *Open in mail*). Wie een link niet op tijd
 gebruikte, krijgt bij Gebruikers met *Nieuwe link* een nieuwe; de oude vervalt.
 Had het adres al een account, dan wordt het een herstellink (`type=recovery`):
-wie nooit inlogde kent zijn wachtwoord niet, en een "wachtwoord vergeten" is er
-niet. Die knop staat daarom ook bij iedereen die nog nooit ingelogd is.
+wie nooit inlogde kent zijn wachtwoord niet. Bij wie wel eens inlogde heet de
+knop *Wachtwoordlink*: dat is de route voor een vergeten wachtwoord. *Wachtwoord
+vergeten?* op het inlogscherm verwijst ernaar; een zelfbedieningsmail is er bewust
+niet: een publiek formulier dat mailt laat accounts raden en vraagt eigen
+spambescherming, terwijl de wachtwoordlink via een collega even snel is.
+
+**Tweestapsverificatie herstellen** (Gebruikers → *Tweestaps herstellen*) wist
+alle authenticators van een collega; bij de volgende inlog stelt die een nieuwe
+in. Alleen met het recht `gebruikers`, niet voor jezelf (dat kan op Account, met
+je code), en alleen als je zelf met een code bent ingelogd (aal2): anders kon een
+gestolen wachtwoord van één beheerder de beveiliging van iedereen uitzetten.
 
 **Toegang tot `/admin`** loopt via [`requireAdmin()`](src/lib/admin.ts): ingelogd
 zijn is niet genoeg, er moet ook een rij in `admins` staan. Schermen achter een
@@ -127,6 +138,36 @@ recht gebruiken `requirePerm('<recht>')`.
 [`src/middleware.ts`](src/middleware.ts) ververst op `/admin` alleen de sessie
 — het is géén autorisatiepoort. De echte controle staat in de pagina's zelf. Op
 de publieke routes is de middleware de poort van de onderhoudsmodus.
+
+**Tweestapsverificatie is verplicht** (sinds 7 okt 2026, op verzoek van Rens).
+`requireAdmin()` eist aal2: wie in deze sessie alleen een wachtwoord gaf, gaat
+naar de codestap (`?stap=code`) of, zonder authenticator, naar het instelscherm
+(`?stap=instellen`). Daarvóór kon je het instellen overslaan door `/admin` te
+openen, en hadden drie van de vier beheerders het niet aan. Uitschakelen kan
+niet meer; *Nieuwe telefoon instellen* op Account vervangt de oude authenticator
+(die blijft anders staan en het inlogscherm vroeg dan mogelijk zijn code).
+Telefoon kwijt: een collega met `gebruikers` wist hem bij Gebruikers.
+Migratie [0017](supabase/migrations/0017_tweestaps_verplicht.sql) legt hetzelfde
+vast in de database: `is_admin()` en `has_perm()` eisen de claim `aal = aal2`,
+zodat een gestolen wachtwoord ook via de REST-API niets van het beheer laat zien.
+Alleen de eigen rij in `admins` blijft op aal1 zichtbaar (inlogscherm en
+onderhoudspoort). Draai 0017 pas nadat de code met verplichte tweestaps live staat.
+
+**Terug naar waar je was.** De middleware geeft op `/admin` het huidige pad mee
+in de request-header `x-admin-pad`; verloopt de sessie, dan stuurt
+`requireAdmin()` naar `/admin/login?terug=<pad>` en na het inloggen ga je daar
+weer heen. Dat pad komt van buiten, dus [`veiligTerugPad()`](src/lib/terug.ts)
+laat alleen paden binnen `/admin` door (geen `//`, geen andere host, niet terug
+naar het inlogscherm): anders is het een open redirect. Wie al ingelogd is en
+`/admin/login` opent, gaat meteen door.
+
+**Uitloggen geldt voor dit apparaat** (`signOut({ scope: "local" })`). Supabase
+logt standaard overal uit; zo was wie op kantoor uitlogde ook op zijn telefoon
+uit. *Overal uitloggen* staat apart op Account. Lukt het afmelden bij Supabase
+niet, dan gaan de sessiecookies van dit apparaat alsnog weg: uitloggen moet
+altijd lukken. Uitloggen staat in het accountmenu rechtsboven, onderaan het
+zijmenu (dat zelf scrolt, zodat het op een laptopscherm in beeld blijft) en in
+het commandopalet.
 
 **Rendering.** Publieke pagina's zijn statisch met revalidatie (5 min; sitemap 1 uur).
 Alles onder `/admin` is dynamisch.
@@ -643,28 +684,41 @@ pagina draait, zou een haperend Supabase de hele site laten hangen. Daarom:
 Node.js in plaats van de edge). Nog niet omgezet; bij het omzetten verhuist de
 poort mee.
 
-## Notificatiemail
+## E-mail vanuit het systeem
 
-[`src/lib/mail.ts`](src/lib/mail.ts) stuurt een melding bij een nieuw
-contactbericht of een nieuwe sollicitatie, via de REST-API van Resend (geen SDK).
+[`src/lib/mail.ts`](src/lib/mail.ts) mailt zelf, via de REST-API van Resend (geen
+SDK): een melding aan het team bij elk nieuw contactbericht, elke sollicitatie,
+offerteaanvraag en elk terugbelverzoek; aan collega's de uitnodiging en de
+wachtwoordlink (antwoorden gaat naar wie hem stuurde); en de melding dat iemands
+tweestapsverificatie is gewist. Alles gaat via één functie (`verstuur`), die
+nooit gooit en wel de reden teruggeeft als Resend weigert.
 
-Drie variabelen, alle drie verplicht — ontbreekt er één, dan slaat de module
-**stil** over en gebeurt er verder niets:
+| Variabele | Voorbeeld | Nodig voor |
+|---|---|---|
+| `RESEND_API_KEY` | `re_…` | alles |
+| `NOTIFY_FROM` | `React2u <noreply@react2u.nl>` | alles |
+| `NOTIFY_TO` | `info@react2u.nl` (meerdere: komma-gescheiden) | meldingen bij berichten en sollicitaties |
+| `NOTIFY_OFFERTE_TO` | standaard `sales@react2u.nl` | offertes en terugbelverzoeken |
+| `RESEND_API_URL` | alleen in tests: een nepserver die vastlegt wat er zou gaan | |
 
-| Variabele | Voorbeeld |
-|---|---|
-| `RESEND_API_KEY` | `re_…` |
-| `NOTIFY_TO` | `info@react2u.nl` (meerdere: komma-gescheiden) |
-| `NOTIFY_FROM` | `Website <geen-antwoord@send.react2u.nl>` |
+Ontbreekt de sleutel of de afzender, dan slaat de module **stil** over. Dat is
+opzet: een inzending staat dan al in Supabase en in het Postvak IN, en een
+mailstoring mag een bezoeker nooit een foutmelding geven voor iets wat wél gelukt
+is. Bij een uitnodiging staat de link dan op het scherm om zelf door te sturen;
+is hij wel gemaild, dan zit de link achter *Komt de mail niet aan?*.
 
-Dat stil overslaan is opzet: de inzending staat dan al in Supabase en is
-zichtbaar in het Postvak IN. De mail is een extra, geen voorwaarde — en een
-mailstoring mag een bezoeker nooit een foutmelding geven voor iets wat wél
-gelukt is. Om dezelfde reden vangt de module al zijn eigen fouten af.
+**Instellingen → E-mail** toont per variabele of hij staat, of het domein van de
+afzender bij Resend geverifieerd is (lukt alleen met een sleutel die domeinen mag
+lezen; anders "onbekend") en heeft een knop *Stuur testmail naar mij* die de
+precieze reden van Resend toont als het misgaat.
 
-Kies voor `NOTIFY_FROM` het (sub)domein dat je in Resend hebt geverifieerd; zie
-de DMARC-valkuil hierboven. Een apart subdomein (`send.react2u.nl`) laat de SPF
-van het hoofddomein met rust.
+**Aanzetten.** Domein `react2u.nl` toevoegen in Resend (regio Ireland), de DNS-records
+die Resend toont in Vercel zetten, sleutel en adressen in Vercel, opnieuw deployen,
+testmail. De records van Resend staan op eigen namen (`resend._domainkey` voor
+DKIM, `send.` voor het retourpad met eigen MX en SPF); de MX en SPF van het
+hoofddomein, en daarmee de mail van Microsoft 365, blijven ongemoeid. DMARC
+(`p=reject`, relaxed) slaagt via de DKIM-handtekening van react2u.nl. Komt de
+testmail niet binnen, kijk dan in de quarantaine van Sophos.
 
 ## Van Postvak IN naar bellijst
 
@@ -890,7 +944,8 @@ een link én bij navigeren via het commandopalet
   `MS=ms23148887` (Microsoft 365) is daarbij verdwenen, en de oude
   WordPress-hosting kan pas weg als de nieuwe site een paar dagen goed draait.
 - **E-mailnotificaties zijn gebouwd maar staan uit.** De code staat er
-  (zie *Notificatiemail*); zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
+  (zie *E-mail vanuit het systeem*, en Instellingen → E-mail met testmail);
+  zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
   niet in Vercel staan, wordt er niets verstuurd en mist wie niet inlogt nog
   steeds inzendingen. Stand 6 oktober 2026: in Production ontbreken
   `RESEND_API_KEY`, `NOTIFY_FROM`, `NOTIFY_TO`, `NOTIFY_OFFERTE_TO`
