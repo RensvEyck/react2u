@@ -539,7 +539,9 @@ p {
 .hn a:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
 
 /* Kop van de startpagina: alles schaalt mee met het scherm. */
-.hn-split { --h: 380px; }
+/* Op de telefoon passen beide helften samen in het eerste scherm: het scherm
+   min de twee kopbalken (108px) en de naden, met een onder- en bovengrens. */
+.hn-split { --h: clamp(300px, calc((100svh - 126px) / 2), 400px); }
 .hn-orb { --o: 290px; width: var(--o); height: var(--o); bottom: calc(var(--o) * -0.24); gap: calc(var(--o) * 0.034); padding-bottom: calc(var(--o) * 0.17); }
 .hn-orb-l { left: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.28); }
 .hn-orb-r { right: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.21); }
@@ -758,8 +760,8 @@ p {
    balk verdwijnt, en schuift de cookiemelding erboven. Bewust buiten een
    @layer: dit moet winnen van de bottom-utility op de melding. */
 @media (max-width: 767.98px) {
-  html[data-belbalk] .site-root { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
-  html[data-belbalk] .cb-in { bottom: calc(66px + env(safe-area-inset-bottom) + 0.75rem); }
+  html[data-belbalk] .site-root { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  html[data-belbalk] .cb-in { bottom: calc(72px + env(safe-area-inset-bottom) + 0.75rem); }
 }
 /* Het terugbelpaneel schuift van onderen omhoog. */
 .belbalk-paneel[open] { animation: belbalk-op 0.32s var(--ease-out-soft); }
@@ -770,3 +772,45 @@ p {
 @media (prefers-reduced-motion: reduce) {
   .belbalk-paneel[open] { animation: none; }
 }
+
+/* ---------- Telefoon: stroken (src/components/blocks/Gedeeld.tsx, Strook) ---------- */
+/* Een rij gelijke kaarten die je op de telefoon zijwaarts swipet, met de
+   volgende kaart al voor een deel in beeld. De rij loopt door tot de
+   schermrand: de negatieve marge is de rand van de sectie (--rand, 20px bij
+   px-5). Vanaf 640px gelden gewoon de rasterklassen op het element. Buiten
+   een @layer, zodat deze regels van de Tailwind-utilities winnen. */
+@media (max-width: 639.98px) {
+  .strook {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(-1 * var(--rand, 20px));
+    padding-inline: var(--rand, 20px);
+    padding-bottom: 6px;
+    scroll-padding-inline: var(--rand, 20px);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .strook::-webkit-scrollbar { display: none; }
+  .strook > * { flex: 0 0 calc(100% - 44px); min-width: 0; scroll-snap-align: start; }
+}
+/* De stippen onder een strook: één stip per kaart, en een roze stip die met
+   het scrollen meeloopt (scroll-driven animation, zoals de stippen in het
+   logo). Een browser zonder die techniek laat de stippen weg; de strook zelf
+   werkt overal. */
+.strook-wrap { timeline-scope: --strook; }
+.strook-stippen { display: none; }
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 639.98px) {
+    .strook { scroll-timeline: --strook x; }
+    .strook-stippen { position: relative; display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+    .strook-stippen > span { width: 8px; height: 8px; border-radius: 999px; background: #D9D8E6; }
+    .strook-stippen > .strook-loper {
+      position: absolute; top: 0; left: calc(50% - (var(--n) * 16px - 8px) / 2);
+      background: #E61674; animation: strook-loper linear both; animation-timeline: --strook;
+    }
+  }
+}
+@keyframes strook-loper { to { transform: translateX(calc((var(--n) - 1) * 16px)); } }

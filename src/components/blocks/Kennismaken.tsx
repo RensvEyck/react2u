@@ -79,10 +79,14 @@ function Formulier({ d }: { d: any }) {
         <label className="flex flex-col gap-2"><Label verplicht>{f.telefoon}</Label>
           <input className={veld} name="phone" type="tel" autoComplete="tel" required maxLength={40} placeholder={k.telefoonPlaceholder} /></label>
         <label className="flex flex-col gap-2"><Label verplicht>{k.aantal}</Label>
-          <select className={`${veld} appearance-none`} name="employees" required defaultValue="">
-            <option value="" disabled>{k.maakKeuze}</option>
-            {AANTALLEN.map((v, i) => <option key={v} value={v}>{k.aantallen[i]}</option>)}
-          </select></label>
+          {/* appearance-none haalt ook het pijltje weg; een eigen pijltje erin, zodat je ziet dat het een keuzelijst is. */}
+          <span className="relative block">
+            <select className={`${veld} appearance-none pr-11`} name="employees" required defaultValue="">
+              <option value="" disabled>{k.maakKeuze}</option>
+              {AANTALLEN.map((v, i) => <option key={v} value={v}>{k.aantallen[i]}</option>)}
+            </select>
+            <svg aria-hidden className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+          </span></label>
         <label className="flex flex-col gap-2"><Label>{k.interesse}</Label>
           <input className={veld} name="pakket" maxLength={80} placeholder={k.interessePlaceholder} /></label>
         <label className="flex flex-col gap-2 sm:col-span-2"><Label>{k.toelichting}</Label>
@@ -112,7 +116,7 @@ export function Kennismaken({ d, asH1 }: { d: any; asH1?: boolean }) {
     <section aria-label={d.heading || k.kop} className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]`}>
       {/* Tussen 1024 en 1280px minder rand en een kleinere kop: met 72px rand en
           60px brak "kennismaken?" naast het formulier midden in het woord. */}
-      <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-5 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-12 lg:gap-6 lg:p-12 xl:p-[72px]" style={{ background: LAV }}>
+      <div className="relative grid gap-8 overflow-hidden rounded-[28px] px-5 py-9 md:gap-10 md:rounded-[36px] md:p-14 lg:grid-cols-12 lg:gap-6 lg:p-12 xl:p-[72px]" style={{ background: LAV }}>
         <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
         <div className="relative flex flex-col gap-6 lg:col-span-5">
           <Kruimels items={[{ label: t.algemeen.home, href: pad(taal, "home") }, { label: t.header.werkgevers, href: pad(taal, "werkgevers") }, { label: k.kruimel }]} taal={taal} />
@@ -135,7 +139,7 @@ export function Kennismaken({ d, asH1 }: { d: any; asH1?: boolean }) {
             <a href="tel:+31856205800" className="font-bold underline underline-offset-4" style={{ color: NAVY }}>{telefoonInTaal("085 620 58 00", taal)}</a>
           </p>
         </div>
-        <div className="relative rounded-[24px] bg-white p-6 shadow-[0_30px_60px_-30px_rgba(50,46,131,0.35)] md:p-10 lg:col-span-6 lg:col-start-7">
+        <div className="relative rounded-[24px] bg-white p-5 shadow-[0_30px_60px_-30px_rgba(50,46,131,0.35)] sm:p-6 md:p-10 lg:col-span-6 lg:col-start-7">
           <Formulier d={d} />
         </div>
       </div>

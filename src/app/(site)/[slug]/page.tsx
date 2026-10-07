@@ -9,8 +9,9 @@ import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
 import { conceptSlugs } from "@/lib/concept";
 import { inhoud } from "@/lib/pagina";
-import { isGeindexeerd, plaatsVoorSlug, provincieVoorSlug } from "@/lib/gemeenten";
-import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/Werkgebied";
+import { isGeindexeerd, plaatsVoorSlug, provincieHref, provincieVoorSlug } from "@/lib/gemeenten";
+import { plaatsTekst } from "@/lib/plaatsteksten";
+import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/PlaatsPagina";
 import { hreflangVoor } from "@/lib/taal";
 import { coveredByWordpress } from "@/lib/redirects";
 
@@ -50,12 +51,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const gebied = werkgebied(slug);
   if (gebied) {
     const title = `Arbodienst ${gebied.naam} • Persoonlijke verzuimbegeleiding • React2u`;
-    // Alleen de gemeenten uit GEINDEXEERDE_GEMEENTEN horen in Google; de
-    // andere gemeentepagina's bestaan wel, maar met noindex (lib/gemeenten.ts).
+    // Alleen een gemeente met een eigen tekst (en de kern rond Eindhoven) hoort
+    // in Google; de andere gemeentepagina's bestaan wel, maar met noindex
+    // (lib/gemeenten.ts). De omschrijving komt uit die eigen tekst.
     const noindex = gebied.soort === "plaats" && !isGeindexeerd(gebied.plaats.slug);
+    const eigen = gebied.soort === "plaats" ? plaatsTekst(gebied.plaats.slug)?.seo : undefined;
     return {
       title: { absolute: title },
-      description: `Arbodienst in ${gebied.naam}: persoonlijke verzuimbegeleiding met één vaste casemanager, preventie en re-integratie. SBCA en ISO gecertificeerd.`,
+      description: omschrijving(eigen) ?? `Arbodienst in ${gebied.naam}: persoonlijke verzuimbegeleiding met één vaste casemanager, preventie en re-integratie. SBCA en ISO gecertificeerd.`,
       alternates: { canonical: `/${slug}` },
       openGraph: await openGraphVoor({ pad: `/${slug}` }),
       ...(noindex ? { robots: { index: false, follow: true } } : {}),
@@ -81,8 +84,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ContentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const gebied = werkgebied(slug);
-  if (gebied?.soort === "plaats") return <PlaatsPagina plaats={gebied.plaats} />;
-  if (gebied?.soort === "provincie") return <ProvinciePagina provincie={gebied.provincie} regio={gebied.regio} />;
+  if (gebied) {
+    // Kruimelpad als structured data, net als de gewone pagina's hieronder.
+    const crumbs = [
+      { label: "Werkgebied", href: "/sitemap#werkgebied" },
+      ...(gebied.soort === "plaats"
+        ? [{ label: gebied.plaats.provincie.naam, href: provincieHref(gebied.plaats.provincie.naam) }, { label: gebied.naam, href: `/${slug}` }]
+        : [{ label: gebied.naam, href: `/${slug}` }]),
+    ];
+    return (
+      <>
+        {gebied.soort === "plaats"
+          ? <PlaatsPagina plaats={gebied.plaats} />
+          : <ProvinciePagina provincie={gebied.provincie} regio={gebied.regio} />}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
+      </>
+    );
+  }
   const res = await inhoud(slug);
   if (!res) notFound();
   const path = `/${slug}`;
