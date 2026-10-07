@@ -2,8 +2,17 @@ import type { NextConfig } from "next";
 import { DIENST_REDIRECTS, DOCUMENT_REDIRECTS, WORDPRESS_REDIRECTS } from "./src/lib/redirects";
 
 // Uit de omgeving, zodat een lokale stack (`supabase start`) ook door de CSP
-// komt; op Vercel staat hier de vaste project-URL.
-const SUPABASE = (process.env.NEXT_PUBLIC_SUPABASE_URL || "https://tumwtappyegkjabtmold.supabase.co").replace(/\/$/, "");
+// komt; op Vercel is dat de vaste project-URL. Als origin geparst, zodat een
+// spatie, regeleinde of pad in de variabele de header niet kapotmaakt (een
+// ongeldige CSP-header raakt elke pagina).
+function supabaseOrigin(): string {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").origin;
+  } catch {
+    return "https://tumwtappyegkjabtmold.supabase.co";
+  }
+}
+const SUPABASE = supabaseOrigin();
 
 // Cloudflare Turnstile (spamcontrole op de formulieren) is optioneel; alleen
 // als de site-sleutel gezet is, mag het widget laden. Zie src/lib/turnstile.ts.
