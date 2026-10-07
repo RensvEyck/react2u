@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { IconType } from "react-icons";
 import {
-  LuInbox, LuPhone, LuSearch, LuUsers, LuArrowRight, LuPlus, LuCircleCheck, LuShieldAlert,
+  LuInbox, LuPhone, LuSearch, LuUsers, LuArrowRight, LuPlus, LuCircleCheck,
   LuMessageSquare, LuBuilding, LuFilePen, LuCalendarClock, LuTrendingUp, LuTrendingDown,
   LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory,
 } from "react-icons/lu";
@@ -36,7 +36,7 @@ export default async function AdminDashboard() {
   // Alleen ophalen wat deze gebruiker mag zien. RLS zou de rest leeg
   // teruggeven, maar dan staat er een tegel met 0 die niet klopt.
   const contentPerms = can("paginas") || can("blog") || can("vacatures") || can("instellingen") || can("seo");
-  const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, profilesRes, aal] = await Promise.all([
+  const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, profilesRes] = await Promise.all([
     can("postvak")
       ? sb.from("contact_messages").select("id, name, subject, created_at", { count: "exact" })
           .eq("read", false).order("created_at", { ascending: true }).limit(6)
@@ -62,7 +62,6 @@ export default async function AdminDashboard() {
       ? sb.from("revisions").select("*").not("actor", "is", null).order("created_at", { ascending: false }).limit(24)
       : none,
     can("bezoek") ? sb.from("company_profiles").select("key, name, domain, ignored, lead_id") : none,
-    sb.auth.mfa.getAuthenticatorAssuranceLevel(),
   ]);
 
   /* ---------- postvak ---------- */
@@ -142,15 +141,14 @@ export default async function AdminDashboard() {
   };
 
   /* ---------- account en systeem ---------- */
-  // nextLevel aal1 betekent: er is geen tweede factor ingesteld. Het
-  // privacyreglement belooft tweestapsverificatie voor wie bij dossiers kan.
-  const no2fa = aal.data?.nextLevel === "aal1";
+  // Een herinnering "zet tweestapsverificatie aan" is er niet meer: zonder kom
+  // je sinds 7 okt 2026 niet voorbij het inlogscherm (requireAdmin).
   const checks = can("instellingen") || can("gebruikers") ? systemChecks(process.env) : [];
   const failing = checks.filter((c) => !c.ok);
 
   const attention =
     (unhandled > 0 ? 1 : 0) + (toCall.length > 0 ? 1 : 0) + (seoIssues > 0 ? 1 : 0) +
-    (expiring.length > 0 ? 1 : 0) + (no2fa ? 1 : 0);
+    (expiring.length > 0 ? 1 : 0);
 
   const name = firstName(admin.email);
 
@@ -176,25 +174,6 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {no2fa && (
-        <Link
-          href="/admin/account"
-          className="group flex items-center gap-4 rounded-2xl border border-[#c77700]/20 bg-[#fff8ec] px-5 py-4 transition hover:border-[#c77700]/40"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff4e5] text-[19px] text-[#c77700]">
-            <LuShieldAlert />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[14.5px] font-semibold text-[#1c1a4e]">Zet tweestapsverificatie aan</p>
-            <p className="text-[13px] text-black/50">
-              Je account kan bij persoonsgegevens. Met een code op je telefoon is een gelekt wachtwoord alleen niet genoeg.
-            </p>
-          </div>
-          <span className="hidden items-center gap-1.5 text-[13.5px] font-semibold text-[#c77700] sm:flex">
-            Instellen <LuArrowRight className="transition group-hover:translate-x-0.5" />
-          </span>
-        </Link>
-      )}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {can("postvak") && (

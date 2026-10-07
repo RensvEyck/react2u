@@ -162,8 +162,8 @@ export default async function GebruikersAdmin() {
                       <LuShieldCheck className="text-[12px]" /> Tweestaps aan
                     </span>
                   ) : (
-                    <span className="apill gap-1 bg-[#fff4e5] text-[#c77700]" title="Inloggen vraagt alleen een wachtwoord">
-                      <LuShieldOff className="text-[12px]" /> Geen tweestaps
+                    <span className="apill gap-1 bg-[#fff4e5] text-[#c77700]" title="Tweestapsverificatie is verplicht: bij de volgende inlog moet deze collega een authenticator-app instellen">
+                      <LuShieldOff className="text-[12px]" /> Tweestaps nog instellen
                     </span>
                   )
                 )}

@@ -139,6 +139,20 @@ recht gebruiken `requirePerm('<recht>')`.
 — het is géén autorisatiepoort. De echte controle staat in de pagina's zelf. Op
 de publieke routes is de middleware de poort van de onderhoudsmodus.
 
+**Tweestapsverificatie is verplicht** (sinds 7 okt 2026, op verzoek van Rens).
+`requireAdmin()` eist aal2: wie in deze sessie alleen een wachtwoord gaf, gaat
+naar de codestap (`?stap=code`) of, zonder authenticator, naar het instelscherm
+(`?stap=instellen`). Daarvóór kon je het instellen overslaan door `/admin` te
+openen, en hadden drie van de vier beheerders het niet aan. Uitschakelen kan
+niet meer; *Nieuwe telefoon instellen* op Account vervangt de oude authenticator
+(die blijft anders staan en het inlogscherm vroeg dan mogelijk zijn code).
+Telefoon kwijt: een collega met `gebruikers` wist hem bij Gebruikers.
+Migratie [0017](supabase/migrations/0017_tweestaps_verplicht.sql) legt hetzelfde
+vast in de database: `is_admin()` en `has_perm()` eisen de claim `aal = aal2`,
+zodat een gestolen wachtwoord ook via de REST-API niets van het beheer laat zien.
+Alleen de eigen rij in `admins` blijft op aal1 zichtbaar (inlogscherm en
+onderhoudspoort). Draai 0017 pas nadat de code met verplichte tweestaps live staat.
+
 **Terug naar waar je was.** De middleware geeft op `/admin` het huidige pad mee
 in de request-header `x-admin-pad`; verloopt de sessie, dan stuurt
 `requireAdmin()` naar `/admin/login?terug=<pad>` en na het inloggen ga je daar

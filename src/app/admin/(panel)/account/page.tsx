@@ -6,7 +6,7 @@ import { signOutAction, signOutEverywhereAction } from "@/app/admin/actions";
 import TweeStapsInstellen from "@/components/admin/TweeStapsInstellen";
 import { UitlogForm } from "@/components/admin/AccountMenu";
 import { confirmLeave } from "@/lib/unsaved";
-import { LuLoaderCircle, LuLock, LuLogOut, LuMonitorSmartphone, LuShieldCheck, LuShieldOff, LuShieldPlus } from "react-icons/lu";
+import { LuLoaderCircle, LuLock, LuLogOut, LuMonitorSmartphone, LuShieldCheck, LuShieldPlus } from "react-icons/lu";
 
 type Factor = { id: string; friendly_name?: string; status: string };
 
@@ -53,20 +53,6 @@ export default function AccountAdmin() {
     }
   }
 
-  async function schakelUit() {
-    if (!factor) return;
-    if (!window.confirm(
-      "Tweestapsverificatie uitschakelen? Je account is daarna alleen nog met een wachtwoord beveiligd, " +
-      "terwijl je bij sollicitaties en cv's kunt."
-    )) return;
-    const { error } = await supabaseBrowser().auth.mfa.unenroll({ factorId: factor.id });
-    if (error) setMfaMsg({ ok: false, text: "Uitschakelen mislukt: " + error.message });
-    else {
-      setMfaMsg({ ok: true, text: "Tweestapsverificatie is uitgeschakeld." });
-      await laadFactor();
-    }
-  }
-
   return (
     <div className="max-w-[520px] space-y-6">
       <div>
@@ -86,12 +72,13 @@ export default function AccountAdmin() {
             <p className="flex items-center gap-2 rounded-xl bg-[#e6f7f4] px-4 py-3 text-[13.5px] font-medium text-[#0e9f8a]">
               <LuShieldCheck className="text-[15px]" /> Ingeschakeld — bij het inloggen vragen we een code.
             </p>
+            <p className="text-[13px] text-black/50">
+              Verplicht voor iedereen met toegang tot dit beheer. Nieuwe telefoon? Stel hem hier in; de oude
+              werkt daarna niet meer.
+            </p>
             <div className="flex flex-wrap gap-2">
               <button onClick={() => setInstellen(true)} className="abtn-ghost !py-2 text-[13.5px]">
                 <LuShieldPlus className="text-[13px]" /> Nieuwe telefoon instellen
-              </button>
-              <button onClick={schakelUit} className="abtn-ghost !py-2 text-[13.5px] !text-[#e0356b]">
-                <LuShieldOff className="text-[13px]" /> Uitschakelen
               </button>
             </div>
           </>
@@ -113,7 +100,7 @@ export default function AccountAdmin() {
           <TweeStapsInstellen
             onKlaar={async () => {
               setInstellen(false);
-              setMfaMsg({ ok: true, text: "Tweestapsverificatie is ingeschakeld." });
+              setMfaMsg({ ok: true, text: "Je nieuwe telefoon is ingesteld. De vorige werkt niet meer." });
               await laadFactor();
             }}
           />

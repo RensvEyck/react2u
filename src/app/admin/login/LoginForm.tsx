@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { veiligTerugPad } from "@/lib/terug";
+import { signOutAction } from "@/app/admin/actions";
 import TweeStapsInstellen from "@/components/admin/TweeStapsInstellen";
 import { LuCircleCheck, LuCornerDownRight, LuKeyRound, LuLock, LuShieldCheck, LuShieldPlus } from "react-icons/lu";
 
@@ -38,17 +39,24 @@ function LoginForm() {
   const terug = veiligTerugPad(params.get("terug"));
   const uitgelogd = params.get("uitgelogd");
 
-  // Doorgestuurd vanaf requireAdmin(): wachtwoord is al gegeven, alleen de code
-  // ontbreekt nog. Opnieuw om het wachtwoord vragen zou verwarrend zijn.
+  // Doorgestuurd vanaf requireAdmin(): het wachtwoord is al gegeven, alleen de
+  // code ontbreekt nog, of er is nog geen authenticator (verplicht sinds 7 okt
+  // 2026). Opnieuw om het wachtwoord vragen zou verwarrend zijn. Welke van de
+  // twee volgt uit het account zelf, niet uit de URL.
   useEffect(() => {
-    if (params.get("stap") !== "code") return;
+    const gevraagd = params.get("stap");
+    if (gevraagd !== "code" && gevraagd !== "instellen") return;
     (async () => {
       const sb = supabaseBrowser();
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return;
       const { data } = await sb.auth.mfa.listFactors();
       const geverifieerd = (data?.totp ?? []).find((f) => f.status === "verified");
       if (geverifieerd) {
         setFactorId(geverifieerd.id);
         setStap("code");
+      } else {
+        setStap("instellen");
       }
     })();
   }, [params]);
@@ -195,8 +203,13 @@ function LoginForm() {
                 <LuShieldCheck className="text-[14px]" /> {busy ? "Controleren…" : "Bevestigen"}
               </button>
             </div>
+            <p className="mt-5 border-t border-black/[0.06] pt-4 text-center text-[12.5px] text-black/45">
+              Telefoon kwijt of vervangen? Een collega die gebruikers beheert kan je tweestapsverificatie
+              herstellen; daarna stel je een nieuwe telefoon in.
+            </p>
           </form>
         )}
+
 
         {stap === "instellen" && (
           <>
@@ -205,10 +218,18 @@ function LoginForm() {
             </h1>
             <p className="mb-5 text-center text-[13.5px] text-black/55">
               Dit beheer geeft toegang tot sollicitaties, cv&apos;s en persoonsgegevens. Daarom
-              vragen we naast je wachtwoord een code uit een app op je telefoon.
+              vragen we naast je wachtwoord een code uit een app op je telefoon. Dat is verplicht
+              voor iedereen met toegang; het kost je één keer twee minuten.
             </p>
             <TweeStapsInstellen onKlaar={naarPaneel} />
           </>
+        )}
+        {stap !== "wachtwoord" && (
+          <form action={signOutAction} className="mt-3 text-center">
+            <button className="text-[13px] font-medium text-black/45 underline-offset-2 hover:text-[#e75387] hover:underline">
+              {stap === "instellen" ? "Niet nu? Uitloggen" : "Ander account? Uitloggen"}
+            </button>
+          </form>
         )}
       </div>
     </div>
