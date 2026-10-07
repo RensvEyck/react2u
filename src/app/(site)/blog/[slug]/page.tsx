@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { getPublishedPosts, getPost } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
-import { kort, paginaTitel } from "@/lib/seo";
+import { metOmschrijving, omschrijving, paginaTitel } from "@/lib/seo";
+import { openGraphVoor } from "@/lib/og";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
 import SiteImage from "@/components/site/SiteImage";
 import PageHeader from "@/components/site/PageHeader";
@@ -26,21 +27,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const p = await getPost(slug);
   if (!p) return {};
   const image = p.og_image || p.cover_image;
-  const description = kort(p.seo_description || p.excerpt);
+  const description = omschrijving(p.seo_description, p.excerpt);
   return {
     // Zie vacatures/[slug]: het merk precies één keer achter de titel.
     title: { absolute: paginaTitel(p.seo_title || p.title) },
-    description,
+    ...metOmschrijving(description),
     alternates: { canonical: `/blog/${slug}` },
     openGraph: {
+      ...(await openGraphVoor({ pad: `/blog/${slug}`, afbeelding: image })),
       type: "article",
       title: p.seo_title || p.title,
       description,
-      url: `/blog/${slug}`,
       publishedTime: p.published_at || undefined,
       modifiedTime: p.updated_at,
       authors: p.author ? [p.author] : undefined,
-      ...(image ? { images: [image] } : {}),
     },
     ...(image ? { twitter: { card: "summary_large_image", images: [image] } } : {}),
   };

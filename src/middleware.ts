@@ -141,6 +141,21 @@ async function publicGate(request: NextRequest, event: NextFetchEvent) {
 
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl;
+
+  // Afsluitende schuine streep weg: `/werkgevers/` → `/werkgevers` (308). Dit
+  // deed Next zelf, maar dan vóór de vaste doorverwijzingen in next.config.ts,
+  // zodat een oud adres met streep twee stappen nodig had. Nu staat die
+  // ingebouwde redirect uit (`skipTrailingSlashRedirect`) en accepteren de
+  // vaste regels de streep zelf; wat hier aankomt is dus geen vast adres en
+  // krijgt de kale versie, mét querystring.
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    // Een gewone URL, geen nextUrl.clone(): NextURL onthoudt de streep van het
+    // oorspronkelijke adres en zet hem bij het formatteren weer terug.
+    const doel = new URL(request.url);
+    doel.pathname = pathname.replace(/\/+$/, "") || "/";
+    return NextResponse.redirect(doel, 308);
+  }
+
   // Adminpaneel: alleen de sessie verversen. Dit is géén autorisatiepoort; die
   // staat in de pagina's zelf (requireAdmin/requirePerm).
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {

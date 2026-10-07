@@ -129,7 +129,7 @@ export default async function AdminDashboard() {
     : [];
 
   const seo = can("seo")
-    ? countIssues([...pages.map(analysePage), ...posts.map(analysePost), ...vacancies.map(analyseVacancy)])
+    ? countIssues([...pages.map((p) => analysePage(p)), ...posts.map(analysePost), ...vacancies.map(analyseVacancy)])
     : null;
   const open404 = missingRes.count ?? 0;
   const seoIssues = (seo?.errors ?? 0) + open404;

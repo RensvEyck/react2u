@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedVacancies, getVacancy } from "@/lib/content";
 import { jsonLd } from "@/lib/jsonld";
-import { kort, paginaTitel } from "@/lib/seo";
+import { metOmschrijving, omschrijving, paginaTitel } from "@/lib/seo";
+import { openGraphVoor } from "@/lib/og";
 import { hreflangVoor } from "@/lib/taal";
 import { jobPostingLd, vacatureInTaal } from "@/lib/vacatures";
 import { VacatureDetail } from "@/components/blocks/WerkenBij";
@@ -27,8 +28,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const tekst = vacatureInTaal(v, "en");
   return {
     title: { absolute: paginaTitel(`${tekst.title} • Vacancy`) },
-    description: kort(tekst.intro || v.seo_description),
+    ...metOmschrijving(omschrijving(tekst.intro || v.seo_description)),
     alternates: { canonical: `/en/jobs/${slug}`, languages: hreflangVoor(`/vacatures/${slug}`) ?? undefined },
+    openGraph: await openGraphVoor({ pad: `/en/jobs/${slug}`, taal: "en" }),
   };
 }
 
