@@ -67,7 +67,9 @@
             "items": [
               "Deskundigenoordeel",
               "Bezwaar en beroep",
-              "Loonsanctie voorkomen"
+              "Loonsanctie voorkomen",
+              "Loonsanctie repareren",
+              "Bezwaar en beroep tegen loonsanctie"
             ]
           }
         ],
