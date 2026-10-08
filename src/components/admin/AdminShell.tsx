@@ -56,7 +56,7 @@ export default function AdminShell({
   const crumbLabels = crumbs.map((c) => CRUMBS[c] || decodeURIComponent(c));
 
   const nav = (
-    <nav className="flex-1 space-y-0.5 px-3 py-4">
+    <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
       {visible.map((n) => {
         const active = n.href === "/admin" ? pathname === "/admin" : pathname.startsWith(n.href);
         const badge = n.badge ? counts[n.badge] : 0;
