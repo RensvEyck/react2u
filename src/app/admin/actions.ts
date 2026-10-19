@@ -16,7 +16,12 @@ function revalidateSite() {
 
 export async function signOutAction() {
   const sb = await supabaseServer();
-  await sb.auth.signOut();
+  // scope: "local" clears de cookies direct, zonder eerst de sessie bij Supabase
+  // te verversen/herroepen — die serverroundtrip racete met de sessieverversing
+  // die de middleware op elke /admin-aanvraag doet, waardoor de cookie soms
+  // geldig bleef staan terwijl de knop al naar /admin/login doorstuurde.
+  const { error } = await sb.auth.signOut({ scope: "local" });
+  if (error) console.error("signOutAction: uitloggen mislukt", error);
   redirect("/admin/login");
 }
 
