@@ -13,8 +13,14 @@ export async function supabaseServer() {
         setAll: (toSet) => {
           try {
             toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-          } catch {
-            // called from a Server Component — safe to ignore
+          } catch (err) {
+            // Server Components mogen geen cookies zetten — dat negeren we.
+            // Een andere fout (bv. vanuit een Server Action, waar dit wél hoort
+            // te werken) loggen we, zodat een mislukte cookie-schrijfactie niet
+            // stil verdwijnt zoals bij het uitlogprobleem.
+            if (!(err instanceof Error) || !err.message.includes("Cookies can only be modified")) {
+              console.error("supabaseServer: cookies.setAll mislukt", err);
+            }
           }
         },
       },
