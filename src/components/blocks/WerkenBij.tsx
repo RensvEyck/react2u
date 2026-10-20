@@ -291,6 +291,8 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
   const o = opbouwInTaal(v, taal);
   const ob = w.opbouw;
   const opdracht = isOpdracht(v);
+  // Het vaste pakket geldt voor loondienst; niet voor ZZP-opdrachten en stages.
+  const vastPakket = !opdracht && v.employment_type !== "INTERN";
   const oLang = o && o.taal !== taal ? o.taal : undefined;
   const faq = o ? faqParen(o.faq) : [];
   const inHetKort = [
@@ -368,19 +370,18 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
                 )}
                 <div className="flex flex-col gap-5">
                   <h2 className={`${kop} m-0 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{opdracht ? ob.biedenOpdracht : ob.bieden}</h2>
-                  {!opdracht && (
-                    <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
+                  {vastPakket && (
+                    <ul className="m-0 grid list-none gap-x-6 gap-y-3 rounded-[24px] p-6 sm:grid-cols-2 md:p-7" style={{ background: SOFT }}>
                       {ob.aanbod.map((a) => (
-                        <li key={a.kop} className="flex flex-col gap-1.5 rounded-[20px] p-5" style={{ background: SOFT }}>
-                          <span className="flex items-center gap-2 text-[16px] font-bold" style={{ color: NAVY }}><span style={{ color: TEAL }}><Vink /></span>{a.kop}</span>
-                          <span className="text-[15px] leading-[1.6]">{a.tekst}</span>
+                        <li key={a} className="flex items-start gap-2.5 text-[16px] leading-[1.55]">
+                          <span className="mt-[3px] shrink-0" style={{ color: TEAL }}><Vink /></span><span>{a}</span>
                         </li>
                       ))}
                     </ul>
                   )}
                   {o.bieden && (
                     <div className="vacature-tekst" lang={oLang}>
-                      {!opdracht && <h3 className="m-0 mb-2 mt-3 text-[18px] font-bold" style={{ color: NAVY }}>{ob.bovenop}</h3>}
+                      {vastPakket && <h3 className="m-0 mb-2 mt-3 text-[18px] font-bold" style={{ color: NAVY }}>{ob.bovenop}</h3>}
                       <MiniMarkdown text={o.bieden} className="text-[17px] leading-[1.75]" kop="h3" />
                     </div>
                   )}
