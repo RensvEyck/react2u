@@ -3,7 +3,8 @@ import type { Vacancy } from "@/lib/types";
 import { MiniMarkdown } from "@/lib/md";
 import { OPEN_SOLLICITATIE, pad, telefoonInTaal, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
-import { kenmerkInTaal, vacatureInTaal } from "@/lib/vacatures";
+import { faqLd, faqParen, isOpdracht, kenmerkInTaal, opbouwInTaal, vacatureInTaal } from "@/lib/vacatures";
+import { jsonLd } from "@/lib/jsonld";
 import { outfit } from "./HomeVerhaal";
 import Solliciteren from "./Solliciteren";
 import {
@@ -47,6 +48,25 @@ function Susanne({ licht, taal }: { licht?: boolean; taal: Taal }) {
         <a href={`mailto:${SUSANNE.mail}`} className="inline-flex h-11 items-center justify-center rounded-full border text-[14.5px] font-bold"
           style={{ color: kleur, borderColor: licht ? "rgba(255,255,255,0.4)" : "#D9D8E6" }}>{t.algemeen.mailen}</a>
       </div>
+    </div>
+  );
+}
+
+/** Contact bij een vacature: de eigenaar van React2u (alleen mail). */
+function Eigenaar({ taal, groot }: { taal: Taal; groot?: boolean }) {
+  const ob = woordenboek(taal).vacatures.opbouw;
+  return (
+    <div className={`flex flex-col gap-3 ${groot ? "rounded-[20px] p-5" : "border-t pt-4"}`} style={groot ? { background: SOFT } : { borderColor: LINE }}>
+      {groot && <span className="text-[16px] font-bold" style={{ color: NAVY }}>{ob.contactKop}</span>}
+      <div className="flex items-center gap-3.5">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[16px] font-bold" style={{ background: groot ? LAV : "#ffffff", color: NAVY }}>RE</span>
+        <span className="flex flex-col">
+          <span className="text-[16px] font-bold" style={{ color: NAVY }}>{ob.contactNaam}</span>
+          <span className="text-[13.5px]" style={{ color: BODY }}>{ob.contactRol}, React2u</span>
+        </span>
+      </div>
+      {groot && <p className="m-0 text-[14.5px] leading-[1.6]" style={{ color: BODY }}>{ob.contactTekst}</p>}
+      <a href={`mailto:${ob.contactMail}`} className="inline-flex h-11 items-center justify-center rounded-full border bg-white text-[14.5px] font-bold" style={{ color: NAVY, borderColor: "#D9D8E6" }}>{ob.contactMail}</a>
     </div>
   );
 }
@@ -267,6 +287,22 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
     [v.location || d.standaardLocatie, d.locatieSub],
     [d.werkdagen, d.danHoorJe],
   ].filter(Boolean) as string[][];
+  // Nieuwe opbouw (migratie 0017); zonder secties blijft de oude weergave staan.
+  const o = opbouwInTaal(v, taal);
+  const ob = w.opbouw;
+  const opdracht = isOpdracht(v);
+  const oLang = o && o.taal !== taal ? o.taal : undefined;
+  const faq = o ? faqParen(o.faq) : [];
+  const inHetKort = [
+    [ob.vakgebied, v.vakgebied],
+    [ob.uren, kenmerkInTaal(v.hours, taal)],
+    [ob.locatie, v.location || d.standaardLocatie],
+    [opdracht ? ob.tarief : ob.salaris, kenmerkInTaal(v.salary, taal)],
+    [ob.contract, v.contractvorm],
+    [ob.ervaring, v.ervaringsniveau],
+    [ob.opleiding, v.opleidingsniveau],
+  ].filter(([, x]) => x) as string[][];
+  const stappen = opdracht ? ob.stappenOpdracht : ob.stappen;
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. Kop met het belangrijkste */}
@@ -287,6 +323,18 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
               <span className="text-[15px]" style={{ color: MUTE }}>{d.duurtMinuut}</span>
             </div>
           </div>
+          {o ? (
+            <div className="relative flex flex-col rounded-[24px] bg-white px-7 pb-3 pt-3 md:px-8">
+              <span className="pb-2 pt-5 text-[15px] font-bold">{ob.inHetKort}</span>
+              <dl className="m-0 flex flex-col">
+                {inHetKort.map(([l, x]) => (
+                  <div key={l} className="flex items-baseline justify-between gap-5 border-t py-3.5 text-[15.5px]" style={{ borderColor: LINE }}>
+                    <dt style={{ color: MUTE }}>{l}</dt><dd className="m-0 text-right font-bold">{x}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : (
           <div className="relative flex flex-col rounded-[24px] bg-white px-7 pb-4 pt-3 md:px-8">
             <span className="pb-1.5 pt-5 text-[15px] font-bold">{d.belangrijkste}</span>
             {kerncijfers.map(([groot, klein]) => (
@@ -296,9 +344,128 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
               </div>
             ))}
           </div>
+          )}
         </div>
       </section>
 
+      {o ? (
+        <>
+          {/* 2. De secties van de vacature, met een vaste kolom ernaast */}
+          <section aria-label={tekst.title} className="bg-white">
+            <div className={`${BREED} grid gap-12 py-14 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
+              <div className="flex flex-col gap-12 lg:col-span-7" style={{ color: BODY }}>
+                {o.doen && (
+                  <div className="vacature-tekst" lang={oLang}>
+                    <h2 className={`${kop} m-0 mb-5 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{ob.doen}</h2>
+                    <MiniMarkdown text={o.doen} className="text-[17px] leading-[1.75]" kop="h3" />
+                  </div>
+                )}
+                {o.vragen && (
+                  <div className="vacature-tekst" lang={oLang}>
+                    <h2 className={`${kop} m-0 mb-5 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{ob.vragen}</h2>
+                    <MiniMarkdown text={o.vragen} className="text-[17px] leading-[1.75]" kop="h3" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-5">
+                  <h2 className={`${kop} m-0 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{opdracht ? ob.biedenOpdracht : ob.bieden}</h2>
+                  {!opdracht && (
+                    <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
+                      {ob.aanbod.map((a) => (
+                        <li key={a.kop} className="flex flex-col gap-1.5 rounded-[20px] p-5" style={{ background: SOFT }}>
+                          <span className="flex items-center gap-2 text-[16px] font-bold" style={{ color: NAVY }}><span style={{ color: TEAL }}><Vink /></span>{a.kop}</span>
+                          <span className="text-[15px] leading-[1.6]">{a.tekst}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {o.bieden && (
+                    <div className="vacature-tekst" lang={oLang}>
+                      {!opdracht && <h3 className="m-0 mb-2 mt-3 text-[18px] font-bold" style={{ color: NAVY }}>{ob.bovenop}</h3>}
+                      <MiniMarkdown text={o.bieden} className="text-[17px] leading-[1.75]" kop="h3" />
+                    </div>
+                  )}
+                </div>
+                {o.eerlijk && (
+                  <div className="rounded-[24px] border-2 border-dashed p-7" style={{ borderColor: "#D9D8E6" }} lang={oLang}>
+                    <h2 className={`${kop} m-0 mb-3 text-[24px] tracking-[-0.4px]`} style={{ color: NAVY }}>{ob.eerlijk}</h2>
+                    <MiniMarkdown text={o.eerlijk} className="text-[17px] leading-[1.75]" kop="h3" />
+                  </div>
+                )}
+              </div>
+              <aside className="h-fit lg:sticky lg:top-[calc(var(--hh,96px)+24px)] lg:col-span-4 lg:col-start-9">
+                <div className="flex flex-col gap-5 rounded-[24px] p-7" style={{ background: SOFT }}>
+                  <span className={`${kop} text-[22px]`} lang={langAttr}>{tekst.title}</span>
+                  <dl className="m-0 flex flex-col">
+                    {inHetKort.slice(0, 5).map(([l, x]) => (
+                      <div key={l} className="flex justify-between gap-4 border-t py-3 text-[15px]" style={{ borderColor: LINE }}>
+                        <dt style={{ color: MUTE }}>{l}</dt><dd className="m-0 text-right font-bold">{x}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>
+                  <Eigenaar taal={taal} />
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          {/* 3. Werken bij React2u */}
+          <section aria-label={ob.werkenBijKop} style={{ background: SOFT }}>
+            <div className={`${BREED} flex flex-col gap-8 py-14 md:py-[96px]`}>
+              <div className="flex max-w-[640px] flex-col gap-3">
+                <h2 className={`${kop} m-0 text-[32px] tracking-[-0.8px] md:text-[40px]`}>{ob.werkenBijKop}</h2>
+                <p className="m-0 text-[17px] leading-[1.7]" style={{ color: BODY }}>{ob.werkenBijTekst}</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {ob.werkenBij.map((b) => (
+                  <div key={b.kop} className="flex flex-col gap-2 rounded-[24px] bg-white p-6">
+                    <span className={`${kop} text-[20px]`}>{b.kop}</span>
+                    <span className="text-[15.5px] leading-[1.6]" style={{ color: BODY }}>{b.tekst}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* 4. Procedure */}
+          <section aria-label={ob.procedureKop} className="bg-white">
+            <div className={`${BREED} flex flex-col gap-8 py-14 md:py-[96px]`}>
+              <div className="flex max-w-[640px] flex-col gap-3">
+                <h2 className={`${kop} m-0 text-[32px] tracking-[-0.8px] md:text-[40px]`}>{ob.procedureKop}</h2>
+                <p className="m-0 text-[17px] leading-[1.7]" style={{ color: BODY }}>{ob.procedureTekst}</p>
+              </div>
+              <ol className={`m-0 grid list-none gap-4 p-0 sm:grid-cols-2 ${stappen.length > 4 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
+                {stappen.map((st, i) => (
+                  <li key={st.kop} className="flex flex-col gap-2 rounded-[24px] border p-6" style={{ borderColor: LINE }}>
+                    <span className="grid h-9 w-9 place-items-center rounded-full text-[15px] font-bold" style={{ background: LAV, color: NAVY }}>{i + 1}</span>
+                    <span className="text-[17px] font-bold">{st.kop}</span>
+                    <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{st.tekst}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+
+          {/* 5. Veelgestelde vragen */}
+          {faq.length > 0 && (
+            <section aria-label={ob.faq} style={{ background: SOFT }}>
+              <div className={`${BREED} grid gap-8 py-14 md:py-[96px] lg:grid-cols-12 lg:gap-6`}>
+                <h2 className={`${kop} m-0 text-[32px] tracking-[-0.8px] md:text-[40px] lg:col-span-4`}>{ob.faq}</h2>
+                <div className="flex flex-col gap-3 lg:col-span-7 lg:col-start-6" lang={oLang}>
+                  {faq.map((f) => (
+                    <details key={f.vraag} className="group rounded-[20px] bg-white p-6">
+                      <summary className="cursor-pointer list-none text-[17px] font-bold" style={{ color: NAVY }}>{f.vraag}</summary>
+                      <p className="m-0 mt-3 text-[16px] leading-[1.7]" style={{ color: BODY }}>{f.antwoord}</p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+              <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd(faq)) }} />
+            </section>
+          )}
+        </>
+      ) : (
+        <>
       {/* 2. De tekst uit de admin, met een vaste kolom ernaast */}
       <section aria-label={w.kruimelVacatures} className="bg-white">
         <div className={`${BREED} grid gap-12 py-14 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
@@ -330,13 +497,16 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
         </div>
       </section>
 
+        </>
+      )}
+
       {/* 3. Solliciteren */}
       <section id="solliciteren" aria-label={w.solliciterenEyebrow} className="scroll-mt-28" style={{ background: SOFT }}>
         <div className={`${BREED} grid gap-10 py-14 md:py-[104px] lg:grid-cols-12 lg:items-start lg:gap-6`}>
           <div className="flex flex-col gap-5 lg:col-span-5">
             <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`}>{d.solliciterenKop}</h2>
             <p className="m-0 text-[17px] leading-[1.7]" style={{ color: BODY }}>{d.solliciterenTekst}</p>
-            <Susanne taal={taal} />
+            {o ? <Eigenaar taal={taal} groot /> : <Susanne taal={taal} />}
           </div>
           <div className="rounded-[24px] bg-white p-6 md:p-10 lg:col-span-6 lg:col-start-7">
             <Solliciteren keuzes={[]} vast={{ id: v.id, title: tekst.title }} kopTekst={t.formulier.sollicitatie.kopDirect} duur={t.formulier.sollicitatie.duur1} />
