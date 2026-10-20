@@ -325,6 +325,12 @@ export const en: Woordenboek = {
       bieden: "What we offer",
       biedenOpdracht: "What the assignment offers",
       bovenop: "And specific to this role",
+      samen: "Who you work with",
+      leuk: "What makes this job great",
+      meerOverVak: "More about working in this field",
+      vakgebiedenKop: "Explore the fields",
+      cijfersKop: "React2u in numbers",
+      cijfers: [],
       eerlijk: "To be honest",
       faq: "Frequently asked questions",
       aanbod: [
@@ -370,9 +376,7 @@ export const en: Woordenboek = {
       ],
       contactKop: "Questions about this vacancy?",
       contactTekst: "Email the owner of React2u directly. He will answer you himself.",
-      contactNaam: "Rens van Eyck",
       contactRol: "Owner",
-      contactMail: "rens@react2u.nl",
     },
     dienstverband: {
       FULL_TIME: "Full-time",

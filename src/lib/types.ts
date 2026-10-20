@@ -24,6 +24,10 @@ export type Block = {
 export type VacatureOpbouw = {
   /** Wat ga je doen */
   doen: string;
+  /** Met wie werk je samen: team, disciplines, aanspreekpunten */
+  samen: string;
+  /** Wat is echt leuk aan deze baan */
+  leuk: string;
   /** Wat wij vragen (eisen, met eventueel "Mooi meegenomen") */
   vragen: string;
   /** Wat wij bieden: aanvullingen op het vaste pakket, of bij ZZP het hele aanbod */

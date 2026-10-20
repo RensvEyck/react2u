@@ -1,7 +1,9 @@
 import type { Vacancy } from "@/lib/types";
 
-const SECTIES: { key: "doen" | "vragen" | "bieden" | "eerlijk" | "faq"; label: string; hulp: string; rows: number }[] = [
+const SECTIES: { key: "doen" | "samen" | "leuk" | "vragen" | "bieden" | "eerlijk" | "faq"; label: string; hulp: string; rows: number }[] = [
   { key: "doen", label: "Wat ga je doen", hulp: "Een korte alinea over de rol, daarna 4 tot 6 bullets met concrete taken.", rows: 8 },
+  { key: "samen", label: "Met wie werk je samen", hulp: "Het team en de disciplines om je heen. Liefst met aantallen (bijv. een team van 6 casemanagers en 2 bedrijfsartsen).", rows: 4 },
+  { key: "leuk", label: "Wat is echt leuk aan deze baan", hulp: "3 tot 5 bullets: wat maakt deze baan bij React2u anders dan elders? Concreet, geen clichés.", rows: 5 },
   { key: "vragen", label: "Wat wij vragen", hulp: "Harde eisen als bullets. Daarna eventueel **Mooi meegenomen:** met pre's.", rows: 8 },
   { key: "bieden", label: "Wat wij bieden (aanvulling)", hulp: "Bij loondienst staat het vaste pakket er al automatisch boven; zet hier alleen wat specifiek is voor deze functie. Bij ZZP: het hele aanbod (tarief, duur, vrijheid).", rows: 5 },
   { key: "eerlijk", label: "Eerlijk is eerlijk", hulp: "Eén of twee zinnen over wat minder leuk is aan de rol. Maakt de rest geloofwaardig.", rows: 3 },

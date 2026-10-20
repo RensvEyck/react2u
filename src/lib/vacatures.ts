@@ -91,7 +91,7 @@ export function jobPostingLd(v: Vacancy, taal: Taal) {
   };
 }
 
-export const OPBOUW_SECTIES = ["doen", "vragen", "bieden", "eerlijk", "faq"] as const;
+export const OPBOUW_SECTIES = ["doen", "samen", "leuk", "eerlijk", "vragen", "bieden", "faq"] as const;
 
 /**
  * De secties van de nieuwe opbouw (migratie 0017) in de taal van de pagina.

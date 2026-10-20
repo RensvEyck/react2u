@@ -112,7 +112,7 @@ export async function saveVacancy(formData: FormData) {
               .map((t) => [
                 t,
                 Object.fromEntries(
-                  (["doen", "vragen", "bieden", "eerlijk", "faq"] as const).map((k) => [
+                  (["doen", "samen", "leuk", "vragen", "bieden", "eerlijk", "faq"] as const).map((k) => [
                     k,
                     String(formData.get(`opbouw_${t}_${k}`) || "").replace(/\r\n/g, "\n").trim(),
                   ])

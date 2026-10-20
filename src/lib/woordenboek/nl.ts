@@ -340,6 +340,13 @@ export const nl = {
       bieden: "Wat wij bieden",
       biedenOpdracht: "Wat de opdracht je biedt",
       bovenop: "En speciaal bij deze functie",
+      samen: "Met wie werk je samen",
+      leuk: "Wat is echt leuk aan deze baan",
+      meerOverVak: "Meer over werken in dit vakgebied",
+      vakgebiedenKop: "Ontdek de vakgebieden",
+      cijfersKop: "React2u in cijfers",
+      /** Vul aan met echte cijfers (bijv. { getal: "2012", label: "opgericht" }); leeg = blok verborgen. */
+      cijfers: [] as { getal: string; label: string }[],
       eerlijk: "Eerlijk is eerlijk",
       faq: "Veelgestelde vragen",
       /** Het vaste pakket bij loondienst; per vacature aan te vullen in de admin. */
@@ -386,9 +393,7 @@ export const nl = {
       ],
       contactKop: "Vragen over deze vacature?",
       contactTekst: "Mail de eigenaar van React2u direct. Je krijgt antwoord van hem zelf.",
-      contactNaam: "Rens van Eyck",
       contactRol: "Eigenaar",
-      contactMail: "rens@react2u.nl",
     },
     dienstverband: {
       FULL_TIME: "Fulltime",
