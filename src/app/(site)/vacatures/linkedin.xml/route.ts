@@ -11,6 +11,8 @@ import { linkedinNiveau } from "@/lib/linkedinFeed";
  * Alleen gepubliceerde vacatures staan erin. De sollicitatielink gaat naar
  * react2u.nl met utm_source=linkedin, zodat die sollicitaties in de admin als
  * bron "campagne: linkedin" verschijnen.
+ *
+ * Werkplek staat op "On-site": bij React2u werk je vijf dagen op kantoor.
  */
 export const revalidate = 3600;
 
@@ -49,7 +51,7 @@ export async function GET() {
     <postalCode>${cdata("5611 NB")}</postalCode>
     <jobtype>${cdata(JOBTYPE[v.employment_type] || "FULL_TIME")}</jobtype>
     <experienceLevel>${cdata(linkedinNiveau(v.ervaringsniveau))}</experienceLevel>
-    <workplaceTypes>${cdata("Hybrid")}</workplaceTypes>
+    <workplaceTypes>${cdata("On-site")}</workplaceTypes>
     <listDate>${cdata(new Date(v.published_at || v.created_at).toISOString())}</listDate>
   </job>`;
     })
