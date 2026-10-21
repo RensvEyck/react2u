@@ -7,7 +7,10 @@ import VersionHistory from "@/components/admin/VersionHistory";
 import { loadVersions } from "@/lib/revisionsDb";
 import type { Vacancy } from "@/lib/types";
 import { engelseVeldenBestaan } from "@/lib/vacaturesDb";
+import DeelVacature from "@/components/blocks/DeelVacature";
 import { LuArrowLeft, LuExternalLink } from "react-icons/lu";
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl").replace(/\/$/, "");
 
 export default async function EditVacancy({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,6 +35,20 @@ export default async function EditVacancy({ params }: { params: Promise<{ id: st
           </a>
         )}
       </div>
+      {/* Intern: delen met een persoonlijke link (?ref=naam) voor de aanbrengpremie.
+          Staat bewust niet op de publieke vacaturepagina. */}
+      {v.status === "published" && (
+        <div id="delen" className="scroll-mt-24">
+          <DeelVacature url={`${SITE_URL}/vacatures/${v.slug}`} titel={v.title} t={{
+            kop: "Delen met je persoonlijke link",
+            tekst: "Vul je naam in en deel de vacature. Een sollicitatie via jouw link krijgt in Sollicitaties de bron \"aanbrenger: jouw naam\".",
+            naam: "Je naam",
+            kopieer: "Kopieer link",
+            gekopieerd: "Gekopieerd",
+            premie: "Collega's krijgen € 1.500 netto als iemand via hun link begint en de proeftijd doorkomt.",
+          }} />
+        </div>
+      )}
       <form action={saveVacancy} className="acard overflow-hidden">
         <input type="hidden" name="id" value={v.id} />
         <VacancyFields v={v} engels={engels} />

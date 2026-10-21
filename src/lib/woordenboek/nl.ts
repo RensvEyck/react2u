@@ -378,14 +378,6 @@ export const nl = {
       leuk: "Wat is echt leuk aan deze baan",
       meerOverVak: "Meer over werken in dit vakgebied",
       vakgebiedenKop: "Ontdek de vakgebieden",
-      deel: {
-        kop: "Ken jij iemand die hier past?",
-        tekst: "Deel deze vacature met iemand in je netwerk. Een goede collega vind je vaak via via.",
-        naam: "Werk je bij React2u? Vul je naam in voor je persoonlijke link",
-        kopieer: "Kopieer link",
-        gekopieerd: "Link gekopieerd",
-        premie: "Collega's van React2u krijgen € 1.500 netto als iemand via hun link begint en de proeftijd doorkomt.",
-      },
       cijfersKop: "React2u in cijfers",
       /** Vul aan met echte cijfers (bijv. { getal: "2012", label: "opgericht" }); leeg = blok verborgen. */
       cijfers: [] as { getal: string; label: string }[],
@@ -399,7 +391,6 @@ export const nl = {
         "Iedere vrijdag lunchen met het team in het bruisende centrum van Eindhoven",
         "Pensioen bij a.s.r. waarvan wij de volledige premie betalen",
         "25 vakantiedagen bij fulltime, 8% vakantiegeld en de week na kerst collectief vrij",
-        "Breng je een nieuwe collega aan die de proeftijd doorkomt? Dan krijg jij € 1.500 netto",
         "Fietsplan en sportabonnement via de werkkostenregeling",
         "Een extra vrije dag als je verhuist",
         "Jubileumuitkering",
