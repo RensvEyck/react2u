@@ -122,6 +122,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   const retainLonger = formData.get("retain_longer") === "on";
   // Waar de kandidaat vandaan kwam (BronOnthouden, migratie 0018).
   const bron = veld(formData, "bron").slice(0, 120);
+  const viaLinkedin = veld(formData, "via_linkedin") === "1";
   if (!name || !email) return { ok: false, error: fout.sollicitatieVerplicht };
   if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
   // LinkedIn-profiel in plaats van (of naast) een cv, migratie 0019.
@@ -156,6 +157,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
       motivation: motivation || null,
       hasCv: Boolean(cvPath),
       linkedin,
+      viaLinkedin,
       bron: bron || null,
       taal,
     }),

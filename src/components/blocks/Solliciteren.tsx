@@ -1,11 +1,23 @@
 "use client";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { leesBron } from "@/components/site/BronOnthouden";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
 import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
+import { LINKEDIN_CLIENT_ID, LI_PROFIEL_COOKIE, leesLinkedInProfiel } from "@/lib/linkedin";
+
+const geenAbonnement = () => () => {};
+const cookieNu = () => document.cookie;
+const geenCookie = () => "";
+
+function LinkedInLogo() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.8 0 0 .77 0 1.73v20.54C0 23.23.8 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></svg>
+  );
+}
 
 /*
  * Snel solliciteren (canvas: Werken bij en Vacature). Kort formulier:
@@ -33,6 +45,12 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
   const opties: Keuze[] = vast ? [vast] : [...keuzes, { id: "", title: s.open }];
   const [keuze, setKeuze] = useState<Keuze>(opties[0]);
   const [state, action, pending] = useActionState<FormState, FormData>(submitApplication, null);
+  const pad = usePathname();
+  // Na "Solliciteer met LinkedIn" staan naam en e-mail tien minuten in een cookie.
+  const profiel = leesLinkedInProfiel(useSyncExternalStore(geenAbonnement, cookieNu, geenCookie));
+  useEffect(() => {
+    if (state?.ok) document.cookie = `${LI_PROFIEL_COOKIE}=; Max-Age=0; path=/`;
+  }, [state?.ok]);
 
   if (state?.ok) {
     return (
@@ -57,6 +75,21 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
       <input type="hidden" name="vacancy_id" value={keuze.id} />
       <input type="hidden" name="vacancy_title" value={keuze.title} />
       <input type="hidden" name="bron" defaultValue="" />
+      <input type="hidden" name="via_linkedin" value={profiel ? "1" : ""} />
+      {LINKEDIN_CLIENT_ID && (profiel ? (
+        <p className="m-0 flex items-center gap-2 rounded-[12px] px-4 py-3 text-[14.5px] font-semibold" style={{ background: "#E8F1FA", color: "#0A66C2" }}>
+          <LinkedInLogo /> {s.linkedinIngevuld}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <a href={`/api/linkedin/start?terug=${encodeURIComponent(pad || "/vacatures")}`}
+            className="inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full text-[16px] font-bold text-white transition-opacity hover:opacity-90"
+            style={{ background: "#0A66C2" }}>
+            <LinkedInLogo /> {s.linkedinKnop}
+          </a>
+          <span className="text-center text-[13px]" style={{ color: MUTE }}>{s.linkedinOf}</span>
+        </div>
+      ))}
       {!vast && (
         <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
           <legend className="mb-2.5 text-[14px] font-semibold" style={{ color: NAVY }}>{s.ikSolliciteerOp}</legend>
@@ -76,9 +109,9 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 sm:col-span-2"><span className="text-[14px] font-semibold" style={{ color: NAVY }}>{f.naam}</span>
-          <input className={veld} name="name" autoComplete="name" required maxLength={200} placeholder={f.naamPlaceholder} /></label>
+          <input key={profiel ? "li" : "leeg"} defaultValue={profiel?.naam} className={veld} name="name" autoComplete="name" required maxLength={200} placeholder={f.naamPlaceholder} /></label>
         <label className="flex flex-col gap-2"><span className="text-[14px] font-semibold" style={{ color: NAVY }}>{f.email}</span>
-          <input className={veld} name="email" type="email" autoComplete="email" required maxLength={200} placeholder={f.emailPlaceholder} /></label>
+          <input key={profiel ? "li" : "leeg"} defaultValue={profiel?.email} className={veld} name="email" type="email" autoComplete="email" required maxLength={200} placeholder={f.emailPlaceholder} /></label>
         <label className="flex flex-col gap-2"><span className="text-[14px] font-semibold" style={{ color: NAVY }}>{f.telefoon}</span>
           <input className={veld} name="phone" type="tel" autoComplete="tel" maxLength={40} placeholder={f.telefoonPlaceholder} /></label>
         <label className="flex flex-col gap-2 sm:col-span-2">

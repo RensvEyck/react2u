@@ -131,7 +131,7 @@ export async function notifyContactMessage(m: {
 
 export async function notifyApplication(a: {
   name: string; email: string; phone: string | null; vacancyTitle: string | null;
-  motivation: string | null; hasCv: boolean; linkedin?: string | null; bron?: string | null; taal?: Taal;
+  motivation: string | null; hasCv: boolean; linkedin?: string | null; viaLinkedin?: boolean; bron?: string | null; taal?: Taal;
 }) {
   await send(
     `Nieuwe sollicitatie: ${a.vacancyTitle || "open sollicitatie"}`,
@@ -140,7 +140,7 @@ export async function notifyApplication(a: {
       { label: "E-mail", value: a.email },
       { label: "Telefoon", value: a.phone },
       { label: "CV", value: a.hasCv ? "meegestuurd — bekijk in het Postvak IN" : "niet meegestuurd" },
-      { label: "LinkedIn", value: a.linkedin ?? null },
+      { label: "LinkedIn", value: a.linkedin ?? (a.viaLinkedin ? "naam en e-mail ingevuld via LinkedIn" : null) },
       { label: "Bron", value: a.bron },
       taalVeld(a.taal),
     ], a.motivation)
