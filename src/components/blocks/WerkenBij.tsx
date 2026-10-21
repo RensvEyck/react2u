@@ -3,12 +3,13 @@ import type { Vacancy } from "@/lib/types";
 import { MiniMarkdown } from "@/lib/md";
 import { OPEN_SOLLICITATIE, pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
-import { faqLd, faqParen, isOpdracht, kenmerkInTaal, opbouwInTaal, vacatureInTaal } from "@/lib/vacatures";
+import { alleenPunten, faqLd, faqParen, isOpdracht, kenmerkInTaal, opbouwInTaal, salarisKort, salarisRest, splitsVragen, vacatureInTaal } from "@/lib/vacatures";
 import { jsonLd } from "@/lib/jsonld";
 import { VAKGEBIEDEN, vakgebiedVan, type Vakgebied } from "@/lib/vakgebieden";
 import { outfit } from "./HomeVerhaal";
 import Solliciteren from "./Solliciteren";
 import DeelVacature from "./DeelVacature";
+import VacatureOverzicht, { type VacatureGroep, type VacatureKaart } from "./VacatureOverzicht";
 import {
   NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED,
   Eyebrow, Kruimels, KopBlok, Knop, Pijl, Vink, KlantenStrook,
@@ -31,10 +32,6 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl").repl
 /** Contact bij vacatures en de open sollicitatie (vaste naam, niet vertaald). */
 const EIGENAAR = { naam: "Rens van Eyck", mail: "rens@react2u.nl", whatsapp: "31645064277" };
 
-function Chip({ children, tint = SOFT }: { children: React.ReactNode; tint?: string }) {
-  return <span className="inline-flex items-center rounded-full px-3 py-[7px] text-[13.5px] font-bold" style={{ background: tint, color: NAVY }}>{children}</span>;
-}
-
 /** Een sectie van de vacaturetekst; leeg = niet tonen. */
 function TekstSectie({ kop: titel, md, lang }: { kop: string; md: string; lang?: string }) {
   if (!md) return null;
@@ -42,6 +39,46 @@ function TekstSectie({ kop: titel, md, lang }: { kop: string; md: string; lang?:
     <div className="vacature-tekst" lang={lang}>
       <h2 className={`${kop} m-0 mb-5 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{titel}</h2>
       <MiniMarkdown text={md} className="text-[17px] leading-[1.75]" kop="h3" />
+    </div>
+  );
+}
+
+/** "Wat is echt leuk": een opsomming wordt een uitgelicht blok; andere tekst gewoon een sectie. */
+function Hoogtepunten({ kop: titel, md, lang }: { kop: string; md: string; lang?: string }) {
+  const punten = alleenPunten(md);
+  if (!punten) return <TekstSectie kop={titel} md={md} lang={lang} />;
+  return (
+    <div className="flex flex-col gap-5" lang={lang}>
+      <h2 className={`${kop} m-0 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{titel}</h2>
+      <ul className="m-0 flex list-none flex-col gap-3 rounded-[24px] p-5 md:p-6" style={{ background: LAV }}>
+        {punten.map((x, i) => (
+          <li key={x} className="flex items-start gap-3.5 rounded-[16px] bg-white px-4 py-3.5 text-[16.5px] leading-[1.55]" style={{ color: NAVY }}>
+            <span aria-hidden className="mt-[1px] grid h-7 w-7 shrink-0 place-items-center rounded-full text-white" style={{ background: i % 2 ? TEAL : PINK }}><Vink size={14} /></span>
+            <span className="font-medium">{x}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** "Wat wij vragen": de eisen en "Mooi meegenomen" naast elkaar; zonder die splitsing gewoon een sectie. */
+function Vragen({ kop: titel, moetKop, md, lang }: { kop: string; moetKop: string; md: string; lang?: string }) {
+  const delen = splitsVragen(md);
+  if (!delen) return <TekstSectie kop={titel} md={md} lang={lang} />;
+  return (
+    <div className="flex flex-col gap-5" lang={lang}>
+      <h2 className={`${kop} m-0 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{titel}</h2>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="vacature-tekst flex flex-col gap-2 rounded-[24px] border p-6" style={{ borderColor: LINE }}>
+          <span className="text-[17px] font-bold" style={{ color: NAVY }}>{moetKop}</span>
+          <MiniMarkdown text={delen.eisen} className="text-[16px] leading-[1.6]" kop="h3" />
+        </div>
+        <div className="vacature-tekst vacature-plus flex flex-col gap-2 rounded-[24px] p-6" style={{ background: SOFT }}>
+          <span className="text-[17px] font-bold" style={{ color: NAVY }}>{delen.extraKop}</span>
+          <MiniMarkdown text={delen.extra} className="text-[16px] leading-[1.6]" kop="h3" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -111,6 +148,33 @@ function kenmerken(v: Vacancy, taal: Taal) {
   return [v.location, kenmerkInTaal(v.hours, taal)].filter(Boolean).join(" · ");
 }
 
+/** De vacatures als kaartjes per vakgebied, in de volgorde van VAKGEBIEDEN (zie VacatureOverzicht). */
+function groepeer(vacatures: Vacancy[], taal: Taal): VacatureGroep[] {
+  const w = woordenboek(taal).vacatures;
+  const p = paden(taal);
+  const groepen: VacatureGroep[] = [
+    ...VAKGEBIEDEN.map((g) => ({ slug: g.slug, naam: g[taal].kort, kaarten: [] as VacatureKaart[] })),
+    { slug: "overig", naam: w.overigeVacatures, kaarten: [] },
+  ];
+  for (const v of vacatures) {
+    const tekst = vacatureInTaal(v, taal);
+    const s = salarisKort(v.salary, taal);
+    const kaart: VacatureKaart = {
+      id: v.id,
+      href: p.vacature(v.slug),
+      titel: tekst.title,
+      lang: tekst.taal !== taal ? tekst.taal : undefined,
+      meta: [v.location || w.detail.standaardLocatie, kenmerkInTaal(v.hours, taal), w.dienstverband[v.employment_type]].filter(Boolean).join(" · "),
+      ...(s ? s : { salarisTekst: kenmerkInTaal(v.salary, taal) || undefined }),
+      concept: v.status === "draft",
+      anders: tekst.taal !== taal,
+    };
+    const slug = vakgebiedVan(v.vakgebied)?.slug ?? "overig";
+    groepen.find((g) => g.slug === slug)?.kaarten.push(kaart);
+  }
+  return groepen.filter((g) => g.kaarten.length);
+}
+
 /** De adressen van Werken bij, de vacatures en de open sollicitatie in een taal. */
 function paden(taal: Taal) {
   const basis = pad(taal, "vacatures");
@@ -132,6 +196,10 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
   const w = t.vacatures;
   const p = paden(taal);
   const keuzes = vacatures.map((v) => ({ id: v.id, title: vacatureInTaal(v, taal).title }));
+  const groepen = groepeer(vacatures, taal);
+  // Bij veel vacatures toont de kop de vakgebieden met hun aantal; een lijst
+  // van alle titels past daar niet.
+  const perVakgebied = vacatures.length > 5 && groepen.length > 1;
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. Kop met de open vacatures */}
@@ -155,7 +223,24 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
                 <span className="text-[15px] font-bold">{w.openVacatures}</span>
                 <span className="rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={{ background: "#FDECF4", color: PINK }}>{vul(w.nOpen, { n: vacatures.length })}</span>
               </div>
-              {vacatures.map((v, i) => {
+              {perVakgebied ? (
+                <>
+                  {groepen.map((g, i) => (
+                    <a key={g.slug} href={`#vak-${g.slug}`} className="hv-btn group flex items-center justify-between gap-3 border-t py-3" style={{ borderColor: LINE }}>
+                      <span className="flex items-center gap-2.5">
+                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: i % 2 ? TEAL : PINK }} />
+                        <span className="text-[15px] font-bold">{g.naam}</span>
+                      </span>
+                      <span className="flex items-center gap-3" style={{ color: MUTE }}>
+                        <span className="text-[14px] font-bold tabular-nums">{g.kaarten.length}</span><Pijl />
+                      </span>
+                    </a>
+                  ))}
+                  <a href="#vacatures" className="hv-btn mt-1 flex items-center justify-between gap-3 rounded-full px-4 py-3 text-[14.5px] font-bold text-white" style={{ background: NAVY }}>
+                    {vul(w.bekijkAlle, { n: vacatures.length })}<Pijl />
+                  </a>
+                </>
+              ) : vacatures.map((v, i) => {
                 const tekst = vacatureInTaal(v, taal);
                 return (
                   <Link key={v.id} href={p.vacature(v.slug)} className="hv-btn group flex items-center justify-between gap-3 border-t py-3" style={{ borderColor: LINE }}>
@@ -219,30 +304,9 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
         <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
           <KopBlok eyebrow={w.vacaturesEyebrow} kopTekst={vacatures.length ? w.vacaturesKop : w.geenVacaturesKop}
             tekst={vacatures.length ? w.vacaturesTekst : w.geenVacaturesTekst} />
+          <VacatureOverzicht groepen={groepen}
+            labels={{ alle: w.alleVacatures, filter: w.filterVakgebied, concept: w.conceptLabel, inHetNederlands: w.inHetNederlandsKort }} />
           <div className="flex flex-col gap-4">
-            {vacatures.map((v, i) => {
-              const tekst = vacatureInTaal(v, taal);
-              const anders = tekst.taal !== taal;
-              return (
-                <Link key={v.id} href={p.vacature(v.slug)}
-                  className="hv-btn group flex flex-col gap-5 rounded-[24px] bg-white p-7 md:flex-row md:items-center md:justify-between md:p-9">
-                  <span className="flex flex-col gap-2.5" lang={anders ? tekst.taal : undefined}>
-                    <span className={`${kop} flex items-center gap-3 text-[24px] md:text-[28px]`}>
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: i % 2 ? TEAL : PINK }} />{tekst.title}
-                    </span>
-                    {tekst.intro && <span className="max-w-[640px] text-[16px] leading-[1.6]" style={{ color: BODY }}>{tekst.intro}</span>}
-                  </span>
-                  <span className="flex flex-wrap items-center gap-2 md:flex-nowrap">
-                    {v.status === "draft" && <Chip tint="#FDE7B0">{w.conceptLabel}</Chip>}
-                    {anders && <Chip tint="#FDECF4">{w.inHetNederlandsKort}</Chip>}
-                    {v.location && <Chip>{v.location}</Chip>}
-                    {v.hours && <Chip>{kenmerkInTaal(v.hours, taal)}</Chip>}
-                    {v.salary && <Chip>{kenmerkInTaal(v.salary, taal)}</Chip>}
-                    <span className="ml-2 grid h-12 w-12 shrink-0 place-items-center rounded-full text-white transition-colors group-hover:bg-[#E61674]" style={{ background: NAVY }}><Pijl /></span>
-                  </span>
-                </Link>
-              );
-            })}
             <a href="#solliciteren" className="flex flex-col gap-3 rounded-[24px] border-2 border-dashed bg-white/50 p-7 md:flex-row md:items-center md:justify-between md:p-9" style={{ borderColor: "#D9D8E6" }}>
               <span className="flex flex-col gap-1.5">
                 <span className={`${kop} text-[22px]`}>{w.openKaartKop}</span>
@@ -325,15 +389,22 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
   const vastPakket = !opdracht && v.employment_type !== "INTERN";
   const oLang = o && o.taal !== taal ? o.taal : undefined;
   const faq = o ? faqParen(o.faq) : [];
-  const inHetKort = [
+  const sk = salarisKort(v.salary, taal);
+  const salaris: React.ReactNode = sk ? (
+    <span className="flex flex-col items-end gap-0.5">
+      <span className="tabular-nums">{sk.bedrag}</span>
+      <span className="text-[13px] font-normal" style={{ color: MUTE }}>{salarisRest(v.salary, taal)}</span>
+    </span>
+  ) : kenmerkInTaal(v.salary, taal);
+  const inHetKort = ([
     [ob.vakgebied, v.vakgebied],
     [ob.uren, kenmerkInTaal(v.hours, taal)],
     [ob.locatie, v.location || d.standaardLocatie],
-    [opdracht ? ob.tarief : ob.salaris, kenmerkInTaal(v.salary, taal)],
+    [opdracht ? ob.tarief : ob.salaris, salaris],
     [ob.contract, v.contractvorm],
     [ob.ervaring, v.ervaringsniveau],
     [ob.opleiding, v.opleidingsniveau],
-  ].filter(([, x]) => x) as string[][];
+  ] as [string, React.ReactNode][]).filter(([, x]) => x);
   const stappen = opdracht ? ob.stappenOpdracht : ob.stappen;
   const vg = vakgebiedVan(v.vakgebied);
   return (
@@ -389,14 +460,14 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
               <div className="flex flex-col gap-12 lg:col-span-7" style={{ color: BODY }}>
                 <TekstSectie kop={ob.doen} md={o.doen} lang={oLang} />
                 <TekstSectie kop={ob.samen} md={o.samen} lang={oLang} />
-                <TekstSectie kop={ob.leuk} md={o.leuk} lang={oLang} />
+                <Hoogtepunten kop={ob.leuk} md={o.leuk} lang={oLang} />
                 {o.eerlijk && (
                   <div className="rounded-[24px] border-2 border-dashed p-7" style={{ borderColor: "#D9D8E6" }} lang={oLang}>
                     <h2 className={`${kop} m-0 mb-3 text-[24px] tracking-[-0.4px]`} style={{ color: NAVY }}>{ob.eerlijk}</h2>
                     <MiniMarkdown text={o.eerlijk} className="text-[17px] leading-[1.75]" kop="h3" />
                   </div>
                 )}
-                <TekstSectie kop={ob.vragen} md={o.vragen} lang={oLang} />
+                <Vragen kop={ob.vragen} moetKop={ob.vragenMoet} md={o.vragen} lang={oLang} />
                 <div className="flex flex-col gap-5">
                   <h2 className={`${kop} m-0 text-[30px] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>{opdracht ? ob.biedenOpdracht : ob.bieden}</h2>
                   {vastPakket && (
