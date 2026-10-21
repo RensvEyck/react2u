@@ -29,7 +29,7 @@ import Beeld from "@/components/site/Beeld";
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl").replace(/\/$/, "");
 
 /** Contact bij vacatures (vaste naam, niet vertaald). */
-const EIGENAAR = { naam: "Rens van Eyck", mail: "rens@react2u.nl" };
+const EIGENAAR = { naam: "Rens van Eyck", mail: "rens@react2u.nl", whatsapp: "31645064277" };
 const SUSANNE = { naam: "Susanne Linders", tel: "06 12479720", telHref: "tel:+31612479720", mail: "susanne@react2u.nl" };
 
 function Chip({ children, tint = SOFT }: { children: React.ReactNode; tint?: string }) {
@@ -88,7 +88,7 @@ function Cijfers({ taal }: { taal: Taal }) {
   );
 }
 
-/** Contact bij een vacature: de eigenaar van React2u (alleen mail). */
+/** Contact bij een vacature: de eigenaar van React2u, via mail of WhatsApp. */
 function Eigenaar({ taal, groot }: { taal: Taal; groot?: boolean }) {
   const ob = woordenboek(taal).vacatures.opbouw;
   return (
@@ -103,6 +103,10 @@ function Eigenaar({ taal, groot }: { taal: Taal; groot?: boolean }) {
       </div>
       {groot && <p className="m-0 text-[14.5px] leading-[1.6]" style={{ color: BODY }}>{ob.contactTekst}</p>}
       <a href={`mailto:${EIGENAAR.mail}`} className="inline-flex h-11 items-center justify-center rounded-full border bg-white text-[14.5px] font-bold" style={{ color: NAVY, borderColor: "#D9D8E6" }}>{EIGENAAR.mail}</a>
+      <a href={`https://wa.me/${EIGENAAR.whatsapp}?text=${encodeURIComponent(ob.whatsappTekst)}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center justify-center gap-2 rounded-full text-[14.5px] font-bold text-white" style={{ background: "#1FA855" }}>
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+        {ob.whatsappKnop}
+      </a>
     </div>
   );
 }
