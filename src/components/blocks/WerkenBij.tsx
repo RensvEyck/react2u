@@ -232,7 +232,11 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
   const t = woordenboek(taal);
   const w = t.vacatures;
   const p = paden(taal);
-  const keuzes = vacatures.map((v) => ({ id: v.id, title: vacatureInTaal(v, taal).title }));
+  // Voor het formulier: in de vaste volgorde en met het vakgebied, zodat de keuzelijst per vakgebied kan groeperen.
+  const keuzes = sorteer(vacatures, taal).map((v) => ({
+    id: v.id, title: vacatureInTaal(v, taal).title,
+    groep: vakgebiedVan(v.vakgebied)?.[taal].kort ?? "", open: v.slug === OPEN_SOLLICITATIE.nl,
+  }));
   const kaarten = sorteer(vacatures, taal).map((v) => kaartVan(v, taal));
   const groepen = VAKGEBIEDEN.filter((g) => kaarten.some((k) => k.groep === g.slug)).map((g) => ({ slug: g.slug, naam: g[taal].kort }));
   return (
