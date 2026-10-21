@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPublishedVacancies } from "@/lib/content";
+import { getZichtbareVacatures } from "@/lib/voorbeeld";
 import { metOmschrijving, paginaTitel } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
 import { hreflangVoor } from "@/lib/taal";
@@ -31,6 +31,6 @@ export default async function VakgebiedPage({ params }: { params: Promise<{ slug
   const { slug } = await params;
   const g = vakgebiedOpSlug(slug);
   if (!g) notFound();
-  const vacatures = await getPublishedVacancies();
+  const vacatures = await getZichtbareVacatures();
   return <VakgebiedPagina g={g} vacatures={vacatures} taal="en" />;
 }

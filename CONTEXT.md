@@ -474,6 +474,27 @@ Een nieuwe vertaalde pagina: JSON in `src/content/en/`, de slug in `SLUGS` en
 drie kloppen en dat de Engelse teksten geen gedachtestreepjes of Nederlandse
 resten bevatten.
 
+## Voorbeeldmodus
+
+Conceptvacatures bekijk je op de echte site zonder ze te publiceren. In de admin
+onder Vacatures zet **Bekijk met concepten** (of het oogje bij een concept) de
+voorbeeldmodus aan via `/api/voorbeeld?pad=…`. Daarna toont react2u.nl voor
+jou, en alleen voor jou, de vacaturepagina's alsof de concepten live staan:
+het overzicht, de vacatures zelf en de vakgebiedpagina's, in het Nederlands en
+het Engels. Een roze balk onderaan zegt dat je in het voorbeeld zit en zet het
+uit. Conceptvacatures dragen dan het label "Concept".
+
+Technisch is het Draft Mode van Next ([`src/lib/voorbeeld.ts`](src/lib/voorbeeld.ts)):
+wie de cookie heeft krijgt de pagina's vers en nooit uit de cache, alle andere
+bezoekers zien de gewone statische site. De cookie zelf geeft geen toegang. In
+de voorbeeldmodus leest de site met de sessie van de beheerder, dus RLS
+beslist; zonder het recht `vacatures` zie je ook dan alleen wat gepubliceerd
+is. Aanzetten vraagt dat recht (`requirePerm`). Feeds, sitemap en Google for
+Jobs blijven alleen gepubliceerde vacatures tonen, conceptpagina's krijgen
+`noindex`, en bezoeken in de voorbeeldmodus tellen niet mee in de statistieken.
+Let op: solliciteren werkt ook in het voorbeeld, en zo'n sollicitatie komt echt
+binnen.
+
 ## Concepten
 
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te

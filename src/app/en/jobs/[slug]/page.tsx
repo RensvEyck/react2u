@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPublishedVacancies, getVacancy } from "@/lib/content";
+import { getPublishedVacancies } from "@/lib/content";
+import { getZichtbareVacature, getZichtbareVacatures } from "@/lib/voorbeeld";
 import { jsonLd } from "@/lib/jsonld";
 import { metOmschrijving, omschrijving, paginaTitel } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
@@ -23,10 +24,13 @@ export async function generateStaticParams() {
  */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const v = await getVacancy(slug);
+  const v = await getZichtbareVacature(slug);
   if (!v) return {};
+  // Een concept zie je alleen in de voorbeeldmodus; nooit indexeren.
+  const concept = v.status !== "published" ? { robots: { index: false, follow: false } } : {};
   const tekst = vacatureInTaal(v, "en");
   return {
+    ...concept,
     title: { absolute: paginaTitel(`${tekst.title} • Vacancy`) },
     ...metOmschrijving(omschrijving(tekst.intro || v.seo_description)),
     alternates: { canonical: `/en/jobs/${slug}`, languages: hreflangVoor(`/vacatures/${slug}`) ?? undefined },
@@ -36,9 +40,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function JobPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const v = await getVacancy(slug);
+  const v = await getZichtbareVacature(slug);
   if (!v) notFound();
-  const andere = (await getPublishedVacancies()).filter((x) => x.id !== v.id);
+  const andere = (await getZichtbareVacatures()).filter((x) => x.id !== v.id);
   return (
     <>
       <VacatureDetail v={v} andere={andere} taal="en" />

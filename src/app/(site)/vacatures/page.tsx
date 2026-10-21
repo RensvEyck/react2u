@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPublishedVacancies } from "@/lib/content";
+import { getZichtbareVacatures } from "@/lib/voorbeeld";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
 import { Arrow } from "@/components/site/Arrow";
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function VacaturesPage() {
-  const vacancies = await getPublishedVacancies();
+  const vacancies = await getZichtbareVacatures();
   // Het nieuwe ontwerp "Werken bij"; de oude pagina hieronder is de terugvaloptie.
   if (nieuwOntwerp) return <WerkenBijPagina vacatures={vacancies} />;
   return (

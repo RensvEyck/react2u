@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPublishedVacancies } from "@/lib/content";
+import { getZichtbareVacatures } from "@/lib/voorbeeld";
 import { WerkenBijPagina } from "@/components/blocks/WerkenBij";
 import { hreflangVoor } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
@@ -20,6 +20,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Working at React2u: dezelfde pagina als /vacatures, met de teksten uit het Engelse woordenboek. */
 export default async function JobsPage() {
-  const vacancies = await getPublishedVacancies();
+  const vacancies = await getZichtbareVacatures();
   return <WerkenBijPagina vacatures={vacancies} taal="en" />;
 }

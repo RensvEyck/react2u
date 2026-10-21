@@ -309,6 +309,8 @@ export const nl = {
     /** Alleen op een vacature zonder tekst in de taal van de pagina. */
     inHetNederlands: "Deze vacature is in het Nederlands",
     inHetNederlandsKort: "In het Nederlands",
+    /** Alleen zichtbaar in de voorbeeldmodus (src/lib/voorbeeld.ts). */
+    conceptLabel: "Concept",
     detail: {
       solliciteerDirect: "Solliciteer direct",
       duurtMinuut: "Duurt een minuut",
