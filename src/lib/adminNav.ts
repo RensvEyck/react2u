@@ -2,7 +2,7 @@ import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
-  LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail,
+  LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -31,6 +31,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LuLayoutDashboard, keywords: "home start overzicht vandaag" },
   { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox", keywords: "inbox berichten sollicitaties inzendingen" },
   { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads", keywords: "leads bellen crm terugbellen" },
+  { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
   { label: "Pagina's", href: "/admin/paginas", icon: LuFileText, keywords: "teksten blokken content cms" },
   { label: "Blog", href: "/admin/blog", icon: LuNewspaper, keywords: "artikelen nieuws posts" },
   { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase, keywords: "banen werken bij jobs" },
@@ -58,6 +59,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "Nieuw artikel", href: "/admin/blog/nieuw", icon: LuPlus, keywords: "blog schrijven post toevoegen" },
   { label: "Nieuwe pagina", href: "/admin/paginas#nieuw", icon: LuPlus, keywords: "pagina toevoegen aanmaken" },
   { label: "Lead toevoegen", href: "/admin/bellijst#nieuw", icon: LuUserPlus, keywords: "lead nieuw bellijst" },
+  { label: "Partner toevoegen", href: "/admin/partners#nieuw", icon: LuHandshake, keywords: "partner nieuw accountant aanmeldlink code" },
   { label: "Bestand uploaden", href: "/admin/media", icon: LuUpload, keywords: "media afbeelding pdf" },
   { label: "Doorverwijzing toevoegen", href: "/admin/seo/doorverwijzingen#nieuw", icon: LuSignpost, keywords: "redirect oude url doorsturen 404" },
   { label: "Onderhoudsmodus", href: "/admin/instellingen#onderhoud", icon: LuConstruction, keywords: "site dicht offline maintenance" },

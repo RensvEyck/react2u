@@ -53,6 +53,13 @@ const FOUT_TEKST: Record<string, string> = {
   // Bedrijfsbezoek
   "bedrijf-weg": "Dat bedrijf staat niet (meer) in het bezoek van de afgelopen 90 dagen.",
   "migratie-0010": "Hiervoor moet migratie 0010 eerst in Supabase worden uitgevoerd.",
+  // Partners
+  "partner-kantoor": "Vul de naam van het kantoor in.",
+  "partner-code": "Die partnercode is al in gebruik. Kies een andere, of laat het veld leeg voor een voorstel.",
+  "partner-klanten": "Deze partner heeft klanten en kan niet weg. Zet hem op inactief: dan koppelt zijn link geen nieuwe aanvragen meer.",
+  "partner-klant": "Vul bedrijf, aantal medewerkers, tarief en startdatum in.",
+  "partner-eind": "De einddatum ligt vóór de startdatum.",
+  "migratie-0022": "Partners staan nog niet aan: migratie 0022 moet eerst in Supabase worden uitgevoerd.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
@@ -69,6 +76,8 @@ const OK_TEKST: Record<string, string> = {
   "niet-volgen": "Niet meer volgen — nieuwe bezoeken worden zonder bedrijfsnaam opgeslagen.",
   "weer-volgen": "Wordt weer gevolgd.",
   vergeten: "Vergeten — de bedrijfsnaam is uit alle eerdere bezoeken gehaald.",
+  partner: "Partner toegevoegd. Stuur de aanmeldlink hieronder naar het kantoor.",
+  "partner-klant": "Klant opgeslagen; het kwartaaloverzicht is bijgewerkt.",
 };
 
 export default function Toast() {

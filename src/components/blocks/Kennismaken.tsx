@@ -7,6 +7,7 @@ import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
 import { pad, telefoonInTaal } from "@/lib/taal";
+import { usePartnercode } from "@/lib/partnercode";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -52,6 +53,7 @@ function Formulier({ d }: { d: any }) {
   const k = t.kennismaken;
   const f = t.formulier;
   const [state, action, pending] = useActionState<FormState, FormData>(verstuur, null);
+  const partner = usePartnercode();
   if (state?.ok) {
     return (
       <div role="status" className="flex flex-col gap-3">
@@ -67,6 +69,8 @@ function Formulier({ d }: { d: any }) {
         <span className="text-[14px]" style={{ color: MUTE }}>{f.verplichteVelden}</span>
       </div>
       <input type="hidden" name="taal" value={taal} />
+      {/* Kwam de bezoeker via de aanmeldlink van een partner, dan hoort de aanvraag bij die partner. */}
+      {partner && <input type="hidden" name="partner" value={partner} />}
       <div className="grid gap-x-4 gap-y-[18px] sm:grid-cols-2">
         <label className="flex flex-col gap-2 sm:col-span-2"><Label verplicht>{k.bedrijfsnaam}</Label>
           <input className={veld} name="company" autoComplete="organization" required maxLength={200} placeholder={k.bedrijfsnaamPlaceholder} /></label>

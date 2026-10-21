@@ -299,6 +299,8 @@ export async function notifyApplication(a: {
 export async function notifyOfferte(o: {
   name: string; company: string; email: string; phone: string;
   pakket: string; employees: number; message: string | null; taal?: Taal;
+  /** Partnercode uit de aanmeldlink, als de aanvraag via een partner kwam. */
+  partner?: string | null;
 }) {
   await send(
     `Offerteaanvraag ${o.pakket}: ${o.company}`,
@@ -309,6 +311,7 @@ export async function notifyOfferte(o: {
       { label: "Naam", value: o.name },
       { label: "E-mail", value: o.email },
       { label: "Telefoon", value: o.phone },
+      { label: "Via partner", value: o.partner },
       taalVeld(o.taal),
     ], o.message),
     process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
