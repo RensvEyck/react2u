@@ -4,7 +4,7 @@ import { hasVersions } from "@/lib/revisionsDb";
 import { deleteVacancy } from "@/app/admin/actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import type { Vacancy } from "@/lib/types";
-import { LuPlus, LuExternalLink, LuPencil, LuTrash2, LuMapPin, LuClock } from "react-icons/lu";
+import { LuPlus, LuExternalLink, LuPencil, LuTrash2, LuMapPin, LuClock, LuEye, LuShare2 } from "react-icons/lu";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   draft: { label: "Concept", cls: "bg-black/[0.06] text-black/50" },
@@ -12,11 +12,35 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   closed: { label: "Gesloten", cls: "bg-[#fff4e5] text-[#c77700]" },
 };
 
+function dertigDagenGeleden() {
+  return new Date(Date.now() - 30 * 86400000).toISOString();
+}
+
 export default async function VacanciesAdmin() {
   const { sb } = await requirePerm("vacatures");
   const versionsOn = await hasVersions(sb);
   const { data } = await sb.from("vacancies").select("*").order("created_at", { ascending: false });
   const vacancies = (data as Vacancy[]) || [];
+
+  // Resultaat per vacature over de laatste 30 dagen: bezoeken (page_views,
+  // NL en EN pad) en sollicitaties. Zo zie je welke titels en kanalen werken.
+  const sinds = dertigDagenGeleden();
+  const paden = vacancies.flatMap((v) => [`/vacatures/${v.slug}`, `/en/jobs/${v.slug}`]);
+  const [{ data: views }, { data: apps }] = await Promise.all([
+    paden.length
+      ? sb.from("page_views").select("path").gte("created_at", sinds).in("path", paden).limit(50000)
+      : Promise.resolve({ data: [] as { path: string }[] }),
+    sb.from("applications").select("vacancy_id").gte("created_at", sinds),
+  ]);
+  const bezoek = new Map<string, number>();
+  for (const r of (views as { path: string }[]) || []) {
+    const slug = r.path.replace(/^\/(vacatures|en\/jobs)\//, "");
+    bezoek.set(slug, (bezoek.get(slug) || 0) + 1);
+  }
+  const sol = new Map<string, number>();
+  for (const r of (apps as { vacancy_id: string | null }[]) || []) {
+    if (r.vacancy_id) sol.set(r.vacancy_id, (sol.get(r.vacancy_id) || 0) + 1);
+  }
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -28,6 +52,10 @@ export default async function VacanciesAdmin() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/admin/prullenbak" className="abtn-ghost !px-3" title="Prullenbak" aria-label="Prullenbak"><LuTrash2 className="text-[15px]" /></Link>
+          {/* Voorbeeldmodus (src/lib/voorbeeld.ts): de site met de concepten erbij, alleen voor jou. */}
+          <a href="/api/voorbeeld?pad=/vacatures" target="_blank" className="abtn-ghost" title="Bekijk de site alsof de concepten al live staan">
+            <LuEye /> Bekijk met concepten
+          </a>
           <Link href="/admin/vacatures/nieuw" className="abtn"><LuPlus /> Nieuwe vacature</Link>
         </div>
       </div>
@@ -46,6 +74,16 @@ export default async function VacanciesAdmin() {
                 <span className="flex items-center gap-1"><LuMapPin className="text-[11px]" /> {v.location}</span>
                 {v.hours && <span className="flex items-center gap-1"><LuClock className="text-[11px]" /> {v.hours}</span>}
                 <span className="text-black/30">/vacatures/{v.slug}</span>
+                {v.status === "published" && (() => {
+                  const b = bezoek.get(v.slug) || 0;
+                  const n = sol.get(v.id) || 0;
+                  return (
+                    <span className="font-medium text-[#312e82]" title="Laatste 30 dagen">
+                      {b} bezoeken · {n} {n === 1 ? "sollicitatie" : "sollicitaties"}
+                      {b > 0 && ` · ${((n / b) * 100).toLocaleString("nl-NL", { maximumFractionDigits: 1 })}%`}
+                    </span>
+                  );
+                })()}
               </div>
             </div>
             <span className={`apill ${STATUS[v.status].cls}`}>{STATUS[v.status].label}</span>
@@ -53,6 +91,16 @@ export default async function VacanciesAdmin() {
               {v.status === "published" && (
                 <a href={`/vacatures/${v.slug}`} target="_blank" className="rounded-lg p-2 text-black/50 hover:bg-black/5 hover:text-[#312e82]" title="Bekijk">
                   <LuExternalLink />
+                </a>
+              )}
+              {v.status === "published" && (
+                <Link href={`/admin/vacatures/${v.id}#delen`} className="rounded-lg p-2 text-black/50 hover:bg-black/5 hover:text-[#312e82]" title="Delen met je persoonlijke link">
+                  <LuShare2 />
+                </Link>
+              )}
+              {v.status === "draft" && (
+                <a href={`/api/voorbeeld?pad=/vacatures/${v.slug}`} target="_blank" className="rounded-lg p-2 text-black/50 hover:bg-black/5 hover:text-[#312e82]" title="Voorbeeld">
+                  <LuEye />
                 </a>
               )}
               <Link href={`/admin/vacatures/${v.id}`} className="rounded-lg p-2 text-black/50 hover:bg-black/5 hover:text-[#e75387]" title="Bewerken">

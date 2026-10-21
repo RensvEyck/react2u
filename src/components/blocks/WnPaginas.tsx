@@ -60,7 +60,7 @@ export function WnKop({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { lang?:
           )}
         </div>
         {kaart.length > 0 && (
-          <div className="relative flex flex-col rounded-[24px] bg-white p-7">
+          <div className="relative flex flex-col rounded-[24px] bg-white p-6 md:p-7">
             {d.cardTitle && <span className="pb-3 text-[15px] font-bold" style={{ color: NAVY }}>{d.cardTitle}</span>}
             {kaart.map((r, i) => (
               <a key={i} href={r.href} className="flex items-center gap-3 border-t py-4 text-[18px] font-bold" style={{ borderColor: LINE, color: NAVY }}>
@@ -95,25 +95,26 @@ export function WnStappen({ d }: { d: any }) {
   const stappen: any[] = d.steps || [];
   return (
     <section aria-label={d.heading} {...anker(d)} style={{ background: d.bg || "#ffffff" }}>
-      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-12 py-20 md:py-[104px]`}>
+      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-9 py-14 md:gap-12 md:py-[104px]`}>
         <SectieKop d={d} />
-        <ol className="m-0 grid list-none gap-8 p-0 sm:grid-cols-2 lg:grid-cols-5 lg:gap-5">
+        {/* Genummerd: op de telefoon staat het nummer naast de tekst (twee kolommen), vanaf lg erboven met de lijn ernaast. */}
+        <ol className="m-0 grid list-none gap-6 p-0 sm:grid-cols-2 sm:gap-8 lg:grid-cols-5 lg:gap-5">
           {stappen.map((s, i) => (
-            <li key={i} className={`flex flex-col gap-2.5 ${d.numbered ? "" : "border-t-[3px] pt-[18px]"}`} style={{ borderColor: i === 0 ? PINK : LINE }}>
+            <li key={i} className={d.numbered ? "grid grid-cols-[36px_minmax(0,1fr)] gap-x-4 gap-y-1.5 lg:flex lg:flex-col lg:gap-2.5" : "flex flex-col gap-2.5 border-t-[3px] pt-[18px]"} style={{ borderColor: i === 0 ? PINK : LINE }}>
               {d.numbered && (
-                <span className="flex items-center gap-3">
+                <span className="row-span-3 flex items-start gap-3 lg:row-span-1 lg:items-center">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[14px] font-bold text-white" style={{ background: i === 0 ? PINK : NAVY }}>{i + 1}</span>
                   {i < stappen.length - 1 && <span className="hidden h-0.5 flex-1 lg:block" style={{ background: LINE }} />}
                 </span>
               )}
-              <span className={d.numbered ? "self-start rounded-full px-2.5 py-1 text-[12.5px] font-bold" : "text-[14px] font-bold"} style={{ color: PINK, background: d.numbered ? "#FDECF4" : undefined }}>{s.when}</span>
+              <span className={d.numbered ? "self-start rounded-full px-2.5 py-1 text-[13px] font-bold" : "text-[14px] font-bold"} style={{ color: PINK, background: d.numbered ? "#FDECF4" : undefined }}>{s.when}</span>
               <span className={`${kop} text-[19px] leading-[1.25]`} style={{ color: NAVY }}>{s.title}</span>
               <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{s.text}</span>
             </li>
           ))}
         </ol>
         {d.cta && (
-          <div className="flex flex-col gap-4 rounded-[20px] border bg-white px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8" style={{ borderColor: LINE }}>
+          <div className="flex flex-col gap-4 rounded-[20px] border bg-white px-5 py-5 md:flex-row md:items-center md:justify-between md:px-8" style={{ borderColor: LINE }}>
             <span className="flex flex-col gap-1">
               <span className="text-[16px] font-bold" style={{ color: NAVY }}>{d.cta.heading}</span>
               <span className="text-[15px]" style={{ color: BODY }}>{d.cta.text}</span>
@@ -134,13 +135,13 @@ export function WnKaarten({ d }: { d: any }) {
   const naast = d.layout === "naast";
   return (
     <section aria-label={d.heading} {...anker(d)} style={{ background: d.bg || SOFT }}>
-      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-10 py-20 md:gap-12 md:py-[104px]`}>
+      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-10 py-14 md:gap-12 md:py-[104px]`}>
         <SectieKop d={d} />
         <div className={`grid gap-4 md:gap-5 ${kolommen}`}>
           {kaarten.map((c, i) => {
             const inner = (
               <>
-                <span className={`grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[16px] ${c.letter ? `${kop} text-[20px]` : ""}`}
+                <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-[14px] md:h-[52px] md:w-[52px] md:rounded-[16px] ${c.letter ? `${kop} text-[20px]` : ""}`}
                   style={{ background: c.tint || "#FDECF4", color: c.kleur || PINK }}>
                   {c.letter ? c.letter : <Icoon naam={c.icon} size={22} />}
                 </span>
@@ -150,7 +151,9 @@ export function WnKaarten({ d }: { d: any }) {
                 </span>
               </>
             );
-            const cls = `flex ${naast ? "flex-row gap-[18px]" : "flex-col gap-4"} rounded-[22px] border bg-white p-7`;
+            // Op de telefoon altijd icoon links en tekst rechts: dat scheelt een
+            // derde in hoogte bij een stapel van vijf of zes kaarten.
+            const cls = `flex flex-row gap-4 rounded-[22px] border bg-white p-5 md:p-7 ${naast ? "md:gap-[18px]" : "md:flex-col md:gap-4"}`;
             return c.href
               ? <a key={i} href={c.href} target={c.href.endsWith(".pdf") ? "_blank" : undefined} rel="noopener" className={`${cls} hv-btn`} style={{ borderColor: LINE }}>{inner}</a>
               : <div key={i} className={cls} style={{ borderColor: LINE }}>{inner}</div>;
@@ -167,13 +170,13 @@ export function WnTekstKaart({ d }: { d: any }) {
   const rijen: any[] = d.rows || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className="bg-white">
-      <div className={`hv ${outfit.variable} ${BREED} grid gap-10 py-20 md:py-[104px] lg:grid-cols-12 lg:items-center lg:gap-6`}>
+      <div className={`hv ${outfit.variable} ${BREED} grid gap-10 py-14 md:py-[104px] lg:grid-cols-12 lg:items-center lg:gap-6`}>
         <div className="flex flex-col gap-5 lg:col-span-6">
           {d.eyebrow && <Eyebrow>{d.eyebrow}</Eyebrow>}
           <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{d.heading}</h2>
           {d.text && <p className="m-0 text-[17px] leading-[1.75]" style={{ color: BODY }}>{d.text}</p>}
         </div>
-        <div className="flex flex-col rounded-[24px] px-7 py-3 lg:col-span-5 lg:col-start-8" style={{ background: SOFT }}>
+        <div className="flex flex-col rounded-[24px] px-5 py-2 md:px-7 md:py-3 lg:col-span-5 lg:col-start-8" style={{ background: SOFT }}>
           {rijen.map((r, i) => (
             <div key={i} className={`flex flex-col gap-2 py-5 ${i ? "border-t" : ""}`} style={{ borderColor: LINE }}>
               <span className="text-[16px] font-bold" style={{ color: NAVY }}>{r.title}</span>
@@ -192,7 +195,7 @@ export function WnChecklist({ d }: { d: any }) {
   const items: string[] = d.items || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className="bg-white">
-      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
         <ul className="m-0 grid list-none gap-x-8 gap-y-4 p-0 md:grid-cols-2">
           {items.map((t, i) => (
@@ -218,17 +221,18 @@ export function WnVragenLijst({ d }: { d: any }) {
   const items: any[] = d.items || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className="bg-white">
-      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
         <div className="flex flex-col border-t" style={{ borderColor: LINE }}>
+          {/* De ruimte zit op de summary, niet op details: zo is de hele regel een tikdoel. */}
           {items.map((q, i) => (
-            <details key={i} className="group border-b py-6" style={{ borderColor: LINE }} open={i === 0}>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-[17px] font-bold md:text-[18px]" style={{ color: NAVY }}>
+            <details key={i} className="group border-b" style={{ borderColor: LINE }} open={i === 0}>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-5 py-6 text-[17px] font-bold md:text-[18px]" style={{ color: NAVY }}>
                 {q.question}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={MUTE} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
                   className="shrink-0 transition-transform group-open:rotate-180" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
               </summary>
-              <p className="m-0 mt-3 max-w-[860px] text-[16px] leading-[1.7]" style={{ color: BODY }}>{q.answer}</p>
+              <p className="m-0 -mt-2 max-w-[860px] pb-6 text-[16px] leading-[1.7]" style={{ color: BODY }}>{q.answer}</p>
             </details>
           ))}
         </div>
@@ -243,11 +247,11 @@ export function WnWaarden({ d }: { d: any }) {
   const items: any[] = d.items || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className="bg-white">
-      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-12 py-20 md:py-[104px]`}>
+      <div className={`hv ${outfit.variable} ${BREED} flex flex-col gap-9 py-14 md:gap-12 md:py-[104px]`}>
         <SectieKop d={d} />
-        <div className="grid gap-10 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-3 md:gap-10">
           {items.map((w, i) => (
-            <div key={i} className="flex flex-col gap-[18px] border-t-[3px] pt-7" style={{ borderColor: w.kleur || PINK }}>
+            <div key={i} className="flex flex-col gap-3.5 border-t-[3px] pt-6 md:gap-[18px] md:pt-7" style={{ borderColor: w.kleur || PINK }}>
               <span className={`${kop} text-[40px] leading-none tracking-[-1.4px] md:text-[48px]`} style={{ color: NAVY }}>{w.title}</span>
               <span className="text-[16.5px] leading-[1.7]" style={{ color: BODY }}>{w.text}</span>
             </div>
@@ -263,17 +267,18 @@ export function WnWaarden({ d }: { d: any }) {
 export function WnContactStrook({ d }: { d: any }) {
   return (
     <section aria-label="Contact" className="bg-white">
-      <div className={`hv ${outfit.variable} ${BREED} pb-20 md:pb-[112px]`}>
-        <div className="flex flex-col gap-8 rounded-[28px] p-8 md:flex-row md:items-center md:justify-between md:rounded-[32px] md:px-14 md:py-12" style={{ background: NAVY }}>
+      <div className={`hv ${outfit.variable} ${BREED} pb-14 md:pb-[112px]`}>
+        <div className="flex flex-col gap-6 rounded-[28px] p-6 sm:p-8 md:flex-row md:items-center md:justify-between md:gap-8 md:rounded-[32px] md:px-14 md:py-12" style={{ background: NAVY }}>
           <div className="flex flex-col gap-2.5">
             <span className={`${kop} text-[28px] leading-[1.15] md:text-[32px]`} style={{ color: "#ffffff" }}>{d.heading}</span>
             {d.text && <span className="text-[17px] leading-[1.6]" style={{ color: "rgba(255,255,255,0.75)" }}>{d.text}</span>}
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2.5">
-            <a href="tel:+31856205800" className="inline-flex h-[54px] items-center gap-2.5 rounded-full bg-white px-6 text-[15px] font-bold" style={{ color: NAVY }}>
+          {/* Op de telefoon twee knoppen over de volle breedte onder elkaar. */}
+          <div className="flex shrink-0 flex-col gap-2.5 sm:flex-row sm:flex-wrap">
+            <a href="tel:+31856205800" className="inline-flex h-[54px] items-center justify-center gap-2.5 rounded-full bg-white px-6 text-[15px] font-bold" style={{ color: NAVY }}>
               <Icoon naam="telefoon" size={17} />{d.phoneDisplay || "085 620 58 00"}
             </a>
-            <a href="mailto:info@react2u.nl" className="inline-flex h-[54px] items-center gap-2.5 rounded-full border px-6 text-[15px] font-bold" style={{ color: "#ffffff", borderColor: "rgba(255,255,255,0.4)" }}>
+            <a href="mailto:info@react2u.nl" className="inline-flex h-[54px] items-center justify-center gap-2.5 rounded-full border px-6 text-[15px] font-bold" style={{ color: "#ffffff", borderColor: "rgba(255,255,255,0.4)" }}>
               <Icoon naam="mail" size={17} />info@react2u.nl
             </a>
           </div>
@@ -292,7 +297,7 @@ export function Inloggen({ d, asH1 }: { d: any; asH1?: boolean }) {
   return (
     <div className={`hv ${outfit.variable}`}>
       <section aria-label="Inloggen" className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
-        <div className="relative flex flex-col gap-12 overflow-hidden rounded-[28px] px-5 py-10 md:rounded-[36px] md:p-14 lg:p-[72px]" style={{ background: "#ECEBF5" }}>
+        <div className="relative flex flex-col gap-8 overflow-hidden rounded-[28px] px-5 py-9 md:gap-12 md:rounded-[36px] md:p-14 lg:p-[72px]" style={{ background: "#ECEBF5" }}>
           <span aria-hidden className="absolute right-[-120px] top-[-150px] h-[520px] w-[520px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <div className="relative flex max-w-[640px] flex-col gap-[18px]">
             <Kruimels items={[{ label: "Home", href: "/" }, { label: "Inloggen" }]} />
@@ -301,7 +306,7 @@ export function Inloggen({ d, asH1 }: { d: any; asH1?: boolean }) {
           </div>
           <div className="relative grid gap-5 md:grid-cols-2 md:gap-6">
             {portalen.map((p, i) => (
-              <div key={i} id={p.anchor} className="flex flex-col gap-5 rounded-[28px] border bg-white p-7 shadow-[0_24px_48px_-32px_rgba(50,46,131,0.30)] md:p-10" style={{ borderColor: LINE }}>
+              <div key={i} id={p.anchor} className="flex flex-col gap-4 rounded-[28px] border bg-white p-6 shadow-[0_24px_48px_-32px_rgba(50,46,131,0.30)] md:gap-5 md:p-10" style={{ borderColor: LINE }}>
                 <span className="grid h-14 w-14 place-items-center rounded-[16px]" style={{ background: p.tint, color: p.kleur }}><Icoon naam={p.icon} size={26} /></span>
                 <span className="flex flex-col gap-1.5">
                   <span className="text-[14px] font-bold" style={{ color: p.kleur }}>{p.for}</span>
@@ -321,9 +326,9 @@ export function Inloggen({ d, asH1 }: { d: any; asH1?: boolean }) {
         </div>
       </section>
       <section aria-label="Hulp bij inloggen" className="bg-white">
-        <div className={`${BREED} grid gap-5 py-16 md:grid-cols-3 md:py-[88px]`}>
+        <div className={`${BREED} grid gap-4 py-12 md:grid-cols-3 md:gap-5 md:py-[88px]`}>
           {hulp.map((h, i) => (
-            <div key={i} className="flex flex-col gap-3.5 rounded-[24px] border p-8" style={{ borderColor: LINE }}>
+            <div key={i} className="flex flex-col gap-3 rounded-[24px] border p-6 md:gap-3.5 md:p-8" style={{ borderColor: LINE }}>
               <span className="grid h-12 w-12 place-items-center rounded-[14px]" style={{ background: "#ECEBF5", color: NAVY }}><Icoon naam={h.icon} size={22} /></span>
               <span className={`${kop} text-[21px]`} style={{ color: NAVY }}>{h.title}</span>
               <span className="text-[16px] leading-[1.65]" style={{ color: BODY }}>{h.text}</span>
@@ -347,11 +352,11 @@ export function JuridischeDocumenten({ d, asH1 }: { d: any; asH1?: boolean }) {
         <H className={`${kop} m-0 text-[44px] leading-[1.02] tracking-[-1.4px] md:text-[60px]`} style={{ color: NAVY }}>{d.heading || "Juridische documenten"}</H>
         {d.text && <p className="m-0 max-w-[640px] text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }}>{d.text}</p>}
       </section>
-      <section aria-label="Documenten" className={`${BREED} flex flex-col gap-8 pb-20 pt-10 md:pb-[112px] md:pt-12`}>
+      <section aria-label="Documenten" className={`${BREED} flex flex-col gap-8 pb-14 pt-10 md:pb-[112px] md:pt-12`}>
         <div className="grid gap-4 md:grid-cols-2 md:gap-5">
           {docs.map((doc, i) => (
-            <a key={i} href={doc.href} target="_blank" rel="noopener" className="hv-btn group flex gap-5 rounded-[24px] border p-7 md:p-8" style={{ borderColor: LINE }}>
-              <span className="grid h-14 w-12 shrink-0 place-items-center rounded-[10px] text-[12px] font-bold" style={{ background: "#FDECF4", color: PINK }}>PDF</span>
+            <a key={i} href={doc.href} target="_blank" rel="noopener" className="hv-btn group flex gap-4 rounded-[24px] border p-5 md:gap-5 md:p-8" style={{ borderColor: LINE }}>
+              <span className="grid h-14 w-12 shrink-0 place-items-center rounded-[10px] text-[13px] font-bold" style={{ background: "#FDECF4", color: PINK }}>PDF</span>
               <span className="flex flex-1 flex-col gap-2">
                 <span className={`${kop} text-[22px]`} style={{ color: NAVY }}>{doc.title}</span>
                 <span className="text-[15.5px] leading-[1.6]" style={{ color: BODY }}>{doc.text}</span>

@@ -4,8 +4,9 @@
  * /arbodienst-provincie-<provincie> en /arbodienst-<gemeente> en sitemap.xml.
  * Gaat er een gemeentelijke herindeling in, pas dan alleen deze lijst aan.
  *
- * Niet elke gemeentepagina hoort in Google: zie GEINDEXEERDE_GEMEENTEN onderaan.
+ * Niet elke gemeentepagina hoort in Google: zie isGeindexeerd onderaan.
  */
+import { heeftPlaatsTekst } from "./plaatsIndex";
 
 export type Provincie = { naam: string; gemeenten: string[] };
 export type Regio = { regio: string; kleur: string; provincies: Provincie[] };
@@ -86,31 +87,39 @@ export function provincieVoorSlug(slug: string): { provincie: Provincie; regio: 
 }
 
 /**
- * De gemeenten die in Google horen.
+ * Welke gemeenten in Google horen.
  *
- * De 342 gemeentepagina's lijken voor negentig procent op elkaar. Google ziet
- * dat als dubbele inhoud en waardeert dan de hele site lager. Daarom krijgen
- * alleen de gemeenten rond Eindhoven en in Limburg, waar React2u echt klanten
- * heeft, een plek in de index en in sitemap.xml. De andere pagina's bestaan
- * gewoon (links erheen blijven werken), maar met `noindex, follow`.
+ * Een gemeentepagina zonder eigen tekst is een kopie van alle andere, en 342
+ * kopieën ziet Google als dunne, dubbele inhoud die de hele site omlaag trekt.
+ * Daarom geldt: alleen een gemeente met een eigen tekst in
+ * src/content/plaatsen.json (lib/plaatsIndex.ts) komt in de index en in
+ * sitemap.xml. De kern rond Eindhoven en in Limburg, waar React2u echt klanten
+ * heeft, blijft altijd geïndexeerd. De andere pagina's bestaan gewoon (links
+ * erheen blijven werken), maar met `noindex, follow` zolang de tekst ontbreekt.
  *
  * Slugs zoals slugVan() ze maakt: "Nuenen c.a." is "nuenen-ca".
  */
-export const GEINDEXEERDE_GEMEENTEN = [
+export const KERNGEMEENTEN = [
   "eindhoven", "helmond", "s-hertogenbosch", "tilburg", "breda", "veldhoven", "best", "son-en-breugel",
   "geldrop-mierlo", "nuenen-ca", "waalre", "oss", "roermond", "venlo", "weert",
 ];
-const GEINDEXEERD = new Set(GEINDEXEERDE_GEMEENTEN);
+const KERN = new Set(KERNGEMEENTEN);
 
 /** Hoort deze gemeentepagina in Google (index), of bestaat hij alleen (noindex, follow)? */
-export const isGeindexeerd = (slug: string) => GEINDEXEERD.has(slug);
+export const isGeindexeerd = (slug: string) => KERN.has(slug) || heeftPlaatsTekst(slug);
 
-/** De geïndexeerde gemeenten als Plaats, in de volgorde van de lijst. */
+/** De geïndexeerde gemeenten als Plaats, in de volgorde van regio en provincie. */
 export function geindexeerdePlaatsen(): Plaats[] {
-  return GEINDEXEERDE_GEMEENTEN.map((slug) => plaatsVoorSlug(slug)).filter((p): p is Plaats => p !== null);
+  return PLAATSEN.filter((p) => isGeindexeerd(p.slug));
 }
 
-/** De adressen voor sitemap.xml: alle provincies en alleen de geïndexeerde gemeenten. */
+/** De provincies waar de kerngemeenten liggen (voor "de meeste klanten in …"). */
+export function kernProvincies(): string[] {
+  const namen = new Set(KERNGEMEENTEN.map((slug) => plaatsVoorSlug(slug)?.provincie.naam).filter(Boolean) as string[]);
+  return REGIOS.flatMap((r) => r.provincies.map((p) => p.naam)).filter((n) => namen.has(n));
+}
+
+/** De adressen voor sitemap.xml: alle provincies en de geïndexeerde gemeenten. */
 export function werkgebiedPaden(): string[] {
   return [
     ...REGIOS.flatMap((r) => r.provincies.map((p) => provincieHref(p.naam))),

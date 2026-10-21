@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getPublishedVacancies } from "@/lib/content";
+import { getZichtbareVacatures } from "@/lib/voorbeeld";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
 import { Arrow } from "@/components/site/Arrow";
@@ -8,18 +8,22 @@ import { WERKEN_BIJ_FOTO } from "@/lib/nav";
 import { nieuwOntwerp } from "@/lib/concept";
 import { WerkenBijPagina } from "@/components/blocks/WerkenBij";
 import { hreflangVoor } from "@/lib/taal";
+import { openGraphVoor } from "@/lib/og";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Vacatures",
-  description:
-    "Werken bij React2u? Bekijk onze openstaande vacatures en kom werken bij dé persoonlijke arbodienstverlener in Eindhoven.",
-  alternates: { canonical: "/vacatures", languages: hreflangVoor("/vacatures") ?? undefined },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Vacatures",
+    description:
+      "Werken bij React2u? Bekijk onze openstaande vacatures en kom werken bij dé persoonlijke arbodienstverlener in Eindhoven.",
+    alternates: { canonical: "/vacatures", languages: hreflangVoor("/vacatures") ?? undefined },
+    openGraph: await openGraphVoor({ pad: "/vacatures" }),
+  };
+}
 
 export default async function VacaturesPage() {
-  const vacancies = await getPublishedVacancies();
+  const vacancies = await getZichtbareVacatures();
   // Het nieuwe ontwerp "Werken bij"; de oude pagina hieronder is de terugvaloptie.
   if (nieuwOntwerp) return <WerkenBijPagina vacatures={vacancies} />;
   return (

@@ -103,7 +103,7 @@ describe("tekst", () => {
   it("schrijft het telefoonnummer in de taal van de lezer", () => {
     expect(telefoonInTaal("085 - 620 58 00", "nl")).toBe("085 620 58 00");
     expect(telefoonInTaal("085 - 620 58 00", "en")).toBe("+31 85 620 58 00");
-    expect(telefoonInTaal("06 12479720", "en")).toBe("+31 6 12479720");
+    expect(telefoonInTaal("06 12345678", "en")).toBe("+31 6 12345678");
   });
 
   it("vult plekken in", () => {

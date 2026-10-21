@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPublishedVacancies, getVacancy } from "@/lib/content";
+import { getPublishedVacancies } from "@/lib/content";
+import { getZichtbareVacature, getZichtbareVacatures } from "@/lib/voorbeeld";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
-import { kort, paginaTitel } from "@/lib/seo";
+import { metOmschrijving, omschrijving, paginaTitel } from "@/lib/seo";
+import { openGraphVoor } from "@/lib/og";
 import ApplicationForm from "@/components/site/ApplicationForm";
 import { LuMapPin, LuClock, LuEuro } from "react-icons/lu";
 import PageHeader from "@/components/site/PageHeader";
@@ -22,27 +24,31 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const v = await getVacancy(slug);
+  const v = await getZichtbareVacature(slug);
   if (!v) return {};
+  // Een concept zie je alleen in de voorbeeldmodus; nooit indexeren.
+  const concept = v.status !== "published" ? { robots: { index: false, follow: false } } : {};
   return {
+    ...concept,
     // Absoluut, zonder het sjabloon uit app/layout.tsx: paginaTitel zet het merk
     // er precies één keer achter, ook als de SEO-titel het al bevat.
     title: { absolute: paginaTitel(v.seo_title || `${v.title} • Vacature`) },
-    description: kort(v.seo_description || v.intro),
+    ...metOmschrijving(omschrijving(v.seo_description, v.intro)),
     alternates: { canonical: `/vacatures/${slug}`, languages: hreflangVoor(`/vacatures/${slug}`) ?? undefined },
+    openGraph: await openGraphVoor({ pad: `/vacatures/${slug}` }),
   };
 }
 
 export default async function VacancyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const v = await getVacancy(slug);
+  const v = await getZichtbareVacature(slug);
   if (!v) notFound();
 
   const jobLd = jobPostingLd(v, "nl");
 
   if (nieuwOntwerp) {
     // Het nieuwe ontwerp "Vacature" (versie B); de oude weergave hieronder is de terugvaloptie.
-    const andere = (await getPublishedVacancies()).filter((x) => x.id !== v.id);
+    const andere = (await getZichtbareVacatures()).filter((x) => x.id !== v.id);
     return (
       <>
         <VacatureDetail v={v} andere={andere} />

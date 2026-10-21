@@ -27,7 +27,7 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. Het motto */}
       <section aria-label={d.heading || t.werkgevers.overReact2uKruimel} className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
-        <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-12 md:rounded-[36px] md:px-14 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(280px,36%)] lg:items-end lg:gap-16 lg:px-20 lg:pb-20 lg:pt-[88px]"
+        <div className="relative grid gap-8 overflow-hidden rounded-[28px] px-5 py-10 md:gap-10 md:rounded-[36px] md:px-14 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(280px,36%)] lg:items-end lg:gap-16 lg:px-20 lg:pb-20 lg:pt-[88px]"
           style={{ background: LAV }}>
           <span aria-hidden className="absolute right-[-160px] top-[-200px] h-[640px] w-[640px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <span aria-hidden className="absolute bottom-[-220px] right-[260px] h-[360px] w-[360px] rounded-full" style={{ background: PINK, opacity: 0.08 }} />
@@ -39,7 +39,7 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
             {d.intro && <p className="m-0 max-w-[560px] text-[18px] leading-[1.65] md:text-[20px]" style={{ color: BODY }}>{d.intro}</p>}
           </div>
           {d.citaat && (
-            <div className="relative flex flex-col gap-3.5 rounded-[24px] bg-white p-7">
+            <div className="relative flex flex-col gap-3.5 rounded-[24px] bg-white p-6 md:p-7">
               <span className={`${kop} text-[19px] leading-[1.4] md:text-[21px]`} style={{ fontWeight: 500 }}>“{d.citaat}”</span>
               <span className="border-t pt-3.5 text-[14px] font-bold" style={{ borderColor: LINE }}>{d.citaatLabel || "Waarom we doen wat we doen"}</span>
             </div>
@@ -49,7 +49,7 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
 
       {/* 2. Het verhaal, met de stappen ernaast */}
       <section aria-label={d.verhaalEyebrow || d.verhaalKop} className="bg-white">
-        <div className={`${BREED} grid gap-12 py-20 md:py-[120px] lg:grid-cols-12 lg:items-start lg:gap-6 lg:pb-[112px]`}>
+        <div className={`${BREED} grid gap-10 py-14 md:gap-12 md:py-[120px] lg:grid-cols-12 lg:items-start lg:gap-6 lg:pb-[112px]`}>
           <div className="flex flex-col gap-[22px] lg:col-span-6">
             <Eyebrow>{d.verhaalEyebrow || "Ons verhaal"}</Eyebrow>
             <h2 className={`${kop} m-0 text-[36px] leading-[1.1] tracking-[-0.9px] md:text-[48px]`}>{d.verhaalKop || "Hoe React2u begon"}</h2>
@@ -62,7 +62,7 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
             {d.slot && <p className="m-0 text-[17px] leading-[1.75] md:text-[18px]" style={{ color: BODY }}>{d.slot}</p>}
           </div>
           {stappen.length > 0 && (
-            <ol className="m-0 list-none rounded-[28px] px-8 py-10 md:px-10 md:py-11 lg:col-span-5 lg:col-start-8" style={{ background: SOFT }}>
+            <ol className="m-0 list-none rounded-[28px] px-6 py-8 md:px-10 md:py-11 lg:col-span-5 lg:col-start-8" style={{ background: SOFT }}>
               {stappen.map((s, i) => {
                 const laatste = i === stappen.length - 1;
                 return (
@@ -84,8 +84,8 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
       {/* 3. Kantoor */}
       {d.foto && (
         <section aria-label={d.fotoLabel || d.fotoAlt} className="bg-white">
-          <div className={`${BREED} pb-20 md:pb-[112px]`}>
-            <div className="relative h-[340px] overflow-hidden rounded-[24px] md:h-[600px] md:rounded-[32px]" style={{ background: LAV }}>
+          <div className={`${BREED} pb-14 md:pb-[112px]`}>
+            <div className="relative h-[280px] overflow-hidden rounded-[24px] md:h-[600px] md:rounded-[32px]" style={{ background: LAV }}>
               <Beeld src={d.foto} alt={d.fotoAlt || ""} fill sizes="(min-width: 1440px) 1200px, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.fotoFocus || "50% 55%" }} />
               {d.fotoLabel && (
                 <span className="absolute bottom-5 left-5 inline-flex h-11 items-center gap-2.5 rounded-full bg-white px-[18px] text-[15px] font-bold md:bottom-8 md:left-8">
@@ -99,13 +99,13 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
 
       {/* 4. Missie en visie */}
       <section aria-label={d.mvKop} className="bg-white">
-        <div className={`${BREED} pb-20 md:pb-[112px]`}>
-          <div className="relative flex flex-col gap-10 overflow-hidden rounded-[28px] p-7 md:rounded-[36px] md:p-[72px]" style={{ background: NAVY }}>
+        <div className={`${BREED} pb-14 md:pb-[112px]`}>
+          <div className="relative flex flex-col gap-7 overflow-hidden rounded-[28px] p-5 md:gap-10 md:rounded-[36px] md:p-[72px]" style={{ background: NAVY }}>
             <span aria-hidden className="absolute bottom-[-240px] left-[-180px] h-[560px] w-[560px] rounded-full" style={{ background: "#B4ADF2", opacity: 0.12 }} />
             <h2 className={`${kop} relative m-0 text-[36px] leading-[1.08] tracking-[-1.2px] md:text-[48px]`} style={{ color: "#ffffff" }}>{d.mvKop || "Waar we voor staan"}</h2>
             <div className="relative grid gap-5 md:grid-cols-2 md:gap-6">
               {[d.missie, d.visie].filter(Boolean).map((m: any, i: number) => (
-                <div key={i} className="flex flex-col gap-[18px] rounded-[28px] border p-7 md:p-12" style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }}>
+                <div key={i} className="flex flex-col gap-3.5 rounded-[24px] border p-6 md:gap-[18px] md:rounded-[28px] md:p-12" style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }}>
                   <span className="text-[15px] font-bold" style={{ color: "#F7A8CB" }}>{m.label}</span>
                   <span className={`${kop} text-[28px] leading-[1.18] tracking-[-0.6px] text-white md:text-[34px]`}>{m.titel}</span>
                   <span className="text-[16px] leading-[1.7] md:text-[16.5px]" style={{ color: "rgba(255,255,255,0.72)" }}>{m.tekst}</span>
@@ -119,7 +119,7 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
       {/* 5. Kernwaarden */}
       {waarden.length > 0 && (
         <section aria-label={t.werkgevers.kernwaarden} className="bg-white">
-          <div className={`${BREED} flex flex-col gap-12 pb-20 md:pb-[120px]`}>
+          <div className={`${BREED} flex flex-col gap-9 pb-14 md:gap-12 md:pb-[120px]`}>
             <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
               <div className="flex flex-col gap-[18px] lg:col-span-6">
                 <Eyebrow>{t.werkgevers.kernwaarden}</Eyebrow>
@@ -127,9 +127,9 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
               </div>
               {d.waardenTekst && <p className="m-0 text-[17px] leading-[1.7] lg:col-span-5 lg:col-start-8" style={{ color: BODY }}>{d.waardenTekst}</p>}
             </div>
-            <div className="grid gap-10 md:grid-cols-3">
+            <div className="grid gap-8 md:grid-cols-3 md:gap-10">
               {waarden.map((w, i) => (
-                <div key={i} className="flex flex-col gap-[18px] border-t-[3px] pt-7" style={{ borderColor: w.kleur || PINK }}>
+                <div key={i} className="flex flex-col gap-3.5 border-t-[3px] pt-6 md:gap-[18px] md:pt-7" style={{ borderColor: w.kleur || PINK }}>
                   <span className={`${kop} text-[44px] leading-none tracking-[-1.6px] md:text-[52px]`}>{w.titel}</span>
                   <span className="text-[16.5px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{w.tekst}</span>
                 </div>

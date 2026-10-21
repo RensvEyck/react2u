@@ -1,21 +1,19 @@
 import type { Metadata } from "next";
 import RootHtml from "@/components/site/RootHtml";
 import SiteShell from "@/components/site/SiteShell";
-import { OG_FALLBACK } from "@/app/(site)/layout";
-import { getSetting } from "@/lib/content";
 import { BASIS_METADATA, SITE_URL } from "@/lib/metadata";
-import { normalizeSeoSettings } from "@/lib/seo";
+import { deelAfbeelding } from "@/lib/og";
 import { woordenboek } from "@/lib/woordenboek";
 
 export const revalidate = 300;
 
 /**
  * De Engelse site onder /en: dezelfde deelafbeelding als de Nederlandse, een
- * Engelse standaardomschrijving en og:locale en_GB.
+ * Engelse standaardomschrijving en og:locale en_GB. Elke pagina zet zijn eigen
+ * openGraph met zijn eigen url (lib/og.ts).
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = normalizeSeoSettings(await getSetting<unknown>("seo"));
-  const image = seo.share_image || { ...OG_FALLBACK, alt: "Four colleagues laughing together at a round table" };
+  const image = await deelAfbeelding("en");
   const t = woordenboek("en");
   return {
     ...BASIS_METADATA,

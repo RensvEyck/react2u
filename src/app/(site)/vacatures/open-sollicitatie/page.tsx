@@ -5,12 +5,16 @@ import { WERKEN_BIJ_FOTO } from "@/lib/nav";
 import { nieuwOntwerp } from "@/lib/concept";
 import { OpenSollicitatiePagina } from "@/components/blocks/WerkenBij";
 import { hreflangVoor } from "@/lib/taal";
+import { openGraphVoor } from "@/lib/og";
 
-export const metadata: Metadata = {
-  title: "Open sollicitatie",
-  description: "Stuur een open sollicitatie naar React2u. We komen graag in contact met talent!",
-  alternates: { canonical: "/vacatures/open-sollicitatie", languages: hreflangVoor("/vacatures/open-sollicitatie") ?? undefined },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Open sollicitatie",
+    description: "Stuur een open sollicitatie naar React2u. We komen graag in contact met talent!",
+    alternates: { canonical: "/vacatures/open-sollicitatie", languages: hreflangVoor("/vacatures/open-sollicitatie") ?? undefined },
+    openGraph: await openGraphVoor({ pad: "/vacatures/open-sollicitatie" }),
+  };
+}
 
 export default function OpenSollicitatiePage() {
   // Het nieuwe ontwerp, zoals de rest van Werken bij; de oude pagina hieronder is de terugvaloptie.

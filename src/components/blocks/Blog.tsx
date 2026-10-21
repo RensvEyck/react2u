@@ -51,7 +51,7 @@ function Kaart({ p }: { p: Post }) {
 function Onderwerpen() {
   return (
     <section aria-label="Per onderwerp" style={{ background: SOFT }}>
-      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-24`}>
+      <div className={`${BREED} flex flex-col gap-10 py-14 md:py-24`}>
         <div className="grid gap-5 lg:grid-cols-12 lg:items-end">
           <h2 className={`${kop} m-0 text-[32px] leading-[1.1] tracking-[-0.9px] md:text-[40px] lg:col-span-7`} style={{ color: NAVY }}>Lees per onderwerp</h2>
           <p className="m-0 text-[16px] leading-[1.7] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>Elk onderwerp hoort bij een van onze specialismen. Zo vind je snel wat je zoekt.</p>
@@ -111,7 +111,7 @@ export function BlogOverzicht({ posts }: { posts: Post[] }) {
         )}
       </section>
       {rest.length > 0 && (
-        <section aria-label="Artikelen" className={`${BREED} flex flex-col gap-8 border-t pb-20 pt-10 md:pb-24`} style={{ borderColor: LINE }}>
+        <section aria-label="Artikelen" className={`${BREED} flex flex-col gap-8 border-t pb-14 pt-10 md:pb-24`} style={{ borderColor: LINE }}>
           <h2 className={`${kop} m-0 text-[28px]`} style={{ color: NAVY }}>Alle artikelen</h2>
           <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map((p) => <Kaart key={p.id} p={p} />)}
@@ -192,7 +192,7 @@ export function BlogArtikel({ p, andere }: { p: Post; andere: Post[] }) {
       </section>
       {andere.length > 0 && (
         <section aria-label="Lees ook" style={{ background: SOFT }}>
-          <div className={`${BREED} flex flex-col gap-8 py-20 md:py-24`}>
+          <div className={`${BREED} flex flex-col gap-8 py-14 md:py-24`}>
             <div className="flex flex-col gap-4">
               <Eyebrow kleur={TEAL}>Lees ook</Eyebrow>
               <h2 className={`${kop} m-0 text-[32px] tracking-[-0.9px] md:text-[40px]`} style={{ color: NAVY }}>Meer over verzuim</h2>

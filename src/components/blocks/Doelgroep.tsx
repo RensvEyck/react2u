@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, BLEED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN } from "./Gedeeld";
+import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, BLEED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN, Strook } from "./Gedeeld";
 import Beeld from "@/components/site/Beeld";
 import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
 import { datumInTaal, pad, vul, type Taal } from "@/lib/taal";
@@ -78,14 +78,15 @@ export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
   const t = woordenboek(ctx?.lang ?? "nl");
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} bg-white`}>
-      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+      <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
         {/* Vijf naast elkaar pas vanaf 1400px; daaronder werden de kaarten zo smal
             dat woorden midden in braken ("Werkplekonderzoe-k"). Op een laptop drie
-            en twee, die samen de volle breedte vullen (zes kolommen: 2+2+2, 3+3). */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 min-[87.5rem]:grid-cols-5">
+            en twee, die samen de volle breedte vullen (zes kolommen: 2+2+2, 3+3).
+            Op de telefoon (tot 640px) een strook om te swipen. */}
+        <Strook n={kaarten.length} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 min-[87.5rem]:grid-cols-5">
           {kaarten.map((c, i) => (
-            <div key={i} className={`relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-6 pb-7 pt-7 min-[87.5rem]:col-span-1 ${kaarten.length === 5 ? (i < 3 ? "lg:col-span-2" : "lg:col-span-3") : "lg:col-span-2"}`} style={{ background: c.tint }}>
+            <div key={i} className={`relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-5 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7 min-[87.5rem]:col-span-1 ${kaarten.length === 5 ? (i < 3 ? "lg:col-span-2" : "lg:col-span-3") : "lg:col-span-2"}`} style={{ background: c.tint }}>
               <span aria-hidden className="absolute right-[-40px] top-[-40px] h-[120px] w-[120px] rounded-full" style={{ background: c.kleur, opacity: 0.16 }} />
               <span className={`${kop} relative flex flex-col text-[19px] leading-[1.1]`} style={{ color: NAVY }}>
                 React2u<span className="text-[30px] tracking-[-0.6px]" style={{ color: c.kleur === NAVY ? NAVY : c.kleur }}>{c.naam}<sup className="text-[13px]" style={{ color: NAVY }}>®</sup></span>
@@ -111,9 +112,9 @@ export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
               )}
             </div>
           ))}
-        </div>
+        </Strook>
         {d.strook && (
-          <div className="flex flex-col gap-5 rounded-[24px] px-7 py-7 md:flex-row md:items-center md:justify-between md:px-9" style={{ background: NAVY }}>
+          <div className="flex flex-col gap-5 rounded-[24px] px-6 py-6 md:flex-row md:items-center md:justify-between md:px-9 md:py-7" style={{ background: NAVY }}>
             <span className={`${kop} text-[24px]`} style={{ color: "#ffffff" }}>{d.strook.heading}</span>
             <span className="text-[16px] leading-[1.6] md:max-w-[440px]" style={{ color: "rgba(255,255,255,0.8)" }}>{d.strook.text}</span>
             <Knop2 href={d.strook.href} stijl="wit">{d.strook.label}</Knop2>
@@ -130,10 +131,10 @@ export function DgFotoLijst({ d }: { d: any }) {
   const items: any[] = d.items || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: d.bg || "#ffffff" }}>
-      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+      <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
         <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-6">
-          <div className="relative h-[300px] overflow-hidden rounded-[24px] md:h-[440px] lg:col-span-6">
+          <div className="relative h-[260px] overflow-hidden rounded-[24px] md:h-[440px] lg:col-span-6">
             <Beeld src={d.image} alt={d.alt || ""} fill sizes="(min-width: 1024px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.focus || "50% 50%" }} />
           </div>
           <ol className="m-0 flex list-none flex-col p-0 lg:col-span-5 lg:col-start-8">
@@ -165,27 +166,32 @@ export function DgPoortwachter({ d, ctx }: { d: any; ctx?: Ctx }) {
   const t = woordenboek(ctx?.lang ?? "nl").werkgevers;
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: SOFT }}>
-      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+      <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
         <div className="overflow-hidden rounded-[24px] bg-white">
           <div className="hidden grid-cols-[220px_1fr_1fr] gap-6 px-8 py-4 text-[12.5px] font-bold uppercase tracking-[1.2px] md:grid" style={{ background: NAVY, color: "rgba(255,255,255,0.85)" }}>
             <span>{t.poortwachterMoment}</span><span>{t.poortwachterJij}</span><span>{t.poortwachterWij}</span>
           </div>
           {rijen.map((r, i) => (
-            <div key={i} className="grid gap-2 border-t px-6 py-5 md:grid-cols-[220px_1fr_1fr] md:gap-6 md:px-8" style={{ borderColor: LINE }}>
+            <div key={i} className="grid gap-2.5 border-t px-5 py-5 md:grid-cols-[220px_1fr_1fr] md:gap-6 md:px-8" style={{ borderColor: LINE }}>
               <span className="flex flex-col gap-1">
-                <span className="self-start rounded-full px-2.5 py-1 text-[12px] font-bold" style={{ background: "#FDECF4", color: PINK }}>{r.when}</span>
+                <span className="self-start rounded-full px-2.5 py-1 text-[13px] font-bold" style={{ background: "#FDECF4", color: PINK }}>{r.when}</span>
                 <span className="text-[16px] font-bold" style={{ color: NAVY }}>{r.title}</span>
               </span>
-              <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{r.jij}</span>
+              {/* Op de telefoon staan de kolomkoppen niet boven de tabel; dan zegt een
+                  klein label per regel wie wat doet. */}
+              <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>
+                <span className="mb-0.5 block text-[13px] font-bold md:hidden" style={{ color: MUTE }}>{t.poortwachterJij}</span>{r.jij}
+              </span>
               <span className="flex gap-2.5 text-[15px] leading-[1.6]" style={{ color: NAVY }}>
-                <span className="mt-1 shrink-0" style={{ color: TEAL }}><Vink size={14} /></span>{r.wij}
+                <span className="mt-1 shrink-0 max-md:mt-[22px]" style={{ color: TEAL }}><Vink size={14} /></span>
+                <span><span className="mb-0.5 block text-[13px] font-bold md:hidden" style={{ color: MUTE }}>{t.poortwachterWij}</span>{r.wij}</span>
               </span>
             </div>
           ))}
         </div>
         {d.alert && (
-          <div className="flex flex-col gap-4 rounded-[20px] border px-6 py-5 md:flex-row md:items-center md:justify-between" style={{ background: "#FDECF4", borderColor: "#F6C6DC" }}>
+          <div className="flex flex-col gap-4 rounded-[20px] border px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6" style={{ background: "#FDECF4", borderColor: "#F6C6DC" }}>
             <span className="flex flex-col gap-1">
               <span className="text-[16px] font-bold" style={{ color: PINK }}>{d.alert.title}</span>
               <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{d.alert.text}</span>
@@ -204,15 +210,15 @@ export function DgPrijzen({ d }: { d: any }) {
   const kaarten: any[] = d.cards || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: SOFT }}>
-      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+      <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
-        <div className="grid gap-5 lg:grid-cols-3">
+        <Strook n={kaarten.length} className="grid gap-5 lg:grid-cols-3">
           {kaarten.map((c, i) => {
             const donker = Boolean(c.featured);
             const tekst = donker ? "#ffffff" : NAVY;
             return (
-              <div key={i} className="flex flex-col gap-5 rounded-[26px] border p-7 md:p-8" style={{ background: donker ? NAVY : "#ffffff", borderColor: donker ? NAVY : LINE }}>
-                <span className="self-start rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ background: donker ? "rgba(255,255,255,0.12)" : SOFT, color: donker ? "#ffffff" : MUTE }}>{c.badge}</span>
+              <div key={i} className="flex flex-col gap-5 rounded-[26px] border p-6 md:p-8" style={{ background: donker ? NAVY : "#ffffff", borderColor: donker ? NAVY : LINE }}>
+                <span className="self-start rounded-full px-3 py-1 text-[13px] font-bold" style={{ background: donker ? "rgba(255,255,255,0.12)" : SOFT, color: donker ? "#ffffff" : MUTE }}>{c.badge}</span>
                 <span className={`${kop} text-[21px]`} style={{ color: tekst }}>{c.naam}</span>
                 <span className="flex flex-col gap-1 border-b pb-5" style={{ borderColor: donker ? "rgba(255,255,255,0.15)" : LINE }}>
                   <span className={`${kop} text-[44px] leading-none tracking-[-1.2px]`} style={{ color: tekst }}>{c.prijs}</span>
@@ -229,7 +235,7 @@ export function DgPrijzen({ d }: { d: any }) {
               </div>
             );
           })}
-        </div>
+        </Strook>
         {(d.note || d.link) && (
           <div className="flex flex-wrap items-center justify-between gap-4 text-[14.5px]" style={{ color: MUTE }}>
             <span>{d.note}</span>
@@ -247,16 +253,17 @@ export function DgStarten({ d }: { d: any }) {
   const stappen: any[] = d.steps || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} bg-white`}>
-      <div className={`${BREED} flex flex-col gap-12 py-20 md:py-[104px]`}>
+      <div className={`${BREED} flex flex-col gap-9 py-14 md:gap-12 md:py-[104px]`}>
         <SectieKop d={d} />
-        <ol className="m-0 grid list-none gap-8 p-0 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+        {/* Op de telefoon staat het nummer naast de titel (twee kolommen), vanaf lg erboven met de lijn ernaast. */}
+        <ol className="m-0 grid list-none gap-6 p-0 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4 lg:gap-6">
           {stappen.map((s, i) => (
-            <li key={i} className="flex flex-col gap-3">
-              <span className="flex items-center gap-3">
+            <li key={i} className="grid grid-cols-[40px_minmax(0,1fr)] gap-x-4 gap-y-1 lg:flex lg:flex-col lg:gap-3">
+              <span className="row-span-2 flex items-start gap-3 lg:row-span-1 lg:items-center">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[15px] font-bold text-white" style={{ background: NAVY }}>{i + 1}</span>
                 {i < stappen.length - 1 && <span className="hidden h-0.5 flex-1 lg:block" style={{ background: LINE }} />}
               </span>
-              <span className={`${kop} text-[19px]`} style={{ color: NAVY }}>{s.title}</span>
+              <span className={`${kop} pt-1.5 text-[19px] lg:pt-0`} style={{ color: NAVY }}>{s.title}</span>
               <span className="text-[15.5px] leading-[1.6]" style={{ color: BODY }}>{s.text}</span>
             </li>
           ))}
@@ -282,7 +289,7 @@ export function DgVragen({ d }: { d: any }) {
   const items: any[] = d.items || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: d.bg || "#ffffff" }}>
-      <div className={`${BREED} grid gap-10 py-20 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
+      <div className={`${BREED} grid gap-10 py-14 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
         <div className="flex flex-col gap-4 lg:col-span-4">
           {d.eyebrow && <Eyebrow>{d.eyebrow}</Eyebrow>}
           <h2 className={`${kop} m-0 whitespace-pre-line text-[34px] leading-[1.08] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{d.heading}</h2>
@@ -290,17 +297,18 @@ export function DgVragen({ d }: { d: any }) {
           {d.phone && <a href={`tel:${d.phone.replace(/\s/g, "")}`} className="text-[16px] font-bold" style={{ color: NAVY }}>{d.phone}</a>}
         </div>
         <div className="flex flex-col border-t lg:col-span-7 lg:col-start-6" style={{ borderColor: LINE }}>
+          {/* De ruimte zit op de summary, niet op details: zo is de hele regel een tikdoel. */}
           {items.map((q, i) => (
-            <details key={i} className="group border-b py-5" style={{ borderColor: LINE }} open={i === 0}>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-5 text-[16.5px] font-bold md:text-[17px]" style={{ color: NAVY }}>
+            <details key={i} className="group border-b" style={{ borderColor: LINE }} open={i === 0}>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-5 py-5 text-[16.5px] font-bold md:text-[17px]" style={{ color: NAVY }}>
                 {q.question}
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-colors group-open:border-[#322E83] group-open:bg-[#322E83] group-open:text-white" style={{ borderColor: LINE }}>
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border transition-colors group-open:border-[#322E83] group-open:bg-[#322E83] group-open:text-white" style={{ borderColor: LINE }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
                     <path d="M5 12h14" /><path d="M12 5v14" className="group-open:hidden" />
                   </svg>
                 </span>
               </summary>
-              <p className="m-0 mt-3 max-w-[640px] text-[15.5px] leading-[1.7]" style={{ color: BODY }}>{q.answer}</p>
+              <p className="m-0 -mt-1.5 max-w-[640px] pb-5 text-[15.5px] leading-[1.7]" style={{ color: BODY }}>{q.answer}</p>
             </details>
           ))}
         </div>
@@ -350,16 +358,16 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
           <H className={`${kop} m-0 text-[42px] leading-[1.04] tracking-[-1.4px] md:text-[60px]`} style={{ color: NAVY }}>{d.heading}</H>
           {d.text && <p className="m-0 max-w-[640px] text-[17px] leading-[1.65]" style={{ color: BODY }}>{d.text}</p>}
         </div>
-        <div className={`${BREED} grid gap-5 pb-20 md:grid-cols-2 md:pb-24`}>
+        <div className={`${BREED} grid gap-5 pb-14 md:grid-cols-2 md:pb-24`}>
           {abonnementen.map((a, i) => {
             const donker = Boolean(a.featured);
             const tekst = donker ? "#ffffff" : NAVY;
             const zacht = donker ? "rgba(255,255,255,0.78)" : BODY;
             return (
-              <div key={i} className="flex flex-col gap-5 rounded-[28px] border p-7 md:p-10" style={{ background: donker ? NAVY : "#ffffff", borderColor: donker ? NAVY : LINE, boxShadow: donker ? "none" : "0 24px 48px -36px rgba(50,46,131,0.35)" }}>
+              <div key={i} className="flex flex-col gap-5 rounded-[28px] border p-6 md:p-10" style={{ background: donker ? NAVY : "#ffffff", borderColor: donker ? NAVY : LINE, boxShadow: donker ? "none" : "0 24px 48px -36px rgba(50,46,131,0.35)" }}>
                 <div className="flex items-center justify-between gap-4">
                   <span className={`${kop} text-[22px]`} style={{ color: tekst }}>{a.naam}</span>
-                  <span className="rounded-md px-2.5 py-1 text-[12px] font-bold" style={{ background: donker ? PINK : SOFT, color: donker ? "#ffffff" : NAVY }}>{a.badge}</span>
+                  <span className="rounded-md px-2.5 py-1 text-[13px] font-bold" style={{ background: donker ? PINK : SOFT, color: donker ? "#ffffff" : NAVY }}>{a.badge}</span>
                 </div>
                 <span className="flex items-end gap-2">
                   <span className={`${kop} text-[56px] leading-[0.9] tracking-[-1.6px] md:text-[64px]`} style={{ color: tekst }}>{a.prijs}</span>
@@ -387,7 +395,7 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
       </section>
       {groepen.map((g, gi) => (
         <section key={gi} aria-label={g.eyebrow} style={{ background: gi % 2 === 0 ? SOFT : "#ffffff" }}>
-          <div className={`${BREED} flex flex-col gap-10 py-20 md:py-24`}>
+          <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-24`}>
             <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
               <div className="flex flex-col gap-4 lg:col-span-6">
                 <Eyebrow kleur={TEAL}>{g.eyebrow}</Eyebrow>
@@ -437,22 +445,23 @@ export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ct
         </div>
       </section>
       <section aria-label={t.footer.keurmerken} style={{ background: SOFT }}>
-        <ul className={`${BREED} m-0 grid list-none grid-cols-2 gap-3 py-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4`}>
+        {/* Altijd vijf op een rij: op de telefoon klein, zodat er geen halve rij overblijft. */}
+        <ul className={`${BREED} m-0 grid list-none grid-cols-5 gap-2 py-6 sm:gap-3 sm:py-8 lg:gap-4`}>
           {KEURMERKEN.map((k, i) => (
-            <li key={k.src} className="grid h-[110px] place-items-center rounded-[20px] bg-white p-4 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)]">
-              <Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="70px" className="max-h-[70px] w-auto object-contain" />
+            <li key={k.src} className="grid h-[64px] place-items-center rounded-[14px] bg-white p-2 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)] sm:h-[110px] sm:rounded-[20px] sm:p-4">
+              <Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="(min-width: 640px) 70px, 48px" className="max-h-[46px] w-auto object-contain sm:max-h-[70px]" />
             </li>
           ))}
         </ul>
       </section>
       <section aria-label={d.lijstKop || d.heading} className="bg-white">
-        <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+        <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
           <SectieKop d={{ eyebrow: d.lijstEyebrow, heading: d.lijstKop, text: d.lijstTekst }} />
           <div className="flex flex-col border-t" style={{ borderColor: LINE }}>
             {items.map((it, i) => {
               const k = KEURMERKEN[i];
               return (
-                <div key={i} className="grid gap-5 border-b py-8 md:grid-cols-12 md:gap-6" style={{ borderColor: LINE }}>
+                <div key={i} className="grid gap-4 border-b py-6 md:grid-cols-12 md:gap-6 md:py-8" style={{ borderColor: LINE }}>
                   <span className="grid h-[76px] w-[76px] place-items-center rounded-[18px] border bg-white p-2 md:col-span-2" style={{ borderColor: LINE }}>
                     {k && <Beeld src={k.src} alt="" sizes="60px" className="max-h-full w-auto object-contain" />}
                   </span>
@@ -479,12 +488,12 @@ export function DgSituaties({ d }: { d: any }) {
   const rijen: any[] = d.items || [];
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: d.bg || SOFT }}>
-      <div className={`${BREED} flex flex-col gap-10 py-20 md:py-[104px]`}>
+      <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
         <ul className="m-0 flex list-none flex-col overflow-hidden rounded-[24px] bg-white p-0">
           {rijen.map((r, i) => (
             <li key={i} className="border-t first:border-t-0" style={{ borderColor: LINE }}>
-              <Link href={r.href} className="hn-row flex items-center gap-4 px-6 py-5 transition-colors duration-300 hover:bg-(--tint) md:gap-8 md:px-8 md:py-6"
+              <Link href={r.href} className="hn-row flex items-center gap-4 px-5 py-4 transition-colors duration-300 hover:bg-(--tint) md:gap-8 md:px-8 md:py-6"
                 style={{ "--tint": r.tint || SOFT } as React.CSSProperties}>
                 <span className="grid min-w-0 flex-1 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,340px)] md:items-center md:gap-8 xl:grid-cols-[minmax(0,1fr)_380px]">
                   <span className="text-[17px] font-bold leading-[1.4] md:text-[19px]" style={{ color: NAVY }}>{r.vraag}</span>

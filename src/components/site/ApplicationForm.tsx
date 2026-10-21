@@ -27,7 +27,7 @@ export default function ApplicationForm({ vacancyId, vacancyTitle }: { vacancyId
       <Field label="Korte motivatie" optional>
         <textarea className={fieldClass} name="motivation" rows={4} maxLength={4000} />
       </Field>
-      <Field label="Cv (pdf of Word, max. 8 MB)" optional>
+      <Field label="Cv (pdf of Word, max. 4 MB)" optional>
         <input
           className={`${fieldClass} file:mr-4 file:rounded-full file:border-0 file:bg-soft file:px-4 file:py-2 file:font-semibold file:text-primary hover:file:bg-primary hover:file:text-white`}
           name="cv" type="file" accept=".pdf,.doc,.docx" />

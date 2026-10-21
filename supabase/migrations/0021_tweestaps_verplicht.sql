@@ -1,6 +1,6 @@
 -- Tweestapsverificatie verplicht, ook in de database.
 --
--- Sinds 7 oktober 2026 laat de app niemand het beheer in zonder code uit een
+-- Sinds PR #9 laat de app niemand het beheer in zonder code uit een
 -- authenticator-app (`requireAdmin()` eist aal2). Maar de app is niet de enige
 -- weg naar de data: met een gestolen wachtwoord en de publieke sleutel kan
 -- iemand rechtstreeks inloggen bij Supabase en via /rest/v1 lezen. RLS keek
@@ -10,7 +10,9 @@
 -- Hier eisen is_admin() en has_perm() daarom ook aal2: een sessie met alleen
 -- een wachtwoord (aal1) ziet niets van het beheer. Alle beheer-policies lopen
 -- via deze twee functies (zie 0005 en 0016), dus dit ene punt dekt ze allemaal:
--- tabellen, de cv-bucket en mediabeheer.
+-- tabellen, de cv-bucket en mediabeheer. Op 21 okt 2026 nagekeken in de
+-- database: buiten deze functies staan alleen publieke leesregels (redirects,
+-- site_settings, de mediabucket). 0017 t/m 0020 voegden geen policies toe.
 --
 -- Bewust ongemoeid:
 -- - "own admin row" (admins): `user_id = auth.uid() or has_perm(...)`. Het
@@ -28,9 +30,10 @@
 -- `create or replace` houdt eigenaar en EXECUTE-rechten van 0016 intact.
 --
 -- Terugdraaien: dezelfde twee functies zonder de regel met 'aal2' (0001 en
--- 0005). Registreren na het draaien:
+-- 0005). Via apply_migration (naam 0021_tweestaps_verplicht) wordt hij vanzelf
+-- geregistreerd; wie hem in de SQL-editor draait, registreert hem daarna zo:
 --   insert into supabase_migrations.schema_migrations (version, name)
---   values ('20261007120017', '0017_tweestaps_verplicht');
+--   values (to_char(now() at time zone 'utc', 'YYYYMMDDHH24MISS'), '0021_tweestaps_verplicht');
 
 create or replace function public.is_admin() returns boolean
 language sql stable security definer set search_path = public

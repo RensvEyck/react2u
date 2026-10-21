@@ -94,24 +94,28 @@ export function ContactSimpel({ d, asH1 }: { d: any; asH1?: boolean }) {
   const bedrijf = ((d.company as string[]) || []).filter(Boolean);
   return (
     <section aria-label="Contact" className={`hv bg-white ${outfit.variable}`}>
-      <div className="mx-auto grid max-w-[1440px] gap-12 px-5 pb-24 pt-14 md:px-10 lg:grid-cols-12 lg:gap-6 lg:px-16 xl:px-[120px] lg:pb-[120px] lg:pt-20">
+      <div className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 pt-10 md:gap-12 md:px-10 md:pb-24 md:pt-14 lg:grid-cols-12 lg:gap-6 lg:px-16 xl:px-[120px] lg:pb-[120px] lg:pt-20">
         <div className="flex flex-col lg:col-span-4">
           <H className="hv-kop m-0 mb-4 text-[44px] leading-[1.05] tracking-[-1.1px] md:text-[56px] md:tracking-[-1.4px]" style={{ color: NAVY }}>
             {d.heading || "Contact"}
           </H>
           {d.text && <p className="m-0 mb-10 text-[17px] leading-[1.65]" style={{ color: BODY }}>{d.text}</p>}
           <div className="flex flex-col border-b" style={{ borderColor: LINE }}>
-            {rows.map((r, i) => (
-              <div key={i} className="flex flex-col gap-1.5 border-t py-6" style={{ borderColor: LINE }}>
-                <span className="text-[14px]" style={{ color: MUTE }}>{r.label}</span>
-                {r.href ? (
-                  <a href={r.href} className="hv-kop whitespace-pre-line text-[22px] leading-[1.3] hover:text-[#E61674]" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</a>
-                ) : (
-                  <span className="hv-kop whitespace-pre-line text-[22px] leading-[1.3]" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</span>
-                )}
-                {r.sub && <span className="text-[15px]" style={{ color: BODY }}>{r.sub}</span>}
-              </div>
-            ))}
+            {/* Met een adres is de hele regel de link (label, waarde en toelichting):
+                op de telefoon een tikdoel van de volle hoogte in plaats van alleen de tekst. */}
+            {rows.map((r, i) => {
+              const inner = (
+                <>
+                  <span className="text-[14px]" style={{ color: MUTE }}>{r.label}</span>
+                  <span className="hv-kop whitespace-pre-line text-[22px] leading-[1.3] transition-colors group-hover:text-[#E61674]" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</span>
+                  {r.sub && <span className="text-[15px]" style={{ color: BODY }}>{r.sub}</span>}
+                </>
+              );
+              const cls = "flex flex-col gap-1.5 border-t py-5 md:py-6";
+              return r.href
+                ? <a key={i} href={r.href} className={`group ${cls}`} style={{ borderColor: LINE }}>{inner}</a>
+                : <div key={i} className={cls} style={{ borderColor: LINE }}>{inner}</div>;
+            })}
           </div>
           {bedrijf.length > 0 && (
             <p className="m-0 mt-7 text-[14px] leading-[1.7]" style={{ color: MUTE }}>

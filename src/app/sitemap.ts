@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPages, getPublishedVacancies, getPublishedPosts } from "@/lib/content";
-import { alleConceptSlugs, alleConceptSlugsEn } from "@/lib/concept";
+import { alleConceptSlugsEn, reserveSlugs } from "@/lib/concept";
 import { werkgebiedPaden } from "@/lib/gemeenten";
 import { coveredByWordpress } from "@/lib/redirects";
+import { VAKGEBIEDEN } from "@/lib/vakgebieden";
 import { OPEN_SOLLICITATIE, heeftVertaling, vertaalPad } from "@/lib/taal";
 
 export const revalidate = 3600;
@@ -37,7 +38,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const engels = (nlPath: string, extra: Omit<MetadataRoute.Sitemap[number], "url">) =>
     heeftVertaling(nlPath) ? [{ url: `${base}${vertaalPad(nlPath, "en")}`, ...extra, ...alternates(nlPath) }] : [];
 
-  const conceptSlugs = alleConceptSlugs()
+  // Reserve-inhoud staat alleen in een migratiefase aan (lib/concept.ts);
+  // daarbuiten is dit leeg en bepaalt de publicatiestatus in de database de sitemap.
+  const conceptSlugs = reserveSlugs()
     .filter((s) => !pages.some((p) => p.slug === s))
     .filter((s) => !coveredByWordpress(`/${s}`));
   // Engelse pagina's waarvan de Nederlandse tegenhanger noch in de database
@@ -90,6 +93,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...vacancies.flatMap((v) => [
       { url: `${base}/vacatures/${v.slug}`, lastModified: new Date(v.updated_at), priority: 0.7, ...alternates(`/vacatures/${v.slug}`) },
       ...engels(`/vacatures/${v.slug}`, { lastModified: new Date(v.updated_at), priority: 0.6 }),
+    ]),
+    ...VAKGEBIEDEN.flatMap((g) => [
+      { url: `${base}/vacatures/vakgebied/${g.slug}`, priority: 0.6, ...alternates(`/vacatures/vakgebied/${g.slug}`) },
+      ...engels(`/vacatures/vakgebied/${g.slug}`, { priority: 0.5 }),
     ]),
     { url: `${base}/vacatures/${OPEN_SOLLICITATIE.nl}`, priority: 0.5, ...alternates(`/vacatures/${OPEN_SOLLICITATIE.nl}`) },
     ...engels(`/vacatures/${OPEN_SOLLICITATIE.nl}`, { priority: 0.5 }),

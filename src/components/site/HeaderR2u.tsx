@@ -355,7 +355,7 @@ function MobielPaneel({ variant, contact, tel, knopHref, m }: { variant: Variant
   return (
     <div className="mx-auto flex max-w-[640px] flex-col gap-7 px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
       <div className="flex items-center justify-between gap-4 border-b pb-3" style={{ borderColor: K.lijn }}>
-        <span className="text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: K.klein }}>{t.algemeen.taal}</span>
+        <span className="text-[13px] font-bold uppercase tracking-[1.4px]" style={{ color: K.klein }}>{t.algemeen.taal}</span>
         <Taalwissel className="text-[15px]" />
       </div>
       <nav aria-label={t.algemeen.menu}>

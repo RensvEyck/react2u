@@ -139,19 +139,19 @@ recht gebruiken `requirePerm('<recht>')`.
 — het is géén autorisatiepoort. De echte controle staat in de pagina's zelf. Op
 de publieke routes is de middleware de poort van de onderhoudsmodus.
 
-**Tweestapsverificatie is verplicht** (sinds 7 okt 2026, op verzoek van Rens).
+**Tweestapsverificatie is verplicht** (sinds PR #9, op verzoek van Rens).
 `requireAdmin()` eist aal2: wie in deze sessie alleen een wachtwoord gaf, gaat
 naar de codestap (`?stap=code`) of, zonder authenticator, naar het instelscherm
 (`?stap=instellen`). Daarvóór kon je het instellen overslaan door `/admin` te
-openen, en hadden drie van de vier beheerders het niet aan. Uitschakelen kan
+openen, en hadden vier van de zes beheerders het niet aan (21 okt 2026). Uitschakelen kan
 niet meer; *Nieuwe telefoon instellen* op Account vervangt de oude authenticator
 (die blijft anders staan en het inlogscherm vroeg dan mogelijk zijn code).
 Telefoon kwijt: een collega met `gebruikers` wist hem bij Gebruikers.
-Migratie [0017](supabase/migrations/0017_tweestaps_verplicht.sql) legt hetzelfde
+Migratie [0021](supabase/migrations/0021_tweestaps_verplicht.sql) legt hetzelfde
 vast in de database: `is_admin()` en `has_perm()` eisen de claim `aal = aal2`,
 zodat een gestolen wachtwoord ook via de REST-API niets van het beheer laat zien.
 Alleen de eigen rij in `admins` blijft op aal1 zichtbaar (inlogscherm en
-onderhoudspoort). Draai 0017 pas nadat de code met verplichte tweestaps live staat.
+onderhoudspoort). Draai 0021 pas nadat de code met verplichte tweestaps live staat.
 
 **Terug naar waar je was.** De middleware geeft op `/admin` het huidige pad mee
 in de request-header `x-admin-pad`; verloopt de sessie, dan stuurt
@@ -515,6 +515,27 @@ Een nieuwe vertaalde pagina: JSON in `src/content/en/`, de slug in `SLUGS` en
 drie kloppen en dat de Engelse teksten geen gedachtestreepjes of Nederlandse
 resten bevatten.
 
+## Voorbeeldmodus
+
+Conceptvacatures bekijk je op de echte site zonder ze te publiceren. In de admin
+onder Vacatures zet **Bekijk met concepten** (of het oogje bij een concept) de
+voorbeeldmodus aan via `/api/voorbeeld?pad=…`. Daarna toont react2u.nl voor
+jou, en alleen voor jou, de vacaturepagina's alsof de concepten live staan:
+het overzicht, de vacatures zelf en de vakgebiedpagina's, in het Nederlands en
+het Engels. Een roze balk onderaan zegt dat je in het voorbeeld zit en zet het
+uit. Conceptvacatures dragen dan het label "Concept".
+
+Technisch is het Draft Mode van Next ([`src/lib/voorbeeld.ts`](src/lib/voorbeeld.ts)):
+wie de cookie heeft krijgt de pagina's vers en nooit uit de cache, alle andere
+bezoekers zien de gewone statische site. De cookie zelf geeft geen toegang. In
+de voorbeeldmodus leest de site met de sessie van de beheerder, dus RLS
+beslist; zonder het recht `vacatures` zie je ook dan alleen wat gepubliceerd
+is. Aanzetten vraagt dat recht (`requirePerm`). Feeds, sitemap en Google for
+Jobs blijven alleen gepubliceerde vacatures tonen, conceptpagina's krijgen
+`noindex`, en bezoeken in de voorbeeldmodus tellen niet mee in de statistieken.
+Let op: solliciteren werkt ook in het voorbeeld, en zo'n sollicitatie komt echt
+binnen.
+
 ## Concepten
 
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
@@ -588,11 +609,21 @@ Terugdraaien kan via het adminpaneel. Bestaat `<slug>-oud-<datum>` al (het
 script twee keer met dezelfde `--datum`), dan faalt de transactie en gebeurt er
 niets.
 
-**Een pagina die alleen als concept bestaat** (zoals `/werkgevers` vóór de
-SQL) toont ook in productie het concept, zodat de links ernaar niet op een 404
-uitkomen. Zodra de pagina in de database staat, wint de database. Bestaande
-pagina's (`/`, `/werknemers`) tonen in productie tot de SQL gewoon hun oude
-inhoud. De publieke pagina's zijn 5 minuten gecachet.
+**Reserve-inhoud alleen in een migratiefase.** Tot 7 oktober 2026 toonde een
+pagina die de database niet (gepubliceerd) had ook in productie het concept,
+zodat `/werkgevers` vóór de SQL geen 404 gaf. De SEO-scan van SiteJob liet zien
+wat dat kost: een pagina die een beheerder verbergt of verwijdert kwam via het
+JSON-bestand gewoon terug, openbaar, indexeerbaar en in `sitemap.xml`. De
+publieke sleutel ziet een verborgen pagina niet, dus "verborgen" en "bestaat
+niet" zijn voor de code hetzelfde. Daarom is de **publicatiestatus leidend**:
+`reserveActief` in [`src/lib/concept.ts`](src/lib/concept.ts) staat op
+`false`, een verborgen pagina is een 404 en staat niet in de sitemap. Komt er
+een nieuw concept bij, zet de reserve dan aan in dezelfde commit en weer uit
+zodra de SQL gedraaid is. Welke inhoud een pagina toont (staging het concept,
+anders de database, anders de reserve) staat op één plek,
+[`src/lib/pagina.ts`](src/lib/pagina.ts); de Engelse route gebruikt dezelfde
+regel om alleen een hreflang naar een Nederlandse pagina te zetten die echt
+publiek is. De publieke pagina's zijn 5 minuten gecachet.
 
 ## Tarieven
 
@@ -778,6 +809,13 @@ Onder **SEO → Doorverwijzingen**. Twee lagen, en de volgorde telt:
    `www.react2u.nl` → `react2u.nl` (308) staat sinds 6 oktober 2026 als
    domeininstelling in Vercel (Project → Domains → www.react2u.nl → Redirect);
    `WWW_REDIRECT` in `next.config.ts` blijft als terugval.
+   **Eén stap, ook met schuine streep:** Next's eigen 308 van `/pad/` naar
+   `/pad` liep vóór deze lijst, zodat `/verzuimbegeleiding-wvp/` twee keer
+   doorverwees. Die ingebouwde redirect staat uit (`skipTrailingSlashRedirect`);
+   elke vaste bron accepteert de streep zelf (`metSlash()`, `/oud{/}?`) en de
+   middleware haalt hem voor alle andere adressen af, mét querystring. Gebruik
+   daarvoor een gewone `URL`, geen `nextUrl.clone()`: NextURL onthoudt de
+   streep en zet hem terug.
 2. De tabel `redirects` — toegepast door de middleware, met dezelfde
    voorzorgen als de onderhoudsmodus: 15 seconden onthouden, 1 seconde timeout,
    bij een storing de laatst bekende lijst. Faalt alleen die query (bijvoorbeeld
@@ -995,7 +1033,36 @@ Concepten tellen niet mee in de aandachtspunten — die staan niet in Google.
 Site-brede standaardomschrijving en deelafbeelding zijn instelbaar
 (`site_settings.seo`) en worden toegepast in
 [`src/app/(site)/layout.tsx`](src/app/(site)/layout.tsx) — niet in de
-root-layout, zodat het adminpaneel die query niet draait.
+root-layout, zodat het adminpaneel die query niet draait. Een pagina zonder
+eigen omschrijving **laat de sleutel weg** (`metOmschrijving()` in
+`seo.ts`) en erft zo die standaardtekst; `description: undefined` wiste hem
+juist. De eigen SEO-omschrijving gaat compleet mee (`omschrijving()`), alleen
+een afgeleide tekst (intro, samenvatting) wordt met `kort()` ingekort: de
+155 tekens zijn een redactiehulp in het overzicht, geen mes. De homepage
+zonder eigen SEO-titel heet "Persoonlijke arbodienst en verzuimbegeleiding •
+React2u" (`seo.homeTitel` in het woordenboek), niet "Home".
+
+**`og:url` per pagina.** Next voegt metadata shallow samen, dus een pagina
+die geen `openGraph` zet erft het hele object van de layout, inclusief de
+`og:url` van de homepage. Daarom levert [`src/lib/og.ts`](src/lib/og.ts)
+(`openGraphVoor()`) voor elke route het complete object: eigen url, eigen of
+standaardafbeelding, type, siteName en locale. Titel en omschrijving blijven
+weg; Next vult die zelf uit de pagina.
+
+**Niet in Google:** het adminpaneel (noindex in `admin/layout.tsx` plus een
+`X-Robots-Tag` in `next.config.ts`; `robots.txt` laat `/admin` bewust open,
+anders ziet een crawler die noindex nooit) en de 404-pagina's (eigen
+`robots: noindex` naast de tag die Next zelf zet, zodat er niet ook een
+"index, follow" uit de layout in staat). De hoofdkop van een labelpagina
+(`DienstLabel`) noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
+
+**Databasefouten zijn geen 404.** De helpers in
+[`src/lib/content.ts`](src/lib/content.ts) gooien een `DatabaseFout` als
+Supabase een fout geeft, in plaats van `null` of een lege lijst terug te
+geven. Zo wordt een storing geen 404, lege sitemap of oude inhoud: Next houdt
+bij een fout tijdens de revalidatie de laatst gelukte versie in de cache, en
+een verse aanvraag krijgt een 500 (voor Google tijdelijk). Een build zonder
+bereikbare database faalt daardoor ook, en dat is de bedoeling.
 
 > **`openGraph: undefined` is niet hetzelfde als weglaten.** Next voegt metadata
 > van layout en pagina samen als een shallow merge. Zet een pagina de sleutel

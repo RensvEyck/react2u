@@ -20,6 +20,24 @@ export type Block = {
   updated_at: string;
 };
 
+/** De vaste secties van een vacature, als mini-markdown. */
+export type VacatureOpbouw = {
+  /** Wat ga je doen */
+  doen: string;
+  /** Met wie werk je samen: team, disciplines, aanspreekpunten */
+  samen: string;
+  /** Wat is echt leuk aan deze baan */
+  leuk: string;
+  /** Wat wij vragen (eisen, met eventueel "Mooi meegenomen") */
+  vragen: string;
+  /** Wat wij bieden: aanvullingen op het vaste pakket, of bij ZZP het hele aanbod */
+  bieden: string;
+  /** Eerlijk is eerlijk: wat minder leuk is aan de rol */
+  eerlijk: string;
+  /** Veelgestelde vragen: blokken "**Vraag?**" + antwoord, gescheiden door een lege regel */
+  faq: string;
+};
+
 export type Vacancy = {
   id: string;
   slug: string;
@@ -34,6 +52,13 @@ export type Vacancy = {
   title_en?: string | null;
   intro_en?: string | null;
   description_en_md?: string | null;
+  /** Kenmerken voor "In het kort" (migratie 0017); leeg = niet tonen. */
+  vakgebied?: string | null;
+  ervaringsniveau?: string | null;
+  opleidingsniveau?: string | null;
+  contractvorm?: string | null;
+  /** Secties per taal (migratie 0017), zie lib/vacatures.ts `opbouwInTaal`. */
+  opbouw?: Partial<Record<"nl" | "en", Partial<VacatureOpbouw>>> | null;
   status: "draft" | "published" | "closed";
   published_at: string | null;
   valid_through: string | null;
@@ -109,7 +134,17 @@ export type Application = {
   phone: string | null;
   motivation: string | null;
   cv_path: string | null;
-  status: "nieuw" | "in_behandeling" | "afgewezen" | "aangenomen";
+  status: "nieuw" | "gebeld" | "gesprek" | "aanbod" | "aangenomen" | "afgewezen" | "in_behandeling";
+  /** Waar de kandidaat vandaan kwam: aanbrenger, campagne of verwijzer (migratie 0018). */
+  bron?: string | null;
+  linkedin?: string | null;
+  aangemeld_via?: "linkedin" | "google" | "apple" | null;
+  foto?: string | null;
+  cv_samenvatting?: import("./cvSamenvatting").CvSamenvatting | null;
+  /** Interne notitie (migratie 0018). */
+  notitie?: string | null;
+  /** Laatste statuswijziging (migratie 0018). */
+  status_at?: string | null;
   /** De sollicitant gaf toestemming om een jaar te bewaren (migratie 0013). */
   retain_longer?: boolean | null;
   /** Via welke taal van de site de sollicitatie binnenkwam (migratie 0015); ontbreekt bij oudere rijen. */

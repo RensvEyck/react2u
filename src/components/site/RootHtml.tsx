@@ -1,6 +1,7 @@
 import { DM_Sans, Figtree } from "next/font/google";
 import type { Taal } from "@/lib/taal";
 import "@/app/globals.css";
+import BronOnthouden from "./BronOnthouden";
 
 // Via next/font in plaats van een <link> naar Google Fonts: dat laatste is
 // render-blocking en kost een extra verbinding met een derde partij. Nu worden
@@ -29,7 +30,7 @@ const figtree = Figtree({
 export default function RootHtml({ taal, children }: { taal: Taal; children: React.ReactNode }) {
   return (
     <html lang={taal} className={`${dmSans.variable} ${figtree.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">{children}<BronOnthouden /></body>
     </html>
   );
 }

@@ -4,6 +4,7 @@ import type { ContactInfo } from "@/lib/content";
 import type { Certificate, FooterDoc } from "@/lib/nav";
 import { DOCUMENTEN } from "@/lib/documenten";
 import Logo from "./Logo";
+import { Telefoon, Mail } from "./HeaderR2u";
 import { letter, K, telefoon, type Link2 } from "./r2uStijl";
 import { CookieSettingsLink } from "./CookieBanner";
 import Beeld from "./Beeld";
@@ -101,18 +102,52 @@ export default function FooterR2u({ contact, docs, certificates }: {
   const { taal, t } = useTaal();
   const docLinks = documenten(docs, t);
   const keurmerken = keurmerkenMetLinks(certificates, t.footer.keurmerkAlts);
+  const kols = kolommen(contact, taal, t);
   const jaar = new Date().getFullYear();
   return (
     <footer className={`rk ${letter.className}`} style={{ background: K.ivoor }}>
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 pb-10 pt-16 md:px-10 md:pt-24 xl:px-[120px]">
-        <div className="flex flex-col gap-9 rounded-[20px] bg-white px-6 pb-9 pt-8 md:px-10 md:pb-11 md:pt-10">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 pb-10 pt-12 md:gap-8 md:px-10 md:pt-24 xl:px-[120px]">
+        <div className="flex flex-col gap-7 rounded-[20px] bg-white px-5 pb-7 pt-7 md:gap-9 md:px-10 md:pb-11 md:pt-10">
           <Link href={taal === "en" ? "/en" : "/"} aria-label={t.footer.logoNaarHome} className="self-start">
             <Logo title="" className="h-[48px] w-auto md:h-[56px]" />
           </Link>
-          {/* Tot 1024px twee kolommen: in vier werd elke kolom op een tablet zo
-              smal dat "Alle contactgegevens" en "Je rechten en privacy" braken. */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-9 lg:grid-cols-4 lg:gap-x-8">
-            {kolommen(contact, taal, t).map((k) => (
+
+          {/* Telefoon: eerst bellen en mailen als knoppen (waar je in een footer
+              op een telefoon om komt), dan de links in twee kolommen met rijen
+              van 44px, dan het adres in één regel. */}
+          <div className="flex flex-col gap-7 md:hidden">
+            <div className="flex flex-col gap-2.5">
+              <a href={`tel:${contact.phone}`} className="rk-btn inline-flex h-[54px] items-center justify-center gap-2.5 rounded-full text-[16px] font-bold" style={{ background: K.indigo, color: "#ffffff" }}>
+                <Telefoon size={17} />{telefoon(contact, taal)}
+              </a>
+              <a href={`mailto:${contact.email}`} className="rk-pill inline-flex h-[54px] items-center justify-center gap-2.5 rounded-full border-[1.5px] text-[16px] font-bold" style={{ borderColor: K.lijn, color: K.indigo }}>
+                <Mail size={17} />{contact.email}
+              </a>
+              <p className="m-0 flex flex-col items-center gap-0.5 pt-1 text-center text-[14px] leading-[1.5]" style={{ color: K.klein }}>
+                <span>{t.algemeen.openingstijden}</span>
+                <Link href={pad(taal, "contact")} className="rk-flink inline-flex min-h-[36px] items-center font-semibold" style={{ color: K.indigo }}>{t.footer.alleContactgegevens}</Link>
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-x-5">
+              {kols.slice(2).map((k) => (
+                <div key={k.kop} className="flex flex-col">
+                  <span className="pb-2 text-[15px] font-bold" style={{ color: K.indigo }}>{k.kop}</span>
+                  {k.regels.map((r, i) => (
+                    <Link key={i} href={r.href} className="rk-flink flex min-h-[44px] items-center border-t py-2 text-[15px] leading-[1.35]" style={{ borderColor: K.lijn, color: K.tekst2 }}>{r.label}</Link>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <p className="m-0 text-[14px] leading-[1.6]" style={{ color: K.tekst2 }}>
+              <span className="font-bold" style={{ color: K.indigo }}>{t.footer.bezoekadres}</span><br />
+              React2u, {contact.addressLine1}, {contact.addressLine2}
+            </p>
+          </div>
+
+          {/* Vanaf md: tot 1024px twee kolommen (in vier werd elke kolom op een tablet
+              zo smal dat "Alle contactgegevens" en "Je rechten en privacy" braken). */}
+          <div className="hidden grid-cols-2 gap-x-6 gap-y-9 md:grid lg:grid-cols-4 lg:gap-x-8">
+            {kols.map((k) => (
               <div key={k.kop} className="flex flex-col gap-[18px]">
                 <span className="text-[15px] font-bold" style={{ color: K.indigo }}>{k.kop}</span>
                 <div className="flex flex-col gap-2 text-[15px] leading-[1.5]">
@@ -143,15 +178,16 @@ export default function FooterR2u({ contact, docs, certificates }: {
           </ul>
         )}
 
-        <div className="flex flex-col gap-3 pt-2 text-[13px] md:flex-row md:flex-wrap md:items-center md:gap-8 md:pt-6" style={{ color: K.klein }}>
+        <div className="flex flex-col gap-2 pt-2 text-[13px] md:flex-row md:flex-wrap md:items-center md:gap-8 md:pt-6" style={{ color: K.klein }}>
           <span>{vul(t.footer.rechten, { jaar, kvk: contact.kvk })}</span>
+          {/* Op de telefoon elke link een rij van 36px, zodat ze los van elkaar te tikken zijn. */}
           {docLinks.length > 0 && (
-            <span className="flex flex-wrap gap-x-8 gap-y-2">
+            <span className="flex flex-wrap gap-x-6 gap-y-0 md:gap-x-8 md:gap-y-2">
               {docLinks.map((d) => (
-                <a key={d.href + d.naam} href={d.href} target={/\.pdf($|\?)/i.test(d.href) ? "_blank" : undefined} rel="noopener" className="rk-flink font-semibold" style={{ color: K.indigo }}>{d.naam}</a>
+                <a key={d.href + d.naam} href={d.href} target={/\.pdf($|\?)/i.test(d.href) ? "_blank" : undefined} rel="noopener" className="rk-flink inline-flex min-h-[36px] items-center font-semibold md:min-h-0" style={{ color: K.indigo }}>{d.naam}</a>
               ))}
-              <CookieSettingsLink className="rk-flink font-semibold" style={{ color: K.indigo }} />
-              {t.footer.sitemap && <Link href="/sitemap" className="rk-flink font-semibold" style={{ color: K.indigo }}>{t.footer.sitemap}</Link>}
+              <CookieSettingsLink className="rk-flink inline-flex min-h-[36px] items-center font-semibold md:min-h-0" style={{ color: K.indigo }} />
+              {t.footer.sitemap && <Link href="/sitemap" className="rk-flink inline-flex min-h-[36px] items-center font-semibold md:min-h-0" style={{ color: K.indigo }}>{t.footer.sitemap}</Link>}
             </span>
           )}
         </div>

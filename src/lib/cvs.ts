@@ -14,7 +14,7 @@ import { serviceRoleAvailable, supabaseAdmin } from "./supabase/admin";
  *   over waar niets meer naar verwijst.
  */
 
-export const MAX_CV_BYTES = 8 * 1024 * 1024;
+export const MAX_CV_BYTES = 4 * 1024 * 1024;
 export const CV_TYPES = [
   "application/pdf",
   "application/msword",

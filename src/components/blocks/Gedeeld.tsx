@@ -87,7 +87,8 @@ export function Kruimels({ items, taal = "nl" }: { items: { label: string; href?
       {items.map((c, i) => (
         <span key={i} className="flex items-center gap-2.5">
           {i > 0 && <span aria-hidden>/</span>}
-          {c.href ? <Link href={c.href} style={{ color: MUTE }}>{c.label}</Link> : <span aria-current="page" style={{ color: NAVY }}>{c.label}</span>}
+          {/* Op de telefoon een hogere tikzone (36px) zonder de regel op een laptop te verhogen. */}
+          {c.href ? <Link href={c.href} className="inline-flex items-center max-sm:min-h-[36px]" style={{ color: MUTE }}>{c.label}</Link> : <span aria-current="page" style={{ color: NAVY }}>{c.label}</span>}
         </span>
       ))}
     </nav>
@@ -99,6 +100,27 @@ export function Knop({ href, children, rand }: { href: string; children: React.R
   const cls = `hv-btn ${rand ? "hv-btn-rand" : "hv-btn-roze"} inline-flex h-[54px] items-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold`;
   if (href.startsWith("#") || href.startsWith("tel:") || href.startsWith("mailto:")) return <a href={href} className={cls}>{children}<Pijl /></a>;
   return <Link href={href} className={cls}>{children}<Pijl /></Link>;
+}
+
+/**
+ * Een rij gelijke kaarten. Op de telefoon (tot 640px) swipe je er zijwaarts
+ * doorheen, met de volgende kaart al voor een deel in beeld en een rij stippen
+ * eronder die meeloopt (zie `.strook` in globals.css). Vanaf 640px gelden de
+ * meegegeven rasterklassen. `n` is het aantal kaarten; de stippen zijn
+ * decoratie, de kaarten blijven gewone inhoud.
+ */
+export function Strook({ n, className = "", children }: { n: number; className?: string; children: React.ReactNode }) {
+  return (
+    <div className="strook-wrap">
+      <div className={`strook ${className}`}>{children}</div>
+      {n > 1 && (
+        <div aria-hidden className="strook-stippen" style={{ "--n": n } as React.CSSProperties}>
+          {Array.from({ length: n }, (_, i) => <span key={i} />)}
+          <span className="strook-loper" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** Twee kolommen: links eyebrow en kop, rechts een korte toelichting. */
@@ -118,12 +140,13 @@ export function KlantenStrook({ label, taal = "nl" }: { label?: string; taal?: T
   const t = woordenboek(taal);
   return (
     <section aria-label={t.algemeen.klanten} className="bg-white">
-      <div className={`${BREED} flex flex-col items-center gap-7 py-12 md:py-14`}>
+      <div className={`${BREED} flex flex-col items-center gap-6 py-10 md:gap-7 md:py-14`}>
         <span className="text-[14px] font-semibold" style={{ color: MUTE }}>{label || t.gedeeld.klantenLabel}</span>
-        <ul className="m-0 flex w-full list-none flex-wrap items-center justify-center gap-x-10 gap-y-6 p-0 md:justify-between">
+        {/* Op de telefoon drie logo's per rij (kleiner), vanaf 640px twee grotere, breed één rij. */}
+        <ul className="m-0 flex w-full list-none flex-wrap items-center justify-center gap-x-6 gap-y-5 p-0 sm:gap-x-10 sm:gap-y-6 md:justify-between">
           {KLANTEN.map((k) => (
-            <li key={k.src} className="flex h-10 items-center md:h-11">
-              <Beeld src={k.src} alt={k.alt} sizes="150px" className="h-full w-auto max-w-[150px] object-contain" />
+            <li key={k.src} className="flex h-8 items-center sm:h-10 md:h-11">
+              <Beeld src={k.src} alt={k.alt} sizes="150px" className="h-full w-auto max-w-[100px] object-contain sm:max-w-[150px]" />
             </li>
           ))}
         </ul>
@@ -137,17 +160,17 @@ export function KlantenAanHetWoord({ bg = SOFT, eyebrow, heading, taal = "nl" }:
   const t = woordenboek(taal).gedeeld;
   return (
     <section aria-label={eyebrow || t.ervaringenEyebrow} style={{ background: bg }}>
-      <div className={`${BREED} flex flex-col gap-10 py-20 md:gap-12 md:py-[104px]`}>
+      <div className={`${BREED} flex flex-col gap-10 py-14 md:gap-12 md:py-[104px]`}>
         <div className="flex flex-col gap-4">
           <Eyebrow>{eyebrow || t.ervaringenEyebrow}</Eyebrow>
           <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{heading || t.ervaringenKop}</h2>
         </div>
-        <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+        <Strook n={t.citaten.length} className="grid gap-5 md:grid-cols-2 md:gap-6">
           {t.citaten.map((q) => (
-            <figure key={q.naam} className="m-0 flex flex-col justify-between gap-8 rounded-[28px] bg-white p-8 md:p-10">
+            <figure key={q.naam} className="m-0 flex flex-col justify-between gap-7 rounded-[28px] bg-white p-6 sm:gap-8 sm:p-8 md:p-10">
               <blockquote className="m-0 flex flex-col gap-4">
                 <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: PINK }}>“</span>
-                <p className={`${kop} m-0 text-[20px] leading-[1.45] md:text-[22px]`} style={{ color: NAVY, fontWeight: 500 }}>{q.tekst}</p>
+                <p className={`${kop} m-0 text-[19px] leading-[1.45] sm:text-[20px] md:text-[22px]`} style={{ color: NAVY, fontWeight: 500 }}>{q.tekst}</p>
               </blockquote>
               <figcaption className="flex items-center justify-between gap-6 border-t pt-6" style={{ borderColor: LINE }}>
                 <span className="flex flex-col gap-0.5">
@@ -158,7 +181,7 @@ export function KlantenAanHetWoord({ bg = SOFT, eyebrow, heading, taal = "nl" }:
               </figcaption>
             </figure>
           ))}
-        </div>
+        </Strook>
       </div>
     </section>
   );
@@ -169,7 +192,7 @@ export function Keurmerken({ taal = "nl" }: { taal?: Taal }) {
   const g = t.gedeeld;
   return (
     <section aria-label={g.kwaliteit} className="bg-white">
-      <div className={`${BREED} flex flex-col gap-10 pb-20 md:gap-12 md:pb-[112px]`}>
+      <div className={`${BREED} flex flex-col gap-10 pb-14 md:gap-12 md:pb-[112px]`}>
         <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
           <div className="flex flex-col gap-4 lg:col-span-6">
             <Eyebrow>{g.kwaliteit}</Eyebrow>
@@ -182,10 +205,12 @@ export function Keurmerken({ taal = "nl" }: { taal?: Taal }) {
             </Link>
           </div>
         </div>
-        <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
+        {/* Op de telefoon vijf rijen met het logo links (geen half gevulde
+            laatste rij); vanaf 640px tegels. */}
+        <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
           {KEURMERKEN.map((k, i) => (
-            <li key={k.src} className="flex flex-col items-center gap-4 rounded-[22px] border bg-white px-5 py-7 text-center" style={{ borderColor: LINE }}>
-              <span className="flex h-[72px] items-center"><Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="72px" className="max-h-full w-auto max-w-[110px] object-contain" /></span>
+            <li key={k.src} className="flex items-center gap-4 rounded-[18px] border bg-white px-4 py-3 sm:flex-col sm:rounded-[22px] sm:px-5 sm:py-7 sm:text-center" style={{ borderColor: LINE }}>
+              <span className="flex h-12 w-14 shrink-0 items-center justify-center sm:h-[72px] sm:w-auto"><Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="72px" className="max-h-full w-auto max-w-[56px] object-contain sm:max-w-[110px]" /></span>
               <span className="flex flex-col gap-0.5">
                 <span className="text-[16px] font-bold" style={{ color: NAVY }}>{g.keurmerken[i]?.naam || k.naam}</span>
                 <span className="text-[14px]" style={{ color: MUTE }}>{g.keurmerken[i]?.wat || k.wat}</span>

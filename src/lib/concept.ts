@@ -90,12 +90,23 @@ export function concept(slug: string): Concept | null {
 }
 
 /**
- * Het concept, ook in productie — alleen voor een pagina die in de database
- * (nog) niet bestaat. Zo geeft /werkgevers geen 404 in de tijd tussen het
- * live zetten van de code en het draaien van de SQL. Staat de pagina eenmaal in
- * de database, dan wint die en speelt dit bestand geen rol meer.
+ * Reserve-inhoud in productie: het concept voor een pagina die de database
+ * (nog) niet gepubliceerd heeft. Alleen aan tijdens een migratiefase, zodat
+ * een nieuwe pagina als /werkgevers geen 404 geeft tussen het live zetten van
+ * de code en het draaien van de SQL. Zet het aan in dezelfde commit als het
+ * nieuwe concept, en weer uit zodra de SQL gedraaid is.
+ *
+ * Standaard uit, want de publicatiestatus in de database is leidend: met de
+ * reserve aan kwam een pagina die een beheerder verborg of verwijderde via dit
+ * bestand gewoon terug, openbaar, indexeerbaar en in sitemap.xml (de
+ * publieke sleutel ziet een verborgen pagina niet, dus "verborgen" en "bestaat
+ * niet" zijn voor de code hetzelfde). Zie CONTEXT.md, *Concepten*.
  */
+export const reserveActief = false;
+
+/** Het concept als reserve voor een pagina die niet gepubliceerd is; null zolang de reserve uit staat. */
 export function reserveConcept(slug: string): Concept | null {
+  if (!reserveActief) return null;
   return uitBestand(slug, CONCEPTEN);
 }
 
@@ -125,9 +136,9 @@ function uitBestand(slug: string, lijst: ConceptBestand[], taal: Taal = "nl"): C
   };
 }
 
-/** Alle conceptpagina's, ook in productie aanwezig als reserve; voor sitemap.xml. */
-export function alleConceptSlugs(): string[] {
-  return CONCEPTEN.map((c) => c.slug).filter((s) => s !== "home");
+/** De slugs die als reserve-inhoud bereikbaar zijn, voor sitemap.xml; leeg zolang de reserve uit staat. */
+export function reserveSlugs(): string[] {
+  return reserveActief ? CONCEPTEN.map((c) => c.slug).filter((s) => s !== "home") : [];
 }
 
 /** Slugs van concepten die nog niet als pagina bestaan, voor generateStaticParams. */

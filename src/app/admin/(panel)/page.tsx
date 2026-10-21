@@ -128,7 +128,7 @@ export default async function AdminDashboard() {
     : [];
 
   const seo = can("seo")
-    ? countIssues([...pages.map(analysePage), ...posts.map(analysePost), ...vacancies.map(analyseVacancy)])
+    ? countIssues([...pages.map((p) => analysePage(p)), ...posts.map(analysePost), ...vacancies.map(analyseVacancy)])
     : null;
   const open404 = missingRes.count ?? 0;
   const seoIssues = (seo?.errors ?? 0) + open404;
@@ -142,7 +142,7 @@ export default async function AdminDashboard() {
 
   /* ---------- account en systeem ---------- */
   // Een herinnering "zet tweestapsverificatie aan" is er niet meer: zonder kom
-  // je sinds 7 okt 2026 niet voorbij het inlogscherm (requireAdmin).
+  // je sinds PR #9 niet voorbij het inlogscherm (requireAdmin).
   const checks = can("instellingen") || can("gebruikers") ? systemChecks(process.env) : [];
   const failing = checks.filter((c) => !c.ok);
 

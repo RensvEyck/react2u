@@ -72,6 +72,8 @@ const FIELD_NAMES: Record<string, string> = {
   location: "locatie", employment_type: "dienstverband", hours: "uren", salary: "salaris",
   intro: "intro", description_md: "omschrijving", valid_through: "einddatum", value: "inhoud",
   type: "bloktype", page_id: "pagina",
+  vakgebied: "vakgebied", ervaringsniveau: "ervaringsniveau", opleidingsniveau: "opleiding", contractvorm: "contract",
+  opbouw: "vacaturetekst", title_en: "Engelse titel", intro_en: "Engelse intro", description_en_md: "Engelse omschrijving",
 };
 
 // Velden die bij elke opslag veranderen of die de gebruiker niet zelf kiest.

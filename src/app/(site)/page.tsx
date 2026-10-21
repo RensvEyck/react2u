@@ -4,34 +4,24 @@ import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
 import { jsonLd } from "@/lib/jsonld";
 import { LINKEDIN_URL } from "@/lib/nav";
 import { concept } from "@/lib/concept";
-import { kort } from "@/lib/seo";
+import { HOME_TITEL, metOmschrijving, omschrijving } from "@/lib/seo";
+import { openGraphVoor } from "@/lib/og";
 import { hreflangVoor } from "@/lib/taal";
 
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const res = await getPage("home");
-  const title = res?.page.seo_title || "Home • React2u";
-  const description = kort(res?.page.seo_description);
+  // Zonder eigen SEO-titel een titel die zegt wat React2u is, niet "Home".
+  const title = res?.page.seo_title || HOME_TITEL;
   return {
     title: { absolute: title },
-    description,
+    // Zonder eigen omschrijving erft de homepage de site-brede standaardtekst
+    // uit (site)/layout.tsx; zie (site)/[slug]/page.tsx.
+    ...metOmschrijving(omschrijving(res?.page.seo_description)),
     // Met hreflang naar /en zodra het startscherm er in het Engels is (lib/taal.ts).
     alternates: { canonical: "/", languages: hreflangVoor("/") ?? undefined },
-    // Zie (site)/[slug]/page.tsx: weglaten erft de defaults, `undefined` wist ze.
-    ...(res?.page.og_image
-      ? {
-          openGraph: {
-            type: "website" as const,
-            siteName: "React2u",
-            locale: "nl_NL",
-            url: "/",
-            title,
-            description,
-            images: [res.page.og_image],
-          },
-        }
-      : {}),
+    openGraph: await openGraphVoor({ pad: "/", afbeelding: res?.page.og_image }),
   };
 }
 

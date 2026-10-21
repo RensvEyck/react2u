@@ -1,3 +1,4 @@
+import { nl } from "./woordenboek/nl";
 import type { Page, Post, Vacancy } from "./types";
 
 /**
@@ -77,10 +78,25 @@ function row(base: Omit<SeoRow, "worst">): SeoRow {
   return { ...base, worst: worstOf(base.title.severity, base.description.severity) };
 }
 
-/** Spiegelt app/(site)/[slug]/page.tsx en app/(site)/page.tsx. */
-export function analysePage(p: Page): SeoRow {
+/**
+ * Spiegelt app/(site)/[slug]/page.tsx en app/(site)/page.tsx. Zonder eigen
+ * omschrijving laat de pagina de sleutel weg en erft hij de site-brede
+ * standaardtekst uit de instellingen (`standaard`; zonder die SEO_FALLBACK).
+ * Dat is geen lege omschrijving meer, wel een die niets over de pagina zegt.
+ */
+export function analysePage(p: Page, standaard?: string): SeoRow {
   const isHome = p.slug === "home";
-  const title = p.seo_title || (isHome ? "Home • React2u" : `${p.title} • React2u`);
+  const title = p.seo_title || (isHome ? HOME_TITEL : `${p.title} • React2u`);
+  const eigen = omschrijving(p.seo_description);
+  const description = eigen
+    ? checkDescription(eigen, true)
+    : {
+        value: standaard || SEO_FALLBACK.description,
+        length: (standaard || SEO_FALLBACK.description).length,
+        custom: false,
+        severity: "warn" as const,
+        message: "Geen eigen omschrijving — de site-brede standaardtekst uit Instellingen wordt getoond",
+      };
   return row({
     kind: "Pagina",
     id: p.id,
@@ -89,14 +105,14 @@ export function analysePage(p: Page): SeoRow {
     editHref: `/admin/paginas/${p.slug}`,
     published: p.published,
     title: checkTitle(title, Boolean(p.seo_title)),
-    description: checkDescription(p.seo_description || "", Boolean(p.seo_description)),
+    description,
   });
 }
 
 /** Spiegelt app/(site)/blog/[slug]/page.tsx — inclusief de titelsjabloon. */
 export function analysePost(p: Post): SeoRow {
   const base = p.seo_title || p.title;
-  const description = p.seo_description || p.excerpt || "";
+  const description = omschrijving(p.seo_description, p.excerpt) || "";
   return row({
     kind: "Artikel",
     id: p.id,
@@ -112,7 +128,7 @@ export function analysePost(p: Post): SeoRow {
 /** Spiegelt app/(site)/vacatures/[slug]/page.tsx — inclusief de titelsjabloon. */
 export function analyseVacancy(v: Vacancy): SeoRow {
   const base = v.seo_title || `${v.title} • Vacature`;
-  const description = v.seo_description || v.intro || "";
+  const description = omschrijving(v.seo_description, v.intro) || "";
   return row({
     kind: "Vacature",
     id: v.id,
@@ -157,6 +173,25 @@ export function kort(tekst: string | null | undefined, max = DESC_MAX): string |
 }
 
 /**
+ * De meta-omschrijving van een pagina: de eigen SEO-tekst gaat compleet mee,
+ * alleen een afgeleide tekst (intro, samenvatting) wordt met kort() op een
+ * woordgrens ingekort. Google kent geen vaste limiet van 155 tekens; dat
+ * getal is een redactiehulp in het SEO-overzicht, geen mes. Eerder kapte
+ * kort() ook zelfgeschreven teksten af, en eindigde /werkgevers op
+ * "Persoonlijk…". `undefined` als er niets is: laat de sleutel dan weg, zodat
+ * de site-brede standaardtekst uit de layout overerft (zie CONTEXT.md, *SEO*).
+ */
+export function omschrijving(eigen: string | null | undefined, afgeleid?: string | null): string | undefined {
+  const s = (eigen ?? "").replace(/\s+/g, " ").trim();
+  return s || kort(afgeleid);
+}
+
+/** Alleen een sleutel als er een waarde is: `description: undefined` wist de layoutwaarde (shallow merge). */
+export function metOmschrijving(tekst: string | undefined): { description?: string } {
+  return tekst ? { description: tekst } : {};
+}
+
+/**
  * Concepten tellen niet mee in de aandachtspunten: die staan niet in Google,
  * dus een waarschuwing erover is ruis die de echte problemen verstopt.
  */
@@ -173,10 +208,18 @@ export function countIssues(rows: SeoRow[]) {
 
 export type SeoSettings = { description: string; share_image: string };
 
+/**
+ * Als er in Instellingen niets staat. De omschrijving staat op élke pagina
+ * zonder eigen tekst, dus hij zegt wat React2u is en doet, niet alleen de slogan.
+ */
 export const SEO_FALLBACK: SeoSettings = {
-  description: "Jouw mensen, onze aandacht! React2u is een moderne arbodienst.",
+  description:
+    "React2u is een persoonlijke arbodienst in Eindhoven: verzuimbegeleiding met één vaste casemanager, preventie en re-integratie voor werkgevers en werknemers.",
   share_image: "",
 };
+
+/** De titel van de homepage zonder eigen SEO-titel; de pagina en het overzicht gebruiken dezelfde. */
+export const HOME_TITEL = nl.seo.homeTitel;
 
 export function normalizeSeoSettings(value: unknown): SeoSettings {
   if (!value || typeof value !== "object" || Array.isArray(value)) return SEO_FALLBACK;

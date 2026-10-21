@@ -17,6 +17,7 @@
 // je in Resend hebt geverifieerd.
 
 import type { Taal } from "./taal";
+import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
 
 // RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
 // zou worden); in productie staat hij niet en is dit gewoon Resend.
@@ -273,7 +274,7 @@ export async function notifyContactMessage(m: {
 
 export async function notifyApplication(a: {
   name: string; email: string; phone: string | null; vacancyTitle: string | null;
-  motivation: string | null; hasCv: boolean; taal?: Taal;
+  motivation: string | null; hasCv: boolean; linkedin?: string | null; via?: string | null; samenvatting?: CvSamenvatting | null; bron?: string | null; taal?: Taal;
 }) {
   await send(
     `Nieuwe sollicitatie: ${a.vacancyTitle || "open sollicitatie"}`,
@@ -282,8 +283,12 @@ export async function notifyApplication(a: {
       { label: "E-mail", value: a.email },
       { label: "Telefoon", value: a.phone },
       { label: "CV", value: a.hasCv ? "meegestuurd — bekijk in het Postvak IN" : "niet meegestuurd" },
+      { label: "LinkedIn", value: a.linkedin ?? null },
+      { label: "Ingelogd met", value: a.via ? a.via.charAt(0).toUpperCase() + a.via.slice(1) : null },
+      ...SAMENVATTING_LABELS.map(([k, label]) => ({ label, value: a.samenvatting?.[k] ?? null })),
+      { label: "Bron", value: a.bron },
       taalVeld(a.taal),
-    ], a.motivation)
+    ], [a.samenvatting?.samenvatting ? `Uit het cv: ${a.samenvatting.samenvatting}` : "", a.motivation || ""].filter(Boolean).join("\n\n") || null)
   );
 }
 
@@ -327,4 +332,34 @@ export async function notifyTerugbel(t: {
     ]),
     process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
   );
+}
+
+/**
+ * Bevestiging aan de sollicitant zelf, in de taal waarin hij solliciteerde.
+ * Snel en persoonlijk reageren is waar kandidaten op afhaken; deze mail
+ * overbrugt de tijd tot het eerste telefoontje. Gaat naar het adres van de
+ * kandidaat, niet naar NOTIFY_TO.
+ */
+export async function bevestigSollicitatie(b: { to: string; name: string; vacancyTitle: string | null; taal?: Taal }) {
+  const en = b.taal === "en";
+  const voornaam = esc(b.name.split(" ")[0] || b.name);
+  const functie = b.vacancyTitle ? esc(b.vacancyTitle) : en ? "React2u" : "React2u";
+  const html = en
+    ? `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:560px;color:#1c1a4e;font-size:15px;line-height:1.65">
+  <p style="margin:0 0 14px">Hi ${voornaam},</p>
+  <p style="margin:0 0 14px">Thank you for applying${b.vacancyTitle ? ` for <strong>${functie}</strong>` : ""}. We have received your application and will contact you within 5 working days.</p>
+  <p style="margin:0 0 6px"><strong>What happens next</strong></p>
+  <ul style="margin:0 0 14px;padding-left:18px"><li>We call or email you to get acquainted</li><li>A first meeting at our office in Eindhoven, or online</li><li>A second meeting with the team, and if it is a match, an offer</li></ul>
+  <p style="margin:0 0 14px">Any questions in the meantime? Email rens@react2u.nl.</p>
+  <p style="margin:0">Kind regards,<br>Rens van Eyck<br><span style="color:#666">Owner, React2u</span></p>
+</div>`
+    : `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:560px;color:#1c1a4e;font-size:15px;line-height:1.65">
+  <p style="margin:0 0 14px">Hoi ${voornaam},</p>
+  <p style="margin:0 0 14px">Bedankt voor je sollicitatie${b.vacancyTitle ? ` als <strong>${functie}</strong>` : ""}. We hebben hem goed ontvangen en nemen binnen 5 werkdagen contact met je op.</p>
+  <p style="margin:0 0 6px"><strong>Zo gaat het verder</strong></p>
+  <ul style="margin:0 0 14px;padding-left:18px"><li>We bellen of mailen je om kennis te maken</li><li>Een eerste gesprek bij ons op kantoor in Eindhoven, of online</li><li>Een tweede gesprek met het team en klikt het, dan een aanbod</li></ul>
+  <p style="margin:0 0 14px">Heb je in de tussentijd vragen? Mail gerust naar rens@react2u.nl.</p>
+  <p style="margin:0">Groet,<br>Rens van Eyck<br><span style="color:#666">Eigenaar React2u</span></p>
+</div>`;
+  await post([b.to], en ? "We have received your application" : "We hebben je sollicitatie ontvangen", html);
 }

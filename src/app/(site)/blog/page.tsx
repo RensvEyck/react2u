@@ -9,6 +9,7 @@ import FotoTegel from "@/components/site/FotoTegel";
 import { DOELGROEP_FOTO } from "@/lib/nav";
 import { nieuwOntwerp } from "@/lib/concept";
 import { BlogOverzicht } from "@/components/blocks/Blog";
+import { openGraphVoor } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -22,6 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Artikelen over verzuim, preventie en vitaliteit. Praktische kennis van React2u voor werkgevers en werknemers.",
     alternates: { canonical: "/blog" },
+    openGraph: await openGraphVoor({ pad: "/blog" }),
     ...(posts.length === 0 ? { robots: { index: false, follow: true } } : {}),
   };
 }

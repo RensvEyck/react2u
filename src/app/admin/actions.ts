@@ -37,6 +37,9 @@ export async function signOutEverywhereAction() {
 
 async function uitloggen(scope: "local" | "global") {
   const sb = await supabaseServer();
+  // "local" wist de cookies meteen, zonder serverroundtrip. "global" moet eerst
+  // bij Supabase de sessies herroepen en kan racen met de sessieverversing die
+  // de middleware op elke /admin-aanvraag doet; daarom de terugval hieronder.
   const { error } = await sb.auth.signOut({ scope });
   if (!error) return;
   // Bereikt het afmelden Supabase niet (storing, time-out), dan laat
@@ -123,6 +126,28 @@ export async function saveVacancy(formData: FormData) {
     valid_through: String(formData.get("valid_through") || "") || null,
     seo_title: String(formData.get("seo_title") || "") || null,
     seo_description: String(formData.get("seo_description") || "") || null,
+    // Nieuwe opbouw (migratie 0017): kenmerken en secties per taal.
+    ...(formData.has("opbouw_nl_doen")
+      ? {
+          vakgebied: String(formData.get("vakgebied") || "").trim() || null,
+          ervaringsniveau: String(formData.get("ervaringsniveau") || "").trim() || null,
+          opleidingsniveau: String(formData.get("opleidingsniveau") || "").trim() || null,
+          contractvorm: String(formData.get("contractvorm") || "").trim() || null,
+          opbouw: Object.fromEntries(
+            (["nl", "en"] as const)
+              .filter((t) => formData.has(`opbouw_${t}_doen`))
+              .map((t) => [
+                t,
+                Object.fromEntries(
+                  (["doen", "samen", "leuk", "vragen", "bieden", "eerlijk", "faq"] as const).map((k) => [
+                    k,
+                    String(formData.get(`opbouw_${t}_${k}`) || "").replace(/\r\n/g, "\n").trim(),
+                  ])
+                ),
+              ])
+          ),
+        }
+      : {}),
     // De Engelse velden (migratie 0015) alleen als het formulier ze meestuurt:
     // zonder die kolommen in de database staan ze uitgeschakeld (VacancyFields)
     // en ontbreken ze hier, zodat de opslag niet op een onbekende kolom breekt.
@@ -323,9 +348,19 @@ export async function deletePost(id: string) {
 export async function setApplicationStatus(id: string, formData: FormData) {
   const { sb } = await requirePerm("postvak");
   const status = String(formData.get("status") || "nieuw");
-  await sb.from("applications").update({ status }).eq("id", id);
+  // status_at (migratie 0018) voor "wacht al X dagen"; zonder die kolom alleen de status.
+  const { error } = await sb.from("applications").update({ status, status_at: new Date().toISOString() }).eq("id", id);
+  if (error) await sb.from("applications").update({ status }).eq("id", id);
   revalidatePath("/admin/sollicitaties");
   revalidatePath("/admin/postvak-in");
+}
+
+/** Interne notitie bij een sollicitant (migratie 0018). */
+export async function saveApplicationNote(id: string, formData: FormData) {
+  const { sb } = await requirePerm("postvak");
+  const notitie = String(formData.get("notitie") || "").trim().slice(0, 4000) || null;
+  await sb.from("applications").update({ notitie }).eq("id", id);
+  revalidatePath("/admin/sollicitaties");
 }
 
 export async function toggleMessageRead(id: string, read: boolean) {
@@ -491,9 +526,6 @@ export async function saveTarievenSettings(formData: FormData) {
   redirect("/admin/instellingen?opgeslagen=1#tarieven");
 }
 
-// Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt
-// bezoekers tegen. Wél de fout controleren — wie denkt dat de site dicht is
-// terwijl hij openstaat (of andersom), hoort dat te weten.
 export type TestMailState =
   | { status: "idle" }
   | { status: "ok"; naar: string }
@@ -512,6 +544,9 @@ export async function sendTestMailAction(): Promise<TestMailState> {
   return { status: "fout", melding: `Resend weigerde de mail: ${r.melding || "geen reden opgegeven"}` };
 }
 
+// Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt
+// bezoekers tegen. Wél de fout controleren — wie denkt dat de site dicht is
+// terwijl hij openstaat (of andersom), hoort dat te weten.
 export async function saveMaintenanceSettings(formData: FormData) {
   const { sb } = await requirePerm("instellingen");
   const value = {

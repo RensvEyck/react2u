@@ -41,9 +41,9 @@ export async function requireAdmin() {
   // - Wel een authenticator, maar in deze sessie alleen het wachtwoord gegeven:
   //   eerst de code. Zonder deze controle sloeg je de codestap over door na het
   //   inloggen rechtstreeks een adminpagina te openen.
-  // - Nog geen authenticator: eerst instellen. Tot 7 okt 2026 kon je dat
-  //   overslaan door /admin te openen, en hadden drie van de vier beheerders
-  //   het niet aan.
+  // - Nog geen authenticator: eerst instellen. Vóór PR #9 kon je dat
+  //   overslaan door /admin te openen, en hadden vier van de zes beheerders
+  //   het niet aan (21 okt 2026).
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== "aal2") {
     return naarLogin(aal?.nextLevel === "aal2" ? "stap=code" : "stap=instellen");
