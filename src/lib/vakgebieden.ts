@@ -11,6 +11,8 @@
 
 type Tekst = {
   titel: string;
+  /** Korte naam voor de filterknoppen op het vacatureoverzicht. */
+  kort: string;
   eyebrow: string;
   intro: string;
   seo: string;
@@ -37,6 +39,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
     slug: "casemanagement",
     onderdelen: ["Casemanagement", "Re-integratie", "Verzuimadvies"],
     nl: {
+      kort: "Casemanagement",
       titel: "Werken als casemanager verzuim",
       eyebrow: "Vakgebied",
       intro: "Als casemanager bij React2u heb je de regie op het verzuim van werknemers bij onze klanten. Je zorgt dat werkgever, werknemer en bedrijfsarts op tijd de juiste stappen zetten, en dat iemand zo snel en duurzaam mogelijk terugkeert.",
@@ -63,6 +66,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
       ],
     },
     en: {
+      kort: "Case management",
       titel: "Working as an absence case manager",
       eyebrow: "Field",
       intro: "As a case manager at React2u you are in charge of the absence of employees at our clients. You make sure employer, employee and occupational physician take the right steps on time, and that people return to work as quickly and sustainably as possible.",
@@ -93,6 +97,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
     slug: "bedrijfsgeneeskunde",
     onderdelen: ["Bedrijfsgeneeskunde", "Verzekeringsgeneeskunde", "Bedrijfsgezondheidszorg"],
     nl: {
+      kort: "Artsen en zorg",
       titel: "Werken als bedrijfsarts",
       eyebrow: "Vakgebied",
       intro: "Bij React2u heb je als bedrijfsarts tijd voor de mens tegenover je. Casemanagers en planners doen het voorwerk, jij brengt het medische oordeel. Samen met praktijkondersteuners en verpleegkundigen vorm je het medische hart van de arbodienst.",
@@ -119,6 +124,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
       ],
     },
     en: {
+      kort: "Doctors and care",
       titel: "Working as an occupational physician",
       eyebrow: "Field",
       intro: "At React2u, as an occupational physician you have time for the person in front of you. Case managers and planners do the groundwork, you bring the medical judgement. Together with practice assistants and nurses you form the medical heart of the service.",
@@ -149,6 +155,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
     slug: "arbo-en-preventie",
     onderdelen: ["Arbo en preventie", "Arbeidsdeskundigheid", "Psychologie", "Maatschappelijk werk"],
     nl: {
+      kort: "Arbo en preventie",
       titel: "Werken in arbo en preventie",
       eyebrow: "Vakgebied",
       intro: "Voorkomen is beter dan genezen. Als specialist bij React2u help je werkgevers om uitval te voorkomen en mensen duurzaam aan het werk te houden: van RI&E en werkplekonderzoek tot begeleiding bij werkdruk en psychische klachten.",
@@ -174,6 +181,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
       ],
     },
     en: {
+      kort: "Health and safety",
       titel: "Working in occupational health and prevention",
       eyebrow: "Field",
       intro: "Prevention is better than cure. As a specialist at React2u you help employers prevent absence and keep people in sustainable work: from risk assessments and workplace research to support with work pressure and mental health issues.",
@@ -203,6 +211,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
     slug: "kantoor-en-ondersteuning",
     onderdelen: ["Planning en ondersteuning", "Sales", "Kwaliteit en privacy", "ICT", "Stage"],
     nl: {
+      kort: "Kantoor",
       titel: "Werken op kantoor bij React2u",
       eyebrow: "Vakgebied",
       intro: "Zonder planning, sales, kwaliteit en ICT draait geen enkele arbodienst. Op ons kantoor in Eindhoven zorg jij dat artsen en casemanagers hun werk kunnen doen, en dat React2u blijft groeien.",
@@ -228,6 +237,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
       ],
     },
     en: {
+      kort: "Office",
       titel: "Working at the React2u office",
       eyebrow: "Field",
       intro: "No occupational health service runs without planning, sales, quality and IT. At our office in Eindhoven you make sure physicians and case managers can do their work, and that React2u keeps growing.",

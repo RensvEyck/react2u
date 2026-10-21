@@ -526,6 +526,19 @@ p {
 .prose-r2u .prose-kop { margin-top: 1.6em; font-size: 24px; }
 .prose-r2u a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
 
+/* Vacatures: opsommingen met een vinkje, en een plus bij "Mooi meegenomen". */
+.hv .vacature-tekst li { padding-left: 2em; margin-top: 0.6em; }
+.hv .vacature-tekst li::before {
+  left: 0;
+  top: 0.18em;
+  width: 1.3em;
+  height: 1.3em;
+  background: #E5F5F4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.4l2.6 2.6L12 5.4' fill='none' stroke='%2300A098' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 72% no-repeat;
+}
+.hv .vacature-plus li::before {
+  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 4v8M4 8h8' fill='none' stroke='%23E61674' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / 64% no-repeat;
+}
+
 /* ---------- Startpagina "Home neutraal" (src/components/blocks/HomeNeutraal.tsx) ---------- */
 .hn h1, .hn h2, .hn h3 { font-family: inherit; }
 .hn :is(h1, h2, h3) { font-weight: revert-layer; letter-spacing: revert-layer; line-height: revert-layer; color: revert-layer; }

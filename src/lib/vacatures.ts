@@ -119,6 +119,63 @@ export function baseSalaryLd(salary: string | null) {
   };
 }
 
+const EENHEID: Record<Taal, Record<string, string>> = {
+  nl: { MONTH: "per maand", HOUR: "per uur", YEAR: "per jaar" },
+  en: { MONTH: "per month", HOUR: "per hour", YEAR: "per year" },
+};
+
+/**
+ * Het salaris kort, voor kaartjes en "In het kort": het bedrag apart van de
+ * eenheid, zodat het bedrag groot kan en de eenheid klein. Leest dezelfde
+ * vrije tekst als baseSalaryLd; zonder herkenbare bedragen null, en dan toont
+ * de pagina de tekst zoals hij in de admin staat.
+ */
+export function salarisKort(salary: string | null, taal: Taal): { bedrag: string; eenheid: string } | null {
+  const ld = baseSalaryLd(salary);
+  if (!ld || !salary) return null;
+  const geld = (n: number) => (taal === "en" ? `€${n.toLocaleString("en-GB")}` : `€ ${n.toLocaleString("nl-NL")}`);
+  const w = ld.value as { unitText: string; value?: number; minValue?: number; maxValue?: number };
+  const bedrag = w.value !== undefined
+    ? geld(w.value)
+    : `${geld(w.minValue ?? 0)} ${taal === "en" ? "to" : "tot"} ${geld(w.maxValue ?? 0)}`;
+  const extra = [
+    /excl\.? btw/i.test(salary) ? (taal === "en" ? "excl. VAT" : "excl. btw") : "",
+    /\bbonus\b/i.test(salary) ? "plus bonus" : "",
+  ].filter(Boolean);
+  return { bedrag, eenheid: [EENHEID[taal][w.unitText], ...extra].join(", ") };
+}
+
+/**
+ * Wat er in de salaristekst na de bedragen staat ("bruto per maand bij 40
+ * uur", "per uur excl. btw"), in de taal van de pagina. Voor de regel onder
+ * het bedrag in "In het kort".
+ */
+export function salarisRest(salary: string | null, taal: Taal): string {
+  const rest = (salary || "").replace(/^(\s*(€\s*[\d.]+(,\d+)?|tot)\s*)+/i, "").trim();
+  return kenmerkInTaal(rest, taal) || "";
+}
+
+/** De punten van een tekst die alleen uit "- "-regels bestaat; anders null. */
+export function alleenPunten(md: string | null | undefined): string[] | null {
+  const regels = (md || "").split("\n").map((r) => r.trim()).filter(Boolean);
+  if (!regels.length || !regels.every((r) => r.startsWith("- "))) return null;
+  return regels.map((r) => r.slice(2).replace(/\*\*/g, ""));
+}
+
+/**
+ * "Wat wij vragen" in tweeën: de eisen, en wat na een vetgedrukte regel als
+ * "**Mooi meegenomen:**" komt (met die regel als kop). Zonder zo'n regel null.
+ */
+export function splitsVragen(md: string | null | undefined): { eisen: string; extraKop: string; extra: string } | null {
+  const regels = (md || "").split("\n");
+  const i = regels.findIndex((r) => /^\s*\*\*[^*]+\*\*\s*$/.test(r));
+  if (i < 1) return null;
+  const extraKop = regels[i].trim().replace(/^\*\*|\*\*$/g, "").replace(/:\s*$/, "").trim();
+  const eisen = regels.slice(0, i).join("\n").trim();
+  const extra = regels.slice(i + 1).join("\n").trim();
+  return eisen && extra ? { eisen, extraKop, extra } : null;
+}
+
 /** `JobPosting` voor Google for Jobs, in de taal waarin de tekst van de pagina staat. */
 export function jobPostingLd(v: Vacancy, taal: Taal) {
   const tekst = vacatureInTaal(v, taal);
