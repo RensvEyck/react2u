@@ -282,13 +282,13 @@
             "href": "/verzuimabonnementen"
           },
           {
-            "badge": "Liever maatwerk?",
-            "naam": "Maatwerk",
-            "prijs": "Op maat",
-            "per": "Offerte binnen twee werkdagen",
+            "badge": "Maatwerk",
+            "naam": "Grotere organisaties",
+            "prijs": "Op offerte",
+            "per": "Binnen twee werkdagen",
             "points": [
-              "Voor grotere organisaties",
-              "In combinatie met RI&E en PMO",
+              "Voor grotere werkgevers",
+              "Ook in combinatie met RI&E en PMO",
               "Offerte binnen twee werkdagen"
             ],
             "label": "Vraag een offerte aan",

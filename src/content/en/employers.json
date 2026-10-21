@@ -282,13 +282,13 @@
             "href": "/en/pricing"
           },
           {
-            "badge": "Prefer tailor-made?",
-            "naam": "Tailor-made",
+            "badge": "Tailor-made",
+            "naam": "Larger organisations",
             "prijs": "On request",
-            "per": "Quote within two working days",
+            "per": "Within two working days",
             "points": [
-              "For larger organisations",
-              "Combined with RI&E and PMO",
+              "For larger employers",
+              "Also combined with RI&E and PMO",
               "Quote within two working days"
             ],
             "label": "Request a quote",
