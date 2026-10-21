@@ -10,10 +10,14 @@
 --   aantal medewerkers, het abonnement per medewerker per jaar en de looptijd.
 --   Daarmee rekent het beheer de vergoeding per kwartaal uit (lib/partners.ts).
 -- - contact_messages.partner_code: de code uit de aanmeldlink, door het
---   formulier meegestuurd. Bezoekers mogen alleen deze kolom vullen;
---   partner_id zet de trigger hieronder, en alleen voor een actieve partner.
---   Zo kan niemand via de publieke sleutel een aanvraag aan een partner naar
---   keuze hangen, en hoeft de publieke kant de partnerlijst niet te lezen.
+--   formulier meegestuurd. partner_id bepaalt altijd de trigger hieronder: die
+--   maakt de kolom bij elke nieuwe rij eerst leeg en vult hem alleen voor een
+--   actieve partner met deze code. Dat is de echte grens, niet de
+--   kolomrechten: de bezoekersrol heeft op contact_messages naast de
+--   kolomrechten ook nog een invoegrecht op de hele tabel (nagekeken op 21 okt
+--   2026) en kan partner_id dus technisch meesturen; de trigger overschrijft
+--   dat. Zo kan niemand via de publieke sleutel een aanvraag aan een partner
+--   naar keuze hangen, en hoeft de publieke kant de partnerlijst niet te lezen.
 --
 -- Rechten: alles achter has_perm('bellijst'), het salesrecht. Geen apart recht,
 -- want dat vraagt een aanpassing van alle rollen.
@@ -71,6 +75,8 @@ alter table public.contact_messages
   add column partner_code text check (partner_code is null or length(partner_code) <= 40),
   add column partner_id uuid references public.partners(id) on delete set null;
 create index contact_messages_partner on public.contact_messages (partner_id) where partner_id is not null;
+-- Het kolomrecht voor partner_code, zoals bij lang (0015) en bron (0018): nodig
+-- zodra het invoegrecht op de hele tabel wordt ingetrokken.
 grant insert (partner_code) on public.contact_messages to anon, authenticated;
 
 -- Koppelt een nieuw bericht aan de actieve partner met deze code. security
@@ -93,12 +99,14 @@ create trigger contact_partner_koppelen
   before insert on public.contact_messages
   for each row execute function public.contact_partner_koppelen();
 
--- Controle (verwacht: de tweede insert krijgt een partner_id, de eerste niet):
+-- Controle (verwacht: de tweede insert krijgt een partner_id, de eerste niet;
+-- een partner_id die de bezoeker zelf meestuurt, blijft leeg):
 --   begin;
 --   insert into public.partners (code, kantoor) values ('TESTKANTOOR', 'Test');
 --   set local role anon;
 --   insert into public.contact_messages (name, email, message, partner_code) values ('a', 'a@b.nl', 'x', 'onbekend');
 --   insert into public.contact_messages (name, email, message, partner_code) values ('b', 'b@b.nl', 'x', 'testkantoor');
+--   insert into public.contact_messages (name, email, message, partner_id) values ('c', 'c@b.nl', 'x', (select id from public.partners limit 1));
 --   reset role;
---   select name, partner_code, partner_id is not null from public.contact_messages where name in ('a', 'b');
+--   select name, partner_code, partner_id is not null from public.contact_messages where name in ('a', 'b', 'c');
 --   rollback;
