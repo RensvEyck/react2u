@@ -2,14 +2,14 @@
   "slug": "partners",
   "title": "Partners",
   "seo_title": "Partnerprogramma voor accountants en HR-adviseurs • React2u",
-  "seo_description": "Breng werkgevers met verzuim bij React2u onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 15% van het abonnement in jaar één.",
+  "seo_description": "Breng werkgevers met verzuim bij React2u onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van het abonnement in jaar één.",
   "blocks": [
     {
       "type": "ptKop",
       "label": "Partners: kop met rekenvoorbeeld",
       "data": {
         "heading": "Jouw klant,\nonze casemanager,\njouw vergoeding.",
-        "text": "Accountants, salariskantoren en HR-adviseurs zien als eerste dat verzuim een werkgever geld kost. Breng die werkgever bij ons onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 15% van het abonnement.",
+        "text": "Accountants, salariskantoren en HR-adviseurs zien als eerste dat verzuim een werkgever geld kost. Breng die werkgever bij ons onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van het abonnement in het eerste jaar.",
         "knop": { "label": "Partner worden", "href": "#aanmelden" },
         "tweedeKnop": { "label": "Hoe het werkt", "href": "#hoe" },
         "rekenhulp": {
@@ -23,8 +23,8 @@
           "startKlanten": 10,
           "startMedewerkers": 25,
           "tarief": 135,
-          "pctJaarEen": 15,
-          "pctVervolg": 5,
+          "pctJaarEen": 50,
+          "pctVervolg": 25,
           "voetnoot": "Rekenvoorbeeld op basis van {tarief} per medewerker per jaar (Casemanagement Compleet, tarieven {jaar}), {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement."
         }
       }
@@ -69,8 +69,8 @@
             "label": "Aanbrengpartner",
             "titel": "Je verwijst door, wij doen de rest",
             "cijfers": [
-              { "waarde": "15%", "tekst": "van het abonnement in jaar één" },
-              { "waarde": "5%", "tekst": "elk jaar daarna, zolang de klant blijft" }
+              { "waarde": "50%", "tekst": "van het abonnement in jaar één" },
+              { "waarde": "25%", "tekst": "elk jaar daarna, zolang de klant blijft" }
             ],
             "punten": [
               "React2u factureert je klant rechtstreeks",
