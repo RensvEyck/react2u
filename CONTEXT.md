@@ -753,9 +753,11 @@ of de footer hoort pas bij het live zetten, anders geeft hij in productie een 40
 De blokken (`ptKop`, `ptDoelgroepen`, `ptStappen`, `ptModellen`, `ptKlant`,
 `ptAanmelden`) staan in [`Partners.tsx`](src/components/blocks/Partners.tsx); de
 vragen zijn een gewoon `dgVragen`-blok. Het rekenvoorbeeld in de kop rekent met
-`tarief`, `pctJaarEen` en `pctVervolg` uit de blokdata ([`lib/partners.ts`](src/lib/partners.ts))
-en het tarievenjaar uit de instellingen; pas het tarief daar aan als de prijs
-van Casemanagement Compleet verandert.
+`tarief` (het bedrag per werknemer per jaar waarover de vergoeding gaat, € 38,50),
+`pctJaarEen` (50) en `pctVervolg` (25) uit de blokdata ([`lib/partners.ts`](src/lib/partners.ts));
+pas ze daar aan als ze veranderen. De voetnoot noemt ze met `{tarief}`,
+`{pctJaarEen}` en `{pctVervolg}`, en kan met `{jaar}` het tarievenjaar uit de
+instellingen tonen.
 
 Het formulier (`submitPartner`) komt als "Partneraanmelding: <kantoor>" in het
 Postvak IN en gaat per mail naar `NOTIFY_OFFERTE_TO` (standaard sales@react2u.nl).

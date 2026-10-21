@@ -14,7 +14,7 @@
         "tweedeKnop": { "label": "Hoe het werkt", "href": "#hoe" },
         "rekenhulp": {
           "kop": "Wat levert het jouw kantoor op?",
-          "tekst": "Schuif en zie je vergoeding bij het casemanagementpakket Compleet.",
+          "tekst": "Schuif en zie wat jouw klanten je per jaar opleveren.",
           "klantenLabel": "Klanten die je aanbrengt",
           "medewerkersLabel": "Gemiddeld aantal medewerkers per klant",
           "jaarEenLabel": "Jouw vergoeding in jaar één",
@@ -22,10 +22,10 @@
           "perJaar": "per jaar",
           "startKlanten": 10,
           "startMedewerkers": 25,
-          "tarief": 135,
+          "tarief": 38.5,
           "pctJaarEen": 50,
           "pctVervolg": 25,
-          "voetnoot": "Rekenvoorbeeld op basis van {tarief} per medewerker per jaar (Casemanagement Compleet, tarieven {jaar}), {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement."
+          "voetnoot": "Rekenvoorbeeld op basis van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement."
         }
       }
     },
