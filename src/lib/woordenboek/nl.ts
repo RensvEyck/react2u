@@ -182,6 +182,7 @@ export const nl = {
       duur2: "2 minuten",
       duur1: "1 minuut",
       ikSolliciteerOp: "Ik solliciteer op",
+      kiesFunctie: "Kies een functie",
       open: "Open sollicitatie",
       cv: "Cv",
       cvOptioneel: "(optioneel, mag ook later)",

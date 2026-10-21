@@ -7,6 +7,7 @@ import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
+import { LuChevronDown } from "react-icons/lu";
 import { NAMEN, PROFIEL_COOKIE, actieveAanbieders, leesProfiel, type Aanbieder } from "@/lib/inloggen";
 import type { CvSamenvatting } from "@/lib/cvSamenvatting";
 
@@ -43,7 +44,32 @@ function vulAan(form: HTMLFormElement | null, naam: string, waarde?: string) {
 const veld =
   "h-[52px] w-full rounded-[12px] border border-[#DCDBEA] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-[#9C9AB5] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)]";
 
-export type Keuze = { id: string; title: string };
+export type Keuze = {
+  id: string;
+  title: string;
+  /** Vakgebied in de taal van de pagina; leeg als de functie er geen heeft. */
+  groep?: string;
+  /** De open sollicitatie uit de admin: die staat los onder de vakgebieden. */
+  open?: boolean;
+};
+
+/** Tot zoveel functies staan ze als knoppen naast elkaar; daarboven wordt het een keuzelijst per vakgebied. */
+const KNOPPEN_TOT = 6;
+
+const sleutel = (o: Keuze) => o.id || `open:${o.title}`;
+
+/** De functies per vakgebied, in de volgorde waarin ze binnenkomen; zonder vakgebied achteraan, zonder kopje. */
+function groepeer(opties: Keuze[]): [string, Keuze[]][] {
+  const groepen: [string, Keuze[]][] = [];
+  for (const o of opties) {
+    const naam = o.groep || "";
+    const laatste = groepen[groepen.length - 1];
+    if (laatste && laatste[0] === naam) laatste[1].push(o);
+    else groepen.push([naam, [o]]);
+  }
+  const los = groepen.filter(([naam]) => !naam).flatMap(([, lijst]) => lijst);
+  return [...groepen.filter(([naam]) => naam), ...(los.length ? [["", los] as [string, Keuze[]]] : [])];
+}
 
 export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
   keuzes: Keuze[];
@@ -55,8 +81,12 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
   const { taal, t } = useTaal();
   const f = t.formulier;
   const s = f.sollicitatie;
-  const opties: Keuze[] = vast ? [vast] : [...keuzes, { id: "", title: s.open }];
-  const [keuze, setKeuze] = useState<Keuze>(opties[0]);
+  // De open sollicitatie staat altijd als laatste: de vacature uit de admin als die er is, anders zonder id.
+  const openKeuze: Keuze = keuzes.find((k) => k.open) || { id: "", title: s.open };
+  const opties: Keuze[] = vast ? [vast] : [...keuzes.filter((k) => !k.open), openKeuze];
+  // Een handvol functies: knoppen, de eerste staat aan. Meer: een keuzelijst, en de kandidaat kiest zelf.
+  const lijst = !vast && opties.length > KNOPPEN_TOT;
+  const [keuze, setKeuze] = useState<Keuze | null>(lijst ? null : opties[0]);
   const [state, action, pending] = useActionState<FormState, FormData>(submitApplication, null);
   const pad = usePathname();
   // Na inloggen met LinkedIn, Google of Apple staan naam en e-mail tien minuten in een cookie.
@@ -112,8 +142,8 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
         <span className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold" style={{ background: "#E5F5F4", color: TEAL }}>{duur || s.duur2}</span>
       </div>
       <input type="hidden" name="taal" value={taal} />
-      <input type="hidden" name="vacancy_id" value={keuze.id} />
-      <input type="hidden" name="vacancy_title" value={keuze.title} />
+      <input type="hidden" name="vacancy_id" value={keuze?.id ?? ""} />
+      <input type="hidden" name="vacancy_title" value={keuze?.title ?? ""} />
       <input type="hidden" name="bron" defaultValue="" />
       <input type="hidden" name="via" value={profiel?.via || ""} />
       <input type="hidden" name="foto" value={profiel?.foto || ""} />
@@ -139,14 +169,31 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
           <span className="text-center text-[13px]" style={{ color: MUTE }}>{s.inlogOf}</span>
         </div>
       )}
-      {!vast && (
+      {!vast && lijst && (
+        <label className="flex flex-col gap-2">
+          <span className="text-[14px] font-semibold" style={{ color: NAVY }}>{s.ikSolliciteerOp}</span>
+          <span className="relative flex items-center">
+            <select required value={keuze ? sleutel(keuze) : ""} onChange={(e) => setKeuze(opties.find((o) => sleutel(o) === e.target.value) || null)}
+              className={`${veld} cursor-pointer appearance-none truncate pr-12 font-semibold`} style={{ color: keuze ? NAVY : "#9C9AB5" }}>
+              <option value="" disabled>{s.kiesFunctie}</option>
+              {groepeer(opties).map(([naam, functies]) => naam ? (
+                <optgroup key={naam} label={naam}>
+                  {functies.map((o) => <option key={sleutel(o)} value={sleutel(o)}>{o.title}</option>)}
+                </optgroup>
+              ) : functies.map((o) => <option key={sleutel(o)} value={sleutel(o)}>{o.title}</option>))}
+            </select>
+            <LuChevronDown aria-hidden className="pointer-events-none absolute right-4 text-[18px]" style={{ color: NAVY }} />
+          </span>
+        </label>
+      )}
+      {!vast && !lijst && (
         <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
           <legend className="mb-2.5 text-[14px] font-semibold" style={{ color: NAVY }}>{s.ikSolliciteerOp}</legend>
           <div className="flex flex-wrap gap-2">
             {opties.map((o) => {
-              const aan = o.title === keuze.title;
+              const aan = keuze !== null && sleutel(o) === sleutel(keuze);
               return (
-                <button key={o.title} type="button" onClick={() => setKeuze(o)} aria-pressed={aan}
+                <button key={sleutel(o)} type="button" onClick={() => setKeuze(o)} aria-pressed={aan}
                   className="inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-left text-[14.5px] font-semibold leading-[1.3] transition-colors"
                   style={{ borderColor: aan ? PINK : "#D9D8E6", background: aan ? "#FDECF4" : "#ffffff", color: NAVY }}>
                   {o.title}

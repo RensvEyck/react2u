@@ -172,6 +172,7 @@ export const en: Woordenboek = {
       duur2: "2 minutes",
       duur1: "1 minute",
       ikSolliciteerOp: "I am applying for",
+      kiesFunctie: "Choose a position",
       open: "Open application",
       cv: "CV",
       cvOptioneel: "(optional, you can also send it later)",
