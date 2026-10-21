@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Vacancy } from "@/lib/types";
 import { MiniMarkdown } from "@/lib/md";
-import { OPEN_SOLLICITATIE, pad, telefoonInTaal, vul, type Taal } from "@/lib/taal";
+import { OPEN_SOLLICITATIE, pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 import { faqLd, faqParen, isOpdracht, kenmerkInTaal, opbouwInTaal, vacatureInTaal } from "@/lib/vacatures";
 import { jsonLd } from "@/lib/jsonld";
@@ -28,34 +28,11 @@ import Beeld from "@/components/site/Beeld";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl").replace(/\/$/, "");
 
-/** Contact bij vacatures (vaste naam, niet vertaald). */
+/** Contact bij vacatures en de open sollicitatie (vaste naam, niet vertaald). */
 const EIGENAAR = { naam: "Rens van Eyck", mail: "rens@react2u.nl", whatsapp: "31645064277" };
-const SUSANNE = { naam: "Susanne Linders", tel: "06 12479720", telHref: "tel:+31612479720", mail: "susanne@react2u.nl" };
 
 function Chip({ children, tint = SOFT }: { children: React.ReactNode; tint?: string }) {
   return <span className="inline-flex items-center rounded-full px-3 py-[7px] text-[13.5px] font-bold" style={{ background: tint, color: NAVY }}>{children}</span>;
-}
-
-function Susanne({ licht, taal }: { licht?: boolean; taal: Taal }) {
-  const t = woordenboek(taal);
-  const kleur = licht ? "#ffffff" : NAVY;
-  return (
-    <div className="flex flex-col gap-4 rounded-[20px] p-5" style={{ background: licht ? "rgba(255,255,255,0.08)" : SOFT, border: licht ? "1px solid rgba(255,255,255,0.14)" : "none" }}>
-      <div className="flex items-center gap-3.5">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[16px] font-bold" style={{ background: licht ? "#ffffff" : LAV, color: NAVY }}>SL</span>
-        <span className="flex flex-col">
-          <span className="text-[12.5px]" style={{ color: licht ? "rgba(255,255,255,0.65)" : MUTE }}>{t.vacatures.aanspreekpunt}</span>
-          <span className="text-[16px] font-bold" style={{ color: kleur }}>{SUSANNE.naam}</span>
-          <span className="text-[13.5px]" style={{ color: licht ? "rgba(255,255,255,0.7)" : BODY }}>{t.vacatures.susanneRol} · {telefoonInTaal(SUSANNE.tel, taal)}</span>
-        </span>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <a href={SUSANNE.telHref} className="inline-flex h-11 items-center justify-center rounded-full bg-white text-[14.5px] font-bold" style={{ color: NAVY }}>{t.algemeen.bellen}</a>
-        <a href={`mailto:${SUSANNE.mail}`} className="inline-flex h-11 items-center justify-center rounded-full border text-[14.5px] font-bold"
-          style={{ color: kleur, borderColor: licht ? "rgba(255,255,255,0.4)" : "#D9D8E6" }}>{t.algemeen.mailen}</a>
-      </div>
-    </div>
-  );
 }
 
 /** Een sectie van de vacaturetekst; leeg = niet tonen. */
@@ -88,20 +65,27 @@ function Cijfers({ taal }: { taal: Taal }) {
   );
 }
 
-/** Contact bij een vacature: de eigenaar van React2u, via mail of WhatsApp. */
-function Eigenaar({ taal, groot }: { taal: Taal; groot?: boolean }) {
+/**
+ * Contact bij een vacature: de eigenaar van React2u, via mail of WhatsApp.
+ * `licht` is voor een donkere achtergrond, `kop` vervangt "Vragen over deze
+ * vacature?" op pagina's die niet over één vacature gaan.
+ */
+function Eigenaar({ taal, groot, licht, kop: titel }: { taal: Taal; groot?: boolean; licht?: boolean; kop?: string }) {
   const ob = woordenboek(taal).vacatures.opbouw;
+  const kaart = licht
+    ? { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)" }
+    : { background: SOFT };
   return (
-    <div className={`flex flex-col gap-3 ${groot ? "rounded-[20px] p-5" : "border-t pt-4"}`} style={groot ? { background: SOFT } : { borderColor: LINE }}>
-      {groot && <span className="text-[16px] font-bold" style={{ color: NAVY }}>{ob.contactKop}</span>}
+    <div className={`flex flex-col gap-3 ${groot ? "rounded-[20px] p-5" : "border-t pt-4"}`} style={groot ? kaart : { borderColor: LINE }}>
+      {groot && <span className="text-[16px] font-bold" style={{ color: licht ? "#ffffff" : NAVY }}>{titel || ob.contactKop}</span>}
       <div className="flex items-center gap-3.5">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[16px] font-bold" style={{ background: groot ? LAV : "#ffffff", color: NAVY }}>RE</span>
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[16px] font-bold" style={{ background: groot && !licht ? LAV : "#ffffff", color: NAVY }}>RE</span>
         <span className="flex flex-col">
-          <span className="text-[16px] font-bold" style={{ color: NAVY }}>{EIGENAAR.naam}</span>
-          <span className="text-[13.5px]" style={{ color: BODY }}>{ob.contactRol}, React2u</span>
+          <span className="text-[16px] font-bold" style={{ color: licht ? "#ffffff" : NAVY }}>{EIGENAAR.naam}</span>
+          <span className="text-[13.5px]" style={{ color: licht ? "rgba(255,255,255,0.7)" : BODY }}>{ob.contactRol}, React2u</span>
         </span>
       </div>
-      {groot && <p className="m-0 text-[14.5px] leading-[1.6]" style={{ color: BODY }}>{ob.contactTekst}</p>}
+      {groot && <p className="m-0 text-[14.5px] leading-[1.6]" style={{ color: licht ? "rgba(255,255,255,0.75)" : BODY }}>{ob.contactTekst}</p>}
       <a href={`mailto:${EIGENAAR.mail}`} className="inline-flex h-11 items-center justify-center rounded-full border bg-white text-[14.5px] font-bold" style={{ color: NAVY, borderColor: "#D9D8E6" }}>{EIGENAAR.mail}</a>
       <a href={`https://wa.me/${EIGENAAR.whatsapp}?text=${encodeURIComponent(ob.whatsappTekst)}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center justify-center gap-2 rounded-full text-[14.5px] font-bold text-white" style={{ background: "#1FA855" }}>
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
@@ -302,7 +286,7 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
               <h2 className={`${kop} m-0 text-[36px] leading-[1.05] tracking-[-1.2px] md:text-[48px]`} style={{ color: "#ffffff" }}>{w.solliciterenKop}</h2>
               <p className="m-0 text-[17px] leading-[1.7]" style={{ color: "rgba(255,255,255,0.75)" }}>{w.solliciterenTekst}</p>
               <Micro licht items={w.solliciterenMicro} />
-              <Susanne licht taal={taal} />
+              <Eigenaar taal={taal} groot licht kop={w.aanspreekpunt} />
             </div>
             <div className="relative rounded-[24px] bg-white p-6 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.45)] md:p-10 lg:col-span-6 lg:col-start-7">
               <Solliciteren keuzes={keuzes} />
@@ -538,10 +522,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
                 ))}
               </dl>
               <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>
-              <a href={SUSANNE.telHref} className="flex items-center gap-3 border-t pt-4 text-[14.5px]" style={{ borderColor: LINE, color: BODY }}>
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-white text-[14px] font-bold" style={{ color: NAVY }}>SL</span>
-                <span className="flex flex-col"><span>{d.vragenBel}</span><span className="font-bold" style={{ color: NAVY }}>{telefoonInTaal(SUSANNE.tel, taal)}</span></span>
-              </a>
+              <Eigenaar taal={taal} />
             </div>
           </aside>
         </div>
@@ -556,7 +537,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
           <div className="flex flex-col gap-5 lg:col-span-5">
             <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`}>{d.solliciterenKop}</h2>
             <p className="m-0 text-[17px] leading-[1.7]" style={{ color: BODY }}>{d.solliciterenTekst}</p>
-            {o ? <Eigenaar taal={taal} groot /> : <Susanne taal={taal} />}
+            <Eigenaar taal={taal} groot />
           </div>
           <div className="rounded-[24px] bg-white p-6 md:p-10 lg:col-span-6 lg:col-start-7">
             <Solliciteren keuzes={[]} vast={{ id: v.id, title: tekst.title }} kopTekst={t.formulier.sollicitatie.kopDirect} duur={t.formulier.sollicitatie.duur1} />
@@ -735,7 +716,7 @@ export function OpenSollicitatiePagina({ taal = "nl" }: { taal?: Taal }) {
             <h1 className={`${kop} m-0 text-[44px] leading-[1.02] tracking-[-1.4px] md:text-[60px] md:tracking-[-1.8px]`}>{o.kop}</h1>
             <p className="m-0 text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }}>{o.tekst}</p>
             <Micro items={w.solliciterenMicro} />
-            <Susanne taal={taal} />
+            <Eigenaar taal={taal} groot kop={w.aanspreekpunt} />
           </div>
           <div className="relative rounded-[24px] bg-white p-6 shadow-[0_30px_60px_-30px_rgba(50,46,131,0.35)] md:p-10 lg:col-span-6 lg:col-start-7">
             <Solliciteren keuzes={[]} vast={{ id: "", title: t.formulier.sollicitatie.open }} kopTekst={o.formKop} />
