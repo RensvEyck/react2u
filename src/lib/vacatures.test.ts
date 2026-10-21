@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { alleenPunten, baseSalaryLd, kenmerkInTaal, salarisKort, salarisRest, splitsVragen } from "./vacatures";
+import { baseSalaryLd, kenmerkInTaal, salarisKort, salarisRest, splitsVragen } from "./vacatures";
 
 describe("salarisRest", () => {
   it("geeft de tekst na de bedragen", () => {
@@ -9,13 +9,6 @@ describe("salarisRest", () => {
   });
 });
 
-describe("alleenPunten", () => {
-  it("geeft de punten alleen als alles een opsomming is", () => {
-    expect(alleenPunten("- Een\n- **Twee**\n\n- Drie")).toEqual(["Een", "Twee", "Drie"]);
-    expect(alleenPunten("Inleiding\n\n- Een")).toBeNull();
-    expect(alleenPunten("")).toBeNull();
-  });
-});
 
 describe("splitsVragen", () => {
   it("splitst op de vetgedrukte regel", () => {

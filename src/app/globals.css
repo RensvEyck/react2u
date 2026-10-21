@@ -535,6 +535,10 @@ p {
   height: 1.3em;
   background: #E5F5F4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.4l2.6 2.6L12 5.4' fill='none' stroke='%2300A098' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 72% no-repeat;
 }
+@media (min-width: 640px) {
+  .hv .vacature-kolommen ul { columns: 2; column-gap: 2.5rem; }
+  .hv .vacature-kolommen li { break-inside: avoid; }
+}
 .hv .vacature-plus li::before {
   background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 4v8M4 8h8' fill='none' stroke='%23E61674' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / 64% no-repeat;
 }
