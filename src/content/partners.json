@@ -5,14 +5,11 @@
   "seo_description": "Breng werkgevers met verzuim bij React2u onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van het abonnement in jaar één.",
   "blocks": [
     {
-      "type": "dienstLabel",
-      "label": "Partners: kop en opzet zoals een dienstpagina",
+      "type": "ptKop",
+      "label": "Partners: kop in roze met de vergoeding",
       "data": {
         "heading": "React2u Partners",
         "naam": "Partners",
-        "registered": false,
-        "kleur": "#322E83",
-        "tint": "#ECEBF5",
         "kruimels": [
           {
             "label": "Werkgevers",
@@ -35,12 +32,36 @@
             "href": "#rekenvoorbeeld"
           }
         ],
-        "checks": [
-          "50% van het abonnement in jaar één",
-          "25% in elk jaar daarna, zolang de klant blijft",
-          "Geen contract met de klant, geen aansprakelijkheid",
-          "Uitbetaling per kwartaal op jouw factuur"
-        ],
+        "kaart": {
+          "kop": "Jouw vergoeding",
+          "groot": "50%",
+          "grootTekst": "van het abonnement in jaar één",
+          "plus": "+25%",
+          "plusTekst": "in elk jaar daarna, zolang de klant blijft",
+          "voorbeeldTekst": "Bij {klanten} klanten met elk {medewerkers} medewerkers:",
+          "voorbeeldNa": "in jaar één",
+          "punten": [
+            "Geen contract met de klant, geen aansprakelijkheid",
+            "Uitbetaling per kwartaal op jouw factuur"
+          ]
+        },
+        "voorbeeld": {
+          "klanten": 10,
+          "medewerkers": 100,
+          "tarief": 38.5,
+          "pctJaarEen": 50,
+          "pctVervolg": 25
+        }
+      }
+    },
+    {
+      "type": "dienstLabel",
+      "label": "Partners: kop en opzet zoals een dienstpagina",
+      "data": {
+        "heading": "React2u Partners",
+        "naam": "Partners",
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
         "de": "Je ziet verzuim eerder dan de werkgever zelf",
         "lead": "Daar hoort een arbodienst bij die net zo dichtbij is.",
         "intro": [
@@ -145,7 +166,8 @@
           "aanpak": "Zo werkt het",
           "waarom": "Waarom partner worden bij React2u",
           "bekijkOok": "Wat jouw klant krijgt"
-        }
+        },
+        "zonderKop": true
       }
     },
     {

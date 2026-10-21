@@ -16,10 +16,10 @@ type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal } };
  * Kleur en tint komen uit de data: elk label heeft zijn eigen kleur.
  *
  * Een pagina in dezelfde opzet die geen dienst is (zoals /partners) zet in
- * de data: `kruimels`, `knoppen`, `registered: false` (geen ®) en `titels`
- * voor de vaste kopjes (watJeKrijgt, herken, danIs, omvat, omvatTekst,
- * aanpak, waarom, gecertificeerd, bekijkOok). Zonder die velden gelden de
- * teksten van de dienstpagina's.
+ * de data `zonderKop: true` (de pagina heeft een eigen kop, ptKop), `titels`
+ * voor de vaste kopjes (herken, danIs, omvat, omvatTekst, aanpak, waarom,
+ * gecertificeerd, bekijkOok) en eventueel `aanpakAnker`. Zonder die velden
+ * gelden de teksten van de dienstpagina's.
  */
 
 const NAVY = "#322E83";
@@ -74,32 +74,20 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
   const kolommen = groepen.length > 4 ? "lg:grid-cols-3" : "lg:grid-cols-2";
   const titels = d.titels || {};
   const titel = (k: string, standaard: string) => vul(titels[k] ?? standaard, { naam });
-  const kruimels: { label: string; href?: string }[] | null = Array.isArray(d.kruimels) ? d.kruimels : null;
-  const knoppen: { label: string; href: string }[] = Array.isArray(d.knoppen) && d.knoppen.length
-    ? d.knoppen
-    : [{ label: t2.adviesgesprek, href: pad(taal, "contact") }, { label: t2.alleDiensten, href: pad(taal, "diensten") }];
 
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       {/* 1. De specialismekaart, in de breedte */}
-      <section aria-label={`React2u ${naam}`} className="px-[6px] pt-4 md:px-10 md:pt-8 xl:mx-auto xl:max-w-[1280px]">
+      {!d.zonderKop && <section aria-label={`React2u ${naam}`} className="px-[6px] pt-4 md:px-10 md:pt-8 xl:mx-auto xl:max-w-[1280px]">
         <div className="relative grid gap-8 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-end lg:gap-16 lg:p-16"
           style={{ background: t }}>
           <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[520px] md:w-[520px]"
             style={{ background: c, opacity: 0.12 }} />
           <div className="relative flex flex-col gap-5 md:gap-[22px]">
             <nav aria-label={w.algemeen.kruimelpad} className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
-              {kruimels ? (
-                kruimels.map((k, i) => k.href
-                  ? <span key={i} className="contents"><Link href={k.href} style={{ color: MUTE }}>{k.label}</Link><span>/</span></span>
-                  : <span key={i} aria-current="page" style={{ color: NAVY }}>{k.label}</span>)
-              ) : (
-                <>
-                  <Link href={pad(taal, "werkgevers")} style={{ color: MUTE }}>{w.header.werkgevers}</Link><span>/</span>
-                  <Link href={pad(taal, "diensten")} style={{ color: MUTE }}>{t2.kruimelDiensten}</Link><span>/</span>
-                  <span aria-current="page" style={{ color: NAVY }}>{naam}</span>
-                </>
-              )}
+              <Link href={pad(taal, "werkgevers")} style={{ color: MUTE }}>{w.header.werkgevers}</Link><span>/</span>
+              <Link href={pad(taal, "diensten")} style={{ color: MUTE }}>{t2.kruimelDiensten}</Link><span>/</span>
+              <span aria-current="page" style={{ color: NAVY }}>{naam}</span>
             </nav>
             {/* De hoofdkop noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
                 Alleen de merknaam als H1 zei Google niet waar de pagina over gaat;
@@ -110,7 +98,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
                 React2u<br />
                 <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[76px] md:tracking-[-2px]">
                   <span style={{ color: c }}>{naam}</span>
-                  {d.registered !== false && <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>}
+                  <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
                 </span>
                 <span className="hv-dienst mt-5 block text-[18px] font-bold leading-[1.5] tracking-normal md:mt-[22px] md:text-[21px]">{d.label}</span>
               </H>
@@ -120,17 +108,13 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
             </div>
             {d.text && <p className="m-0 max-w-[520px] text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{d.text}</p>}
             <div className="flex flex-wrap gap-2.5 pt-2">
-              {knoppen.map((b, i) => {
-                const cls = `hv-btn ${i === 0 ? "hv-btn-roze" : "hv-btn-rand"} inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold`;
-                return b.href.startsWith("#")
-                  ? <a key={i} href={b.href} className={cls}>{b.label} <Pijl /></a>
-                  : <Link key={i} href={b.href} className={cls}>{b.label} <Pijl /></Link>;
-              })}
+              <Link href={pad(taal, "contact")} className="hv-btn hv-btn-roze inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">{t2.adviesgesprek} <Pijl /></Link>
+              <Link href={pad(taal, "diensten")} className="hv-btn hv-btn-rand inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">{t2.alleDiensten} <Pijl /></Link>
             </div>
           </div>
           {checks.length > 0 && (
             <div className="relative flex flex-col gap-4 rounded-[24px] p-7 md:p-8" style={{ background: "rgba(255,255,255,0.7)" }}>
-              <span className="text-[13px] font-bold uppercase tracking-[1.4px]" style={{ color: MUTE }}>{titel("watJeKrijgt", t2.watJeKrijgt)}</span>
+              <span className="text-[13px] font-bold uppercase tracking-[1.4px]" style={{ color: MUTE }}>{t2.watJeKrijgt}</span>
               {checks.map((x, i) => (
                 <span key={i} className="flex items-start gap-2.5 text-[16px] leading-[1.45] md:text-[17px]" style={{ color: NAVY }}>
                   <span className="mt-0.5 shrink-0" style={{ color: c }}><Vink /></span>{x}
@@ -139,7 +123,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
             </div>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* 2. Introductie en "Herken je dit?" */}
       <section aria-label={`React2u ${naam}`} className="px-5 py-14 md:px-10 md:py-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0">

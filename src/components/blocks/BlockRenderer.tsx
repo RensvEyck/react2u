@@ -24,7 +24,7 @@ import { SitemapOverzicht } from "./Werkgebied";
 import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen, DgSituaties } from "./Doelgroep";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
-import { PtRekenhulp, PtAanmelden } from "./Partners";
+import { PtKop, PtRekenhulp, PtAanmelden } from "./Partners";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
 import {
   WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
@@ -1155,6 +1155,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   inloggen: Inloggen,
   juridischeDocumenten: JuridischeDocumenten,
   kennismaken: Kennismaken,
+  ptKop: PtKop,
   ptRekenhulp: PtRekenhulp,
   ptAanmelden: PtAanmelden,
   klantenStrook: ({ d, ctx }: BlockProps) => <KlantenStrook label={d?.label} taal={ctx?.lang} />,
@@ -1198,7 +1199,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen", "ptKop",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
