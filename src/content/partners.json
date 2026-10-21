@@ -21,11 +21,11 @@
           "vervolgLabel": "Elk jaar daarna",
           "perJaar": "per jaar",
           "startKlanten": 10,
-          "startMedewerkers": 25,
+          "startMedewerkers": 100,
           "tarief": 38.5,
           "pctJaarEen": 50,
           "pctVervolg": 25,
-          "voetnoot": "Rekenvoorbeeld op basis van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement."
+          "voetnoot": "Rekenvoorbeeld op basis van het aansluittarief van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement."
         }
       }
     },
