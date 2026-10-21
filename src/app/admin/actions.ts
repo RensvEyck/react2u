@@ -317,9 +317,19 @@ export async function deletePost(id: string) {
 export async function setApplicationStatus(id: string, formData: FormData) {
   const { sb } = await requirePerm("postvak");
   const status = String(formData.get("status") || "nieuw");
-  await sb.from("applications").update({ status }).eq("id", id);
+  // status_at (migratie 0018) voor "wacht al X dagen"; zonder die kolom alleen de status.
+  const { error } = await sb.from("applications").update({ status, status_at: new Date().toISOString() }).eq("id", id);
+  if (error) await sb.from("applications").update({ status }).eq("id", id);
   revalidatePath("/admin/sollicitaties");
   revalidatePath("/admin/postvak-in");
+}
+
+/** Interne notitie bij een sollicitant (migratie 0018). */
+export async function saveApplicationNote(id: string, formData: FormData) {
+  const { sb } = await requirePerm("postvak");
+  const notitie = String(formData.get("notitie") || "").trim().slice(0, 4000) || null;
+  await sb.from("applications").update({ notitie }).eq("id", id);
+  revalidatePath("/admin/sollicitaties");
 }
 
 export async function toggleMessageRead(id: string, read: boolean) {

@@ -1,5 +1,6 @@
 "use client";
 import { useActionState, useState } from "react";
+import { leesBron } from "@/components/site/BronOnthouden";
 import { submitApplication, type FormState } from "@/app/(site)/actions";
 import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
@@ -43,7 +44,11 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
   }
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} className="flex flex-col gap-4" onSubmit={(e) => {
+      // De bron (BronOnthouden) pas bij het versturen invullen.
+      const bronVeld = e.currentTarget.elements.namedItem("bron");
+      if (bronVeld instanceof HTMLInputElement) bronVeld.value = leesBron();
+    }}>
       <div className="flex items-center justify-between gap-4">
         <h3 className={`${kop} m-0 text-[24px]`} style={{ color: NAVY }}>{kopTekst || s.kop}</h3>
         <span className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold" style={{ background: "#E5F5F4", color: TEAL }}>{duur || s.duur2}</span>
@@ -51,6 +56,7 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
       <input type="hidden" name="taal" value={taal} />
       <input type="hidden" name="vacancy_id" value={keuze.id} />
       <input type="hidden" name="vacancy_title" value={keuze.title} />
+      <input type="hidden" name="bron" defaultValue="" />
       {!vast && (
         <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
           <legend className="mb-2.5 text-[14px] font-semibold" style={{ color: NAVY }}>{s.ikSolliciteerOp}</legend>

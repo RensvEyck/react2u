@@ -1,5 +1,6 @@
 import type { Vacancy, VacatureOpbouw } from "./types";
 import type { Taal } from "./taal";
+import { woordenboek } from "./woordenboek";
 
 /**
  * Een vacature in de taal van de pagina. De Engelse velden (migratie 0015)
@@ -45,18 +46,69 @@ export function kenmerkInTaal(tekst: string | null, taal: Taal): string | null {
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
 
-/** De volledige vacaturetekst als platte markdown, voor JobPosting. */
-function beschrijvingVoorLd(v: Vacancy, taal: Taal): string {
+/**
+ * De volledige vacaturetekst als markdown, voor JobPosting en de
+ * vacaturefeed: de secties plus het vaste pakket bij loondienst.
+ */
+export function volledigeTekst(v: Vacancy, taal: Taal): string {
   const o = opbouwInTaal(v, taal);
   if (!o) return vacatureInTaal(v, taal).description_md || "";
-  const en = o.taal === "en";
-  const kop = en
-    ? { doen: "What you will do", vragen: "What we ask", bieden: "What we offer" }
-    : { doen: "Wat ga je doen", vragen: "Wat wij vragen", bieden: "Wat wij bieden" };
-  return (["doen", "vragen", "bieden"] as const)
-    .filter((k) => o[k])
-    .map((k) => `### ${kop[k]}\n\n${o[k]}`)
-    .join("\n\n");
+  const ob = woordenboek(o.taal).vacatures.opbouw;
+  const pakket = !isOpdracht(v) && v.employment_type !== "INTERN" ? ob.aanbod.map((a) => `- ${a}`).join("\n") : "";
+  const delen: [string, string][] = [
+    [ob.doen, o.doen],
+    [ob.samen, o.samen],
+    [ob.leuk, o.leuk],
+    [ob.vragen, o.vragen],
+    [isOpdracht(v) ? ob.biedenOpdracht : ob.bieden, [pakket, o.bieden].filter(Boolean).join("\n\n")],
+  ];
+  return delen.filter(([, t]) => t).map(([k, t]) => `### ${k}\n\n${t}`).join("\n\n");
+}
+
+function escHtml(s: string) {
+  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+}
+
+/** Mini-markdown ("### ", "- ", **vet**) naar eenvoudige HTML, voor Google for Jobs en Indeed. */
+export function mdNaarHtml(md: string): string {
+  const inline = (t: string) => escHtml(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  const uit: string[] = [];
+  let lijst: string[] = [];
+  let alinea: string[] = [];
+  const sluit = () => {
+    if (alinea.length) { uit.push(`<p>${inline(alinea.join(" "))}</p>`); alinea = []; }
+    if (lijst.length) { uit.push(`<ul>${lijst.map((l) => `<li>${inline(l)}</li>`).join("")}</ul>`); lijst = []; }
+  };
+  for (const regel of md.split("\n")) {
+    const r = regel.trim();
+    if (!r) { sluit(); continue; }
+    if (r.startsWith("### ")) { sluit(); uit.push(`<h3>${inline(r.slice(4))}</h3>`); continue; }
+    if (r.startsWith("- ")) { if (alinea.length) sluit(); lijst.push(r.slice(2)); continue; }
+    if (lijst.length) sluit();
+    alinea.push(r);
+  }
+  sluit();
+  return uit.join("");
+}
+
+/**
+ * Salaris uit de vrije tekst ("€ 3.500 tot € 4.500 bruto per maand",
+ * "€ 120 tot € 150 per uur") als baseSalary voor Google for Jobs. Zonder
+ * herkenbare bedragen of eenheid: niets, liever geen dan een fout salaris.
+ */
+export function baseSalaryLd(salary: string | null) {
+  if (!salary) return null;
+  const bedragen = [...salary.matchAll(/€\s*([\d.]+)(?:,(\d+))?/g)].map((m) => Number(m[1].replace(/\./g, "")));
+  if (!bedragen.length || bedragen.some((n) => !n)) return null;
+  const t = salary.toLowerCase();
+  const unitText = /per uur|\/uur|hour/.test(t) ? "HOUR" : /per jaar|year/.test(t) ? "YEAR" : /per maand|p\/m|month/.test(t) ? "MONTH" : null;
+  if (!unitText) return null;
+  const [min, max] = [Math.min(...bedragen), Math.max(...bedragen)];
+  return {
+    "@type": "MonetaryAmount",
+    currency: "EUR",
+    value: { "@type": "QuantitativeValue", unitText, ...(min === max ? { value: min } : { minValue: min, maxValue: max }) },
+  };
 }
 
 /** `JobPosting` voor Google for Jobs, in de taal waarin de tekst van de pagina staat. */
@@ -66,7 +118,7 @@ export function jobPostingLd(v: Vacancy, taal: Taal) {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: tekst.title,
-    description: beschrijvingVoorLd(v, taal) || tekst.intro || "",
+    description: mdNaarHtml([tekst.intro || "", volledigeTekst(v, taal)].filter(Boolean).join("\n\n")),
     inLanguage: tekst.taal,
     datePosted: v.published_at || v.created_at,
     ...(v.valid_through ? { validThrough: v.valid_through } : {}),
@@ -88,6 +140,7 @@ export function jobPostingLd(v: Vacancy, taal: Taal) {
       },
     },
     directApply: true,
+    ...(baseSalaryLd(v.salary) ? { baseSalary: baseSalaryLd(v.salary) } : {}),
   };
 }
 

@@ -16,9 +16,11 @@ const BULK_FORM = "inbox-bulk";
 
 const STATUS_OPTIONS: [string, string][] = [
   ["nieuw", "Nieuw"],
-  ["in_behandeling", "In behandeling"],
-  ["afgewezen", "Afgewezen"],
+  ["gebeld", "Gebeld"],
+  ["gesprek", "Gesprek"],
+  ["aanbod", "Aanbod"],
   ["aangenomen", "Aangenomen"],
+  ["afgewezen", "Afgewezen"],
 ];
 
 const FILTERS = [
@@ -340,7 +342,7 @@ function ApplicationCard({ a, onList }: { a: Application; onList: boolean }) {
               <LuFileText className="text-[13px]" /> CV bekijken
             </a>
           )}
-          <StatusSelect action={setApplicationStatus.bind(null, a.id)} current={a.status} options={STATUS_OPTIONS} />
+          <StatusSelect action={setApplicationStatus.bind(null, a.id)} current={a.status === "in_behandeling" ? "gebeld" : a.status} options={STATUS_OPTIONS} />
           <ConfirmButton
             action={deleteApplication.bind(null, a.id)}
             message={`Sollicitatie van ${a.name} definitief verwijderen, inclusief het cv? Dit kan niet ongedaan worden gemaakt.`}

@@ -1,7 +1,7 @@
 "use server";
 import { headers } from "next/headers";
 import { supabasePublic } from "@/lib/supabase/public";
-import { notifyContactMessage, notifyApplication, notifyOfferte, notifyTerugbel } from "@/lib/mail";
+import { notifyContactMessage, notifyApplication, bevestigSollicitatie, notifyOfferte, notifyTerugbel } from "@/lib/mail";
 import { withinLimit, requestIp, type Throttle } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { uploadCv, MAX_CV_BYTES, CV_TYPES } from "@/lib/cvs";
@@ -108,6 +108,8 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   const motivation = veld(formData, "motivation");
   // Toestemming om een jaar te bewaren (zie src/lib/retention.ts).
   const retainLonger = formData.get("retain_longer") === "on";
+  // Waar de kandidaat vandaan kwam (BronOnthouden, migratie 0018).
+  const bron = veld(formData, "bron").slice(0, 120);
   if (!name || !email) return { ok: false, error: fout.sollicitatieVerplicht };
   if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
 
@@ -127,7 +129,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     phone: phone || null,
     motivation: motivation || null,
     cv_path: cvPath,
-  }, { retain_longer: retainLonger, lang: taal });
+  }, { retain_longer: retainLonger, lang: taal, ...(bron ? { bron } : {}) });
   if (error) return { ok: false, error: fout.sollicitatieAlgemeen };
   await Promise.all([
     recordConversion("sollicitatie", await paginaPad()),
@@ -137,8 +139,10 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
       vacancyTitle: vacancyTitle || null,
       motivation: motivation || null,
       hasCv: Boolean(cvPath),
+      bron: bron || null,
       taal,
     }),
+    bevestigSollicitatie({ to: email, name, vacancyTitle: vacancyTitle || null, taal }),
   ]);
   return { ok: true };
 }
