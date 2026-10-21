@@ -770,8 +770,8 @@ p {
 .hv-btn:hover .hn-pijl { transform: translateX(5px); }
 /* De schuifjes van het rekenvoorbeeld op /partners: indigo tot de knop (--vol), daarna lichtgrijs. */
 .partner-schuif { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; margin: 11px 0; border-radius: 999px; background: linear-gradient(to right, #322E83 var(--vol, 50%), #E6E5EF var(--vol, 50%)); outline: none; cursor: pointer; }
-.partner-schuif::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #ffffff; border: 6px solid #E61674; box-shadow: 0 4px 12px rgba(230,22,116,.35); }
-.partner-schuif::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #ffffff; border: 6px solid #E61674; box-shadow: 0 4px 12px rgba(230,22,116,.35); }
+.partner-schuif::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #322E83; border: 4px solid #ffffff; box-shadow: 0 2px 8px rgba(50,46,131,.35); }
+.partner-schuif::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #322E83; border: 4px solid #ffffff; box-shadow: 0 2px 8px rgba(50,46,131,.35); }
 .partner-schuif:focus-visible::-webkit-slider-thumb { outline: 3px solid #E61674; outline-offset: 2px; }
 .partner-schuif:focus-visible::-moz-range-thumb { outline: 3px solid #E61674; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {

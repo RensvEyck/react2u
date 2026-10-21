@@ -33,7 +33,7 @@ function Knop2({ href, children, stijl = "roze" }: { href: string; children: Rea
   return extern ? <a href={href} className={cls}>{children}<Pijl /></a> : <Link href={href} className={cls}>{children}<Pijl /></Link>;
 }
 
-function SectieKop({ d, size = 44 }: { d: any; size?: number }) {
+export function SectieKop({ d, size = 44 }: { d: any; size?: number }) {
   return (
     <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
       <div className="flex flex-col gap-4 lg:col-span-7">
@@ -212,7 +212,8 @@ export function DgPrijzen({ d }: { d: any }) {
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable}`} style={{ background: SOFT }}>
       <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
-        <Strook n={kaarten.length} className="grid gap-5 lg:grid-cols-3">
+        {/* Twee kaarten (zoals op /partners) naast elkaar over de hele breedte, anders drie. */}
+        <Strook n={kaarten.length} className={`grid gap-5 ${kaarten.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3"}`}>
           {kaarten.map((c, i) => {
             const donker = Boolean(c.featured);
             const tekst = donker ? "#ffffff" : NAVY;
@@ -256,7 +257,7 @@ export function DgStarten({ d }: { d: any }) {
       <div className={`${BREED} flex flex-col gap-9 py-14 md:gap-12 md:py-[104px]`}>
         <SectieKop d={d} />
         {/* Op de telefoon staat het nummer naast de titel (twee kolommen), vanaf lg erboven met de lijn ernaast. */}
-        <ol className="m-0 grid list-none gap-6 p-0 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4 lg:gap-6">
+        <ol className={`m-0 grid list-none gap-6 p-0 sm:grid-cols-2 sm:gap-8 lg:gap-6 ${stappen.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
           {stappen.map((s, i) => (
             <li key={i} className="grid grid-cols-[40px_minmax(0,1fr)] gap-x-4 gap-y-1 lg:flex lg:flex-col lg:gap-3">
               <span className="row-span-2 flex items-start gap-3 lg:row-span-1 lg:items-center">
