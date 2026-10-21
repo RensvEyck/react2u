@@ -11,7 +11,7 @@
       "data": {
         "eyebrow": "Prices 2027",
         "heading": "Clear prices, known in advance",
-        "text": "Three ways to join, and below that all individual rates per specialism. All prices excl. VAT.",
+        "text": "Three ways to join, and below that all rates per specialism, exactly as on our price list. All prices excl. VAT, subject to change.",
         "abonnementen": [
           {
             "naam": "Pay per service",
@@ -55,27 +55,26 @@
             "badge": "Package",
             "prijs": "€139.50",
             "per": "per employee per year, excl. VAT",
-            "text": "Unlimited case management by your regular case manager, the absence administration and all documents for the Gatekeeper Improvement Act (Casemanagement Compleet).",
+            "text": "Unlimited case management, absence administration and all Gatekeeper Improvement Act documents (Casemanagement Compleet).",
             "note": "Not included: company doctor, labour expert, second track and other specialists.",
             "label": "Request a quote",
             "href": "/en/lets-talk"
           },
           {
-            "naam": "Tailor-made",
-            "badge": "Larger organisations",
+            "naam": "Larger organisations",
+            "badge": "Tailor-made",
             "prijs": "On request",
             "per": "within two working days",
-            "text": "For larger employers we make tailored arrangements, also combined with a risk assessment (RI&E) and preventive medical examination (PMO).",
+            "text": "For larger employers, also combined with a risk assessment (RI&E) and preventive medical examination (PMO).",
             "label": "Request a quote",
-            "href": "/en/lets-talk",
-            "note": "You receive a proposal within two working days."
+            "href": "/en/lets-talk"
           }
         ],
         "groepen": [
           {
             "eyebrow": "Hourly rates",
             "heading": "Our professionals",
-            "text": "These hourly rates apply to all services charged by the hour. We charge per quarter hour started.",
+            "text": "Applies to all services charged by the hour. Services charged by the hour are billed per quarter hour started.",
             "links": [
               {
                 "titel": "Professionals",
@@ -86,14 +85,12 @@
                     "prijs": "€142.50"
                   },
                   {
-                    "naam": "Senior case manager",
-                    "prijs": "€172.50",
-                    "sub": "Interim, also on site"
+                    "naam": "Senior case manager (interim)",
+                    "prijs": "€172.50"
                   },
                   {
                     "naam": "Case manager under task delegation",
-                    "prijs": "€186.50",
-                    "sub": "Under the direction of the company doctor"
+                    "prijs": "€186.50"
                   },
                   {
                     "naam": "Practice assistant to the company doctor (POH)",
@@ -116,8 +113,8 @@
             ],
             "rechts": [
               {
-                "titel": "Specialists on request",
-                "text": "Psychologist, occupational social worker, occupational physiotherapist, ergonomist, labour expert, work and organisation expert, senior safety expert and occupational hygienist: per hour, on request. For tailor-made work you receive a quote within two working days.",
+                "titel": "Tailor-made work and specialists",
+                "text": "On request, per hour: psychologist, occupational social worker, occupational physiotherapist, ergonomist, labour expert, work and organisation expert, senior safety expert and occupational hygienist. For tailor-made work you receive a quote within two working days.",
                 "label": "Request a quote",
                 "href": "/en/lets-talk"
               }
@@ -127,11 +124,10 @@
             "eyebrow": "React2u Recover",
             "kleur": "#E61674",
             "heading": "Sickness absence support",
-            "text": "Contact, meetings and documents under the Gatekeeper Improvement Act. Meetings and advice are charged at the professional's hourly rate.",
             "links": [
               {
-                "titel": "By the hour",
-                "per": "hourly rate",
+                "titel": "Contact, advice and reports",
+                "per": "per hour · per item",
                 "regels": [
                   {
                     "naam": "Phone contact with the employee",
@@ -152,13 +148,7 @@
                   {
                     "naam": "Gatekeeper Improvement Act documents",
                     "prijs": "per hour"
-                  }
-                ]
-              },
-              {
-                "titel": "Administration",
-                "per": "per item",
-                "regels": [
+                  },
                   {
                     "naam": "Processing a sick and recovery report",
                     "prijs": "€22.50"
@@ -166,32 +156,22 @@
                   {
                     "naam": "Report to UWV",
                     "prijs": "€22.50"
-                  },
-                  {
-                    "naam": "Information from the curative sector and third parties",
-                    "prijs": "€129.50"
-                  },
-                  {
-                    "naam": "Online file and reports",
-                    "prijs": "€142.50"
                   }
                 ]
               }
             ],
             "rechts": [
               {
-                "titel": "Company doctor documents",
+                "titel": "Documents and reports",
                 "per": "per item",
                 "regels": [
                   {
-                    "naam": "Problem analysis (probleemanalyse)",
-                    "prijs": "€240",
-                    "sub": "By the company doctor"
+                    "naam": "Problem analysis (company doctor)",
+                    "prijs": "€240"
                   },
                   {
-                    "naam": "Functional capacity list (FML)",
-                    "prijs": "€240",
-                    "sub": "By the company doctor"
+                    "naam": "Functional capacity list (company doctor)",
+                    "prijs": "€240"
                   },
                   {
                     "naam": "Reintegration report, short",
@@ -200,6 +180,14 @@
                   {
                     "naam": "Reintegration report, extended",
                     "prijs": "€295"
+                  },
+                  {
+                    "naam": "Information from the curative sector and third parties",
+                    "prijs": "€129.50"
+                  },
+                  {
+                    "naam": "Online file and reports",
+                    "prijs": "€142.50"
                   },
                   {
                     "naam": "Current assessment (actueel oordeel)",
@@ -213,11 +201,11 @@
             "eyebrow": "React2u Resist",
             "kleur": "#00A098",
             "heading": "Prevention and vitality",
-            "text": "Examinations and consultations on request or at the hourly rate. Training excludes travel time and travel costs.",
+            "text": "Training excludes travel time and travel costs.",
             "links": [
               {
                 "titel": "Examinations and consultations",
-                "per": "on request",
+                "per": "on request · hourly rate",
                 "regels": [
                   {
                     "naam": "Risk assessment and evaluation (RI&E)",
@@ -239,38 +227,34 @@
                     "naam": "Medical examinations by the company doctor",
                     "prijs": "hourly rate",
                     "sub": "Driving licence C, Code 95, pre-employment and fire service examinations"
-                  },
-                  {
-                    "naam": "Confidential adviser",
-                    "prijs": "€192.50",
-                    "sub": "Per hour"
                   }
                 ]
               }
             ],
             "rechts": [
               {
-                "titel": "Training",
+                "titel": "Training and confidential adviser",
                 "per": "per hour",
                 "regels": [
                   {
-                    "naam": "Absence and prevention",
-                    "prijs": "€186.50",
-                    "sub": "The absence conversation and the rules around illness"
+                    "naam": "Training: absence and prevention",
+                    "prijs": "€186.50"
                   },
                   {
-                    "naam": "Vitality and health",
-                    "prijs": "€186.50",
-                    "sub": "Energy, workload and staying healthy at work"
+                    "naam": "Training: vitality and health",
+                    "prijs": "€186.50"
                   },
                   {
-                    "naam": "Leadership and management",
-                    "prijs": "€240",
-                    "sub": "Managing sickness absence"
+                    "naam": "Training: leadership and management",
+                    "prijs": "€240"
                   },
                   {
                     "naam": "Other training",
                     "prijs": "on request"
+                  },
+                  {
+                    "naam": "Confidential adviser",
+                    "prijs": "per hour"
                   }
                 ]
               }
@@ -280,10 +264,10 @@
             "eyebrow": "React2u Restart",
             "kleur": "#F19001",
             "heading": "Reintegration and careers",
-            "text": "A fixed price per programme, known in advance.",
+            "text": "Fixed price per programme.",
             "links": [
               {
-                "titel": "Reintegration",
+                "titel": "Reintegration and careers",
                 "per": "per programme",
                 "regels": [
                   {
@@ -296,13 +280,18 @@
                     "sub": "Per month"
                   },
                   {
-                    "naam": "Labour expert assessment",
-                    "prijs": "€1,450"
-                  },
-                  {
                     "naam": "Career scan",
                     "prijs": "€2,025",
                     "sub": "3 sessions"
+                  },
+                  {
+                    "naam": "Coaching",
+                    "prijs": "€1,975",
+                    "sub": "4 sessions"
+                  },
+                  {
+                    "naam": "Labour expert assessment",
+                    "prijs": "€1,450"
                   }
                 ]
               }
@@ -312,11 +301,6 @@
                 "titel": "Coaching",
                 "per": "per programme",
                 "regels": [
-                  {
-                    "naam": "Coaching",
-                    "prijs": "€1,975",
-                    "sub": "4 sessions"
-                  },
                   {
                     "naam": "Standard programme, one-to-one coaching",
                     "prijs": "€3,500",
@@ -343,7 +327,7 @@
             "eyebrow": "React2u Reflex",
             "kleur": "#3AA5DD",
             "heading": "For staffing agencies",
-            "text": "You pay per case, without an annual fee.",
+            "text": "Pay per case.",
             "links": [
               {
                 "titel": "Per case",
@@ -352,17 +336,17 @@
                   {
                     "naam": "Sick and recovery report",
                     "prijs": "€20",
-                    "sub": "Per sick report, including the report to UWV"
+                    "sub": "Per sick report, including the report to UWV · no annual fee"
                   },
                   {
                     "naam": "Case management for temporary staff, multilingual",
                     "prijs": "€186.50",
-                    "sub": "Per hour, including an interpreter, triage within 48 hours"
+                    "sub": "Per hour · including an interpreter · triage within 48 hours"
                   },
                   {
                     "naam": "Self-insurer status under the Sickness Benefits Act",
                     "prijs": "€95",
-                    "sub": "Full execution, per file per month"
+                    "sub": "Full execution · per file per month"
                   },
                   {
                     "naam": "Whk check and objection",
@@ -389,7 +373,7 @@
             "eyebrow": "React2u Ready",
             "kleur": "#322E83",
             "heading": "HR and employment law",
-            "text": "HR advice and employment law support on request, so you know the cost in advance.",
+            "text": "On request.",
             "links": [
               {
                 "titel": "HR and employment law",
@@ -443,19 +427,20 @@
             "eyebrow": "React2u Reward",
             "kleur": "#CA152A",
             "heading": "Payroll and salary administration",
-            "text": "Payroll by people who know sickness absence, for a fixed price per employee per year.",
             "links": [
               {
                 "titel": "Payroll",
                 "per": "per employee per year",
                 "regels": [
                   {
-                    "naam": "Monthly payroll",
-                    "prijs": "€126"
+                    "naam": "Payroll, monthly",
+                    "prijs": "€126",
+                    "sub": "Per employee per year"
                   },
                   {
-                    "naam": "Four-weekly payroll",
-                    "prijs": "€136.50"
+                    "naam": "Payroll, four-weekly",
+                    "prijs": "€136.50",
+                    "sub": "Per employee per year"
                   },
                   {
                     "naam": "Extra run or correction run",
@@ -467,13 +452,13 @@
             ],
             "rechts": [
               {
-                "titel": "During illness",
+                "titel": "Payroll during illness",
                 "per": "per period",
                 "regels": [
                   {
                     "naam": "Payroll for employees on sick leave",
                     "prijs": "6%",
-                    "sub": "Of the payroll journal entry of the employee on sick leave, minimum €35 and maximum €150 per period"
+                    "sub": "Payroll journal entry of the employee on sick leave · min. €35, max. €150 per period"
                   },
                   {
                     "naam": "Surcharge per employee on sick leave with payroll",
@@ -508,7 +493,7 @@
           },
           {
             "question": "Which subscription suits us?",
-            "answer": "With little absence, Pay per service is often the cheaper option. If you want to know in advance where you stand, choose Complete case management. We are happy to work it out with you."
+            "answer": "Most employers choose Pay per service: a low fixed fee and paying per service. If you want to know exactly where you stand in advance, choose Complete case management. Larger organisations receive a tailored proposal. We are happy to work it out with you."
           },
           {
             "question": "What does per quarter hour started mean?",
