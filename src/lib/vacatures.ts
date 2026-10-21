@@ -155,13 +155,6 @@ export function salarisRest(salary: string | null, taal: Taal): string {
   return kenmerkInTaal(rest, taal) || "";
 }
 
-/** De punten van een tekst die alleen uit "- "-regels bestaat; anders null. */
-export function alleenPunten(md: string | null | undefined): string[] | null {
-  const regels = (md || "").split("\n").map((r) => r.trim()).filter(Boolean);
-  if (!regels.length || !regels.every((r) => r.startsWith("- "))) return null;
-  return regels.map((r) => r.slice(2).replace(/\*\*/g, ""));
-}
-
 /**
  * "Wat wij vragen" in tweeën: de eisen, en wat na een vetgedrukte regel als
  * "**Mooi meegenomen:**" komt (met die regel als kop). Zonder zo'n regel null.
