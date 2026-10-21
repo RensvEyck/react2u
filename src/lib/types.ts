@@ -134,7 +134,13 @@ export type Application = {
   phone: string | null;
   motivation: string | null;
   cv_path: string | null;
-  status: "nieuw" | "in_behandeling" | "afgewezen" | "aangenomen";
+  status: "nieuw" | "gebeld" | "gesprek" | "aanbod" | "aangenomen" | "afgewezen" | "in_behandeling";
+  /** Waar de kandidaat vandaan kwam: aanbrenger, campagne of verwijzer (migratie 0018). */
+  bron?: string | null;
+  /** Interne notitie (migratie 0018). */
+  notitie?: string | null;
+  /** Laatste statuswijziging (migratie 0018). */
+  status_at?: string | null;
   /** De sollicitant gaf toestemming om een jaar te bewaren (migratie 0013). */
   retain_longer?: boolean | null;
   /** Via welke taal van de site de sollicitatie binnenkwam (migratie 0015); ontbreekt bij oudere rijen. */

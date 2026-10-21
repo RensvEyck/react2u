@@ -4,6 +4,8 @@ import { useRef, useTransition } from "react";
 const COLORS: Record<string, string> = {
   nieuw: "border-[#e0356b]/30 text-[#e0356b] bg-[#fdeef4]",
   in_behandeling: "border-[#c77700]/30 text-[#c77700] bg-[#fff4e5]",
+  gesprek: "border-[#c77700]/30 text-[#c77700] bg-[#fff4e5]",
+  aanbod: "border-[#0e9f8a]/30 text-[#0e9f8a] bg-[#e6f7f4]",
   afgewezen: "border-black/15 text-black/55 bg-black/[0.04]",
   aangenomen: "border-[#0e9f8a]/30 text-[#0e9f8a] bg-[#e6f7f4]",
   // Bellijst

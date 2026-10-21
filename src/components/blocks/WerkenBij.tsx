@@ -8,6 +8,7 @@ import { jsonLd } from "@/lib/jsonld";
 import { VAKGEBIEDEN, vakgebiedVan, type Vakgebied } from "@/lib/vakgebieden";
 import { outfit } from "./HomeVerhaal";
 import Solliciteren from "./Solliciteren";
+import DeelVacature from "./DeelVacature";
 import {
   NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED,
   Eyebrow, Kruimels, KopBlok, Knop, Pijl, Vink, KlantenStrook,
@@ -24,6 +25,8 @@ import Beeld from "@/components/site/Beeld";
  * pagina's ook onder /en/jobs staan. Een vacature zonder Engelse velden toont
  * daar de Nederlandse tekst met een melding bovenaan.
  */
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl").replace(/\/$/, "");
 
 /** Contact bij vacatures (vaste naam, niet vertaald). */
 const EIGENAAR = { naam: "Rens van Eyck", mail: "rens@react2u.nl" };
@@ -423,6 +426,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
                     </div>
                   )}
                 </div>
+                <DeelVacature url={`${SITE_URL}${p.vacature(v.slug)}`} titel={tekst.title} t={ob.deel} />
                 {vg && (
                   <Link href={p.vakgebied(vg.slug)} className="hv-btn flex items-center justify-between gap-4 rounded-[24px] border p-6" style={{ borderColor: LINE }}>
                     <span className="flex flex-col gap-1">
