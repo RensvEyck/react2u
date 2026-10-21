@@ -1,180 +1,249 @@
 {
-  "_uitleg": "Tarieven in het ontwerp van het canvas (Tarieven). Blijft op /verzuimabonnementen. Zie CONTEXT.md, *Concepten*.",
+  "_uitleg": "Tarieven in het ontwerp van het canvas (Tarieven), prijslijst 2027. Blijft op /verzuimabonnementen. Het jaartal in eyebrow en geldigheidsregel komt uit Instellingen → Tarievenjaar. Zie CONTEXT.md, *Concepten* en *Tarieven*.",
   "slug": "verzuimabonnementen",
   "title": "Verzuimabonnementen",
   "seo_title": "Verzuimabonnementen en tarieven arbodienst • React2u",
-  "seo_description": "Heldere tarieven voor verzuimbegeleiding: Casemanagement Compleet voor € 135 of de Verrichtingenbasis voor € 35 per werknemer per jaar, plus alle losse tarieven op een rij.",
+  "seo_description": "Heldere tarieven voor verzuimbegeleiding: de Verrichtingenbasis voor € 38,50 of Casemanagement Compleet voor € 139,50 per werknemer per jaar, plus alle losse tarieven per specialisme op een rij.",
   "blocks": [
     {
       "type": "dgTarieven",
       "label": "Tarieven",
       "data": {
-        "eyebrow": "Tarieven 2026",
+        "eyebrow": "Tarieven 2027",
         "heading": "Heldere prijzen, vooraf bekend",
+        "text": "Drie manieren om aan te sluiten, en daaronder alle losse tarieven per specialisme. Alle bedragen zijn exclusief btw.",
         "abonnementen": [
           {
             "naam": "Verrichtingenbasis",
-            "badge": "Basis",
-            "prijs": "€35",
+            "badge": "Meest gekozen",
+            "prijs": "€38,50",
             "per": "per werknemer per jaar",
-            "text": "Een lage vaste bijdrage voor je aansluiting. Daarnaast betaal je per verrichting, alleen als je ons nodig hebt.",
+            "text": "Toegang tot de arbodienst en de wettelijk verplichte voorzieningen. Je betaalt alleen voor wat je afneemt, per verrichting.",
             "points": [
               "Aansluiting bij een gecertificeerde arbodienst",
               "Casemanager, bedrijfsarts en specialisten op afroep",
               "Verrichtingen per begonnen kwartier"
             ],
-            "note": "Uurtarieven en documenten vind je hieronder.",
+            "note": "Alle uurtarieven en losse verrichtingen staan hieronder.",
+            "label": "Offerte aanvragen",
+            "href": "/kennismaken",
+            "featured": true,
+            "voorbeeld": {
+              "kop": "Wat je dan per verrichting betaalt",
+              "regels": [
+                {
+                  "naam": "Casemanager",
+                  "prijs": "€142,50 per uur"
+                },
+                {
+                  "naam": "Bedrijfsarts",
+                  "prijs": "€240 per uur"
+                },
+                {
+                  "naam": "Ziek- en herstelmelding",
+                  "prijs": "€22,50"
+                },
+                {
+                  "naam": "Probleemanalyse",
+                  "prijs": "€240"
+                }
+              ]
+            }
+          },
+          {
+            "naam": "Casemanagement Compleet",
+            "badge": "Pakket",
+            "prijs": "€139,50",
+            "per": "per werknemer per jaar",
+            "text": "Onbeperkt casemanagement door je vaste casemanager, de verzuimadministratie en alle documenten voor de Wet verbetering poortwachter.",
+            "note": "Niet inbegrepen: bedrijfsarts, arbeidsdeskundige, spoor 2 en overige specialisten.",
             "label": "Offerte aanvragen",
             "href": "/kennismaken"
           },
           {
-            "naam": "Casemanagement Compleet",
-            "badge": "Alles in één",
-            "prijs": "€135",
-            "per": "per werknemer per jaar",
-            "text": "Onbeperkt casemanagement voor een vast bedrag. Je weet precies waar je aan toe bent.",
-            "points": [
-              "Onbeperkt casemanagement door je vaste casemanager",
-              "Administratie van ziek- en herstelmeldingen",
-              "Alle documenten voor de Wet verbetering poortwachter"
-            ],
-            "note": "Bedrijfsarts, arbeidsdeskundige, tweede spoor en specialisten reken je apart af.",
+            "naam": "Maatwerk",
+            "badge": "Grotere organisaties",
+            "prijs": "Op offerte",
+            "per": "binnen twee werkdagen",
+            "text": "Voor grotere werkgevers maken we afspraken op maat, ook in combinatie met een RI&E en preventief medisch onderzoek.",
             "label": "Offerte aanvragen",
             "href": "/kennismaken",
-            "featured": true
+            "note": "Je ontvangt binnen twee werkdagen een voorstel."
           }
         ],
         "groepen": [
           {
-            "eyebrow": "Losse tarieven",
-            "heading": "Professionals, administratie en documenten",
-            "text": "Verrichtingen rekenen we af per begonnen kwartier.",
+            "eyebrow": "Tarieven per uur",
+            "heading": "Onze professionals",
+            "text": "Deze uurtarieven gelden voor alle verrichtingen die op uurbasis lopen. We rekenen af per begonnen kwartier.",
             "links": [
               {
                 "titel": "Professionals",
                 "per": "per uur",
                 "regels": [
                   {
+                    "naam": "Casemanager",
+                    "prijs": "€142,50"
+                  },
+                  {
                     "naam": "Senior casemanager",
-                    "prijs": "€165",
+                    "prijs": "€172,50",
                     "sub": "Interim, ook op locatie"
                   },
                   {
                     "naam": "Casemanager taakdelegatie",
-                    "prijs": "€180",
+                    "prijs": "€186,50",
                     "sub": "Onder regie van de bedrijfsarts"
                   },
                   {
-                    "naam": "Praktijkondersteuner (POH)",
-                    "prijs": "€180"
+                    "naam": "Ondersteuner bedrijfsarts (POH)",
+                    "prijs": "€186,50"
                   },
                   {
                     "naam": "Bedrijfsarts",
-                    "prijs": "€230"
+                    "prijs": "€240"
                   },
                   {
                     "naam": "Vertrouwenspersoon",
-                    "prijs": "€185"
+                    "prijs": "€192,50"
                   },
                   {
                     "naam": "Administratief medewerker",
-                    "prijs": "€85"
+                    "prijs": "€89,50"
                   }
                 ]
               }
             ],
             "rechts": [
               {
-                "titel": "Administratie",
-                "per": "per stuk",
+                "titel": "Specialisten op aanvraag",
+                "text": "Psycholoog, bedrijfsmaatschappelijk werker, bedrijfsfysiotherapeut, ergonoom, arbeidsdeskundige, arbeids- en organisatiedeskundige, hogere veiligheidskundige en arbeidshygiënist: per uur, op aanvraag. Voor maatwerk ontvang je binnen twee werkdagen een offerte.",
+                "label": "Offerte aanvragen",
+                "href": "/kennismaken"
+              }
+            ]
+          },
+          {
+            "eyebrow": "React2u Recover",
+            "kleur": "#E61674",
+            "heading": "Verzuimbegeleiding",
+            "text": "Contact, gesprekken en documenten volgens de Wet verbetering poortwachter. Gesprekken en advies rekenen we af tegen het uurtarief van de professional.",
+            "links": [
+              {
+                "titel": "Op uurbasis",
+                "per": "uurtarief",
                 "regels": [
                   {
-                    "naam": "Ziek- en herstelmelding",
-                    "prijs": "€19,50"
+                    "naam": "Telefonisch contact werknemer",
+                    "prijs": "per uur"
                   },
                   {
-                    "naam": "Melding aan UWV",
-                    "prijs": "€19,50"
+                    "naam": "Telefonisch contact werkgever",
+                    "prijs": "per uur"
                   },
                   {
-                    "naam": "Informatie curatieve sector",
-                    "prijs": "€125"
+                    "naam": "Voortgangsgesprek",
+                    "prijs": "per uur"
+                  },
+                  {
+                    "naam": "Implementatieadvies opstellen",
+                    "prijs": "per uur"
+                  },
+                  {
+                    "naam": "WVP-documenten",
+                    "prijs": "per uur"
                   }
                 ]
               },
               {
-                "titel": "Keuringen en documenten",
+                "titel": "Administratie",
                 "per": "per stuk",
                 "regels": [
                   {
-                    "naam": "Keuring",
-                    "prijs": "€115"
+                    "naam": "Verwerken ziek- en herstelmelding",
+                    "prijs": "€22,50"
                   },
                   {
+                    "naam": "Melding UWV",
+                    "prijs": "€22,50"
+                  },
+                  {
+                    "naam": "Informatie curatieve sector en derden",
+                    "prijs": "€129,50"
+                  },
+                  {
+                    "naam": "Online dossier en rapportages",
+                    "prijs": "€142,50"
+                  }
+                ]
+              }
+            ],
+            "rechts": [
+              {
+                "titel": "Documenten bedrijfsarts",
+                "per": "per stuk",
+                "regels": [
+                  {
                     "naam": "Probleemanalyse",
-                    "prijs": "€172,50"
+                    "prijs": "€240",
+                    "sub": "Door de bedrijfsarts"
                   },
                   {
                     "naam": "Functionele mogelijkhedenlijst (FML)",
-                    "prijs": "€230"
+                    "prijs": "€240",
+                    "sub": "Door de bedrijfsarts"
                   },
                   {
-                    "naam": "Re-integratieverslag",
-                    "prijs": "€345"
+                    "naam": "Re-integratieverslag kort",
+                    "prijs": "€175"
                   },
                   {
-                    "naam": "Second opinion",
-                    "prijs": "Tegen kostprijs"
+                    "naam": "Re-integratieverslag uitgebreid",
+                    "prijs": "€295"
+                  },
+                  {
+                    "naam": "Actueel oordeel",
+                    "prijs": "€360"
                   }
                 ]
               }
             ]
           },
           {
-            "eyebrow": "Coaching en trainingen",
-            "heading": "Vaste prijzen per traject en per dagdeel",
+            "eyebrow": "React2u Resist",
+            "kleur": "#00A098",
+            "heading": "Preventie en vitaliteit",
+            "text": "Onderzoek en spreekuren op aanvraag of tegen het uurtarief. Trainingen zijn exclusief reistijd en reiskosten.",
             "links": [
               {
-                "titel": "Coaching en trajecten",
-                "per": "per traject",
+                "titel": "Onderzoek en spreekuur",
+                "per": "op aanvraag",
                 "regels": [
                   {
-                    "naam": "Coaching",
-                    "prijs": "€1.900",
-                    "sub": "4 sessies"
+                    "naam": "Risico-inventarisatie en -evaluatie (RI&E)",
+                    "prijs": "op aanvraag"
                   },
                   {
-                    "naam": "Loopbaanscan",
-                    "prijs": "€1.950",
-                    "sub": "3 sessies"
+                    "naam": "Preventief medisch onderzoek (PMO)",
+                    "prijs": "op aanvraag"
                   },
                   {
-                    "naam": "Standaardtraject",
-                    "prijs": "€2.850",
-                    "sub": "1-op-1 begeleiding"
+                    "naam": "Werkplekonderzoek",
+                    "prijs": "op aanvraag"
                   },
                   {
-                    "naam": "Burn-outcoaching",
-                    "prijs": "€2.850",
-                    "sub": "1-op-1 begeleiding"
+                    "naam": "Preventief spreekuur bedrijfsarts",
+                    "prijs": "uurtarief"
                   },
                   {
-                    "naam": "Levens- en loopbaancoaching",
-                    "prijs": "€3.250"
+                    "naam": "Keuringen bedrijfsarts",
+                    "prijs": "uurtarief",
+                    "sub": "Rijbewijs C, Code 95, aanstellings- en brandweerkeuring"
                   },
                   {
-                    "naam": "Plustraject rouwverwerking",
-                    "prijs": "€3.450"
-                  },
-                  {
-                    "naam": "Tweede spoor",
-                    "prijs": "€3.250",
-                    "sub": "Eerste zes maanden"
-                  },
-                  {
-                    "naam": "Tweede spoor, vervolg",
-                    "prijs": "€375",
-                    "sub": "Per maand"
+                    "naam": "Vertrouwenspersoon",
+                    "prijs": "€192,50",
+                    "sub": "Per uur"
                   }
                 ]
               }
@@ -182,30 +251,241 @@
             "rechts": [
               {
                 "titel": "Trainingen",
-                "per": "per dagdeel",
+                "per": "per uur",
                 "regels": [
                   {
                     "naam": "Verzuim en preventie",
-                    "prijs": "€150",
+                    "prijs": "€186,50",
                     "sub": "Het verzuimgesprek en de regels rond ziekte"
                   },
                   {
                     "naam": "Vitaliteit en gezondheid",
-                    "prijs": "€180",
+                    "prijs": "€186,50",
                     "sub": "Energie, werkdruk en gezond blijven werken"
                   },
                   {
                     "naam": "Leiderschap en management",
-                    "prijs": "€230",
+                    "prijs": "€240",
                     "sub": "Leidinggeven aan verzuim"
+                  },
+                  {
+                    "naam": "Overige trainingen",
+                    "prijs": "op aanvraag"
                   }
                 ]
-              },
+              }
+            ]
+          },
+          {
+            "eyebrow": "React2u Restart",
+            "kleur": "#F19001",
+            "heading": "Re-integratie en loopbaan",
+            "text": "Een vaste prijs per traject, vooraf bekend.",
+            "links": [
               {
-                "titel": "Op aanvraag",
-                "text": "Specialisten, risico-inventarisatie (RI&E) en preventief medisch onderzoek. Je ontvangt binnen twee werkdagen een offerte.",
-                "label": "Offerte aanvragen",
+                "titel": "Re-integratie",
+                "per": "per traject",
+                "regels": [
+                  {
+                    "naam": "Spoor 2, eerste zes maanden",
+                    "prijs": "€3.365"
+                  },
+                  {
+                    "naam": "Spoor 2, vervolg",
+                    "prijs": "€389",
+                    "sub": "Per maand"
+                  },
+                  {
+                    "naam": "Arbeidsdeskundig onderzoek",
+                    "prijs": "€1.450"
+                  },
+                  {
+                    "naam": "Loopbaanscan",
+                    "prijs": "€2.025",
+                    "sub": "3 sessies"
+                  }
+                ]
+              }
+            ],
+            "rechts": [
+              {
+                "titel": "Coaching",
+                "per": "per traject",
+                "regels": [
+                  {
+                    "naam": "Coaching",
+                    "prijs": "€1.975",
+                    "sub": "4 sessies"
+                  },
+                  {
+                    "naam": "Standaardtraject, 1-op-1 coaching",
+                    "prijs": "€3.500",
+                    "sub": "6 sessies"
+                  },
+                  {
+                    "naam": "Burn-outcoaching, 1-op-1",
+                    "prijs": "€3.500",
+                    "sub": "6 sessies"
+                  },
+                  {
+                    "naam": "Levens- en loopbaancoaching",
+                    "prijs": "€3.650"
+                  },
+                  {
+                    "naam": "Plustraject rouwverwerking",
+                    "prijs": "€3.500"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "eyebrow": "React2u Reflex",
+            "kleur": "#3AA5DD",
+            "heading": "Voor uitzendbureaus",
+            "text": "Je betaalt per geval, zonder jaarbijdrage.",
+            "links": [
+              {
+                "titel": "Per geval",
+                "per": "per geval",
+                "regels": [
+                  {
+                    "naam": "Ziek- en herstelmelding",
+                    "prijs": "€20",
+                    "sub": "Per ziekmelding, inclusief melding aan het UWV"
+                  },
+                  {
+                    "naam": "Casemanagement flex, meertalig",
+                    "prijs": "€186,50",
+                    "sub": "Per uur, inclusief tolk, triage binnen 48 uur"
+                  },
+                  {
+                    "naam": "Eigenrisicodragerschap Ziektewet",
+                    "prijs": "€95",
+                    "sub": "Volledige uitvoering, per dossier per maand"
+                  },
+                  {
+                    "naam": "Whk-check en bezwaar",
+                    "prijs": "€495",
+                    "sub": "Vast bedrag, plus 15% van de besparing in jaar 1"
+                  },
+                  {
+                    "naam": "WGA-schadelast en verzekering",
+                    "prijs": "op offerte"
+                  }
+                ]
+              }
+            ],
+            "rechts": [
+              {
+                "titel": "Eigenrisicodrager of uitzendbureau?",
+                "text": "Dan rekenen we je werk anders af dan bij een gewone aansluiting: per ziekmelding, per dossier of per uur. Geen jaarbijdrage, wel dezelfde casemanagers.",
+                "label": "Meer over React2u Reflex",
+                "href": "/reflex"
+              }
+            ]
+          },
+          {
+            "eyebrow": "React2u Ready",
+            "kleur": "#322E83",
+            "heading": "HR en arbeidsrecht",
+            "text": "HR-advies en arbeidsrechtelijke ondersteuning op offerte, zodat je vooraf weet wat het kost.",
+            "links": [
+              {
+                "titel": "HR en arbeidsrecht",
+                "per": "op offerte",
+                "regels": [
+                  {
+                    "naam": "HR-advies op afroep",
+                    "prijs": "op offerte"
+                  },
+                  {
+                    "naam": "Arbeidsovereenkomsten en reglementen",
+                    "prijs": "op offerte"
+                  },
+                  {
+                    "naam": "Personeelshandboek en HR-beleid",
+                    "prijs": "op offerte"
+                  },
+                  {
+                    "naam": "Functioneren en beoordelen",
+                    "prijs": "op offerte"
+                  },
+                  {
+                    "naam": "Arbeidsrechtelijke ondersteuning",
+                    "prijs": "op offerte"
+                  },
+                  {
+                    "naam": "Conflicten, ontslag en vaststellingsovereenkomst",
+                    "prijs": "op offerte"
+                  },
+                  {
+                    "naam": "Begeleiding deskundigenoordeel",
+                    "prijs": "op offerte"
+                  },
+                  {
+                    "naam": "Second opinion",
+                    "prijs": "op offerte"
+                  }
+                ]
+              }
+            ],
+            "rechts": [
+              {
+                "titel": "Zo werkt op offerte",
+                "text": "Je legt je vraag voor, wij zetten de aanpak en de kosten op papier. Binnen twee werkdagen heb je een offerte, en pas na je akkoord gaan we aan de slag.",
+                "label": "Vraag voorleggen",
                 "href": "/kennismaken"
+              }
+            ]
+          },
+          {
+            "eyebrow": "React2u Reward",
+            "kleur": "#CA152A",
+            "heading": "Salaris en verloning",
+            "text": "Salarisadministratie door mensen die verzuim kennen, voor een vaste prijs per werknemer per jaar.",
+            "links": [
+              {
+                "titel": "Salarisadministratie",
+                "per": "per werknemer per jaar",
+                "regels": [
+                  {
+                    "naam": "Maandverloning",
+                    "prijs": "€126"
+                  },
+                  {
+                    "naam": "Vierwekelijkse verloning",
+                    "prijs": "€136,50"
+                  },
+                  {
+                    "naam": "Extra run of correctierun",
+                    "prijs": "€45",
+                    "sub": "Per run"
+                  }
+                ]
+              }
+            ],
+            "rechts": [
+              {
+                "titel": "Bij ziekte",
+                "per": "per periode",
+                "regels": [
+                  {
+                    "naam": "Verloning zieke medewerkers",
+                    "prijs": "6%",
+                    "sub": "Over de loonjournaalpost van de zieke medewerker, minimaal €35 en maximaal €150 per periode"
+                  },
+                  {
+                    "naam": "Toeslag zieke medewerker bij salarisadministratie",
+                    "prijs": "€45",
+                    "sub": "Per medewerker per periode"
+                  },
+                  {
+                    "naam": "Overgang Ziektewet, tweede ziektejaar of loonsanctie",
+                    "prijs": "€95",
+                    "sub": "Per gebeurtenis"
+                  }
+                ]
               }
             ]
           }
@@ -228,7 +508,7 @@
           },
           {
             "question": "Welk abonnement past bij ons?",
-            "answer": "Heb je weinig verzuim, dan is de Verrichtingenbasis vaak voordelig. Wil je vooraf weten waar je aan toe bent, dan kies je Casemanagement Compleet. We rekenen het graag met je door."
+            "answer": "Heb je weinig verzuim, dan is de Verrichtingenbasis vaak voordelig. Wil je vooraf weten waar je aan toe bent, dan kies je Casemanagement Compleet. Grotere organisaties krijgen een voorstel op maat. We rekenen het graag met je door."
           },
           {
             "question": "Wat betekent per begonnen kwartier?",

@@ -504,7 +504,7 @@ Nederlands staat op de gewone paden, Engels onder `/en` met Engelse slugs
 - **Vacatures** hebben optionele Engelse velden (`title_en`, `intro_en`,
   `description_en_md`, migratie 0015). Zonder Engelse titel toont `/en/jobs/<slug>`
   de Nederlandse tekst met "This vacancy is in Dutch".
-- **`/en/services`** en **`/diensten`** tonen allebei de vijf labels in de
+- **`/en/services`** en **`/diensten`** tonen allebei de zes labels in de
   blokken van het nieuwe ontwerp, met dezelfde opbouw.
 - **Blijft Nederlands:** gemeentepagina's, blog, de juridische PDF's (in de
   Engelse footer met "(Dutch)" erachter), `/inloggen`, `/juridische-documenten`
@@ -541,7 +541,7 @@ binnen.
 Een nieuwe opbouw van een pagina kun je bekijken zonder de live database te
 raken. Per pagina staat een concept in [`src/content/`](src/content/) (`home`,
 `werkgevers`, `werknemers`, `verzuimprotocol`, `diensten` (het overzicht van de
-vijf labels) en `tarieven`, waar alleen de volgorde is hersteld: de oproep stond
+zes labels) en `tarieven`, waar alleen de volgorde is hersteld: de oproep stond
 boven de paginakop): de blokken, de titel en voor een nieuwe pagina de
 SEO-teksten. [`src/lib/concept.ts`](src/lib/concept.ts)
 somt ze op.
@@ -630,6 +630,18 @@ publiek is. De publieke pagina's zijn 5 minuten gecachet.
 Voor de bezoeker heet deze pagina **Verzuimabonnementen**, op
 `/verzuimabonnementen`; `/tarieven` stuurt daar permanent naartoe (vaste lijst
 in `src/lib/redirects.ts`). Het bloktype en de bestandsnamen houden `tarieven`.
+
+**Sinds 21 oktober 2026 staat de prijslijst 2027 live** als blok `dgTarieven`
+(`DgTarieven` in `src/components/blocks/Doelgroep.tsx`), met de Engelse
+tegenhanger in `src/content/en/pricing.json`: drie aansluitingen
+(Verrichtingenbasis € 38,50, Casemanagement Compleet € 139,50, Maatwerk op
+offerte), de uurtarieven en daaronder een groep per label (Recover, Resist,
+Restart, Reflex, Ready en het nieuwe Reward: salaris en verloning), elk met de
+labelkleur. De bedragen staan in `src/content/tarieven.json` én in de
+database (`concept-naar-sql.mjs tarieven`); het jaartal komt uit Instellingen →
+Tarievenjaar (`site_settings.tarieven`, nu 2027). De tekst hieronder over het
+blok `tarieven` beschrijft het oude ontwerp (`Tarieven.tsx`), dat als bloktype
+blijft bestaan.
 
 `/verzuimabonnementen` is één blok van het type `tarieven` (component
 [`src/components/site/Tarieven.tsx`](src/components/site/Tarieven.tsx)), met

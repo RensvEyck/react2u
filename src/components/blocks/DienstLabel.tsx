@@ -12,7 +12,7 @@ type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal } };
  * Dienstpagina per label (ontwerp "Dienst: Resist/Recover/…" op het canvas):
  * de specialismekaart in de breedte, "Herken je dit?", wat het label omvat in
  * genummerde groepen, de aanpak, waarom React2u met de keurmerken, en de
- * andere labels. Eén blok, zodat de vijf pagina's gegarandeerd gelijk blijven.
+ * andere labels. Eén blok, zodat de zes pagina's gegarandeerd gelijk blijven.
  * Kleur en tint komen uit de data: elk label heeft zijn eigen kleur.
  */
 
@@ -231,8 +231,8 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
       {ook.length > 0 && (
         <section aria-label={t2.bekijkOok} className="flex flex-col gap-8 px-5 pt-14 md:px-10 md:pt-[104px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
           <h2 className={`${kop} m-0 text-[28px] leading-[1.15] tracking-[-0.6px] md:text-[34px]`}>{t2.bekijkOok}</h2>
-          {/* Op de telefoon twee naast elkaar (vier kleine kaarten in plaats van een lange stapel). */}
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          {/* Op de telefoon twee naast elkaar (kleine kaarten in plaats van een lange stapel); op een breed scherm alle andere labels op één rij. */}
+          <div className={`grid grid-cols-2 gap-3 lg:gap-4 ${ook.length >= 5 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
             {ook.map((o, i) => (
               <Link key={i} href={o.href} className="flex flex-col gap-2 rounded-[20px] px-4 py-5 transition-transform duration-300 hover:-translate-y-1 sm:gap-2.5 sm:px-6 sm:py-[26px]"
                 style={{ background: SOFT, color: NAVY }}>

@@ -73,6 +73,10 @@
                 "href": "/ready"
               },
               {
+                "label": "React2u Reward",
+                "href": "/reward"
+              },
+              {
                 "label": "Tarieven",
                 "href": "/verzuimabonnementen"
               },

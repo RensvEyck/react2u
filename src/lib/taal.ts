@@ -34,6 +34,7 @@ export const SLUGS: Record<string, string> = {
   restart: "services/restart",
   reflex: "services/reflex",
   ready: "services/ready",
+  reward: "services/reward",
   verzuimabonnementen: "pricing",
   kennismaken: "lets-talk",
   contact: "contact",

@@ -15,7 +15,7 @@ export const DOELGROEP_FOTO = {
   werknemer: `${FOTO}/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png`,
 } as const;
 
-/* ---------- Diensten: vijf labels ---------- */
+/* ---------- Diensten: zes labels ---------- */
 
 /**
  * Een label is een specialisme met een eigen pagina (/resist, /recover, …).
@@ -41,17 +41,19 @@ const LABEL_EXTRA: Record<string, Pick<Label, "situatie" | "image">> = {
   restart: { situatie: "Terugkeer in het eigen werk lukt niet", image: `${FOTO}/2024/06/Begeleiding-Coaching-1.png` },
   reflex: { situatie: "Je werkt met flexkrachten of bent eigenrisicodrager", image: `${FOTO}/2024/06/Verzuimbegeleiding-ERD_ZVW-1-1.png` },
   ready: { situatie: "Je hebt een HR-vraag rond verzuim", image: `${FOTO}/2023/06/serious-colleagues-discussing-documents-meeting-e1717497004999.jpg` },
+  reward: { situatie: "Je wilt de salarisadministratie bij dezelfde partij als je verzuim", image: "/beeld/kantoor/scherm.webp" },
 };
 
 /**
- * De vijf labels, in de volgorde van het dienstenmenu: van voorkomen via
- * verzuim naar re-integratie, dan de twee specialismen. Naam, omschrijving en
+ * De zes labels, in de volgorde van het dienstenmenu: van voorkomen via
+ * verzuim naar re-integratie, dan de drie specialismen (flex, HR, salaris). Naam, omschrijving en
  * kleur komen uit het woordenboek (header.diensten), zodat het nieuwe menu en
  * deze lijst nooit uit elkaar lopen. Voedt het oude menu en de oude footer, de
  * 404, en de blokken `pillars` en `servicesGrid`.
  *
  * Tot oktober 2026 waren dit zes diensten in drie stappen; die oude pagina's
  * sturen nu met een 301 door naar hun label (DIENST_REDIRECTS in redirects.ts).
+ * Reward (salaris en verloning) kwam er in oktober 2026 bij met de prijslijst 2027.
  */
 export const LABELS: Label[] = woordenboek("nl").header.diensten.map((d) => ({
   naam: d.naam,

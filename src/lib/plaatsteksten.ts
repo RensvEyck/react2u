@@ -11,7 +11,7 @@ import teksten from "../content/plaatsen.json";
  * "heeft deze gemeente een tekst?" is er lib/plaatsIndex.ts.
  */
 
-export type Label = "resist" | "recover" | "restart" | "reflex" | "ready";
+export type Label = "resist" | "recover" | "restart" | "reflex" | "ready" | "reward";
 export type Reistijd = "dichtbij" | "regio" | "verder" | "ver";
 export type Soort = "stad" | "dorp" | "gemeente";
 
@@ -40,7 +40,7 @@ export type PlaatsTekst = {
   seo?: string;
 };
 
-export const LABELS: readonly Label[] = ["resist", "recover", "restart", "reflex", "ready"];
+export const LABELS: readonly Label[] = ["resist", "recover", "restart", "reflex", "ready", "reward"];
 export const REISTIJDEN: readonly Reistijd[] = ["dichtbij", "regio", "verder", "ver"];
 export const SOORTEN: readonly Soort[] = ["stad", "dorp", "gemeente"];
 
@@ -51,6 +51,7 @@ export const LABEL_INFO: Record<Label, { naam: string; wat: string; href: string
   restart: { naam: "Restart", wat: "Re-integratie en loopbaan", href: "/restart", kleur: "#F19001" },
   reflex: { naam: "Reflex", wat: "Flexbranche en Ziektewet", href: "/reflex", kleur: "#3AA5DD" },
   ready: { naam: "Ready", wat: "HR en arbeidsrecht", href: "/ready", kleur: "#322E83" },
+  reward: { naam: "Reward", wat: "Salaris en verloning", href: "/reward", kleur: "#CA152A" },
 };
 
 /** De afstand in woorden, voor het kaartje op de pagina. */

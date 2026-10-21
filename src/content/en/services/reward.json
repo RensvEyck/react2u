@@ -1,0 +1,175 @@
+{
+  "_uitleg": "Engelse labelpagina React2u Reward (/en/services/reward): dezelfde blokken als reward.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
+  "slug": "services/reward",
+  "title": "React2u Reward",
+  "seo_title": "React2u Reward: payroll and salary administration • React2u",
+  "seo_description": "Payroll by people who know sickness absence. A fixed price per employee per year, and the pay of employees on sick leave is always right.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Reward",
+      "data": {
+        "heading": "React2u Reward",
+        "naam": "Reward",
+        "kleur": "#CA152A",
+        "tint": "#FBEAEC",
+        "label": "Payroll and salary administration.",
+        "tagline": "Pay that is right, also during illness",
+        "text": "Payroll by people who know sickness absence. On time every period, and processed correctly when someone is ill.",
+        "checks": [
+          "Monthly or four-weekly payroll",
+          "Payroll for employees on sick leave",
+          "Extra runs and corrections",
+          "Transition to the Sickness Benefits Act and the second year of illness"
+        ],
+        "de": "Payroll that understands sickness absence",
+        "lead": "One partner for absence and pay, so a sick report never slips through the cracks.",
+        "intro": [
+          "As soon as an employee is ill, a lot changes on the payslip: continued payment of wages, a second year of illness, sometimes a safety-net benefit or a wage sanction. With a separate payroll provider you have to pass all of that on yourself, and it sometimes goes wrong.",
+          "With React2u Reward, payroll sits with the same people who guide the sickness absence. A sick or recovery report automatically lands correctly in the payroll, for a fixed price per employee per year."
+        ],
+        "herken": [
+          "You currently report sick leave twice: to the occupational health service and to payroll",
+          "Continued payment during illness sometimes goes wrong or late",
+          "You want one point of contact for absence and pay",
+          "You are looking for a fixed price per employee, without surprises"
+        ],
+        "groepen": [
+          {
+            "titel": "Payroll",
+            "tekst": "On time and correct every period.",
+            "items": [
+              "Monthly or four-weekly payroll",
+              "Payslips and annual statements",
+              "Payroll tax returns"
+            ]
+          },
+          {
+            "titel": "Pay during illness",
+            "tekst": "Being ill changes the payslip.",
+            "items": [
+              "Continued payment and waiting days",
+              "Payroll journal entry for an employee on sick leave",
+              "Surcharge and corrections during illness"
+            ]
+          },
+          {
+            "titel": "Sickness Benefits Act and sanctions",
+            "tekst": "The pay is right at every transition.",
+            "items": [
+              "Transition to the Sickness Benefits Act (Ziektewet)",
+              "Second year of illness",
+              "Processing a wage sanction (loonsanctie)"
+            ]
+          },
+          {
+            "titel": "In between",
+            "tekst": "When something extra is needed.",
+            "items": [
+              "Extra run or correction run",
+              "Retroactive corrections",
+              "Coordination with your case manager"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Introduction",
+            "tekst": "We look at your current payroll and how sickness absence is handled."
+          },
+          {
+            "titel": "Switch",
+            "tekst": "We take over the data, without any hassle for your employees."
+          },
+          {
+            "titel": "Every period",
+            "tekst": "You approve the changes, we run the payroll and file the returns."
+          },
+          {
+            "titel": "During illness",
+            "tekst": "Sick and recovery reports automatically land correctly in the pay."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Absence and pay",
+            "tekst": "One team that knows both, so no double work and no missed reports."
+          },
+          {
+            "titel": "Fixed price",
+            "tekst": "Per employee per year, known in advance."
+          },
+          {
+            "titel": "Right during illness",
+            "tekst": "Continued payment, the Sickness Benefits Act and wage sanctions processed correctly."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Prevention and vitality",
+            "kleur": "#00A098",
+            "href": "/en/services/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Sickness absence support",
+            "kleur": "#E61674",
+            "href": "/en/services/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Reintegration and careers",
+            "kleur": "#F19001",
+            "href": "/en/services/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Temporary staffing and the Sickness Benefits Act",
+            "kleur": "#3AA5DD",
+            "href": "/en/services/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR and employment law",
+            "kleur": "#322E83",
+            "href": "/en/services/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "A question?\nJust give us a call.",
+        "text": "Call us Monday to Friday between 9:00 and 17:00 and one of us will pick up.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "A woman on the phone with React2u, relaxed",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Email",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

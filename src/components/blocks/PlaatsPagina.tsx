@@ -29,6 +29,7 @@ const SPECIALISMEN = [
   { naam: "Restart", href: "/restart", kleur: "#F19001", sub: "Re-integratie en loopbaan", tekst: "Samen weer vooruit, binnen of buiten de organisatie." },
   { naam: "Reflex", href: "/reflex", kleur: "#3AA5DD", sub: "Voor de flexbranche", tekst: "Ziektewet zonder zorgen voor uitzendbureaus en eigenrisicodragers." },
   { naam: "Ready", href: "/ready", kleur: NAVY, sub: "HR en arbeidsrecht", tekst: "Helder advies over contracten, verlof en ontslag bij ziekte." },
+  { naam: "Reward", href: "/reward", kleur: "#CA152A", sub: "Salaris en verloning", tekst: "Salarisadministratie door mensen die verzuim kennen, ook bij ziekte." },
 ];
 
 function Kop({ crumbs, titel, intro, kaart }: { crumbs: { label: string; href?: string }[]; titel: string; intro: string; kaart?: React.ReactNode }) {
@@ -65,8 +66,8 @@ function Specialismen() {
   return (
     <section aria-label="Specialismen" style={{ background: SOFT }}>
       <div className={`${BREED} flex flex-col gap-10 py-14 md:py-24`}>
-        <KopBlok eyebrow="Specialismen" kopTekst="Vijf specialismen, één casemanager" tekst="Je casemanager houdt het overzicht en schakelt de juiste specialist in." />
-        <Strook n={SPECIALISMEN.length} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <KopBlok eyebrow="Specialismen" kopTekst="Zes specialismen, één casemanager" tekst="Je casemanager houdt het overzicht en schakelt de juiste specialist in." />
+        <Strook n={SPECIALISMEN.length} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SPECIALISMEN.map((s) => (
             <Link key={s.naam} href={s.href} className="hv-btn flex flex-col gap-3 rounded-[22px] border border-t-[3px] bg-white px-6 py-6" style={{ borderColor: LINE, borderTopColor: s.kleur }}>
               <span className={`${kop} text-[21px]`} style={{ color: NAVY }}>React2u {s.naam}</span>

@@ -106,6 +106,20 @@
             ],
             "href": "/en/your-rights-and-privacy",
             "link": "Find out more"
+          },
+          {
+            "naam": "Reward",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "title": "Your pay is right, also when you are ill",
+            "text": "Does React2u also run your employer's payroll? Then your sick report is processed correctly in your pay straight away.",
+            "points": [
+              "Continued payment processed correctly",
+              "No double reporting",
+              "One place for absence and pay"
+            ],
+            "href": "/en/your-rights-and-privacy",
+            "link": "Find out more"
           }
         ]
       }

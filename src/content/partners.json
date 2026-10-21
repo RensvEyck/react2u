@@ -171,7 +171,7 @@
       "data": {
         "anchor": "voor-je-klant",
         "heading": "Wat jouw klant krijgt",
-        "text": "Eén vaste casemanager, met een bedrijfsarts en arbeidsdeskundige in hetzelfde team. Vijf diensten onder één dak.",
+        "text": "Eén vaste casemanager, met een bedrijfsarts en arbeidsdeskundige in hetzelfde team. Zes diensten onder één dak.",
         "items": [
           {
             "naam": "Recover",
@@ -250,6 +250,21 @@
               "Second opinion en deskundigenoordeel"
             ],
             "href": "/ready"
+          },
+          {
+            "naam": "Reward",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "label": "Salaris en verloning.",
+            "tagline": "Loon dat klopt, ook bij ziekte",
+            "text": "Salarisadministratie door mensen die verzuim kennen. Elke periode op tijd, en bij ziekte precies goed verwerkt.",
+            "points": [
+              "Maand- of vierwekelijkse verloning",
+              "Verloning van zieke medewerkers",
+              "Ziektewet en tweede ziektejaar",
+              "Vaste prijs per werknemer per jaar"
+            ],
+            "href": "/reward"
           }
         ]
       }

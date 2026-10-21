@@ -33,7 +33,7 @@
       "label": "Diensten",
       "data": {
         "anchor": "diensten",
-        "heading": "Vijf diensten onder één dak",
+        "heading": "Zes diensten onder één dak",
         "text": "Elke dienst is een eigen specialisme. Je casemanager houdt het overzicht over alles.",
         "items": [
           {
@@ -113,6 +113,21 @@
               "Second opinion en deskundigenoordeel"
             ],
             "href": "/ready"
+          },
+          {
+            "naam": "Reward",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "label": "Salaris en verloning.",
+            "tagline": "Loon dat klopt, ook bij ziekte",
+            "text": "Salarisadministratie door mensen die verzuim kennen. Elke periode op tijd, en bij ziekte precies goed verwerkt.",
+            "points": [
+              "Maand- of vierwekelijkse verloning",
+              "Verloning van zieke medewerkers",
+              "Ziektewet en tweede ziektejaar",
+              "Vaste prijs per werknemer per jaar"
+            ],
+            "href": "/reward"
           }
         ],
         "strook": {
@@ -240,9 +255,9 @@
         "text": "Kies een vaste aansluiting per werknemer, of vraag een voorstel op maat aan. Je offerte stemmen we af op je organisatie.",
         "cards": [
           {
-            "badge": "Aansluiting",
+            "badge": "Meest gekozen",
             "naam": "Verrichtingenbasis",
-            "prijs": "€ 35",
+            "prijs": "€ 38,50",
             "per": "per werknemer per jaar",
             "points": [
               "Toegang tot de arbodienst",
@@ -250,12 +265,13 @@
               "Betalen per verrichting"
             ],
             "label": "Bekijk pakket",
-            "href": "/verzuimabonnementen"
+            "href": "/verzuimabonnementen",
+            "featured": true
           },
           {
-            "badge": "Meest gekozen",
+            "badge": "Pakket",
             "naam": "Casemanagement Compleet",
-            "prijs": "€ 135",
+            "prijs": "€ 139,50",
             "per": "per werknemer per jaar",
             "points": [
               "Onbeperkt casemanagement",
@@ -263,8 +279,7 @@
               "Alle WVP-documenten"
             ],
             "label": "Bekijk pakket",
-            "href": "/verzuimabonnementen",
-            "featured": true
+            "href": "/verzuimabonnementen"
           },
           {
             "badge": "Liever maatwerk?",
@@ -272,9 +287,9 @@
             "prijs": "Op maat",
             "per": "Offerte binnen twee werkdagen",
             "points": [
-              "Voor uitzendbureaus",
               "Voor grotere organisaties",
-              "In combinatie met RI&E en PMO"
+              "In combinatie met RI&E en PMO",
+              "Offerte binnen twee werkdagen"
             ],
             "label": "Vraag een offerte aan",
             "href": "/kennismaken"

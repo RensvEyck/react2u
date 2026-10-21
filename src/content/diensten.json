@@ -1,17 +1,17 @@
 {
-  "_uitleg": "Overzicht van de vijf labels (Resist, Recover, Restart, Reflex, Ready) in de blokken van het nieuwe ontwerp, met dezelfde labelkaarten als op /werkgevers. Vervangt sinds oktober 2026 de oude opbouw met losse dienstpagina's; die sturen met een 301 door naar hun label (DIENST_REDIRECTS in src/lib/redirects.ts). Engelse tegenhanger: src/content/en/services.json.",
+  "_uitleg": "Overzicht van de zes labels (Resist, Recover, Restart, Reflex, Ready, Reward) in de blokken van het nieuwe ontwerp, met dezelfde labelkaarten als op /werkgevers. Vervangt sinds oktober 2026 de oude opbouw met losse dienstpagina's; die sturen met een 301 door naar hun label (DIENST_REDIRECTS in src/lib/redirects.ts). Engelse tegenhanger: src/content/en/services.json.",
   "slug": "diensten",
   "title": "Diensten",
-  "seo_title": "Diensten: vijf specialismen voor verzuim en preventie • React2u",
-  "seo_description": "React2u biedt vijf specialismen onder één dak: Resist, Recover, Restart, Reflex en Ready. Van preventie tot re-integratie, met één vaste casemanager.",
+  "seo_title": "Diensten: zes specialismen voor verzuim, preventie en salaris • React2u",
+  "seo_description": "React2u biedt zes specialismen onder één dak: Resist, Recover, Restart, Reflex, Ready en Reward. Van preventie tot re-integratie en salarisadministratie, met één vaste casemanager.",
   "blocks": [
     {
       "type": "dgKop",
       "label": "Paginakop",
       "data": {
         "eyebrow": "Diensten",
-        "heading": "Vijf specialismen,\néén vast\naanspreekpunt",
-        "text": "Van uitval voorkomen tot re-integratie en HR-advies. Je casemanager houdt het overzicht.",
+        "heading": "Zes specialismen,\néén vast\naanspreekpunt",
+        "text": "Van uitval voorkomen tot re-integratie, HR-advies en salarisadministratie. Je casemanager houdt het overzicht.",
         "image": "/beeld/werkgevers/gezonde-werkplek.webp",
         "alt": "Twee collega’s kijken samen naar een scherm",
         "focus": "50% 40%",
@@ -30,7 +30,7 @@
     },
     {
       "type": "dgLabels",
-      "label": "De vijf labels",
+      "label": "De zes labels",
       "data": {
         "anchor": "labels",
         "heading": "Wat kunnen we voor je doen?",
@@ -113,6 +113,21 @@
               "Second opinion en deskundigenoordeel"
             ],
             "href": "/ready"
+          },
+          {
+            "naam": "Reward",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "label": "Salaris en verloning.",
+            "tagline": "Loon dat klopt, ook bij ziekte",
+            "text": "Salarisadministratie door mensen die verzuim kennen. Elke periode op tijd, en bij ziekte precies goed verwerkt.",
+            "points": [
+              "Maand- of vierwekelijkse verloning",
+              "Verloning van zieke medewerkers",
+              "Ziektewet en tweede ziektejaar",
+              "Vaste prijs per werknemer per jaar"
+            ],
+            "href": "/reward"
           }
         ],
         "strook": {
@@ -187,6 +202,14 @@
             "kleur": "#322E83",
             "tint": "#ECEBF5",
             "href": "/ready"
+          },
+          {
+            "vraag": "Je wilt de salarisadministratie bij dezelfde partij als je verzuim",
+            "naam": "Reward",
+            "wat": "Salaris en verloning",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "href": "/reward"
           }
         ]
       }

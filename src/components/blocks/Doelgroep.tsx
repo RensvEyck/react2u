@@ -80,13 +80,14 @@ export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} bg-white`}>
       <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
-        {/* Vijf naast elkaar pas vanaf 1400px; daaronder werden de kaarten zo smal
-            dat woorden midden in braken ("Werkplekonderzoe-k"). Op een laptop drie
-            en twee, die samen de volle breedte vullen (zes kolommen: 2+2+2, 3+3).
+        {/* Met vijf kaarten: naast elkaar pas vanaf 1400px; daaronder werden ze zo
+            smal dat woorden midden in braken ("Werkplekonderzoe-k"). Op een laptop
+            drie en twee, die samen de volle breedte vullen (zes kolommen: 2+2+2,
+            3+3). Met zes kaarten: twee rijen van drie, ook op een breed scherm.
             Op de telefoon (tot 640px) een strook om te swipen. */}
-        <Strook n={kaarten.length} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 min-[87.5rem]:grid-cols-5">
+        <Strook n={kaarten.length} className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 ${kaarten.length === 5 ? "min-[87.5rem]:grid-cols-5" : ""}`}>
           {kaarten.map((c, i) => (
-            <div key={i} className={`relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-5 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7 min-[87.5rem]:col-span-1 ${kaarten.length === 5 ? (i < 3 ? "lg:col-span-2" : "lg:col-span-3") : "lg:col-span-2"}`} style={{ background: c.tint }}>
+            <div key={i} className={`relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-5 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7 ${kaarten.length === 5 ? `min-[87.5rem]:col-span-1 ${i < 3 ? "lg:col-span-2" : "lg:col-span-3"}` : "lg:col-span-2"}`} style={{ background: c.tint }}>
               <span aria-hidden className="absolute right-[-40px] top-[-40px] h-[120px] w-[120px] rounded-full" style={{ background: c.kleur, opacity: 0.16 }} />
               <span className={`${kop} relative flex flex-col text-[19px] leading-[1.1]`} style={{ color: NAVY }}>
                 React2u<span className="text-[30px] tracking-[-0.6px]" style={{ color: c.kleur === NAVY ? NAVY : c.kleur }}>{c.naam}<sup className="text-[13px]" style={{ color: NAVY }}>®</sup></span>
@@ -350,6 +351,12 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
   // in de blokeditor (zonder ctx) staat de tekst zoals ingevoerd.
   const tar = ctx?.tarieven;
   const eyebrow = tar ? metJaar(d.eyebrow, tar.jaar) : d.eyebrow;
+  // Drie aansluitingen (prijslijst 2027): vanaf 1280px de uitgelichte groot
+  // links en de twee andere onder elkaar rechts, zoals op de gedrukte
+  // prijslijst; daaronder de uitgelichte bovenaan over de volle breedte. Op
+  // 1024px werden de rechterkaarten anders te smal voor het bedrag. Twee
+  // aansluitingen: gewoon naast elkaar.
+  const drie = abonnementen.length === 3;
   return (
     <div className={`hv ${outfit.variable}`}>
       <section aria-label={d.eyebrow || "Tarieven"} className="bg-white">
@@ -359,19 +366,24 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
           <H className={`${kop} m-0 text-[42px] leading-[1.04] tracking-[-1.4px] md:text-[60px]`} style={{ color: NAVY }}>{d.heading}</H>
           {d.text && <p className="m-0 max-w-[640px] text-[17px] leading-[1.65]" style={{ color: BODY }}>{d.text}</p>}
         </div>
-        <div className={`${BREED} grid gap-5 pb-14 md:grid-cols-2 md:pb-24`}>
+        <div className={`${BREED} grid gap-5 pb-14 md:grid-cols-2 md:pb-24 ${drie ? "xl:grid-cols-12" : ""}`}>
           {abonnementen.map((a, i) => {
             const donker = Boolean(a.featured);
             const tekst = donker ? "#ffffff" : NAVY;
             const zacht = donker ? "rgba(255,255,255,0.78)" : BODY;
+            // "Op offerte" is geen bedrag: kleiner, anders loopt het uit de kaart.
+            const bedrag = /\d/.test(String(a.prijs || ""));
+            const plek = drie ? (donker ? "md:col-span-2 xl:col-span-7 xl:row-span-2 xl:self-start" : "xl:col-span-5") : "";
+            // Een paar veelgebruikte verrichtingen op de kaart van de Verrichtingenbasis: wat betaal je dan?
+            const voorbeeld: { kop?: string; regels?: { naam: string; prijs: string }[] } | undefined = a.voorbeeld;
             return (
-              <div key={i} className="flex flex-col gap-5 rounded-[28px] border p-6 md:p-10" style={{ background: donker ? NAVY : "#ffffff", borderColor: donker ? NAVY : LINE, boxShadow: donker ? "none" : "0 24px 48px -36px rgba(50,46,131,0.35)" }}>
+              <div key={i} className={`flex flex-col gap-5 rounded-[28px] border p-6 md:p-10 ${plek}`} style={{ background: donker ? NAVY : "#ffffff", borderColor: donker ? NAVY : LINE, boxShadow: donker ? "none" : "0 24px 48px -36px rgba(50,46,131,0.35)" }}>
                 <div className="flex items-center justify-between gap-4">
                   <span className={`${kop} text-[22px]`} style={{ color: tekst }}>{a.naam}</span>
                   <span className="rounded-md px-2.5 py-1 text-[13px] font-bold" style={{ background: donker ? PINK : SOFT, color: donker ? "#ffffff" : NAVY }}>{a.badge}</span>
                 </div>
                 <span className="flex items-end gap-2">
-                  <span className={`${kop} text-[56px] leading-[0.9] tracking-[-1.6px] md:text-[64px]`} style={{ color: tekst }}>{a.prijs}</span>
+                  <span className={`${kop} leading-[0.9] ${bedrag ? "text-[56px] tracking-[-1.6px] md:text-[64px]" : "text-[36px] tracking-[-1px] md:text-[42px]"}`} style={{ color: tekst }}>{a.prijs}</span>
                   <span className="pb-1 text-[14.5px]" style={{ color: zacht }}>{a.per}</span>
                 </span>
                 <p className="m-0 border-b pb-5 text-[16px] leading-[1.6]" style={{ color: zacht, borderColor: donker ? "rgba(255,255,255,0.15)" : LINE }}>{a.text}</p>
@@ -383,12 +395,22 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
                   ))}
                 </ul>
                 {a.note && <p className="m-0 text-[14px]" style={{ color: zacht }}>{a.note}</p>}
+                {voorbeeld?.regels?.length ? (
+                  <div className="flex flex-col rounded-[18px] px-5 py-2" style={{ background: donker ? "rgba(255,255,255,0.08)" : SOFT }}>
+                    {voorbeeld.kop && <span className="pt-3 pb-1 text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: zacht }}>{voorbeeld.kop}</span>}
+                    {voorbeeld.regels.map((r, k) => (
+                      <span key={k} className="flex items-baseline justify-between gap-4 border-t py-3 text-[15px]" style={{ borderColor: donker ? "rgba(255,255,255,0.12)" : LINE, color: tekst }}>
+                        <span>{r.naam}</span><span className="shrink-0 font-bold">{r.prijs}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 <div className="mt-auto pt-2"><Knop2 href={a.href || pad(taal, "kennismaken")} stijl={donker ? "wit" : "navy"}>{a.label || t.werkgevers.offerteAanvragen}</Knop2></div>
               </div>
             );
           })}
           {tar && (
-            <p className="m-0 text-[14px] md:col-span-2" style={{ color: MUTE }}>
+            <p className={`m-0 text-[14px] md:col-span-2 ${drie ? "xl:col-span-12" : ""}`} style={{ color: MUTE }}>
               {taal === "nl" ? geldigheidsregel(tar) : vul(t.werkgevers.geldigheid, { jaar: tar.jaar, tot: datumInTaal(tar.geldigTot, taal) })}
             </p>
           )}
@@ -399,7 +421,8 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
           <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-24`}>
             <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
               <div className="flex flex-col gap-4 lg:col-span-6">
-                <Eyebrow kleur={TEAL}>{g.eyebrow}</Eyebrow>
+                {/* Een groep per label krijgt de labelkleur mee (prijslijst 2027). */}
+                <Eyebrow kleur={g.kleur || TEAL}>{g.eyebrow}</Eyebrow>
                 <h2 className={`${kop} m-0 text-[32px] leading-[1.1] tracking-[-0.9px] md:text-[40px]`} style={{ color: NAVY }}>{g.heading}</h2>
               </div>
               {g.text && <p className="m-0 text-[16px] lg:col-span-5 lg:col-start-8" style={{ color: BODY }}>{g.text}</p>}

@@ -330,7 +330,7 @@ export const DOCUMENT_REDIRECTS: { source: string; destination: string }[] = [
 ];
 
 /**
- * De zes dienstpagina's van vóór oktober 2026, nu opgegaan in de vijf labels
+ * De zes dienstpagina's van vóór oktober 2026, nu opgegaan in de labels
  * (Resist, Recover, Restart, Reflex, Ready; zie LABELS in nav.ts). Een echte
  * 301, net als de documenten: Google moet de oude adressen definitief door het
  * label vervangen. De pagina's staan nog in de database, maar deze regels gaan

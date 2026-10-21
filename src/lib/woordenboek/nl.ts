@@ -62,13 +62,14 @@ export const nl = {
       { label: "Blog", slug: "blog" },
     ],
     overOnsKop: "Over React2u",
-    /** De vijf labels in het uitklapmenu Diensten. */
+    /** De zes labels in het uitklapmenu Diensten. */
     diensten: [
       { naam: "Resist", sub: "Preventie en vitaliteit", slug: "resist", kleur: "#00A098" },
       { naam: "Recover", sub: "Verzuimbegeleiding", slug: "recover", kleur: "#E61674" },
       { naam: "Restart", sub: "Re-integratie en loopbaan", slug: "restart", kleur: "#F19001" },
       { naam: "Reflex", sub: "Flexbranche en Ziektewet", slug: "reflex", kleur: "#3AA5DD" },
       { naam: "Ready", sub: "HR en arbeidsrecht", slug: "ready", kleur: "#322E83" },
+      { naam: "Reward", sub: "Salaris en verloning", slug: "reward", kleur: "#CA152A" },
     ],
     menuWerkgever: [
       { label: "Diensten", slug: "werkgevers", anker: "diensten", diensten: true },

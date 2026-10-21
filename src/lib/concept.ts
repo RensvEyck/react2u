@@ -12,6 +12,7 @@ import recover from "@/content/recover.json";
 import restart from "@/content/restart.json";
 import reflex from "@/content/reflex.json";
 import ready from "@/content/ready.json";
+import reward from "@/content/reward.json";
 import overReact2u from "@/content/over-react2u.json";
 import kennismaken from "@/content/kennismaken.json";
 import jeRechten from "@/content/je-rechten-en-privacy.json";
@@ -33,6 +34,7 @@ import enResist from "@/content/en/services/resist.json";
 import enRestart from "@/content/en/services/restart.json";
 import enReflex from "@/content/en/services/reflex.json";
 import enReady from "@/content/en/services/ready.json";
+import enReward from "@/content/en/services/reward.json";
 import enPricing from "@/content/en/pricing.json";
 import enLetsTalk from "@/content/en/lets-talk.json";
 import enContact from "@/content/en/contact.json";
@@ -52,7 +54,7 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, diensten, tarieven, contact, resist, recover, restart, reflex, ready, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen, partners];
+const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, diensten, tarieven, contact, resist, recover, restart, reflex, ready, reward, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen, partners];
 
 /**
  * De Engelse pagina's (src/content/en/), met dezelfde blokstructuur als het
@@ -63,7 +65,7 @@ const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotoc
  */
 const CONCEPTEN_EN: ConceptBestand[] = [
   enHome, enEmployees, enSickWhatNow, enYourRights, enYourCaseManager,
-  enEmployers, enServices, enRecover, enResist, enRestart, enReflex, enReady, enPricing, enLetsTalk, enContact, enAboutUs, enCertifications,
+  enEmployers, enServices, enRecover, enResist, enRestart, enReflex, enReady, enReward, enPricing, enLetsTalk, enContact, enAboutUs, enCertifications,
 ];
 
 /**
