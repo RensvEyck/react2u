@@ -5,17 +5,24 @@
   "seo_description": "Breng werkgevers met verzuim bij React2u onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van het abonnement in jaar één.",
   "blocks": [
     {
-      "type": "dgKop",
-      "label": "Partners: kop met foto",
+      "type": "ptKop",
+      "label": "Partners: kop in roze met de vergoeding",
       "data": {
-        "eyebrow": "Partnerprogramma",
-        "heading": "Jouw klant,\nonze casemanager,\njouw vergoeding",
-        "text": "Breng werkgevers met verzuim bij ons onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van het abonnement in het eerste jaar.",
-        "image": "/beeld/werkgevers/werkplezier.webp",
-        "alt": "Drie mensen in gesprek aan een ronde tafel",
-        "focus": "55% 40%",
-        "panel": "#322E83",
-        "buttons": [
+        "heading": "React2u Partners",
+        "naam": "Partners",
+        "kruimels": [
+          {
+            "label": "Werkgevers",
+            "href": "/werkgevers"
+          },
+          {
+            "label": "Partners"
+          }
+        ],
+        "label": "Partnerprogramma voor adviseurs.",
+        "tagline": "Jouw klant, onze casemanager, jouw vergoeding",
+        "text": "Accountants, salariskantoren en HR-adviseurs zien als eerste dat verzuim een werkgever geld kost. Breng die werkgever bij ons onder. Wij doen de begeleiding, jij blijft het aanspreekpunt.",
+        "knoppen": [
           {
             "label": "Partner worden",
             "href": "#aanmelden"
@@ -24,45 +31,143 @@
             "label": "Reken het uit",
             "href": "#rekenvoorbeeld"
           }
-        ]
+        ],
+        "kaart": {
+          "kop": "Jouw vergoeding",
+          "groot": "50%",
+          "grootTekst": "van het abonnement in jaar één",
+          "plus": "+25%",
+          "plusTekst": "in elk jaar daarna, zolang de klant blijft",
+          "voorbeeldTekst": "Bij {klanten} klanten met elk {medewerkers} medewerkers:",
+          "voorbeeldNa": "in jaar één",
+          "punten": [
+            "Geen contract met de klant, geen aansprakelijkheid",
+            "Uitbetaling per kwartaal op jouw factuur"
+          ]
+        },
+        "voorbeeld": {
+          "klanten": 10,
+          "medewerkers": 100,
+          "tarief": 38.5,
+          "pctJaarEen": 50,
+          "pctVervolg": 25
+        }
       }
     },
     {
-      "type": "klantenStrook",
-      "label": "Partners: klantlogo’s",
+      "type": "dienstLabel",
+      "label": "Partners: kop en opzet zoals een dienstpagina",
       "data": {
-        "label": "Werkgevers die hun verzuim al bij React2u onderbrengen"
-      }
-    },
-    {
-      "type": "dgFotoLijst",
-      "label": "Partners: voor wie",
-      "data": {
-        "anchor": "voor-wie",
-        "eyebrow": "Voor wie",
-        "heading": "Je ziet verzuim eerder dan de werkgever zelf",
-        "text": "Accountants, salariskantoren en HR-adviseurs zien als eerste dat verzuim een werkgever geld kost. Daar hoort een arbodienst bij die net zo dichtbij is.",
-        "image": "/beeld/home/aandacht-definitief.webp",
-        "alt": "Twee mensen in een rustig gesprek aan tafel",
-        "focus": "50% 40%",
-        "items": [
+        "heading": "React2u Partners",
+        "naam": "Partners",
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "de": "Je ziet verzuim eerder dan de werkgever zelf",
+        "lead": "Daar hoort een arbodienst bij die net zo dichtbij is.",
+        "intro": [
+          "Accountants zien de loonsanctie en de Whk-premie op de jaarrekening terug. Salariskantoren zien elke ziekmelding voorbijkomen. HR- en verzekeringsadviseurs krijgen de vragen als het misgaat.",
+          "Met het partnerprogramma breng je die werkgevers bij React2u onder. Een vaste casemanager neemt de begeleiding over, jij blijft het aanspreekpunt en ontvangt een vergoeding."
+        ],
+        "herken": [
+          "Een klant krijgt een loonsanctie of een hoge Whk-premie",
+          "Elke ziekmelding van je klant gaat door jouw handen",
+          "Je klant vraagt jou wat hij moet doen bij verzuim",
+          "Je wilt je klanten meer bieden dan je eigen dienst"
+        ],
+        "groepen": [
           {
-            "title": "Accountants",
-            "text": "Je ziet de loonsanctie en de Whk-premie op de jaarrekening terug. Wij voorkomen ze."
+            "titel": "Aanbrengpartner",
+            "tekst": "Je verwijst door, wij doen de rest. 50% van het abonnement in jaar één, daarna 25% per jaar.",
+            "items": [
+              "React2u factureert je klant rechtstreeks",
+              "Geen contract met de klant, geen aansprakelijkheid",
+              "Uitbetaling per kwartaal op jouw factuur"
+            ]
           },
           {
-            "title": "Salariskantoren",
-            "text": "Elke ziekmelding gaat door jouw handen. Zet hem met één klik bij een casemanager neer."
-          },
-          {
-            "title": "HR-adviseurs",
-            "text": "Jij doet het HR-werk, wij de bedrijfsarts en de Wet verbetering poortwachter."
-          },
-          {
-            "title": "Verzekeringsadviseurs",
-            "text": "Lager verzuim is een lagere premie. Wij leveren de cijfers waarmee jij adviseert."
+            "titel": "Resellerpartner",
+            "tekst": "Arbo als onderdeel van jouw dienst, met een eigen opslag op onze tarieven binnen een afgesproken bandbreedte.",
+            "items": [
+              "React2u factureert de klant inclusief jouw opslag en keert die aan jou uit",
+              "Jouw kantoor blijft het eerste aanspreekpunt, wij werken op de achtergrond",
+              "Voor HR- en salariskantoren met een eigen abonnement"
+            ]
           }
-        ]
+        ],
+        "stappen": [
+          {
+            "titel": "Je meldt een klant aan",
+            "tekst": "Een mail naar sales@react2u.nl met de naam, het aantal medewerkers en wat er speelt."
+          },
+          {
+            "titel": "Offerte binnen twee werkdagen",
+            "tekst": "Op basis van onze tarievenlijst. Jij krijgt een kopie en schuift aan als je wilt."
+          },
+          {
+            "titel": "Je klant tekent",
+            "tekst": "Een vaste casemanager neemt de begeleiding over. Jij blijft het aanspreekpunt."
+          },
+          {
+            "titel": "Jij ontvangt je deel",
+            "tekst": "Elk kwartaal een overzicht per klant met je vergoeding. Wij dragen het incassorisico."
+          }
+        ],
+        "aanpakAnker": "hoe",
+        "waarom": [
+          {
+            "titel": "Eén vaste casemanager",
+            "tekst": "Elke klant werkt met één vaste casemanager, met een bedrijfsarts en arbeidsdeskundige in hetzelfde team."
+          },
+          {
+            "titel": "Niets te administreren",
+            "tekst": "Je hoeft niets te verkopen en niets bij te houden. Elk kwartaal krijg je het overzicht."
+          },
+          {
+            "titel": "Jij blijft aanspreekpunt",
+            "tekst": "Wij nemen alleen de arbodienstverlening over. Bij het eerste gesprek schuif je aan als je wilt."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Recover",
+            "wat": "Verzuimbegeleiding",
+            "kleur": "#E61674",
+            "href": "/recover"
+          },
+          {
+            "naam": "Resist",
+            "wat": "Preventie en vitaliteit",
+            "kleur": "#00A098",
+            "href": "/resist"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Flexbranche en Ziektewet",
+            "kleur": "#3AA5DD",
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR en arbeidsrecht",
+            "kleur": "#322E83",
+            "href": "/ready"
+          }
+        ],
+        "titels": {
+          "danIs": "Dan is het partnerprogramma er voor jou.",
+          "omvat": "Twee manieren om samen te werken",
+          "omvatTekst": "Kies wat bij je kantoor past. Je kunt ze per klant naast elkaar gebruiken.",
+          "aanpak": "Zo werkt het",
+          "waarom": "Waarom partner worden bij React2u",
+          "bekijkOok": "Wat jouw klant krijgt"
+        },
+        "zonderKop": true
       }
     },
     {
@@ -74,9 +179,11 @@
         "heading": "Reken uit wat jouw klanten opleveren",
         "text": "50% van het abonnement in het eerste jaar en 25% in elk jaar daarna, zolang de klant blijft.",
         "rekenhulp": {
+          "kop": "Jouw klantenbestand",
+          "tekst": "Schuif en zie wat jouw klanten je per jaar opleveren.",
           "klantenLabel": "Klanten die je aanbrengt",
           "medewerkersLabel": "Gemiddeld aantal medewerkers per klant",
-          "jaarEenLabel": "Jouw vergoeding in jaar één",
+          "jaarEenLabel": "In jaar één",
           "vervolgLabel": "Elk jaar daarna",
           "startKlanten": 10,
           "startMedewerkers": 100,
@@ -84,182 +191,10 @@
           "pctJaarEen": 50,
           "pctVervolg": 25,
           "voetnoot": "Rekenvoorbeeld op basis van het aansluittarief van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement.",
-          "kop": "Jouw klantenbestand",
-          "tekst": "Schuif en zie wat jouw klanten je per jaar opleveren.",
-          "jarenKop": "Per jaar",
-          "totaalLabel": "Samen in vijf jaar:",
+          "jarenKop": "De eerste vijf jaar",
+          "totaalLabel": "Samen in vijf jaar",
           "jaarLabel": "Jaar"
         }
-      }
-    },
-    {
-      "type": "dgStarten",
-      "label": "Partners: zo werkt het",
-      "data": {
-        "anchor": "hoe",
-        "eyebrow": "Zo werkt het",
-        "heading": "Jij signaleert.\nWij nemen het over.",
-        "text": "Je hoeft niets te verkopen en niets te administreren. Drie momenten waarop je iets van ons hoort.",
-        "steps": [
-          {
-            "title": "Je meldt een klant aan",
-            "text": "Een mail naar sales@react2u.nl met de naam, het aantal medewerkers en wat er speelt. Meer hoeven wij niet te weten."
-          },
-          {
-            "title": "Binnen twee werkdagen een offerte",
-            "text": "Op basis van onze tarievenlijst, zonder verrassingen. Jij krijgt een kopie en schuift aan bij het gesprek als je dat wilt."
-          },
-          {
-            "title": "Klant tekent, jij factureert ons",
-            "text": "Elk kwartaal krijg je een overzicht per klant met de vergoeding erbij. Dat is je factuur. Wij dragen het incassorisico."
-          }
-        ],
-        "button": {
-          "label": "Partner worden",
-          "href": "#aanmelden"
-        },
-        "call": {
-          "label": "Liever eerst praten?",
-          "value": "Bel 085 620 58 00",
-          "href": "tel:+31856205800"
-        }
-      }
-    },
-    {
-      "type": "dgPrijzen",
-      "label": "Partners: twee manieren om samen te werken",
-      "data": {
-        "anchor": "vergoeding",
-        "eyebrow": "Vergoeding",
-        "heading": "Twee manieren om samen te werken",
-        "text": "Kies wat bij je kantoor past. Je kunt ze per klant naast elkaar gebruiken.",
-        "cards": [
-          {
-            "badge": "Aanbrengpartner",
-            "naam": "Je verwijst door, wij doen de rest",
-            "prijs": "50%",
-            "per": "van het abonnement in jaar één, daarna 25% per jaar zolang de klant blijft",
-            "points": [
-              "React2u factureert je klant rechtstreeks",
-              "Geen contract met de klant, geen aansprakelijkheid",
-              "Uitbetaling per kwartaal op jouw factuur"
-            ],
-            "label": "Word aanbrengpartner",
-            "href": "#aanmelden",
-            "featured": true
-          },
-          {
-            "badge": "Resellerpartner",
-            "naam": "Arbo als onderdeel van jouw dienst",
-            "prijs": "Eigen opslag",
-            "per": "op onze tarieven, binnen een afgesproken bandbreedte",
-            "points": [
-              "React2u factureert de klant inclusief jouw opslag en keert die aan jou uit",
-              "Jouw kantoor blijft het eerste aanspreekpunt, wij werken op de achtergrond",
-              "Voor HR- en salariskantoren met een eigen abonnement"
-            ],
-            "label": "Word resellerpartner",
-            "href": "#aanmelden"
-          }
-        ],
-        "note": "Vergoedingen gelden over abonnementen (aansluittarief en casemanagementpakketten) en worden berekend over wat de klant werkelijk heeft betaald. Losse verrichtingen en specialisten op uurbasis tellen niet mee. De volledige voorwaarden staan in de partnerovereenkomst."
-      }
-    },
-    {
-      "type": "dgLabels",
-      "label": "Partners: wat jouw klant krijgt",
-      "data": {
-        "anchor": "voor-je-klant",
-        "heading": "Wat jouw klant krijgt",
-        "text": "Eén vaste casemanager, met een bedrijfsarts en arbeidsdeskundige in hetzelfde team. Vijf diensten onder één dak.",
-        "items": [
-          {
-            "naam": "Recover",
-            "kleur": "#E61674",
-            "tint": "#FDECF4",
-            "label": "Verzuimbegeleiding.",
-            "tagline": "Van ziekmelding tot herstel",
-            "text": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.",
-            "points": [
-              "Casemanagement",
-              "Bedrijfsarts en taakdelegatie",
-              "Poortwachterdossier en UWV",
-              "Online dossier en rapportages",
-              "Verzuimadvies"
-            ],
-            "href": "/recover"
-          },
-          {
-            "naam": "Resist",
-            "kleur": "#00A098",
-            "tint": "#E5F5F4",
-            "label": "Preventie en vitaliteit.",
-            "tagline": "Uitval voorkomen begint vóór de ziekmelding",
-            "text": "We brengen risico’s in kaart en helpen teams om gezond en met energie aan het werk te blijven.",
-            "points": [
-              "Risico-inventarisatie (RI&E)",
-              "Preventief medisch onderzoek (PMO)",
-              "Werkplekonderzoek",
-              "Trainingen voor leidinggevenden",
-              "Vertrouwenspersoon"
-            ],
-            "href": "/resist"
-          },
-          {
-            "naam": "Restart",
-            "kleur": "#F19001",
-            "tint": "#FEF3E3",
-            "label": "Re-integratie en loopbaan.",
-            "tagline": "Samen weer vooruit",
-            "text": "Lukt terugkeer in het eigen werk niet? Dan zoeken we samen naar nieuw perspectief, binnen of buiten de organisatie.",
-            "points": [
-              "Tweede spoor",
-              "Loopbaanscan",
-              "Coaching en burn-outbegeleiding",
-              "Arbeidsdeskundig onderzoek",
-              "Rouwverwerking"
-            ],
-            "href": "/restart"
-          },
-          {
-            "naam": "Reflex",
-            "kleur": "#3AA5DD",
-            "tint": "#E9F5FC",
-            "label": "Voor de flexbranche.",
-            "tagline": "Ziektewet zonder zorgen",
-            "text": "Voor uitzendbureaus en eigenrisicodragers Ziektewet. We begeleiden zieke flexkrachten, ook na het einde van het dienstverband.",
-            "points": [
-              "Begeleiding zieke flexkrachten",
-              "Eigenrisicodragerschap Ziektewet",
-              "Ook na einde dienstverband",
-              "Gericht op passend werk"
-            ],
-            "href": "/reflex"
-          },
-          {
-            "naam": "Ready",
-            "kleur": "#322E83",
-            "tint": "#ECEBF5",
-            "label": "HR en arbeidsrecht.",
-            "tagline": "Helder advies, snel geregeld",
-            "text": "Vragen over contracten, verlof of ontslag bij ziekte? Je krijgt helder advies van mensen die verzuim kennen.",
-            "points": [
-              "HR-advies rond verzuim",
-              "Arbeidsrechtelijke ondersteuning",
-              "Advies bij conflicten",
-              "Second opinion en deskundigenoordeel"
-            ],
-            "href": "/ready"
-          }
-        ]
-      }
-    },
-    {
-      "type": "klantenAanHetWoord",
-      "label": "Partners: klanten aan het woord",
-      "data": {
-        "eyebrow": "Ervaringen",
-        "heading": "Jouw klant is in goede handen"
       }
     },
     {
@@ -284,6 +219,10 @@
           {
             "question": "Zit ik ergens aan vast?",
             "answer": "Nee. De partnerovereenkomst kent geen minimumaantal klanten en is maandelijks opzegbaar. Vergoedingen over al aangebrachte klanten lopen gewoon door."
+          },
+          {
+            "question": "Waarover krijg ik een vergoeding?",
+            "answer": "Vergoedingen gelden over abonnementen (aansluittarief en casemanagementpakketten) en worden berekend over wat de klant werkelijk heeft betaald. Losse verrichtingen en specialisten op uurbasis tellen niet mee. De volledige voorwaarden staan in de partnerovereenkomst."
           }
         ]
       }
