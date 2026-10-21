@@ -147,6 +147,12 @@
             "wat": "HR and employment law",
             "kleur": "#322E83",
             "href": "/en/services/ready"
+          },
+          {
+            "naam": "Reward",
+            "wat": "Payroll and salary administration",
+            "kleur": "#CA152A",
+            "href": "/en/services/reward"
           }
         ]
       }

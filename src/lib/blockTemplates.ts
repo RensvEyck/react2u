@@ -258,8 +258,8 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   // ze op staan als sjabloon. Zo kan een redacteur ze ook op een nieuwe
   // pagina zetten.
   dgKop: { label: "Werkgevers/werknemers: paginakop met foto en paneel", data: uit(werkgeversPagina, "dgKop") },
-  dgLabels: { label: "Werkgevers: de vijf diensten (labels) met strook", data: uit(werkgeversPagina, "dgLabels") },
-  dgSituaties: { label: "Diensten: kies op situatie (vijf labels)", data: uit(dienstenPagina, "dgSituaties") },
+  dgLabels: { label: "Werkgevers: de zes diensten (labels) met strook", data: uit(werkgeversPagina, "dgLabels") },
+  dgSituaties: { label: "Diensten: kies op situatie (zes labels)", data: uit(dienstenPagina, "dgSituaties") },
   dgFotoLijst: { label: "Werkgevers/werknemers: foto met puntenlijst", data: uit(werkgeversPagina, "dgFotoLijst") },
   dgPoortwachter: { label: "Werkgevers: Wet verbetering poortwachter (tijdlijn)", data: uit(werkgeversPagina, "dgPoortwachter") },
   dgPrijzen: { label: "Werkgevers: tarieven in het kort", data: uit(werkgeversPagina, "dgPrijzen") },

@@ -106,6 +106,20 @@
             ],
             "href": "/je-rechten-en-privacy",
             "link": "Meer weten"
+          },
+          {
+            "naam": "Reward",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "title": "Je loon klopt, ook als je ziek bent",
+            "text": "Doet React2u ook de salarisadministratie van je werkgever? Dan verwerken we je ziekmelding meteen goed in je loon.",
+            "points": [
+              "Loondoorbetaling goed verwerkt",
+              "Geen dubbele meldingen",
+              "Eén plek voor verzuim en loon"
+            ],
+            "href": "/je-rechten-en-privacy",
+            "link": "Meer weten"
           }
         ]
       }

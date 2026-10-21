@@ -17,8 +17,14 @@
         "focus": "60% 30%",
         "panel": "#322E83",
         "buttons": [
-          { "label": "Let's talk", "href": "/en/lets-talk" },
-          { "label": "Pricing", "href": "/en/pricing" }
+          {
+            "label": "Let's talk",
+            "href": "/en/lets-talk"
+          },
+          {
+            "label": "Pricing",
+            "href": "/en/pricing"
+          }
         ]
       }
     },
@@ -27,7 +33,7 @@
       "label": "Services",
       "data": {
         "anchor": "services",
-        "heading": "5 services, under one roof",
+        "heading": "6 services, under one roof",
         "text": "Each service is a specialism in its own right. Your case manager keeps the overview of everything.",
         "items": [
           {
@@ -107,6 +113,21 @@
               "Second opinion and expert opinion by UWV"
             ],
             "href": "/en/services/ready"
+          },
+          {
+            "naam": "Reward",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "label": "Payroll and salary administration.",
+            "tagline": "Pay that is right, also during illness",
+            "text": "Payroll by people who know sickness absence. On time every period, and processed correctly when someone is ill.",
+            "points": [
+              "Monthly or four-weekly payroll",
+              "Payroll for employees on sick leave",
+              "Sickness Benefits Act and second year of illness",
+              "Fixed price per employee per year"
+            ],
+            "href": "/en/services/reward"
           }
         ],
         "strook": {
@@ -234,9 +255,9 @@
         "text": "Choose a fixed subscription per employee, or request a tailored proposal. We adjust your quote to your organisation.",
         "cards": [
           {
-            "badge": "Subscription",
+            "badge": "Most chosen",
             "naam": "Pay per service",
-            "prijs": "€ 35",
+            "prijs": "€ 38.50",
             "per": "per employee per year, excl. VAT",
             "points": [
               "Access to the occupational health service",
@@ -244,12 +265,13 @@
               "Pay per service"
             ],
             "label": "View package",
-            "href": "/en/pricing"
+            "href": "/en/pricing",
+            "featured": true
           },
           {
-            "badge": "Most chosen",
+            "badge": "Package",
             "naam": "Complete case management",
-            "prijs": "€ 135",
+            "prijs": "€ 139.50",
             "per": "per employee per year, excl. VAT",
             "points": [
               "Unlimited case management",
@@ -257,8 +279,7 @@
               "All Gatekeeper Improvement Act documents"
             ],
             "label": "View package",
-            "href": "/en/pricing",
-            "featured": true
+            "href": "/en/pricing"
           },
           {
             "badge": "Prefer tailor-made?",
@@ -266,9 +287,9 @@
             "prijs": "On request",
             "per": "Quote within two working days",
             "points": [
-              "For staffing agencies",
               "For larger organisations",
-              "Combined with RI&E and PMO"
+              "Combined with RI&E and PMO",
+              "Quote within two working days"
             ],
             "label": "Request a quote",
             "href": "/en/lets-talk"
@@ -290,10 +311,22 @@
         "heading": "How you get started",
         "text": "Already have an occupational health service? Switching is less work than you think. We take over ongoing absence cases, so no deadline is missed.",
         "steps": [
-          { "title": "Introduction", "text": "A conversation about your organisation and what you need." },
-          { "title": "Tailored quote", "text": "A proposal that fits your number of employees." },
-          { "title": "Switch arranged", "text": "We arrange the handover with your current provider." },
-          { "title": "Your case manager starts", "text": "One contact, who also informs your employees." }
+          {
+            "title": "Introduction",
+            "text": "A conversation about your organisation and what you need."
+          },
+          {
+            "title": "Tailored quote",
+            "text": "A proposal that fits your number of employees."
+          },
+          {
+            "title": "Switch arranged",
+            "text": "We arrange the handover with your current provider."
+          },
+          {
+            "title": "Your case manager starts",
+            "text": "One contact, who also informs your employees."
+          }
         ],
         "button": {
           "label": "Request a quote",
@@ -347,9 +380,24 @@
         "alt": "A woman on the phone with React2u, relaxed",
         "focus": "52% 22%",
         "routes": [
-          { "icon": "phone", "label": "Call · Monday to Friday, 9:00 to 17:00", "value": "+31 85 620 58 00", "href": "tel:+31856205800" },
-          { "icon": "mail", "label": "Quote or introduction", "value": "sales@react2u.nl", "href": "mailto:sales@react2u.nl" },
-          { "icon": "clock", "label": "Prefer a call back?", "value": "Ask us to call you back", "href": "/en/contact" }
+          {
+            "icon": "phone",
+            "label": "Call · Monday to Friday, 9:00 to 17:00",
+            "value": "+31 85 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Quote or introduction",
+            "value": "sales@react2u.nl",
+            "href": "mailto:sales@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Prefer a call back?",
+            "value": "Ask us to call you back",
+            "href": "/en/contact"
+          }
         ],
         "bg": "#ffffff"
       }

@@ -147,7 +147,7 @@ export default function Header({ contact }: { contact: ContactInfo }) {
         {/* Elk label met zijn eigen foto, zoals op de tegels: ook hier mensen. */}
         <div className="col-span-3">
           <p className="mb-2.5 border-b border-line pb-3">
-            <span className="eyebrow block">Vijf specialismen</span>
+            <span className="eyebrow block">Zes specialismen</span>
             <span className="block font-heading text-[18px] font-bold text-primary">Eén vast aanspreekpunt</span>
           </p>
           <ul className="grid grid-cols-2 gap-x-6 gap-y-1">

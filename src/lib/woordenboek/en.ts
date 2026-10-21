@@ -63,6 +63,7 @@ export const en: Woordenboek = {
       { naam: "Restart", sub: "Reintegration and careers", slug: "restart", kleur: "#F19001" },
       { naam: "Reflex", sub: "Temporary staffing and the Sickness Benefits Act", slug: "reflex", kleur: "#3AA5DD" },
       { naam: "Ready", sub: "HR and employment law", slug: "ready", kleur: "#322E83" },
+      { naam: "Reward", sub: "Payroll and salary administration", slug: "reward", kleur: "#CA152A" },
     ],
     menuWerkgever: [
       { label: "Services", slug: "werkgevers", anker: "services", diensten: true },

@@ -67,9 +67,7 @@
             "items": [
               "Deskundigenoordeel",
               "Bezwaar en beroep",
-              "Loonsanctie voorkomen",
-              "Loonsanctie repareren",
-              "Bezwaar en beroep tegen loonsanctie"
+              "Loonsanctie voorkomen"
             ]
           }
         ],
@@ -129,6 +127,12 @@
             "wat": "Flexbranche en Ziektewet",
             "kleur": "#3AA5DD",
             "href": "/reflex"
+          },
+          {
+            "naam": "Reward",
+            "wat": "Salaris en verloning",
+            "kleur": "#CA152A",
+            "href": "/reward"
           }
         ]
       }

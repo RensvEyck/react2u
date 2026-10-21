@@ -157,6 +157,12 @@
             "wat": "HR en arbeidsrecht",
             "kleur": "#322E83",
             "href": "/ready"
+          },
+          {
+            "naam": "Reward",
+            "wat": "Salaris en verloning",
+            "kleur": "#CA152A",
+            "href": "/reward"
           }
         ],
         "titels": {

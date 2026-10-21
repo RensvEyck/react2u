@@ -1,0 +1,174 @@
+{
+  "slug": "reward",
+  "title": "React2u Reward",
+  "seo_title": "React2u Reward: salaris en verloning • React2u",
+  "seo_description": "Salarisadministratie door mensen die verzuim kennen. Een vaste prijs per werknemer per jaar, en de verloning van zieke medewerkers klopt.",
+  "blocks": [
+    {
+      "type": "dienstLabel",
+      "label": "React2u Reward",
+      "data": {
+        "heading": "React2u Reward",
+        "naam": "Reward",
+        "kleur": "#CA152A",
+        "tint": "#FBEAEC",
+        "label": "Salaris en verloning.",
+        "tagline": "Loon dat klopt, ook bij ziekte",
+        "text": "Salarisadministratie door mensen die verzuim kennen. Elke periode op tijd, en bij ziekte precies goed verwerkt.",
+        "checks": [
+          "Maand- of vierwekelijkse verloning",
+          "Verloning van zieke medewerkers",
+          "Extra runs en correcties",
+          "Overgang Ziektewet en tweede ziektejaar"
+        ],
+        "de": "Salarisadministratie die verzuim begrijpt",
+        "lead": "Eén partij voor verzuim én loon, zodat een ziekmelding nooit tussen wal en schip valt.",
+        "intro": [
+          "Zodra een medewerker ziek is, verandert er veel op de loonstrook: loondoorbetaling, een tweede ziektejaar, soms een vangnetuitkering of een loonsanctie. Bij een losse salarisadministrateur moet jij dat allemaal zelf doorgeven, en gaat het weleens mis.",
+          "Met React2u Reward zit de salarisadministratie bij dezelfde mensen die het verzuim begeleiden. Een ziek- of herstelmelding landt vanzelf goed in de verloning, voor een vaste prijs per werknemer per jaar."
+        ],
+        "herken": [
+          "Je geeft ziekmeldingen nu twee keer door: aan de arbodienst en aan de salarisadministratie",
+          "Loondoorbetaling bij ziekte gaat weleens mis of te laat",
+          "Je wilt één aanspreekpunt voor verzuim en loon",
+          "Je zoekt een vaste prijs per werknemer, zonder verrassingen"
+        ],
+        "groepen": [
+          {
+            "titel": "Salarisadministratie",
+            "tekst": "Elke periode op tijd en juist.",
+            "items": [
+              "Maandverloning of vierwekelijkse verloning",
+              "Loonstroken en jaaropgaven",
+              "Aangifte loonheffingen"
+            ]
+          },
+          {
+            "titel": "Verloning bij ziekte",
+            "tekst": "Ziek zijn verandert de loonstrook.",
+            "items": [
+              "Loondoorbetaling en wachtdagen",
+              "Loonjournaalpost zieke medewerker",
+              "Toeslag en correcties bij ziekte"
+            ]
+          },
+          {
+            "titel": "Ziektewet en sancties",
+            "tekst": "Bij elke overgang klopt het loon.",
+            "items": [
+              "Overgang naar de Ziektewet",
+              "Tweede ziektejaar",
+              "Verwerking van een loonsanctie"
+            ]
+          },
+          {
+            "titel": "Tussendoor",
+            "tekst": "Als er iets extra's moet.",
+            "items": [
+              "Extra run of correctierun",
+              "Correcties met terugwerkende kracht",
+              "Afstemming met je casemanager"
+            ]
+          }
+        ],
+        "stappen": [
+          {
+            "titel": "Kennismaking",
+            "tekst": "We bekijken je huidige verloning en hoe het verzuim loopt."
+          },
+          {
+            "titel": "Overstap",
+            "tekst": "We nemen de gegevens over, zonder gedoe voor je medewerkers."
+          },
+          {
+            "titel": "Elke periode",
+            "tekst": "Jij keurt de mutaties goed, wij verlonen en doen de aangifte."
+          },
+          {
+            "titel": "Bij ziekte",
+            "tekst": "Ziek- en herstelmeldingen landen vanzelf goed in het loon."
+          }
+        ],
+        "waarom": [
+          {
+            "titel": "Verzuim én loon",
+            "tekst": "Eén team dat beide kent, dus geen dubbel werk en geen gemiste meldingen."
+          },
+          {
+            "titel": "Vaste prijs",
+            "tekst": "Per werknemer per jaar, vooraf bekend."
+          },
+          {
+            "titel": "Klopt bij ziekte",
+            "tekst": "Loondoorbetaling, Ziektewet en loonsancties goed verwerkt."
+          }
+        ],
+        "ook": [
+          {
+            "naam": "Resist",
+            "wat": "Preventie en vitaliteit",
+            "kleur": "#00A098",
+            "href": "/resist"
+          },
+          {
+            "naam": "Recover",
+            "wat": "Verzuimbegeleiding",
+            "kleur": "#E61674",
+            "href": "/recover"
+          },
+          {
+            "naam": "Restart",
+            "wat": "Re-integratie en loopbaan",
+            "kleur": "#F19001",
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "wat": "Flexbranche en Ziektewet",
+            "kleur": "#3AA5DD",
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "wat": "HR en arbeidsrecht",
+            "kleur": "#322E83",
+            "href": "/ready"
+          }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          {
+            "icon": "phone",
+            "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur",
+            "value": "085 620 58 00",
+            "href": "tel:+31856205800"
+          },
+          {
+            "icon": "mail",
+            "label": "Mailen",
+            "value": "info@react2u.nl",
+            "href": "mailto:info@react2u.nl"
+          },
+          {
+            "icon": "clock",
+            "label": "Liever teruggebeld?",
+            "value": "Plan een terugbelmoment",
+            "href": "/contact"
+          }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}
