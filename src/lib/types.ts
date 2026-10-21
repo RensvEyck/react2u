@@ -137,6 +137,7 @@ export type Application = {
   status: "nieuw" | "gebeld" | "gesprek" | "aanbod" | "aangenomen" | "afgewezen" | "in_behandeling";
   /** Waar de kandidaat vandaan kwam: aanbrenger, campagne of verwijzer (migratie 0018). */
   bron?: string | null;
+  linkedin?: string | null;
   /** Interne notitie (migratie 0018). */
   notitie?: string | null;
   /** Laatste statuswijziging (migratie 0018). */

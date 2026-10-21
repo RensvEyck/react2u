@@ -82,6 +82,11 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
         <label className="flex flex-col gap-2"><span className="text-[14px] font-semibold" style={{ color: NAVY }}>{f.telefoon}</span>
           <input className={veld} name="phone" type="tel" autoComplete="tel" maxLength={40} placeholder={f.telefoonPlaceholder} /></label>
         <label className="flex flex-col gap-2 sm:col-span-2">
+          <span className="text-[14px] font-semibold" style={{ color: NAVY }}>{s.linkedin} <span className="font-normal" style={{ color: MUTE }}>{s.linkedinOptioneel}</span></span>
+          <input className={veld} name="linkedin" type="url" inputMode="url" autoComplete="url" maxLength={300} placeholder="https://www.linkedin.com/in/..." />
+          <span className="text-[13px]" style={{ color: MUTE }}>{s.linkedinHint}</span>
+        </label>
+        <label className="flex flex-col gap-2 sm:col-span-2">
           <span className="text-[14px] font-semibold" style={{ color: NAVY }}>{s.cv} <span className="font-normal" style={{ color: MUTE }}>{s.cvOptioneel}</span></span>
           <input name="cv" type="file" accept=".pdf,.doc,.docx"
             className="w-full rounded-[14px] border-[1.5px] border-dashed border-[#CFCDE2] px-4 py-3.5 text-[15px] file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-[#322E83]"

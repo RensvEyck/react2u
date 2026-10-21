@@ -3,7 +3,7 @@ import { requirePerm } from "@/lib/admin";
 import { saveApplicationNote, setApplicationStatus } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application } from "@/lib/types";
-import { LuMail, LuPhone, LuFileText } from "react-icons/lu";
+import { LuMail, LuPhone, LuFileText, LuLinkedin } from "react-icons/lu";
 
 /**
  * Sollicitaties als pijplijn: nieuw, gebeld, gesprek, aanbod, aangenomen,
@@ -102,6 +102,11 @@ export default async function ApplicationsAdmin({ searchParams }: { searchParams
                       {a.phone && (
                         <a href={`tel:${a.phone}`} className="flex items-center gap-1.5 font-medium text-[#e75387] hover:underline">
                           <LuPhone className="text-[13px]" /> {a.phone}
+                        </a>
+                      )}
+                      {a.linkedin && (
+                        <a href={a.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 font-medium text-[#e75387] hover:underline">
+                          <LuLinkedin className="text-[13px]" /> LinkedIn-profiel
                         </a>
                       )}
                     </div>

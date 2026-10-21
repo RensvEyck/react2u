@@ -95,6 +95,18 @@ export async function submitContact(_prev: FormState, formData: FormData): Promi
 /** Sollicitaties: strenger, want hier hangt een bestand aan. */
 const SOLLICITATIE_LIMIET: Throttle = { limit: 3, windowSeconds: 60 * 60 };
 
+/** Maakt van een LinkedIn-invoer een nette https-link, of null als het geen LinkedIn-profiel is. */
+function linkedinUrl(invoer: string): string | null {
+  const ruw = /^https?:\/\//i.test(invoer) ? invoer : `https://${invoer}`;
+  try {
+    const u = new URL(ruw);
+    if (!/(^|\.)linkedin\.com$/i.test(u.hostname) || u.pathname.length < 2) return null;
+    return `https://${u.hostname.toLowerCase()}${u.pathname}`.slice(0, 300);
+  } catch {
+    return null;
+  }
+}
+
 export async function submitApplication(_prev: FormState, formData: FormData): Promise<FormState> {
   const taal = taalUit(formData);
   const fout = woordenboek(taal).formulier.fouten;
@@ -112,6 +124,10 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   const bron = veld(formData, "bron").slice(0, 120);
   if (!name || !email) return { ok: false, error: fout.sollicitatieVerplicht };
   if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
+  // LinkedIn-profiel in plaats van (of naast) een cv, migratie 0019.
+  const linkedinInvoer = veld(formData, "linkedin");
+  const linkedin = linkedinInvoer ? linkedinUrl(linkedinInvoer) : null;
+  if (linkedinInvoer && !linkedin) return { ok: false, error: fout.linkedinOngeldig };
 
   let cvPath: string | null = null;
   const cv = formData.get("cv") as File | null;
@@ -129,7 +145,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     phone: phone || null,
     motivation: motivation || null,
     cv_path: cvPath,
-  }, { retain_longer: retainLonger, lang: taal, ...(bron ? { bron } : {}) });
+  }, { retain_longer: retainLonger, lang: taal, ...(bron ? { bron } : {}), ...(linkedin ? { linkedin } : {}) });
   if (error) return { ok: false, error: fout.sollicitatieAlgemeen };
   await Promise.all([
     recordConversion("sollicitatie", await paginaPad()),
@@ -139,6 +155,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
       vacancyTitle: vacancyTitle || null,
       motivation: motivation || null,
       hasCv: Boolean(cvPath),
+      linkedin,
       bron: bron || null,
       taal,
     }),
