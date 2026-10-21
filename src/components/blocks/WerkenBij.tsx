@@ -9,7 +9,9 @@ import { VAKGEBIEDEN, vakgebiedVan, type Vakgebied } from "@/lib/vakgebieden";
 import { outfit } from "./HomeVerhaal";
 import Solliciteren from "./Solliciteren";
 import DeelVacature from "./DeelVacature";
-import VacatureOverzicht, { type VacatureGroep, type VacatureKaart } from "./VacatureOverzicht";
+import SolliciteerBalk from "./SolliciteerBalk";
+import { LuBriefcase, LuChevronLeft, LuChevronRight, LuClock, LuEuro, LuGraduationCap, LuMapPin } from "react-icons/lu";
+import VacatureZoeker, { Kaart, type VacatureKaart, type ZoekLabels } from "./VacatureOverzicht";
 import {
   NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED,
   Eyebrow, Kruimels, KopBlok, Knop, Pijl, Vink, KlantenStrook,
@@ -144,35 +146,65 @@ function Micro({ items, licht }: { items: string[]; licht?: boolean }) {
   );
 }
 
-function kenmerken(v: Vacancy, taal: Taal) {
-  return [v.location, kenmerkInTaal(v.hours, taal)].filter(Boolean).join(" · ");
+/** Vaste volgorde van de vacatures: per vakgebied zoals in VAKGEBIEDEN, daarbinnen op titel. */
+function sorteer(vacatures: Vacancy[], taal: Taal): Vacancy[] {
+  const plek = (v: Vacancy) => {
+    const i = VAKGEBIEDEN.findIndex((g) => g.slug === vakgebiedVan(v.vakgebied)?.slug);
+    return i < 0 ? VAKGEBIEDEN.length : i;
+  };
+  return [...vacatures].sort((a, b) => plek(a) - plek(b) ||
+    vacatureInTaal(a, taal).title.localeCompare(vacatureInTaal(b, taal).title, taal));
 }
 
-/** De vacatures als kaartjes per vakgebied, in de volgorde van VAKGEBIEDEN (zie VacatureOverzicht). */
-function groepeer(vacatures: Vacancy[], taal: Taal): VacatureGroep[] {
+/** "32-40 uur" wordt [32, 40]; "24 uur" wordt [24, 24]; anders niets. */
+function urenVan(hours: string | null): [number, number] | undefined {
+  const m = (hours || "").match(/(\d+)(?:\s*[-–]\s*(\d+))?/);
+  return m ? [Number(m[1]), Number(m[2] ?? m[1])] : undefined;
+}
+
+/** Een vacature als kaartje voor het overzicht en "Vergelijkbare vacatures". */
+function kaartVan(v: Vacancy, taal: Taal): VacatureKaart {
   const w = woordenboek(taal).vacatures;
-  const p = paden(taal);
-  const groepen: VacatureGroep[] = [
-    ...VAKGEBIEDEN.map((g) => ({ slug: g.slug, naam: g[taal].kort, kaarten: [] as VacatureKaart[] })),
-    { slug: "overig", naam: w.overigeVacatures, kaarten: [] },
-  ];
-  for (const v of vacatures) {
-    const tekst = vacatureInTaal(v, taal);
-    const s = salarisKort(v.salary, taal);
-    const kaart: VacatureKaart = {
-      id: v.id,
-      href: p.vacature(v.slug),
-      titel: tekst.title,
-      lang: tekst.taal !== taal ? tekst.taal : undefined,
-      meta: [v.location || w.detail.standaardLocatie, kenmerkInTaal(v.hours, taal), w.dienstverband[v.employment_type]].filter(Boolean).join(" · "),
-      ...(s ? s : { salarisTekst: kenmerkInTaal(v.salary, taal) || undefined }),
-      concept: v.status === "draft",
-      anders: tekst.taal !== taal,
-    };
-    const slug = vakgebiedVan(v.vakgebied)?.slug ?? "overig";
-    groepen.find((g) => g.slug === slug)?.kaarten.push(kaart);
-  }
-  return groepen.filter((g) => g.kaarten.length);
+  const tekst = vacatureInTaal(v, taal);
+  const g = vakgebiedVan(v.vakgebied);
+  const s = salarisKort(v.salary, taal);
+  const uren = urenVan(v.hours);
+  const soort = v.employment_type === "CONTRACTOR" ? "zzp" : v.employment_type === "INTERN" ? "stage" : "vast";
+  const opleiding = (v.opleidingsniveau || "").toLowerCase();
+  const vorm = w.dienstverband[v.employment_type];
+  return {
+    id: v.id,
+    href: paden(taal).vacature(v.slug),
+    titel: tekst.title,
+    lang: tekst.taal !== taal ? tekst.taal : undefined,
+    groep: g?.slug ?? "overig",
+    groepNaam: g ? g[taal].kort : v.vakgebied || "",
+    locatie: v.location || w.detail.standaardLocatie,
+    uren: kenmerkInTaal(v.hours, taal) || undefined,
+    urenMin: uren?.[0],
+    urenMax: uren?.[1],
+    opleiding: kenmerkInTaal(v.opleidingsniveau ?? null, taal) || undefined,
+    niveaus: (["mbo", "hbo", "wo"] as const).filter((n) => new RegExp(`\\b${n}\\b`).test(opleiding)),
+    soort,
+    soortNaam: soort === "vast" && vorm ? `${w.zoeker.soorten.vast}, ${vorm.toLowerCase()}` : w.zoeker.soorten[soort],
+    ...(s ? s : { salarisTekst: kenmerkInTaal(v.salary, taal) || undefined }),
+    concept: v.status === "draft",
+    anders: tekst.taal !== taal,
+    zoek: [tekst.title, v.title, g?.[taal].kort, v.vakgebied, tekst.intro, v.opleidingsniveau].filter(Boolean).join(" ").toLowerCase(),
+  };
+}
+
+/** De vaste teksten voor VacatureZoeker en Kaart. */
+function zoekLabels(taal: Taal): ZoekLabels {
+  const w = woordenboek(taal).vacatures;
+  return {
+    ...w.zoeker,
+    geenVacaturesKop: w.geenVacaturesKop,
+    geenVacaturesTekst: w.geenVacaturesTekst,
+    concept: w.conceptLabel,
+    inHetNederlands: w.inHetNederlandsKort,
+    bekijk: w.detail.bekijkVacature,
+  };
 }
 
 /** De adressen van Werken bij, de vacatures en de open sollicitatie in een taal. */
@@ -196,69 +228,37 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
   const w = t.vacatures;
   const p = paden(taal);
   const keuzes = vacatures.map((v) => ({ id: v.id, title: vacatureInTaal(v, taal).title }));
-  const groepen = groepeer(vacatures, taal);
-  // Bij veel vacatures toont de kop de vakgebieden met hun aantal; een lijst
-  // van alle titels past daar niet.
-  const perVakgebied = vacatures.length > 5 && groepen.length > 1;
+  const kaarten = sorteer(vacatures, taal).map((v) => kaartVan(v, taal));
+  const groepen = VAKGEBIEDEN.filter((g) => kaarten.some((k) => k.groep === g.slug)).map((g) => ({ slug: g.slug, naam: g[taal].kort }));
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
-      {/* 1. Kop met de open vacatures */}
-      <section aria-label={w.eyebrow} className={`${BREED} grid gap-10 pt-10 md:pt-14 lg:grid-cols-12 lg:items-center lg:gap-6`}>
-        <div className="flex flex-col gap-6 lg:col-span-5">
-          <Kruimels items={[{ label: t.algemeen.home, href: p.home }, { label: w.kruimelWerkenBij }]} taal={taal} />
-          <Eyebrow>{w.eyebrow}</Eyebrow>
-          <h1 className={`${kop} m-0 text-[44px] leading-[1.02] tracking-[-1.4px] md:text-[60px] md:tracking-[-1.8px]`}>{w.kop}</h1>
-          <p className="m-0 text-[17px] leading-[1.65] md:text-[18px]" style={{ color: BODY }}>{w.intro}</p>
-          <div className="flex flex-wrap gap-2.5">
-            <Knop href="#vacatures">{w.bekijkVacatures}</Knop>
-            <Knop href="#solliciteren" rand>{w.openSollicitatie}</Knop>
-          </div>
-          <Micro items={w.micro} />
-        </div>
-        <div className="relative h-[420px] overflow-hidden rounded-[28px] md:h-[560px] lg:col-span-6 lg:col-start-7">
-          <Beeld src="/beeld/home/samen-leren.webp" alt={w.fotoTeamAlt} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 35%" }} />
-          {vacatures.length > 0 && (
-            <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1 rounded-[20px] bg-white p-5 shadow-[0_30px_60px_-30px_rgba(50,46,131,0.45)] md:bottom-6 md:left-auto md:right-6 md:w-[340px]">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-[15px] font-bold">{w.openVacatures}</span>
-                <span className="rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={{ background: "#FDECF4", color: PINK }}>{vul(w.nOpen, { n: vacatures.length })}</span>
-              </div>
-              {perVakgebied ? (
-                <>
-                  {groepen.map((g, i) => (
-                    <a key={g.slug} href={`#vak-${g.slug}`} className="hv-btn group flex items-center justify-between gap-3 border-t py-3" style={{ borderColor: LINE }}>
-                      <span className="flex items-center gap-2.5">
-                        <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: i % 2 ? TEAL : PINK }} />
-                        <span className="text-[15px] font-bold">{g.naam}</span>
-                      </span>
-                      <span className="flex items-center gap-3" style={{ color: MUTE }}>
-                        <span className="text-[14px] font-bold tabular-nums">{g.kaarten.length}</span><Pijl />
-                      </span>
-                    </a>
-                  ))}
-                  <a href="#vacatures" className="hv-btn mt-1 flex items-center justify-between gap-3 rounded-full px-4 py-3 text-[14.5px] font-bold text-white" style={{ background: NAVY }}>
-                    {vul(w.bekijkAlle, { n: vacatures.length })}<Pijl />
-                  </a>
-                </>
-              ) : vacatures.map((v, i) => {
-                const tekst = vacatureInTaal(v, taal);
-                return (
-                  <Link key={v.id} href={p.vacature(v.slug)} className="hv-btn group flex items-center justify-between gap-3 border-t py-3" style={{ borderColor: LINE }}>
-                    <span className="flex items-start gap-2.5">
-                      <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full" style={{ background: i % 2 ? TEAL : PINK }} />
-                      <span className="flex flex-col">
-                        <span className="text-[15px] font-bold" lang={tekst.taal !== taal ? tekst.taal : undefined}>{tekst.title}</span>
-                        {kenmerken(v, taal) && <span className="text-[13px]" style={{ color: MUTE }}>{kenmerken(v, taal)}</span>}
-                      </span>
-                    </span>
-                    <span style={{ color: MUTE }}><Pijl /></span>
-                  </Link>
-                );
-              })}
+      {/* 1. Zoeken, filteren en de vacatures, zoals bij de grote uitzendbureaus */}
+      <VacatureZoeker kaarten={kaarten} groepen={groepen} labels={zoekLabels(taal)}
+        kop={(
+          <>
+            <Kruimels items={[{ label: t.algemeen.home, href: p.home }, { label: w.kruimelWerkenBij }]} taal={taal} />
+            <Eyebrow>{w.eyebrow}</Eyebrow>
+            <h1 className={`${kop} m-0 text-[40px] leading-[1.04] tracking-[-1.3px] md:text-[56px] md:tracking-[-1.7px]`}>{w.kop}</h1>
+            <p className="m-0 max-w-[560px] text-[17px] leading-[1.65] md:text-[18px]" style={{ color: BODY }}>{w.intro}</p>
+          </>
+        )}
+        onderZoek={<Micro items={w.micro} />}
+        beeld={<Beeld src="/beeld/home/samen-leren.webp" alt={w.fotoTeamAlt} fill priority sizes="(min-width: 1024px) 40vw, 100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 35%" }} />}
+        onderaan={(
+          <>
+            <a href="#solliciteren" className="flex flex-col gap-3 rounded-[22px] border-2 border-dashed bg-white/60 p-7 md:flex-row md:items-center md:justify-between" style={{ borderColor: "#D9D8E6" }}>
+              <span className="flex flex-col gap-1.5">
+                <span className={`${kop} text-[22px]`}>{w.openKaartKop}</span>
+                <span className="text-[16px]" style={{ color: BODY }}>{w.openKaartTekst}</span>
+              </span>
+              <span className="inline-flex items-center gap-2 text-[15px] font-bold">{w.openKaartLink} <Pijl /></span>
+            </a>
+            <div className="flex flex-col gap-4 pt-4">
+              <span className="text-[15px] font-bold">{w.opbouw.vakgebiedenKop}</span>
+              <VakgebiedLinks taal={taal} />
             </div>
-          )}
-        </div>
-      </section>
+          </>
+        )} />
 
       <div className="pt-10" />
       <KlantenStrook label={w.klantenLabel} taal={taal} />
@@ -295,29 +295,6 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Vacatures */}
-      <section id="vacatures" aria-label={w.vacaturesEyebrow} className="scroll-mt-28" style={{ background: SOFT }}>
-        <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
-          <KopBlok eyebrow={w.vacaturesEyebrow} kopTekst={vacatures.length ? w.vacaturesKop : w.geenVacaturesKop}
-            tekst={vacatures.length ? w.vacaturesTekst : w.geenVacaturesTekst} />
-          <VacatureOverzicht groepen={groepen}
-            labels={{ alle: w.alleVacatures, filter: w.filterVakgebied, concept: w.conceptLabel, inHetNederlands: w.inHetNederlandsKort }} />
-          <div className="flex flex-col gap-4">
-            <a href="#solliciteren" className="flex flex-col gap-3 rounded-[24px] border-2 border-dashed bg-white/50 p-7 md:flex-row md:items-center md:justify-between md:p-9" style={{ borderColor: "#D9D8E6" }}>
-              <span className="flex flex-col gap-1.5">
-                <span className={`${kop} text-[22px]`}>{w.openKaartKop}</span>
-                <span className="text-[16px]" style={{ color: BODY }}>{w.openKaartTekst}</span>
-              </span>
-              <span className="inline-flex items-center gap-2 text-[15px] font-bold">{w.openKaartLink} <Pijl /></span>
-            </a>
-          </div>
-          <div className="flex flex-col gap-4">
-            <span className="text-[15px] font-bold">{w.opbouw.vakgebiedenKop}</span>
-            <VakgebiedLinks taal={taal} />
           </div>
         </div>
       </section>
@@ -375,12 +352,6 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
   // krijgt de tekst zelf een lang-attribuut voor schermlezers en vertaalknoppen.
   const anders = tekst.taal !== taal;
   const langAttr = anders ? tekst.taal : undefined;
-  const kerncijfers = [
-    v.salary ? [kenmerkInTaal(v.salary, taal), d.brutoPerMaand] : null,
-    v.hours ? [kenmerkInTaal(v.hours, taal), d.perWeek] : null,
-    [v.location || d.standaardLocatie, d.locatieSub],
-    [d.werkdagen, d.danHoorJe],
-  ].filter(Boolean) as string[][];
   // Nieuwe opbouw (migratie 0017); zonder secties blijft de oude weergave staan.
   const o = opbouwInTaal(v, taal);
   const ob = w.opbouw;
@@ -407,48 +378,68 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
   ] as [string, React.ReactNode][]).filter(([, x]) => x);
   const stappen = opdracht ? ob.stappenOpdracht : ob.stappen;
   const vg = vakgebiedVan(v.vakgebied);
+  // Dezelfde volgorde als het overzicht, voor "vorige / volgende" en vergelijkbare vacatures.
+  const alle = sorteer([v, ...andere.filter((x) => x.id !== v.id)], taal);
+  const plek = alle.findIndex((x) => x.id === v.id);
+  const vorige = plek > 0 ? alle[plek - 1] : null;
+  const volgende = plek >= 0 && plek < alle.length - 1 ? alle[plek + 1] : null;
+  const zelfdeVak = alle.filter((x) => x.id !== v.id && vg && vakgebiedVan(x.vakgebied)?.slug === vg.slug);
+  const vergelijkbaar = [...zelfdeVak, ...alle.filter((x) => x.id !== v.id && !zelfdeVak.includes(x))].slice(0, 3).map((x) => kaartVan(x, taal));
+  const k = kaartVan(v, taal);
+  const feiten: [React.ReactNode, React.ReactNode][] = [
+    [<LuMapPin key="i" aria-hidden />, k.locatie],
+    ...(k.bedrag ? [[<LuEuro key="i" aria-hidden />, <span key="t"><b className="tabular-nums">{k.bedrag}</b> <span className="font-normal" style={{ color: BODY }}>{k.eenheid}</span></span>] as [React.ReactNode, React.ReactNode]] : []),
+    ...(k.uren ? [[<LuClock key="i" aria-hidden />, k.uren] as [React.ReactNode, React.ReactNode]] : []),
+    ...(k.opleiding ? [[<LuGraduationCap key="i" aria-hidden />, k.opleiding] as [React.ReactNode, React.ReactNode]] : []),
+    [<LuBriefcase key="i" aria-hidden />, k.soortNaam],
+  ];
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
-      {/* 1. Kop met het belangrijkste */}
-      <section aria-label={w.kruimelVacatures} className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
-        <div className="relative grid gap-10 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-center lg:gap-[72px] lg:p-[72px]" style={{ background: LAV }}>
+      {/* 1. Kop: titel, kerngegevens en solliciteren, zoals bij de grote uitzendbureaus */}
+      <section id="vacature-kop" aria-label={w.kruimelVacatures} className="px-[6px] pt-4 md:px-10 md:pt-8 lg:px-16 xl:px-[120px] xl:mx-auto xl:max-w-[1440px]">
+        <div className="relative overflow-hidden rounded-[28px] px-6 py-8 md:rounded-[36px] md:px-14 md:py-12 lg:px-[72px] lg:py-[60px]" style={{ background: LAV }}>
           <span aria-hidden className="absolute right-[-140px] top-[-170px] h-[560px] w-[560px] rounded-full" style={{ background: NAVY, opacity: 0.07 }} />
           <div className="relative flex flex-col gap-6">
-            <Kruimels items={[{ label: w.kruimelWerkenBij, href: p.basis }, { label: w.kruimelVacatures, href: p.vacatures }, { label: tekst.title }]} taal={taal} />
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+              <Kruimels items={[{ label: w.kruimelWerkenBij, href: p.basis }, { label: w.kruimelVacatures, href: p.vacatures }, { label: tekst.title }]} taal={taal} />
+              {plek >= 0 && alle.length > 1 && (
+                <nav aria-label={vul(d.nVan, { i: plek + 1, n: alle.length })} className="flex items-center gap-2 text-[14px] font-semibold" style={{ color: MUTE }}>
+                  {vorige && (
+                    <Link href={p.vacature(vorige.slug)} rel="prev" className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5" style={{ color: NAVY }}>
+                      <LuChevronLeft aria-hidden />{d.vorige}
+                    </Link>
+                  )}
+                  <span className="px-1 tabular-nums">{vul(d.nVan, { i: plek + 1, n: alle.length })}</span>
+                  {volgende && (
+                    <Link href={p.vacature(volgende.slug)} rel="next" className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5" style={{ color: NAVY }}>
+                      {d.volgende}<LuChevronRight aria-hidden />
+                    </Link>
+                  )}
+                </nav>
+              )}
+            </div>
             {anders && (
               <p className="m-0 inline-flex items-center gap-2.5 self-start rounded-full bg-white px-4 py-2 text-[14px] font-bold" style={{ color: NAVY }}>
                 <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: PINK }} />{w.inHetNederlands}
               </p>
             )}
-            <h1 className={`${kop} m-0 text-[44px] leading-[1] tracking-[-1.4px] md:text-[64px] md:tracking-[-2px]`} lang={langAttr}>{tekst.title}</h1>
-            {tekst.intro && <p className="m-0 max-w-[520px] text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }} lang={langAttr}>{tekst.intro}</p>}
+            <div className="flex flex-col gap-3">
+              {vg && <span className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: PINK }}>{vg[taal].kort}</span>}
+              <h1 className={`${kop} m-0 max-w-[900px] text-[40px] leading-[1.02] tracking-[-1.3px] md:text-[60px] md:tracking-[-1.9px]`} lang={langAttr}>{tekst.title}</h1>
+            </div>
+            {tekst.intro && <p className="m-0 max-w-[720px] text-[17px] leading-[1.65] md:text-[19px]" style={{ color: BODY }} lang={langAttr}>{tekst.intro}</p>}
+            <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+              {feiten.map(([icoon, inhoud], i) => (
+                <li key={i} className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[15px] font-semibold" style={{ color: NAVY }}>
+                  <span className="text-[16px]" style={{ color: MUTE }}>{icoon}</span>{inhoud}
+                </li>
+              ))}
+            </ul>
             <div className="flex flex-wrap items-center gap-5 pt-1">
               <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>
               <span className="text-[15px]" style={{ color: MUTE }}>{d.duurtMinuut}</span>
             </div>
           </div>
-          {o ? (
-            <div className="relative flex flex-col rounded-[24px] bg-white px-7 pb-3 pt-3 md:px-8">
-              <span className="pb-2 pt-5 text-[15px] font-bold">{ob.inHetKort}</span>
-              <dl className="m-0 flex flex-col">
-                {inHetKort.map(([l, x]) => (
-                  <div key={l} className="flex items-baseline justify-between gap-5 border-t py-3.5 text-[15.5px]" style={{ borderColor: LINE }}>
-                    <dt style={{ color: MUTE }}>{l}</dt><dd className="m-0 text-right font-bold">{x}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          ) : (
-          <div className="relative flex flex-col rounded-[24px] bg-white px-7 pb-4 pt-3 md:px-8">
-            <span className="pb-1.5 pt-5 text-[15px] font-bold">{d.belangrijkste}</span>
-            {kerncijfers.map(([groot, klein]) => (
-              <div key={groot} className="flex flex-col gap-1 border-t py-5" style={{ borderColor: LINE }}>
-                <span className={`${kop} text-[26px] tracking-[-0.6px] md:text-[30px]`}>{groot}</span>
-                <span className="text-[14.5px]" style={{ color: MUTE }}>{klein}</span>
-              </div>
-            ))}
-          </div>
-          )}
         </div>
       </section>
 
@@ -501,7 +492,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
                 <div className="flex flex-col gap-5 rounded-[24px] p-7" style={{ background: SOFT }}>
                   <span className={`${kop} text-[22px]`} lang={langAttr}>{tekst.title}</span>
                   <dl className="m-0 flex flex-col">
-                    {inHetKort.slice(0, 5).map(([l, x]) => (
+                    {inHetKort.map(([l, x]) => (
                       <div key={l} className="flex justify-between gap-4 border-t py-3 text-[15px]" style={{ borderColor: LINE }}>
                         <dt style={{ color: MUTE }}>{l}</dt><dd className="m-0 text-right font-bold">{x}</dd>
                       </div>
@@ -513,6 +504,20 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
               </aside>
             </div>
           </section>
+
+          {vergelijkbaar.length > 0 && (
+            <section aria-label={d.vergelijkbaarKop} className="bg-white">
+              <div className={`${BREED} flex flex-col gap-8 pb-14 md:pb-[96px]`}>
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                  <h2 className={`${kop} m-0 text-[30px] tracking-[-0.7px] md:text-[36px]`}>{d.vergelijkbaarKop}</h2>
+                  <Link href={`${p.basis}#vacatures`} className="inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: NAVY }}>{d.bekijkAlleVacatures} <Pijl /></Link>
+                </div>
+                <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+                  {vergelijkbaar.map((x) => <li key={x.id} className="flex"><Kaart k={x} labels={zoekLabels(taal)} /></li>)}
+                </ul>
+              </div>
+            </section>
+          )}
 
           {/* 3. Werken bij React2u */}
           <section aria-label={ob.werkenBijKop} style={{ background: SOFT }}>
@@ -643,6 +648,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
           </div>
         </div>
       </section>
+      <SolliciteerBalk titel={tekst.title} salaris={k.bedrag ? `${k.bedrag} ${k.eenheid}` : undefined} knop={d.solliciteerKort} />
     </div>
   );
 }
