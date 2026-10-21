@@ -334,6 +334,24 @@ export async function notifyTerugbel(t: {
   );
 }
 
+/** Aanmelding voor het partnerprogramma (/partners): naar sales, net als offertes. */
+export async function notifyPartner(p: {
+  name: string; company: string; email: string; phone: string; soort: string; omvang: string | null; path: string;
+}) {
+  await send(
+    `Partneraanmelding: ${p.company}`,
+    render("Nieuwe partneraanmelding", `Via ${p.path}. Wil teruggebeld worden over het partnerprogramma.`, [
+      { label: "Naam", value: p.name },
+      { label: "Kantoor", value: p.company },
+      { label: "Soort kantoor", value: p.soort },
+      { label: "Werkgevers in het klantenbestand", value: p.omvang },
+      { label: "E-mail", value: p.email },
+      { label: "Telefoon", value: p.phone },
+    ]),
+    process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
+  );
+}
+
 /**
  * Bevestiging aan de sollicitant zelf, in de taal waarin hij solliciteerde.
  * Snel en persoonlijk reageren is waar kandidaten op afhaken; deze mail

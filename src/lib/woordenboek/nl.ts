@@ -228,6 +228,7 @@ export const nl = {
       cvUpload: "CV uploaden is niet gelukt. Probeer het opnieuw.",
       sollicitatieAlgemeen: "Er ging iets mis bij het versturen. Probeer het later opnieuw.",
       offerteVerplicht: "Vul naam, bedrijfsnaam, e-mailadres, telefoonnummer en het aantal medewerkers in.",
+      partnerVerplicht: "Vul naam, kantoor, e-mailadres en telefoonnummer in, en ga akkoord met de privacyverklaring.",
     },
   },
 

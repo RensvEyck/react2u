@@ -12,6 +12,7 @@ import verzuimprotocolPagina from "@/content/verzuimprotocol.json";
 import jeRechtenPagina from "@/content/je-rechten-en-privacy.json";
 import jeCasemanagerPagina from "@/content/je-casemanager.json";
 import dienstenPagina from "@/content/diensten.json";
+import partnersPagina from "@/content/partners.json";
 
 /**
  * De data van het eerste blok van dit type op een conceptpagina, als sjabloon
@@ -269,6 +270,12 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   klantenStrook: { label: "Klantenlogo's (strook)", data: uit(kennismakenPagina, "klantenStrook") },
   klantenAanHetWoord: { label: "Klanten aan het woord", data: uit(kennismakenPagina, "klantenAanHetWoord") },
   kennismaken: { label: "Kennismaken: stappen en offerteformulier", data: uit(kennismakenPagina, "kennismaken") },
+  ptKop: { label: "Partners: kop met rekenvoorbeeld", data: uit(partnersPagina, "ptKop") },
+  ptDoelgroepen: { label: "Partners: voor wie (vier kolommen)", data: uit(partnersPagina, "ptDoelgroepen") },
+  ptStappen: { label: "Partners: zo werkt het (drie stappen)", data: uit(partnersPagina, "ptStappen") },
+  ptModellen: { label: "Partners: aanbreng- en resellerpartner", data: uit(partnersPagina, "ptModellen") },
+  ptKlant: { label: "Partners: wat je klant krijgt (labels)", data: uit(partnersPagina, "ptKlant") },
+  ptAanmelden: { label: "Partners: aanmelden met terugbelformulier", data: uit(partnersPagina, "ptAanmelden") },
   overReact2u: { label: "Over React2u: verhaal, missie, visie en waarden", data: uit(overReact2uPagina, "overReact2u") },
   inloggen: { label: "Inloggen: portalen voor werkgever en werknemer", data: uit(inloggenPagina, "inloggen") },
   juridischeDocumenten: { label: "Juridische documenten (lijst met pdf's)", data: uit(juridischPagina, "juridischeDocumenten") },

@@ -24,6 +24,7 @@ import { SitemapOverzicht } from "./Werkgebied";
 import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen, DgSituaties } from "./Doelgroep";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
+import { PtKop, PtDoelgroepen, PtStappen, PtModellen, PtKlant, PtAanmelden } from "./Partners";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
 import {
   WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
@@ -1154,6 +1155,12 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   inloggen: Inloggen,
   juridischeDocumenten: JuridischeDocumenten,
   kennismaken: Kennismaken,
+  ptKop: PtKop,
+  ptDoelgroepen: PtDoelgroepen,
+  ptStappen: PtStappen,
+  ptModellen: PtModellen,
+  ptKlant: PtKlant,
+  ptAanmelden: PtAanmelden,
   klantenStrook: ({ d, ctx }: BlockProps) => <KlantenStrook label={d?.label} taal={ctx?.lang} />,
   klantenAanHetWoord: ({ d, ctx }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} taal={ctx?.lang} />,
   keurmerken: ({ ctx }: BlockProps) => <Keurmerken taal={ctx?.lang} />,
@@ -1195,7 +1202,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen", "ptKop",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
@@ -1239,7 +1246,7 @@ export function needsPosts(blocks: Block[]): boolean {
 
 /** Of een pagina een tariefblok heeft, en dus het tarievenjaar uit de instellingen nodig heeft. */
 export function needsTarieven(blocks: Block[]): boolean {
-  return blocks.some((b) => b.type === "tarieven" || b.type === "dgTarieven" || b.type === "wgTarieven");
+  return blocks.some((b) => b.type === "tarieven" || b.type === "dgTarieven" || b.type === "wgTarieven" || b.type === "ptKop");
 }
 
 export default function BlockRenderer({ blocks, ctx = {} }: { blocks: Block[]; ctx?: BlockCtx }) {

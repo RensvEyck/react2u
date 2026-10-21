@@ -20,6 +20,7 @@ import inloggen from "@/content/inloggen.json";
 import juridisch from "@/content/juridische-documenten.json";
 import sitemap from "@/content/sitemap.json";
 import certificeringen from "@/content/certificeringen.json";
+import partners from "@/content/partners.json";
 import enHome from "@/content/en/home.json";
 import enEmployees from "@/content/en/employees.json";
 import enSickWhatNow from "@/content/en/sick-what-now.json";
@@ -51,7 +52,7 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, diensten, tarieven, contact, resist, recover, restart, reflex, ready, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen];
+const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, diensten, tarieven, contact, resist, recover, restart, reflex, ready, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen, partners];
 
 /**
  * De Engelse pagina's (src/content/en/), met dezelfde blokstructuur als het

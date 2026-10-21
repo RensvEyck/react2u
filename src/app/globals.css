@@ -768,6 +768,12 @@ p {
 .hv-btn-rand { background: #ffffff; color: #322E83; border: 1.5px solid #D9D8E6; }
 .hv-btn-rand:hover { background: #322E83; border-color: #322E83; color: #ffffff; }
 .hv-btn:hover .hn-pijl { transform: translateX(5px); }
+/* De schuifjes van het rekenvoorbeeld op /partners: lavendel spoor, indigo knop. */
+.partner-schuif { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; margin: 11px 0; border-radius: 999px; background: #C9C1EA; outline: none; cursor: pointer; }
+.partner-schuif::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #322E83; border: 4px solid #ffffff; box-shadow: 0 2px 8px rgba(50,46,131,.35); }
+.partner-schuif::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #322E83; border: 4px solid #ffffff; box-shadow: 0 2px 8px rgba(50,46,131,.35); }
+.partner-schuif:focus-visible::-webkit-slider-thumb { outline: 3px solid #E61674; outline-offset: 2px; }
+.partner-schuif:focus-visible::-moz-range-thumb { outline: 3px solid #E61674; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .hv-f1, .hv-f2, .hv-f3, .hv-reis .hv-jd, .hv-reis .hv-js, .hv-reis .hv-jc { animation: none !important; opacity: 1 !important; }
 }
