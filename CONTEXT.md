@@ -787,10 +787,13 @@ Elke partner heeft een code (4 tot 20 hoofdletters en cijfers) en een aanmeldlin
 de code met `usePartnercode()` ([`lib/partnercode.ts`](src/lib/partnercode.ts)) en
 onthouden hem in `sessionStorage` voor dit bezoek, geen cookie. `submitOfferte`
 stuurt hem mee als `partner_code` en zet hem ook in de tekst van het bericht. De
-koppeling aan een partner doet de database: een trigger zet `partner_id` alleen
-voor een actieve partner met die code. Bezoekers mogen alleen `partner_code`
-vullen en kunnen de partnerlijst niet lezen, dus niemand hangt via de publieke
-sleutel een aanvraag aan een partner naar keuze. Daarvoor is bewust geen
+koppeling aan een partner doet de database: een trigger maakt `partner_id` bij
+elke nieuwe rij eerst leeg en vult hem alleen voor een actieve partner met die
+code. Dat is de grens, niet de kolomrechten: de bezoekersrol heeft op
+`contact_messages` naast de kolomrechten ook een invoegrecht op de hele tabel
+(nagekeken op 21 oktober 2026) en kan `partner_id` dus technisch meesturen, maar
+de trigger overschrijft dat. Bezoekers kunnen de partnerlijst niet lezen, dus
+niemand hangt via de publieke sleutel een aanvraag aan een partner naar keuze. Daarvoor is bewust geen
 service-role-sleutel gebruikt (zie `lib/supabase/admin.ts`).
 
 In het beheer staat **Partners** (`/admin/partners`, recht `bellijst`):
