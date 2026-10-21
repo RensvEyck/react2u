@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { LuShieldCheck, LuSmartphone, LuCopy, LuCheck } from "react-icons/lu";
 
@@ -19,8 +19,14 @@ export default function TweeStapsInstellen({ onKlaar }: { onKlaar: () => void })
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
   const [gekopieerd, setGekopieerd] = useState(false);
+  const gestart = useRef(false);
 
   useEffect(() => {
+    // Eén inschrijving per scherm. React draait effecten in dev bewust twee
+    // keer; twee gelijktijdige inschrijvingen gaven bij Supabase een 500 op de
+    // tweede, en in het ergste geval een QR-code die niet bij de factor hoort.
+    if (gestart.current) return;
+    gestart.current = true;
     (async () => {
       const sb = supabaseBrowser();
       // Een eerdere, nooit afgemaakte poging blokkeert een nieuwe inschrijving.
@@ -28,9 +34,11 @@ export default function TweeStapsInstellen({ onKlaar }: { onKlaar: () => void })
       for (const f of bestaand?.all ?? []) {
         if (f.status === "unverified") await sb.auth.mfa.unenroll({ factorId: f.id });
       }
+      // De naam moet per account uniek zijn. Alleen de datum gaf een fout als je
+      // op dezelfde dag een nieuwe telefoon instelde; met tijd erbij niet.
       const { data, error } = await sb.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `React2u ${new Date().toLocaleDateString("nl-NL")}`,
+        friendlyName: `React2u ${new Date().toLocaleString("nl-NL", { dateStyle: "short", timeStyle: "medium" })}`,
       });
       if (error || !data) {
         setFout("Instellen kon niet worden gestart: " + (error?.message ?? "onbekende fout"));
@@ -46,12 +54,22 @@ export default function TweeStapsInstellen({ onKlaar }: { onKlaar: () => void })
     e.preventDefault();
     setFout(null);
     setBezig(true);
-    const { error } = await supabaseBrowser().auth.mfa.challengeAndVerify({ factorId, code: code.trim() });
-    setBezig(false);
+    const sb = supabaseBrowser();
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId, code: code.trim() });
     if (error) {
+      setBezig(false);
       setFout("Die code klopt niet. Let op: hij verandert elke 30 seconden.");
       return;
     }
+    // Nieuwe telefoon: de vorige authenticator eraf. Anders bleven er twee
+    // staan, en vroeg het inlogscherm de code van de eerste, mogelijk de
+    // telefoon die je net kwijt bent. De sessie staat nu op aal2 met de nieuwe,
+    // dus de oude verwijderen mag.
+    const { data: alle } = await sb.auth.mfa.listFactors();
+    for (const f of alle?.all ?? []) {
+      if (f.id !== factorId) await sb.auth.mfa.unenroll({ factorId: f.id });
+    }
+    setBezig(false);
     onKlaar();
   }
 

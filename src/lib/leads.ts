@@ -110,3 +110,61 @@ export function leadFromApplication(
     notes: a.motivation ? `Motivatie:\n${a.motivation}` : null,
   };
 }
+
+/* ---------- zoeken en bladeren ---------- */
+
+/** Kleine letters, zonder accenten: "José" vindt "jose" en andersom. */
+function plat(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+/**
+ * Zoekt in naam, bedrijf, e-mail, telefoon, bron en notities.
+ *
+ * Elk woord moet ergens voorkomen ("bakker eindhoven" vindt Bakker BV met
+ * Eindhoven in de notities). Een zoekterm met alleen cijfers zoekt ook op het
+ * telefoonnummer zonder spaties en streepjes, want niemand weet hoe een nummer
+ * ooit is ingetikt: "0402507" vindt "040-2507507".
+ */
+export function searchLeads<T extends Pick<Lead, "name" | "company" | "email" | "phone" | "source" | "notes">>(
+  leads: T[],
+  query: string
+): T[] {
+  const terms = plat(query).split(/\s+/).filter(Boolean);
+  if (!terms.length) return leads;
+  return leads.filter((l) => {
+    const text = plat([l.name, l.company, l.email, l.phone, l.source, l.notes].filter(Boolean).join(" \u0001 "));
+    const digits = (l.phone || "").replace(/\D/g, "");
+    return terms.every((t) => {
+      if (text.includes(t)) return true;
+      const tDigits = t.replace(/\D/g, "");
+      return tDigits.length >= 3 && tDigits.length === t.replace(/[\s()+-]/g, "").length && digits.includes(tDigits);
+    });
+  });
+}
+
+export type Pagina<T> = {
+  items: T[];
+  /** 1-gebaseerd, en altijd binnen het bereik. */
+  pagina: number;
+  paginas: number;
+  totaal: number;
+  /** Rangnummer van het eerste en laatste item op deze pagina (1-gebaseerd); 0 als er niets is. */
+  van: number;
+  tot: number;
+};
+
+/**
+ * Eén pagina uit een lijst. Een paginanummer buiten het bereik (oude link,
+ * na verwijderen minder leads) valt terug op de dichtstbijzijnde pagina in
+ * plaats van een lege lijst te tonen.
+ */
+export function pagineer<T>(items: T[], gevraagd: number | string | undefined, perPagina: number): Pagina<T> {
+  const totaal = items.length;
+  const paginas = Math.max(1, Math.ceil(totaal / perPagina));
+  const n = Math.floor(Number(gevraagd));
+  const pagina = Number.isFinite(n) ? Math.min(Math.max(1, n), paginas) : 1;
+  const start = (pagina - 1) * perPagina;
+  const deel = items.slice(start, start + perPagina);
+  return { items: deel, pagina, paginas, totaal, van: deel.length ? start + 1 : 0, tot: start + deel.length };
+}

@@ -8,7 +8,9 @@ import { createClient } from "@supabase/supabase-js";
  * Er zijn precies drie dingen die niet zonder kunnen, en meer horen er niet
  * bij te komen:
  *
- * - een auth-account aanmaken voor iemand anders (uitnodigen, `auth.admin`);
+ * - auth-beheer voor iemand anders (`auth.admin`): een account aanmaken bij het
+ *   uitnodigen, en bij Gebruikers de authenticators van een collega tonen en
+ *   wissen als die zijn telefoon kwijt is;
  * - een cv uit het publieke formulier in de bucket zetten (src/lib/cvs.ts),
  *   zodat de publieke sleutel daar geen schrijfrecht meer nodig heeft;
  * - de dagelijkse opschoning van verlopen sollicitaties (api/cron/opruimen),
@@ -19,8 +21,9 @@ import { createClient } from "@supabase/supabase-js";
  * 1. **Niet voor het adminpaneel.** Daar lees en schrijf je met de ingelogde
  *    client uit `server.ts`, zodat de policies blijven gelden. Zou je hier ook
  *    content mee schrijven, dan is elke rolcontrole in dit project zinloos.
- * 2. **Nooit zonder eigen controle aanroepen.** Uitnodigen controleert eerst
- *    `requirePerm("gebruikers")`; het cv-formulier honeypot, limiet, type en
+ * 2. **Nooit zonder eigen controle aanroepen.** Uitnodigen en tweestaps
+ *    herstellen controleren eerst `requirePerm("gebruikers")` (herstellen ook
+ *    dat je zelf met een code bent ingelogd); het cv-formulier honeypot, limiet, type en
  *    grootte; de cron-route het geheim in de Authorization-header.
  * 3. **Nooit in de browser.** De import van `server-only` bovenaan laat de
  *    build falen zodra dit bestand in een client component belandt — dat is een

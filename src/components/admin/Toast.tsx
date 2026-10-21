@@ -19,6 +19,10 @@ const FOUT_TEKST: Record<string, string> = {
   "laatste-beheerder":
     "Geweigerd: er moet minstens één gebruiker overblijven die rollen mag beheren.",
   jezelf: "Je kunt je eigen toegang niet intrekken.",
+  "mfa-jezelf": "Je eigen tweestapsverificatie stel je opnieuw in op Account.",
+  "mfa-eerst-zelf":
+    "Stel eerst zelf tweestapsverificatie in (Account) en log opnieuw in met een code. Pas dan kun je die van een collega herstellen.",
+  "mfa-herstellen": "Herstellen mislukt bij Supabase. Probeer het opnieuw; blijft het misgaan, kijk dan in de Vercel-logs.",
   systeemrol: "De vaste rol kan niet verwijderd worden.",
   "rol-in-gebruik": "Deze rol is nog aan iemand gekoppeld — verplaats die eerst.",
   "rol-bestaat-al": "Er bestaat al een rol met deze naam.",
@@ -53,6 +57,8 @@ const FOUT_TEKST: Record<string, string> = {
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
 const OK_TEKST: Record<string, string> = {
+  notitie: "Notitie opgeslagen.",
+  "mfa-hersteld": "Tweestapsverificatie gewist. Bij de volgende inlog stelt je collega een nieuwe telefoon in.",
   doorverwijzing: "Doorverwijzing staat — binnen een halve minuut overal actief.",
   verwijderd: "Verwijderd — terug te halen uit de prullenbak.",
   "definitief-weg": "Verwijderd.",
@@ -69,27 +75,52 @@ export default function Toast() {
   const params = useSearchParams();
   const ok = params.get("opgeslagen");
   const fout = params.get("fout");
-  // Zichtbaarheid wordt afgeleid, niet gezet. Zou een effect hier setState
-  // doen, dan volgt er een tweede render op elke navigatie — en flikkert de
-  // melding bij het terugkomen op dezelfde pagina. Nu onthouden we alleen
-  // wélke melding is weggetikt; alles daarbuiten volgt daaruit.
-  const [dismissed, setDismissed] = useState<string | null>(null);
   const key = ok || fout ? `${ok ?? ""}|${fout ?? ""}` : null;
-  const visible = key !== null && dismissed !== key;
+
+  // De melding wordt overgenomen zodra hij in de URL verschijnt, en daarna
+  // haalt het effect hieronder hem uit de URL. Zo werkt een tweede keer opslaan
+  // op hetzelfde scherm ook: eerder bleef ?opgeslagen=1 staan, gaf de volgende
+  // opslag precies dezelfde URL, en verscheen er geen bevestiging meer. En een
+  // herlaadde pagina meldt niet opnieuw "opgeslagen".
+  // Afgeleid tijdens het renderen in plaats van in een effect: dat scheelt een
+  // render en het flikkeren bij terugkomen op dezelfde pagina.
+  const [seen, setSeen] = useState<string | null>(null);
+  const [shown, setShown] = useState<{ isOk: boolean; text: string; n: number } | null>(null);
+  if (key !== seen) {
+    setSeen(key);
+    if (key) {
+      const isOk = !!ok && !fout;
+      setShown({
+        isOk,
+        text: isOk ? OK_TEKST[ok || ""] || "Opgeslagen — de site is bijgewerkt." : FOUT_TEKST[fout || ""] || "Er ging iets mis.",
+        n: (shown?.n ?? 0) + 1,
+      });
+    }
+  }
 
   useEffect(() => {
     if (!key) return;
-    const t = setTimeout(() => setDismissed(key), 3800);
-    return () => clearTimeout(t);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("opgeslagen");
+    url.searchParams.delete("fout");
+    // `null` als state, niet history.state: Next herkent zijn eigen state en
+    // werkt dan useSearchParams niet bij, waardoor de volgende opslag weer naar
+    // dezelfde URL ging en de melding uitbleef.
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }, [key]);
 
-  if (!visible) return null;
-  const isOk = !!ok && !fout;
+  useEffect(() => {
+    if (!shown) return;
+    const t = setTimeout(() => setShown(null), 3800);
+    return () => clearTimeout(t);
+  }, [shown]);
+
+  if (!shown) return null;
   return (
-    <div className="pointer-events-none fixed bottom-6 right-6 z-[100] animate-[fadeIn_0.2s_ease-out]">
-      <div className={`flex items-center gap-3 rounded-2xl px-5 py-3.5 text-[14.5px] font-semibold text-white shadow-xl ${isOk ? "bg-[#0e9f8a]" : "bg-[#e0356b]"}`}>
-        {isOk ? <LuCircleCheck className="text-lg" /> : <LuCircleAlert className="text-lg" />}
-        {isOk ? OK_TEKST[ok || ""] || "Opgeslagen — de site is bijgewerkt." : FOUT_TEKST[fout || ""] || "Er ging iets mis."}
+    <div key={shown.n} role="status" className="pointer-events-none fixed bottom-6 right-6 z-[100] animate-[fadeIn_0.2s_ease-out]">
+      <div className={`flex items-center gap-3 rounded-2xl px-5 py-3.5 text-[14.5px] font-semibold text-white shadow-xl ${shown.isOk ? "bg-[#0e9f8a]" : "bg-[#e0356b]"}`}>
+        {shown.isOk ? <LuCircleCheck className="text-lg" /> : <LuCircleAlert className="text-lg" />}
+        {shown.text}
       </div>
     </div>
   );

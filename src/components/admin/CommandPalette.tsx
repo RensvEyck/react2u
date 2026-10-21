@@ -6,7 +6,7 @@ import {
   LuSearch, LuFileText, LuTextCursorInput, LuNewspaper, LuBriefcase, LuMessageSquare, LuUsers,
   LuPhone, LuUserCog, LuCornerDownLeft, LuLoaderCircle, LuBuilding,
 } from "react-icons/lu";
-import { ADMIN_ACTIONS, ADMIN_NAV, type NavItem } from "@/lib/adminNav";
+import { ADMIN_ACTIONS, ADMIN_NAV, SIGN_OUT_HREF, type NavItem } from "@/lib/adminNav";
 import Highlight from "./Highlight";
 import { confirmLeave } from "@/lib/unsaved";
 import { permissionForPath, type Permission } from "@/lib/permissions";
@@ -77,11 +77,13 @@ function isTyping(el: EventTarget | null) {
 }
 
 export default function CommandPalette({
-  open, onOpenChange, permissions,
+  open, onOpenChange, permissions, onSignOut,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   permissions: Permission[];
+  /** Voor de actie Uitloggen; die is geen adres maar een server action. */
+  onSignOut?: () => void;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -251,6 +253,13 @@ export default function CommandPalette({
   }, [current]);
 
   const run = (item: Item, newTab = false) => {
+    if (item.href === SIGN_OUT_HREF) {
+      if (!confirmLeave()) return;
+      close();
+      setQuery("");
+      onSignOut?.();
+      return;
+    }
     // Een nieuw tabblad laat dit scherm staan; hier weg navigeren niet.
     if (!item.external && !newTab && !confirmLeave()) return;
     close();
