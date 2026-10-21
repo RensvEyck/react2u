@@ -3,10 +3,11 @@ import { useState } from "react";
 import { NAVY, BODY, MUTE, LINE, kop } from "./Gedeeld";
 
 /**
- * "Ken jij iemand?": de vacature delen via LinkedIn, WhatsApp of een link.
- * Een medewerker vult zijn naam in en krijgt een persoonlijke link met
- * ?ref=naam; een sollicitatie via die link krijgt in de admin de bron
- * "aanbrenger: naam" (BronOnthouden), zodat de aanbrengpremie klopt.
+ * Een vacature delen via LinkedIn, WhatsApp of een link. Een medewerker vult
+ * zijn naam in en krijgt een persoonlijke link met ?ref=naam; een sollicitatie
+ * via die link krijgt in de admin de bron "aanbrenger: naam" (BronOnthouden),
+ * zodat de aanbrengpremie klopt. Intern: staat alleen in de admin bij een
+ * gepubliceerde vacature, niet op de publieke vacaturepagina.
  */
 export default function DeelVacature({ url, titel, t }: {
   url: string;
