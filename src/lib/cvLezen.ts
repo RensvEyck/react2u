@@ -5,7 +5,7 @@ import { schoonSamenvatting, type CvSamenvatting } from "./cvSamenvatting";
  * Leest een cv uit met Claude en geeft de belangrijkste gegevens terug.
  * Staat alleen aan als ANTHROPIC_API_KEY in Vercel staat; zonder sleutel
  * geeft dit altijd null en werkt het formulier zoals altijd.
- * Model: CV_MODEL, standaard claude-haiku-4-5 (snel en goedkoop).
+ * Model: CV_MODEL, standaard claude-haiku-5-5 (snel en goedkoop).
  *
  * Het cv gaat daarvoor naar Anthropic. Dat moet in de privacyverklaring staan.
  */
@@ -46,7 +46,7 @@ export async function leesCvUit(bestand: File): Promise<CvSamenvatting | null> {
       method: "POST",
       headers: { "x-api-key": sleutel, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
-        model: process.env.CV_MODEL || "claude-haiku-4-5",
+        model: process.env.CV_MODEL || "claude-haiku-5-5",
         max_tokens: 800,
         messages: [{ role: "user", content: [blok, { type: "text", text: OPDRACHT }] }],
       }),
