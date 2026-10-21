@@ -6,7 +6,7 @@
   "blocks": [
     {
       "type": "ptKop",
-      "label": "Partners: kop met foto, roze bol en de vergoeding",
+      "label": "Partners: kop met foto en roze bol",
       "data": {
         "heading": "React2u Partners",
         "kruimels": [
@@ -32,14 +32,7 @@
           }
         ],
         "beeld": "/beeld/kantoor/overleg.webp",
-        "beeldAlt": "Vier mensen in overleg aan een houten tafel met een laptop",
-        "kaart": {
-          "kop": "Jouw vergoeding",
-          "groot": "50%",
-          "grootTekst": "van het abonnement in jaar één",
-          "plus": "+25%",
-          "plusTekst": "elk jaar daarna"
-        }
+        "beeldAlt": "Vier mensen in overleg aan een houten tafel met een laptop"
       }
     },
     {

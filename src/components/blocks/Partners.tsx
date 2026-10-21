@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { NAVY, PINK, ORANGE, BODY, MUTE, LAV, kop, Eyebrow, Pijl } from "./Gedeeld";
+import { NAVY, ORANGE, BODY, LAV, kop, Eyebrow, Pijl } from "./Gedeeld";
 import { telefoonInTaal, type Taal } from "@/lib/taal";
 import type { TarievenSettings } from "@/lib/tarieven";
 import PartnerRekenhulp from "./PartnerRekenhulp";
@@ -17,7 +17,7 @@ type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
  * van een dienstpagina zoals /ready (het blok dienstLabel, met zonderKop),
  * met deze blokken eromheen:
  * - ptKop: een brede foto met een grote roze bol, zoals de tegels van de
- *   startpagina, en de vergoeding op een wit kaartje;
+ *   startpagina;
  * - ptRekenhulp: kop en breedte zoals de secties van dienstLabel, met het
  *   rekenvoorbeeld als kaart;
  * - ptAanmelden: zoals het kennismaakblok, met het aanmeldformulier.
@@ -41,15 +41,12 @@ function regels(tagline: string): string[] {
 /**
  * Een brede foto met rechtsonder een grote roze bol, in de taal van de tegels
  * op de startpagina (HomeSplit). In de bol de kop: de programmanaam klein, de
- * belofte groot op drie regels met een oranje streep onder het slot. Links
- * boven op de foto de vergoeding op een wit kaartje. Op de telefoon en tablet
- * staan het roze vlak en de foto onder elkaar, de kop eerst en het kaartje
- * onderaan de foto, zodat het geen gezichten afdekt; de bol komt pas vanaf
- * 1024px, waar hij ruim genoeg is voor de tekst.
+ * belofte groot op drie regels met een oranje streep onder het slot. Op de
+ * telefoon en tablet staan het roze vlak en de foto onder elkaar, de kop
+ * eerst; de bol komt pas vanaf 1024px, waar hij ruim genoeg is voor de tekst.
  */
 export function PtKop({ d, asH1 }: { d: any; asH1?: boolean }) {
   const H = asH1 ? "h1" : "h2";
-  const k = d.kaart || {};
   const lijnen = regels(d.tagline);
   const knoppen: { label: string; href: string }[] = d.knoppen || [];
   const kruimels: { label: string; href?: string }[] = d.kruimels || [];
@@ -96,19 +93,6 @@ export function PtKop({ d, asH1 }: { d: any; asH1?: boolean }) {
 
         <div className="relative h-[340px] overflow-hidden rounded-[28px] md:h-[460px] md:rounded-[36px] lg:absolute lg:inset-0 lg:h-auto lg:rounded-none" style={{ background: "#D9D3F0" }}>
           <Beeld src={d.beeld} alt={d.beeldAlt || ""} fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.beeldFocus || "30% 45%" }} />
-          <div className="absolute bottom-3 left-3 flex flex-col gap-2 rounded-[20px] bg-white p-4 shadow-[0_24px_48px_-24px_rgba(28,26,78,0.55)] md:bottom-8 md:left-8 md:rounded-[22px] md:p-5 lg:bottom-auto lg:left-10 lg:top-10 lg:p-6">
-            {k.kop && <span className="text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: MUTE }}>{k.kop}</span>}
-            <span className="flex items-end gap-3">
-              <span className={`${kop} text-[52px] leading-[0.8] tracking-[-2px] md:text-[72px] md:tracking-[-3px]`} style={{ color: NAVY }}>{k.groot}</span>
-              <span className="max-w-[130px] pb-0.5 text-[13.5px] font-semibold leading-[1.3] md:text-[14px]" style={{ color: NAVY }}>{k.grootTekst}</span>
-            </span>
-            {k.plus && (
-              <span className="flex items-center gap-2.5 pt-1">
-                <span className={`${kop} shrink-0 rounded-full px-2.5 py-1.5 text-[15px] leading-none md:text-[17px]`} style={{ background: PINK, color: "#ffffff" }}>{k.plus}</span>
-                <span className="text-[14px] leading-[1.4] md:text-[15px]" style={{ color: BODY }}>{k.plusTekst}</span>
-              </span>
-            )}
-          </div>
         </div>
       </div>
     </section>
