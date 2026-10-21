@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPublishedVacancies, getVacancy } from "@/lib/content";
+import { getPublishedVacancies } from "@/lib/content";
+import { getZichtbareVacature, getZichtbareVacatures } from "@/lib/voorbeeld";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
 import { metOmschrijving, omschrijving, paginaTitel } from "@/lib/seo";
@@ -23,9 +24,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const v = await getVacancy(slug);
+  const v = await getZichtbareVacature(slug);
   if (!v) return {};
+  // Een concept zie je alleen in de voorbeeldmodus; nooit indexeren.
+  const concept = v.status !== "published" ? { robots: { index: false, follow: false } } : {};
   return {
+    ...concept,
     // Absoluut, zonder het sjabloon uit app/layout.tsx: paginaTitel zet het merk
     // er precies één keer achter, ook als de SEO-titel het al bevat.
     title: { absolute: paginaTitel(v.seo_title || `${v.title} • Vacature`) },
@@ -37,14 +41,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function VacancyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const v = await getVacancy(slug);
+  const v = await getZichtbareVacature(slug);
   if (!v) notFound();
 
   const jobLd = jobPostingLd(v, "nl");
 
   if (nieuwOntwerp) {
     // Het nieuwe ontwerp "Vacature" (versie B); de oude weergave hieronder is de terugvaloptie.
-    const andere = (await getPublishedVacancies()).filter((x) => x.id !== v.id);
+    const andere = (await getZichtbareVacatures()).filter((x) => x.id !== v.id);
     return (
       <>
         <VacatureDetail v={v} andere={andere} />

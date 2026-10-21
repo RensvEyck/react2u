@@ -295,6 +295,7 @@ export const en: Woordenboek = {
     fotoWerkAlt: "Three React2u colleagues looking at a screen together at the office",
     inHetNederlands: "This vacancy is in Dutch",
     inHetNederlandsKort: "In Dutch",
+    conceptLabel: "Draft",
     detail: {
       solliciteerDirect: "Apply now",
       duurtMinuut: "Takes a minute",

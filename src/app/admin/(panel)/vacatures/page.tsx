@@ -4,7 +4,7 @@ import { hasVersions } from "@/lib/revisionsDb";
 import { deleteVacancy } from "@/app/admin/actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import type { Vacancy } from "@/lib/types";
-import { LuPlus, LuExternalLink, LuPencil, LuTrash2, LuMapPin, LuClock } from "react-icons/lu";
+import { LuPlus, LuExternalLink, LuPencil, LuTrash2, LuMapPin, LuClock, LuEye } from "react-icons/lu";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   draft: { label: "Concept", cls: "bg-black/[0.06] text-black/50" },
@@ -52,6 +52,10 @@ export default async function VacanciesAdmin() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/admin/prullenbak" className="abtn-ghost !px-3" title="Prullenbak" aria-label="Prullenbak"><LuTrash2 className="text-[15px]" /></Link>
+          {/* Voorbeeldmodus (src/lib/voorbeeld.ts): de site met de concepten erbij, alleen voor jou. */}
+          <a href="/api/voorbeeld?pad=/vacatures" target="_blank" className="abtn-ghost" title="Bekijk de site alsof de concepten al live staan">
+            <LuEye /> Bekijk met concepten
+          </a>
           <Link href="/admin/vacatures/nieuw" className="abtn"><LuPlus /> Nieuwe vacature</Link>
         </div>
       </div>
@@ -87,6 +91,11 @@ export default async function VacanciesAdmin() {
               {v.status === "published" && (
                 <a href={`/vacatures/${v.slug}`} target="_blank" className="rounded-lg p-2 text-black/50 hover:bg-black/5 hover:text-[#312e82]" title="Bekijk">
                   <LuExternalLink />
+                </a>
+              )}
+              {v.status === "draft" && (
+                <a href={`/api/voorbeeld?pad=/vacatures/${v.slug}`} target="_blank" className="rounded-lg p-2 text-black/50 hover:bg-black/5 hover:text-[#312e82]" title="Voorbeeld">
+                  <LuEye />
                 </a>
               )}
               <Link href={`/admin/vacatures/${v.id}`} className="rounded-lg p-2 text-black/50 hover:bg-black/5 hover:text-[#e75387]" title="Bewerken">

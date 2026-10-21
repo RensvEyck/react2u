@@ -233,6 +233,7 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
                     {tekst.intro && <span className="max-w-[640px] text-[16px] leading-[1.6]" style={{ color: BODY }}>{tekst.intro}</span>}
                   </span>
                   <span className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+                    {v.status === "draft" && <Chip tint="#FDE7B0">{w.conceptLabel}</Chip>}
                     {anders && <Chip tint="#FDECF4">{w.inHetNederlandsKort}</Chip>}
                     {v.location && <Chip>{v.location}</Chip>}
                     {v.hours && <Chip>{kenmerkInTaal(v.hours, taal)}</Chip>}

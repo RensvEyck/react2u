@@ -12,6 +12,8 @@ import { getSetting, CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import { normalizeDocs, normalizeCertificates } from "@/lib/nav";
 import { nieuwOntwerp } from "@/lib/concept";
 import { normalizeTracking } from "@/lib/tracking";
+import { inVoorbeeld } from "@/lib/voorbeeld";
+import Voorbeeldbalk from "./Voorbeeldbalk";
 import type { Taal } from "@/lib/taal";
 
 /**
@@ -23,11 +25,12 @@ import type { Taal } from "@/lib/taal";
  * header doorloopt.
  */
 export default async function SiteShell({ children, taal = "nl" }: { children: React.ReactNode; taal?: Taal }) {
-  const [contact, docs, certificates, tracking] = await Promise.all([
+  const [contact, docs, certificates, tracking, voorbeeld] = await Promise.all([
     getSetting<ContactInfo>("contact"),
     getSetting<unknown>("documents"),
     getSetting<unknown>("certificates"),
     getSetting<unknown>("tracking"),
+    inVoorbeeld(),
   ]);
   const c = contact || CONTACT_FALLBACK;
   const { bedrijfsherkenning } = normalizeTracking(tracking);
@@ -53,12 +56,13 @@ export default async function SiteShell({ children, taal = "nl" }: { children: R
           <Footer contact={c} docs={normalizeDocs(docs)} certificates={normalizeCertificates(certificates)} />
         )}
         {/* Alleen op de publieke site: adminverkeer is jouw eigen verkeer en
-            hoort niet in de statistieken. */}
-        <VisitTracker />
+            hoort niet in de statistieken. Daarom ook niet in de voorbeeldmodus. */}
+        {!voorbeeld && <VisitTracker />}
         {/* Hier en niet in de root-layout: wel op de 404, niet in het adminpaneel. */}
         <CookieBanner bedrijfsherkenning={bedrijfsherkenning} />
         <Reveal />
-        <Analytics />
+        {!voorbeeld && <Analytics />}
+        {voorbeeld && <Voorbeeldbalk taal={taal} />}
       </div>
     </TaalProvider>
   );
