@@ -5,6 +5,9 @@ import { notifyContactMessage, notifyApplication, bevestigSollicitatie, notifyOf
 import { withinLimit, requestIp, type Throttle } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { uploadCv, MAX_CV_BYTES, CV_TYPES } from "@/lib/cvs";
+import { cvLezenAan, leesCvUit } from "@/lib/cvLezen";
+import { schoonSamenvatting, type CvSamenvatting } from "@/lib/cvSamenvatting";
+import { isAanbieder, veiligeFoto } from "@/lib/inloggen";
 import { recordConversion } from "@/lib/conversionsDb";
 import { pathFromReferer, type ConversionKind } from "@/lib/conversions";
 import { geldigEmail, TERUGBEL_MOMENTEN } from "@/lib/formulier";
@@ -95,6 +98,18 @@ export async function submitContact(_prev: FormState, formData: FormData): Promi
 /** Sollicitaties: strenger, want hier hangt een bestand aan. */
 const SOLLICITATIE_LIMIET: Throttle = { limit: 3, windowSeconds: 60 * 60 };
 
+/** Maakt van een LinkedIn-invoer een nette https-link, of null als het geen LinkedIn-profiel is. */
+function linkedinUrl(invoer: string): string | null {
+  const ruw = /^https?:\/\//i.test(invoer) ? invoer : `https://${invoer}`;
+  try {
+    const u = new URL(ruw);
+    if (!/(^|\.)linkedin\.com$/i.test(u.hostname) || u.pathname.length < 2) return null;
+    return `https://${u.hostname.toLowerCase()}${u.pathname}`.slice(0, 300);
+  } catch {
+    return null;
+  }
+}
+
 export async function submitApplication(_prev: FormState, formData: FormData): Promise<FormState> {
   const taal = taalUit(formData);
   const fout = woordenboek(taal).formulier.fouten;
@@ -110,8 +125,16 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   const retainLonger = formData.get("retain_longer") === "on";
   // Waar de kandidaat vandaan kwam (BronOnthouden, migratie 0018).
   const bron = veld(formData, "bron").slice(0, 120);
+  // Ingelogd met LinkedIn, Google of Apple (zie src/lib/inloggen.ts), migratie 0020.
+  const viaRuw = veld(formData, "via");
+  const via = isAanbieder(viaRuw) ? viaRuw : null;
+  const foto = via ? veiligeFoto(veld(formData, "foto")) : "";
   if (!name || !email) return { ok: false, error: fout.sollicitatieVerplicht };
   if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
+  // LinkedIn-profiel in plaats van (of naast) een cv, migratie 0019.
+  const linkedinInvoer = veld(formData, "linkedin");
+  const linkedin = linkedinInvoer ? linkedinUrl(linkedinInvoer) : null;
+  if (linkedinInvoer && !linkedin) return { ok: false, error: fout.linkedinOngeldig };
 
   let cvPath: string | null = null;
   const cv = formData.get("cv") as File | null;
@@ -121,6 +144,15 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     cvPath = await uploadCv(cv);
     if (!cvPath) return { ok: false, error: fout.cvUpload };
   }
+  // De samenvatting die het formulier bij het kiezen van het cv al ophaalde,
+  // of anders nu. Mislukt het uitlezen, dan gaat de sollicitatie gewoon door.
+  let samenvatting: CvSamenvatting | null = null;
+  try {
+    samenvatting = schoonSamenvatting(JSON.parse(veld(formData, "cv_samenvatting") || "null"));
+  } catch {
+    samenvatting = null;
+  }
+  if (!samenvatting && cvPath && cv && cvLezenAan()) samenvatting = await leesCvUit(cv);
 
   const error = await insertMetExtra("applications", {
     vacancy_id: vacancyId || null,
@@ -129,7 +161,8 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     phone: phone || null,
     motivation: motivation || null,
     cv_path: cvPath,
-  }, { retain_longer: retainLonger, lang: taal, ...(bron ? { bron } : {}) });
+  }, { retain_longer: retainLonger, lang: taal, ...(bron ? { bron } : {}), ...(linkedin ? { linkedin } : {}),
+    ...(via ? { aangemeld_via: via } : {}), ...(foto ? { foto } : {}), ...(samenvatting ? { cv_samenvatting: samenvatting } : {}) });
   if (error) return { ok: false, error: fout.sollicitatieAlgemeen };
   await Promise.all([
     recordConversion("sollicitatie", await paginaPad()),
@@ -139,6 +172,9 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
       vacancyTitle: vacancyTitle || null,
       motivation: motivation || null,
       hasCv: Boolean(cvPath),
+      linkedin,
+      via,
+      samenvatting,
       bron: bron || null,
       taal,
     }),
@@ -227,4 +263,20 @@ export async function submitTerugbel(_prev: FormState, formData: FormData): Prom
     notifyTerugbel({ name, phone, company: company || null, moment, path }),
   ]);
   return { ok: true };
+}
+
+export type CvLezenState = { ok: boolean; gegevens?: CvSamenvatting };
+
+/**
+ * Leest een gekozen cv meteen uit, zodat het formulier zich vult voordat de
+ * kandidaat op versturen drukt. Zelfde controles als bij het versturen, plus
+ * een eigen limiet omdat elke aanroep een AI-verzoek kost.
+ */
+export async function leesCv(formData: FormData): Promise<CvLezenState> {
+  if (!cvLezenAan() || String(formData.get("website") || "")) return { ok: false };
+  const cv = formData.get("cv");
+  if (!(cv instanceof File) || !cv.size || cv.size > MAX_CV_BYTES || !CV_TYPES.includes(cv.type)) return { ok: false };
+  if (!(await withinLimit("cvlezen", { limit: 6, windowSeconds: 60 * 60 }))) return { ok: false };
+  const gegevens = await leesCvUit(cv);
+  return gegevens ? { ok: true, gegevens } : { ok: false };
 }
