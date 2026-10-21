@@ -32,7 +32,7 @@ function anker(d: any) {
 /** Diep roze: de kleur van het logo, donker genoeg voor witte tekst (contrast 5,3). */
 const ROZE_DIEP = "#CF1468";
 
-/** "Jouw klant, onze casemanager, jouw vergoeding" als drie regels; de laatste krijgt een punt. */
+/** "Jouw klant, ons vak, jouw vergoeding" als drie regels; de laatste krijgt een punt. */
 function regels(tagline: string): string[] {
   const delen = String(tagline || "").split(/,\s*/).filter(Boolean);
   return delen.map((r, i) => (i < delen.length - 1 ? `${r},` : `${r}.`));
