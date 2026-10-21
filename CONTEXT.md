@@ -752,7 +752,10 @@ of de footer hoort pas bij het live zetten, anders geeft hij in productie een 40
 
 De blokken (`ptKop`, `ptDoelgroepen`, `ptStappen`, `ptModellen`, `ptKlant`,
 `ptAanmelden`) staan in [`Partners.tsx`](src/components/blocks/Partners.tsx); de
-vragen zijn een gewoon `dgVragen`-blok. Het rekenvoorbeeld in de kop rekent met
+klantlogo's (`klantenStrook`), de citaten van klanten (`klantenAanHetWoord`) en de
+vragen (`dgVragen`) zijn gewone blokken van de site. De kop is indigo met de
+rekenhulp als witte kaart: twee schuiven, de vergoeding per jaar als staven over
+vijf jaar en een zwevend label met de uitbetaling per kwartaal. Het rekenvoorbeeld in de kop rekent met
 `tarief` (het aansluittarief, € 38,50 per werknemer per jaar),
 `pctJaarEen` (50) en `pctVervolg` (25) uit de blokdata ([`lib/partners.ts`](src/lib/partners.ts));
 pas ze daar aan als ze veranderen. De voetnoot noemt ze met `{tarief}`,
