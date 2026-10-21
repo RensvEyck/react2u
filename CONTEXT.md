@@ -750,14 +750,13 @@ dus alleen op staging; live komt hij met `node scripts/concept-naar-sql.mjs part
 (zie *Concepten*). Let op: `--alle` neemt hem dan ook mee. Een link in het menu
 of de footer hoort pas bij het live zetten, anders geeft hij in productie een 404.
 
-De pagina is opgebouwd zoals /werkgevers, uit de gewone blokken van de site:
-`dgKop` (foto met indigo vlak), `klantenStrook`, `dgFotoLijst` (voor wie),
-`dgStarten` (zo werkt het), `dgPrijzen` (aanbreng- en resellerpartner),
-`dgLabels` (wat je klant krijgt), `klantenAanHetWoord` en `dgVragen`. Alleen
-`ptRekenhulp` en `ptAanmelden` zijn eigen blokken, in
-[`Partners.tsx`](src/components/blocks/Partners.tsx), en die volgen de vorm van
-de prijskaarten en het kennismaakblok. `dgPrijzen` en `dgStarten` zetten twee
-kaarten of drie stappen over de hele breedte. Het rekenvoorbeeld rekent met
+De pagina heeft de opzet van een dienstpagina zoals /ready: het blok
+`dienstLabel` met de partnerteksten (kop, herken je dit, de twee partnervormen,
+zo werkt het, waarom, wat je klant krijgt), daarna `ptRekenhulp`, `dgVragen` en
+`ptAanmelden` uit [`Partners.tsx`](src/components/blocks/Partners.tsx).
+`dienstLabel` kent daarvoor optionele velden: `kruimels`, `knoppen`,
+`registered: false` (geen ®), `aanpakAnker` en `titels` voor de vaste kopjes.
+Zonder die velden blijven de vijf dienstpagina's gelijk. Het rekenvoorbeeld rekent met
 `tarief` (het aansluittarief, € 38,50 per werknemer per jaar),
 `pctJaarEen` (50) en `pctVervolg` (25) uit de blokdata ([`lib/partners.ts`](src/lib/partners.ts));
 pas ze daar aan als ze veranderen. De voetnoot noemt ze met `{tarief}`,

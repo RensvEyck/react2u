@@ -1,6 +1,5 @@
 import { outfit } from "./HomeVerhaal";
-import { NAVY, BODY, SOFT, LAV, kop, BREED, Eyebrow } from "./Gedeeld";
-import { SectieKop } from "./Doelgroep";
+import { NAVY, BODY, LAV, kop, Eyebrow } from "./Gedeeld";
 import { telefoonInTaal, type Taal } from "@/lib/taal";
 import type { TarievenSettings } from "@/lib/tarieven";
 import PartnerRekenhulp from "./PartnerRekenhulp";
@@ -12,11 +11,12 @@ type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
 
 /*
  * De twee eigen blokken van /partners, het partnerprogramma voor
- * accountants, salariskantoren en HR- en verzekeringsadviseurs. De rest van
- * de pagina bestaat uit de gewone blokken van de site (dgKop, klantenStrook,
- * dgFotoLijst, dgStarten, dgPrijzen, dgLabels, klantenAanHetWoord,
- * dgVragen); deze twee volgen hun vorm:
- * - ptRekenhulp: sectiekop zoals elders, met het rekenvoorbeeld als kaart;
+ * accountants, salariskantoren en HR- en verzekeringsadviseurs. De pagina
+ * heeft de opzet van een dienstpagina zoals /ready: het blok dienstLabel
+ * (kop, herken je dit, de twee partnervormen, de aanpak, waarom, wat je klant
+ * krijgt), daarna deze twee en de vragen (dgVragen):
+ * - ptRekenhulp: kop en breedte zoals de secties van dienstLabel, met het
+ *   rekenvoorbeeld als kaart;
  * - ptAanmelden: zoals het kennismaakblok, met het aanmeldformulier.
  */
 
@@ -26,12 +26,23 @@ function anker(d: any) {
 
 /* ---------- Rekenvoorbeeld ---------- */
 
+/** In de opzet van de dienstpagina's (dienstLabel): label met stip, kop links, toelichting rechts. */
 export function PtRekenhulp({ d, ctx }: { d: any; ctx?: Ctx }) {
   const jaar = ctx?.tarieven?.jaar ?? String(new Date().getFullYear());
   return (
-    <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} scroll-mt-28`} style={{ background: d.bg || SOFT }}>
-      <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
-        <SectieKop d={d} />
+    <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} scroll-mt-28 bg-white px-5 py-14 md:px-10 md:py-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0`}>
+      <div className="flex flex-col gap-8 md:gap-12">
+        <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
+          <div className="flex flex-col gap-5 lg:col-span-7">
+            {d.eyebrow && (
+              <span className="inline-flex items-center gap-2.5 text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: NAVY }}>
+                <span className="h-2 w-2 rounded-full" style={{ background: NAVY }} />{d.eyebrow}
+              </span>
+            )}
+            <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px] md:tracking-[-1px]`} style={{ color: NAVY }}>{d.heading}</h2>
+          </div>
+          {d.text && <p className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>{d.text}</p>}
+        </div>
         <PartnerRekenhulp r={d.rekenhulp || {}} jaar={jaar} />
       </div>
     </section>

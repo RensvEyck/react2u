@@ -14,6 +14,12 @@ type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal } };
  * genummerde groepen, de aanpak, waarom React2u met de keurmerken, en de
  * andere labels. Eén blok, zodat de vijf pagina's gegarandeerd gelijk blijven.
  * Kleur en tint komen uit de data: elk label heeft zijn eigen kleur.
+ *
+ * Een pagina in dezelfde opzet die geen dienst is (zoals /partners) zet in
+ * de data: `kruimels`, `knoppen`, `registered: false` (geen ®) en `titels`
+ * voor de vaste kopjes (watJeKrijgt, herken, danIs, omvat, omvatTekst,
+ * aanpak, waarom, gecertificeerd, bekijkOok). Zonder die velden gelden de
+ * teksten van de dienstpagina's.
  */
 
 const NAVY = "#322E83";
@@ -66,6 +72,12 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
   const waarom: any[] = d.waarom || [];
   const ook: any[] = d.ook || [];
   const kolommen = groepen.length > 4 ? "lg:grid-cols-3" : "lg:grid-cols-2";
+  const titels = d.titels || {};
+  const titel = (k: string, standaard: string) => vul(titels[k] ?? standaard, { naam });
+  const kruimels: { label: string; href?: string }[] | null = Array.isArray(d.kruimels) ? d.kruimels : null;
+  const knoppen: { label: string; href: string }[] = Array.isArray(d.knoppen) && d.knoppen.length
+    ? d.knoppen
+    : [{ label: t2.adviesgesprek, href: pad(taal, "contact") }, { label: t2.alleDiensten, href: pad(taal, "diensten") }];
 
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
@@ -77,9 +89,17 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
             style={{ background: c, opacity: 0.12 }} />
           <div className="relative flex flex-col gap-5 md:gap-[22px]">
             <nav aria-label={w.algemeen.kruimelpad} className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
-              <Link href={pad(taal, "werkgevers")} style={{ color: MUTE }}>{w.header.werkgevers}</Link><span>/</span>
-              <Link href={pad(taal, "diensten")} style={{ color: MUTE }}>{t2.kruimelDiensten}</Link><span>/</span>
-              <span aria-current="page" style={{ color: NAVY }}>{naam}</span>
+              {kruimels ? (
+                kruimels.map((k, i) => k.href
+                  ? <span key={i} className="contents"><Link href={k.href} style={{ color: MUTE }}>{k.label}</Link><span>/</span></span>
+                  : <span key={i} aria-current="page" style={{ color: NAVY }}>{k.label}</span>)
+              ) : (
+                <>
+                  <Link href={pad(taal, "werkgevers")} style={{ color: MUTE }}>{w.header.werkgevers}</Link><span>/</span>
+                  <Link href={pad(taal, "diensten")} style={{ color: MUTE }}>{t2.kruimelDiensten}</Link><span>/</span>
+                  <span aria-current="page" style={{ color: NAVY }}>{naam}</span>
+                </>
+              )}
             </nav>
             {/* De hoofdkop noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
                 Alleen de merknaam als H1 zei Google niet waar de pagina over gaat;
@@ -90,7 +110,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
                 React2u<br />
                 <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[76px] md:tracking-[-2px]">
                   <span style={{ color: c }}>{naam}</span>
-                  <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
+                  {d.registered !== false && <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>}
                 </span>
                 <span className="hv-dienst mt-5 block text-[18px] font-bold leading-[1.5] tracking-normal md:mt-[22px] md:text-[21px]">{d.label}</span>
               </H>
@@ -100,13 +120,17 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
             </div>
             {d.text && <p className="m-0 max-w-[520px] text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{d.text}</p>}
             <div className="flex flex-wrap gap-2.5 pt-2">
-              <Link href={pad(taal, "contact")} className="hv-btn hv-btn-roze inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">{t2.adviesgesprek} <Pijl /></Link>
-              <Link href={pad(taal, "diensten")} className="hv-btn hv-btn-rand inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold">{t2.alleDiensten} <Pijl /></Link>
+              {knoppen.map((b, i) => {
+                const cls = `hv-btn ${i === 0 ? "hv-btn-roze" : "hv-btn-rand"} inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold`;
+                return b.href.startsWith("#")
+                  ? <a key={i} href={b.href} className={cls}>{b.label} <Pijl /></a>
+                  : <Link key={i} href={b.href} className={cls}>{b.label} <Pijl /></Link>;
+              })}
             </div>
           </div>
           {checks.length > 0 && (
             <div className="relative flex flex-col gap-4 rounded-[24px] p-7 md:p-8" style={{ background: "rgba(255,255,255,0.7)" }}>
-              <span className="text-[13px] font-bold uppercase tracking-[1.4px]" style={{ color: MUTE }}>{t2.watJeKrijgt}</span>
+              <span className="text-[13px] font-bold uppercase tracking-[1.4px]" style={{ color: MUTE }}>{titel("watJeKrijgt", t2.watJeKrijgt)}</span>
               {checks.map((x, i) => (
                 <span key={i} className="flex items-start gap-2.5 text-[16px] leading-[1.45] md:text-[17px]" style={{ color: NAVY }}>
                   <span className="mt-0.5 shrink-0" style={{ color: c }}><Vink /></span>{x}
@@ -132,14 +156,14 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
           </div>
           {(d.herken || []).length > 0 && (
             <div className="flex flex-col rounded-[28px] p-6 md:p-10 lg:col-span-5 lg:col-start-8" style={{ background: SOFT }}>
-              <h3 className={`${kop} m-0 mb-[18px] text-[24px] tracking-[-0.4px] md:text-[26px]`}>{t2.herken}</h3>
+              <h3 className={`${kop} m-0 mb-[18px] text-[24px] tracking-[-0.4px] md:text-[26px]`}>{titel("herken", t2.herken)}</h3>
               {d.herken.map((q: string, i: number) => (
                 <div key={i} className="flex items-start gap-3.5 border-t py-4" style={{ borderColor: LINE }}>
                   <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[15px] font-bold" style={{ background: t, color: tc }} aria-hidden>?</span>
                   <span className="pt-0.5 text-[16px] leading-[1.5] md:text-[17px]">{q}</span>
                 </div>
               ))}
-              <p className="m-0 border-t pt-5 text-[17px] font-bold" style={{ borderColor: LINE, color: tc }}>{vul(t2.danIs, { naam })}</p>
+              <p className="m-0 border-t pt-5 text-[17px] font-bold" style={{ borderColor: LINE, color: tc }}>{titel("danIs", t2.danIs)}</p>
             </div>
           )}
         </div>
@@ -147,10 +171,10 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
 
       {/* 3. Wat het label omvat */}
       {groepen.length > 0 && (
-        <section aria-label={vul(t2.omvat, { naam })} className="flex flex-col gap-8 px-5 pb-14 md:gap-12 md:px-10 md:pb-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
+        <section aria-label={titel("omvat", t2.omvat)} className="flex flex-col gap-8 px-5 pb-14 md:gap-12 md:px-10 md:pb-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
           <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
-            <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px] md:tracking-[-1px] lg:col-span-7`}>{vul(t2.omvat, { naam })}</h2>
-            <p className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>{t2.omvatTekst}</p>
+            <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px] md:tracking-[-1px] lg:col-span-7`}>{titel("omvat", t2.omvat)}</h2>
+            <p className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>{titel("omvatTekst", t2.omvatTekst)}</p>
           </div>
           <Strook n={groepen.length} className={`grid gap-4 md:grid-cols-2 md:gap-6 ${kolommen}`}>
             {groepen.map((g, i) => (
@@ -176,10 +200,10 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
 
       {/* 4. Onze aanpak */}
       {stappen.length > 0 && (
-        <section aria-label={t2.aanpak} className="relative overflow-hidden px-5 py-14 md:px-10 md:py-[104px]" style={{ background: NAVY }}>
+        <section aria-label={titel("aanpak", t2.aanpak)} {...(d.aanpakAnker ? { id: d.aanpakAnker } : {})} className="relative scroll-mt-28 overflow-hidden px-5 py-14 md:px-10 md:py-[104px]" style={{ background: NAVY }}>
           <span aria-hidden className="absolute right-[-180px] top-[-220px] h-[540px] w-[540px] rounded-full" style={{ background: "#3B378F" }} />
           <div className="relative flex flex-col gap-8 md:gap-[52px] xl:mx-auto xl:max-w-[1200px]">
-            <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px]`} style={{ color: "#ffffff" }}>{t2.aanpak}</h2>
+            <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px]`} style={{ color: "#ffffff" }}>{titel("aanpak", t2.aanpak)}</h2>
             {/* Op de telefoon het nummer naast de titel; vanaf md erboven met de lijn ernaast. */}
             <ol className="m-0 grid list-none gap-6 p-0 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
               {stappen.map((s, i) => (
@@ -200,10 +224,10 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
 
       {/* 5. Waarom React2u, met de keurmerken */}
       {waarom.length > 0 && (
-        <section aria-label={vul(t2.waarom, { naam })} className="px-[6px] pt-14 md:px-10 md:pt-[120px] xl:mx-auto xl:max-w-[1280px]">
+        <section aria-label={titel("waarom", t2.waarom)} className="px-[6px] pt-14 md:px-10 md:pt-[120px] xl:mx-auto xl:max-w-[1280px]">
           <div className="relative flex flex-col gap-8 overflow-hidden rounded-[28px] px-5 py-10 md:gap-[52px] md:rounded-[36px] md:p-[72px]" style={{ background: t }}>
             <span aria-hidden className="absolute bottom-[-200px] left-[-140px] h-[460px] w-[460px] rounded-full" style={{ background: c, opacity: 0.1 }} />
-            <h2 className={`${kop} relative m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px]`}>{vul(t2.waarom, { naam })}</h2>
+            <h2 className={`${kop} relative m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px]`}>{titel("waarom", t2.waarom)}</h2>
             <div className="relative grid gap-6 md:grid-cols-3 md:gap-10">
               {waarom.map((w, i) => (
                 <div key={i} className="flex flex-col gap-2.5 border-t-2 pt-5 md:gap-3 md:pt-6" style={{ borderColor: c }}>
@@ -213,7 +237,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
               ))}
             </div>
             <div className="relative flex flex-col gap-4 border-t pt-7 md:flex-row md:items-center md:justify-between md:gap-5 md:pt-9" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
-              <span className="text-[16px] font-bold">{t2.gecertificeerd}</span>
+              <span className="text-[16px] font-bold">{titel("gecertificeerd", t2.gecertificeerd)}</span>
               {/* Vijf tegels op één rij, ook op de telefoon (5 × 60 + 4 × 8 = 332px). */}
               <div className="flex flex-wrap gap-2 md:gap-3">
                 {KEURMERKEN.map((k, i) => (
@@ -229,10 +253,10 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
 
       {/* 6. De andere labels */}
       {ook.length > 0 && (
-        <section aria-label={t2.bekijkOok} className="flex flex-col gap-8 px-5 pt-14 md:px-10 md:pt-[104px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
-          <h2 className={`${kop} m-0 text-[28px] leading-[1.15] tracking-[-0.6px] md:text-[34px]`}>{t2.bekijkOok}</h2>
+        <section aria-label={titel("bekijkOok", t2.bekijkOok)} className="flex flex-col gap-8 px-5 pt-14 md:px-10 md:pt-[104px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
+          <h2 className={`${kop} m-0 text-[28px] leading-[1.15] tracking-[-0.6px] md:text-[34px]`}>{titel("bekijkOok", t2.bekijkOok)}</h2>
           {/* Op de telefoon twee naast elkaar (vier kleine kaarten in plaats van een lange stapel). */}
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          <div className={`grid grid-cols-2 gap-3 lg:gap-4 ${ook.length === 5 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
             {ook.map((o, i) => (
               <Link key={i} href={o.href} className="flex flex-col gap-2 rounded-[20px] px-4 py-5 transition-transform duration-300 hover:-translate-y-1 sm:gap-2.5 sm:px-6 sm:py-[26px]"
                 style={{ background: SOFT, color: NAVY }}>
@@ -240,7 +264,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
                   <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: o.kleur }} />
                   <span className="text-[13px] font-bold leading-[1.3] sm:text-[14px]" style={{ color: MUTE }}>{o.wat}</span>
                 </span>
-                <span className={`${kop} text-[20px] sm:text-[24px]`}>React2u {o.naam}</span>
+                <span className={`${kop} text-[20px] sm:text-[24px] ${ook.length === 5 ? "lg:text-[20px] xl:text-[21px]" : ""}`}>React2u {o.naam}</span>
                 <span className="flex items-center gap-2 text-[15px] font-bold">{t2.bekijk} <Pijl /></span>
               </Link>
             ))}
