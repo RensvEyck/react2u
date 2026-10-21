@@ -398,7 +398,9 @@ export const nl = {
         { kop: "Overeenkomst", tekst: "We leggen de afspraken vast in een overeenkomst van opdracht en plannen je start." },
       ],
       contactKop: "Vragen over deze vacature?",
-      contactTekst: "Mail de eigenaar van React2u direct. Je krijgt antwoord van hem zelf.",
+      contactTekst: "Mail of app de eigenaar van React2u direct. Je krijgt antwoord van hem zelf.",
+      whatsappKnop: "Stuur een WhatsApp",
+      whatsappTekst: "Hoi Rens, ik heb een vraag over een vacature bij React2u.",
       contactRol: "Eigenaar",
     },
     dienstverband: {

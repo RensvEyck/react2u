@@ -381,7 +381,9 @@ export const en: Woordenboek = {
         { kop: "Agreement", tekst: "We record the arrangements in a contract for services and plan your start." },
       ],
       contactKop: "Questions about this vacancy?",
-      contactTekst: "Email the owner of React2u directly. He will answer you himself.",
+      contactTekst: "Email or message the owner of React2u directly. He will answer you himself.",
+      whatsappKnop: "Send a WhatsApp",
+      whatsappTekst: "Hi, I have a question about a vacancy at React2u.",
       contactRol: "Owner",
     },
     dienstverband: {
