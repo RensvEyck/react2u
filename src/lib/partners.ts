@@ -7,7 +7,7 @@
 export type Rekenvoorbeeld = {
   klanten: number;
   medewerkers: number;
-  /** Abonnement per medewerker per jaar, in euro's (Casemanagement Compleet). */
+  /** Het bedrag per medewerker per jaar waarover de vergoeding gaat, in euro's. */
   tarief: number;
   /** Vergoeding in jaar één, in procenten van het abonnement. */
   pctJaarEen: number;
@@ -30,7 +30,7 @@ export function euroRond(bedrag: number): string {
   return `€ ${HEEL.format(Math.round(bedrag))}`;
 }
 
-/** "€ 135" of "€ 139,50": een tarief, met centen alleen als die er zijn. */
+/** "€ 135" of "€ 38,50": een tarief, met centen alleen als die er zijn. */
 export function euroTarief(bedrag: number): string {
   return `€ ${Number.isInteger(bedrag) ? HEEL.format(bedrag) : CENTEN.format(bedrag)}`;
 }
