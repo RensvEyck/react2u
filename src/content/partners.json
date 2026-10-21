@@ -10,8 +10,14 @@
       "data": {
         "heading": "Jouw klant,\nonze casemanager,\njouw vergoeding.",
         "text": "Accountants, salariskantoren en HR-adviseurs zien als eerste dat verzuim een werkgever geld kost. Breng die werkgever bij ons onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van het abonnement in het eerste jaar.",
-        "knop": { "label": "Partner worden", "href": "#aanmelden" },
-        "tweedeKnop": { "label": "Hoe het werkt", "href": "#hoe" },
+        "knop": {
+          "label": "Partner worden",
+          "href": "#aanmelden"
+        },
+        "tweedeKnop": {
+          "label": "Hoe het werkt",
+          "href": "#hoe"
+        },
         "rekenhulp": {
           "kop": "Wat levert het jouw kantoor op?",
           "tekst": "Schuif en zie wat jouw klanten je per jaar opleveren.",
@@ -25,8 +31,25 @@
           "tarief": 38.5,
           "pctJaarEen": 50,
           "pctVervolg": 25,
-          "voetnoot": "Rekenvoorbeeld op basis van het aansluittarief van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement."
-        }
+          "voetnoot": "Rekenvoorbeeld op basis van het aansluittarief van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement.",
+          "kwartaalLabel": "Per kwartaal in jaar één",
+          "jarenKop": "Wat het oplevert per jaar",
+          "totaalLabel": "Samen in vijf jaar:",
+          "jaarLabel": "Jaar"
+        },
+        "eyebrow": "Partnerprogramma",
+        "vertrouwen": [
+          "SBCA gecertificeerd",
+          "ISO 9001, 27001 en 27701",
+          "Eén vaste casemanager per klant"
+        ]
+      }
+    },
+    {
+      "type": "klantenStrook",
+      "label": "Partners: klantlogo’s",
+      "data": {
+        "label": "Werkgevers die hun verzuim al bij React2u onderbrengen"
       }
     },
     {
@@ -35,11 +58,32 @@
       "data": {
         "heading": "Je ziet verzuim eerder dan de werkgever zelf. Daar hoort een arbodienst bij die net zo dichtbij is.",
         "items": [
-          { "kleur": "roze", "titel": "Accountants", "tekst": "Je ziet de loonsanctie en de Whk-premie op de jaarrekening terug. Wij voorkomen ze." },
-          { "kleur": "teal", "titel": "Salariskantoren", "tekst": "Elke ziekmelding gaat door jouw handen. Zet hem met één klik bij een casemanager neer." },
-          { "kleur": "oranje", "titel": "HR-adviseurs", "tekst": "Jij doet het HR-werk, wij de bedrijfsarts en de Wet verbetering poortwachter." },
-          { "kleur": "blauw", "titel": "Verzekeringsadviseurs", "tekst": "Lager verzuim is een lagere premie. Wij leveren de cijfers waarmee jij adviseert." }
-        ]
+          {
+            "kleur": "roze",
+            "titel": "Accountants",
+            "tekst": "Je ziet de loonsanctie en de Whk-premie op de jaarrekening terug. Wij voorkomen ze.",
+            "icoon": "rekenmachine"
+          },
+          {
+            "kleur": "teal",
+            "titel": "Salariskantoren",
+            "tekst": "Elke ziekmelding gaat door jouw handen. Zet hem met één klik bij een casemanager neer.",
+            "icoon": "loonstrook"
+          },
+          {
+            "kleur": "oranje",
+            "titel": "HR-adviseurs",
+            "tekst": "Jij doet het HR-werk, wij de bedrijfsarts en de Wet verbetering poortwachter.",
+            "icoon": "mensen"
+          },
+          {
+            "kleur": "blauw",
+            "titel": "Verzekeringsadviseurs",
+            "tekst": "Lager verzuim is een lagere premie. Wij leveren de cijfers waarmee jij adviseert.",
+            "icoon": "schild"
+          }
+        ],
+        "eyebrow": "Voor wie"
       }
     },
     {
@@ -50,10 +94,27 @@
         "heading": "Jij signaleert.\nWij nemen het over.",
         "text": "Je hoeft niets te verkopen en niets te administreren. Drie momenten waarop je iets van ons hoort.",
         "stappen": [
-          { "titel": "Je meldt een klant aan", "tekst": "Een mail naar sales@react2u.nl met de naam, het aantal medewerkers en wat er speelt. Meer hoeven wij niet te weten." },
-          { "titel": "Binnen twee werkdagen een offerte", "tekst": "Op basis van onze tarievenlijst, zonder verrassingen. Jij krijgt een kopie en schuift aan bij het gesprek als je dat wilt." },
-          { "titel": "Klant tekent, jij factureert ons", "tekst": "Elk kwartaal krijg je een overzicht per klant met de vergoeding erbij. Dat is je factuur. Wij dragen het incassorisico." }
-        ]
+          {
+            "titel": "Je meldt een klant aan",
+            "tekst": "Een mail naar sales@react2u.nl met de naam, het aantal medewerkers en wat er speelt. Meer hoeven wij niet te weten.",
+            "wie": "Jij",
+            "icoon": "verstuur"
+          },
+          {
+            "titel": "Binnen twee werkdagen een offerte",
+            "tekst": "Op basis van onze tarievenlijst, zonder verrassingen. Jij krijgt een kopie en schuift aan bij het gesprek als je dat wilt.",
+            "wie": "Wij",
+            "icoon": "document"
+          },
+          {
+            "titel": "Klant tekent, jij factureert ons",
+            "tekst": "Elk kwartaal krijg je een overzicht per klant met de vergoeding erbij. Dat is je factuur. Wij dragen het incassorisico.",
+            "wie": "Wij betalen",
+            "icoon": "portemonnee"
+          }
+        ],
+        "eyebrow": "Zo werkt het",
+        "stapLabel": "Stap"
       }
     },
     {
@@ -69,30 +130,48 @@
             "label": "Aanbrengpartner",
             "titel": "Je verwijst door, wij doen de rest",
             "cijfers": [
-              { "waarde": "50%", "tekst": "van het abonnement in jaar één" },
-              { "waarde": "25%", "tekst": "elk jaar daarna, zolang de klant blijft" }
+              {
+                "waarde": "50%",
+                "tekst": "van het abonnement in jaar één"
+              },
+              {
+                "waarde": "25%",
+                "tekst": "elk jaar daarna, zolang de klant blijft"
+              }
             ],
             "punten": [
               "React2u factureert je klant rechtstreeks",
               "Geen contract met de klant, geen aansprakelijkheid",
               "Uitbetaling per kwartaal op jouw factuur"
-            ]
+            ],
+            "knop": {
+              "label": "Word aanbrengpartner",
+              "href": "#aanmelden"
+            }
           },
           {
             "stijl": "zand",
             "label": "Resellerpartner",
             "titel": "Arbo als onderdeel van jouw dienst",
             "cijfers": [
-              { "waarde": "Eigen opslag", "tekst": "op onze tarieven, binnen een afgesproken bandbreedte" }
+              {
+                "waarde": "Eigen opslag",
+                "tekst": "op onze tarieven, binnen een afgesproken bandbreedte"
+              }
             ],
             "punten": [
               "React2u factureert de klant inclusief jouw opslag en keert die aan jou uit",
               "Jouw kantoor blijft het eerste aanspreekpunt, wij werken op de achtergrond",
               "Voor HR- en salariskantoren met een eigen abonnement"
-            ]
+            ],
+            "knop": {
+              "label": "Word resellerpartner",
+              "href": "#aanmelden"
+            }
           }
         ],
-        "voetnoot": "Vergoedingen gelden over abonnementen (aansluittarief en casemanagementpakketten) en worden berekend over wat de klant werkelijk heeft betaald. Losse verrichtingen en specialisten op uurbasis tellen niet mee. De volledige voorwaarden staan in de partnerovereenkomst."
+        "voetnoot": "Vergoedingen gelden over abonnementen (aansluittarief en casemanagementpakketten) en worden berekend over wat de klant werkelijk heeft betaald. Losse verrichtingen en specialisten op uurbasis tellen niet mee. De volledige voorwaarden staan in de partnerovereenkomst.",
+        "eyebrow": "Vergoeding"
       }
     },
     {
@@ -101,14 +180,47 @@
       "data": {
         "heading": "Eén casemanager die je kent.\nVan dag één tot herstel.",
         "text": "Dat beloven we jouw klant, en daar word jij op aangesproken. Daarom werkt elke klant met één vaste casemanager, met een bedrijfsarts en arbeidsdeskundige in hetzelfde team, en zonder keuzemenu aan de telefoon.",
-        "keurmerken": ["SBCA gecertificeerd", "ISO 9001", "ISO 27001", "ISO 27701", "OVAL"],
         "labels": [
-          { "kleur": "roze", "naam": "Recover", "tekst": "Verzuimbegeleiding volgens de Wet verbetering poortwachter", "href": "/recover" },
-          { "kleur": "teal", "naam": "Resist", "tekst": "Preventie: RI&E, PMO, keuringen en trainingen", "href": "/resist" },
-          { "kleur": "oranje", "naam": "Restart", "tekst": "Re-integratie, spoor 2 en loopbaancoaching", "href": "/restart" },
-          { "kleur": "blauw", "naam": "Reflex", "tekst": "Voor de flexbranche: Ziektewet en flexkrachten", "href": "/reflex" },
-          { "kleur": "navy", "naam": "Ready", "tekst": "HR en arbeidsrecht, voor partners zonder eigen HR-tak", "href": "/ready" }
-        ]
+          {
+            "kleur": "roze",
+            "naam": "Recover",
+            "tekst": "Verzuimbegeleiding volgens de Wet verbetering poortwachter",
+            "href": "/recover"
+          },
+          {
+            "kleur": "teal",
+            "naam": "Resist",
+            "tekst": "Preventie: RI&E, PMO, keuringen en trainingen",
+            "href": "/resist"
+          },
+          {
+            "kleur": "oranje",
+            "naam": "Restart",
+            "tekst": "Re-integratie, spoor 2 en loopbaancoaching",
+            "href": "/restart"
+          },
+          {
+            "kleur": "blauw",
+            "naam": "Reflex",
+            "tekst": "Voor de flexbranche: Ziektewet en flexkrachten",
+            "href": "/reflex"
+          },
+          {
+            "kleur": "navy",
+            "naam": "Ready",
+            "tekst": "HR en arbeidsrecht, voor partners zonder eigen HR-tak",
+            "href": "/ready"
+          }
+        ],
+        "eyebrow": "Voor je klant"
+      }
+    },
+    {
+      "type": "klantenAanHetWoord",
+      "label": "Partners: klanten aan het woord",
+      "data": {
+        "eyebrow": "Ervaringen",
+        "heading": "Jouw klant is in goede handen"
       }
     },
     {
@@ -117,11 +229,24 @@
       "data": {
         "heading": "Wat partners ons vragen",
         "items": [
-          { "question": "Blijf ik het aanspreekpunt voor mijn klant?", "answer": "Ja. Wij nemen alleen de arbodienstverlening over. Alles wat over je eigen dienst gaat, blijft bij jou. Bij het eerste gesprek met de klant mag je altijd aanschuiven." },
-          { "question": "Wat als mijn klant al een arbodienst heeft?", "answer": "Dan maken wij een vergelijking op basis van het huidige contract. Overstappen kan meestal per jaarwisseling; wij regelen de overdracht van lopende dossiers." },
-          { "question": "Hoe zie ik wat mijn klanten opleveren?", "answer": "Elke klant krijgt jouw partnercode. Per kwartaal ontvang je een overzicht met de abonnementsomzet per klant en de vergoeding die daarbij hoort. Dat overzicht is de basis voor je factuur." },
-          { "question": "Zit ik ergens aan vast?", "answer": "Nee. De partnerovereenkomst kent geen minimumaantal klanten en is maandelijks opzegbaar. Vergoedingen over al aangebrachte klanten lopen gewoon door." }
-        ]
+          {
+            "question": "Blijf ik het aanspreekpunt voor mijn klant?",
+            "answer": "Ja. Wij nemen alleen de arbodienstverlening over. Alles wat over je eigen dienst gaat, blijft bij jou. Bij het eerste gesprek met de klant mag je altijd aanschuiven."
+          },
+          {
+            "question": "Wat als mijn klant al een arbodienst heeft?",
+            "answer": "Dan maken wij een vergelijking op basis van het huidige contract. Overstappen kan meestal per jaarwisseling; wij regelen de overdracht van lopende dossiers."
+          },
+          {
+            "question": "Hoe zie ik wat mijn klanten opleveren?",
+            "answer": "Elke klant krijgt jouw partnercode. Per kwartaal ontvang je een overzicht met de abonnementsomzet per klant en de vergoeding die daarbij hoort. Dat overzicht is de basis voor je factuur."
+          },
+          {
+            "question": "Zit ik ergens aan vast?",
+            "answer": "Nee. De partnerovereenkomst kent geen minimumaantal klanten en is maandelijks opzegbaar. Vergoedingen over al aangebrachte klanten lopen gewoon door."
+          }
+        ],
+        "eyebrow": "Vragen"
       }
     },
     {
@@ -154,7 +279,8 @@
           "knop": "Plan een terugbelmoment",
           "bedankt": "Dank je, we bellen je snel.",
           "bedanktTekst": "We nemen binnen één werkdag contact op om kennis te maken en het partnerprogramma door te lopen."
-        }
+        },
+        "eyebrow": "Partner worden"
       }
     }
   ]
