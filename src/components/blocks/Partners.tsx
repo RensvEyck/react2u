@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { NAVY, PINK, TEAL, SKY, ORANGE, BODY, LAV, kop, Eyebrow } from "./Gedeeld";
-import { euroRond, partnerVergoeding } from "@/lib/partners";
-import { telefoonInTaal, vul, type Taal } from "@/lib/taal";
+import { NAVY, PINK, ORANGE, BODY, MUTE, LAV, kop, Eyebrow, Pijl } from "./Gedeeld";
+import { telefoonInTaal, type Taal } from "@/lib/taal";
 import type { TarievenSettings } from "@/lib/tarieven";
 import PartnerRekenhulp from "./PartnerRekenhulp";
 import PartnerFormulier from "./PartnerFormulier";
+import Beeld from "@/components/site/Beeld";
 
 type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
 
@@ -16,8 +16,8 @@ type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
  * salariskantoren en HR- en verzekeringsadviseurs. De pagina heeft de opzet
  * van een dienstpagina zoals /ready (het blok dienstLabel, met zonderKop),
  * met deze blokken eromheen:
- * - ptKop: een eigen kop in twee tegels zoals de startpagina: links diep roze
- *   met de tekst en de knoppen, rechts lila met de vergoeding in een indigo bol;
+ * - ptKop: een brede foto met een grote roze bol, zoals de tegels van de
+ *   startpagina, en de vergoeding op een wit kaartje;
  * - ptRekenhulp: kop en breedte zoals de secties van dienstLabel, met het
  *   rekenvoorbeeld als kaart;
  * - ptAanmelden: zoals het kennismaakblok, met het aanmeldformulier.
@@ -27,107 +27,85 @@ function anker(d: any) {
   return d.anchor ? { id: d.anchor } : {};
 }
 
-/* ---------- Kop: twee tegels, zoals de startpagina ---------- */
+/* ---------- Kop: foto met een roze bol, zoals de startpagina ---------- */
 
 /** Diep roze: de kleur van het logo, donker genoeg voor witte tekst (contrast 5,3). */
 const ROZE_DIEP = "#CF1468";
-/** De lila tegel en de tinten in de bol, als de werkgeverstegel van de startpagina (HomeSplit). */
-const LILA = "#D9D3F0";
-const BOL_LABEL = "#B4ADF2";
-const BOL_TEKST = "#D6D2F7";
 
-// [links %, boven %, maat px, kleur, zweef]: stippen uit het logo op de lila tegel, boven de bol.
-const STIPPEN: [number, number, number, string, number][] = [
-  [9, 9, 16, ORANGE, 1], [20, 24, 10, TEAL, 2], [6, 31, 8, SKY, 3], [27, 8, 9, PINK, 2],
-];
-
-function Vinkje() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mt-0.5 shrink-0">
-      <path d="m5 12 5 5L20 7" />
-    </svg>
-  );
+/** "Jouw klant, onze casemanager, jouw vergoeding" als drie regels; de laatste krijgt een punt. */
+function regels(tagline: string): string[] {
+  const delen = String(tagline || "").split(/,\s*/).filter(Boolean);
+  return delen.map((r, i) => (i < delen.length - 1 ? `${r},` : `${r}.`));
 }
 
+/**
+ * Een brede foto met rechtsonder een grote roze bol, in de taal van de tegels
+ * op de startpagina (HomeSplit). In de bol de kop: de programmanaam klein, de
+ * belofte groot op drie regels met een oranje streep onder het slot. Links
+ * boven op de foto de vergoeding op een wit kaartje. Op de telefoon en tablet
+ * staan het roze vlak en de foto onder elkaar, de kop eerst en het kaartje
+ * onderaan de foto, zodat het geen gezichten afdekt; de bol komt pas vanaf
+ * 1024px, waar hij ruim genoeg is voor de tekst.
+ */
 export function PtKop({ d, asH1 }: { d: any; asH1?: boolean }) {
   const H = asH1 ? "h1" : "h2";
-  const kruimels: { label: string; href?: string }[] = d.kruimels || [];
-  const knoppen: { label: string; href: string }[] = d.knoppen || [];
   const k = d.kaart || {};
-  const vb = d.voorbeeld || {};
-  const v = partnerVergoeding({
-    klanten: Number(vb.klanten) || 0, medewerkers: Number(vb.medewerkers) || 0, tarief: Number(vb.tarief) || 0,
-    pctJaarEen: Number(vb.pctJaarEen) || 0, pctVervolg: Number(vb.pctVervolg) || 0,
-  });
+  const lijnen = regels(d.tagline);
+  const knoppen: { label: string; href: string }[] = d.knoppen || [];
+  const kruimels: { label: string; href?: string }[] = d.kruimels || [];
   return (
-    <section aria-label={d.heading} className={`hv ${outfit.variable} px-[6px] pt-4 md:px-10 md:pt-8 xl:mx-auto xl:max-w-[1280px]`}>
-      <div className="grid gap-[6px] md:gap-2 lg:grid-cols-[minmax(0,1fr)_400px] xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-
-        {/* Links, op diep roze: wie het programma is voor en de knoppen. */}
-        <div className="relative overflow-hidden rounded-[28px] px-6 pb-10 pt-9 text-white md:rounded-[36px] md:p-14 lg:p-12 xl:p-16"
-          style={{ background: d.kleur || ROZE_DIEP }}>
-          <span aria-hidden className="absolute right-[-200px] top-[-240px] h-[480px] w-[480px] rounded-full" style={{ background: PINK }} />
-          <div className="relative flex h-full flex-col justify-center gap-5 md:gap-[22px]">
+    <section aria-label={d.heading} className={`hv ${outfit.variable} px-[6px] pt-[6px] md:px-2 md:pt-2`}>
+      <div className="relative flex flex-col gap-[6px] md:gap-2 lg:block lg:h-[680px] lg:overflow-hidden lg:rounded-[36px]">
+        <div className="relative rounded-[28px] px-6 pb-10 pt-9 md:rounded-[36px] md:p-14 lg:absolute lg:bottom-[-150px] lg:right-[-110px] lg:z-10 lg:h-[780px] lg:w-[780px] lg:rounded-full lg:p-0" style={{ background: ROZE_DIEP }}>
+          <div className="flex flex-col gap-6 lg:absolute lg:left-[120px] lg:top-[140px] lg:w-[450px]">
             {kruimels.length > 0 && (
               <nav aria-label="Kruimelpad" className="flex flex-wrap items-center gap-2.5 text-[14px] font-semibold text-white/75">
                 {kruimels.map((kr, i) => kr.href
-                  ? <span key={i} className="contents"><Link href={kr.href} className="text-white/75 hover:text-white">{kr.label}</Link><span>/</span></span>
+                  ? <span key={i} className="contents"><Link href={kr.href} className="text-white/75 hover:text-white">{kr.label}</Link><span aria-hidden>/</span></span>
                   : <span key={i} aria-current="page" className="text-white">{kr.label}</span>)}
               </nav>
             )}
-            <div>
-              <H className={`${kop} m-0 text-[26px] leading-[1.05] tracking-[-0.4px] md:text-[34px]`} style={{ color: "#ffffff" }}>
-                React2u<br />
-                <span className="mt-1 inline-block text-[64px] tracking-[-2px] md:text-[96px] md:tracking-[-3px]">{d.naam}</span>
-                <span className="hv-dienst mt-5 block text-[18px] font-bold leading-[1.5] tracking-normal md:mt-[22px] md:text-[21px]">{d.label}</span>
-              </H>
-              {d.tagline && <p className="m-0 text-[18px] leading-[1.5] text-white md:text-[21px]"><em>{d.tagline}</em></p>}
-            </div>
-            {d.text && <p className="m-0 max-w-[540px] text-[16px] leading-[1.7] text-white/90 md:text-[17px]">{d.text}</p>}
-            <div className="flex flex-wrap gap-2.5 pt-2">
+            <H className={`${kop} m-0`} style={{ color: "#ffffff" }}>
+              {d.eyebrow && (
+                <span className="hv-dienst mb-5 flex items-center gap-2.5 text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: "rgba(255,255,255,0.85)" }}>
+                  <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ background: ORANGE }} />{d.eyebrow}
+                </span>
+              )}
+              <span className="block text-[36px] leading-[1.04] tracking-[-1.2px] md:text-[52px] md:tracking-[-1.8px] lg:text-[48px] lg:tracking-[-1.6px]">
+                {lijnen.map((r, i) => (
+                  <span key={i} className="block">
+                    {/* Het slot ("jouw vergoeding.") met een oranje streep eronder. */}
+                    {i < lijnen.length - 1 ? r : (
+                      <span style={{ backgroundImage: `linear-gradient(${ORANGE}, ${ORANGE})`, backgroundSize: "100% 0.11em", backgroundPosition: "0 94%", backgroundRepeat: "no-repeat" }}>{r}</span>
+                    )}
+                  </span>
+                ))}
+              </span>
+            </H>
+            {d.sub && <p className="m-0 max-w-[420px] text-[16px] leading-[1.6] text-white/90 md:text-[17px]">{d.sub}</p>}
+            <div className="flex flex-wrap gap-2.5">
               {knoppen.map((b, i) => (
                 <a key={i} href={b.href}
-                  className={`hv-btn inline-flex h-[54px] items-center gap-2.5 rounded-full px-6 text-[15px] font-bold ${i === 0 ? "bg-white text-[#322E83] hover:bg-[#ECEBF5]" : "border-[1.5px] border-white/60 text-white hover:bg-white/10"}`}>
-                  {b.label}
-                  <svg className="hn-pijl" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                  className={`hv-btn inline-flex h-[54px] items-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold ${i === 0 ? "bg-white text-[#322E83] hover:bg-[#ECEBF5]" : "border-[1.5px] border-white/50 text-white hover:bg-white/10"}`}>
+                  {b.label}<Pijl />
                 </a>
               ))}
             </div>
-            {(k.punten || []).length > 0 && (
-              <ul className="m-0 flex list-none flex-col gap-2 p-0 pt-1 md:flex-row md:flex-wrap md:gap-x-6">
-                {k.punten.map((p: string, i: number) => (
-                  <li key={i} className="flex items-start gap-2 text-[14.5px] leading-[1.45] text-white/90"><Vinkje />{p}</li>
-                ))}
-              </ul>
-            )}
           </div>
         </div>
 
-        {/* Rechts, op lila: de vergoeding in een indigo bol zoals de tegels van de
-            startpagina, met het rekenvoorbeeld als kaartje erboven. */}
-        <div className="relative h-[500px] overflow-hidden rounded-[28px] md:h-[540px] md:rounded-[36px] lg:h-auto lg:min-h-[560px]" style={{ background: LILA }}>
-          {STIPPEN.map(([x, y, m, c, f], i) => (
-            <span key={i} aria-hidden className={`hv-f${f} absolute rounded-full`}
-              style={{ left: `${x}%`, top: `${y}%`, width: m, height: m, background: c }} />
-          ))}
-          {k.voorbeeldTekst && (
-            <div className="absolute right-5 top-5 flex max-w-[250px] rotate-[2deg] flex-col gap-1.5 rounded-[20px] bg-white px-5 py-4 shadow-[0_24px_48px_-24px_rgba(50,46,131,0.5)] md:right-8 md:top-8 md:max-w-[280px]">
-              <span className="text-[14px] leading-[1.45]" style={{ color: BODY }}>{vul(k.voorbeeldTekst, { klanten: vb.klanten, medewerkers: vb.medewerkers })}</span>
-              <span className="flex items-baseline gap-2">
-                <span className={`${kop} whitespace-nowrap text-[30px] leading-none tracking-[-0.8px] tabular-nums`} style={{ color: NAVY }}>{euroRond(v.jaarEen)}</span>
-                <span className="text-[14px]" style={{ color: BODY }}>{k.voorbeeldNa}</span>
-              </span>
-            </div>
-          )}
-          <span aria-hidden className="absolute bottom-[-150px] left-[-90px] h-[480px] w-[480px] rounded-full md:bottom-[-170px] md:left-[-130px] md:h-[640px] md:w-[640px]" style={{ background: NAVY }} />
-          <div className="absolute bottom-9 left-7 flex max-w-[290px] flex-col gap-3 md:bottom-14 md:left-14 md:max-w-[340px] lg:left-10 lg:max-w-[300px] xl:left-14 xl:max-w-[340px]">
-            {k.kop && <span className="text-[13px] font-bold uppercase tracking-[1.4px]" style={{ color: BOL_LABEL }}>{k.kop}</span>}
-            <span className={`${kop} text-[96px] leading-[0.8] tracking-[-3px] md:text-[128px] md:tracking-[-4px]`} style={{ color: "#ffffff" }}>{k.groot}</span>
-            <span className="text-[16px] font-semibold leading-[1.35]" style={{ color: BOL_TEKST }}>{k.grootTekst}</span>
+        <div className="relative h-[340px] overflow-hidden rounded-[28px] md:h-[460px] md:rounded-[36px] lg:absolute lg:inset-0 lg:h-auto lg:rounded-none" style={{ background: "#D9D3F0" }}>
+          <Beeld src={d.beeld} alt={d.beeldAlt || ""} fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: d.beeldFocus || "30% 45%" }} />
+          <div className="absolute bottom-3 left-3 flex flex-col gap-2 rounded-[20px] bg-white p-4 shadow-[0_24px_48px_-24px_rgba(28,26,78,0.55)] md:bottom-8 md:left-8 md:rounded-[22px] md:p-5 lg:bottom-auto lg:left-10 lg:top-10 lg:p-6">
+            {k.kop && <span className="text-[12px] font-bold uppercase tracking-[1.4px]" style={{ color: MUTE }}>{k.kop}</span>}
+            <span className="flex items-end gap-3">
+              <span className={`${kop} text-[52px] leading-[0.8] tracking-[-2px] md:text-[72px] md:tracking-[-3px]`} style={{ color: NAVY }}>{k.groot}</span>
+              <span className="max-w-[130px] pb-0.5 text-[13.5px] font-semibold leading-[1.3] md:text-[14px]" style={{ color: NAVY }}>{k.grootTekst}</span>
+            </span>
             {k.plus && (
-              <span className="mt-2 flex items-center gap-3">
-                <span className={`${kop} shrink-0 rounded-full px-3.5 py-2 text-[20px] leading-none`} style={{ background: PINK, color: "#ffffff" }}>{k.plus}</span>
-                <span className="text-[15px] leading-[1.35]" style={{ color: BOL_TEKST }}>{k.plusTekst}</span>
+              <span className="flex items-center gap-2.5 pt-1">
+                <span className={`${kop} shrink-0 rounded-full px-2.5 py-1.5 text-[15px] leading-none md:text-[17px]`} style={{ background: PINK, color: "#ffffff" }}>{k.plus}</span>
+                <span className="text-[14px] leading-[1.4] md:text-[15px]" style={{ color: BODY }}>{k.plusTekst}</span>
               </span>
             )}
           </div>

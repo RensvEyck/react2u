@@ -6,10 +6,9 @@
   "blocks": [
     {
       "type": "ptKop",
-      "label": "Partners: kop in twee tegels met de vergoeding",
+      "label": "Partners: kop met foto, roze bol en de vergoeding",
       "data": {
         "heading": "React2u Partners",
-        "naam": "Partners",
         "kruimels": [
           {
             "label": "Werkgevers",
@@ -19,9 +18,9 @@
             "label": "Partners"
           }
         ],
-        "label": "Partnerprogramma voor adviseurs.",
+        "eyebrow": "React2u Partners",
         "tagline": "Jouw klant, onze casemanager, jouw vergoeding",
-        "text": "Accountants, salariskantoren en HR-adviseurs zien als eerste dat verzuim een werkgever geld kost. Breng die werkgever bij ons onder. Wij doen de begeleiding, jij blijft het aanspreekpunt.",
+        "sub": "Voor accountants, salariskantoren en HR-adviseurs.",
         "knoppen": [
           {
             "label": "Partner worden",
@@ -32,25 +31,14 @@
             "href": "#rekenvoorbeeld"
           }
         ],
+        "beeld": "/beeld/kantoor/overleg.webp",
+        "beeldAlt": "Vier mensen in overleg aan een houten tafel met een laptop",
         "kaart": {
           "kop": "Jouw vergoeding",
           "groot": "50%",
           "grootTekst": "van het abonnement in jaar één",
           "plus": "+25%",
-          "plusTekst": "in elk jaar daarna, zolang de klant blijft",
-          "voorbeeldTekst": "Bij {klanten} klanten met elk {medewerkers} medewerkers:",
-          "voorbeeldNa": "in jaar één",
-          "punten": [
-            "Geen contract met de klant, geen aansprakelijkheid",
-            "Uitbetaling per kwartaal op jouw factuur"
-          ]
-        },
-        "voorbeeld": {
-          "klanten": 10,
-          "medewerkers": 100,
-          "tarief": 38.5,
-          "pctJaarEen": 50,
-          "pctVervolg": 25
+          "plusTekst": "elk jaar daarna"
         }
       }
     },

@@ -762,9 +762,10 @@ dus alleen op staging; live komt hij met `node scripts/concept-naar-sql.mjs part
 (zie *Concepten*). Let op: `--alle` neemt hem dan ook mee. Een link in het menu
 of de footer hoort pas bij het live zetten, anders geeft hij in productie een 404.
 
-De pagina heeft een eigen kop (`ptKop`: twee tegels zoals de startpagina,
-links diep roze met tekst en knoppen, rechts lila met de vergoeding in een
-indigo bol en het rekenvoorbeeld als kaartje), direct daaronder het rekenvoorbeeld (`ptRekenhulp`: eerst
+De pagina heeft een eigen kop (`ptKop`: een brede foto met een grote roze bol
+zoals de tegels van de startpagina, met de kop en de knoppen in de bol en de
+vergoeding op een wit kaartje; op telefoon en tablet onder elkaar, kop eerst),
+direct daaronder het rekenvoorbeeld (`ptRekenhulp`: eerst
 zien wat het oplevert, dan hoe het werkt), dan de opzet van een dienstpagina
 zoals /ready: het blok `dienstLabel` met `zonderKop` (herken je dit, de twee
 partnervormen, zo werkt het, waarom, wat je klant krijgt), en tot slot
