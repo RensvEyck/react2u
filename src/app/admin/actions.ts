@@ -99,6 +99,28 @@ export async function saveVacancy(formData: FormData) {
     valid_through: String(formData.get("valid_through") || "") || null,
     seo_title: String(formData.get("seo_title") || "") || null,
     seo_description: String(formData.get("seo_description") || "") || null,
+    // Nieuwe opbouw (migratie 0017): kenmerken en secties per taal.
+    ...(formData.has("opbouw_nl_doen")
+      ? {
+          vakgebied: String(formData.get("vakgebied") || "").trim() || null,
+          ervaringsniveau: String(formData.get("ervaringsniveau") || "").trim() || null,
+          opleidingsniveau: String(formData.get("opleidingsniveau") || "").trim() || null,
+          contractvorm: String(formData.get("contractvorm") || "").trim() || null,
+          opbouw: Object.fromEntries(
+            (["nl", "en"] as const)
+              .filter((t) => formData.has(`opbouw_${t}_doen`))
+              .map((t) => [
+                t,
+                Object.fromEntries(
+                  (["doen", "samen", "leuk", "vragen", "bieden", "eerlijk", "faq"] as const).map((k) => [
+                    k,
+                    String(formData.get(`opbouw_${t}_${k}`) || "").replace(/\r\n/g, "\n").trim(),
+                  ])
+                ),
+              ])
+          ),
+        }
+      : {}),
     // De Engelse velden (migratie 0015) alleen als het formulier ze meestuurt:
     // zonder die kolommen in de database staan ze uitgeschakeld (VacancyFields)
     // en ontbreken ze hier, zodat de opslag niet op een onbekende kolom breekt.

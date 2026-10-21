@@ -20,6 +20,24 @@ export type Block = {
   updated_at: string;
 };
 
+/** De vaste secties van een vacature, als mini-markdown. */
+export type VacatureOpbouw = {
+  /** Wat ga je doen */
+  doen: string;
+  /** Met wie werk je samen: team, disciplines, aanspreekpunten */
+  samen: string;
+  /** Wat is echt leuk aan deze baan */
+  leuk: string;
+  /** Wat wij vragen (eisen, met eventueel "Mooi meegenomen") */
+  vragen: string;
+  /** Wat wij bieden: aanvullingen op het vaste pakket, of bij ZZP het hele aanbod */
+  bieden: string;
+  /** Eerlijk is eerlijk: wat minder leuk is aan de rol */
+  eerlijk: string;
+  /** Veelgestelde vragen: blokken "**Vraag?**" + antwoord, gescheiden door een lege regel */
+  faq: string;
+};
+
 export type Vacancy = {
   id: string;
   slug: string;
@@ -34,6 +52,13 @@ export type Vacancy = {
   title_en?: string | null;
   intro_en?: string | null;
   description_en_md?: string | null;
+  /** Kenmerken voor "In het kort" (migratie 0017); leeg = niet tonen. */
+  vakgebied?: string | null;
+  ervaringsniveau?: string | null;
+  opleidingsniveau?: string | null;
+  contractvorm?: string | null;
+  /** Secties per taal (migratie 0017), zie lib/vacatures.ts `opbouwInTaal`. */
+  opbouw?: Partial<Record<"nl" | "en", Partial<VacatureOpbouw>>> | null;
   status: "draft" | "published" | "closed";
   published_at: string | null;
   valid_through: string | null;
