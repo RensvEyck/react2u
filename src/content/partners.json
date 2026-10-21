@@ -55,6 +55,33 @@
       }
     },
     {
+      "type": "ptRekenhulp",
+      "label": "Partners: rekenvoorbeeld",
+      "data": {
+        "anchor": "rekenvoorbeeld",
+        "eyebrow": "Wat het oplevert",
+        "heading": "Reken uit wat jouw klanten opleveren",
+        "text": "50% van het abonnement in het eerste jaar en 25% in elk jaar daarna, zolang de klant blijft.",
+        "rekenhulp": {
+          "kop": "Jouw klantenbestand",
+          "tekst": "Schuif en zie wat jouw klanten je per jaar opleveren.",
+          "klantenLabel": "Klanten die je aanbrengt",
+          "medewerkersLabel": "Gemiddeld aantal medewerkers per klant",
+          "jaarEenLabel": "In jaar één",
+          "vervolgLabel": "Elk jaar daarna",
+          "startKlanten": 10,
+          "startMedewerkers": 100,
+          "tarief": 38.5,
+          "pctJaarEen": 50,
+          "pctVervolg": 25,
+          "voetnoot": "Rekenvoorbeeld op basis van het aansluittarief van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement.",
+          "jarenKop": "De eerste vijf jaar",
+          "totaalLabel": "Samen in vijf jaar",
+          "jaarLabel": "Jaar"
+        }
+      }
+    },
+    {
       "type": "dienstLabel",
       "label": "Partners: kop en opzet zoals een dienstpagina",
       "data": {
@@ -174,33 +201,6 @@
           "bekijkOok": "Wat jouw klant krijgt"
         },
         "zonderKop": true
-      }
-    },
-    {
-      "type": "ptRekenhulp",
-      "label": "Partners: rekenvoorbeeld",
-      "data": {
-        "anchor": "rekenvoorbeeld",
-        "eyebrow": "Wat het oplevert",
-        "heading": "Reken uit wat jouw klanten opleveren",
-        "text": "50% van het abonnement in het eerste jaar en 25% in elk jaar daarna, zolang de klant blijft.",
-        "rekenhulp": {
-          "kop": "Jouw klantenbestand",
-          "tekst": "Schuif en zie wat jouw klanten je per jaar opleveren.",
-          "klantenLabel": "Klanten die je aanbrengt",
-          "medewerkersLabel": "Gemiddeld aantal medewerkers per klant",
-          "jaarEenLabel": "In jaar één",
-          "vervolgLabel": "Elk jaar daarna",
-          "startKlanten": 10,
-          "startMedewerkers": 100,
-          "tarief": 38.5,
-          "pctJaarEen": 50,
-          "pctVervolg": 25,
-          "voetnoot": "Rekenvoorbeeld op basis van het aansluittarief van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement.",
-          "jarenKop": "De eerste vijf jaar",
-          "totaalLabel": "Samen in vijf jaar",
-          "jaarLabel": "Jaar"
-        }
       }
     },
     {

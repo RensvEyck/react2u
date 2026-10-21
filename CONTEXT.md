@@ -763,10 +763,11 @@ dus alleen op staging; live komt hij met `node scripts/concept-naar-sql.mjs part
 of de footer hoort pas bij het live zetten, anders geeft hij in productie een 404.
 
 De pagina heeft een eigen kop (`ptKop`: diep roze, met de vergoeding op twee
-gestapelde kaarten) en daaronder de opzet van een dienstpagina zoals /ready:
-het blok `dienstLabel` met `zonderKop` (herken je dit, de twee partnervormen,
-zo werkt het, waarom, wat je klant krijgt), daarna `ptRekenhulp`, `dgVragen` en
-`ptAanmelden` uit [`Partners.tsx`](src/components/blocks/Partners.tsx).
+gestapelde kaarten), direct daaronder het rekenvoorbeeld (`ptRekenhulp`: eerst
+zien wat het oplevert, dan hoe het werkt), dan de opzet van een dienstpagina
+zoals /ready: het blok `dienstLabel` met `zonderKop` (herken je dit, de twee
+partnervormen, zo werkt het, waarom, wat je klant krijgt), en tot slot
+`dgVragen` en `ptAanmelden` uit [`Partners.tsx`](src/components/blocks/Partners.tsx).
 `dienstLabel` kent daarvoor optionele velden: `zonderKop`, `aanpakAnker` en
 `titels` voor de vaste kopjes. Zonder die velden blijven de vijf dienstpagina's
 gelijk. Het rekenvoorbeeld rekent met

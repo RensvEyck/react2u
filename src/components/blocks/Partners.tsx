@@ -138,8 +138,10 @@ export function PtKop({ d, asH1 }: { d: any; asH1?: boolean }) {
 /** In de opzet van de dienstpagina's (dienstLabel): label met stip, kop links, toelichting rechts. */
 export function PtRekenhulp({ d, ctx }: { d: any; ctx?: Ctx }) {
   const jaar = ctx?.tarieven?.jaar ?? String(new Date().getFullYear());
+  // Geen ondermarge: het blok erna (dienstLabel, dgVragen) heeft zelf
+  // bovenmarge, en samen werd dat het dubbele van de rest van de pagina.
   return (
-    <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} scroll-mt-28 bg-white px-5 py-14 md:px-10 md:py-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0`}>
+    <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} scroll-mt-28 bg-white px-5 pt-14 md:px-10 md:pt-[120px] xl:mx-auto xl:max-w-[1200px] xl:px-0`}>
       <div className="flex flex-col gap-8 md:gap-12">
         <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
           <div className="flex flex-col gap-5 lg:col-span-7">
