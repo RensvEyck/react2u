@@ -1,7 +1,8 @@
 "use server";
 import { headers } from "next/headers";
 import { supabasePublic } from "@/lib/supabase/public";
-import { notifyContactMessage, notifyApplication, bevestigSollicitatie, notifyOfferte, notifyTerugbel } from "@/lib/mail";
+import { notifyContactMessage, notifyApplication, bevestigSollicitatie, notifyOfferte, notifyTerugbel, notifyPartner } from "@/lib/mail";
+import { PARTNER_OMVANG, PARTNER_SOORTEN } from "@/lib/partners";
 import { withinLimit, requestIp, type Throttle } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { uploadCv, MAX_CV_BYTES, CV_TYPES } from "@/lib/cvs";
@@ -261,6 +262,48 @@ export async function submitTerugbel(_prev: FormState, formData: FormData): Prom
   await Promise.all([
     recordConversion("terugbel", path),
     notifyTerugbel({ name, phone, company: company || null, moment, path }),
+  ]);
+  return { ok: true };
+}
+
+/**
+ * Aanmelding voor het partnerprogramma (/partners). Een kantoor vraagt om een
+ * terugbelmoment, dus het telt als terugbelverzoek in de conversies en de
+ * limiet (een eigen soort vraagt een migratie van de check op `kind`). In het
+ * Postvak IN staat hij als "Partneraanmelding", per mail gaat hij naar sales.
+ */
+export async function submitPartner(_prev: FormState, formData: FormData): Promise<FormState> {
+  const taal = taalUit(formData);
+  const fout = woordenboek(taal).formulier.fouten;
+  const stop = await poort(formData, "terugbel", fout);
+  if (stop) return stop;
+  const name = veld(formData, "name");
+  const company = veld(formData, "company");
+  const email = veld(formData, "email");
+  const phone = veld(formData, "phone");
+  const gekozen = veld(formData, "soort");
+  const soort = (PARTNER_SOORTEN as readonly string[]).includes(gekozen) ? gekozen : "Onbekend";
+  const omvangKeuze = veld(formData, "omvang");
+  const omvang = (PARTNER_OMVANG as readonly string[]).includes(omvangKeuze) ? omvangKeuze : null;
+  if (!name || !company || !email || !phone || !formData.get("privacy")) return { ok: false, error: fout.partnerVerplicht };
+  if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
+  if (phone.replace(/\D/g, "").length < 8) return { ok: false, error: fout.telefoonOngeldig };
+
+  const path = await paginaPad();
+  const message = [
+    `Kantoor: ${company}`,
+    `Soort kantoor: ${soort}`,
+    omvang ? `Werkgevers in het klantenbestand: ${omvang}` : "",
+    "Wil teruggebeld worden over het partnerprogramma.",
+  ].filter(Boolean).join("\n");
+
+  const error = await insertMetExtra("contact_messages", {
+    name, email, phone, subject: `Partneraanmelding: ${company}`, message,
+  }, { lang: taal });
+  if (error) return { ok: false, error: fout.terugbelAlgemeen };
+  await Promise.all([
+    recordConversion("terugbel", path),
+    notifyPartner({ name, company, email, phone, soort, omvang, path }),
   ]);
   return { ok: true };
 }

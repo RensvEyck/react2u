@@ -741,6 +741,27 @@ hoofddomein, en daarmee de mail van Microsoft 365, blijven ongemoeid. DMARC
 (`p=reject`, relaxed) slaagt via de DKIM-handtekening van react2u.nl. Komt de
 testmail niet binnen, kijk dan in de quarantaine van Sophos.
 
+## Partnerpagina
+
+`/partners` werft accountants, salariskantoren en HR- en verzekeringsadviseurs
+die werkgevers bij ons onderbrengen (ontwerp "React2u partnerpagina" op het
+canvas). Hij staat als concept in [`src/content/partners.json`](src/content/partners.json),
+dus alleen op staging; live komt hij met `node scripts/concept-naar-sql.mjs partners`
+(zie *Concepten*). Let op: `--alle` neemt hem dan ook mee. Een link in het menu
+of de footer hoort pas bij het live zetten, anders geeft hij in productie een 404.
+
+De blokken (`ptKop`, `ptDoelgroepen`, `ptStappen`, `ptModellen`, `ptKlant`,
+`ptAanmelden`) staan in [`Partners.tsx`](src/components/blocks/Partners.tsx); de
+vragen zijn een gewoon `dgVragen`-blok. Het rekenvoorbeeld in de kop rekent met
+`tarief`, `pctJaarEen` en `pctVervolg` uit de blokdata ([`lib/partners.ts`](src/lib/partners.ts))
+en het tarievenjaar uit de instellingen; pas het tarief daar aan als de prijs
+van Casemanagement Compleet verandert.
+
+Het formulier (`submitPartner`) komt als "Partneraanmelding: <kantoor>" in het
+Postvak IN en gaat per mail naar `NOTIFY_OFFERTE_TO` (standaard sales@react2u.nl).
+In de conversies telt het als `terugbel`: een eigen soort vraagt een migratie van
+de check op `conversions.kind`, en het formulier is een terugbelverzoek.
+
 ## Van Postvak IN naar bellijst
 
 Elke kaart in het Postvak IN heeft een knop **Op bellijst**. Die maakt een lead

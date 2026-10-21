@@ -218,6 +218,7 @@ export const en: Woordenboek = {
       cvUpload: "Uploading your CV did not work. Please try again.",
       sollicitatieAlgemeen: "Something went wrong while sending. Please try again later.",
       offerteVerplicht: "Please fill in your name, company name, email address, phone number and the number of employees.",
+      partnerVerplicht: "Please fill in your name, firm, email address and phone number, and agree to the privacy statement.",
     },
   },
 
