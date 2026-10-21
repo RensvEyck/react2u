@@ -163,5 +163,41 @@ export type ContactMessage = {
   read: boolean;
   /** Via welke taal van de site het bericht binnenkwam (migratie 0015); ontbreekt bij oudere rijen. */
   lang?: "nl" | "en";
+  /** Code uit de aanmeldlink van een partner (migratie 0022). */
+  partner_code?: string | null;
+  /** De actieve partner bij die code, door de database gekoppeld (migratie 0022). */
+  partner_id?: string | null;
+  /** Kantoor en code van die partner, als het Postvak IN hem meeleest. */
+  partner?: { kantoor: string; code: string } | null;
+  created_at: string;
+};
+
+/** Een partner in het partnerprogramma (migratie 0022). */
+export type Partner = {
+  id: string;
+  code: string;
+  kantoor: string;
+  naam: string | null;
+  email: string | null;
+  telefoon: string | null;
+  model: "aanbreng" | "reseller";
+  pct_jaar_een: number;
+  pct_vervolg: number;
+  actief: boolean;
+  notitie: string | null;
+  created_at: string;
+};
+
+/** Een werkgever die via een partner klant werd (migratie 0022). */
+export type PartnerKlant = {
+  id: string;
+  partner_id: string;
+  bedrijf: string;
+  medewerkers: number;
+  tarief: number;
+  start: string;
+  eind: string | null;
+  bericht_id: string | null;
+  notitie: string | null;
   created_at: string;
 };

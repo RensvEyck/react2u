@@ -1133,3 +1133,109 @@ export async function forgetCompany(key: string, name: string, domain: string | 
   revalidatePath("/admin", "layout");
   redirect(withParam("opgeslagen", "vergeten"));
 }
+
+/* ---------- partners (migratie 0022) ---------- */
+
+// Partners horen bij sales: alles onder het recht `bellijst`, net als de
+// policies in 0022.
+
+/** Getal uit een formulierveld; komma of punt als decimaalteken. */
+function getal(formData: FormData, naam: string): number | null {
+  const ruw = String(formData.get(naam) ?? "").trim().replace(/\s/g, "").replace(",", ".");
+  if (!ruw) return null;
+  const n = Number(ruw);
+  return Number.isFinite(n) ? n : null;
+}
+
+const datumOf = (formData: FormData, naam: string) => {
+  const v = String(formData.get(naam) || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+};
+
+/** Nieuwe partner of wijzigen; zonder code maakt het systeem er een uit de naam van het kantoor. */
+export async function savePartner(formData: FormData) {
+  const { sb } = await requirePerm("bellijst");
+  const { normaliseerPartnercode, codeVoorstel } = await import("@/lib/partners");
+  const id = String(formData.get("id") || "");
+  const terug = id ? `/admin/partners/${id}` : "/admin/partners";
+  const kantoor = String(formData.get("kantoor") || "").trim();
+  if (!kantoor) redirect(`${terug}?fout=partner-kantoor`);
+  const pct = (naam: string, standaard: number) => {
+    const n = getal(formData, naam);
+    return n === null ? standaard : Math.min(100, Math.max(0, n));
+  };
+  const tekst = (naam: string) => String(formData.get(naam) || "").trim() || null;
+  const rij = {
+    kantoor,
+    code: normaliseerPartnercode(formData.get("code")) ?? codeVoorstel(kantoor),
+    naam: tekst("naam"),
+    email: tekst("email"),
+    telefoon: tekst("telefoon"),
+    model: formData.get("model") === "reseller" ? "reseller" : "aanbreng",
+    pct_jaar_een: pct("pct_jaar_een", 50),
+    pct_vervolg: pct("pct_vervolg", 25),
+    notitie: tekst("notitie"),
+  };
+  const fout = (code?: string) => (code === "23505" ? "partner-code" : code === "PGRST205" || code === "42P01" ? "migratie-0022" : "opslaan");
+  if (id) {
+    const { error } = await sb.from("partners").update(rij).eq("id", id);
+    if (error) redirect(`${terug}?fout=${fout(error.code)}`);
+    revalidatePath("/admin/partners");
+    redirect(`${terug}?opgeslagen=1`);
+  }
+  const { data, error } = await sb.from("partners").insert(rij).select("id").single();
+  if (error || !data) redirect(`/admin/partners?fout=${fout(error?.code)}#nieuw`);
+  revalidatePath("/admin/partners");
+  redirect(`/admin/partners/${(data as { id: string }).id}?opgeslagen=partner`);
+}
+
+/** Aan of uit: een inactieve partner koppelt geen nieuwe aanvragen meer, zijn overzicht blijft staan. */
+export async function setPartnerActief(id: string, actief: boolean) {
+  const { sb } = await requirePerm("bellijst");
+  await sb.from("partners").update({ actief }).eq("id", id);
+  revalidatePath("/admin/partners");
+  revalidatePath(`/admin/partners/${id}`);
+}
+
+/** Alleen zonder klanten; anders weigert de database (on delete restrict) en blijft hij staan. */
+export async function deletePartner(id: string) {
+  const { sb } = await requirePerm("bellijst");
+  const { error } = await sb.from("partners").delete().eq("id", id);
+  if (error) redirect(`/admin/partners/${id}?fout=${error.code === "23503" ? "partner-klanten" : "opslaan"}`);
+  revalidatePath("/admin/partners");
+  redirect("/admin/partners?opgeslagen=definitief-weg");
+}
+
+/** Klant van een partner toevoegen of wijzigen; met `klant` (id) is het een wijziging. */
+export async function savePartnerKlant(partnerId: string, formData: FormData) {
+  const { sb } = await requirePerm("bellijst");
+  const terug = `/admin/partners/${partnerId}`;
+  const klantId = String(formData.get("klant") || "");
+  const bedrijf = String(formData.get("bedrijf") || "").trim();
+  const medewerkers = getal(formData, "medewerkers");
+  const tarief = getal(formData, "tarief");
+  const start = datumOf(formData, "start");
+  const eind = datumOf(formData, "eind");
+  if (!bedrijf || !medewerkers || medewerkers < 1 || tarief === null || tarief < 0 || !start) {
+    redirect(`${terug}?fout=partner-klant#klanten`);
+  }
+  if (eind && start && eind < start) redirect(`${terug}?fout=partner-eind#klanten`);
+  const rij = {
+    partner_id: partnerId, bedrijf, medewerkers: Math.round(medewerkers as number), tarief, start, eind,
+    notitie: String(formData.get("notitie") || "").trim() || null,
+  };
+  const { error } = klantId
+    ? await sb.from("partner_klanten").update(rij).eq("id", klantId).eq("partner_id", partnerId)
+    : await sb.from("partner_klanten").insert(rij);
+  if (error) redirect(`${terug}?fout=opslaan#klanten`);
+  revalidatePath("/admin/partners");
+  revalidatePath(terug);
+  redirect(`${terug}?opgeslagen=partner-klant#klanten`);
+}
+
+export async function deletePartnerKlant(partnerId: string, klantId: string) {
+  const { sb } = await requirePerm("bellijst");
+  await sb.from("partner_klanten").delete().eq("id", klantId).eq("partner_id", partnerId);
+  revalidatePath("/admin/partners");
+  revalidatePath(`/admin/partners/${partnerId}`);
+}

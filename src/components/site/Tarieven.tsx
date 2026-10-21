@@ -5,6 +5,7 @@ import {
   LuReceipt, LuShieldCheck, LuSlidersHorizontal, LuX,
 } from "react-icons/lu";
 import { submitOfferte, type FormState } from "@/app/(site)/actions";
+import { usePartnercode } from "@/lib/partnercode";
 import { kleur } from "@/lib/brand";
 import { Arrow } from "./Arrow";
 import { Bedankt, Field, fieldClass } from "./FormField";
@@ -449,6 +450,7 @@ function OfferteDialog({
   ref: React.Ref<HTMLDialogElement>; pakketten: Pakket[]; keuze: string; setKeuze: (s: string) => void; n: number;
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(submitOfferte, null);
+  const partner = usePartnercode();
   const opties = [...pakketten.map((p) => ({ sleutel: p.sleutel, naam: p.naam })), { sleutel: "maatwerk", naam: "Maatwerk" }];
   const sluit = (e: React.MouseEvent) => (e.currentTarget.closest("dialog") as HTMLDialogElement | null)?.close();
   return (
@@ -467,6 +469,8 @@ function OfferteDialog({
           <div className="mt-6"><Bedankt>Bedankt! We hebben je aanvraag ontvangen en nemen binnen twee werkdagen contact met je op.</Bedankt></div>
         ) : (
           <form action={action} className="mt-2 space-y-4">
+            {/* Via de aanmeldlink van een partner: de aanvraag hoort bij die partner. */}
+            {partner && <input type="hidden" name="partner" value={partner} />}
             <p className="text-[15.5px]">Je hoort binnen twee werkdagen van ons.</p>
             <fieldset>
               <legend className="mb-2 text-[14.5px] font-semibold text-primary">Aansluiting</legend>

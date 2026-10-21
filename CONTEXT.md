@@ -781,6 +781,34 @@ Postvak IN en gaat per mail naar `NOTIFY_OFFERTE_TO` (standaard sales@react2u.nl
 In de conversies telt het als `terugbel`: een eigen soort vraagt een migratie van
 de check op `conversions.kind`, en het formulier is een terugbelverzoek.
 
+**Partnercode en aanmeldlink** (migratie [0022](supabase/migrations/0022_partners.sql)).
+Elke partner heeft een code (4 tot 20 hoofdletters en cijfers) en een aanmeldlink
+`/kennismaken?partner=CODE`. De offerteformulieren (kennismaken en tarieven) lezen
+de code met `usePartnercode()` ([`lib/partnercode.ts`](src/lib/partnercode.ts)) en
+onthouden hem in `sessionStorage` voor dit bezoek, geen cookie. `submitOfferte`
+stuurt hem mee als `partner_code` en zet hem ook in de tekst van het bericht. De
+koppeling aan een partner doet de database: een trigger zet `partner_id` alleen
+voor een actieve partner met die code. Bezoekers mogen alleen `partner_code`
+vullen en kunnen de partnerlijst niet lezen, dus niemand hangt via de publieke
+sleutel een aanvraag aan een partner naar keuze. Daarvoor is bewust geen
+service-role-sleutel gebruikt (zie `lib/supabase/admin.ts`).
+
+In het beheer staat **Partners** (`/admin/partners`, recht `bellijst`):
+- per partner de aanmeldlink om te kopiëren of te mailen;
+- de klanten die via het kantoor kwamen (medewerkers, abonnement per medewerker
+  per jaar, looptijd);
+- de aanvragen via de link, en in het Postvak IN het label "Via <kantoor>";
+- de vergoeding per kwartaal (`kwartaalOverzicht` in [`lib/partners.ts`](src/lib/partners.ts)):
+  per begonnen maand een twaalfde van het jaarabonnement, de eerste twaalf
+  maanden tegen het percentage van jaar één, daarna tegen het vervolgpercentage.
+  Dat is een indicatie op de contractgegevens; de overeenkomst rekent met wat de
+  klant werkelijk betaalde.
+
+Een partner met klanten kan niet weg (on delete restrict); zet hem op inactief,
+dan koppelt zijn link geen nieuwe aanvragen meer. Zonder migratie 0022 werkt de
+site gewoon: de code staat dan alleen in de tekst van het bericht en het
+partnerscherm wacht met een melding.
+
 ## Van Postvak IN naar bellijst
 
 Elke kaart in het Postvak IN heeft een knop **Op bellijst**. Die maakt een lead

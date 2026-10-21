@@ -2,7 +2,7 @@
 import { headers } from "next/headers";
 import { supabasePublic } from "@/lib/supabase/public";
 import { notifyContactMessage, notifyApplication, bevestigSollicitatie, notifyOfferte, notifyTerugbel, notifyPartner } from "@/lib/mail";
-import { PARTNER_OMVANG, PARTNER_SOORTEN } from "@/lib/partners";
+import { normaliseerPartnercode, PARTNER_OMVANG, PARTNER_SOORTEN } from "@/lib/partners";
 import { withinLimit, requestIp, type Throttle } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { uploadCv, MAX_CV_BYTES, CV_TYPES } from "@/lib/cvs";
@@ -58,7 +58,7 @@ type Rij = Record<string, unknown>;
 
 /**
  * Insert met de optionele kolommen uit latere migraties (`lang` uit 0015,
- * `retain_longer` uit 0013), en zonder als een van die kolommen er nog niet is
+ * `retain_longer` uit 0013, `partner_code` uit 0022), en zonder als een van die kolommen er nog niet is
  * (Postgres 42703 of de schema-cache van PostgREST, PGRST204). Dan gaat die
  * informatie verloren, de inzending niet: een formulier mag nooit stuk zijn
  * omdat één kolom ontbreekt.
@@ -208,20 +208,25 @@ export async function submitOfferte(_prev: FormState, formData: FormData): Promi
   if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
 
   // De samenvatting is voor het Postvak IN en blijft Nederlands: dat leest het team.
+  // Via de aanmeldlink van een partner (lib/partnercode.ts). De database koppelt
+  // de code aan een actieve partner (migratie 0022); in de tekst staat hij ook,
+  // zodat hij zichtbaar is als die migratie nog niet gedraaid is.
+  const partner = normaliseerPartnercode(formData.get("partner"));
   const message = [
     `Aansluiting: ${pakket}`,
     `Bedrijf: ${company}`,
     `Aantal medewerkers: ${employees}`,
+    partner ? `Partnercode: ${partner}` : "",
     extra ? `\n${extra}` : "",
   ].filter(Boolean).join("\n");
 
   const error = await insertMetExtra("contact_messages", {
     name, email, phone, subject: `Offerteaanvraag: ${pakket}`, message,
-  }, { lang: taal });
+  }, { lang: taal, ...(partner ? { partner_code: partner } : {}) });
   if (error) return { ok: false, error: fout.algemeen };
   await Promise.all([
     recordConversion("offerte", await paginaPad()),
-    notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null, taal }),
+    notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null, taal, partner }),
   ]);
   return { ok: true };
 }

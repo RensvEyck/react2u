@@ -8,7 +8,7 @@ import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application, ContactMessage } from "@/lib/types";
 import {
   LuMail, LuMailOpen, LuPhone, LuPhoneCall, LuFileText, LuInbox, LuUsers, LuMessageSquare, LuTrash2,
-  LuReply, LuHourglass,
+  LuReply, LuHourglass, LuHandshake,
 } from "react-icons/lu";
 
 // Het formulier waar de vinkjes in de kaarten naar verwijzen; zie InboxBulkBar.
@@ -55,12 +55,17 @@ export default async function InboxAdmin({
   const filter: Filter = FILTERS.some((f) => f.key === raw) ? (raw as Filter) : "alles";
 
   const { sb } = await requirePerm("postvak");
-  const [msgsRes, appsRes, leadsRes] = await Promise.all([
-    sb.from("contact_messages").select("*").order("created_at", { ascending: false }),
+  const [msgsMetPartner, appsRes, leadsRes] = await Promise.all([
+    // Met de partner erbij (migratie 0022); zonder die migratie kent PostgREST
+    // de koppeling niet en lezen we hieronder de berichten zonder.
+    sb.from("contact_messages").select("*, partner:partners(kantoor, code)").order("created_at", { ascending: false }),
     sb.from("applications").select("*").order("created_at", { ascending: false }),
     // Alleen de herkomst — genoeg om per kaart te weten of hij al op de bellijst staat.
     sb.from("leads").select("source_id").not("source_id", "is", null),
   ]);
+  const msgsRes = msgsMetPartner.error
+    ? await sb.from("contact_messages").select("*").order("created_at", { ascending: false })
+    : msgsMetPartner;
   const onList = new Set(
     ((leadsRes.data as { source_id: string }[]) || []).map((l) => l.source_id)
   );
@@ -199,6 +204,25 @@ function Retention({ a }: { a: Application }) {
   return null;
 }
 
+/**
+ * Kwam de aanvraag via de aanmeldlink van een partner? Dan hoort hij bij die
+ * partner (vergoeding, kopie van de offerte). Een code zonder actieve partner
+ * staat er ook, zodat je kunt nagaan waar hij vandaan komt.
+ */
+function PartnerTag({ m }: { m: ContactMessage }) {
+  if (m.partner && m.partner_id) {
+    return (
+      <Link href={`/admin/partners/${m.partner_id}`} className="apill bg-[#fdeef4] text-[#c2185b] hover:underline" title={`Partnercode ${m.partner.code}`}>
+        <LuHandshake className="text-[12px]" /> Via {m.partner.kantoor}
+      </Link>
+    );
+  }
+  if (m.partner_code) {
+    return <span className="apill bg-black/[0.04] text-black/50" title="Code uit een aanmeldlink, zonder actieve partner">Partnercode {m.partner_code}</span>;
+  }
+  return null;
+}
+
 /** Kwam de inzending via de Engelse site (/en)? Dan verwacht de afzender een antwoord in het Engels. */
 function TaalTag({ lang }: { lang?: "nl" | "en" }) {
   if (lang !== "en") return null;
@@ -257,6 +281,7 @@ function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
             {!m.read && <span className="h-2 w-2 shrink-0 rounded-full bg-[#e75387]" />}
             <TypeTag kind="bericht" />
             <TaalTag lang={m.lang} />
+            <PartnerTag m={m} />
             <p className="text-[15.5px] font-bold text-[#1c1a4e]">{m.subject || "(geen onderwerp)"}</p>
           </div>
           <p className="mt-1 text-[13px] text-black/45">
