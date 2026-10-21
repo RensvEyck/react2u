@@ -15,6 +15,7 @@
 // je in Resend hebt geverifieerd.
 
 import type { Taal } from "./taal";
+import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
 
 const ENDPOINT = "https://api.resend.com/emails";
 
@@ -131,7 +132,7 @@ export async function notifyContactMessage(m: {
 
 export async function notifyApplication(a: {
   name: string; email: string; phone: string | null; vacancyTitle: string | null;
-  motivation: string | null; hasCv: boolean; linkedin?: string | null; viaLinkedin?: boolean; bron?: string | null; taal?: Taal;
+  motivation: string | null; hasCv: boolean; linkedin?: string | null; via?: string | null; samenvatting?: CvSamenvatting | null; bron?: string | null; taal?: Taal;
 }) {
   await send(
     `Nieuwe sollicitatie: ${a.vacancyTitle || "open sollicitatie"}`,
@@ -140,10 +141,12 @@ export async function notifyApplication(a: {
       { label: "E-mail", value: a.email },
       { label: "Telefoon", value: a.phone },
       { label: "CV", value: a.hasCv ? "meegestuurd — bekijk in het Postvak IN" : "niet meegestuurd" },
-      { label: "LinkedIn", value: a.linkedin ?? (a.viaLinkedin ? "naam en e-mail ingevuld via LinkedIn" : null) },
+      { label: "LinkedIn", value: a.linkedin ?? null },
+      { label: "Ingelogd met", value: a.via ? a.via.charAt(0).toUpperCase() + a.via.slice(1) : null },
+      ...SAMENVATTING_LABELS.map(([k, label]) => ({ label, value: a.samenvatting?.[k] ?? null })),
       { label: "Bron", value: a.bron },
       taalVeld(a.taal),
-    ], a.motivation)
+    ], [a.samenvatting?.samenvatting ? `Uit het cv: ${a.samenvatting.samenvatting}` : "", a.motivation || ""].filter(Boolean).join("\n\n") || null)
   );
 }
 

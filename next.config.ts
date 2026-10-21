@@ -52,7 +52,7 @@ const SECURITY_HEADERS = [
       // hieronder — exfiltratie naar vreemde domeinen, gekaapte formulieren,
       // clickjacking en base-tag-injectie.
       `script-src 'self' 'unsafe-inline' ${DEV_EVAL} ${TURNSTILE}`.replace(/\s+/g, " ").trim(),
-      `img-src 'self' data: blob: ${SUPABASE}`,
+      `img-src 'self' data: blob: ${SUPABASE} https://media.licdn.com https://*.googleusercontent.com`,
       `connect-src 'self' ${SUPABASE} https://*.supabase.co`,
       // Het Turnstile-widget is een iframe; zonder frame-src valt dat terug op
       // default-src 'self' en wordt het geblokkeerd.
@@ -85,6 +85,10 @@ const WWW_REDIRECT = {
 };
 
 const nextConfig: NextConfig = {
+  // Sollicitaties sturen een cv mee via een server action. Standaard mag zo'n
+  // verzoek maar 1 MB zijn; Vercel accepteert maximaal 4,5 MB per verzoek.
+  // Vandaar 4 MB per cv (src/lib/cvs.ts) en hier wat ruimte voor de rest.
+  experimental: { serverActions: { bodySizeLimit: "4.4mb" } },
   images: {
     // Next 16 staat alleen kwaliteiten uit deze lijst toe. 75 is de standaard;
     // 85 is voor de foto's (Beeld): de AI-serie heeft fijne details en werd bij

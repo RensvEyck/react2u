@@ -2,21 +2,34 @@
 import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { leesBron } from "@/components/site/BronOnthouden";
-import { submitApplication, type FormState } from "@/app/(site)/actions";
+import { leesCv, submitApplication, type FormState } from "@/app/(site)/actions";
 import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
-import { LINKEDIN_CLIENT_ID, LI_PROFIEL_COOKIE, leesLinkedInProfiel } from "@/lib/linkedin";
+import { NAMEN, PROFIEL_COOKIE, actieveAanbieders, leesProfiel, type Aanbieder } from "@/lib/inloggen";
+import type { CvSamenvatting } from "@/lib/cvSamenvatting";
 
 const geenAbonnement = () => () => {};
 const cookieNu = () => document.cookie;
 const geenCookie = () => "";
 
-function LinkedInLogo() {
-  return (
-    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.8 0 0 .77 0 1.73v20.54C0 23.23.8 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></svg>
-  );
+const LOGO: Record<Aanbieder, React.ReactNode> = {
+  linkedin: <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.8 0 0 .77 0 1.73v20.54C0 23.23.8 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></svg>,
+  google: <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6h-4a12 12 0 0 0 0 10.8l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z"/></svg>,
+  apple: <svg aria-hidden="true" width="17" height="18" viewBox="0 0 17 20" fill="currentColor"><path d="M14.1 10.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9C3.6 4.8 2 5.8 1.1 7.3c-1.8 3.2-.5 7.9 1.3 10.5.9 1.3 1.9 2.7 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.6 1-1.5 1.4-2.9 1.4-3-.1 0-2.7-1-2.7-4.2ZM11.6 3c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4Z"/></svg>,
+};
+
+const KNOP_STIJL: Record<Aanbieder, React.CSSProperties> = {
+  linkedin: { background: "#0A66C2", color: "#ffffff" },
+  google: { background: "#ffffff", color: "#1F1F1F", border: "1.5px solid #DADCE0" },
+  apple: { background: "#000000", color: "#ffffff" },
+};
+
+/** Zet een waarde in een leeg veld van het formulier (cv-uitlezing vult niets over wat de kandidaat al typte). */
+function vulAan(form: HTMLFormElement | null, naam: string, waarde?: string) {
+  const el = form?.elements.namedItem(naam);
+  if (waarde && el instanceof HTMLInputElement && !el.value.trim()) el.value = waarde;
 }
 
 /*
@@ -46,11 +59,38 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
   const [keuze, setKeuze] = useState<Keuze>(opties[0]);
   const [state, action, pending] = useActionState<FormState, FormData>(submitApplication, null);
   const pad = usePathname();
-  // Na "Solliciteer met LinkedIn" staan naam en e-mail tien minuten in een cookie.
-  const profiel = leesLinkedInProfiel(useSyncExternalStore(geenAbonnement, cookieNu, geenCookie));
+  // Na inloggen met LinkedIn, Google of Apple staan naam en e-mail tien minuten in een cookie.
+  const profiel = leesProfiel(useSyncExternalStore(geenAbonnement, cookieNu, geenCookie));
+  const aanbieders = actieveAanbieders();
+  const [cvStatus, setCvStatus] = useState<"" | "bezig" | "klaar" | "teGroot">("");
+  const [samenvatting, setSamenvatting] = useState<CvSamenvatting | null>(null);
   useEffect(() => {
-    if (state?.ok) document.cookie = `${LI_PROFIEL_COOKIE}=; Max-Age=0; path=/`;
+    if (state?.ok) document.cookie = `${PROFIEL_COOKIE}=; Max-Age=0; path=/`;
   }, [state?.ok]);
+
+  async function cvGekozen(e: React.ChangeEvent<HTMLInputElement>) {
+    const bestand = e.currentTarget.files?.[0];
+    const form = e.currentTarget.form;
+    setSamenvatting(null);
+    // Vercel neemt verzoeken tot 4,5 MB aan; een groter cv laten we niet eens versturen.
+    if (bestand && bestand.size > 4 * 1024 * 1024) {
+      e.currentTarget.value = "";
+      return setCvStatus("teGroot");
+    }
+    if (!bestand || !/\.(pdf|docx)$/i.test(bestand.name)) return setCvStatus("");
+    setCvStatus("bezig");
+    const fd = new FormData();
+    fd.set("cv", bestand);
+    const uit = await leesCv(fd).catch(() => ({ ok: false as const }));
+    if (!uit.ok || !("gegevens" in uit) || !uit.gegevens) return setCvStatus("");
+    const g = uit.gegevens;
+    vulAan(form, "name", g.naam);
+    vulAan(form, "email", g.email);
+    vulAan(form, "phone", g.telefoon);
+    if (g.linkedin && /linkedin\.com\//i.test(g.linkedin)) vulAan(form, "linkedin", g.linkedin);
+    setSamenvatting(g);
+    setCvStatus("klaar");
+  }
 
   if (state?.ok) {
     return (
@@ -75,21 +115,30 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
       <input type="hidden" name="vacancy_id" value={keuze.id} />
       <input type="hidden" name="vacancy_title" value={keuze.title} />
       <input type="hidden" name="bron" defaultValue="" />
-      <input type="hidden" name="via_linkedin" value={profiel ? "1" : ""} />
-      {LINKEDIN_CLIENT_ID && (profiel ? (
-        <p className="m-0 flex items-center gap-2 rounded-[12px] px-4 py-3 text-[14.5px] font-semibold" style={{ background: "#E8F1FA", color: "#0A66C2" }}>
-          <LinkedInLogo /> {s.linkedinIngevuld}
+      <input type="hidden" name="via" value={profiel?.via || ""} />
+      <input type="hidden" name="foto" value={profiel?.foto || ""} />
+      <input type="hidden" name="cv_samenvatting" value={samenvatting ? JSON.stringify(samenvatting) : ""} />
+      {profiel ? (
+        <p className="m-0 flex items-center gap-3 rounded-[12px] px-4 py-3 text-[14.5px] font-semibold" style={{ background: SOFT, color: NAVY }}>
+          {profiel.foto
+            ? <span aria-hidden="true" className="h-8 w-8 shrink-0 rounded-full bg-cover bg-center" style={{ backgroundImage: `url(${profiel.foto})` }} />
+            : <span className="shrink-0">{LOGO[profiel.via]}</span>}
+          {s.inlogIngevuld.replace("{aanbieder}", NAMEN[profiel.via])}
         </p>
-      ) : (
+      ) : aanbieders.length > 0 && (
         <div className="flex flex-col gap-2">
-          <a href={`/api/linkedin/start?terug=${encodeURIComponent(pad || "/vacatures")}`}
-            className="inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full text-[16px] font-bold text-white transition-opacity hover:opacity-90"
-            style={{ background: "#0A66C2" }}>
-            <LinkedInLogo /> {s.linkedinKnop}
-          </a>
-          <span className="text-center text-[13px]" style={{ color: MUTE }}>{s.linkedinOf}</span>
+          <div className={`grid gap-2 ${aanbieders.length > 1 ? "sm:grid-cols-2" : ""}`}>
+            {aanbieders.map((a, i) => (
+              <a key={a} href={`/api/inloggen/${a}/start?terug=${encodeURIComponent(pad || "/vacatures")}`}
+                className={`inline-flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full text-[15.5px] font-bold transition-opacity hover:opacity-90 ${i === 0 && aanbieders.length !== 2 ? "sm:col-span-2" : ""}`}
+                style={KNOP_STIJL[a]}>
+                {LOGO[a]} {s.inlogKnop.replace("{aanbieder}", NAMEN[a])}
+              </a>
+            ))}
+          </div>
+          <span className="text-center text-[13px]" style={{ color: MUTE }}>{s.inlogOf}</span>
         </div>
-      ))}
+      )}
       {!vast && (
         <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
           <legend className="mb-2.5 text-[14px] font-semibold" style={{ color: NAVY }}>{s.ikSolliciteerOp}</legend>
@@ -109,9 +158,9 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 sm:col-span-2"><span className="text-[14px] font-semibold" style={{ color: NAVY }}>{f.naam}</span>
-          <input key={profiel ? "li" : "leeg"} defaultValue={profiel?.naam} className={veld} name="name" autoComplete="name" required maxLength={200} placeholder={f.naamPlaceholder} /></label>
+          <input key={profiel ? "profiel" : "leeg"} defaultValue={profiel?.naam} className={veld} name="name" autoComplete="name" required maxLength={200} placeholder={f.naamPlaceholder} /></label>
         <label className="flex flex-col gap-2"><span className="text-[14px] font-semibold" style={{ color: NAVY }}>{f.email}</span>
-          <input key={profiel ? "li" : "leeg"} defaultValue={profiel?.email} className={veld} name="email" type="email" autoComplete="email" required maxLength={200} placeholder={f.emailPlaceholder} /></label>
+          <input key={profiel ? "profiel" : "leeg"} defaultValue={profiel?.email} className={veld} name="email" type="email" autoComplete="email" required maxLength={200} placeholder={f.emailPlaceholder} /></label>
         <label className="flex flex-col gap-2"><span className="text-[14px] font-semibold" style={{ color: NAVY }}>{f.telefoon}</span>
           <input className={veld} name="phone" type="tel" autoComplete="tel" maxLength={40} placeholder={f.telefoonPlaceholder} /></label>
         <label className="flex flex-col gap-2 sm:col-span-2">
@@ -121,10 +170,12 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
         </label>
         <label className="flex flex-col gap-2 sm:col-span-2">
           <span className="text-[14px] font-semibold" style={{ color: NAVY }}>{s.cv} <span className="font-normal" style={{ color: MUTE }}>{s.cvOptioneel}</span></span>
-          <input name="cv" type="file" accept=".pdf,.doc,.docx"
+          <input name="cv" type="file" accept=".pdf,.doc,.docx" onChange={cvGekozen}
             className="w-full rounded-[14px] border-[1.5px] border-dashed border-[#CFCDE2] px-4 py-3.5 text-[15px] file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-[#322E83]"
             style={{ background: SOFT, color: BODY }} />
-          <span className="text-[13px]" style={{ color: MUTE }}>{s.cvHint}</span>
+          <span className="text-[13px]" style={{ color: cvStatus === "klaar" ? TEAL : cvStatus === "teGroot" ? PINK : MUTE }} aria-live="polite">
+            {cvStatus === "bezig" ? s.cvLezen : cvStatus === "klaar" ? s.cvGelezen : cvStatus === "teGroot" ? f.fouten.cvTeGroot : s.cvHint}
+          </span>
         </label>
       </div>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
