@@ -372,7 +372,6 @@ export const en: Woordenboek = {
         "Every Friday lunch with the team in the lively centre of Eindhoven",
         "Pension with a.s.r., with the full premium paid by us",
         "25 days of holiday when working full time, 8% holiday pay and the week after Christmas off for everyone",
-        "Refer a new colleague who completes the probation period? You receive € 1,500 net",
         "Bike plan and gym membership through the tax-free allowance scheme",
         "An extra day off when you move house",
         "Anniversary bonus",

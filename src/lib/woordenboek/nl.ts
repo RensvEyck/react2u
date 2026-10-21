@@ -391,7 +391,6 @@ export const nl = {
         "Iedere vrijdag lunchen met het team in het bruisende centrum van Eindhoven",
         "Pensioen bij a.s.r. waarvan wij de volledige premie betalen",
         "25 vakantiedagen bij fulltime, 8% vakantiegeld en de week na kerst collectief vrij",
-        "Breng je een nieuwe collega aan die de proeftijd doorkomt? Dan krijg jij € 1.500 netto",
         "Fietsplan en sportabonnement via de werkkostenregeling",
         "Een extra vrije dag als je verhuist",
         "Jubileumuitkering",
