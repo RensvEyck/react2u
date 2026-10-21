@@ -29,12 +29,20 @@ export function vacatureInTaal(v: Vacancy, taal: Taal): VacatureTekst {
 
 /**
  * Locatie, uren en salaris zijn vrije tekst uit de admin ("32-40 uur",
- * "€3.500 p/m"). Voor de Engelse site vertalen we de paar vaste woorden erin;
- * de rest (getallen, plaatsnamen) is in beide talen hetzelfde.
+ * "€ 3.500 tot € 4.500 bruto per maand bij 40 uur"). Voor de Engelse site
+ * vertalen we de vaste woorden erin en zetten we bedragen in Engelse notatie
+ * (€ 3.500 wordt €3,500); plaatsnamen blijven zoals ze zijn.
  */
 export function kenmerkInTaal(tekst: string | null, taal: Taal): string | null {
   if (!tekst || taal === "nl") return tekst;
   return tekst
+    .replace(/€\s?(\d{1,3}(?:\.\d{3})+)(?![\d,])/g, (_, n: string) => "€" + n.replace(/\./g, ","))
+    .replace(/€\s(\d)/g, "€$1")
+    .replace(/\bper uur\b/gi, "per hour")
+    .replace(/\bbij (\d+) uur\b/gi, "based on $1 hours")
+    .replace(/\bexcl\. btw\b/gi, "excl. VAT")
+    .replace(/\bstagevergoeding\b/gi, "internship allowance")
+    .replace(/\btot\b/g, "to")
     .replace(/\buur\b/gi, "hours")
     .replace(/\bper week\b/gi, "per week")
     .replace(/\bper maand\b/gi, "per month")
