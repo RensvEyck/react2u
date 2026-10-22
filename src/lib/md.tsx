@@ -1,5 +1,7 @@
 import React from "react";
+import Link from "next/link";
 import { koppeltekensHeel } from "./tekst";
+import { inlineDelen } from "./mdInline";
 
 /** Tekst met woorden als "re-integratie" heel gehouden (zie lib/tekst.ts). */
 export function Heel({ text }: { text: string }) {
@@ -12,12 +14,19 @@ export function Heel({ text }: { text: string }) {
   );
 }
 
-// Mini-markdown renderer: paragraphs, "- " lists, **bold**, ### h3.
+// Mini-markdown renderer: paragraphs, "- " lists, **bold**, [links](/pad), ### h3.
 function inline(text: string, key: number): React.ReactNode {
-  const parts = text.split(/\*\*(.+?)\*\*/g);
   return (
     <React.Fragment key={key}>
-      {parts.map((p, i) => (i % 2 === 1 ? <strong key={i}><Heel text={p} /></strong> : <Heel key={i} text={p} />))}
+      {inlineDelen(text).map((d, i) => {
+        if (d.soort === "vet") return <strong key={i}><Heel text={d.tekst} /></strong>;
+        if (d.soort === "link") {
+          return d.href.startsWith("/")
+            ? <Link key={i} href={d.href}><Heel text={d.tekst} /></Link>
+            : <a key={i} href={d.href} rel="noopener"><Heel text={d.tekst} /></a>;
+        }
+        return <Heel key={i} text={d.tekst} />;
+      })}
     </React.Fragment>
   );
 }
