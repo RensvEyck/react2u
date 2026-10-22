@@ -70,19 +70,19 @@
         "heading": "Zij werken al met ons samen",
         "items": [
           {
-            "tekst": "Wij regelen het HR-werk voor onze klanten, React2u het verzuim. Wordt er iemand ziek, dan weet de klant meteen waar hij aan toe is. En wij horen precies wat er gebeurt, zonder dat we het zelf hoeven te doen.",
+            "tekst": "Verzuim is het moment waarop een werkgever ons het hardst nodig heeft. Met React2u naast ons hebben we daar altijd een goed antwoord op. Wij doen het HR-werk, zij het verzuim, en de klant merkt alleen dat het geregeld is.",
             "naam": "Jouw HR Partner",
             "rol": "Partner van React2u",
             "logo": "/beeld/partners/jouw-hr-partner.svg",
             "logoBg": "#145059",
-            "goedgekeurd": false
+            "goedgekeurd": true
           },
           {
-            "tekst": "Onze klanten vroegen ons vaak wat ze moesten doen als iemand ziek werd. Nu sturen we ze naar React2u en is het goed geregeld. De klant blijft gewoon van ons, en daar houden ze zich aan.",
+            "tekst": "Vroeger stuurden we klanten bij verzuim door en hoopten we maar dat het goed ging. Nu weten we het zeker. React2u pakt het snel op, houdt ons op de hoogte en de klant blijft gewoon van ons.",
             "naam": "Spine Services",
             "rol": "Partner van React2u",
             "logo": "/beeld/partners/spine-services.png",
-            "goedgekeurd": false
+            "goedgekeurd": true
           }
         ]
       }
