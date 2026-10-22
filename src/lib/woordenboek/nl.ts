@@ -77,6 +77,7 @@ export const nl = {
       { label: "Tarieven", slug: "werkgevers", anker: "tarieven" },
       { label: "Overstappen", slug: "werkgevers", anker: "starten" },
       { label: "Vragen", slug: "werkgevers", anker: "vragen" },
+      { label: "Partners", slug: "partners" },
     ] as { label: string; slug: string; anker?: string; diensten?: boolean }[],
     menuWerknemer: [
       { label: "Ziek, wat nu?", slug: "verzuimprotocol" },
@@ -106,6 +107,7 @@ export const nl = {
       { label: "Diensten", slug: "werkgevers", anker: "diensten" },
       { label: "Tarieven", slug: "verzuimabonnementen" },
       { label: "Kennismaken", slug: "kennismaken" },
+      { label: "Partnerprogramma", slug: "partners" },
     ] as { label: string; slug: string; anker?: string }[],
     werknemerLinks: [
       { label: "Ziek, wat nu?", slug: "verzuimprotocol" },
