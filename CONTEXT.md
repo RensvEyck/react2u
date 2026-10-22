@@ -454,8 +454,9 @@ Daarom:
   eigen menu en knop (`NAV` en `HEADER_CTA` in [`src/lib/nav.ts`](src/lib/nav.ts)).
   Het dienstenmenu staat alleen bij werkgevers.
 - **Welke doelgroep geldt**, bepaalt `doelgroepVoorPad()`: `/werknemers` en
-  `/verzuimprotocol` zijn van de werknemer; `/werkgevers`, `/diensten` en de
-  zes dienstpagina's van de werkgever. Op gedeelde pagina's (contact, blog,
+  `/verzuimprotocol` zijn van de werknemer; `/werkgevers`, `/diensten`,
+  `/partners` en de zes dienstpagina's van de werkgever (`WERKGEVER_PADEN` in
+  `nav.ts`). Op gedeelde pagina's (contact, blog,
   over ons) geldt de laatste keuze van de bezoeker, bewaard in `localStorage`
   ([`src/lib/doelgroep.ts`](src/lib/doelgroep.ts)); zonder keuze werkgever. De
   server kent die keuze niet — de pagina's zijn statisch — dus op een gedeelde
@@ -464,7 +465,9 @@ Daarom:
   Verzuimbegeleiding WVP, of Werknemers › Verzuimprotocol.
 
 Een nieuwe pagina voor werknemers? Zet het pad in `WERKNEMER_PADEN` in
-`nav.ts`, anders krijgt hij het werkgeversmenu.
+`nav.ts`, anders krijgt hij het werkgeversmenu. Een nieuwe werkgeverspagina die
+geen dienst is (zoals `/partners`) gaat in `WERKGEVER_PADEN`, anders ziet een
+nieuwe bezoeker daar het algemene menu.
 
 Het **verzuimprotocol** stond alleen als afbeelding online. Het staat nu als
 tekst (blok `steps`) op `/werknemers` en `/verzuimprotocol`, letterlijk
@@ -757,10 +760,17 @@ testmail niet binnen, kijk dan in de quarantaine van Sophos.
 
 `/partners` werft accountants, salariskantoren en HR- en verzekeringsadviseurs
 die werkgevers bij ons onderbrengen (ontwerp "React2u partnerpagina" op het
-canvas). Hij staat als concept in [`src/content/partners.json`](src/content/partners.json),
-dus alleen op staging; live komt hij met `node scripts/concept-naar-sql.mjs partners`
-(zie *Concepten*). Let op: `--alle` neemt hem dan ook mee. Een link in het menu
-of de footer hoort pas bij het live zetten, anders geeft hij in productie een 404.
+canvas). **Sinds 22 oktober 2026 staat hij live**: met `node scripts/concept-naar-sql.mjs
+partners` in de database gezet (zie *Concepten*). Het concept in
+[`src/content/partners.json`](src/content/partners.json) blijft bestaan, maar
+verandert alleen staging; een wijziging komt live via het adminpaneel of door
+het script opnieuw te draaien (de huidige blokken verhuizen dan naar
+`partners-oud-<datum>`). Let op: `--alle` neemt hem ook mee. De pagina hoort bij
+de werkgever (werkgeversmenu, kruimelpad Werkgevers › Partners) en staat in dat
+menu als "Partners" en in de footer onder Voor werkgevers als
+"Partnerprogramma" (`menuWerkgever` en `werkgeverLinks` in
+[`lib/woordenboek/nl.ts`](src/lib/woordenboek/nl.ts)). De Engelse site heeft
+geen partnerpagina en dus ook die links niet.
 
 De pagina heeft een eigen kop (`ptKop`: een brede foto met een grote roze bol
 zoals de tegels van de startpagina, met de kop en de knoppen in de bol; op
