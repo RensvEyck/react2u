@@ -785,8 +785,22 @@ vragen gelijk blijft aan de rest van de pagina), en tot slot `dgVragen` en
 een dienst bij of verandert een tegel op /werkgevers, pas hem hier ook aan.
 `dienstLabel` kent daarvoor optionele velden: `zonderKop`, `aanpakAnker` en
 `titels` voor de vaste kopjes. Zonder die velden blijven de vijf dienstpagina's
-gelijk. Het rekenvoorbeeld rekent met
-`tarief` (het aansluittarief, € 38,50 per werknemer per jaar),
+gelijk.
+
+Twee afspraken die op de pagina staan (22 oktober 2026, Rens) en ook in de
+partnerovereenkomst horen:
+- **De vergoeding geldt alleen voor de Verrichtingenbasis** (€ 38,50 per
+  medewerker per jaar). Bij Casemanagement Compleet of de flextarieven van
+  Reflex spreken we de vergoeding vooraf met de partner af. Dat staat bij de
+  Aanbrengpartner, bij het rekenvoorbeeld, in de voetnoot, bij de vragen en in
+  de SEO-omschrijving.
+- **Jouw klant blijft jouw klant.** Bij klanten via een partner doet React2u
+  alleen de arbodienstverlening; salaris (Reward) en HR-advies (Ready) alleen
+  met akkoord van de partner. Dat staat naast de diensttegels en bij de vragen,
+  omdat juist salariskantoren en HR-adviseurs anders afhaken.
+
+Het rekenvoorbeeld rekent met
+`tarief` (de Verrichtingenbasis, € 38,50 per werknemer per jaar),
 `pctJaarEen` (50) en `pctVervolg` (25) uit de blokdata ([`lib/partners.ts`](src/lib/partners.ts));
 pas ze daar aan als ze veranderen. De voetnoot noemt ze met `{tarief}`,
 `{pctJaarEen}` en `{pctVervolg}`, en kan met `{jaar}` het tarievenjaar uit de

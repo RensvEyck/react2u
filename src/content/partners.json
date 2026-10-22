@@ -2,7 +2,7 @@
   "slug": "partners",
   "title": "Partners",
   "seo_title": "Partnerprogramma voor accountants en HR-adviseurs • React2u",
-  "seo_description": "Breng werkgevers met verzuim bij React2u onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van het abonnement in jaar één.",
+  "seo_description": "Breng werkgevers met verzuim bij React2u onder. Wij doen de begeleiding, jij blijft het aanspreekpunt en ontvangt 50% van de Verrichtingenbasis in jaar één.",
   "blocks": [
     {
       "type": "ptKop",
@@ -42,7 +42,7 @@
         "anchor": "rekenvoorbeeld",
         "eyebrow": "Wat het oplevert",
         "heading": "Reken uit wat jouw klanten opleveren",
-        "text": "50% van het abonnement in het eerste jaar en 25% in elk jaar daarna, zolang de klant blijft.",
+        "text": "50% van de Verrichtingenbasis in het eerste jaar en 25% in elk jaar daarna, zolang de klant blijft.",
         "rekenhulp": {
           "kop": "Jouw klantenbestand",
           "tekst": "Schuif en zie wat jouw klanten je per jaar opleveren.",
@@ -55,7 +55,7 @@
           "tarief": 38.5,
           "pctJaarEen": 50,
           "pctVervolg": 25,
-          "voetnoot": "Rekenvoorbeeld op basis van het aansluittarief van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Werkelijke bedragen hangen af van het gekozen abonnement.",
+          "voetnoot": "Rekenvoorbeeld op basis van de Verrichtingenbasis van {tarief} per medewerker per jaar, {pctJaarEen}% in jaar één en {pctVervolg}% in de jaren daarna. Bij Casemanagement Compleet of de flextarieven van Reflex spreken we de vergoeding vooraf met je af.",
           "jarenKop": "De eerste vijf jaar",
           "totaalLabel": "Samen in vijf jaar",
           "jaarLabel": "Jaar"
@@ -85,7 +85,7 @@
         "groepen": [
           {
             "titel": "Aanbrengpartner",
-            "tekst": "Je verwijst door, wij doen de rest. 50% van het abonnement in jaar één, daarna 25% per jaar.",
+            "tekst": "Je verwijst door, wij doen de rest. 50% van de Verrichtingenbasis in jaar één, daarna 25% per jaar.",
             "items": [
               "React2u factureert je klant rechtstreeks",
               "Geen contract met de klant, geen aansprakelijkheid",
@@ -150,7 +150,7 @@
       "label": "Wat jouw klant krijgt: de diensten als tegels",
       "data": {
         "heading": "Wat jouw klant krijgt",
-        "text": "Zes diensten onder één dak, van verzuimbegeleiding tot verloning. Jouw klant kiest wat past.",
+        "text": "Jouw klant blijft jouw klant. Bij klanten die via jou komen, doen wij alleen de arbodienstverlening. Salarisadministratie en HR-advies bieden we deze klanten nooit aan zonder jouw akkoord.",
         "ondermarge": false,
         "items": [
           {
@@ -255,6 +255,10 @@
             "answer": "Ja. Wij nemen alleen de arbodienstverlening over. Alles wat over je eigen dienst gaat, blijft bij jou. Bij het eerste gesprek met de klant mag je altijd aanschuiven."
           },
           {
+            "question": "Bieden jullie mijn klant ook salaris of HR-advies aan?",
+            "answer": "Niet zonder jouw akkoord. Bij klanten die via jou komen, doen wij alleen de arbodienstverlening. Salarisadministratie (React2u Reward) en HR-advies (React2u Ready) bieden we deze klanten alleen aan als jij dat wilt."
+          },
+          {
             "question": "Wat als mijn klant al een arbodienst heeft?",
             "answer": "Dan maken wij een vergelijking op basis van het huidige contract. Overstappen kan meestal per jaarwisseling; wij regelen de overdracht van lopende dossiers."
           },
@@ -268,7 +272,7 @@
           },
           {
             "question": "Waarover krijg ik een vergoeding?",
-            "answer": "Vergoedingen gelden over abonnementen (aansluittarief en casemanagementpakketten) en worden berekend over wat de klant werkelijk heeft betaald. Losse verrichtingen en specialisten op uurbasis tellen niet mee. De volledige voorwaarden staan in de partnerovereenkomst."
+            "answer": "De vergoeding geldt voor de Verrichtingenbasis (€ 38,50 per medewerker per jaar) en wordt berekend over wat de klant werkelijk heeft betaald. Kiest je klant voor Casemanagement Compleet of de flextarieven van Reflex, dan spreken we de vergoeding vooraf met je af. Losse verrichtingen en specialisten op uurbasis tellen niet mee. De volledige voorwaarden staan in de partnerovereenkomst."
           }
         ]
       }
