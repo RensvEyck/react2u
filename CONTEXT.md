@@ -454,9 +454,8 @@ Daarom:
   eigen menu en knop (`NAV` en `HEADER_CTA` in [`src/lib/nav.ts`](src/lib/nav.ts)).
   Het dienstenmenu staat alleen bij werkgevers.
 - **Welke doelgroep geldt**, bepaalt `doelgroepVoorPad()`: `/werknemers` en
-  `/verzuimprotocol` zijn van de werknemer; `/werkgevers`, `/diensten`,
-  `/partners` en de zes dienstpagina's van de werkgever (`WERKGEVER_PADEN` in
-  `nav.ts`). Op gedeelde pagina's (contact, blog,
+  `/verzuimprotocol` zijn van de werknemer; `/werkgevers`, `/diensten` en de
+  zes dienstpagina's van de werkgever. Op gedeelde pagina's (contact, blog,
   over ons) geldt de laatste keuze van de bezoeker, bewaard in `localStorage`
   ([`src/lib/doelgroep.ts`](src/lib/doelgroep.ts)); zonder keuze werkgever. De
   server kent die keuze niet — de pagina's zijn statisch — dus op een gedeelde
@@ -465,9 +464,7 @@ Daarom:
   Verzuimbegeleiding WVP, of Werknemers › Verzuimprotocol.
 
 Een nieuwe pagina voor werknemers? Zet het pad in `WERKNEMER_PADEN` in
-`nav.ts`, anders krijgt hij het werkgeversmenu. Een nieuwe werkgeverspagina die
-geen dienst is (zoals `/partners`) gaat in `WERKGEVER_PADEN`, anders ziet een
-nieuwe bezoeker daar het algemene menu.
+`nav.ts`, anders krijgt hij het werkgeversmenu.
 
 Het **verzuimprotocol** stond alleen als afbeelding online. Het staat nu als
 tekst (blok `steps`) op `/werknemers` en `/verzuimprotocol`, letterlijk
@@ -765,12 +762,15 @@ partners` in de database gezet (zie *Concepten*). Het concept in
 [`src/content/partners.json`](src/content/partners.json) blijft bestaan, maar
 verandert alleen staging; een wijziging komt live via het adminpaneel of door
 het script opnieuw te draaien (de huidige blokken verhuizen dan naar
-`partners-oud-<datum>`). Let op: `--alle` neemt hem ook mee. De pagina hoort bij
-de werkgever (werkgeversmenu, kruimelpad Werkgevers › Partners) en staat in dat
-menu als "Partners" en in de footer onder Voor werkgevers als
-"Partnerprogramma" (`menuWerkgever` en `werkgeverLinks` in
-[`lib/woordenboek/nl.ts`](src/lib/woordenboek/nl.ts)). De Engelse site heeft
-geen partnerpagina en dus ook die links niet.
+`partners-oud-<datum>`). Let op: `--alle` neemt hem ook mee. De pagina is een
+gedeelde pagina, geen werkgeverspagina: hij krijgt het menu van de laatste
+keuze van de bezoeker (zonder keuze het algemene) en het kruimelpad Home ›
+Partners. Je vindt hem via de dunne balk bovenaan, waar "Partners" op 22
+oktober 2026 op Rens' verzoek de plek van "Over ons" kreeg (`toplinks`), en
+via de footer onder Voor werkgevers als "Partnerprogramma" (`werkgeverLinks`),
+beide in [`lib/woordenboek/nl.ts`](src/lib/woordenboek/nl.ts). "Over ons" staat
+nog in het algemene menu en in het uitklapmenu op de telefoon, niet meer in
+de balk. De Engelse site heeft geen partnerpagina en houdt "About us".
 
 De pagina heeft een eigen kop (`ptKop`: een brede foto met een grote roze bol
 zoals de tegels van de startpagina, met de kop en de knoppen in de bol; op

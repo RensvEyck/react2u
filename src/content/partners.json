@@ -11,8 +11,8 @@
         "heading": "React2u Partners",
         "kruimels": [
           {
-            "label": "Werkgevers",
-            "href": "/werkgevers"
+            "label": "Home",
+            "href": "/"
           },
           {
             "label": "Partners"

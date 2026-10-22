@@ -45,7 +45,7 @@ export const nl = {
     menuVoor: "Menu {naam}",
     doelgroepNaam: { werkgever: "werkgevers", werknemer: "werknemers" },
     toplinks: [
-      { label: "Over ons", slug: "over-react2u" },
+      { label: "Partners", slug: "partners" },
       { label: "Werken bij", slug: "vacatures" },
       { label: "Contact", slug: "contact" },
     ],
@@ -77,7 +77,6 @@ export const nl = {
       { label: "Tarieven", slug: "werkgevers", anker: "tarieven" },
       { label: "Overstappen", slug: "werkgevers", anker: "starten" },
       { label: "Vragen", slug: "werkgevers", anker: "vragen" },
-      { label: "Partners", slug: "partners" },
     ] as { label: string; slug: string; anker?: string; diensten?: boolean }[],
     menuWerknemer: [
       { label: "Ziek, wat nu?", slug: "verzuimprotocol" },
