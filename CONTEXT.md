@@ -125,6 +125,11 @@ knop *Wachtwoordlink*: dat is de route voor een vergeten wachtwoord. *Wachtwoord
 vergeten?* op het inlogscherm verwijst ernaar; een zelfbedieningsmail is er bewust
 niet: een publiek formulier dat mailt laat accounts raden en vraagt eigen
 spambescherming, terwijl de wachtwoordlink via een collega even snel is.
+Heeft het account al een authenticator, dan vraagt de landingspagina eerst de code en
+pas daarna het wachtwoord: Supabase weigert een nieuw wachtwoord op een sessie zonder
+code (`insufficient_aal`) zodra tweestaps aanstaat, want de link bewijst alleen het
+mailadres (Cindy liep daar op 22 okt 2026 op vast). Telefoon kwijt: eerst *Tweestaps
+herstellen*, daarna de pagina verversen of een nieuwe link.
 
 **Tweestapsverificatie herstellen** (Gebruikers → *Tweestaps herstellen*) wist
 alle authenticators van een collega; bij de volgende inlog stelt die een nieuwe
