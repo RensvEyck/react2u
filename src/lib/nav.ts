@@ -79,8 +79,6 @@ export const STARTPAGINA: Record<Doelgroep, NavLink> = {
 };
 
 const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol", "/je-rechten-en-privacy", "/je-casemanager"];
-// Het partnerprogramma is voor adviseurs van werkgevers en hangt in het kruimelpad onder Werkgevers.
-const WERKGEVER_PADEN = ["/werkgevers", "/diensten", "/partners"];
 /**
  * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
  * gedeelde pagina's (contact, blog, over ons): daar geldt de laatste keuze
@@ -91,7 +89,7 @@ export function doelgroepVoorPad(pathOfEnPath: string): Doelgroep | null {
   const path = nlPadVoor(pathOfEnPath);
   if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
   // De vijf labelpagina's (Resist, Recover, …) horen bij de werkgever.
-  if (WERKGEVER_PADEN.includes(path) || labelVoor(path)) return "werkgever";
+  if (path === "/werkgevers" || path === "/diensten" || labelVoor(path)) return "werkgever";
   return null;
 }
 

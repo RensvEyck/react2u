@@ -200,10 +200,7 @@ function HoofdKnop({ href, children, className = "" }: { href: string; children:
 // Tailwind ze vindt.
 const BREED = {
   neutraal: { toon: "lg:flex", verberg: "lg:hidden", px: 1024 },
-  werknemer: { toon: "xl:flex", verberg: "xl:hidden", px: 1280 },
-  // Zes items sinds Partners erbij kwam: naast logo, Inloggen en de knop past dat
-  // pas vanaf 1340px; bij 1280px schoof de knop 43px de zijmarge in.
-  werkgever: { toon: "min-[1340px]:flex", verberg: "min-[1340px]:hidden", px: 1340 },
+  groep: { toon: "xl:flex", verberg: "xl:hidden", px: 1280 },
 };
 
 export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
@@ -222,7 +219,7 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
 
   const neutraal = variant === "neutraal";
   const groep = neutraal ? null : (variant as Doelgroep);
-  const B = groep ? BREED[groep] : BREED.neutraal;
+  const B = neutraal ? BREED.neutraal : BREED.groep;
 
   useEffect(() => {
     const onScroll = () => setGescrold(window.scrollY > 8);
@@ -304,11 +301,10 @@ export default function HeaderR2u({ contact }: { contact: ContactInfo }) {
             </Link>
           )}
 
-          {/* Menu op een breed scherm. Neutraal staat het precies in het midden. Het
-              werkgeversmenu (zes items) staat tot 1400px iets dichter op elkaar. */}
+          {/* Menu op een breed scherm. Neutraal staat het precies in het midden. */}
           <nav aria-label={groep ? vul(t.header.menuVoor, { naam: m.SITE[groep].naam }) : t.header.hoofdmenu}
             className={`hidden h-full items-center text-[15px] font-bold ${B.toon} ${
-              neutraal ? "absolute left-1/2 -translate-x-1/2 gap-8" : groep === "werkgever" ? "gap-5 min-[1400px]:gap-[26px]" : "gap-[26px]"}`}>
+              neutraal ? "absolute left-1/2 -translate-x-1/2 gap-8" : "gap-[26px]"}`}>
             {neutraal
               ? m.MENU_NEUTRAAL.map((l) => l.overOns
                 ? <Uitklap key={l.label} label={l.label} items={m.OVER_ONS} />
