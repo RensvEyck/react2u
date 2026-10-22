@@ -95,3 +95,41 @@ export function parseInviteUrl(search: string, hash: string): InviteUrl {
 
   return { kind: "none" };
 }
+
+/**
+ * Welke authenticator eerst een code moet geven vóór het wachtwoord, of null.
+ *
+ * Supabase weigert een nieuw wachtwoord op een sessie zonder code (aal1) zodra
+ * het account een geverifieerde authenticator heeft: "AAL2 session is required
+ * to update email or password when MFA is enabled" (code `insufficient_aal`).
+ * Terecht: de link bewijst alleen het mailadres, de code de telefoon. Zonder
+ * authenticator — nieuw account, of net hersteld door een collega — is aal1 het
+ * hoogste en mag het wachtwoord meteen. Staat de sessie al op aal2 (de pagina
+ * ververst na de code), dan ook.
+ */
+export function eersteCode(
+  currentLevel: string | null | undefined,
+  totp: { id: string; status: string }[] | null | undefined
+): string | null {
+  if (currentLevel === "aal2") return null;
+  return (totp ?? []).find((f) => f.status === "verified")?.id ?? null;
+}
+
+/** Waarom het wachtwoord niet is ingesteld, in woorden waar je iets mee kunt. */
+export function instelFoutText(err: AuthErrorLike): string {
+  const code = err?.code;
+  const m = err?.message || "";
+  if (code === "insufficient_aal" || /aal2/i.test(m)) {
+    return "Je account vraagt eerst een code uit je authenticator-app. Ververs de pagina en vul die in.";
+  }
+  if (code === "same_password" || /different from the old/i.test(m)) {
+    return "Dit is je huidige wachtwoord al. Kies een ander wachtwoord.";
+  }
+  if (code === "weak_password" || /weak|easy to guess|pwned/i.test(m)) {
+    return "Dit wachtwoord is te makkelijk te raden. Kies een langer of ongebruikelijker wachtwoord.";
+  }
+  if (code === "session_expired" || code === "session_not_found" || err?.status === 401) {
+    return "Je sessie is verlopen. Vraag je collega om een nieuwe link.";
+  }
+  return "Instellen mislukt: " + (m || "onbekende fout bij Supabase");
+}

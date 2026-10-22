@@ -166,7 +166,7 @@ export async function sendInvite(i: {
         "Kies een nieuw wachtwoord voor het beheer van react2u.nl",
         [
           `${esc(i.invitedBy)} heeft een link voor je gemaakt waarmee je een nieuw wachtwoord kiest voor je account (${esc(i.roleLabel)}).`,
-          "Daarna log je in zoals altijd, met de code uit je authenticator-app.",
+          "Heb je tweestapsverificatie al aan, dan vraagt die pagina eerst je code. Daarna log je in zoals altijd.",
         ],
         { tekst: "Nieuw wachtwoord kiezen", link: i.link },
         "De link werkt één keer en een beperkte tijd. Vroeg je hier niet om, laat het dan weten aan wie hem stuurde."
