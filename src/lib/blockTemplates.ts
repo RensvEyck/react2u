@@ -272,6 +272,9 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   kennismaken: { label: "Kennismaken: stappen en offerteformulier", data: uit(kennismakenPagina, "kennismaken") },
   ptKop: { label: "Partners: kop met foto en roze bol", data: uit(partnersPagina, "ptKop") },
   ptRekenhulp: { label: "Partners: rekenvoorbeeld vergoeding", data: uit(partnersPagina, "ptRekenhulp") },
+  // Zonder de quotes uit het concept: een nieuw blok begint leeg, zodat er geen
+  // ongecontroleerde tekst als woorden van een partner online komt.
+  ptQuotes: { label: "Partners: partners aan het woord", data: { eyebrow: "Partners aan het woord", heading: "Zij werken al met ons samen", items: [] } },
   ptAanmelden: { label: "Partners: aanmelden met terugbelformulier", data: uit(partnersPagina, "ptAanmelden") },
   overReact2u: { label: "Over React2u: verhaal, missie, visie en waarden", data: uit(overReact2uPagina, "overReact2u") },
   inloggen: { label: "Inloggen: portalen voor werkgever en werknemer", data: uit(inloggenPagina, "inloggen") },

@@ -799,6 +799,17 @@ partnerovereenkomst horen:
   met akkoord van de partner. Dat staat naast de diensttegels en bij de vragen,
   omdat juist salariskantoren en HR-adviseurs anders afhaken.
 
+**Partners aan het woord** (`ptQuotes`, direct onder het rekenvoorbeeld): quotes
+van partners in de vorm van de ervaringen op /werkgevers, met het logo van het
+kantoor (`public/beeld/partners/`). Een quote staat alleen live met
+`goedgekeurd: true`; zonder die vlag toont alleen staging hem, met het label
+Concept. Zo komt een tekst die het kantoor nog niet heeft goedgekeurd nooit als
+zijn woorden online, ook niet via `--alle`. De quotes van Jouw HR Partner en
+Spine Services (22 oktober 2026) zijn concepten van React2u en wachten op hun
+akkoord; daarna `goedgekeurd: true`, eventueel naam en functie, en het blok in
+de database zetten. Het witte logo van Jouw HR Partner (overgenomen van hun
+site) staat op hun eigen donkergroen (`logoBg`).
+
 Het rekenvoorbeeld rekent met
 `tarief` (de Verrichtingenbasis, € 38,50 per werknemer per jaar),
 `pctJaarEen` (50) en `pctVervolg` (25) uit de blokdata ([`lib/partners.ts`](src/lib/partners.ts));

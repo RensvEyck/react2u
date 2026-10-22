@@ -24,7 +24,7 @@ import { SitemapOverzicht } from "./Werkgebied";
 import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen, DgSituaties } from "./Doelgroep";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
-import { PtKop, PtRekenhulp, PtAanmelden } from "./Partners";
+import { PtKop, PtRekenhulp, PtQuotes, PtAanmelden } from "./Partners";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
 import {
   WgSplit, WgWaarom, WgDiensten, WgWerkwijze, WgErd, WgStarten, WgTarieven, WgBewijs, WgVragen, WgOfferte,
@@ -1157,6 +1157,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   kennismaken: Kennismaken,
   ptKop: PtKop,
   ptRekenhulp: PtRekenhulp,
+  ptQuotes: PtQuotes,
   ptAanmelden: PtAanmelden,
   klantenStrook: ({ d, ctx }: BlockProps) => <KlantenStrook label={d?.label} taal={ctx?.lang} />,
   klantenAanHetWoord: ({ d, ctx }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} taal={ctx?.lang} />,

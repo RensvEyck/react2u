@@ -63,6 +63,31 @@
       }
     },
     {
+      "type": "ptQuotes",
+      "label": "Partners: partners aan het woord",
+      "data": {
+        "eyebrow": "Partners aan het woord",
+        "heading": "Zij werken al met ons samen",
+        "items": [
+          {
+            "tekst": "Wij regelen het HR-werk voor onze klanten, React2u het verzuim. Wordt er iemand ziek, dan weet de klant meteen waar hij aan toe is. En wij horen precies wat er gebeurt, zonder dat we het zelf hoeven te doen.",
+            "naam": "Jouw HR Partner",
+            "rol": "Partner van React2u",
+            "logo": "/beeld/partners/jouw-hr-partner.svg",
+            "logoBg": "#145059",
+            "goedgekeurd": false
+          },
+          {
+            "tekst": "Onze klanten vroegen ons vaak wat ze moesten doen als iemand ziek werd. Nu sturen we ze naar React2u en is het goed geregeld. De klant blijft gewoon van ons, en daar houden ze zich aan.",
+            "naam": "Spine Services",
+            "rol": "Partner van React2u",
+            "logo": "/beeld/partners/spine-services.png",
+            "goedgekeurd": false
+          }
+        ]
+      }
+    },
+    {
       "type": "dienstLabel",
       "label": "Partners: kop en opzet zoals een dienstpagina",
       "data": {
