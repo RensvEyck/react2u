@@ -805,9 +805,9 @@ kantoor (`public/beeld/partners/`). Een quote staat alleen live met
 `goedgekeurd: true`; zonder die vlag toont alleen staging hem, met het label
 Concept. Zo komt een tekst die het kantoor nog niet heeft goedgekeurd nooit als
 zijn woorden online, ook niet via `--alle`. De quotes van Jouw HR Partner en
-Spine Services (22 oktober 2026) zijn concepten van React2u en wachten op hun
-akkoord; daarna `goedgekeurd: true`, eventueel naam en functie, en het blok in
-de database zetten. Het witte logo van Jouw HR Partner (overgenomen van hun
+Spine Services zijn door React2u geschreven; beide kantoren gaven op 22 oktober
+2026 toestemming (volgens Rens), daarom staan ze op `goedgekeurd: true`. Komt er
+een naam en functie bij, dan in `naam` en `rol`. Het witte logo van Jouw HR Partner (overgenomen van hun
 site) staat op hun eigen donkergroen (`logoBg`).
 
 Het rekenvoorbeeld rekent met
