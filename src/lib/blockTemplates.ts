@@ -270,7 +270,7 @@ export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
   klantenStrook: { label: "Klantenlogo's (strook)", data: uit(kennismakenPagina, "klantenStrook") },
   klantenAanHetWoord: { label: "Klanten aan het woord", data: uit(kennismakenPagina, "klantenAanHetWoord") },
   kennismaken: { label: "Kennismaken: stappen en offerteformulier", data: uit(kennismakenPagina, "kennismaken") },
-  ptKop: { label: "Partners: kop in roze met de vergoeding", data: uit(partnersPagina, "ptKop") },
+  ptKop: { label: "Partners: kop met foto en roze bol", data: uit(partnersPagina, "ptKop") },
   ptRekenhulp: { label: "Partners: rekenvoorbeeld vergoeding", data: uit(partnersPagina, "ptRekenhulp") },
   ptAanmelden: { label: "Partners: aanmelden met terugbelformulier", data: uit(partnersPagina, "ptAanmelden") },
   overReact2u: { label: "Over React2u: verhaal, missie, visie en waarden", data: uit(overReact2uPagina, "overReact2u") },

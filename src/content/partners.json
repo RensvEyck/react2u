@@ -6,10 +6,9 @@
   "blocks": [
     {
       "type": "ptKop",
-      "label": "Partners: kop in roze met de vergoeding",
+      "label": "Partners: kop met foto en roze bol",
       "data": {
         "heading": "React2u Partners",
-        "naam": "Partners",
         "kruimels": [
           {
             "label": "Werkgevers",
@@ -19,9 +18,9 @@
             "label": "Partners"
           }
         ],
-        "label": "Partnerprogramma voor adviseurs.",
-        "tagline": "Jouw klant, onze casemanager, jouw vergoeding",
-        "text": "Accountants, salariskantoren en HR-adviseurs zien als eerste dat verzuim een werkgever geld kost. Breng die werkgever bij ons onder. Wij doen de begeleiding, jij blijft het aanspreekpunt.",
+        "eyebrow": "React2u Partners",
+        "tagline": "Jouw klant, ons vak, jouw vergoeding",
+        "sub": "Voor accountants, salariskantoren en HR-adviseurs.",
         "knoppen": [
           {
             "label": "Partner worden",
@@ -32,26 +31,8 @@
             "href": "#rekenvoorbeeld"
           }
         ],
-        "kaart": {
-          "kop": "Jouw vergoeding",
-          "groot": "50%",
-          "grootTekst": "van het abonnement in jaar één",
-          "plus": "+25%",
-          "plusTekst": "in elk jaar daarna, zolang de klant blijft",
-          "voorbeeldTekst": "Bij {klanten} klanten met elk {medewerkers} medewerkers:",
-          "voorbeeldNa": "in jaar één",
-          "punten": [
-            "Geen contract met de klant, geen aansprakelijkheid",
-            "Uitbetaling per kwartaal op jouw factuur"
-          ]
-        },
-        "voorbeeld": {
-          "klanten": 10,
-          "medewerkers": 100,
-          "tarief": 38.5,
-          "pctJaarEen": 50,
-          "pctVervolg": 25
-        }
+        "beeld": "/beeld/kantoor/overleg.webp",
+        "beeldAlt": "Vier mensen in overleg aan een houten tafel met een laptop"
       }
     },
     {
@@ -93,7 +74,7 @@
         "lead": "Daar hoort een arbodienst bij die net zo dichtbij is.",
         "intro": [
           "Accountants zien de loonsanctie en de Whk-premie op de jaarrekening terug. Salariskantoren zien elke ziekmelding voorbijkomen. HR- en verzekeringsadviseurs krijgen de vragen als het misgaat.",
-          "Met het partnerprogramma breng je die werkgevers bij React2u onder. Een vaste casemanager neemt de begeleiding over, jij blijft het aanspreekpunt en ontvangt een vergoeding."
+          "Met het partnerprogramma breng je die werkgevers bij React2u onder. Wij nemen de begeleiding over, van preventie tot re-integratie. Jij blijft het aanspreekpunt en ontvangt een vergoeding."
         ],
         "herken": [
           "Een klant krijgt een loonsanctie of een hoge Whk-premie",
@@ -132,7 +113,7 @@
           },
           {
             "titel": "Je klant tekent",
-            "tekst": "Een vaste casemanager neemt de begeleiding over. Jij blijft het aanspreekpunt."
+            "tekst": "Wij regelen de arbozorg en het verzuim. Jij blijft het aanspreekpunt."
           },
           {
             "titel": "Jij ontvangt je deel",
