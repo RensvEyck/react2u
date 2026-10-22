@@ -78,7 +78,9 @@ export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
   const t = woordenboek(ctx?.lang ?? "nl");
   return (
     <section aria-label={d.heading} {...anker(d)} className={`hv ${outfit.variable} bg-white`}>
-      <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
+      {/* `ondermarge: false` (op /partners): het blok erna heeft zelf bovenmarge,
+          en samen werd dat het dubbele van de rest van die pagina. */}
+      <div className={`${BREED} flex flex-col gap-8 md:gap-10 ${d.ondermarge === false ? "pt-14 md:pt-[104px]" : "py-14 md:py-[104px]"}`}>
         <SectieKop d={d} />
         {/* Met vijf kaarten: naast elkaar pas vanaf 1400px; daaronder werden ze zo
             smal dat woorden midden in braken ("Werkplekonderzoe-k"). Op een laptop

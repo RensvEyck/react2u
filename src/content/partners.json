@@ -135,53 +135,112 @@
             "tekst": "Wij nemen alleen de arbodienstverlening over. Bij het eerste gesprek schuif je aan als je wilt."
           }
         ],
-        "ook": [
-          {
-            "naam": "Recover",
-            "wat": "Verzuimbegeleiding",
-            "kleur": "#E61674",
-            "href": "/recover"
-          },
-          {
-            "naam": "Resist",
-            "wat": "Preventie en vitaliteit",
-            "kleur": "#00A098",
-            "href": "/resist"
-          },
-          {
-            "naam": "Restart",
-            "wat": "Re-integratie en loopbaan",
-            "kleur": "#F19001",
-            "href": "/restart"
-          },
-          {
-            "naam": "Reflex",
-            "wat": "Flexbranche en Ziektewet",
-            "kleur": "#3AA5DD",
-            "href": "/reflex"
-          },
-          {
-            "naam": "Ready",
-            "wat": "HR en arbeidsrecht",
-            "kleur": "#322E83",
-            "href": "/ready"
-          },
-          {
-            "naam": "Reward",
-            "wat": "Salaris en verloning",
-            "kleur": "#CA152A",
-            "href": "/reward"
-          }
-        ],
         "titels": {
           "danIs": "Dan is het partnerprogramma er voor jou.",
           "omvat": "Twee manieren om samen te werken",
           "omvatTekst": "Kies wat bij je kantoor past. Je kunt ze per klant naast elkaar gebruiken.",
           "aanpak": "Zo werkt het",
-          "waarom": "Waarom partner worden bij React2u",
-          "bekijkOok": "Wat jouw klant krijgt"
+          "waarom": "Waarom partner worden bij React2u"
         },
         "zonderKop": true
+      }
+    },
+    {
+      "type": "dgLabels",
+      "label": "Wat jouw klant krijgt: de diensten als tegels",
+      "data": {
+        "heading": "Wat jouw klant krijgt",
+        "text": "Zes diensten onder één dak, van verzuimbegeleiding tot verloning. Jouw klant kiest wat past.",
+        "ondermarge": false,
+        "items": [
+          {
+            "naam": "Recover",
+            "kleur": "#E61674",
+            "tint": "#FDECF4",
+            "label": "Verzuimbegeleiding.",
+            "tagline": "Van ziekmelding tot herstel",
+            "points": [
+              "Casemanagement",
+              "Bedrijfsarts en taakdelegatie",
+              "Poortwachterdossier en UWV",
+              "Online dossier en rapportages",
+              "Verzuimadvies"
+            ],
+            "href": "/recover"
+          },
+          {
+            "naam": "Resist",
+            "kleur": "#00A098",
+            "tint": "#E5F5F4",
+            "label": "Preventie en vitaliteit.",
+            "tagline": "Uitval voorkomen begint vóór de ziekmelding",
+            "points": [
+              "Risico-inventarisatie (RI&E)",
+              "Preventief medisch onderzoek (PMO)",
+              "Werkplekonderzoek",
+              "Trainingen voor leidinggevenden",
+              "Vertrouwenspersoon"
+            ],
+            "href": "/resist"
+          },
+          {
+            "naam": "Restart",
+            "kleur": "#F19001",
+            "tint": "#FEF3E3",
+            "label": "Re-integratie en loopbaan.",
+            "tagline": "Samen weer vooruit",
+            "points": [
+              "Tweede spoor",
+              "Loopbaanscan",
+              "Coaching en burn-outbegeleiding",
+              "Arbeidsdeskundig onderzoek",
+              "Rouwverwerking"
+            ],
+            "href": "/restart"
+          },
+          {
+            "naam": "Reflex",
+            "kleur": "#3AA5DD",
+            "tint": "#E9F5FC",
+            "label": "Voor de flexbranche.",
+            "tagline": "Ziektewet zonder zorgen",
+            "points": [
+              "Begeleiding zieke flexkrachten",
+              "Eigenrisicodragerschap Ziektewet",
+              "Ook na einde dienstverband",
+              "Gericht op passend werk"
+            ],
+            "href": "/reflex"
+          },
+          {
+            "naam": "Ready",
+            "kleur": "#322E83",
+            "tint": "#ECEBF5",
+            "label": "HR en arbeidsrecht.",
+            "tagline": "Helder advies, snel geregeld",
+            "points": [
+              "HR-advies rond verzuim",
+              "Arbeidsrechtelijke ondersteuning",
+              "Advies bij conflicten",
+              "Second opinion en deskundigenoordeel"
+            ],
+            "href": "/ready"
+          },
+          {
+            "naam": "Reward",
+            "kleur": "#CA152A",
+            "tint": "#FBEAEC",
+            "label": "Salaris en verloning.",
+            "tagline": "Loon dat klopt, ook bij ziekte",
+            "points": [
+              "Maand- of vierwekelijkse verloning",
+              "Verloning van zieke medewerkers",
+              "Ziektewet en tweede ziektejaar",
+              "Vaste prijs per werknemer per jaar"
+            ],
+            "href": "/reward"
+          }
+        ]
       }
     },
     {
