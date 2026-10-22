@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { NAVY, ORANGE, BODY, LAV, kop, Eyebrow, Pijl } from "./Gedeeld";
+import { NAVY, PINK, ORANGE, BODY, MUTE, LINE, SOFT, LAV, kop, Eyebrow, Pijl, Strook } from "./Gedeeld";
+import { conceptenActief } from "@/lib/concept";
 import { telefoonInTaal, type Taal } from "@/lib/taal";
 import type { TarievenSettings } from "@/lib/tarieven";
 import PartnerRekenhulp from "./PartnerRekenhulp";
@@ -20,6 +21,8 @@ type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
  *   startpagina;
  * - ptRekenhulp: kop en breedte zoals de secties van dienstLabel, met het
  *   rekenvoorbeeld als kaart;
+ * - ptQuotes: partners aan het woord, in de vorm van de ervaringen op
+ *   /werkgevers (KlantenAanHetWoord), met het logo van het kantoor;
  * - ptAanmelden: zoals het kennismaakblok, met het aanmeldformulier.
  */
 
@@ -121,6 +124,60 @@ export function PtRekenhulp({ d, ctx }: { d: any; ctx?: Ctx }) {
           {d.text && <p className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>{d.text}</p>}
         </div>
         <PartnerRekenhulp r={d.rekenhulp || {}} jaar={jaar} />
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Partners aan het woord ---------- */
+
+type Quote = { tekst: string; naam: string; rol?: string; logo?: string; logoBg?: string; goedgekeurd?: boolean };
+
+/**
+ * Quotes van partners, zoals de ervaringen op /werkgevers. Een quote staat
+ * alleen live met `goedgekeurd: true`: een tekst die het kantoor nog niet heeft
+ * goedgekeurd, mag niet als zijn woorden op de site staan, ook niet als iemand
+ * de concepten met `--alle` naar de database zet. Op staging staan de
+ * concepten er wel, met een label. `logoBg` is voor een wit logo (Jouw HR
+ * Partner heeft alleen een witte versie): dat komt op een vlak in die kleur.
+ */
+export function PtQuotes({ d }: { d: any }) {
+  const quotes: Quote[] = (d.items || []).filter((q: Quote) => q?.tekst && (q.goedgekeurd || conceptenActief));
+  if (quotes.length === 0) return null;
+  // Na de rekenhulp, die geen ondermarge heeft: de band begint op afstand.
+  return (
+    <section aria-label={d.heading} className={`hv ${outfit.variable} mt-14 md:mt-[104px]`} style={{ background: SOFT }}>
+      <div className="flex flex-col gap-10 px-5 py-14 md:gap-12 md:px-10 md:py-[104px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
+        <div className="flex flex-col gap-4">
+          {d.eyebrow && <Eyebrow>{d.eyebrow}</Eyebrow>}
+          <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{d.heading}</h2>
+        </div>
+        <Strook n={quotes.length} className="grid gap-5 md:grid-cols-2 md:gap-6">
+          {quotes.map((q) => (
+            <figure key={q.naam} className="relative m-0 flex flex-col justify-between gap-7 rounded-[28px] bg-white p-6 sm:gap-8 sm:p-8 md:p-10">
+              {!q.goedgekeurd && (
+                <span className="absolute right-5 top-5 rounded-full px-3 py-1 text-[12px] font-bold uppercase tracking-[1px]" style={{ background: "#FFF4D6", color: "#8A5A00" }}>
+                  Concept
+                </span>
+              )}
+              <blockquote className="m-0 flex flex-col gap-4">
+                <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: PINK }}>“</span>
+                <p className={`${kop} m-0 text-[19px] leading-[1.45] sm:text-[20px] md:text-[22px]`} style={{ color: NAVY, fontWeight: 500 }}>{q.tekst}</p>
+              </blockquote>
+              <figcaption className="flex items-center justify-between gap-6 border-t pt-6" style={{ borderColor: LINE }}>
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-[16px] font-bold" style={{ color: NAVY }}>{q.naam}</span>
+                  {q.rol && <span className="text-[14.5px]" style={{ color: MUTE }}>{q.rol}</span>}
+                </span>
+                {q.logo && (
+                  <span className="flex shrink-0 items-center rounded-[12px] px-3 py-2" style={q.logoBg ? { background: q.logoBg } : undefined}>
+                    <Beeld src={q.logo} alt="" sizes="140px" className="h-9 w-auto max-w-[140px] object-contain" />
+                  </span>
+                )}
+              </figcaption>
+            </figure>
+          ))}
+        </Strook>
       </div>
     </section>
   );
