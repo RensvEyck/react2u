@@ -3,6 +3,7 @@ import { requirePerm } from "@/lib/admin";
 import OffertePagina from "@/components/offerte/OffertePagina";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { datumOver, normaliseerRegels, type Offerte, type OffertePubliek } from "@/lib/offertes";
+import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 export default async function OfferteVoorbeeld({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { sb } = await requirePerm("bellijst");
-  const { data } = await sb.from("offertes").select("*").eq("id", id).maybeSingle();
+  const [{ data }, huisstijl] = await Promise.all([sb.from("offertes").select("*").eq("id", id).maybeSingle(), offerteHuisstijl()]);
   if (!data) notFound();
   const o = data as Offerte;
   const offerte: OffertePubliek = {
@@ -23,5 +24,7 @@ export default async function OfferteVoorbeeld({ params }: { params: Promise<{ i
     regels: normaliseerRegels(o.regels),
     verlopen: Boolean(o.geldig_tot && o.geldig_tot < datumOver(0)),
   };
-  return <OffertePagina offerte={offerte} modus="voorbeeld" voorwaarden={DOCUMENTEN.algemeneVoorwaarden} />;
+  return (
+    <OffertePagina offerte={offerte} modus="voorbeeld" voorwaarden={DOCUMENTEN.algemeneVoorwaarden} contact={huisstijl.contact} certificaten={huisstijl.certificaten} />
+  );
 }

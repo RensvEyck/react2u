@@ -8,6 +8,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { notifyOfferteBekeken, offerteAdminUrl } from "@/lib/mail";
 import type { OffertePubliek } from "@/lib/offertes";
+import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ async function isCollega(): Promise<boolean> {
 export default async function OfferteRoute({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!/^[a-f0-9]{48,}$/.test(token)) notFound();
-  const collega = await isCollega();
+  const [collega, huisstijl] = await Promise.all([isCollega(), offerteHuisstijl()]);
   const { data } = await supabasePublic().rpc("offerte_bekijken", { p_token: token, p_tel: !collega });
   const offerte = data as OffertePubliek | null;
   if (!offerte) notFound();
@@ -56,6 +57,8 @@ export default async function OfferteRoute({ params }: { params: Promise<{ token
       modus={collega ? "collega" : "klant"}
       voorwaarden={DOCUMENTEN.algemeneVoorwaarden}
       vers={netGetekend(offerte.getekend_at)}
+      contact={huisstijl.contact}
+      certificaten={huisstijl.certificaten}
     />
   );
 }

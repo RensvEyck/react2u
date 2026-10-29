@@ -3,6 +3,10 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Caveat, Outfit } from "next/font/google";
 import Logo from "@/components/site/Logo";
+import Beeld from "@/components/site/Beeld";
+import { KEURMERKEN } from "@/components/blocks/Gedeeld";
+import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
+import type { Certificate } from "@/lib/nav";
 import Handtekening from "./Handtekening";
 import OfferteTekst from "./OfferteTekst";
 import { bewaarKeuze, ondertekenOfferte, wijsOfferteAf } from "@/app/(offerte)/offerte/actions";
@@ -49,6 +53,34 @@ const ZACHT = "#FAF7F2";
 const KOP: React.CSSProperties = { fontFamily: "var(--font-offerte-kop), var(--font-heading), sans-serif" };
 
 export type Modus = "klant" | "collega" | "voorbeeld";
+
+/** Het label van React2u waar de vorm onder valt, in de kleur van de tarievenpagina. */
+const LABEL: Record<Vorm, string> = {
+  verzuimbegeleiding: "React2u Recover",
+  rie: "React2u Resist",
+  pago: "React2u Resist",
+  verzuimtraining: "React2u Resist",
+  spoor2: "React2u Restart",
+  werkfit: "React2u Restart",
+  arbeidsdeskundig: "React2u Restart",
+};
+
+/** Wat React2u zelf meegeeft: bedrijfsgegevens en certificaten (Instellingen), zoals in de footer van de site. */
+type Huis = { contact: ContactInfo; certificaten: Certificate[] };
+
+/**
+ * De keurmerken met hun echte logo's (Gedeeld.tsx, dezelfde als in de footer).
+ * Staat het certificaat als PDF in Instellingen, dan wordt dat de doorklik.
+ */
+function keurmerken(certificaten: Certificate[]) {
+  const zoek: Record<string, RegExp> = { SBCA: /arbodienst|sbca|managementsysteem/i, "ISO 9001": /9001/, "ISO 27001": /27001/, "ISO 27701": /27701/, OVAL: /oval/i };
+  return KEURMERKEN.map((k) => {
+    const c = certificaten.find((x) => zoek[k.naam]?.test(`${x.alt} ${x.href} ${x.image}`));
+    return { ...k, href: c ? c.href || c.image : "" };
+  });
+}
+
+const telefoonTekst = (c: ContactInfo) => c.phoneDisplay.replace(/\s*-\s*/, " ");
 
 const veld =
   "h-[52px] w-full rounded-[12px] border border-[#DEDAD2] bg-white px-4 text-[16px] text-[#1C1A4E] outline-none transition-[border-color,box-shadow] placeholder:text-[#A8A5B8] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)] disabled:bg-[#F7F5F1] disabled:text-[#A8A5B8]";
@@ -144,7 +176,7 @@ function Bedrag({ t, maat = "text-[42px]" }: { t: Totalen; maat?: string }) {
 /* ---------- de pagina ---------- */
 
 export default function OffertePagina({
-  offerte, token, modus, voorwaarden, vers = false,
+  offerte, token, modus, voorwaarden, vers = false, contact = CONTACT_FALLBACK, certificaten = [],
 }: {
   offerte: OffertePubliek;
   token?: string;
@@ -152,14 +184,17 @@ export default function OffertePagina({
   voorwaarden: string;
   /** Net getekend (minder dan een kwartier geleden): dan de felicitatie, anders een rustige bevestiging. */
   vers?: boolean;
+  contact?: ContactInfo;
+  certificaten?: Certificate[];
 }) {
   const getekend = offerte.status === "getekend" && offerte.getekend_inhoud;
+  const huis: Huis = { contact, certificaten };
   return (
     <div className={`${kopLetter.variable} min-h-screen`} style={{ background: ZAND }}>
       {getekend ? (
-        <Getekend offerte={offerte} voorwaarden={voorwaarden} modus={modus} vers={vers} />
+        <Getekend offerte={offerte} voorwaarden={voorwaarden} modus={modus} vers={vers} huis={huis} />
       ) : (
-        <Document offerte={offerte} token={token} modus={modus} voorwaarden={voorwaarden} />
+        <Document offerte={offerte} token={token} modus={modus} voorwaarden={voorwaarden} huis={huis} />
       )}
     </div>
   );
@@ -229,23 +264,77 @@ function Band({ kleur, tekst, children }: { kleur: string; tekst: string; childr
   );
 }
 
-function Voet({ offerte, voorwaarden }: { offerte: OffertePubliek; voorwaarden: string }) {
+function Voet({ offerte, voorwaarden, huis }: { offerte: OffertePubliek; voorwaarden: string; huis: Huis }) {
+  const c = huis.contact;
   return (
     <footer className="mx-auto mt-16 max-w-[1240px] px-5 pb-32 text-[13.5px] md:px-8 lg:pb-14 print:mt-6 print:pb-0" style={{ color: MUTE }}>
-      <div className="flex flex-col gap-2 border-t pt-6 md:flex-row md:items-center md:justify-between" style={{ borderColor: LIJN }}>
-        <p className="m-0">React2u · gecertificeerde arbodienst · Stratumsedijk 29, Eindhoven</p>
-        <p className="m-0">
-          Offerte {offerte.nummer} · bedragen exclusief btw ·{" "}
-          <a href={voorwaarden} target="_blank" rel="noopener" className="font-semibold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a>
-        </p>
+      <div className="grid gap-8 border-t pt-8 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-start md:gap-12" style={{ borderColor: "#E2DBCF" }}>
+        <div>
+          <Logo className="h-10 w-auto" />
+          <p className="m-0 mt-3 text-[13.5px] italic" style={{ color: BODY }}>Jouw mensen, onze aandacht.</p>
+        </div>
+        <div className="grid gap-x-10 gap-y-1 sm:grid-cols-2">
+          <p className="m-0">React2u<br />{c.addressLine1}<br />{c.addressLine2}</p>
+          <p className="m-0">
+            <a href={`tel:${c.phone}`} className="hover:underline">{telefoonTekst(c)}</a><br />
+            <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a><br />
+            KvK {c.kvk} · btw {c.btw}
+          </p>
+        </div>
+        <ul className="m-0 flex list-none flex-wrap items-center gap-2 p-0" aria-label="Keurmerken">
+          {keurmerken(huis.certificaten).map((k) => (
+            <li key={k.naam} title={`${k.naam}: ${k.wat}`} className="relative h-10 w-10 overflow-hidden rounded-[8px] bg-white">
+              <Beeld src={k.src} alt={k.alt} fill sizes="40px" className="object-contain p-1" />
+            </li>
+          ))}
+        </ul>
       </div>
+      <p className="m-0 mt-6 text-[12.5px]">
+        Offerte {offerte.nummer} · alle bedragen exclusief btw · op deze offerte zijn de{" "}
+        <a href={voorwaarden} target="_blank" rel="noopener" className="font-semibold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a> van React2u van toepassing.
+      </p>
     </footer>
+  );
+}
+
+/** De echte keurmerken van React2u, met logo, naam en wat ze betekenen. */
+function Keurmerken({ huis }: { huis: Huis }) {
+  return (
+    <div className="rounded-[20px] p-6 md:p-7" style={{ background: ZACHT }}>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+        <p className="m-0 text-[17px] font-semibold tracking-[-0.01em]" style={{ ...KOP, color: INKT }}>Gecertificeerd en aangesloten</p>
+        <p className="m-0 text-[13.5px]" style={{ color: MUTE }}>Een gecertificeerde arbodienst, met de keurmerken die daarbij horen.</p>
+      </div>
+      <ul className="m-0 mt-5 grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-5 sm:gap-2.5 [&>li:last-child]:col-span-2 sm:[&>li:last-child]:col-span-1">
+        {keurmerken(huis.certificaten).map((k) => {
+          const inhoud = (
+            <>
+              <span className="relative block h-14 w-full">
+                <Beeld src={k.src} alt={k.alt} fill sizes="120px" className="object-contain" />
+              </span>
+              <span className="mt-3 block text-[13.5px] font-semibold" style={{ color: INKT }}>{k.naam}</span>
+              <span className="block text-[12px] leading-snug [hyphens:auto] [overflow-wrap:break-word]" style={{ color: MUTE }}>{k.wat}</span>
+            </>
+          );
+          return (
+            <li key={k.naam}>
+              {k.href ? (
+                <a href={k.href} target="_blank" rel="noopener" className="block h-full rounded-[14px] bg-white px-2.5 py-4 text-center transition-shadow hover:shadow-[0_8px_24px_-14px_rgba(28,26,78,0.4)]">{inhoud}</a>
+              ) : (
+                <span className="block h-full rounded-[14px] bg-white px-2.5 py-4 text-center">{inhoud}</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
 /* ---------- omslag ---------- */
 
 function Omslag({ offerte, vorm }: { offerte: OffertePubliek; vorm: Vorm }) {
+  const kleur = VORMEN[vorm].kleur;
   const meta: [string, React.ReactNode][] = [
     ["Opgesteld door", offerte.afzender_naam || "React2u"],
     ["Datum", datumLang(offerte.verstuurd_at || new Date().toISOString())],
@@ -254,7 +343,21 @@ function Omslag({ offerte, vorm }: { offerte: OffertePubliek; vorm: Vorm }) {
     ...(offerte.medewerkers ? ([["Medewerkers", offerte.medewerkers.toLocaleString("nl-NL")]] as [string, string][]) : []),
   ];
   return (
-    <section className="pb-10 pt-10 md:pb-14 md:pt-16">
+    <section className="pb-10 pt-10 md:pb-14 md:pt-14">
+      {/* Briefhoofd: het logo, de kernzin en het label waar deze offerte onder valt */}
+      <div className="mb-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-4 md:mb-16">
+        <div className="flex items-center gap-5">
+          <Logo className="h-14 w-auto md:h-[68px]" />
+          <span className="hidden h-12 w-px sm:block" style={{ background: "#DDD5C8" }} aria-hidden="true" />
+          <p className="m-0 hidden text-[15px] leading-snug sm:block" style={{ color: BODY }}>
+            Jouw mensen,<br /><span className="font-semibold" style={{ color: INKT }}>onze aandacht.</span>
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[13px] font-semibold" style={{ color: kleur }}>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: kleur }} />
+          {LABEL[vorm]}
+        </span>
+      </div>
       <p className="m-0 flex items-center gap-3 text-[13px] font-semibold uppercase tracking-[0.16em]" style={{ color: PINK }}>
         <span className="h-[2px] w-8 rounded-full" style={{ background: PINK }} />
         Offerte {offerte.nummer}
@@ -294,7 +397,7 @@ function Kop({ nr, titel, sub }: { nr: number; titel: string; sub?: string }) {
   );
 }
 
-function Document({ offerte, token, modus, voorwaarden }: { offerte: OffertePubliek; token?: string; modus: Modus; voorwaarden: string }) {
+function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: OffertePubliek; token?: string; modus: Modus; voorwaarden: string; huis: Huis }) {
   const regels = useMemo(() => normaliseerRegels(offerte.regels), [offerte.regels]);
   const [keuze, setKeuze] = useState<string[]>(() => herstelKeuze(regels, offerte.keuze));
   const totalen = useMemo(() => berekenTotalen(regels, keuze, offerte.medewerkers), [regels, keuze, offerte.medewerkers]);
@@ -395,6 +498,7 @@ function Document({ offerte, token, modus, voorwaarden }: { offerte: OffertePubl
             <Hoofd id="verder">
               <Kop nr={nr("verder")} titel="Zo gaat het verder" />
               <Vervolg stappen={offerte.vervolg} />
+              <div className="mt-10"><Keurmerken huis={huis} /></div>
             </Hoofd>
             <Hoofd id="akkoord" laatste>
               <Kop nr={nr("akkoord")} titel="Akkoord" sub={open ? "Klopt alles? Zet hieronder je handtekening. Je krijgt direct een bevestiging per mail." : undefined} />
@@ -408,6 +512,7 @@ function Document({ offerte, token, modus, voorwaarden }: { offerte: OffertePubl
                 modus={modus}
                 voorwaarden={voorwaarden}
                 afwijzen={kanTekenen ? () => setAfwijzen(true) : undefined}
+                huis={huis}
               />
             </Hoofd>
           </article>
@@ -416,7 +521,7 @@ function Document({ offerte, token, modus, voorwaarden }: { offerte: OffertePubl
         {/* Het beslispaneel: altijd in beeld op een groot scherm */}
         <aside className="hidden pt-16 lg:block print:hidden">
           <div className="sticky top-[88px] flex max-h-[calc(100vh-104px)] flex-col gap-4 overflow-y-auto pb-4">
-            <Paneel totalen={totalen} heeftKeuze={heeftKeuze} open={open} naarAkkoord={naarAkkoord} offerte={offerte} />
+            <Paneel totalen={totalen} heeftKeuze={heeftKeuze} open={open} naarAkkoord={naarAkkoord} offerte={offerte} huis={huis} />
             <nav aria-label="Inhoud van de offerte" className="rounded-[22px] border p-5" style={{ borderColor: "#E2DBCF" }}>
               <Label>In deze offerte</Label>
               <ol className="m-0 mt-3 flex list-none flex-col gap-0.5 p-0">
@@ -438,7 +543,7 @@ function Document({ offerte, token, modus, voorwaarden }: { offerte: OffertePubl
         </aside>
       </main>
 
-      <Voet offerte={offerte} voorwaarden={voorwaarden} />
+      <Voet offerte={offerte} voorwaarden={voorwaarden} huis={huis} />
 
       {/* Telefoon: het maandbedrag en de knop in beeld, tot je bij het akkoord bent (daar staat de echte knop) */}
       {open && (
@@ -509,7 +614,7 @@ function Kleintje({ t }: { t: Totalen }) {
 
 /* ---------- beslispaneel ---------- */
 
-function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte }: { totalen: Totalen; heeftKeuze: boolean; open: boolean; naarAkkoord: () => void; offerte: OffertePubliek }) {
+function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, huis }: { totalen: Totalen; heeftKeuze: boolean; open: boolean; naarAkkoord: () => void; offerte: OffertePubliek; huis: Huis }) {
   const tel = telLink(offerte.afzender_telefoon);
   return (
     <div className="rounded-[24px] bg-white p-6 shadow-[0_30px_70px_-45px_rgba(28,26,78,0.5)]">
@@ -560,9 +665,18 @@ function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte }: { totalen: 
           </a>
         )}
       </div>
-      <p className="m-0 mt-4 flex items-center gap-2 text-[12.5px]" style={{ color: MUTE }}>
-        <span style={{ color: TEAL }}><Schild /></span> SBCA-gecertificeerde arbodienst · ISO 9001 · ISO 27001
-      </p>
+      <div className="mt-5 border-t pt-4" style={{ borderColor: LIJN }}>
+        <p className="m-0 flex items-center gap-2 text-[12.5px] font-medium" style={{ color: MUTE }}>
+          <span style={{ color: TEAL }}><Schild /></span> Gecertificeerde arbodienst
+        </p>
+        <ul className="m-0 mt-3 flex list-none items-center justify-between gap-1.5 p-0">
+          {keurmerken(huis.certificaten).map((k) => (
+            <li key={k.naam} title={`${k.naam}: ${k.wat}`} className="relative h-11 flex-1 overflow-hidden rounded-[8px] border bg-white" style={{ borderColor: LIJN }}>
+              <Beeld src={k.src} alt={k.alt} fill sizes="56px" className="object-contain p-1.5" />
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -842,7 +956,7 @@ function Vervolg({ stappen: eigen, klaar = 0 }: { stappen: Stap[] | null | undef
 /* ---------- akkoord: tekenen in het document ---------- */
 
 function Akkoord({
-  offerte, token, keuze, totalen, kanTekenen, open, modus, voorwaarden, afwijzen,
+  offerte, token, keuze, totalen, kanTekenen, open, modus, voorwaarden, afwijzen, huis,
 }: {
   offerte: OffertePubliek;
   token?: string;
@@ -853,6 +967,7 @@ function Akkoord({
   modus: Modus;
   voorwaarden: string;
   afwijzen?: () => void;
+  huis: Huis;
 }) {
   const router = useRouter();
   const [naam, setNaam] = useState(offerte.contactpersoon || "");
@@ -906,6 +1021,7 @@ function Akkoord({
           <div>
             <Label>Opdrachtnemer</Label>
             <p className="m-0 mt-2 text-[18px] font-semibold" style={{ ...KOP, color: INKT }}>React2u</p>
+            <p className="m-0 min-h-[2.9em] text-[13.5px] leading-[1.45]" style={{ color: MUTE }}>{huis.contact.addressLine1}, {huis.contact.addressLine2}<br />KvK {huis.contact.kvk}</p>
             <div className="mt-3 flex h-[44px] items-center">
               <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold" style={{ background: "#E5F6F4", color: "#0B7F78" }}>
                 <Vink size={12} /> Offerte aangeboden
@@ -923,6 +1039,7 @@ function Akkoord({
           <div>
             <Label>Opdrachtgever</Label>
             <p className="m-0 mt-2 text-[18px] font-semibold" style={{ ...KOP, color: INKT }}>{offerte.bedrijf}</p>
+            <p className="m-0 min-h-[2.9em] text-[13.5px] leading-[1.45]" style={{ color: MUTE }}>{offerte.contactpersoon ? `T.a.v. ${offerte.contactpersoon}` : "Getekend voor akkoord"}</p>
             <div className="mt-3">
               {!uit ? (
                 <Handtekening
@@ -1113,7 +1230,7 @@ const FEEST_CSS = `
 @media (prefers-reduced-motion: reduce) { .offerte-vink, .offerte-stip { animation: none; } }
 `;
 
-function Getekend({ offerte, voorwaarden, modus, vers }: { offerte: OffertePubliek; voorwaarden: string; modus: Modus; vers: boolean }) {
+function Getekend({ offerte, voorwaarden, modus, vers, huis }: { offerte: OffertePubliek; voorwaarden: string; modus: Modus; vers: boolean; huis: Huis }) {
   const inhoud = offerte.getekend_inhoud!;
   const regels = normaliseerRegels(inhoud.regels);
   const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
@@ -1173,6 +1290,18 @@ function Getekend({ offerte, voorwaarden, modus, vers }: { offerte: OffertePubli
         </div>
 
         <article className="overflow-hidden rounded-[28px] shadow-[0_1px_0_rgba(28,26,78,0.04),0_30px_80px_-50px_rgba(28,26,78,0.35)]" style={{ background: PAPIER }}>
+          {/* Briefhoofd van het getekende document */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b px-6 py-7 md:px-12" style={{ borderColor: LIJN }}>
+            <div className="flex items-center gap-4">
+              <Logo className="h-12 w-auto" />
+              <span className="hidden h-10 w-px sm:block" style={{ background: LIJN }} aria-hidden="true" />
+              <p className="m-0 hidden text-[14px] leading-snug sm:block" style={{ color: BODY }}>Jouw mensen,<br /><span className="font-semibold" style={{ color: INKT }}>onze aandacht.</span></p>
+            </div>
+            <div className="text-right text-[13.5px]" style={{ color: MUTE }}>
+              <p className="m-0 font-semibold" style={{ color: INKT }}>Offerte {inhoud.nummer}</p>
+              <p className="m-0">{inhoud.titel} · {LABEL[vorm]}</p>
+            </div>
+          </div>
           <Hoofd id="afgenomen">
             <Kop nr={nr("afgenomen")} titel="Wat je hebt afgenomen" />
             <ul className="m-0 flex list-none flex-col p-0">
@@ -1240,7 +1369,7 @@ function Getekend({ offerte, voorwaarden, modus, vers }: { offerte: OffertePubli
               <div className="flex flex-col">
                 <Label>Opdrachtnemer</Label>
                 <p className="m-0 mt-2 text-[18px] font-semibold" style={{ ...KOP, color: INKT }}>React2u</p>
-                <p className="m-0 text-[14.5px]" style={{ color: MUTE }}>Offerte aangeboden</p>
+                <p className="m-0 text-[13.5px]" style={{ color: MUTE }}>{huis.contact.addressLine1}, {huis.contact.addressLine2} · KvK {huis.contact.kvk}</p>
                 <p className={`${handschrift.className} m-0 mt-auto pt-8 text-[40px] leading-none`} style={{ color: NAVY }}>{inhoud.afzender_naam || offerte.afzender_naam || "React2u"}</p>
                 <p className="m-0 mt-3 border-t pt-2.5 text-[13.5px]" style={{ borderColor: "#D9D4CA", color: MUTE }}>
                   {inhoud.afzender_naam || offerte.afzender_naam || "React2u"}{inhoud.verstuurd_at ? ` · ${datumLang(inhoud.verstuurd_at)}` : ""}
@@ -1264,10 +1393,11 @@ function Getekend({ offerte, voorwaarden, modus, vers }: { offerte: OffertePubli
                 Kenmerk van de ondertekende versie: <span className="font-mono">{offerte.getekend_hash}</span>
               </p>
             )}
+            <div className="mt-10 print:hidden"><Keurmerken huis={huis} /></div>
           </Hoofd>
         </article>
       </main>
-      <Voet offerte={offerte} voorwaarden={voorwaarden} />
+      <Voet offerte={offerte} voorwaarden={voorwaarden} huis={huis} />
     </>
   );
 }

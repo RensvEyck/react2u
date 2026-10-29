@@ -916,8 +916,17 @@ De offertepagina is het moment waarop de klant akkoord geeft. Na twee rondes
 feedback van Rens (29 okt 2026: "design moet echt veel beter", daarna "geen
 foto's van de website") is het een persoonlijk offertedocument:
 
-- **Omslag**: offertenummer, de titel groot, "voor {bedrijf}", en een kopregel met
-  opgesteld door, datum, geldig tot, betreft en medewerkers. Geen foto's.
+- **Omslag als briefhoofd**: het React2u-logo groot met "Jouw mensen, onze
+  aandacht.", het label waar de vorm onder valt (React2u Recover, Resist of
+  Restart, in de kleur van de tarievenpagina), dan het offertenummer, de titel
+  groot, "voor {bedrijf}" en een kopregel met opgesteld door, datum, geldig tot,
+  betreft en medewerkers. Geen foto's.
+- **De echte kenmerken van React2u**: de keurmerken (SBCA, ISO 9001, ISO 27001,
+  ISO 27701, OVAL) met hun logo's, vóór het akkoord, in het beslispaneel en in de
+  voet; staat het certificaat als PDF in Instellingen, dan klik je erheen. De
+  bedrijfsgegevens (adres, telefoon, e-mail, KvK, btw) komen uit
+  Instellingen → Contact (`lib/offerteHuisstijl.ts`) en staan in de voet en bij
+  Opdrachtnemer, zoals op een offerte op papier.
 - **Eén vel met genummerde hoofdstukken** (01 Een persoonlijk woord, Over deze
   offerte, Stel je offerte samen, Voorwaarden, Zo gaat het verder, Akkoord),
   gescheiden door lijnen in plaats van losse kaarten. Onder de onderdelen staat
