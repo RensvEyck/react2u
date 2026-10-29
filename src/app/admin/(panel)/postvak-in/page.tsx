@@ -8,7 +8,7 @@ import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application, ContactMessage } from "@/lib/types";
 import {
   LuMail, LuMailOpen, LuPhone, LuPhoneCall, LuFileText, LuInbox, LuUsers, LuMessageSquare, LuTrash2,
-  LuReply, LuHourglass, LuHandshake,
+  LuReply, LuHourglass, LuHandshake, LuFilePenLine,
 } from "react-icons/lu";
 
 // Het formulier waar de vinkjes in de kaarten naar verwijzen; zie InboxBulkBar.
@@ -54,7 +54,8 @@ export default async function InboxAdmin({
   const { filter: raw } = await searchParams;
   const filter: Filter = FILTERS.some((f) => f.key === raw) ? (raw as Filter) : "alles";
 
-  const { sb } = await requirePerm("postvak");
+  const { sb, admin } = await requirePerm("postvak");
+  const kanOffertes = admin.permissions.includes("bellijst");
   const [msgsMetPartner, appsRes, leadsRes] = await Promise.all([
     // Met de partner erbij (migratie 0022); zonder die migratie kent PostgREST
     // de koppeling niet en lezen we hieronder de berichten zonder.
@@ -160,7 +161,7 @@ export default async function InboxAdmin({
       <div className="space-y-3">
         {shown.map((item) =>
           item.kind === "bericht" ? (
-            <MessageCard key={`m-${item.id}`} m={item.msg} onList={onList.has(item.id)} />
+            <MessageCard key={`m-${item.id}`} m={item.msg} onList={onList.has(item.id)} kanOffertes={kanOffertes} />
           ) : (
             <ApplicationCard key={`a-${item.id}`} a={item.app} onList={onList.has(item.id)} />
           )
@@ -270,7 +271,7 @@ function CallListButton({
   );
 }
 
-function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
+function MessageCard({ m, onList, kanOffertes }: { m: ContactMessage; onList: boolean; kanOffertes: boolean }) {
   return (
     <div id={`bericht-${m.id}`} className={`acard p-6 ${m.read ? "opacity-75" : "border-l-[3px] border-l-[#e75387]"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -307,6 +308,12 @@ function MessageCard({ m, onList }: { m: ContactMessage; onList: boolean }) {
             <LuReply className="text-[13px]" /> Beantwoorden
           </a>
           <CallListButton kind="bericht" id={m.id} onList={onList} />
+          {/* Een offerteaanvraag (submitOfferte): meteen een offerte maken, met klant en aansluiting al ingevuld. */}
+          {kanOffertes && /^offerteaanvraag/i.test(m.subject || "") && (
+            <Link href={`/admin/offertes/nieuw?bericht=${m.id}`} className="abtn-ghost !py-1.5 text-[13px]">
+              <LuFilePenLine className="text-[13px]" /> Offerte maken
+            </Link>
+          )}
           <ConfirmButton
             action={deleteMessage.bind(null, m.id)}
             message={`Bericht van ${m.name} definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`}

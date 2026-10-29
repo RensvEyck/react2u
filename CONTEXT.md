@@ -48,6 +48,9 @@ Gebruik deze termen; de code doet dat ook.
 | **Conversie** (`conversions`) | Eén verstuurd formulier: het soort (`contact`, `offerte`, `sollicitatie`, `terugbel`) en de pagina waar het stond. Geen persoonsgegevens. Zie *Bewaartermijnen en privacy*, "Conversies". |
 | **Belbalk** | Vaste balk onderaan het scherm op de telefoon, alleen op werkgeverspagina's: bellen of een terugbelmoment aanvragen (`BelBalk.tsx`, `lib/belbalk.ts`). Een terugbelverzoek is een bericht met onderwerp "Terugbelverzoek". |
 | **Tarievenjaar** (`tarieven`) | Instelling `{jaar, geldigTot}`. De tariefblokken zetten het jaar in hun bovenkopje en tonen de geldigheid; per 1 januari pas je hier het jaar aan en in de blokken de bedragen. |
+| **Offerte** (`offertes`) | Een voorstel aan één klant, opgesteld in `/admin/offertes`. Statussen `concept`, `verstuurd`, `getekend`, `afgewezen` (de klant: niet akkoord) en `ingetrokken`; "bekeken" en "verlopen" leidt het beheer af. Nummer `jjjj-nnnn`. Zie *Offertes*. |
+| **Offerteregel** | Eén onderdeel van een offerte (`regels`, jsonb) met prijs, eenheid en soort: `vast`, `optie` (klant zet aan/uit), `keuze` (precies één uit zijn `groep`) of `tarief` (prijs bij gebruik, telt niet mee). Vorm en rekenregels in [`src/lib/offertes.ts`](src/lib/offertes.ts). |
+| **Offertelink** | `/offerte/<token>`: de pagina waar de klant kiest en tekent. Het token (64 hex) is het enige geheim; *Nieuwe link* in het beheer maakt de oude ongeldig. |
 
 ## Architectuur
 
@@ -852,6 +855,58 @@ Een partner met klanten kan niet weg (on delete restrict); zet hem op inactief,
 dan koppelt zijn link geen nieuwe aanvragen meer. Zonder migratie 0022 werkt de
 site gewoon: de code staat dan alleen in de tekst van het bericht en het
 partnerscherm wacht met een melding.
+
+## Offertes
+
+Sales stelt in `/admin/offertes` een offerte samen en stuurt de klant een link.
+Op `/offerte/<token>` klikt de klant zelf de onderdelen aan, ziet het totaal
+meerekenen en ondertekent online (tekenen of naam typen). Migratie
+[0024](supabase/migrations/0024_offertes.sql); rechten achter `bellijst`, het
+salesrecht, net als partners.
+
+- **De prijslijst is de bouwdoos.** [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts)
+  maakt van het blok `dgTarieven` op /verzuimabonnementen offerteregels met een
+  getal als prijs. Het beheer leest het live blok uit de database, met
+  `tarieven.json` als terugval: een nieuwe prijslijst loopt vanzelf mee. Drie
+  startpunten (klant kiest de aansluiting, Verrichtingenbasis, Compleet) zetten
+  in één klik een offerte klaar. Een offerte bewaart zijn eigen prijzen: een
+  latere prijswijziging verandert een verstuurde offerte niet.
+- **De klant komt nooit bij de tabellen.** `anon` heeft geen enkel recht op
+  `offertes`; de pagina loopt via vier functies (security definer) met het token
+  als sleutel: `offerte_bekijken` (alleen wat de klant mag zien, telt het bezoek),
+  `offerte_keuze_bewaren` (de tussenstand, zodat sales ziet wat er aangeklikt
+  is), `offerte_ondertekenen` en `offerte_afwijzen`. Een concept of onbekend token
+  geeft een 404.
+- **Alleen de klant tekent.** De trigger `offerte_bewaken` laat het beheer (rol
+  `authenticated`) geen handtekening, keuze, bezoek of afwijzing schrijven, en
+  een getekende offerte niet meer wijzigen of verwijderen (de interne notitie
+  blijft bewerkbaar). Bij het tekenen legt de database de inhoud vast
+  (`getekend_inhoud`) met een sha-256 (`getekend_hash`), die ook in de
+  bevestigingsmail en op de pagina staat. De klant stuurt alleen welke regels hij
+  koos; prijzen en tekst komen uit de database. `geldigeKeuze()` in
+  `lib/offertes.ts` doet hetzelfde als `offerte_effectieve_keuze` in SQL; houd die
+  twee gelijk.
+- **Bewijs van ondertekening: ook het IP-adres.** Naam, e-mail, tijdstip, browser
+  en IP van dat ene moment staan bij de offerte (het tekenvenster zegt dat er
+  ook bij). Dat is de enige plek in de database met een IP-adres; de regel "geen
+  IP-kolom" bij *Architectuur* gaat over bezoekregistratie. Hoort in de
+  privacyverklaring.
+- **Mails** (Resend, zie *E-mail vanuit het systeem*): de offerte zelf (antwoorden
+  gaat naar de afzender), een seintje aan de afzender bij de eerste keer openen,
+  een bevestiging aan wie tekende, en "getekend" of "niet akkoord" aan sales
+  (`NOTIFY_OFFERTE_TO`, standaard sales@) plus de afzender. Mailen staat uit? Dan
+  zet *Zet de link open, ik stuur hem zelf* de offerte open zonder mail.
+- **Een collega die de link opent** telt niet mee en kan niet tekenen (de pagina
+  kijkt naar een beheersessie); het voorbeeld in het beheer
+  (`/admin/offertevoorbeeld/<id>`, buiten het paneel) werkt ook voor een concept.
+- **Buiten de site.** `/offerte/*` heeft een eigen root layout zonder menu's, valt
+  buiten de onderhoudsmodus en de doorverwijzingen (middleware), en krijgt
+  `noindex`, `Referrer-Policy: no-referrer` (anders gaat het token mee naar
+  externe sites) en `Cache-Control: private, no-store`.
+- **Vanuit het Postvak IN**: bij een offerteaanvraag staat *Offerte maken*; klant,
+  aantal medewerkers en het passende startpunt staan dan al klaar.
+- **Pdf**: *Bewaar als pdf* op de getekende offerte is de printfunctie van de
+  browser met een eigen printopmaak; er is geen pdf-bibliotheek.
 
 ## Van Postvak IN naar bellijst
 

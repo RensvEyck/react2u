@@ -128,7 +128,8 @@ export function mailReady() {
 /** Opmaak van de mails aan collega's: kop, tekst, één knop, en de link als tekst. */
 function persoonlijk(kop: string, alineas: string[], knop?: { tekst: string; link: string }, voet?: string) {
   const p = alineas
-    .map((a) => `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#444">${a}</p>`)
+    // Een tabel (het overzicht in een offertemail) mag niet in een <p>.
+    .map((a) => (a.startsWith("<table") ? a : `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#444">${a}</p>`))
     .join("");
   const k = knop
     ? `<p style="margin:8px 0 24px"><a href="${esc(knop.link)}" style="display:inline-block;background:#e75387;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:12px">${esc(knop.tekst)}</a></p>
@@ -383,4 +384,143 @@ export async function bevestigSollicitatie(b: { to: string; name: string; vacanc
   <p style="margin:0">Groet,<br>Rens van Eyck<br><span style="color:#666">Eigenaar React2u</span></p>
 </div>`;
   await post([b.to], en ? "We have received your application" : "We hebben je sollicitatie ontvangen", html);
+}
+
+/* ---------- offertes (migratie 0024) ---------- */
+
+type Afzender = { naam: string | null; functie: string | null; email: string | null; telefoon: string | null };
+
+/** Tekst van een collega (de persoonlijke boodschap) als alinea's: escapen, lege regel = nieuwe alinea. */
+function alineasUit(tekst: string | null | undefined): string[] {
+  return (tekst || "")
+    .split(/\n\s*\n/)
+    .map((a) => a.trim())
+    .filter(Boolean)
+    .map((a) => esc(a).replace(/\n/g, "<br>"));
+}
+
+function ondertekening(a: Afzender) {
+  const regels = [a.naam, a.functie ? `${a.functie}, React2u` : "React2u", a.telefoon].filter(Boolean).map((r) => esc(String(r)));
+  return `Met vriendelijke groet,<br>${regels.join("<br>")}`;
+}
+
+/** Een overzicht van de gekozen onderdelen met hun bedrag, en de totalen eronder. */
+function offerteTabel(regels: { naam: string; bedrag: string }[], totalen: { label: string; bedrag: string }[]) {
+  const rij = (l: string, r: string, vet = false) =>
+    `<tr><td style="padding:8px 12px 8px 0;font-size:14px;color:#1c1a4e;border-bottom:1px solid #eeedf5;${vet ? "font-weight:700" : ""}">${esc(l)}</td>` +
+    `<td style="padding:8px 0;font-size:14px;color:#1c1a4e;text-align:right;white-space:nowrap;border-bottom:1px solid #eeedf5;${vet ? "font-weight:700" : ""}">${esc(r)}</td></tr>`;
+  return `<table style="border-collapse:collapse;width:100%;margin:4px 0 20px">${regels.map((r) => rij(r.naam, r.bedrag)).join("")}${totalen
+    .map((t) => rij(t.label, t.bedrag, true))
+    .join("")}</table>`;
+}
+
+/**
+ * De offerte naar de klant: een persoonlijke mail met één knop naar de
+ * offertepagina. Antwoorden gaat naar de collega die hem stuurt.
+ */
+export async function sendOfferte(o: {
+  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string;
+  bericht: string | null; geldigTot: string | null; afzender: Afzender; herinnering?: boolean;
+}): Promise<Verzonden> {
+  const kop = o.herinnering ? `Je offerte van React2u staat nog voor je klaar` : `Je offerte van React2u`;
+  const html = persoonlijk(
+    kop,
+    [
+      `Beste ${esc(o.aanhef || "relatie")},`,
+      ...alineasUit(o.bericht),
+      `In de offerte voor ${esc(o.bedrijf)} kies je zelf welke onderdelen je wilt, zie je meteen wat het kost en onderteken je online.${
+        o.geldigTot ? ` De offerte is geldig tot en met ${esc(o.geldigTot)}.` : ""
+      }`,
+    ],
+    { tekst: "Bekijk en onderteken je offerte", link: o.link },
+    `${ondertekening(o.afzender)}<br><br>Deze link is persoonlijk: stuur hem alleen door aan wie mag meebeslissen.`
+  );
+  const onderwerp = `${o.herinnering ? "Herinnering: o" : "O"}fferte ${o.nummer} voor ${o.bedrijf}`;
+  return verstuur([o.to], onderwerp, html, o.afzender.email || undefined);
+}
+
+/** Bevestiging aan wie tekende: wat er getekend is, met de link om het terug te zien of te bewaren. */
+export async function bevestigOfferteGetekend(b: {
+  to: string; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
+  regels: { naam: string; bedrag: string }[]; totalen: { label: string; bedrag: string }[]; afzender: Afzender;
+}): Promise<Verzonden> {
+  const voornaam = b.naam.split(" ")[0] || b.naam;
+  const html = persoonlijk(
+    "Bedankt, je offerte is ondertekend",
+    [
+      `Beste ${esc(voornaam)},`,
+      `Je hebt op ${esc(b.moment)} offerte ${esc(b.nummer)} voor ${esc(b.bedrijf)} ondertekend. Hieronder staat wat je hebt gekozen; we nemen contact met je op om de start te plannen.`,
+      offerteTabel(b.regels, b.totalen),
+      "Alle bedragen zijn exclusief btw. Via de knop zie je de ondertekende offerte terug en kun je hem als pdf bewaren.",
+    ],
+    { tekst: "Bekijk de ondertekende offerte", link: b.link },
+    `${ondertekening(b.afzender)}<br><br><span style="font-size:11px;color:#aaa">Kenmerk van de ondertekende versie: ${esc(b.hash)}</span>`
+  );
+  return verstuur([b.to], `Ondertekend: offerte ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined);
+}
+
+/** Wie meldingen over een offerte krijgt: sales (NOTIFY_OFFERTE_TO) en de collega die hem stuurde. */
+function offerteOntvangers(afzender: string | null) {
+  return [...new Set([...adressen(process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"), ...(afzender ? [afzender] : [])])];
+}
+
+export async function notifyOfferteGetekend(n: {
+  nummer: string; bedrijf: string; naam: string; functie: string | null; email: string; perJaar: string; eenmalig: string | null;
+  regels: string[]; adminLink: string; afzenderEmail: string | null;
+}) {
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `Getekend: offerte ${n.nummer} voor ${n.bedrijf} (${n.perJaar} per jaar)`,
+    persoonlijk(
+      `${n.bedrijf} heeft getekend`,
+      [
+        `${esc(n.naam)}${n.functie ? ` (${esc(n.functie)})` : ""} heeft offerte ${esc(n.nummer)} zojuist online ondertekend.`,
+        `<strong>${esc(n.perJaar)} per jaar</strong>${n.eenmalig ? ` en ${esc(n.eenmalig)} eenmalig` : ""}, exclusief btw.`,
+        `Gekozen: ${n.regels.map(esc).join(", ")}.`,
+        `Bevestiging gestuurd naar ${esc(n.email)}.`,
+      ],
+      { tekst: "Open de offerte", link: n.adminLink }
+    )
+  );
+}
+
+export async function notifyOfferteAfgewezen(n: {
+  nummer: string; bedrijf: string; reden: string | null; naam: string | null; adminLink: string; afzenderEmail: string | null;
+}) {
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `Niet akkoord: offerte ${n.nummer} voor ${n.bedrijf}`,
+    persoonlijk(
+      `${n.bedrijf} gaat niet akkoord`,
+      [
+        `${n.naam ? esc(n.naam) : "De klant"} heeft bij offerte ${esc(n.nummer)} aangegeven niet akkoord te gaan.`,
+        n.reden ? `Toelichting: &ldquo;${esc(n.reden)}&rdquo;` : "Er is geen toelichting gegeven.",
+        "Bellen loont: vaak is het de prijs of één onderdeel. Je kunt de offerte aanpassen en heropenen.",
+      ],
+      { tekst: "Open de offerte", link: n.adminLink }
+    )
+  );
+}
+
+/** De eerste keer dat de klant de offerte opent: alleen naar de collega die hem stuurde. */
+export async function notifyOfferteBekeken(n: { to: string; nummer: string; bedrijf: string; adminLink: string }) {
+  await post(
+    [n.to],
+    `${n.bedrijf} bekijkt je offerte`,
+    persoonlijk(
+      `${n.bedrijf} heeft de offerte geopend`,
+      [`Offerte ${esc(n.nummer)} is zojuist voor het eerst geopend. Een goed moment om even te bellen.`],
+      { tekst: "Open de offerte", link: n.adminLink }
+    )
+  );
+}
+
+/** Adres van een offerte in het beheer, voor de meldingen. */
+export function offerteAdminUrl(id: string) {
+  return `${siteBasis()}/admin/offertes/${id}`;
+}
+
+/** Adres van de offertepagina voor de klant. */
+export function offerteUrl(token: string) {
+  return `${siteBasis()}/offerte/${token}`;
 }
