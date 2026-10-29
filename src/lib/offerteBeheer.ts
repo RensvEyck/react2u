@@ -1,7 +1,8 @@
 import "server-only";
 import type { supabaseServer } from "./supabase/server";
 import { catalogusStandaard, catalogusUit, type CatalogusGroep, type TarievenData } from "./offerteCatalogus";
-import { normaliseerRegels, type Offerte } from "./offertes";
+import { normaliseerRegels, normaliseerVervolg, type Offerte } from "./offertes";
+import { alleSjablonen, type Sjabloon, type SjabloonRij } from "./offerteSjablonen";
 
 /*
  * Wat de offerteschermen in het beheer uit de database halen, los van de
@@ -91,5 +92,15 @@ export async function uitAanvraag(sb: Sb, id: string) {
 
 /** Een rij uit de database met de regels in vorm, voor de schermen. */
 export function inVorm(o: Offerte): Offerte {
-  return { ...o, regels: normaliseerRegels(o.regels) };
+  return { ...o, vorm: o.vorm || "verzuimbegeleiding", regels: normaliseerRegels(o.regels), vervolg: normaliseerVervolg(o.vervolg) };
+}
+
+/**
+ * Alle sjablonen: de standaard uit de code met daaroverheen de aanpassingen
+ * van het team. Zonder migratie 0025 (geen tabel) gewoon de standaard.
+ */
+export async function laadSjablonen(sb: Sb, catalogus?: CatalogusGroep[]): Promise<{ sjablonen: Sjabloon[]; tabel: boolean }> {
+  const [c, res] = await Promise.all([catalogus ? Promise.resolve(catalogus) : laadCatalogus(sb), sb.from("offerte_sjablonen").select("*")]);
+  const rijen = res.error ? [] : ((res.data as SjabloonRij[]) || []);
+  return { sjablonen: alleSjablonen(c, rijen), tabel: !res.error };
 }

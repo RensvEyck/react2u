@@ -419,7 +419,7 @@ function offerteTabel(regels: { naam: string; bedrag: string }[], totalen: { lab
  * offertepagina. Antwoorden gaat naar de collega die hem stuurt.
  */
 export async function sendOfferte(o: {
-  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string;
+  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; titel?: string | null;
   bericht: string | null; geldigTot: string | null; afzender: Afzender; herinnering?: boolean;
 }): Promise<Verzonden> {
   const kop = o.herinnering ? `Je offerte van React2u staat nog voor je klaar` : `Je offerte van React2u`;
@@ -428,7 +428,7 @@ export async function sendOfferte(o: {
     [
       `Beste ${esc(o.aanhef || "relatie")},`,
       ...alineasUit(o.bericht),
-      `In de offerte voor ${esc(o.bedrijf)} kies je zelf welke onderdelen je wilt, zie je meteen wat het kost en onderteken je online.${
+      `In de offerte${o.titel ? ` <strong>${esc(o.titel)}</strong>` : ""} voor ${esc(o.bedrijf)} zie je precies wat het kost, kies je waar dat kan zelf je onderdelen en onderteken je online.${
         o.geldigTot ? ` De offerte is geldig tot en met ${esc(o.geldigTot)}.` : ""
       }`,
     ],

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
-import { datumOver, euro, waardeVan, weergaveVan, WEERGAVE, type Offerte, type Weergave } from "@/lib/offertes";
-import { LuPlus, LuDatabase, LuFilePenLine, LuChevronRight, LuEye } from "react-icons/lu";
+import { datumOver, euro, isVorm, waardeVan, weergaveVan, WEERGAVE, VORMEN, VORM_KEYS, type Offerte, type Weergave } from "@/lib/offertes";
+import { LuPlus, LuDatabase, LuFilePenLine, LuChevronRight, LuEye, LuSettings2 } from "react-icons/lu";
 
 /**
  * Offertes (migratie 0024): de pijplijn in één oogopslag (open, bekeken,
@@ -33,17 +33,27 @@ function relatief(iso: string | null): string {
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export default async function OffertesAdmin({ searchParams }: { searchParams: Promise<{ filter?: string; q?: string }> }) {
+export default async function OffertesAdmin({ searchParams }: { searchParams: Promise<{ filter?: string; q?: string; vorm?: string }> }) {
   const { sb } = await requirePerm("bellijst");
-  const { filter = "alle", q = "" } = await searchParams;
-  const { data, error } = await sb.from("offertes").select(KOLOMMEN).order("created_at", { ascending: false }).limit(1000);
+  const { filter = "alle", q = "", vorm: vormFilter } = await searchParams;
+  const lees = (kolommen: string) => sb.from("offertes").select(kolommen).order("created_at", { ascending: false }).limit(1000);
+  let { data, error } = await lees(`${KOLOMMEN}, vorm, betreft`);
+  // Zonder migratie 0025 bestaan vorm en betreft nog niet: dan zonder, alles is verzuimbegeleiding.
+  if (error && (error.code === "42703" || error.code === "PGRST204")) ({ data, error } = await lees(KOLOMMEN));
   if (isMissingTable(error)) return <SetupNeeded />;
 
   const vandaag = datumOver(0);
-  const alle = ((data as unknown as Offerte[]) || []).map((o) => ({ o, w: weergaveVan(o, vandaag), waarde: waardeVan(o) }));
+  const alle = ((data as unknown as Offerte[]) || []).map((o) => ({
+    o: { ...o, vorm: isVorm(o.vorm) ? o.vorm : ("verzuimbegeleiding" as const) },
+    w: weergaveVan(o, vandaag),
+    waarde: waardeVan(o),
+  }));
   const actief = FILTERS.find((f) => f.key === filter) || FILTERS[0];
   const zoek = q.trim().toLowerCase();
-  const rijen = alle.filter(({ o, w }) => actief.past(w) && (!zoek || `${o.bedrijf} ${o.nummer} ${o.contactpersoon || ""}`.toLowerCase().includes(zoek)));
+  const vorm = isVorm(vormFilter) ? vormFilter : null;
+  const rijen = alle.filter(
+    ({ o, w }) => actief.past(w) && (!vorm || o.vorm === vorm) && (!zoek || `${o.bedrijf} ${o.nummer} ${o.contactpersoon || ""} ${o.betreft || ""}`.toLowerCase().includes(zoek))
+  );
 
   // De pijplijn: wat er openstaat, wat de klant al bekeek, en wat er de laatste 90 dagen getekend is.
   const open = alle.filter(({ w }) => w === "verstuurd" || w === "bekeken");
@@ -65,7 +75,10 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
             Stel een offerte samen uit de prijslijst en stuur de klant een link. Daar kiest hij zelf de onderdelen en tekent hij online.
           </p>
         </div>
-        <Link href="/admin/offertes/nieuw" className="abtn"><LuPlus /> Nieuwe offerte</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/offertes/sjablonen" className="abtn-ghost"><LuSettings2 /> Sjablonen</Link>
+          <Link href="/admin/offertes/nieuw" className="abtn"><LuPlus /> Nieuwe offerte</Link>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -80,7 +93,8 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
           <nav className="flex flex-wrap gap-1.5" aria-label="Filter">
             {FILTERS.map((f) => {
               const n = tel(f);
-              const href = `/admin/offertes${f.key === "alle" ? "" : `?filter=${f.key}`}${q ? `${f.key === "alle" ? "?" : "&"}q=${encodeURIComponent(q)}` : ""}`;
+              const params = new URLSearchParams({ ...(f.key !== "alle" ? { filter: f.key } : {}), ...(vorm ? { vorm } : {}), ...(q ? { q } : {}) });
+              const href = `/admin/offertes${params.size ? `?${params}` : ""}`;
               return (
                 <Link
                   key={f.key}
@@ -93,9 +107,14 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
               );
             })}
           </nav>
-          <form className="w-full sm:w-auto" action="/admin/offertes">
+          <form className="flex w-full flex-wrap gap-2 sm:w-auto" action="/admin/offertes">
             {actief.key !== "alle" && <input type="hidden" name="filter" value={actief.key} />}
-            <input className="ainput !py-2 sm:w-[280px]" name="q" defaultValue={q} placeholder="Zoek op bedrijf of nummer" aria-label="Zoek offertes" />
+            <select name="vorm" defaultValue={vorm || ""} className="ainput !w-auto !py-2" aria-label="Soort offerte">
+              <option value="">Alle soorten</option>
+              {VORM_KEYS.map((v) => <option key={v} value={v}>{VORMEN[v].kort}</option>)}
+            </select>
+            <input className="ainput !py-2 sm:w-[240px]" name="q" defaultValue={q} placeholder="Zoek op bedrijf of nummer" aria-label="Zoek offertes" />
+            <button className="abtn-ghost !py-2 text-[13px]">Toon</button>
           </form>
         </div>
         {rijen.length === 0 ? (
@@ -133,7 +152,11 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
                       <td className="px-6 py-3.5">
                         <Link href={`/admin/offertes/${o.id}`} className="font-semibold text-[#1c1a4e] hover:underline">{o.bedrijf}</Link>
                         <span className="block text-[12.5px] text-black/45">
-                          {o.nummer}{o.contactpersoon ? ` · ${o.contactpersoon}` : ""}{o.medewerkers ? ` · ${o.medewerkers} mw.` : ""}
+                          <span className="mr-1.5 inline-flex items-center gap-1 font-semibold text-black/55">
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ background: VORMEN[o.vorm].kleur }} aria-hidden="true" />
+                            {VORMEN[o.vorm].kort}
+                          </span>
+                          {o.nummer}{o.betreft ? ` · ${o.betreft}` : o.contactpersoon ? ` · ${o.contactpersoon}` : ""}{o.medewerkers ? ` · ${o.medewerkers} mw.` : ""}
                         </span>
                       </td>
                       <td className="px-3 py-3.5">

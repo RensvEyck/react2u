@@ -63,6 +63,9 @@ const FOUT_TEKST: Record<string, string> = {
   // Offertes
   "offerte-onvolledig": "De offerte is nog niet compleet: kijk bij Versturen wat er ontbreekt.",
   "offerte-getekend": "Deze offerte is getekend en kan niet meer worden gewijzigd of verwijderd.",
+  "sjabloon-naam": "Kies een sjabloon om te overschrijven, of geef het nieuwe sjabloon een naam.",
+  "sjabloon-bestaat": "Er is al een sjabloon met (bijna) die naam. Kies een andere naam, of overschrijf het bestaande.",
+  "migratie-0025": "Sjablonen staan nog niet aan: migratie 0025 moet eerst in Supabase worden uitgevoerd.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
@@ -88,6 +91,8 @@ const OK_TEKST: Record<string, string> = {
   "offerte-heropend": "Heropend: de klant kan weer kiezen en tekenen.",
   "offerte-kopie": "Kopie gemaakt als nieuw concept, met een eigen nummer en link.",
   "offerte-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
+  sjabloon: "Bewaard als sjabloon. Nieuwe offertes van deze vorm beginnen voortaan hiermee.",
+  "sjabloon-standaard": "Terug naar de standaardversie.",
 };
 
 export default function Toast() {

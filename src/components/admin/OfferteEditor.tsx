@@ -5,12 +5,13 @@ import { saveOfferte, type OfferteFormState } from "@/app/admin/offerteActions";
 import { LEAVE_QUESTION, setUnsaved } from "@/lib/unsaved";
 import {
   berekenTotalen, controleer, EENHEDEN, euro, nieuwId, prijsLabel, secties, SOORTEN, standaardKeuze, bedragVoor,
-  type Eenheid, type Offerte, type Regel, type Soort,
+  VORMEN, VORM_KEYS, type Eenheid, type Offerte, type Regel, type Soort, type Stap, type Vorm,
 } from "@/lib/offertes";
-import { alsRegel, STARTPUNTEN, type CatalogusGroep } from "@/lib/offerteCatalogus";
+import { alsRegel, type CatalogusGroep } from "@/lib/offerteCatalogus";
+import OfferteTekst from "@/components/offerte/OfferteTekst";
 import {
   LuPlus, LuSave, LuEye, LuArrowUp, LuArrowDown, LuCopy, LuTrash2, LuChevronDown, LuSearch, LuX, LuListPlus,
-  LuCircleAlert, LuCircleCheck, LuSparkles, LuPencil,
+  LuCircleAlert, LuCircleCheck, LuPencil,
 } from "react-icons/lu";
 
 /*
@@ -24,8 +25,53 @@ import {
 export type EditorBegin = Partial<Pick<
   Offerte,
   | "id" | "status" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "medewerkers" | "titel" | "intro" | "geldig_tot"
-  | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon"
->> & { regels?: Regel[] };
+  | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "vorm" | "betreft" | "inhoud" | "voorwaarden"
+>> & { regels?: Regel[]; vervolg?: Stap[] | null };
+
+/** Tekstvak met een knop om te zien hoe het er voor de klant uitziet (OfferteTekst). */
+function TekstVeld({
+  id, naam, label, uitleg, waarde, setWaarde, max, hoog,
+}: {
+  id: string; naam: string; label: string; uitleg: React.ReactNode; waarde: string; setWaarde: (s: string) => void; max: number; hoog?: boolean;
+}) {
+  const [zien, setZien] = useState(false);
+  return (
+    <div>
+      <div className="mb-1.5 flex items-end justify-between gap-3">
+        <label className="alabel !mb-0" htmlFor={id}>{label}</label>
+        <div role="tablist" className="inline-flex rounded-[9px] bg-black/[0.04] p-0.5 text-[12.5px] font-semibold">
+          {(["Bewerken", "Voorbeeld"] as const).map((t, i) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={zien === (i === 1)}
+              onClick={() => setZien(i === 1)}
+              className={`rounded-[7px] px-2.5 py-1 ${zien === (i === 1) ? "bg-white text-[#312e82] shadow-sm" : "text-black/45"}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Het veld blijft in het formulier, ook in het voorbeeld. */}
+      <textarea
+        id={id}
+        name={naam}
+        className={`ainput font-mono !text-[13px] leading-[1.6] ${hoog ? "min-h-[320px]" : "min-h-[120px]"} ${zien ? "hidden" : ""}`}
+        value={waarde}
+        maxLength={max}
+        onChange={(e) => setWaarde(e.target.value)}
+      />
+      {zien && (
+        <div className="max-h-[520px] overflow-y-auto rounded-[12px] border border-black/[0.08] bg-[#fbfaf7] p-5">
+          {waarde.trim() ? <OfferteTekst tekst={waarde} klein /> : <p className="text-[13px] text-black/40">Nog leeg.</p>}
+        </div>
+      )}
+      <p className="mt-1.5 text-[12.5px] text-black/45">{uitleg}</p>
+    </div>
+  );
+}
 
 const SOORT_KLEUR: Record<Soort, string> = {
   vast: "bg-[#e3f6ed] text-[#0a7a4b]",
@@ -88,6 +134,10 @@ export default function OfferteEditor({
   const [bedrijf, setBedrijf] = useState(begin.bedrijf || "");
   const [email, setEmail] = useState(begin.email || "");
   const [geldig, setGeldig] = useState(begin.geldig_tot || "");
+  const [vorm, setVorm] = useState<Vorm>(begin.vorm || "verzuimbegeleiding");
+  const [inhoud, setInhoud] = useState(begin.inhoud || "");
+  const [voorwaarden, setVoorwaarden] = useState(begin.voorwaarden || "");
+  const [vervolg, setVervolg] = useState<Stap[]>(begin.vervolg || []);
   const [open, setOpen] = useState<string | null>(null);
   const [kiezer, setKiezer] = useState(false);
   const [dirty, setDirty] = useState(Boolean(!begin.id && begin.regels?.length));
@@ -181,11 +231,31 @@ export default function OfferteEditor({
     >
       {begin.id && <input type="hidden" name="id" value={begin.id} />}
       <input type="hidden" name="regels" value={JSON.stringify(regels)} />
+      <input type="hidden" name="vorm" value={vorm} />
+      <input type="hidden" name="vervolg" value={JSON.stringify(vervolg.filter((s) => s.kop.trim()))} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_330px] xl:items-start">
         <div className="min-w-0 space-y-6">
           <Kaart titel="Klant">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <label className="alabel" htmlFor="of-vorm">Soort offerte</label>
+                <select
+                  id="of-vorm"
+                  className="ainput"
+                  value={vorm}
+                  onChange={(e) => {
+                    setVorm(e.target.value as Vorm);
+                    setDirty(true);
+                  }}
+                >
+                  {VORM_KEYS.map((v) => <option key={v} value={v}>{VORMEN[v].label}</option>)}
+                </select>
+              </div>
+              <div className="lg:col-span-2">
+                <label className="alabel" htmlFor="of-betreft">{VORMEN[vorm].betreft || "Betreft"}</label>
+                <input id="of-betreft" className="ainput" name="betreft" defaultValue={begin.betreft || ""} maxLength={200} placeholder={VORMEN[vorm].betreftHint || "Mag leeg; staat bovenaan de offerte"} />
+              </div>
               <div className="lg:col-span-2">
                 <label className="alabel" htmlFor="of-bedrijf">Bedrijf *</label>
                 <input id="of-bedrijf" className="ainput" name="bedrijf" required value={bedrijf} onChange={(e) => setBedrijf(e.target.value)} maxLength={200} />
@@ -224,20 +294,7 @@ export default function OfferteEditor({
           >
             {regels.length === 0 ? (
               <div>
-                <p className="mb-4 flex items-center gap-2 text-[14px] font-semibold text-[#312e82]"><LuSparkles /> Kies een startpunt; daarna pas je alles aan.</p>
-                <div className="grid gap-3 md:grid-cols-3">
-                  {STARTPUNTEN.map((s) => (
-                    <button
-                      key={s.key}
-                      type="button"
-                      onClick={() => wijzig(() => s.regels(catalogus))}
-                      className="rounded-[14px] border border-black/[0.08] bg-[#fafafd] p-4 text-left transition-colors hover:border-[#312e82]/40 hover:bg-[#f4f4fd]"
-                    >
-                      <span className="block text-[14.5px] font-semibold text-[#1c1a4e]">{s.label}</span>
-                      <span className="mt-1 block text-[13px] leading-[1.5] text-black/50">{s.uitleg}</span>
-                    </button>
-                  ))}
-                </div>
+                <p className="text-[14px] text-black/50">Nog geen onderdelen. Kies ze uit de prijslijst of voeg een eigen onderdeel toe.</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button type="button" className="abtn-ghost !py-1.5 text-[13px]" onClick={() => setKiezer(true)}><LuListPlus /> Zelf kiezen uit de prijslijst</button>
                   <button type="button" className="abtn-ghost !py-1.5 text-[13px]" onClick={eigenRegel}><LuPlus /> Eigen onderdeel</button>
@@ -286,27 +343,72 @@ export default function OfferteEditor({
             <datalist id="of-secties">{sectieNamen.map((g) => <option key={g} value={g} />)}</datalist>
           </Kaart>
 
-          <Kaart titel="Tekst en geldigheid" uitleg="Bovenaan de offerte, boven de onderdelen.">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="md:col-span-2">
-                <label className="alabel" htmlFor="of-titel">Titel</label>
-                <input id="of-titel" className="ainput" name="titel" defaultValue={begin.titel || "Verzuimbegeleiding op maat"} maxLength={200} />
+          <Kaart titel="Tekst" uitleg="Gebruik {bedrijf}, {contactpersoon}, {voornaam} of {betreft}: die worden op de offerte ingevuld.">
+            <div className="grid gap-5">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="md:col-span-2">
+                  <label className="alabel" htmlFor="of-titel">Titel</label>
+                  <input id="of-titel" className="ainput" name="titel" defaultValue={begin.titel || "Verzuimbegeleiding op maat"} maxLength={200} />
+                </div>
+                <div>
+                  <label className="alabel" htmlFor="of-geldig">Geldig tot en met</label>
+                  <input id="of-geldig" className="ainput" name="geldig_tot" type="date" value={geldig} onChange={(e) => setGeldig(e.target.value)} />
+                </div>
               </div>
               <div>
-                <label className="alabel" htmlFor="of-geldig">Geldig tot en met</label>
-                <input id="of-geldig" className="ainput" name="geldig_tot" type="date" value={geldig} onChange={(e) => setGeldig(e.target.value)} />
-              </div>
-              <div className="md:col-span-3">
                 <label className="alabel" htmlFor="of-intro">Persoonlijke boodschap</label>
                 <textarea
                   id="of-intro"
-                  className="ainput min-h-[140px]"
+                  className="ainput min-h-[130px]"
                   name="intro"
                   maxLength={5000}
                   defaultValue={begin.intro || ""}
-                  placeholder={"Bijvoorbeeld: Bedankt voor het prettige gesprek van dinsdag. Zoals besproken vind je hieronder twee manieren om aan te sluiten…"}
+                  placeholder={"Bijvoorbeeld: Beste {contactpersoon}, bedankt voor het prettige gesprek van dinsdag…"}
                 />
-                <p className="mt-1.5 text-[12.5px] text-black/45">Staat met je naam erbij bovenaan de offerte. Een lege regel begint een nieuwe alinea.</p>
+                <p className="mt-1.5 text-[12.5px] text-black/45">Bovenaan de offerte, met je naam erbij. Een lege regel begint een nieuwe alinea.</p>
+              </div>
+              <TekstVeld
+                id="of-inhoud"
+                naam="inhoud"
+                label="Over deze offerte"
+                waarde={inhoud}
+                setWaarde={setInhoud}
+                max={30000}
+                hoog
+                uitleg={<><code>## Kop</code>, <code>### Tussenkop</code>, <code>- punt</code>, <code>1. stap</code>, <code>&gt; uitgelichte zin</code>, <code>**vet**</code>. Staat boven de onderdelen.</>}
+              />
+              <TekstVeld
+                id="of-voorwaarden"
+                naam="voorwaarden"
+                label="Voorwaarden"
+                waarde={voorwaarden}
+                setWaarde={setVoorwaarden}
+                max={10000}
+                uitleg="Facturatie, betalingstermijn, annulering. Gaat mee in wat de klant tekent; de algemene voorwaarden en de geldigheid zet de offerte er zelf onder."
+              />
+              <div>
+                <p className="alabel">Zo gaat het verder</p>
+                <div className="space-y-2">
+                  {vervolg.map((s, i) => (
+                    <div key={i} className="flex flex-col gap-2 rounded-[12px] border border-black/[0.07] p-3 sm:flex-row sm:items-start">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[13px] font-bold text-[#312e82]">{i + 1}</span>
+                      <input className="ainput sm:w-[34%]" value={s.kop} maxLength={80} aria-label={`Stap ${i + 1}: kop`} placeholder="Kop"
+                        onChange={(e) => { setVervolg((v) => v.map((x, j) => (j === i ? { ...x, kop: e.target.value } : x))); setDirty(true); }} />
+                      <input className="ainput flex-1" value={s.tekst} maxLength={400} aria-label={`Stap ${i + 1}: tekst`} placeholder="Wat er gebeurt"
+                        onChange={(e) => { setVervolg((v) => v.map((x, j) => (j === i ? { ...x, tekst: e.target.value } : x))); setDirty(true); }} />
+                      <button type="button" className="rounded-lg p-2 text-black/35 hover:bg-[#fdecea] hover:text-[#b42318]" aria-label={`Stap ${i + 1} verwijderen`}
+                        onClick={() => { setVervolg((v) => v.filter((_, j) => j !== i)); setDirty(true); }}>
+                        <LuTrash2 />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {vervolg.length < 4 && (
+                  <button type="button" className="abtn-ghost mt-2 !py-1.5 text-[13px]" onClick={() => { setVervolg((v) => [...v, { kop: "", tekst: "" }]); setDirty(true); }}>
+                    <LuPlus /> Stap toevoegen
+                  </button>
+                )}
+                {vervolg.length === 0 && <p className="mt-1.5 text-[12.5px] text-black/45">Leeg: de offerte toont drie algemene stappen.</p>}
               </div>
             </div>
           </Kaart>
@@ -336,8 +438,14 @@ export default function OfferteEditor({
         <aside className="space-y-4 xl:sticky xl:top-6">
           <div className="acard p-5">
             <p className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-black/45">Bij de standaardkeuze</p>
-            <p className="mt-1 font-heading text-[30px] font-bold tabular-nums text-[#1c1a4e]">{euro(totalen.perJaar)}<span className="ml-1.5 text-[14px] font-medium text-black/45">per jaar</span></p>
-            {totalen.eenmalig > 0 && <p className="text-[14px] font-semibold tabular-nums text-[#1c1a4e]">+ {euro(totalen.eenmalig)} eenmalig</p>}
+            {totalen.perJaar > 0 || totalen.eenmalig === 0 ? (
+              <>
+                <p className="mt-1 font-heading text-[30px] font-bold tabular-nums text-[#1c1a4e]">{euro(totalen.perJaar)}<span className="ml-1.5 text-[14px] font-medium text-black/45">per jaar</span></p>
+                {totalen.eenmalig > 0 && <p className="text-[14px] font-semibold tabular-nums text-[#1c1a4e]">+ {euro(totalen.eenmalig)} eenmalig</p>}
+              </>
+            ) : (
+              <p className="mt-1 font-heading text-[30px] font-bold tabular-nums text-[#1c1a4e]">{euro(totalen.eenmalig)}<span className="ml-1.5 text-[14px] font-medium text-black/45">eenmalig</span></p>
+            )}
             {groepNamen.length > 0 && <p className="mt-1 text-[12.5px] text-black/45">De klant kan in {groepNamen.length === 1 ? "de keuzegroep" : `${groepNamen.length} keuzegroepen`} een andere optie kiezen; het totaal rekent mee.</p>}
             <ul className="mt-4 space-y-1.5 border-t border-black/[0.06] pt-4 text-[13px]">
               {totalen.regels.map(({ regel, bedrag }) => (
@@ -476,13 +584,19 @@ function RegelRij({
               className="ainput tabular-nums"
               inputMode="decimal"
               value={r.aantal ?? ""}
-              placeholder={r.eenheid === "medewerker_jaar" ? `Medewerkers${medewerkers ? ` (${medewerkers})` : ""}` : "1"}
+              placeholder={r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker" ? `Medewerkers${medewerkers ? ` (${medewerkers})` : ""}` : "1"}
               onChange={(e) => {
                 const v = Number(e.target.value.replace(",", "."));
                 zet({ aantal: e.target.value.trim() && Number.isFinite(v) && v > 0 ? v : undefined });
               }}
             />
           </div>
+          {r.prijs === null && (
+            <div className="md:col-span-2">
+              <label className="alabel" htmlFor={id("ptekst")}>Prijs als tekst</label>
+              <input id={id("ptekst")} className="ainput" value={r.prijsTekst || ""} onChange={(e) => zet({ prijsTekst: e.target.value || undefined })} placeholder="Leeg: Op aanvraag. Bijv. €89 p.p. en €0,42 per km" maxLength={60} />
+            </div>
+          )}
           <div>
             <label className="alabel" htmlFor={id("badge")}>Label</label>
             <input id={id("badge")} className="ainput" value={r.badge || ""} onChange={(e) => zet({ badge: e.target.value || undefined })} placeholder="Bijv. Meest gekozen" maxLength={40} />

@@ -17,7 +17,7 @@
  */
 
 export type Eenheid =
-  | "medewerker_jaar" | "jaar" | "maand" | "eenmalig" | "traject" | "uur" | "stuk" | "op_aanvraag";
+  | "medewerker_jaar" | "jaar" | "maand" | "eenmalig" | "medewerker" | "traject" | "uur" | "stuk" | "op_aanvraag";
 
 export type Soort = "vast" | "optie" | "keuze" | "tarief";
 
@@ -28,6 +28,7 @@ export const EENHEDEN: { key: Eenheid; label: string; achter: string; periode: P
   { key: "jaar", label: "Per jaar", achter: "per jaar", periode: "jaar" },
   { key: "maand", label: "Per maand", achter: "per maand", periode: "jaar" },
   { key: "eenmalig", label: "Eenmalig", achter: "eenmalig", periode: "eenmalig" },
+  { key: "medewerker", label: "Per medewerker, eenmalig", achter: "per medewerker", periode: "eenmalig" },
   { key: "traject", label: "Per traject", achter: "per traject", periode: "eenmalig" },
   { key: "uur", label: "Per uur", achter: "per uur", periode: "eenmalig" },
   { key: "stuk", label: "Per stuk", achter: "per stuk", periode: "eenmalig" },
@@ -71,19 +72,48 @@ export type Regel = {
 
 export type OfferteStatus = "concept" | "verstuurd" | "getekend" | "afgewezen" | "ingetrokken";
 
+/** De zeven offertevormen (migratie 0025). Elke vorm heeft standaardsjablonen in lib/offerteSjablonen.ts. */
+export type Vorm = "verzuimbegeleiding" | "rie" | "pago" | "verzuimtraining" | "spoor2" | "werkfit" | "arbeidsdeskundig";
+
+export const VORMEN: Record<Vorm, { label: string; kort: string; groep: "Verzuim" | "Preventie" | "Re-integratie"; kleur: string; betreft?: string; betreftHint?: string }> = {
+  verzuimbegeleiding: { label: "Verzuimbegeleiding", kort: "Verzuim", groep: "Verzuim", kleur: "#E61674" },
+  rie: { label: "Risico-inventarisatie en -evaluatie (RI&E)", kort: "RI&E", groep: "Preventie", kleur: "#00A098", betreft: "Locatie", betreftHint: "Bijvoorbeeld de vestiging in Eindhoven" },
+  pago: { label: "Periodiek arbeidsgezondheidskundig onderzoek (PAGO)", kort: "PAGO", groep: "Preventie", kleur: "#00A098" },
+  verzuimtraining: { label: "Verzuimtraining voor leidinggevenden", kort: "Training", groep: "Preventie", kleur: "#00A098", betreft: "Deelnemers", betreftHint: "Bijvoorbeeld 12 leidinggevenden" },
+  spoor2: { label: "Re-integratietraject 2e spoor", kort: "Spoor 2", groep: "Re-integratie", kleur: "#F19001", betreft: "Werknemer", betreftHint: "Initialen of naam; geen medische informatie" },
+  werkfit: { label: "Werkfittraject", kort: "Werkfit", groep: "Re-integratie", kleur: "#F19001", betreft: "Werknemer", betreftHint: "Initialen of naam; geen medische informatie" },
+  arbeidsdeskundig: { label: "Arbeidsdeskundig onderzoek", kort: "AD-onderzoek", groep: "Re-integratie", kleur: "#F19001", betreft: "Werknemer", betreftHint: "Initialen of naam; geen medische informatie" },
+};
+
+export const VORM_KEYS = Object.keys(VORMEN) as Vorm[];
+
+export function isVorm(v: unknown): v is Vorm {
+  return typeof v === "string" && (VORM_KEYS as string[]).includes(v);
+}
+
+/** Een stap onder "Zo gaat het verder". */
+export type Stap = { kop: string; tekst: string };
+
 /** Een rij uit `offertes`, zoals het beheer hem leest. */
 export type Offerte = {
   id: string;
   nummer: string;
   token: string;
   status: OfferteStatus;
+  vorm: Vorm;
   bedrijf: string;
   contactpersoon: string | null;
   email: string | null;
   telefoon: string | null;
   medewerkers: number | null;
   titel: string;
+  /** Waar het om gaat: de werknemer bij een traject, de locatie bij een RI&E. */
+  betreft: string | null;
   intro: string | null;
+  /** De uitleg van de dienst, in de opmaak van OfferteTekst (## kop, - lijst, …). */
+  inhoud: string | null;
+  voorwaarden: string | null;
+  vervolg: Stap[] | null;
   regels: Regel[];
   geldig_tot: string | null;
   afzender_naam: string | null;
@@ -116,11 +146,19 @@ export type Offerte = {
 /** Wat er bij ondertekening is vastgelegd (`getekend_inhoud`), los van latere wijzigingen. */
 export type GetekendeInhoud = {
   nummer: string;
+  vorm?: Vorm;
   bedrijf: string;
   contactpersoon: string | null;
   medewerkers: number | null;
   titel: string;
+  betreft?: string | null;
   intro: string | null;
+  inhoud?: string | null;
+  voorwaarden?: string | null;
+  vervolg?: Stap[] | null;
+  afzender_naam?: string | null;
+  afzender_email?: string | null;
+  verstuurd_at?: string | null;
   regels: Regel[];
   keuze: string[];
   geldig_tot: string | null;
@@ -133,7 +171,8 @@ export type GetekendeInhoud = {
 /** Wat de klantpagina krijgt (`offerte_bekijken` in 0024): geen notitie, IP of wie hem maakte. */
 export type OffertePubliek = Pick<
   Offerte,
-  | "id" | "nummer" | "status" | "bedrijf" | "contactpersoon" | "email" | "medewerkers" | "titel" | "intro" | "regels"
+  | "id" | "nummer" | "status" | "vorm" | "bedrijf" | "contactpersoon" | "email" | "medewerkers" | "titel" | "betreft" | "intro"
+  | "inhoud" | "voorwaarden" | "vervolg" | "regels"
   | "geldig_tot" | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "verstuurd_at"
   | "keuze" | "getekend_at" | "getekend_naam" | "getekend_functie" | "getekend_email" | "handtekening"
   | "getekend_inhoud" | "getekend_hash" | "afgewezen_at"
@@ -293,10 +332,10 @@ export function eenheidVan(e: Eenheid) {
   return EENHEDEN.find((x) => x.key === e) || EENHEDEN[3];
 }
 
-/** Het aantal waarmee gerekend wordt: bij "per medewerker per jaar" zonder eigen aantal het aantal medewerkers. */
+/** Het aantal waarmee gerekend wordt: bij "per medewerker" (per jaar of eenmalig) zonder eigen aantal het aantal medewerkers. */
 export function aantalVoor(r: Regel, medewerkers: number | null | undefined): number {
   if (r.aantal && r.aantal > 0) return r.aantal;
-  if (r.eenheid === "medewerker_jaar") return medewerkers && medewerkers > 0 ? medewerkers : 1;
+  if (r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker") return medewerkers && medewerkers > 0 ? medewerkers : 1;
   return 1;
 }
 
@@ -356,6 +395,7 @@ export function prijsLabel(r: Pick<Regel, "prijs" | "eenheid"> & { prijsTekst?: 
   if (r.prijs === null && r.prijsTekst) return r.prijsTekst;
   if (r.prijs === null && r.eenheid === "uur") return "Uurtarief";
   if (r.prijs === null || r.eenheid === "op_aanvraag") return "Op aanvraag";
+  if (r.prijs === 0) return "Inbegrepen";
   const achter = eenheidVan(r.eenheid).achter;
   return achter ? `${euro(r.prijs)} ${achter}` : euro(r.prijs);
 }
@@ -468,4 +508,36 @@ export function controleer(o: { bedrijf: string; email?: string | null; regels: 
 export function isNaam(s: string): boolean {
   const n = s.trim();
   return n.length >= 2 && n.length <= 120 && /^[\p{L}][\p{L}\p{M} .'-]*$/u.test(n);
+}
+
+/* ---------- vormen, tekst en vervolg ---------- */
+
+/** De stappen uit de database of een formulier terug in vorm: hooguit zes, met een kop. */
+export function normaliseerVervolg(input: unknown): Stap[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((s): s is Record<string, unknown> => Boolean(s) && typeof s === "object")
+    .map((s) => ({ kop: tekst(s.kop, 80), tekst: lang(s.tekst, 400) }))
+    .filter((s) => s.kop)
+    .slice(0, 6);
+}
+
+/** De stappen als de offerte er zelf geen heeft. */
+export const VERVOLG_STANDAARD: Stap[] = [
+  { kop: "Je ondertekent online", tekst: "Kies wat je wilt, zet je handtekening en je krijgt direct een bevestiging per mail." },
+  { kop: "We plannen de start", tekst: "We nemen contact met je op om de eerste afspraken door te nemen." },
+  { kop: "Je vaste aanspreekpunt", tekst: "Je krijgt een vast aanspreekpunt dat je organisatie en je mensen leert kennen." },
+];
+
+/**
+ * Invulvelden in de teksten van een offerte: {bedrijf}, {contactpersoon} en
+ * {betreft}. Zo kan een sjabloon "voor {bedrijf}" zeggen. Zonder contactpersoon
+ * wordt het "heer, mevrouw", zoals in de Word-offertes.
+ */
+export function vulIn(t: string | null | undefined, o: { bedrijf?: string | null; contactpersoon?: string | null; betreft?: string | null }): string {
+  return (t || "")
+    .replace(/\{bedrijf\}/g, o.bedrijf || "je organisatie")
+    .replace(/\{contactpersoon\}/g, o.contactpersoon?.trim() || "heer, mevrouw")
+    .replace(/\{voornaam\}/g, o.contactpersoon?.trim().split(/\s+/)[0] || "heer, mevrouw")
+    .replace(/\{betreft\}/g, o.betreft || "");
 }

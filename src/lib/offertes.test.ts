@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   berekenTotalen, controleer, datumLang, euro, geldigeKeuze, herstelKeuze, isNaam, normaliseerRegels, prijsLabel,
-  secties, standaardKeuze, waardeVan, weergaveVan, wissel, type Regel,
+  secties, standaardKeuze, waardeVan, weergaveVan, wissel, vulIn, normaliseerVervolg, type Regel,
 } from "./offertes";
+import { alleSjablonen, sjabloonVoorStart, sleutelUit } from "./offerteSjablonen";
+import { blokkenUit } from "@/components/offerte/OfferteTekst";
 import { catalogusStandaard, eenheidUit, parsePrijs, STARTPUNTEN } from "./offerteCatalogus";
 
 const R = (r: Partial<Regel> & Pick<Regel, "id" | "soort">): Regel => ({
@@ -175,5 +177,83 @@ describe("prijslijst als bouwdoos", () => {
       expect(controleer({ bedrijf: "X", email: "a@b.nl", regels }), s.key).toEqual([]);
       expect(geldigeKeuze(regels, standaardKeuze(regels)), s.key).not.toBeNull();
     }
+  });
+});
+
+describe("offertevormen (0025)", () => {
+  it("per medewerker eenmalig rekent met het aantal medewerkers", () => {
+    const regels = [R({ id: "v", soort: "vast", prijs: 42.5, eenheid: "medewerker" })];
+    const t = berekenTotalen(regels, [], 5);
+    expect(t.eenmalig).toBe(212.5);
+    expect(t.perJaar).toBe(0);
+  });
+
+  it("nul euro heet inbegrepen, een prijstekst wint van op aanvraag", () => {
+    expect(prijsLabel({ prijs: 0, eenheid: "eenmalig" })).toBe("Inbegrepen");
+    expect(prijsLabel({ prijs: null, eenheid: "op_aanvraag", prijsTekst: "€89 p.p." })).toBe("€89 p.p.");
+  });
+
+  it("vult bedrijf, contactpersoon en betreft in", () => {
+    expect(vulIn("Beste {contactpersoon}, voor {bedrijf} ({betreft})", { bedrijf: "X BV", contactpersoon: "Anne de Vries", betreft: "J.J." })).toBe(
+      "Beste Anne de Vries, voor X BV (J.J.)"
+    );
+    expect(vulIn("Beste {voornaam},", { contactpersoon: "Anne de Vries" })).toBe("Beste Anne,");
+    expect(vulIn("Beste {contactpersoon},", {})).toBe("Beste heer, mevrouw,");
+  });
+
+  it("vervolgstappen: hooguit zes, zonder kop vallen ze weg", () => {
+    expect(normaliseerVervolg([{ kop: "A", tekst: "x" }, { kop: "", tekst: "y" }, "onzin"])).toEqual([{ kop: "A", tekst: "x" }]);
+    expect(normaliseerVervolg(Array.from({ length: 9 }, (_, i) => ({ kop: `S${i}`, tekst: "" })))).toHaveLength(6);
+  });
+
+  it("elk standaardsjabloon levert een offerte die de deur uit kan", () => {
+    const sjablonen = alleSjablonen(catalogusStandaard());
+    expect(new Set(sjablonen.map((s) => s.vorm))).toEqual(new Set(["verzuimbegeleiding", "rie", "pago", "verzuimtraining", "spoor2", "werkfit", "arbeidsdeskundig"]));
+    for (const s of sjablonen) {
+      expect(controleer({ bedrijf: "X", email: "a@b.nl", regels: s.regels }), s.sleutel).toEqual([]);
+      expect(geldigeKeuze(s.regels, standaardKeuze(s.regels)), s.sleutel).not.toBeNull();
+      expect(s.titel.length, s.sleutel).toBeGreaterThan(3);
+      expect(s.geldigDagen, s.sleutel).toBeGreaterThan(0);
+    }
+  });
+
+  it("de prijzen uit de Word-offertes en de prijslijst", () => {
+    const s = Object.fromEntries(alleSjablonen(catalogusStandaard()).map((x) => [x.sleutel, x]));
+    expect(berekenTotalen(s.rie.regels, standaardKeuze(s.rie.regels), null).eenmalig).toBe(2825);
+    expect(berekenTotalen(s.pago.regels, [], 5).eenmalig).toBe(212.5);
+    expect(berekenTotalen(s.verzuimtraining.regels, standaardKeuze(s.verzuimtraining.regels), null).eenmalig).toBe(595);
+    expect(berekenTotalen(s.werkfit.regels, standaardKeuze(s.werkfit.regels), null).eenmalig).toBe(2500);
+    const werkfitMet = s.werkfit.regels.filter((r) => r.soort === "optie").map((r) => r.id);
+    expect(berekenTotalen(s.werkfit.regels, werkfitMet, null).eenmalig).toBe(4000);
+    // Uit de prijslijst 2027: loopt mee met de tarievenpagina.
+    expect(berekenTotalen(s.spoor2.regels, [], null).eenmalig).toBe(3365);
+    expect(berekenTotalen(s.arbeidsdeskundig.regels, [], null).eenmalig).toBe(1450);
+  });
+
+  it("een aangepast sjabloon uit de database wint van de standaard, een eigen komt erbij", () => {
+    const rij = (sleutel: string, naam: string) => ({
+      sleutel, vorm: "rie" as const, naam, omschrijving: null, titel: "Eigen RI&E", intro: null, inhoud: "## Kop", voorwaarden: null,
+      regels: [{ id: "a", naam: "Iets", prijs: 100, eenheid: "eenmalig", soort: "vast", sectie: "Kosten" }], vervolg: [],
+      geldig_dagen: 21, updated_at: "2026-10-29T10:00:00Z", updated_by: "rens@react2u.nl",
+    });
+    const lijst = alleSjablonen(catalogusStandaard(), [rij("rie", "RI&E"), rij("rie-bouw", "RI&E bouw")]);
+    const rie = lijst.find((x) => x.sleutel === "rie")!;
+    expect(rie.titel).toBe("Eigen RI&E");
+    expect(rie.bron).toMatchObject({ soort: "aangepast", heeftStandaard: true });
+    expect(lijst.find((x) => x.sleutel === "rie-bouw")?.bron).toMatchObject({ soort: "aangepast", heeftStandaard: false });
+    expect(rie.regels[0].id).not.toBe("a");
+  });
+
+  it("sleutels en oude startadressen", () => {
+    expect(sleutelUit("RI&E voor de bouw!")).toBe("rie-voor-de-bouw");
+    expect(sjabloonVoorStart("basis")).toBe("verzuim-basis");
+    expect(sjabloonVoorStart("rie")).toBe("rie");
+  });
+
+  it("tekstopmaak: koppen, lijsten, genummerd en uitgelicht", () => {
+    const b = blokkenUit("## Kop\nAlinea een\nloopt door.\n\n### Stap 1\n- a\n- b\n1. een\n2. twee\n> Zin");
+    expect(b.map((x) => x.soort)).toEqual(["h2", "p", "h3", "ul", "ol", "quote"]);
+    expect(b[1]).toEqual({ soort: "p", tekst: "Alinea een loopt door." });
+    expect(b[3]).toEqual({ soort: "ul", items: ["a", "b"] });
   });
 });
