@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   berekenTotalen, controleer, datumLang, euro, geldigeKeuze, herstelKeuze, isNaam, normaliseerRegels, prijsLabel,
-  secties, standaardKeuze, waardeVan, weergaveVan, wissel, vulIn, normaliseerVervolg, type Regel,
+  secties, standaardKeuze, waardeVan, weergaveVan, wissel, vulIn, normaliseerVervolg, maandprijs, regelbedrag, type Regel,
 } from "./offertes";
 import { alleSjablonen, sjabloonVoorStart, sleutelUit } from "./offerteSjablonen";
 import { blokkenUit } from "@/components/offerte/OfferteTekst";
@@ -255,5 +255,29 @@ describe("offertevormen (0025)", () => {
     expect(b.map((x) => x.soort)).toEqual(["h2", "p", "h3", "ul", "ol", "quote"]);
     expect(b[1]).toEqual({ soort: "p", tekst: "Alinea een loopt door." });
     expect(b[3]).toEqual({ soort: "ul", items: ["a", "b"] });
+  });
+});
+
+describe("per maand (29 okt 2026)", () => {
+  it("totaal per maand is het jaarbedrag gedeeld door twaalf", () => {
+    const t = berekenTotalen(REGELS, ["basis"], 42);
+    expect(t.perJaar).toBe(1617);
+    expect(t.perMaand).toBe(134.75);
+  });
+
+  it("een jaarprijs wordt een maandprijs, met de prijslijst eronder", () => {
+    expect(maandprijs({ prijs: 38.5, eenheid: "medewerker_jaar" })).toEqual({
+      bedrag: 3.21, achter: "per medewerker per maand", tekst: "€3,21 per medewerker per maand", jaar: "€38,50 per medewerker per jaar",
+    });
+    expect(maandprijs({ prijs: 1200, eenheid: "jaar" }).tekst).toBe("€100 per maand");
+    expect(maandprijs({ prijs: 389, eenheid: "maand" }).tekst).toBe("€389 per maand");
+    expect(maandprijs({ prijs: 2825, eenheid: "eenmalig" })).toMatchObject({ tekst: "€2.825 eenmalig", jaar: null });
+    expect(maandprijs({ prijs: 0, eenheid: "eenmalig" }).tekst).toBe("Inbegrepen");
+  });
+
+  it("regelbedrag: doorlopend per maand, de rest eenmalig", () => {
+    expect(regelbedrag({ bedrag: 1617, periode: "jaar" })).toEqual({ bedrag: 134.75, per: "maand" });
+    expect(regelbedrag({ bedrag: 495, periode: "eenmalig" })).toEqual({ bedrag: 495, per: "eenmalig" });
+    expect(regelbedrag({ bedrag: null, periode: null })).toEqual({ bedrag: null, per: null });
   });
 });

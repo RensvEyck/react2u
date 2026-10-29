@@ -11,6 +11,11 @@ import type { OffertePubliek } from "@/lib/offertes";
 
 export const dynamic = "force-dynamic";
 
+/** Net getekend (minder dan een kwartier geleden): dan krijgt de klant de felicitatie, later een rustige bevestiging. */
+function netGetekend(at: string | null): boolean {
+  return Boolean(at) && Date.now() - new Date(at!).getTime() < 15 * 60_000;
+}
+
 /**
  * Is dit een collega met een sessie? Dan telt het bezoek niet mee en kan er
  * niet getekend worden: wie de link uit zijn eigen mail even controleert, moet
@@ -50,6 +55,7 @@ export default async function OfferteRoute({ params }: { params: Promise<{ token
       token={token}
       modus={collega ? "collega" : "klant"}
       voorwaarden={DOCUMENTEN.algemeneVoorwaarden}
+      vers={netGetekend(offerte.getekend_at)}
     />
   );
 }

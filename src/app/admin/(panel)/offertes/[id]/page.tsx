@@ -11,7 +11,7 @@ import { laadCatalogus, laadSjablonen, inVorm } from "@/lib/offerteBeheer";
 import type { Sjabloon } from "@/lib/offerteSjablonen";
 import { offerteUrl } from "@/lib/mail";
 import {
-  berekenTotalen, datumLang, euro, herstelKeuze, momentLang, normaliseerRegels, prijsLabel, weergaveVan, WEERGAVE, VORMEN,
+  berekenTotalen, datumLang, euro, herstelKeuze, momentLang, normaliseerRegels, prijsLabel, regelbedrag, weergaveVan, WEERGAVE, VORMEN,
   type Gebeurtenis, type Offerte,
 } from "@/lib/offertes";
 import {
@@ -166,7 +166,7 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
               <div className="mt-3 rounded-[12px] bg-[#eef0ff] px-4 py-3 text-[13.5px] text-[#312e82]">
                 <p className="flex items-center gap-2 font-semibold"><LuMousePointerClick /> Aangeklikt{o.keuze_at ? ` (${momentLang(o.keuze_at)})` : ""}</p>
                 <p className="mt-1 text-black/60">{klantKeuze.regels.map((r) => r.regel.naam).join(", ")}</p>
-                <p className="mt-1 font-semibold">{euro(klantKeuze.perJaar)} per jaar{klantKeuze.eenmalig ? ` + ${euro(klantKeuze.eenmalig)} eenmalig` : ""}</p>
+                <p className="mt-1 font-semibold">{euro(klantKeuze.perMaand)} per maand{klantKeuze.eenmalig ? ` + ${euro(klantKeuze.eenmalig)} eenmalig` : ""}</p>
               </div>
             )}
             <Tijdlijn items={tijdlijn} />
@@ -240,7 +240,7 @@ function Getekend({ o }: { o: Offerte }) {
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Getekend</h2>
           <p className="font-heading text-[26px] font-bold tabular-nums text-[#0a7a4b]">
-            {euro(t.perJaar)}<span className="ml-1 text-[14px] font-medium text-black/45">per jaar</span>
+            {euro(t.perMaand)}<span className="ml-1 text-[14px] font-medium text-black/45">per maand</span>
             {t.eenmalig > 0 && <span className="ml-2 text-[15px] text-[#1c1a4e]">+ {euro(t.eenmalig)} eenmalig</span>}
           </p>
         </div>
@@ -253,7 +253,7 @@ function Getekend({ o }: { o: Offerte }) {
                   <span className="block text-[12.5px] text-black/45">{prijsLabel(regel)}</span>
                 </td>
                 <td className="py-2.5 text-right tabular-nums text-[#1c1a4e]">
-                  {bedrag === null ? "op aanvraag" : bedrag === 0 ? "inbegrepen" : `${euro(bedrag)}${periode === "jaar" ? " per jaar" : " eenmalig"}`}
+                  {bedrag === null ? "op aanvraag" : bedrag === 0 ? "inbegrepen" : `${euro(regelbedrag({ bedrag, periode }).bedrag!)}${periode === "jaar" ? " per maand" : " eenmalig"}`}
                 </td>
               </tr>
             ))}
