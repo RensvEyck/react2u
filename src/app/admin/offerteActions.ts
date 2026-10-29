@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  controleer, datumLang, isVorm, normaliseerRegels, normaliseerVervolg, type Offerte, type OfferteStatus,
+  controleer, datumLang, isVorm, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, type Offerte, type OfferteStatus,
 } from "@/lib/offertes";
 import { sleutelUit, STANDAARD_SJABLONEN } from "@/lib/offerteSjablonen";
 import { sendOfferte, offerteUrl } from "@/lib/mail";
@@ -28,7 +28,7 @@ function foutUit(error: { code?: string; hint?: string; message?: string } | nul
   if (error.hint === "offerte-getekend") return "Deze offerte is getekend en kan niet meer worden gewijzigd.";
   if (error.code === "PGRST205" || error.code === "42P01") return "Offertes staan nog niet aan: migratie 0024 moet eerst in Supabase worden uitgevoerd.";
   // Een kolom uit 0025 (vorm, inhoud, voorwaarden, …) ontbreekt nog.
-  if (error.code === "PGRST204" || error.code === "42703") return "De offertevormen staan nog niet aan: migratie 0025 moet eerst in Supabase worden uitgevoerd.";
+  if (error.code === "PGRST204" || error.code === "42703") return "Er ontbreekt een kolom: migraties 0025 en 0026 moeten eerst in Supabase worden uitgevoerd.";
   if (error.code === "23514") return "Een van de velden klopt niet (bijvoorbeeld het e-mailadres of het aantal medewerkers).";
   return "Opslaan mislukt.";
 }
@@ -82,12 +82,22 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
     afzender_email: tekst(fd, "afzender_email", 254)?.toLowerCase() ?? null,
     afzender_telefoon: tekst(fd, "afzender_telefoon", 40),
   };
+  // Factuurgegevens vooraf (0026); alleen meesturen als het formulier ze kent, zodat een oudere editor ze niet wist.
+  const factuur = fd.has("factuur_adres")
+    ? normaliseerFactuur({
+        adres: fd.get("factuur_adres"), postcode: fd.get("factuur_postcode"), plaats: fd.get("factuur_plaats"),
+        email: fd.get("factuur_email"), kvk: fd.get("factuur_kvk"), inkoopnummer: fd.get("factuur_inkoopnummer"),
+      })
+    : undefined;
+  if (factuur?.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(factuur.email)) return { fout: "Het e-mailadres voor de facturen klopt niet." };
+  if (factuur?.kvk && !/^\d{8}$/.test(factuur.kvk)) return { fout: "Een KvK-nummer heeft 8 cijfers." };
+  const opslaan = factuur ? { ...rij, factuur: Object.keys(factuur).length ? factuur : null } : rij;
   if (!rij.bedrijf) return { fout: "Vul de naam van het bedrijf in." };
   if (rij.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(rij.email)) return { fout: "Het e-mailadres van de klant klopt niet." };
 
   if (id) {
     const { data: oud } = await sb.from("offertes").select("status").eq("id", id).maybeSingle();
-    const { error } = await sb.from("offertes").update(rij).eq("id", id);
+    const { error } = await sb.from("offertes").update(opslaan).eq("id", id);
     if (error) return { fout: foutUit(error) };
     // Een concept wijzigt de hele dag; pas als de klant meekijkt is een wijziging het vermelden waard.
     if (oud && (oud as { status: OfferteStatus }).status !== "concept") await log(sb, id, "gewijzigd", admin.email);
@@ -95,7 +105,7 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
     redirect(`/admin/offertes/${id}?opgeslagen=offerte`);
   }
 
-  const { data, error } = await sb.from("offertes").insert({ ...rij, created_by: user.id }).select("id").single();
+  const { data, error } = await sb.from("offertes").insert({ ...opslaan, created_by: user.id }).select("id").single();
   if (error || !data) return { fout: foutUit(error) };
   const nieuw = (data as { id: string }).id;
   await log(sb, nieuw, "aangemaakt", admin.email);
@@ -201,7 +211,7 @@ export async function dupliceerOfferte(id: string) {
   const { data, error } = await sb
     .from("offertes")
     .insert({
-      bedrijf: bron.bedrijf, contactpersoon: bron.contactpersoon, email: bron.email, telefoon: bron.telefoon,
+      bedrijf: bron.bedrijf, contactpersoon: bron.contactpersoon, email: bron.email, telefoon: bron.telefoon, factuur: bron.factuur ?? null,
       medewerkers: bron.medewerkers, titel: bron.titel, intro: bron.intro, regels: normaliseerRegels(bron.regels),
       vorm: bron.vorm, betreft: bron.betreft, inhoud: bron.inhoud, voorwaarden: bron.voorwaarden, vervolg: bron.vervolg,
       afzender_naam: bron.afzender_naam, afzender_functie: bron.afzender_functie,

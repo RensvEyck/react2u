@@ -11,12 +11,12 @@ import { laadCatalogus, laadSjablonen, inVorm } from "@/lib/offerteBeheer";
 import type { Sjabloon } from "@/lib/offerteSjablonen";
 import { offerteUrl } from "@/lib/mail";
 import {
-  berekenTotalen, datumLang, euro, herstelKeuze, momentLang, normaliseerRegels, prijsLabel, regelbedrag, weergaveVan, WEERGAVE, VORMEN,
-  type Gebeurtenis, type Offerte,
+  apparaatUit, berekenTotalen, datumLang, euro, factuurRegels, herstelKeuze, momentLang, normaliseerRegels, prijsLabel, regelbedrag, weergaveVan,
+  WEERGAVE, VORMEN, type Gebeurtenis, type Offerte,
 } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuCopy, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil,
-  LuSignature, LuCircleX, LuMousePointerClick, LuStickyNote, LuBookmarkPlus,
+  LuSignature, LuCircleX, LuMousePointerClick, LuStickyNote, LuBookmarkPlus, LuMailCheck, LuFileDown, LuShieldCheck,
 } from "react-icons/lu";
 
 /**
@@ -26,7 +26,7 @@ import {
  */
 
 const ICONEN: Record<Gebeurtenis["soort"], React.ComponentType<{ className?: string }>> = {
-  aangemaakt: LuFilePlus, gewijzigd: LuPencil, verstuurd: LuSend, herinnering: LuBellRing, bekeken: LuEye,
+  aangemaakt: LuFilePlus, gewijzigd: LuPencil, verstuurd: LuSend, herinnering: LuBellRing, bekeken: LuEye, code: LuMailCheck,
   getekend: LuSignature, afgewezen: LuCircleX, ingetrokken: LuBan, heropend: LuRotateCcw,
 };
 
@@ -39,7 +39,8 @@ function zin(g: Gebeurtenis): string {
     case "verstuurd": return d.handmatig ? `Link opengezet${door}, zelf verstuurd` : `Verstuurd naar ${d.aan}${door}`;
     case "herinnering": return `Herinnering naar ${d.aan}${door}`;
     case "bekeken": return "Bekeken door de klant";
-    case "getekend": return `Getekend door ${g.door}${d.functie ? ` (${d.functie})` : ""}`;
+    case "code": return `Bevestigingscode gemaild naar ${g.door || "de klant"}`;
+    case "getekend": return `Getekend door ${g.door}${d.functie ? ` (${d.functie})` : ""}${d.bevestigd ? ", met de code uit de mail" : ""}`;
     case "afgewezen": return `Niet akkoord${g.door ? ` volgens ${g.door}` : ""}${d.reden ? `: "${d.reden}"` : ""}`;
     case "ingetrokken": return `Ingetrokken${door}`;
     case "heropend": return `Heropend${door}`;
@@ -262,6 +263,22 @@ function Getekend({ o }: { o: Offerte }) {
         <p className="mt-3 text-[12.5px] text-black/45">
           {inhoud.medewerkers ? `${inhoud.medewerkers} medewerkers · ` : ""}exclusief btw · tarieven bij gebruik zoals in de offerte
         </p>
+        {inhoud.factuur && (
+          <div className="mt-5 grid gap-4 rounded-[14px] bg-black/[0.025] p-4 text-[13.5px] sm:grid-cols-2">
+            <div>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-black/40">Factuuradres</p>
+              <p className="mt-1 text-[#1c1a4e]">{[inhoud.bedrijf, ...factuurRegels(inhoud.factuur)].map((r, i) => <span key={i} className="block">{r}</span>)}</p>
+            </div>
+            <div>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-black/40">Facturen</p>
+              <p className="mt-1 text-[#1c1a4e]">
+                <span className="block break-all">{inhoud.factuur.email}</span>
+                {inhoud.factuur.kvk && <span className="block">KvK {inhoud.factuur.kvk}</span>}
+                {inhoud.factuur.inkoopnummer ? <span className="block font-semibold">Inkoopnummer {inhoud.factuur.inkoopnummer}</span> : <span className="block text-black/45">Geen inkoopnummer</span>}
+              </p>
+            </div>
+          </div>
+        )}
       </section>
       <section className="acard p-6">
         <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Ondertekening</h2>
@@ -272,10 +289,14 @@ function Getekend({ o }: { o: Offerte }) {
         <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[13.5px]">
           <dt className="text-black/45">Naam</dt><dd className="font-semibold text-[#1c1a4e]">{inhoud.getekend_naam}</dd>
           {inhoud.getekend_functie && (<><dt className="text-black/45">Functie</dt><dd className="text-[#1c1a4e]">{inhoud.getekend_functie}</dd></>)}
-          <dt className="text-black/45">E-mail</dt><dd className="break-all text-[#1c1a4e]">{inhoud.getekend_email}</dd>
+          <dt className="text-black/45">E-mail</dt>
+          <dd className="break-all text-[#1c1a4e]">
+            {inhoud.getekend_email}
+            {inhoud.bevestiging && <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-[#e3f6ed] px-2 py-0.5 text-[11.5px] font-semibold text-[#0a7a4b]"><LuShieldCheck /> bevestigd met code</span>}
+          </dd>
           <dt className="text-black/45">Moment</dt><dd className="text-[#1c1a4e]">{momentLang(inhoud.getekend_at)}</dd>
           {o.getekend_ip && (<><dt className="text-black/45">IP-adres</dt><dd className="font-mono text-[12.5px] text-[#1c1a4e]">{o.getekend_ip}</dd></>)}
-          {o.getekend_agent && (<><dt className="text-black/45">Browser</dt><dd className="break-words text-[12px] text-black/55">{o.getekend_agent}</dd></>)}
+          {o.getekend_agent && (<><dt className="text-black/45">Apparaat</dt><dd className="text-[#1c1a4e]" title={o.getekend_agent}>{apparaatUit(o.getekend_agent) || <span className="break-words text-[12px] text-black/55">{o.getekend_agent}</span>}</dd></>)}
         </dl>
         {o.getekend_hash && (
           <p className="mt-4 break-all rounded-[10px] bg-black/[0.03] px-3 py-2 font-mono text-[11.5px] text-black/50" title="SHA-256 van de vastgelegde inhoud">
@@ -283,9 +304,12 @@ function Getekend({ o }: { o: Offerte }) {
           </p>
         )}
         <p className="mt-3 text-[12.5px] text-black/45">
-          De getekende versie staat vast en kan niet meer worden gewijzigd of verwijderd. De klant ziet hem terug via zijn link.
+          De getekende versie staat vast en kan niet meer worden gewijzigd of verwijderd. De klant kreeg hem als pdf, met het ondertekeningscertificaat, en ziet hem terug via zijn link.
         </p>
-        <Link href={`/admin/offertevoorbeeld/${o.id}`} target="_blank" className="abtn-ghost mt-3 !py-1.5 text-[13px]"><LuEye /> Bekijk zoals de klant hem ziet</Link>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a href={`/admin/offertevoorbeeld/${o.id}/pdf?download=1`} className="abtn !py-1.5 text-[13px]"><LuFileDown /> Download pdf</a>
+          <Link href={`/admin/offertevoorbeeld/${o.id}`} target="_blank" className="abtn-ghost !py-1.5 text-[13px]"><LuEye /> Zoals de klant hem ziet</Link>
+        </div>
       </section>
     </div>
   );

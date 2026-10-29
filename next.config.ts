@@ -100,6 +100,14 @@ const nextConfig: NextConfig = {
   // verzoek maar 1 MB zijn; Vercel accepteert maximaal 4,5 MB per verzoek.
   // Vandaar 4 MB per cv (src/lib/cvs.ts) en hier wat ruimte voor de rest.
   experimental: { serverActions: { bodySizeLimit: "4.4mb" } },
+  // De pdf van een getekende offerte (lib/offertePdf.tsx) leest zijn lettertypen
+  // en de keurmerklogo's van schijf. Dat ziet de bundelaar niet; zonder deze
+  // regel ontbreken ze op Vercel. De pdf ontstaat op de klantpagina (bij het
+  // tekenen), de downloadroute en het voorbeeld in het beheer.
+  outputFileTracingIncludes: {
+    "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
+    "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
+  },
   images: {
     // Next 16 staat alleen kwaliteiten uit deze lijst toe. 75 is de standaard;
     // 85 is voor de foto's (Beeld): de AI-serie heeft fijne details en werd bij

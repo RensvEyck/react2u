@@ -87,6 +87,17 @@ export const VORMEN: Record<Vorm, { label: string; kort: string; groep: "Verzuim
 
 export const VORM_KEYS = Object.keys(VORMEN) as Vorm[];
 
+/** Het label van React2u waar de vorm onder valt, in de kleur van de tarievenpagina. */
+export const DIENSTLABEL: Record<Vorm, string> = {
+  verzuimbegeleiding: "React2u Recover",
+  rie: "React2u Resist",
+  pago: "React2u Resist",
+  verzuimtraining: "React2u Resist",
+  spoor2: "React2u Restart",
+  werkfit: "React2u Restart",
+  arbeidsdeskundig: "React2u Restart",
+};
+
 export function isVorm(v: unknown): v is Vorm {
   return typeof v === "string" && (VORM_KEYS as string[]).includes(v);
 }
@@ -141,7 +152,23 @@ export type Offerte = {
   getekend_hash: string | null;
   afgewezen_at: string | null;
   afgewezen_reden: string | null;
+  /** Vooraf door sales, bij het tekenen aangevuld door de klant (0026). */
+  factuur: Partial<Factuur> | null;
 };
+
+/** Factuurgegevens (0026). E-mail, adres, postcode en plaats zijn nodig om te factureren. */
+export type Factuur = {
+  email: string;
+  adres: string;
+  postcode: string;
+  plaats: string;
+  kvk?: string;
+  inkoopnummer?: string;
+  tav?: string;
+};
+
+/** Hoe het e-mailadres van wie tekende is bevestigd (0026). */
+export type Bevestiging = { methode: "e-mailcode"; email: string; verstuurd_at: string; bevestigd_at: string };
 
 /** Wat er bij ondertekening is vastgelegd (`getekend_inhoud`), los van latere wijzigingen. */
 export type GetekendeInhoud = {
@@ -157,6 +184,7 @@ export type GetekendeInhoud = {
   voorwaarden?: string | null;
   vervolg?: Stap[] | null;
   afzender_naam?: string | null;
+  afzender_functie?: string | null;
   afzender_email?: string | null;
   verstuurd_at?: string | null;
   regels: Regel[];
@@ -166,6 +194,10 @@ export type GetekendeInhoud = {
   getekend_functie: string | null;
   getekend_email: string;
   getekend_at: string;
+  /** Vanaf 0026: de factuurgegevens, de hash van de handtekening en de bevestiging met een code. */
+  factuur?: Factuur | null;
+  handtekening_hash?: string;
+  bevestiging?: Bevestiging;
 };
 
 /** Wat de klantpagina krijgt (`offerte_bekijken` in 0024): geen notitie, IP of wie hem maakte. */
@@ -176,12 +208,12 @@ export type OffertePubliek = Pick<
   | "geldig_tot" | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "verstuurd_at"
   | "keuze" | "getekend_at" | "getekend_naam" | "getekend_functie" | "getekend_email" | "handtekening"
   | "getekend_inhoud" | "getekend_hash" | "afgewezen_at"
-> & { verlopen: boolean; eerste_keer?: boolean };
+> & { verlopen: boolean; eerste_keer?: boolean; factuur?: Partial<Factuur> | null };
 
 export type Gebeurtenis = {
   id: number;
   offerte_id: string;
-  soort: "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "getekend" | "afgewezen" | "ingetrokken" | "heropend";
+  soort: "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "code" | "getekend" | "afgewezen" | "ingetrokken" | "heropend";
   door: string | null;
   details: Record<string, unknown> | null;
   at: string;
@@ -465,6 +497,13 @@ export function momentLang(iso: string | null | undefined): string {
   return `${datumLang(iso)} om ${t} uur`;
 }
 
+/** "29 oktober 2026, 14:03:27": tot op de seconde, in Nederlandse tijd. Voor het ondertekeningscertificaat. */
+export function momentPrecies(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const t = new Date(iso).toLocaleTimeString("nl-NL", { timeZone: "Europe/Amsterdam", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return `${datumLang(iso)}, ${t}`;
+}
+
 /** Vandaag + `dagen` als datum (jjjj-mm-dd), in Nederlandse tijd. Standaard voor "geldig tot". */
 export function datumOver(dagen: number, nu = new Date()): string {
   return new Date(nu.getTime() + dagen * 86_400_000).toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
@@ -511,7 +550,59 @@ export const ONDERTEKEN_FOUT: Record<string, string> = {
   limiet: "Er ging iets te vaak achter elkaar mis. Probeer het over een uur opnieuw, of bel ons.",
   akkoord: "Vink aan dat je akkoord gaat en bevoegd bent om te tekenen.",
   storing: "Ondertekenen lukte niet door een storing. Probeer het opnieuw, of bel ons.",
+  // De bevestigingscode en de factuurgegevens (0026).
+  code: "Deze code klopt niet. Kijk nog eens in de mail, of vraag een nieuwe code aan.",
+  "code-nieuw": "Vraag eerst een code aan.",
+  "code-verlopen": "Deze code is verlopen. Vraag een nieuwe code aan.",
+  "code-pogingen": "Te vaak een verkeerde code. Vraag een nieuwe code aan.",
+  "code-email": "De code is naar een ander e-mailadres gestuurd. Vraag een nieuwe code aan.",
+  "code-limiet": "Er zijn het afgelopen uur al vijf codes gestuurd. Probeer het later opnieuw, of bel ons.",
+  mail: "We konden de code niet mailen. Controleer je e-mailadres, of bel ons.",
+  factuur: "Controleer de factuurgegevens.",
+  "factuur-email": "Vul een geldig e-mailadres in voor de facturen.",
+  "factuur-adres": "Vul het factuuradres in: straat en huisnummer, postcode en plaats.",
+  "factuur-kvk": "Een KvK-nummer heeft 8 cijfers.",
 };
+
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+/** Factuurgegevens uit een formulier of de database terug in vorm: alleen de bekende velden, schoon. */
+export function normaliseerFactuur(input: unknown): Partial<Factuur> {
+  if (!input || typeof input !== "object") return {};
+  const f = input as Record<string, unknown>;
+  const uit: Partial<Factuur> = {
+    email: tekst(f.email, 254).toLowerCase(),
+    adres: tekst(f.adres, 200),
+    postcode: tekst(f.postcode, 12).toUpperCase(),
+    plaats: tekst(f.plaats, 100),
+    kvk: tekst(f.kvk, 20).replace(/\s/g, ""),
+    inkoopnummer: tekst(f.inkoopnummer, 60),
+    tav: tekst(f.tav, 120),
+  };
+  for (const k of Object.keys(uit) as (keyof Factuur)[]) if (!uit[k]) delete uit[k];
+  return uit;
+}
+
+/**
+ * Wat er nog niet klopt aan de factuurgegevens, als foutcode uit
+ * ONDERTEKEN_FOUT (dezelfde controle als offerte_ondertekenen in 0026), of null.
+ */
+export function factuurFout(f: Partial<Factuur>): "factuur-email" | "factuur-adres" | "factuur-kvk" | null {
+  if (!f.email || !EMAIL.test(f.email)) return "factuur-email";
+  if (!f.adres || f.adres.length < 3 || !f.postcode || f.postcode.length < 4 || !f.plaats || f.plaats.length < 2) return "factuur-adres";
+  if (f.kvk && !/^\d{8}$/.test(f.kvk)) return "factuur-kvk";
+  return null;
+}
+
+/** De factuurgegevens als regels voor een adresblok of mail. */
+export function factuurRegels(f: Partial<Factuur> | null | undefined): string[] {
+  if (!f) return [];
+  return [
+    f.tav ? `T.a.v. ${f.tav}` : "",
+    f.adres || "",
+    [f.postcode, f.plaats].filter(Boolean).join(" "),
+  ].filter(Boolean);
+}
 
 /**
  * Wat er nog niet klopt voordat de offerte de deur uit kan. Leeg = klaar om
@@ -566,4 +657,50 @@ export function vulIn(t: string | null | undefined, o: { bedrijf?: string | null
     .replace(/\{contactpersoon\}/g, o.contactpersoon?.trim() || "heer, mevrouw")
     .replace(/\{voornaam\}/g, o.contactpersoon?.trim().split(/\s+/)[0] || "heer, mevrouw")
     .replace(/\{betreft\}/g, o.betreft || "");
+}
+
+/* ---------- het ondertekeningscertificaat ---------- */
+
+/** Wat `offerte_certificaat` (0026) teruggeeft: alleen voor een getekende offerte. */
+export type CertificaatGegevens = {
+  ip: string | null;
+  agent: string | null;
+  aantal_bekeken: number;
+  tijdlijn: { soort: Gebeurtenis["soort"]; at: string; wie: string | null }[];
+};
+
+/** "Chrome op macOS" uit de user-agent; leeg als er niets van te maken is. */
+export function apparaatUit(agent: string | null | undefined): string {
+  const a = agent || "";
+  if (!a) return "";
+  const browser = /Edg\//.test(a) ? "Edge" : /OPR\//.test(a) ? "Opera" : /Firefox\//.test(a) ? "Firefox"
+    : /Chrome\//.test(a) ? "Chrome" : /Safari\//.test(a) && /Version\//.test(a) ? "Safari" : "";
+  const os = /iPhone/.test(a) ? "iPhone" : /iPad/.test(a) ? "iPad" : /Android/.test(a) ? "Android"
+    : /Windows/.test(a) ? "Windows" : /Mac OS X|Macintosh/.test(a) ? "macOS" : /Linux/.test(a) ? "Linux" : "";
+  return [browser, os].filter(Boolean).join(" op ");
+}
+
+/**
+ * De tijdlijn van het certificaat in gewone zinnen. Van het bekijken alleen
+ * de eerste keer; hoe vaak in totaal staat erachter.
+ */
+export function tijdlijnRegels(c: CertificaatGegevens): { at: string; tekst: string }[] {
+  let eersteKeer = true;
+  const uit: { at: string; tekst: string }[] = [];
+  for (const g of c.tijdlijn) {
+    if (g.soort === "verstuurd") uit.push({ at: g.at, tekst: g.wie ? `Offerte verstuurd aan ${g.wie}` : "Link naar de offerte gedeeld" });
+    else if (g.soort === "herinnering") uit.push({ at: g.at, tekst: g.wie ? `Herinnering verstuurd aan ${g.wie}` : "Herinnering verstuurd" });
+    else if (g.soort === "bekeken" && eersteKeer) {
+      eersteKeer = false;
+      uit.push({ at: g.at, tekst: c.aantal_bekeken > 1 ? `Offerte voor het eerst geopend (in totaal ${c.aantal_bekeken} keer)` : "Offerte geopend" });
+    } else if (g.soort === "code") uit.push({ at: g.at, tekst: `Bevestigingscode gemaild naar ${g.wie || "de ondertekenaar"}` });
+    else if (g.soort === "getekend") uit.push({ at: g.at, tekst: `Ondertekend door ${g.wie || "de klant"}, met de juiste code` });
+  }
+  return uit;
+}
+
+/** Bestandsnaam van de getekende offerte: "Offerte 2026-0012 Bakkerij Jansen (getekend).pdf". */
+export function pdfNaam(i: Pick<GetekendeInhoud, "nummer" | "bedrijf">): string {
+  const bedrijf = i.bedrijf.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+  return `Offerte ${i.nummer} ${bedrijf} (getekend).pdf`;
 }

@@ -9,10 +9,11 @@ import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import type { Certificate } from "@/lib/nav";
 import Handtekening from "./Handtekening";
 import OfferteTekst from "./OfferteTekst";
-import { bewaarKeuze, ondertekenOfferte, wijsOfferteAf } from "@/app/(offerte)/offerte/actions";
+import { bewaarKeuze, ondertekenOfferte, vraagCode, wijsOfferteAf } from "@/app/(offerte)/offerte/actions";
 import {
-  berekenTotalen, datumLang, euro, herstelKeuze, isNaam, maandprijs, momentLang, normaliseerRegels, normaliseerVervolg,
-  prijsLabel, regelbedrag, secties, wissel, aantalVoor, bedragVoor, vulIn, VERVOLG_STANDAARD, VORMEN,
+  berekenTotalen, datumLang, euro, factuurFout, factuurRegels, herstelKeuze, isNaam, maandprijs, momentLang, normaliseerFactuur,
+  normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, secties, wissel, aantalVoor, bedragVoor, vulIn, DIENSTLABEL,
+  ONDERTEKEN_FOUT, VERVOLG_STANDAARD, VORMEN,
   type OffertePubliek, type Regel, type Stap, type Totalen, type Vorm,
 } from "@/lib/offertes";
 
@@ -54,16 +55,7 @@ const KOP: React.CSSProperties = { fontFamily: "var(--font-offerte-kop), var(--f
 
 export type Modus = "klant" | "collega" | "voorbeeld";
 
-/** Het label van React2u waar de vorm onder valt, in de kleur van de tarievenpagina. */
-const LABEL: Record<Vorm, string> = {
-  verzuimbegeleiding: "React2u Recover",
-  rie: "React2u Resist",
-  pago: "React2u Resist",
-  verzuimtraining: "React2u Resist",
-  spoor2: "React2u Restart",
-  werkfit: "React2u Restart",
-  arbeidsdeskundig: "React2u Restart",
-};
+const LABEL = DIENSTLABEL;
 
 /** Wat React2u zelf meegeeft: bedrijfsgegevens en certificaten (Instellingen), zoals in de footer van de site. */
 type Huis = { contact: ContactInfo; certificaten: Certificate[] };
@@ -123,6 +115,15 @@ function Slot() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
+
+function Envelop() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m4 7 8 6 8-6" />
     </svg>
   );
 }
@@ -192,7 +193,7 @@ export default function OffertePagina({
   return (
     <div className={`${kopLetter.variable} min-h-screen`} style={{ background: ZAND }}>
       {getekend ? (
-        <Getekend offerte={offerte} voorwaarden={voorwaarden} modus={modus} vers={vers} huis={huis} />
+        <Getekend offerte={offerte} token={token} voorwaarden={voorwaarden} modus={modus} vers={vers} huis={huis} />
       ) : (
         <Document offerte={offerte} token={token} modus={modus} voorwaarden={voorwaarden} huis={huis} />
       )}
@@ -970,14 +971,75 @@ function Akkoord({
   huis: Huis;
 }) {
   const router = useRouter();
+  const vooraf = normaliseerFactuur(offerte.factuur);
   const [naam, setNaam] = useState(offerte.contactpersoon || "");
   const [functie, setFunctie] = useState("");
   const [email, setEmail] = useState(offerte.email || "");
   const [png, setPng] = useState<string | null>(null);
   const [akkoord, setAkkoord] = useState(false);
+  const [factuur, setFactuur] = useState({ adres: vooraf.adres || "", postcode: vooraf.postcode || "", plaats: vooraf.plaats || "", kvk: vooraf.kvk || "", inkoopnummer: vooraf.inkoopnummer || "" });
+  // Null: de facturen gaan naar het adres van wie tekent, tot iemand hier iets anders invult.
+  const [factuurEmail, setFactuurEmail] = useState<string | null>(vooraf.email || null);
+  // Eerst de gegevens, dan de code uit de mail (0026).
+  const [stap, setStap] = useState<"gegevens" | "code">("gegevens");
+  const [code, setCode] = useState("");
+  const [wacht, setWacht] = useState(0);
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, start] = useTransition();
   const uit = !open;
+  const vast = uit || stap === "code";
+  const veldFactuur = (k: keyof typeof factuur) => (e: React.ChangeEvent<HTMLInputElement>) => setFactuur((f) => ({ ...f, [k]: e.target.value }));
+
+  // Aftellen tot er een nieuwe code mag.
+  useEffect(() => {
+    if (wacht <= 0) return;
+    const t = setTimeout(() => setWacht((w) => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [wacht]);
+
+  const factuurInvoer = () => normaliseerFactuur({ ...factuur, email: factuurEmail ?? email });
+
+  function controleerGegevens(): string | null {
+    if (!isNaam(naam)) return "Vul je volledige naam in.";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return "Vul een geldig e-mailadres in; daar sturen we de code heen.";
+    if (!png) return "Zet je handtekening in het vak, of kies Typen.";
+    const ff = factuurFout(factuurInvoer());
+    if (ff) return ONDERTEKEN_FOUT[ff];
+    if (!akkoord) return "Vink aan dat je akkoord gaat en bevoegd bent om te tekenen.";
+    return null;
+  }
+
+  function stuurCode() {
+    if (!token) return;
+    setFout(null);
+    start(async () => {
+      const res = await vraagCode(token, email.trim());
+      if (!res.ok) {
+        setFout(res.fout || "De code kon niet worden verstuurd.");
+        return;
+      }
+      setStap("code");
+      setCode("");
+      setWacht(30);
+    });
+  }
+
+  function teken(c: string) {
+    if (!token || !png) return;
+    setFout(null);
+    start(async () => {
+      const res = await ondertekenOfferte(token, {
+        keuze, naam: naam.trim(), functie: functie.trim(), email: email.trim(), handtekening: png, akkoord, code: c, factuur: factuurInvoer(),
+      });
+      if (!res.ok) {
+        setFout(res.fout || "Ondertekenen lukte niet.");
+        setCode("");
+        return;
+      }
+      window.scrollTo({ top: 0 });
+      router.refresh();
+    });
+  }
 
   function onderteken(e: React.FormEvent) {
     e.preventDefault();
@@ -986,19 +1048,11 @@ function Akkoord({
       setFout(modus === "klant" ? "Deze offerte kan niet meer worden ondertekend." : "In het voorbeeld en als collega kan er niet worden getekend.");
       return;
     }
-    if (!isNaam(naam)) return setFout("Vul je volledige naam in.");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setFout("Vul een geldig e-mailadres in, dan sturen we je de bevestiging.");
-    if (!png) return setFout("Zet je handtekening in het vak, of kies Typen.");
-    if (!akkoord) return setFout("Vink aan dat je akkoord gaat en bevoegd bent om te tekenen.");
-    start(async () => {
-      const res = await ondertekenOfferte(token, { keuze, naam: naam.trim(), functie: functie.trim(), email: email.trim(), handtekening: png, akkoord });
-      if (!res.ok) {
-        setFout(res.fout || "Ondertekenen lukte niet.");
-        return;
-      }
-      window.scrollTo({ top: 0 });
-      router.refresh();
-    });
+    const f = controleerGegevens();
+    if (f) return setFout(f);
+    if (stap === "gegevens") return stuurCode();
+    if (code.length !== 6) return setFout("Vul de code van 6 cijfers uit de mail in.");
+    teken(code);
   }
 
   return (
@@ -1066,20 +1120,58 @@ function Akkoord({
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <label className="flex flex-col gap-1.5">
             <span className="text-[14px] font-medium" style={{ color: INKT }}>Volledige naam</span>
-            <input className={veld} value={naam} onChange={(e) => setNaam(e.target.value)} autoComplete="name" required disabled={uit} />
+            <input className={veld} value={naam} onChange={(e) => setNaam(e.target.value)} autoComplete="name" required disabled={vast} />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-[14px] font-medium" style={{ color: INKT }}>Functie <span className="font-normal" style={{ color: MUTE }}>(mag leeg)</span></span>
-            <input className={veld} value={functie} onChange={(e) => setFunctie(e.target.value)} autoComplete="organization-title" placeholder="Bijvoorbeeld directeur" disabled={uit} />
+            <input className={veld} value={functie} onChange={(e) => setFunctie(e.target.value)} autoComplete="organization-title" placeholder="Bijvoorbeeld directeur" disabled={vast} />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="text-[14px] font-medium" style={{ color: INKT }}>E-mail voor de bevestiging</span>
-            <input className={veld} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required disabled={uit} />
+            <span className="text-[14px] font-medium" style={{ color: INKT }}>Je e-mailadres <span className="font-normal" style={{ color: MUTE }}>(hier komt de code)</span></span>
+            <input className={veld} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required disabled={vast} />
           </label>
         </div>
 
+        {/* Factuurgegevens: zodat de eerste factuur meteen goed is, met inkoopnummer als inkoop dat vraagt */}
+        <fieldset className="m-0 mt-6 min-w-0 rounded-[18px] border p-5 md:p-6" style={{ borderColor: LIJN, background: ZACHT }} disabled={vast}>
+          <legend className="sr-only">Factuurgegevens</legend>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <p className="m-0 text-[16.5px] font-semibold" style={{ ...KOP, color: INKT }}>Factuurgegevens</p>
+            <p className="m-0 text-[13px]" style={{ color: MUTE }}>
+              {vooraf.adres ? `Al ingevuld door ${voornaam(offerte.afzender_naam) || "React2u"}; klopt het?` : "Zodat de eerste factuur meteen goed is."}
+            </p>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-6">
+            <label className="flex flex-col gap-1.5 md:col-span-3">
+              <span className="text-[14px] font-medium" style={{ color: INKT }}>Straat en huisnummer</span>
+              <input id="of-fadres" className={veld} value={factuur.adres} onChange={veldFactuur("adres")} autoComplete="address-line1" />
+            </label>
+            <label className="flex flex-col gap-1.5 md:col-span-1">
+              <span className="text-[14px] font-medium" style={{ color: INKT }}>Postcode</span>
+              <input id="of-fpostcode" className={veld} value={factuur.postcode} onChange={veldFactuur("postcode")} autoComplete="postal-code" />
+            </label>
+            <label className="flex flex-col gap-1.5 md:col-span-2">
+              <span className="text-[14px] font-medium" style={{ color: INKT }}>Plaats</span>
+              <input id="of-fplaats" className={veld} value={factuur.plaats} onChange={veldFactuur("plaats")} autoComplete="address-level2" />
+            </label>
+            <label className="flex flex-col gap-1.5 md:col-span-2">
+              <span className="text-[14px] font-medium" style={{ color: INKT }}>Facturen per mail naar</span>
+              <input id="of-femail" className={veld} type="email" value={factuurEmail ?? email} onChange={(e) => setFactuurEmail(e.target.value)} placeholder="administratie@…" />
+            </label>
+            <label className="flex flex-col gap-1.5 md:col-span-2">
+              <span className="text-[14px] font-medium" style={{ color: INKT }}>KvK-nummer <span className="font-normal" style={{ color: MUTE }}>(mag leeg)</span></span>
+              <input id="of-fkvk" className={veld} value={factuur.kvk} onChange={veldFactuur("kvk")} inputMode="numeric" placeholder="8 cijfers" />
+            </label>
+            <label className="flex flex-col gap-1.5 md:col-span-2">
+              <span className="text-[14px] font-medium" style={{ color: INKT }}>Inkoopnummer <span className="font-normal" style={{ color: MUTE }}>(mag leeg)</span></span>
+              <input id="of-finkoop" className={veld} value={factuur.inkoopnummer} onChange={veldFactuur("inkoopnummer")} placeholder="Bijvoorbeeld PO-2026-118" />
+            </label>
+          </div>
+          <p className="m-0 mt-3 text-[12.5px] leading-[1.5]" style={{ color: MUTE }}>Werkt jullie administratie met inkoopnummers (PO)? Vul het in, dan staat het op elke factuur.</p>
+        </fieldset>
+
         <label className={`mt-5 flex items-start gap-3 rounded-[14px] border p-4 text-[14.5px] leading-[1.55] transition-colors ${uit ? "opacity-60" : "cursor-pointer"} ${akkoord ? "border-[#322E83] bg-[#F7F6FD]" : ""}`} style={{ color: BODY, borderColor: akkoord ? undefined : "#DEDAD2" }}>
-          <input type="checkbox" checked={akkoord} onChange={(e) => setAkkoord(e.target.checked)} disabled={uit} className="mt-0.5 h-5 w-5 shrink-0 accent-[#322E83]" />
+          <input type="checkbox" checked={akkoord} onChange={(e) => setAkkoord(e.target.checked)} disabled={vast} className="mt-0.5 h-5 w-5 shrink-0 accent-[#322E83]" />
           <span>
             Ik ga akkoord met deze offerte en de{" "}
             <a href={voorwaarden} target="_blank" rel="noopener" className="font-semibold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a>{" "}
@@ -1089,11 +1181,57 @@ function Akkoord({
 
         {fout && <p role="alert" className="m-0 mt-4 rounded-[12px] bg-[#FDECEA] px-4 py-3 text-[14.5px] text-[#8A1C12]">{fout}</p>}
 
-        {!uit ? (
+        {!uit && stap === "code" ? (
+          <div className="mt-6 rounded-[20px] border-2 p-4 sm:p-5 md:p-7" style={{ borderColor: NAVY, background: "#F7F6FD" }} aria-live="polite">
+            <div className="flex items-start gap-4">
+              <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full text-white sm:flex" style={{ background: NAVY }}><Envelop /></span>
+              <div className="min-w-0">
+                <p className="m-0 text-[19px] font-semibold leading-[1.25] tracking-[-0.01em]" style={{ ...KOP, color: INKT }}>Nog één stap: de code uit je mail</p>
+                <p className="m-0 mt-1.5 text-[14.5px] leading-[1.55]" style={{ color: BODY }}>
+                  We stuurden een code van 6 cijfers naar <strong className="[overflow-wrap:break-word]" style={{ color: INKT }}>{email.trim()}</strong>. Zo weten we zeker dat jij het bent die tekent.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-col gap-3 sm:pl-[60px] md:flex-row md:items-center">
+              <input
+                id="of-code"
+                aria-label="Code van 6 cijfers"
+                className="h-[58px] w-full rounded-[14px] border border-[#DEDAD2] bg-white px-4 text-center font-mono text-[26px] font-semibold tracking-[0.45em] text-[#1C1A4E] outline-none focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)] md:w-[230px]"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder="••••••"
+                autoFocus
+                value={code}
+                onChange={(e) => {
+                  const c = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setCode(c);
+                  if (c.length === 6 && !bezig) teken(c);
+                }}
+              />
+              <button
+                type="submit"
+                disabled={bezig}
+                className="flex h-[58px] w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[14px] px-5 text-[16px] font-semibold text-white shadow-[0_14px_30px_-16px_rgba(230,22,116,0.85)] transition-[filter,transform] hover:brightness-95 active:scale-[0.99] disabled:opacity-60 md:w-auto md:px-7 md:text-[17px]"
+                style={{ background: PINK }}
+              >
+                {bezig ? "Bezig met ondertekenen…" : <>Bevestig en onderteken <Pijl /></>}
+              </button>
+            </div>
+            <div className="mt-4 flex flex-col items-start gap-x-6 gap-y-2.5 text-left text-[13.5px] font-semibold sm:flex-row sm:flex-wrap sm:pl-[60px]">
+              <button type="button" onClick={stuurCode} disabled={wacht > 0 || bezig} className="text-left underline-offset-4 enabled:hover:underline disabled:opacity-60" style={{ color: NAVY }}>
+                {wacht > 0 ? `Nieuwe code over ${wacht} s` : "Stuur een nieuwe code"}
+              </button>
+              <button type="button" onClick={() => { setStap("gegevens"); setCode(""); setFout(null); }} className="text-left underline-offset-4 hover:underline" style={{ color: MUTE }}>
+                Ander e-mailadres of gegevens wijzigen
+              </button>
+            </div>
+          </div>
+        ) : !uit ? (
           <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <p className="m-0 flex max-w-[440px] items-start gap-2 text-[12.5px] leading-[1.5] md:order-1" style={{ color: MUTE }}>
+            <p className="m-0 flex max-w-[460px] items-start gap-2 text-[12.5px] leading-[1.5] md:order-1" style={{ color: MUTE }}>
               <span className="mt-0.5"><Slot /></span>
-              Als bewijs leggen we je naam, e-mailadres, het tijdstip, je IP-adres en de getekende versie vast. Je krijgt direct een bevestiging per mail.
+              Je krijgt eerst een code per mail. Als bewijs leggen we je naam, je bevestigde e-mailadres, het tijdstip, je IP-adres en de getekende versie vast; de getekende offerte krijg je als pdf.
             </p>
             <button
               type="submit"
@@ -1101,7 +1239,7 @@ function Akkoord({
               className="flex h-[58px] w-full shrink-0 items-center justify-center gap-2 rounded-[14px] px-8 text-[17px] font-semibold text-white shadow-[0_14px_30px_-16px_rgba(230,22,116,0.85)] transition-[filter,transform] hover:brightness-95 active:scale-[0.99] disabled:opacity-60 md:order-2 md:w-auto"
               style={{ background: PINK }}
             >
-              {bezig ? "Bezig met ondertekenen…" : <>Onderteken de offerte <Pijl /></>}
+              {bezig ? "Code versturen…" : <>Onderteken de offerte <Pijl /></>}
             </button>
           </div>
         ) : (
@@ -1230,8 +1368,10 @@ const FEEST_CSS = `
 @media (prefers-reduced-motion: reduce) { .offerte-vink, .offerte-stip { animation: none; } }
 `;
 
-function Getekend({ offerte, voorwaarden, modus, vers, huis }: { offerte: OffertePubliek; voorwaarden: string; modus: Modus; vers: boolean; huis: Huis }) {
+function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte: OffertePubliek; token?: string; voorwaarden: string; modus: Modus; vers: boolean; huis: Huis }) {
   const inhoud = offerte.getekend_inhoud!;
+  // De pdf met het ondertekeningscertificaat: via het token, of in het voorbeeld via het beheer.
+  const pdf = token ? `/offerte/${token}/pdf` : `/admin/offertevoorbeeld/${offerte.id}/pdf`;
   const regels = normaliseerRegels(inhoud.regels);
   const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
   const tarieven = regels.filter((r) => r.soort === "tarief");
@@ -1260,22 +1400,20 @@ function Getekend({ offerte, voorwaarden, modus, vers, huis }: { offerte: Offert
           <p className="mx-auto m-0 mt-5 max-w-[600px] text-[17px] leading-[1.7]" style={{ color: BODY }}>
             {inhoud.titel} voor {inhoud.bedrijf}
             {inhoud.betreft ? ` (${VORMEN[vorm].betreft || "betreft"}: ${inhoud.betreft})` : ""}, ondertekend op {momentLang(inhoud.getekend_at)}.
-            {vers ? ` Je krijgt een bevestiging op ${inhoud.getekend_email}.` : ""}
+            {vers ? ` De getekende offerte staat als pdf in je mail op ${inhoud.getekend_email}.` : ""}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3 print:hidden">
-            <button
-              type="button"
-              onClick={() => {
-                // Ingeklapte tekst komt anders niet op papier.
-                document.querySelectorAll("details").forEach((d) => (d.open = true));
-                window.print();
-              }}
+            <a
+              href={`${pdf}?download=1`}
               className="inline-flex h-[50px] items-center gap-2 rounded-full px-6 text-[15px] font-semibold text-white"
               style={{ background: NAVY }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14" /></svg>
-              Bewaar als pdf
-            </button>
+              Download de getekende offerte
+            </a>
+            <a href={pdf} target="_blank" rel="noopener" className="inline-flex h-[50px] items-center gap-2 rounded-full border bg-white px-6 text-[15px] font-semibold" style={{ borderColor: LIJN, color: NAVY }}>
+              Bekijk de pdf
+            </a>
             {offerte.afzender_telefoon && (
               <a href={telLink(offerte.afzender_telefoon)!} className="inline-flex h-[50px] items-center gap-2 rounded-full border bg-white px-6 text-[15px] font-semibold" style={{ borderColor: LIJN, color: NAVY }}>
                 <Telefoon size={15} /> Bel {voornaam(offerte.afzender_naam) || "ons"}
@@ -1386,11 +1524,35 @@ function Getekend({ offerte, voorwaarden, modus, vers, huis }: { offerte: Offert
                 <p className="m-0 mt-2 border-t pt-2.5 text-[13.5px]" style={{ borderColor: "#D9D4CA", color: MUTE }}>
                   {inhoud.getekend_naam}{inhoud.getekend_functie ? `, ${inhoud.getekend_functie}` : ""} · {momentLang(inhoud.getekend_at)}
                 </p>
+                {inhoud.bevestiging && (
+                  <span className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-semibold" style={{ background: "#E5F6F4", color: "#0B7F78" }}>
+                    <Vink size={12} /> E-mailadres bevestigd met een code
+                  </span>
+                )}
               </div>
             </div>
+            {inhoud.factuur && (
+              <div className="mt-8 grid gap-5 rounded-[18px] p-5 sm:grid-cols-2 md:p-6" style={{ background: ZACHT }}>
+                <div>
+                  <Label>Factuuradres</Label>
+                  <p className="m-0 mt-1.5 text-[14.5px] leading-[1.6]" style={{ color: INKT }}>
+                    {[inhoud.bedrijf, ...factuurRegels(inhoud.factuur)].map((r, i) => <span key={i} className="block">{r}</span>)}
+                  </p>
+                </div>
+                <div>
+                  <Label>Facturen</Label>
+                  <p className="m-0 mt-1.5 text-[14.5px] leading-[1.6]" style={{ color: INKT }}>
+                    <span className="block break-all">{inhoud.factuur.email}</span>
+                    {inhoud.factuur.kvk && <span className="block">KvK {inhoud.factuur.kvk}</span>}
+                    {inhoud.factuur.inkoopnummer && <span className="block">Inkoopnummer {inhoud.factuur.inkoopnummer}</span>}
+                  </p>
+                </div>
+              </div>
+            )}
             {offerte.getekend_hash && (
-              <p className="m-0 mt-8 break-all text-[12px]" style={{ color: MUTE }}>
-                Kenmerk van de ondertekende versie: <span className="font-mono">{offerte.getekend_hash}</span>
+              <p className="m-0 mt-8 break-all text-[12px] leading-[1.6]" style={{ color: MUTE }}>
+                Kenmerk van de ondertekende versie: <span className="font-mono">{offerte.getekend_hash}</span>.{" "}
+                <a href={pdf} target="_blank" rel="noopener" className="font-semibold underline underline-offset-4" style={{ color: NAVY }}>Het ondertekeningscertificaat</a> staat achterin de pdf.
               </p>
             )}
             <div className="mt-10 print:hidden"><Keurmerken huis={huis} /></div>
