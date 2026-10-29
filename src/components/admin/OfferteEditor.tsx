@@ -5,7 +5,7 @@ import { saveOfferte, type OfferteFormState } from "@/app/admin/offerteActions";
 import { LEAVE_QUESTION, setUnsaved } from "@/lib/unsaved";
 import {
   berekenTotalen, controleer, EENHEDEN, euro, nieuwId, prijsLabel, secties, SOORTEN, standaardKeuze, bedragVoor,
-  VORMEN, VORM_KEYS, type Eenheid, type Offerte, type Regel, type Soort, type Stap, type Vorm,
+  VORMEN, VORM_KEYS, regelbedrag, type Eenheid, type Offerte, type Regel, type Soort, type Stap, type Vorm,
 } from "@/lib/offertes";
 import { alsRegel, type CatalogusGroep } from "@/lib/offerteCatalogus";
 import OfferteTekst from "@/components/offerte/OfferteTekst";
@@ -438,20 +438,23 @@ export default function OfferteEditor({
         <aside className="space-y-4 xl:sticky xl:top-6">
           <div className="acard p-5">
             <p className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-black/45">Bij de standaardkeuze</p>
-            {totalen.perJaar > 0 || totalen.eenmalig === 0 ? (
+            {totalen.perMaand > 0 || totalen.eenmalig === 0 ? (
               <>
-                <p className="mt-1 font-heading text-[30px] font-bold tabular-nums text-[#1c1a4e]">{euro(totalen.perJaar)}<span className="ml-1.5 text-[14px] font-medium text-black/45">per jaar</span></p>
-                {totalen.eenmalig > 0 && <p className="text-[14px] font-semibold tabular-nums text-[#1c1a4e]">+ {euro(totalen.eenmalig)} eenmalig</p>}
+                <p className="mt-1 font-heading text-[30px] font-bold tabular-nums text-[#1c1a4e]">{euro(totalen.perMaand)}<span className="ml-1.5 text-[14px] font-medium text-black/45">per maand</span></p>
+                <p className="text-[12.5px] text-black/45">{euro(totalen.perJaar)} per jaar</p>
+                {totalen.eenmalig > 0 && <p className="mt-1 text-[14px] font-semibold tabular-nums text-[#1c1a4e]">+ {euro(totalen.eenmalig)} eenmalig</p>}
               </>
             ) : (
               <p className="mt-1 font-heading text-[30px] font-bold tabular-nums text-[#1c1a4e]">{euro(totalen.eenmalig)}<span className="ml-1.5 text-[14px] font-medium text-black/45">eenmalig</span></p>
             )}
             {groepNamen.length > 0 && <p className="mt-1 text-[12.5px] text-black/45">De klant kan in {groepNamen.length === 1 ? "de keuzegroep" : `${groepNamen.length} keuzegroepen`} een andere optie kiezen; het totaal rekent mee.</p>}
             <ul className="mt-4 space-y-1.5 border-t border-black/[0.06] pt-4 text-[13px]">
-              {totalen.regels.map(({ regel, bedrag }) => (
+              {totalen.regels.map(({ regel, bedrag, periode }) => (
                 <li key={regel.id} className="flex justify-between gap-3">
                   <span className="min-w-0 truncate text-black/60">{regel.naam}</span>
-                  <span className="shrink-0 tabular-nums text-[#1c1a4e]">{bedrag === null ? "op aanvraag" : euro(bedrag)}</span>
+                  <span className="shrink-0 tabular-nums text-[#1c1a4e]">
+                    {bedrag === null ? "op aanvraag" : `${euro(regelbedrag({ bedrag, periode }).bedrag!)}${periode === "jaar" ? " /mnd" : ""}`}
+                  </span>
                 </li>
               ))}
               {totalen.regels.length === 0 && <li className="text-black/40">Nog niets dat meetelt.</li>}
@@ -519,7 +522,7 @@ function RegelRij({
           </span>
           <span className="mt-0.5 block text-[12.5px] text-black/45">
             {prijsLabel(r)}{r.aantal ? ` × ${r.aantal}` : ""}
-            {b && b.bedrag > 0 ? ` = ${euro(b.bedrag)}${b.periode === "jaar" ? " per jaar" : ""}` : ""}
+            {b && b.bedrag > 0 ? ` = ${euro(regelbedrag(b).bedrag!)}${b.periode === "jaar" ? " per maand" : ""}` : ""}
           </span>
         </button>
         <div className="flex shrink-0 items-center">

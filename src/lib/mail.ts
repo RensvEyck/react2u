@@ -465,17 +465,17 @@ function offerteOntvangers(afzender: string | null) {
 }
 
 export async function notifyOfferteGetekend(n: {
-  nummer: string; bedrijf: string; naam: string; functie: string | null; email: string; perJaar: string; eenmalig: string | null;
+  nummer: string; bedrijf: string; naam: string; functie: string | null; email: string; perMaand: string; eenmalig: string | null;
   regels: string[]; adminLink: string; afzenderEmail: string | null;
 }) {
   await post(
     offerteOntvangers(n.afzenderEmail),
-    `Getekend: offerte ${n.nummer} voor ${n.bedrijf} (${n.perJaar} per jaar)`,
+    `Getekend: offerte ${n.nummer} voor ${n.bedrijf} (${n.perMaand} per maand)`,
     persoonlijk(
       `${n.bedrijf} heeft getekend`,
       [
         `${esc(n.naam)}${n.functie ? ` (${esc(n.functie)})` : ""} heeft offerte ${esc(n.nummer)} zojuist online ondertekend.`,
-        `<strong>${esc(n.perJaar)} per jaar</strong>${n.eenmalig ? ` en ${esc(n.eenmalig)} eenmalig` : ""}, exclusief btw.`,
+        `<strong>${esc(n.perMaand)} per maand</strong>${n.eenmalig ? ` en ${esc(n.eenmalig)} eenmalig` : ""}, exclusief btw.`,
         `Gekozen: ${n.regels.map(esc).join(", ")}.`,
         `Bevestiging gestuurd naar ${esc(n.email)}.`,
       ],

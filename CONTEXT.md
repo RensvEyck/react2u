@@ -910,6 +910,49 @@ salesrecht, net als partners.
 - **Pdf**: *Bewaar als pdf* op de getekende offerte is de printfunctie van de
   browser met een eigen printopmaak; er is geen pdf-bibliotheek.
 
+### De klantpagina: een document, geen webpagina
+
+De offertepagina is het moment waarop de klant akkoord geeft. Na twee rondes
+feedback van Rens (29 okt 2026: "design moet echt veel beter", daarna "geen
+foto's van de website") is het een persoonlijk offertedocument:
+
+- **Omslag als briefhoofd**: het React2u-logo groot met "Jouw mensen, onze
+  aandacht.", het label waar de vorm onder valt (React2u Recover, Resist of
+  Restart, in de kleur van de tarievenpagina), dan het offertenummer, de titel
+  groot, "voor {bedrijf}" en een kopregel met opgesteld door, datum, geldig tot,
+  betreft en medewerkers. Geen foto's.
+- **De echte kenmerken van React2u**: de keurmerken (SBCA, ISO 9001, ISO 27001,
+  ISO 27701, OVAL) met hun logo's, vóór het akkoord, in het beslispaneel en in de
+  voet; staat het certificaat als PDF in Instellingen, dan klik je erheen. De
+  bedrijfsgegevens (adres, telefoon, e-mail, KvK, btw) komen uit
+  Instellingen → Contact (`lib/offerteHuisstijl.ts`) en staan in de voet en bij
+  Opdrachtnemer, zoals op een offerte op papier.
+- **Eén vel met genummerde hoofdstukken** (01 Een persoonlijk woord, Over deze
+  offerte, Stel je offerte samen, Voorwaarden, Zo gaat het verder, Akkoord),
+  gescheiden door lijnen in plaats van losse kaarten. Onder de onderdelen staat
+  het totaal als optelling, zoals op papier.
+- **Beslispaneel rechts** (vanaf 1024 px): het bedrag bij de huidige keuze, de
+  regels, een knop naar het akkoord, de contactpersoon en de keurmerken in één
+  regel; daaronder de inhoudsopgave, die meeloopt met waar je bent. Op de
+  telefoon staat het bedrag onder de omslag en een balk onderaan, die wegschuift
+  zodra je bij het akkoord bent. Een dun roze lijntje onder de kopbalk laat zien
+  hoe ver je bent.
+- **Tekenen gebeurt in het document**: twee handtekeningvakken naast elkaar,
+  Opdrachtnemer (React2u, "offerte aangeboden", de naam van de afzender in
+  handschrift) en Opdrachtgever (het tekenvak van de klant), daaronder naam,
+  functie, e-mail, het vinkje en één roze knop. Geen apart venster meer; alleen
+  "Niet akkoord" opent er nog een.
+- **Na ondertekening**: binnen een kwartier "Gelukt, …! Welkom bij React2u." met
+  stippen in de logokleuren (niet bij verminderde beweging), dan de vervolgstappen
+  met de eerste afgevinkt, en hetzelfde document met beide handtekeningen.
+- **Prijzen per maand**: wat per jaar loopt staat op de klantpagina, in de mails en
+  in het beheer als maandbedrag (`perMaand`, `maandprijs()`, `regelbedrag()` in
+  `lib/offertes.ts`), met het jaarbedrag klein erbij. De prijslijst blijft per jaar;
+  het maandbedrag is het jaarbedrag gedeeld door twaalf, op centen afgerond.
+- Letters: koppen in Outfit, tekst in DM Sans, de handtekening van de afzender in
+  Caveat. Kleuren: zand als achtergrond, wit vel, indigo voor tekst en keuzes, roze
+  alleen voor de hoofdactie, teal voor vinkjes.
+
 ### Vormen en sjablonen
 
 Naast verzuimbegeleiding kent de module zes vormen uit de Word-offertes van

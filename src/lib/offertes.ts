@@ -350,6 +350,8 @@ export function bedragVoor(r: Regel, medewerkers: number | null | undefined): { 
 
 export type Totalen = {
   perJaar: number;
+  /** Het jaarbedrag per maand: zo staat de prijs op de offerte (Rens, 29 okt 2026). */
+  perMaand: number;
   eenmalig: number;
   /** De regels die meedoen, met hun bedrag (null = op aanvraag). */
   regels: { regel: Regel; bedrag: number | null; periode: Periode | null }[];
@@ -358,7 +360,7 @@ export type Totalen = {
 /** Het totaal bij deze keuze. `gekozen` mag de vaste regels wel of niet bevatten; die doen altijd mee. */
 export function berekenTotalen(regels: Regel[], gekozen: readonly string[], medewerkers: number | null | undefined): Totalen {
   const k = new Set(gekozen);
-  const uit: Totalen = { perJaar: 0, eenmalig: 0, regels: [] };
+  const uit: Totalen = { perJaar: 0, perMaand: 0, eenmalig: 0, regels: [] };
   for (const r of regels) {
     if (r.soort === "tarief") continue;
     if (r.soort !== "vast" && !k.has(r.id)) continue;
@@ -368,6 +370,7 @@ export function berekenTotalen(regels: Regel[], gekozen: readonly string[], mede
     if (b?.periode === "eenmalig") uit.eenmalig += b.bedrag;
   }
   uit.perJaar = Math.round(uit.perJaar * 100) / 100;
+  uit.perMaand = Math.round((uit.perJaar / 12) * 100) / 100;
   uit.eenmalig = Math.round(uit.eenmalig * 100) / 100;
   return uit;
 }
@@ -398,6 +401,29 @@ export function prijsLabel(r: Pick<Regel, "prijs" | "eenheid"> & { prijsTekst?: 
   if (r.prijs === 0) return "Inbegrepen";
   const achter = eenheidVan(r.eenheid).achter;
   return achter ? `${euro(r.prijs)} ${achter}` : euro(r.prijs);
+}
+
+/**
+ * De prijs van een regel zoals de klant hem ziet: wat per jaar loopt, per
+ * maand. "€38,50 per medewerker per jaar" wordt "€3,21 per medewerker per
+ * maand". Eenmalige prijzen en tarieven blijven zoals ze zijn. `jaar` is de
+ * prijs zoals hij op de prijslijst staat, voor de kleine regel eronder.
+ */
+export function maandprijs(r: Pick<Regel, "prijs" | "eenheid"> & { prijsTekst?: string }): { bedrag: number | null; achter: string; tekst: string; jaar: string | null } {
+  if (r.prijs !== null && r.prijs > 0 && (r.eenheid === "medewerker_jaar" || r.eenheid === "jaar")) {
+    const bedrag = Math.round((r.prijs / 12) * 100) / 100;
+    const achter = r.eenheid === "medewerker_jaar" ? "per medewerker per maand" : "per maand";
+    return { bedrag, achter, tekst: `${euro(bedrag)} ${achter}`, jaar: prijsLabel(r) };
+  }
+  const tekst = prijsLabel(r);
+  return { bedrag: r.prijs, achter: r.prijs === null || r.prijs === 0 ? "" : eenheidVan(r.eenheid).achter, tekst, jaar: null };
+}
+
+/** Het bedrag van een regel in de keuze: per maand als het doorloopt, anders eenmalig. */
+export function regelbedrag(b: { bedrag: number | null; periode: "jaar" | "eenmalig" | null }): { bedrag: number | null; per: "maand" | "eenmalig" | null } {
+  if (b.bedrag === null || b.periode === null) return { bedrag: b.bedrag, per: null };
+  if (b.periode === "jaar") return { bedrag: Math.round((b.bedrag / 12) * 100) / 100, per: "maand" };
+  return { bedrag: b.bedrag, per: "eenmalig" };
 }
 
 /**

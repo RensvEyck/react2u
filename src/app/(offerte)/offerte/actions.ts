@@ -5,7 +5,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { withinLimit } from "@/lib/rateLimit";
 import { clientIp } from "@/lib/analytics";
 import {
-  berekenTotalen, euro, momentLang, normaliseerRegels, ONDERTEKEN_FOUT, type OffertePubliek,
+  berekenTotalen, euro, momentLang, normaliseerRegels, ONDERTEKEN_FOUT, regelbedrag, type OffertePubliek,
 } from "@/lib/offertes";
 import {
   bevestigOfferteGetekend, notifyOfferteAfgewezen, notifyOfferteGetekend, offerteAdminUrl, offerteUrl,
@@ -68,7 +68,7 @@ export async function ondertekenOfferte(
     const regels = normaliseerRegels(inhoud.regels);
     const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
     const totalen = [
-      ...(t.perJaar ? [{ label: "Per jaar", bedrag: euro(t.perJaar) }] : []),
+      ...(t.perMaand ? [{ label: "Per maand", bedrag: euro(t.perMaand) }] : []),
       ...(t.eenmalig ? [{ label: "Eenmalig", bedrag: euro(t.eenmalig) }] : []),
     ];
     const afzender = { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email, telefoon: o.afzender_telefoon };
@@ -83,7 +83,10 @@ export async function ondertekenOfferte(
         moment: momentLang(inhoud.getekend_at),
         regels: t.regels.map((r) => ({
           naam: r.regel.naam,
-          bedrag: r.bedrag === null ? "Op aanvraag" : `${euro(r.bedrag)}${r.periode === "jaar" ? " per jaar" : ""}`,
+          bedrag: r.bedrag === null ? "Op aanvraag" : r.bedrag === 0 ? "Inbegrepen" : (() => {
+            const b = regelbedrag(r);
+            return `${euro(b.bedrag!)} ${b.per === "maand" ? "per maand" : "eenmalig"}`;
+          })(),
         })),
         totalen,
         afzender,
@@ -94,7 +97,7 @@ export async function ondertekenOfferte(
         naam: inhoud.getekend_naam,
         functie: inhoud.getekend_functie,
         email: inhoud.getekend_email,
-        perJaar: euro(t.perJaar),
+        perMaand: euro(t.perMaand),
         eenmalig: t.eenmalig ? euro(t.eenmalig) : null,
         regels: t.regels.map((r) => r.regel.naam),
         adminLink: offerteAdminUrl(o.id),

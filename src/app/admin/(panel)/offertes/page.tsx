@@ -63,7 +63,7 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
   const getekend = recent.filter(({ w }) => w === "getekend");
   const afgerond = recent.filter(({ w }) => w === "getekend" || w === "afgewezen" || w === "verlopen");
   const conversie = afgerond.length ? Math.round((getekend.length / afgerond.length) * 100) : null;
-  const som = (l: typeof alle) => l.reduce((s, r) => s + r.waarde.perJaar, 0);
+  const som = (l: typeof alle) => Math.round(l.reduce((s, r) => s + r.waarde.perMaand, 0) * 100) / 100;
   const tel = (f: (typeof FILTERS)[number]) => alle.filter(({ w }) => f.past(w)).length;
 
   return (
@@ -82,9 +82,9 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="Open" waarde={euro(som(open))} sub={`${open.length} offerte${open.length === 1 ? "" : "s"}, per jaar`} />
-        <Kpi label="Bekeken door de klant" waarde={String(bekeken.length)} sub={bekeken.length ? `${euro(som(bekeken))} per jaar` : "nog geen"} />
-        <Kpi label="Getekend, laatste 90 dagen" waarde={euro(som(getekend))} sub={`${getekend.length} offerte${getekend.length === 1 ? "" : "s"}, per jaar`} accent />
+        <Kpi label="Open" waarde={euro(som(open))} sub={`${open.length} offerte${open.length === 1 ? "" : "s"}, per maand`} />
+        <Kpi label="Bekeken door de klant" waarde={String(bekeken.length)} sub={bekeken.length ? `${euro(som(bekeken))} per maand` : "nog geen"} />
+        <Kpi label="Getekend, laatste 90 dagen" waarde={euro(som(getekend))} sub={`${getekend.length} offerte${getekend.length === 1 ? "" : "s"}, per maand`} accent />
         <Kpi label="Hitrate, laatste 90 dagen" waarde={conversie === null ? "–" : `${conversie}%`} sub={afgerond.length ? `${getekend.length} van ${afgerond.length} afgeronde offertes` : "nog niets afgerond"} />
       </div>
 
@@ -132,7 +132,7 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
                 <tr className="border-b border-black/[0.06]">
                   <th className="px-6 py-3 font-semibold">Klant</th>
                   <th className="px-3 py-3 font-semibold">Status</th>
-                  <th className="px-3 py-3 text-right font-semibold">Per jaar</th>
+                  <th className="px-3 py-3 text-right font-semibold">Per maand</th>
                   <th className="px-3 py-3 font-semibold">Laatste activiteit</th>
                   <th className="px-3 py-3 font-semibold">Geldig tot</th>
                   <th className="px-6 py-3" />
@@ -168,7 +168,7 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
                         )}
                       </td>
                       <td className="px-3 py-3.5 text-right font-semibold tabular-nums text-[#1c1a4e]">
-                        {waarde.perJaar ? euro(waarde.perJaar) : "–"}
+                        {waarde.perMaand ? euro(waarde.perMaand) : "–"}
                         {waarde.eenmalig > 0 && <span className="block text-[12px] font-normal text-black/45">+ {euro(waarde.eenmalig)} eenmalig</span>}
                       </td>
                       <td className="px-3 py-3.5 text-black/60">{laatste}</td>
@@ -189,7 +189,7 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
         )}
       </section>
       <p className="text-[13px] text-black/45">
-        Waarde per jaar exclusief btw: bij een getekende offerte wat er getekend is, anders de keuze die de klant aanklikte of de standaardkeuze.
+        Waarde per maand exclusief btw (het jaarbedrag gedeeld door twaalf): bij een getekende offerte wat er getekend is, anders de keuze die de klant aanklikte of de standaardkeuze.
       </p>
     </div>
   );
