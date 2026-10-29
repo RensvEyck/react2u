@@ -60,6 +60,9 @@ const FOUT_TEKST: Record<string, string> = {
   "partner-klant": "Vul bedrijf, aantal medewerkers, tarief en startdatum in.",
   "partner-eind": "De einddatum ligt vóór de startdatum.",
   "migratie-0022": "Partners staan nog niet aan: migratie 0022 moet eerst in Supabase worden uitgevoerd.",
+  // Offertes
+  "offerte-onvolledig": "De offerte is nog niet compleet: kijk bij Versturen wat er ontbreekt.",
+  "offerte-getekend": "Deze offerte is getekend en kan niet meer worden gewijzigd of verwijderd.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
@@ -78,6 +81,13 @@ const OK_TEKST: Record<string, string> = {
   vergeten: "Vergeten — de bedrijfsnaam is uit alle eerdere bezoeken gehaald.",
   partner: "Partner toegevoegd. Stuur de aanmeldlink hieronder naar het kantoor.",
   "partner-klant": "Klant opgeslagen; het kwartaaloverzicht is bijgewerkt.",
+  offerte: "Offerte opgeslagen.",
+  "offerte-nieuw": "Offerte aangemaakt. Bekijk het voorbeeld en verstuur hem als hij klaar is.",
+  "offerte-open": "De link staat open voor de klant. Stuur hem door.",
+  "offerte-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  "offerte-heropend": "Heropend: de klant kan weer kiezen en tekenen.",
+  "offerte-kopie": "Kopie gemaakt als nieuw concept, met een eigen nummer en link.",
+  "offerte-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
 };
 
 export default function Toast() {

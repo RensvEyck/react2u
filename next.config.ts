@@ -141,6 +141,12 @@ const nextConfig: NextConfig = {
       // regel staat als <meta> in app/admin/layout.tsx; robots.txt laat /admin
       // bewust open, anders ziet een crawler deze header nooit.
       { source: "/admin/:path*", headers: [NOINDEX] },
+      // Offertes: nooit in Google, nooit in een gedeelde cache, en de link met
+      // het token gaat niet als referrer mee naar andere sites.
+      {
+        source: "/offerte/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
     ];
   },
 };
