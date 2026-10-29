@@ -1,8 +1,8 @@
 import { after } from "next/server";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import Logo from "@/components/site/Logo";
 import OffertePagina from "@/components/offerte/OffertePagina";
+import OfferteMelding from "@/components/offerte/OfferteMelding";
 import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 import { DOCUMENTEN } from "@/lib/documenten";
@@ -65,27 +65,9 @@ export default async function OfferteRoute({ params }: { params: Promise<{ token
 
 function Ingetrokken({ offerte }: { offerte: OffertePubliek }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F6F2EC] px-5 py-16">
-      <div className="w-full max-w-[520px] rounded-[22px] bg-white p-8 text-center">
-        <Logo className="mx-auto h-10 w-auto" />
-        <h1 className="font-heading mt-8 text-[26px] font-bold text-[#322E83]">Deze offerte is niet meer geldig</h1>
-        <p className="mt-3 text-[16px] leading-[1.65] text-[#5E5C78]">
-          Offerte {offerte.nummer} voor {offerte.bedrijf} is ingetrokken, bijvoorbeeld omdat er een nieuwe versie is.
-          {offerte.afzender_naam ? ` Neem contact op met ${offerte.afzender_naam} voor de actuele offerte.` : " Neem contact met ons op voor de actuele offerte."}
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          {offerte.afzender_telefoon && (
-            <a href={`tel:${offerte.afzender_telefoon.replace(/[^\d+]/g, "")}`} className="inline-flex h-[48px] items-center rounded-[12px] bg-[#322E83] px-5 text-[15px] font-semibold text-white">
-              Bel {offerte.afzender_telefoon}
-            </a>
-          )}
-          {offerte.afzender_email && (
-            <a href={`mailto:${offerte.afzender_email}`} className="inline-flex h-[48px] items-center rounded-[12px] border border-[#DCDBEA] px-5 text-[15px] font-semibold text-[#322E83]">
-              Mail {offerte.afzender_email}
-            </a>
-          )}
-        </div>
-      </div>
-    </main>
+    <OfferteMelding titel="Deze offerte is niet meer geldig" telefoon={offerte.afzender_telefoon} email={offerte.afzender_email}>
+      Offerte {offerte.nummer} voor {offerte.bedrijf} is ingetrokken, bijvoorbeeld omdat er een nieuwe versie is.
+      {offerte.afzender_naam ? ` Neem contact op met ${offerte.afzender_naam} voor de actuele offerte.` : " Neem contact met ons op voor de actuele offerte."}
+    </OfferteMelding>
   );
 }

@@ -46,7 +46,10 @@ const INKT = "#1C1A4E";
 const PINK = "#E61674";
 const TEAL = "#00A098";
 const BODY = "#55536F";
-const MUTE = "#7A7893";
+// Minstens 4,5:1 op wit, zacht en zand (het oude #7A7893 haalde dat op zand niet).
+const MUTE = "#6B6985";
+// Teal als tekst: de merkkleur zelf is te licht voor kleine letters op wit.
+const TEAL_TEKST = "#08716B";
 const ZAND = "#F4EFE7";
 const PAPIER = "#FFFFFF";
 const LIJN = "#ECE7DE";
@@ -159,19 +162,74 @@ function Avatar({ naam, maat = 44 }: { naam: string | null; maat?: number }) {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <span className="block text-[11.5px] font-semibold uppercase tracking-[0.14em]" style={{ color: MUTE }}>{children}</span>;
+  return <span className="block text-[13px] font-medium" style={{ color: MUTE }}>{children}</span>;
+}
+
+/**
+ * Een bedrag dat naar zijn nieuwe waarde telt als de klant iets aan- of
+ * uitzet: zo zie je wat je keuze doet. Kort (280 ms) en niet bij "minder
+ * beweging"; de eerste weergave staat er meteen.
+ */
+function useTelwaarde(doel: number): number {
+  const [waarde, setWaarde] = useState(doel);
+  const vorige = useRef(doel);
+  useEffect(() => {
+    const van = vorige.current;
+    vorige.current = doel;
+    if (van === doel) return;
+    // Bij "minder beweging" meteen het eindbedrag (in de eerste frame, niet tijdens het renderen).
+    const duur = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 280;
+    let r = 0;
+    const begin = performance.now();
+    const stap = (nu: number) => {
+      const t = duur ? Math.min(1, (nu - begin) / duur) : 1;
+      const e = 1 - Math.pow(1 - t, 3);
+      setWaarde(Math.round((van + (doel - van) * e) * 100) / 100);
+      if (t < 1) r = requestAnimationFrame(stap);
+    };
+    r = requestAnimationFrame(stap);
+    return () => cancelAnimationFrame(r);
+  }, [doel]);
+  return waarde;
 }
 
 /** Het bedrag groot: per maand, of eenmalig als er niets doorloopt. */
 function Bedrag({ t, maat = "text-[42px]" }: { t: Totalen; maat?: string }) {
   const hoofd = t.perMaand > 0 ? { bedrag: t.perMaand, per: "per maand" } : t.eenmalig > 0 ? { bedrag: t.eenmalig, per: "eenmalig" } : null;
+  const getoond = useTelwaarde(hoofd?.bedrag ?? 0);
   if (!hoofd) return <p className="m-0 text-[24px] font-semibold" style={{ ...KOP, color: INKT }}>Op aanvraag</p>;
   return (
     <p className="m-0 flex flex-wrap items-baseline gap-x-2">
-      <span className={`${maat} font-semibold leading-none tracking-[-0.035em] tabular-nums`} style={{ ...KOP, color: INKT }} aria-live="polite">{euro(hoofd.bedrag)}</span>
+      <span className={`${maat} font-semibold leading-none tracking-[-0.035em] tabular-nums`} style={{ ...KOP, color: INKT }} aria-hidden="true">{euro(getoond)}</span>
+      <span className="sr-only" aria-live="polite">{euro(hoofd.bedrag)}</span>
       <span className="text-[16px] font-medium" style={{ color: BODY }}>{hoofd.per}</span>
     </p>
   );
+}
+
+/**
+ * Wat voor de hele pagina geldt: een zichtbare focusring voor wie met het
+ * toetsenbord werkt (velden hebben hun eigen rand), en geen animaties of
+ * vloeiend scrollen bij "minder beweging".
+ */
+const PAGINA_CSS = `
+.offerte-doc :is(a, button, summary, [role="radio"], [role="switch"], [role="tab"]):focus-visible {
+  outline: 2px solid ${NAVY};
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .offerte-doc *, .offerte-doc *::before, .offerte-doc *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}`;
+
+/** Naar een hoofdstuk, vloeiend tenzij de klant minder beweging wil. */
+function scrollNaar(id: string) {
+  const rustig = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById(id)?.scrollIntoView({ behavior: rustig ? "auto" : "smooth", block: "start" });
 }
 
 /* ---------- de pagina ---------- */
@@ -191,7 +249,8 @@ export default function OffertePagina({
   const getekend = offerte.status === "getekend" && offerte.getekend_inhoud;
   const huis: Huis = { contact, certificaten };
   return (
-    <div className={`${kopLetter.variable} min-h-screen`} style={{ background: ZAND }}>
+    <div className={`${kopLetter.variable} offerte-doc min-h-screen`} style={{ background: ZAND }}>
+      <style>{PAGINA_CSS}</style>
       {getekend ? (
         <Getekend offerte={offerte} token={token} voorwaarden={voorwaarden} modus={modus} vers={vers} huis={huis} />
       ) : (
@@ -239,7 +298,7 @@ function Kopbalk({ offerte, voortgang = true }: { offerte: OffertePubliek; voort
           </a>
         ) : <span />}
       </div>
-      {voortgang && <span ref={balk} className="absolute inset-x-0 bottom-[-1px] h-[2px] origin-left print:hidden" style={{ background: PINK, transform: "scaleX(0)" }} aria-hidden="true" />}
+      {voortgang && <span ref={balk} className="absolute inset-x-0 bottom-[-1px] h-[2px] origin-left print:hidden" style={{ background: NAVY, transform: "scaleX(0)" }} aria-hidden="true" />}
     </header>
   );
 }
@@ -279,7 +338,7 @@ function Voet({ offerte, voorwaarden, huis }: { offerte: OffertePubliek; voorwaa
           <p className="m-0">
             <a href={`tel:${c.phone}`} className="hover:underline">{telefoonTekst(c)}</a><br />
             <a href={`mailto:${c.email}`} className="hover:underline">{c.email}</a><br />
-            KvK {c.kvk} · btw {c.btw}
+            KvK {c.kvk}, btw {c.btw}
           </p>
         </div>
         <ul className="m-0 flex list-none flex-wrap items-center gap-2 p-0" aria-label="Keurmerken">
@@ -290,8 +349,8 @@ function Voet({ offerte, voorwaarden, huis }: { offerte: OffertePubliek; voorwaa
           ))}
         </ul>
       </div>
-      <p className="m-0 mt-6 text-[12.5px]">
-        Offerte {offerte.nummer} · alle bedragen exclusief btw · op deze offerte zijn de{" "}
+      <p className="m-0 mt-6 text-[13px]">
+        Offerte {offerte.nummer}. Alle bedragen zijn exclusief btw. Op deze offerte zijn de{" "}
         <a href={voorwaarden} target="_blank" rel="noopener" className="font-semibold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a> van React2u van toepassing.
       </p>
     </footer>
@@ -337,6 +396,7 @@ function Keurmerken({ huis }: { huis: Huis }) {
 function Omslag({ offerte, vorm }: { offerte: OffertePubliek; vorm: Vorm }) {
   const kleur = VORMEN[vorm].kleur;
   const meta: [string, React.ReactNode][] = [
+    ["Offertenummer", offerte.nummer],
     ["Opgesteld door", offerte.afzender_naam || "React2u"],
     ["Datum", datumLang(offerte.verstuurd_at || new Date().toISOString())],
     ...(offerte.geldig_tot ? ([["Geldig tot en met", datumLang(offerte.geldig_tot)]] as [string, string][]) : []),
@@ -346,34 +406,31 @@ function Omslag({ offerte, vorm }: { offerte: OffertePubliek; vorm: Vorm }) {
   return (
     <section className="pb-10 pt-10 md:pb-14 md:pt-14">
       {/* Briefhoofd: het logo, de kernzin en het label waar deze offerte onder valt */}
-      <div className="mb-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-4 md:mb-16">
-        <div className="flex items-center gap-5">
+      {/* Op de telefoon staat het logo al in de kopbalk; daar alleen het label */}
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-4 sm:mb-14 md:mb-16">
+        <div className="hidden items-center gap-5 sm:flex">
           <Logo className="h-14 w-auto md:h-[68px]" />
-          <span className="hidden h-12 w-px sm:block" style={{ background: "#DDD5C8" }} aria-hidden="true" />
-          <p className="m-0 hidden text-[15px] leading-snug sm:block" style={{ color: BODY }}>
+          <span className="h-12 w-px" style={{ background: "#DDD5C8" }} aria-hidden="true" />
+          <p className="m-0 text-[15px] leading-snug" style={{ color: BODY }}>
             Jouw mensen,<br /><span className="font-semibold" style={{ color: INKT }}>onze aandacht.</span>
           </p>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[13px] font-semibold" style={{ color: kleur }}>
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: kleur }} />
+        <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[13px] font-semibold" style={{ color: INKT }}>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: kleur }} aria-hidden="true" />
           {LABEL[vorm]}
         </span>
       </div>
-      <p className="m-0 flex items-center gap-3 text-[13px] font-semibold uppercase tracking-[0.16em]" style={{ color: PINK }}>
-        <span className="h-[2px] w-8 rounded-full" style={{ background: PINK }} />
-        Offerte {offerte.nummer}
-      </p>
-      <h1 className="m-0 mt-6 max-w-[760px] text-balance text-[36px] font-semibold leading-[1.04] tracking-[-0.035em] [hyphens:auto] [overflow-wrap:break-word] sm:text-[48px] md:text-[68px] md:tracking-[-0.04em]" style={{ ...KOP, color: INKT }}>
+      <h1 className="m-0 max-w-[760px] text-balance text-[36px] font-semibold leading-[1.04] tracking-[-0.035em] [hyphens:auto] [overflow-wrap:break-word] sm:text-[48px] md:text-[68px] md:tracking-[-0.04em]" style={{ ...KOP, color: INKT }}>
         {offerte.titel}
       </h1>
       <p className="m-0 mt-4 text-[22px] font-normal tracking-[-0.01em] md:text-[28px]" style={{ ...KOP, color: NAVY }}>
         voor {offerte.bedrijf}
       </p>
-      <dl className="m-0 mt-10 grid grid-cols-2 gap-x-8 gap-y-5 border-t pt-6 sm:grid-cols-3 xl:flex xl:flex-wrap xl:gap-x-12" style={{ borderColor: "#E2DBCF" }}>
+      <dl className="m-0 mt-10 grid grid-cols-2 gap-x-8 gap-y-5 border-t pt-6 sm:grid-cols-3 xl:flex xl:flex-wrap xl:gap-x-11" style={{ borderColor: "#E2DBCF" }}>
         {meta.map(([k, v]) => (
           <div key={k} className="min-w-0">
             <dt><Label>{k}</Label></dt>
-            <dd className="m-0 mt-1.5 truncate text-[15.5px] font-medium" style={{ color: INKT }}>{v}</dd>
+            <dd className="m-0 mt-1 truncate text-[15.5px] font-medium tabular-nums" style={{ color: INKT }}>{v}</dd>
           </div>
         ))}
       </dl>
@@ -389,7 +446,7 @@ function Kop({ nr, titel, sub }: { nr: number; titel: string; sub?: string }) {
   return (
     <header className="mb-7">
       <div className="flex items-center gap-4">
-        <span className="text-[13px] font-semibold tabular-nums tracking-[0.08em]" style={{ color: PINK }}>{String(nr).padStart(2, "0")}</span>
+        <span className="text-[14px] font-semibold tabular-nums" style={{ ...KOP, color: NAVY }}>{nr}</span>
         <span className="h-px flex-1" style={{ background: LIJN }} />
       </div>
       <h2 className="m-0 mt-4 text-[28px] font-semibold leading-[1.15] tracking-[-0.025em] md:text-[34px]" style={{ ...KOP, color: INKT }}>{titel}</h2>
@@ -431,7 +488,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
   ];
   const nr = (id: string) => hoofdstukken.findIndex((h) => h.id === id) + 1;
   const actief = useActiefHoofdstuk(hoofdstukken.map((h) => h.id));
-  const naarAkkoord = () => document.getElementById("akkoord")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const naarAkkoord = () => scrollNaar("akkoord");
   const klik = (id: string) => kanKiezen && setKeuze((k) => wissel(regels, k, id));
 
   return (
@@ -456,7 +513,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
 
           {/* Telefoon: het bedrag meteen onder de omslag; op een groot scherm staat het rechts */}
           <div className="mb-8 rounded-[22px] bg-white p-6 lg:hidden">
-            <Label>{heeftKeuze ? "Bij je huidige keuze" : "Je investering"}</Label>
+            <Label>{open && heeftKeuze ? "Bij je huidige keuze" : open ? "Je investering" : "Deze offerte"}</Label>
             <div className="mt-2"><Bedrag t={totalen} maat="text-[38px]" /></div>
             <Kleintje t={totalen} />
           </div>
@@ -499,10 +556,10 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
             <Hoofd id="verder">
               <Kop nr={nr("verder")} titel="Zo gaat het verder" />
               <Vervolg stappen={offerte.vervolg} />
-              <div className="mt-10"><Keurmerken huis={huis} /></div>
+              <div id="keurmerken" className="mt-10 scroll-mt-[96px]"><Keurmerken huis={huis} /></div>
             </Hoofd>
             <Hoofd id="akkoord" laatste>
-              <Kop nr={nr("akkoord")} titel="Akkoord" sub={open ? "Klopt alles? Zet hieronder je handtekening. Je krijgt direct een bevestiging per mail." : undefined} />
+              <Kop nr={nr("akkoord")} titel="Akkoord" sub={open ? "Klopt alles? Zet hieronder je handtekening. Je bevestigt met een code uit je mail en krijgt de getekende offerte als pdf." : undefined} />
               <Akkoord
                 offerte={offerte}
                 token={token}
@@ -522,7 +579,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
         {/* Het beslispaneel: altijd in beeld op een groot scherm */}
         <aside className="hidden pt-16 lg:block print:hidden">
           <div className="sticky top-[88px] flex max-h-[calc(100vh-104px)] flex-col gap-4 overflow-y-auto pb-4">
-            <Paneel totalen={totalen} heeftKeuze={heeftKeuze} open={open} naarAkkoord={naarAkkoord} offerte={offerte} huis={huis} />
+            <Paneel totalen={totalen} heeftKeuze={heeftKeuze} open={open} naarAkkoord={naarAkkoord} offerte={offerte} bijAkkoord={actief === "akkoord"} />
             <nav aria-label="Inhoud van de offerte" className="rounded-[22px] border p-5" style={{ borderColor: "#E2DBCF" }}>
               <Label>In deze offerte</Label>
               <ol className="m-0 mt-3 flex list-none flex-col gap-0.5 p-0">
@@ -533,7 +590,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
                       className={`flex items-center gap-3 rounded-[10px] px-2.5 py-2 text-[14px] transition-colors ${actief === h.id ? "bg-white font-semibold" : "hover:bg-white/60"}`}
                       style={{ color: actief === h.id ? INKT : BODY }}
                     >
-                      <span className="w-5 text-[12px] tabular-nums" style={{ color: actief === h.id ? PINK : MUTE }}>{String(i + 1).padStart(2, "0")}</span>
+                      <span className="w-4 text-[13px] tabular-nums" style={{ color: actief === h.id ? NAVY : MUTE }}>{i + 1}</span>
                       {h.titel}
                     </a>
                   </li>
@@ -562,7 +619,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
                 <span className="ml-1 text-[14px] font-medium" style={{ color: BODY }}>{totalen.perMaand > 0 ? "per maand" : "eenmalig"}</span>
               </span>
               <span className="block truncate text-[12.5px]" style={{ color: MUTE }}>
-                {totalen.perMaand > 0 && totalen.eenmalig > 0 ? `+ ${euro(totalen.eenmalig)} eenmalig · ` : ""}excl. btw
+                {totalen.perMaand > 0 && totalen.eenmalig > 0 ? `+ ${euro(totalen.eenmalig)} eenmalig, ` : ""}exclusief btw
               </span>
             </div>
             <button type="button" onClick={naarAkkoord} className="h-[50px] shrink-0 rounded-[12px] px-5 text-[15px] font-semibold text-white" style={{ background: PINK }}>
@@ -605,21 +662,26 @@ function Hoofd({ id, children, laatste = false }: { id: string; children: React.
 }
 
 function Kleintje({ t }: { t: Totalen }) {
-  const delen = [
-    t.perMaand > 0 ? `${euro(t.perJaar)} per jaar` : "",
-    t.perMaand > 0 && t.eenmalig > 0 ? `plus ${euro(t.eenmalig)} eenmalig` : "",
-    "exclusief btw",
-  ].filter(Boolean);
-  return <p className="m-0 mt-2 text-[13.5px] leading-[1.5]" style={{ color: MUTE }}>{delen.join(" · ")}</p>;
+  const jaar = t.perMaand > 0 ? `${euro(t.perJaar)} per jaar${t.eenmalig > 0 ? `, plus ${euro(t.eenmalig)} eenmalig` : ""}` : "";
+  return (
+    <p className="m-0 mt-2.5 text-[13.5px] leading-[1.5]" style={{ color: MUTE }}>
+      {jaar && <span className="block">{jaar}</span>}
+      <span className="block">Bedragen exclusief btw</span>
+    </p>
+  );
 }
 
 /* ---------- beslispaneel ---------- */
 
-function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, huis }: { totalen: Totalen; heeftKeuze: boolean; open: boolean; naarAkkoord: () => void; offerte: OffertePubliek; huis: Huis }) {
+function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, bijAkkoord }: { totalen: Totalen; heeftKeuze: boolean; open: boolean; naarAkkoord: () => void; offerte: OffertePubliek; bijAkkoord: boolean }) {
   const tel = telLink(offerte.afzender_telefoon);
+  const toestand =
+    offerte.status === "afgewezen" ? "Je hebt laten weten niet akkoord te gaan." :
+    offerte.verlopen ? `Deze offerte is verlopen op ${datumLang(offerte.geldig_tot)}. ${voornaam(offerte.afzender_naam) || "We"} ${offerte.afzender_naam ? "stuurt" : "sturen"} je graag een nieuwe.` :
+    null;
   return (
     <div className="rounded-[24px] bg-white p-6 shadow-[0_30px_70px_-45px_rgba(28,26,78,0.5)]">
-      <Label>{heeftKeuze ? "Bij je huidige keuze" : "Je investering"}</Label>
+      <Label>{open && heeftKeuze ? "Bij je huidige keuze" : open ? "Je investering" : "Deze offerte"}</Label>
       <div className="mt-3"><Bedrag t={totalen} /></div>
       <Kleintje t={totalen} />
 
@@ -638,7 +700,8 @@ function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, huis }: { tot
         })}
       </ul>
 
-      {open && (
+      {/* Bij het akkoord staat de echte knop in het document; hier dan alleen waar je bent */}
+      {open && !bijAkkoord && (
         <button
           type="button"
           onClick={naarAkkoord}
@@ -648,6 +711,12 @@ function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, huis }: { tot
           Naar ondertekenen <Pijl omlaag />
         </button>
       )}
+      {open && bijAkkoord && (
+        <p className="m-0 mt-6 flex h-[54px] items-center justify-center gap-2 rounded-[13px] text-[15px] font-medium" style={{ background: ZACHT, color: BODY }}>
+          <span style={{ color: TEAL_TEKST }}><Vink size={15} /></span> Je ondertekent links in het document
+        </p>
+      )}
+      {toestand && <p className="m-0 mt-6 rounded-[12px] bg-[#FFF4E5] px-4 py-3 text-[14px] leading-[1.5] text-[#7A4A06]">{toestand}</p>}
 
       <div className="mt-6 flex items-center gap-3 border-t pt-5" style={{ borderColor: LIJN }}>
         <Avatar naam={offerte.afzender_naam} maat={40} />
@@ -666,18 +735,10 @@ function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, huis }: { tot
           </a>
         )}
       </div>
-      <div className="mt-5 border-t pt-4" style={{ borderColor: LIJN }}>
-        <p className="m-0 flex items-center gap-2 text-[12.5px] font-medium" style={{ color: MUTE }}>
-          <span style={{ color: TEAL }}><Schild /></span> Gecertificeerde arbodienst
-        </p>
-        <ul className="m-0 mt-3 flex list-none items-center justify-between gap-1.5 p-0">
-          {keurmerken(huis.certificaten).map((k) => (
-            <li key={k.naam} title={`${k.naam}: ${k.wat}`} className="relative h-11 flex-1 overflow-hidden rounded-[8px] border bg-white" style={{ borderColor: LIJN }}>
-              <Beeld src={k.src} alt={k.alt} fill sizes="56px" className="object-contain p-1.5" />
-            </li>
-          ))}
-        </ul>
-      </div>
+      <p className="m-0 mt-5 flex items-center gap-2 border-t pt-4 text-[13px]" style={{ borderColor: LIJN, color: MUTE }}>
+        <span style={{ color: TEAL_TEKST }}><Schild /></span> Gecertificeerde arbodienst
+        <a href="#keurmerken" className="ml-auto font-medium underline-offset-4 hover:underline" style={{ color: NAVY }}>Keurmerken</a>
+      </p>
     </div>
   );
 }
@@ -718,7 +779,7 @@ function Toelichting({ tekst }: { tekst: string }) {
           className="mt-5 inline-flex h-11 items-center gap-2 rounded-full border px-5 text-[14.5px] font-semibold transition-colors hover:border-[#322E83] print:hidden"
           style={{ borderColor: LIJN, color: NAVY }}
         >
-          {open ? "Inklappen" : `Lees verder · ${minuten} min`}
+          {open ? "Inklappen" : `Lees verder (${minuten} min)`}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className={open ? "rotate-180" : ""} aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
         </button>
       )}
@@ -745,9 +806,14 @@ function Sectie({
   return (
     <div className="print:break-inside-avoid">
       <div className="mb-4 flex items-baseline justify-between gap-4">
-        <h3 className="m-0 text-[19px] font-semibold tracking-[-0.01em]" style={{ ...KOP, color: INKT }}>
-          {sectie.label && <span className="mr-2 text-[13px] font-semibold uppercase tracking-[0.12em]" style={{ color: sectie.kleur || MUTE }}>{sectie.label.replace(/^React2u\s+/i, "")}</span>}
+        <h3 className="m-0 flex flex-wrap items-baseline gap-x-3 text-[19px] font-semibold tracking-[-0.01em]" style={{ ...KOP, color: INKT }}>
           {sectie.naam}
+          {sectie.label && (
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-normal" style={{ color: MUTE }}>
+              <span className="h-2 w-2 rounded-full" style={{ background: sectie.kleur || MUTE }} aria-hidden="true" />
+              {sectie.label}
+            </span>
+          )}
         </h3>
       </div>
 
@@ -765,7 +831,7 @@ function Sectie({
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   <span className="text-[16.5px] font-medium" style={{ color: INKT }}>{r.naam}</span>
-                  <span className="text-[16px] font-semibold tabular-nums" style={{ color: r.prijs === 0 ? TEAL : INKT }}>{maandprijs(r).tekst}</span>
+                  <span className="text-[16px] font-semibold tabular-nums" style={{ color: r.prijs === 0 ? TEAL_TEKST : INKT }}>{maandprijs(r).tekst}</span>
                 </span>
                 <Onder r={r} medewerkers={medewerkers} />
               </span>
@@ -841,8 +907,8 @@ function Onder({ r, medewerkers }: { r: Regel; medewerkers: number | null }) {
     <span className="mt-1 block text-[14.5px] leading-[1.55]" style={{ color: BODY }}>
       {r.omschrijving && <span className="block whitespace-pre-line">{r.omschrijving}</span>}
       {(zin || jaar) && (
-        <span className="mt-1 block text-[13px]" style={{ color: MUTE }}>
-          {[zin, jaar ? `prijslijst ${jaar}` : ""].filter(Boolean).join(" · ")}
+        <span className="mt-1 block text-[13.5px]" style={{ color: MUTE }}>
+          {zin && jaar ? `${zin} (prijslijst ${jaar})` : zin || `Prijslijst ${jaar}`}
         </span>
       )}
     </span>
@@ -851,8 +917,11 @@ function Onder({ r, medewerkers }: { r: Regel; medewerkers: number | null }) {
 
 function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: boolean; klik: () => void; medewerkers: number | null; kanKiezen: boolean }) {
   const mp = maandprijs(r);
-  const zin = bedragZin(r, medewerkers);
   const perMedewerker = r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker";
+  // Bij een prijs per medewerker is het bedrag voor de hele organisatie wat telt; per medewerker staat eronder.
+  const b = bedragVoor(r, medewerkers);
+  const organisatie = perMedewerker && b && b.bedrag ? regelbedrag(b) : null;
+  const n = aantalVoor(r, medewerkers);
   return (
     <button
       type="button"
@@ -861,31 +930,44 @@ function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: b
       disabled={!kanKiezen}
       onClick={klik}
       className={`group relative flex flex-col rounded-[20px] border p-6 text-left transition-[border-color,background-color,box-shadow] disabled:cursor-default md:p-7 ${
-        aan ? "border-[#322E83] bg-white shadow-[0_0_0_1px_#322E83,0_24px_50px_-30px_rgba(50,46,131,0.55)]" : "border-[#E6E1D8] hover:border-[#BDB7AB]"
+        aan
+          ? "border-[#322E83] bg-white shadow-[0_0_0_1px_#322E83,0_24px_50px_-30px_rgba(50,46,131,0.55)]"
+          : "border-[#E6E1D8] enabled:hover:border-[#9D98C9] enabled:hover:bg-white"
       } ${aan ? "" : "print:hidden"}`}
       style={aan ? undefined : { background: ZACHT }}
     >
-      <span className="flex items-start justify-between gap-3">
+      <span className="flex items-start justify-between gap-4">
         <span className="min-w-0">
           <span className="block text-[20px] font-semibold leading-snug tracking-[-0.015em]" style={{ ...KOP, color: INKT }}>{r.naam}</span>
-          {r.badge && <span className="mt-1.5 block text-[12.5px] font-semibold uppercase tracking-[0.12em]" style={{ color: PINK }}>{r.badge}</span>}
+          {r.badge && (
+            <span className="mt-2 inline-flex rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold" style={{ background: "#EEEDF8", color: NAVY }}>{r.badge}</span>
+          )}
         </span>
         <span
-          className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${aan ? "border-[#322E83] bg-[#322E83] text-white" : "border-[#BDB7AB] bg-white text-transparent"}`}
+          className={`mt-0.5 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+            aan ? "border-[#322E83] bg-[#322E83] text-white" : "border-[#C9C4BA] bg-white text-transparent group-enabled:group-hover:border-[#9D98C9]"
+          }`}
           aria-hidden="true"
         >
-          <Vink size={12} />
+          <Vink size={13} dik={3.2} />
         </span>
       </span>
 
       <span className="mt-6 flex flex-wrap items-baseline gap-x-2">
         <span className="text-[40px] font-semibold leading-none tracking-[-0.04em] tabular-nums" style={{ ...KOP, color: INKT }}>
-          {mp.bedrag === null ? prijsLabel(r) : euro(mp.bedrag)}
+          {organisatie ? euro(organisatie.bedrag!) : mp.bedrag === null ? prijsLabel(r) : euro(mp.bedrag)}
         </span>
-        {mp.bedrag !== null && mp.achter && <span className="text-[14px]" style={{ color: MUTE }}>{mp.achter}</span>}
+        <span className="text-[15px]" style={{ color: BODY }}>
+          {organisatie ? (organisatie.per === "maand" ? "per maand" : "eenmalig") : mp.bedrag !== null ? mp.achter : ""}
+        </span>
       </span>
-      {perMedewerker && zin && <span className="mt-2.5 block text-[14.5px] font-medium" style={{ color: NAVY }}>{zin}</span>}
-      {mp.jaar && <span className="mt-1 block text-[12.5px]" style={{ color: MUTE }}>Prijslijst: {mp.jaar}</span>}
+      {organisatie && mp.bedrag !== null && (
+        <span className="mt-2.5 block text-[13.5px] leading-[1.55]" style={{ color: MUTE }}>
+          <span className="block">{euro(mp.bedrag)} per medewerker per maand × {n.toLocaleString("nl-NL")}</span>
+          {r.prijs !== null && r.eenheid === "medewerker_jaar" && <span className="block">Prijslijst {euro(r.prijs)} per jaar</span>}
+        </span>
+      )}
+      {!organisatie && mp.jaar && <span className="mt-2 block text-[13.5px]" style={{ color: MUTE }}>Prijslijst {mp.jaar}</span>}
 
       {(r.omschrijving || r.punten) && <span className="my-5 block h-px w-full" style={{ background: LIJN }} />}
       {r.omschrijving && <span className="block whitespace-pre-line text-[14.5px] leading-[1.6]" style={{ color: BODY }}>{r.omschrijving}</span>}
@@ -893,20 +975,12 @@ function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: b
         <span className={`flex flex-col gap-2 ${r.omschrijving ? "mt-4" : ""}`}>
           {r.punten.map((p) => (
             <span key={p} className="flex items-start gap-2.5 text-[14.5px] leading-[1.5]" style={{ color: BODY }}>
-              <span className="mt-[3px] shrink-0" style={{ color: TEAL }}><Vink size={14} dik={3} /></span>
+              <span className="mt-[3px] shrink-0" style={{ color: TEAL_TEKST }}><Vink size={14} dik={3} /></span>
               {p}
             </span>
           ))}
         </span>
       )}
-      <span className="mt-auto pt-6 print:hidden">
-        <span
-          className={`flex h-11 items-center justify-center gap-2 rounded-full text-[14.5px] font-semibold transition-colors ${aan ? "text-white" : "border bg-white group-hover:border-[#322E83]"}`}
-          style={aan ? { background: NAVY } : { color: NAVY, borderColor: "#DEDAD2" }}
-        >
-          {aan ? <><Vink size={14} /> Gekozen</> : "Kies deze"}
-        </span>
-      </span>
     </button>
   );
 }
@@ -920,10 +994,10 @@ function Optelling({ t }: { t: Totalen }) {
           <Label>Totaal</Label>
           <div className="mt-2"><Bedrag t={t} maat="text-[36px]" /></div>
         </div>
-        <div className="text-[14px] sm:text-right" style={{ color: BODY }}>
+        <div className="text-[14px] leading-[1.6] sm:text-right" style={{ color: BODY }}>
           {t.perMaand > 0 && <p className="m-0">{euro(t.perJaar)} per jaar</p>}
           {t.perMaand > 0 && t.eenmalig > 0 && <p className="m-0 font-semibold" style={{ color: INKT }}>+ {euro(t.eenmalig)} eenmalig</p>}
-          <p className="m-0" style={{ color: MUTE }}>Exclusief btw · tarieven bij gebruik komen erbij</p>
+          <p className="m-0" style={{ color: MUTE }}>Exclusief btw. Tarieven bij gebruik komen erbij.</p>
         </div>
       </div>
     </div>
@@ -1063,9 +1137,9 @@ function Akkoord({
           Je geeft akkoord op <strong style={{ color: INKT }}>{totalen.regels.map((r) => r.regel.naam).join(", ") || offerte.titel}</strong>.
         </p>
         <p className="m-0 shrink-0 text-[15px] font-semibold tabular-nums" style={{ color: INKT }}>
-          {totalen.perMaand > 0 ? `${euro(totalen.perMaand)} per maand` : ""}
-          {totalen.perMaand > 0 && totalen.eenmalig > 0 ? " + " : ""}
-          {totalen.eenmalig > 0 ? `${euro(totalen.eenmalig)} eenmalig` : ""}
+          {totalen.perMaand > 0 && <span className="whitespace-nowrap">{euro(totalen.perMaand)} per maand</span>}
+          {totalen.perMaand > 0 && totalen.eenmalig > 0 ? " " : ""}
+          {totalen.eenmalig > 0 && <span className="whitespace-nowrap">{totalen.perMaand > 0 ? "+ " : ""}{euro(totalen.eenmalig)} eenmalig</span>}
         </p>
       </div>
 
@@ -1077,7 +1151,7 @@ function Akkoord({
             <p className="m-0 mt-2 text-[18px] font-semibold" style={{ ...KOP, color: INKT }}>React2u</p>
             <p className="m-0 min-h-[2.9em] text-[13.5px] leading-[1.45]" style={{ color: MUTE }}>{huis.contact.addressLine1}, {huis.contact.addressLine2}<br />KvK {huis.contact.kvk}</p>
             <div className="mt-3 flex h-[44px] items-center">
-              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold" style={{ background: "#E5F6F4", color: "#0B7F78" }}>
+              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold" style={{ background: "#E5F6F4", color: TEAL_TEKST }}>
                 <Vink size={12} /> Offerte aangeboden
               </span>
             </div>
@@ -1087,7 +1161,7 @@ function Akkoord({
             </div>
             <p className="m-0 mt-2.5 text-[13.5px]" style={{ color: MUTE }}>
               {[offerte.afzender_naam, offerte.afzender_functie].filter(Boolean).join(", ") || "React2u"}
-              {offerte.verstuurd_at ? ` · ${datumLang(offerte.verstuurd_at)}` : ""}
+              {offerte.verstuurd_at ? `, ${datumLang(offerte.verstuurd_at)}` : ""}
             </p>
           </div>
           <div>
@@ -1111,13 +1185,13 @@ function Akkoord({
               )}
             </div>
             <p className="m-0 mt-2.5 text-[13.5px]" style={{ color: MUTE }}>
-              {naam.trim() || "Je naam"}{functie.trim() ? `, ${functie.trim()}` : ""} · getekend voor akkoord
+              {naam.trim() || "Je naam"}{functie.trim() ? `, ${functie.trim()}` : ""}, voor akkoord
             </p>
           </div>
         </div>
 
         {/* Je gegevens en het akkoord */}
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid items-start gap-4 md:grid-cols-3">
           <label className="flex flex-col gap-1.5">
             <span className="text-[14px] font-medium" style={{ color: INKT }}>Volledige naam</span>
             <input className={veld} value={naam} onChange={(e) => setNaam(e.target.value)} autoComplete="name" required disabled={vast} />
@@ -1127,8 +1201,9 @@ function Akkoord({
             <input className={veld} value={functie} onChange={(e) => setFunctie(e.target.value)} autoComplete="organization-title" placeholder="Bijvoorbeeld directeur" disabled={vast} />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="text-[14px] font-medium" style={{ color: INKT }}>Je e-mailadres <span className="font-normal" style={{ color: MUTE }}>(hier komt de code)</span></span>
-            <input className={veld} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required disabled={vast} />
+            <span className="text-[14px] font-medium" style={{ color: INKT }}>E-mailadres</span>
+            <input className={veld} type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required disabled={vast} aria-describedby="of-email-uitleg" />
+            <span id="of-email-uitleg" className="text-[13px]" style={{ color: MUTE }}>Hier sturen we de code naartoe.</span>
           </label>
         </div>
 
@@ -1215,7 +1290,7 @@ function Akkoord({
                 className="flex h-[58px] w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[14px] px-5 text-[16px] font-semibold text-white shadow-[0_14px_30px_-16px_rgba(230,22,116,0.85)] transition-[filter,transform] hover:brightness-95 active:scale-[0.99] disabled:opacity-60 md:w-auto md:px-7 md:text-[17px]"
                 style={{ background: PINK }}
               >
-                {bezig ? "Bezig met ondertekenen…" : <>Bevestig en onderteken <Pijl /></>}
+                {bezig ? "Bezig met ondertekenen…" : "Bevestig en onderteken"}
               </button>
             </div>
             <div className="mt-4 flex flex-col items-start gap-x-6 gap-y-2.5 text-left text-[13.5px] font-semibold sm:flex-row sm:flex-wrap sm:pl-[60px]">
@@ -1239,7 +1314,7 @@ function Akkoord({
               className="flex h-[58px] w-full shrink-0 items-center justify-center gap-2 rounded-[14px] px-8 text-[17px] font-semibold text-white shadow-[0_14px_30px_-16px_rgba(230,22,116,0.85)] transition-[filter,transform] hover:brightness-95 active:scale-[0.99] disabled:opacity-60 md:order-2 md:w-auto"
               style={{ background: PINK }}
             >
-              {bezig ? "Code versturen…" : <>Onderteken de offerte <Pijl /></>}
+              {bezig ? "Code versturen…" : "Onderteken de offerte"}
             </button>
           </div>
         ) : (
@@ -1392,7 +1467,7 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
               <Vink size={32} dik={3} />
             </span>
           </span>
-          <p className="m-0 mt-6 text-[13px] font-semibold uppercase tracking-[0.16em]" style={{ color: TEAL }}>Ondertekend</p>
+          <p className="m-0 mt-6 text-[15px] font-semibold" style={{ color: TEAL_TEKST }}>Ondertekend</p>
           <h1 className="mx-auto m-0 mt-3 max-w-[760px] text-balance text-[34px] font-semibold leading-[1.06] tracking-[-0.035em] [hyphens:auto] [overflow-wrap:break-word] sm:text-[44px] md:text-[58px]" style={{ ...KOP, color: INKT }}>
             <span className="print:hidden">{vers ? `Gelukt, ${voornaam(inhoud.getekend_naam)}! Welkom bij React2u.` : `Ondertekend door ${inhoud.getekend_naam}`}</span>
             <span className="hidden print:inline">{inhoud.titel}</span>
@@ -1423,8 +1498,8 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
         </section>
 
         <div className="mb-6 rounded-[24px] bg-white p-6 md:p-10 print:hidden">
-          <Label>Zo gaat het verder</Label>
-          <div className="mt-5"><Vervolg stappen={inhoud.vervolg ?? offerte.vervolg} klaar={1} /></div>
+          <h2 className="m-0 text-[22px] font-semibold tracking-[-0.02em]" style={{ ...KOP, color: INKT }}>Zo gaat het verder</h2>
+          <div className="mt-6"><Vervolg stappen={inhoud.vervolg ?? offerte.vervolg} klaar={1} /></div>
         </div>
 
         <article className="overflow-hidden rounded-[28px] shadow-[0_1px_0_rgba(28,26,78,0.04),0_30px_80px_-50px_rgba(28,26,78,0.35)]" style={{ background: PAPIER }}>
@@ -1437,7 +1512,7 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
             </div>
             <div className="text-right text-[13.5px]" style={{ color: MUTE }}>
               <p className="m-0 font-semibold" style={{ color: INKT }}>Offerte {inhoud.nummer}</p>
-              <p className="m-0">{inhoud.titel} · {LABEL[vorm]}</p>
+              <p className="m-0">{inhoud.titel}, {LABEL[vorm]}</p>
             </div>
           </div>
           <Hoofd id="afgenomen">
@@ -1507,10 +1582,10 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
               <div className="flex flex-col">
                 <Label>Opdrachtnemer</Label>
                 <p className="m-0 mt-2 text-[18px] font-semibold" style={{ ...KOP, color: INKT }}>React2u</p>
-                <p className="m-0 text-[13.5px]" style={{ color: MUTE }}>{huis.contact.addressLine1}, {huis.contact.addressLine2} · KvK {huis.contact.kvk}</p>
+                <p className="m-0 text-[13.5px]" style={{ color: MUTE }}>{huis.contact.addressLine1}, {huis.contact.addressLine2}, KvK {huis.contact.kvk}</p>
                 <p className={`${handschrift.className} m-0 mt-auto pt-8 text-[40px] leading-none`} style={{ color: NAVY }}>{inhoud.afzender_naam || offerte.afzender_naam || "React2u"}</p>
                 <p className="m-0 mt-3 border-t pt-2.5 text-[13.5px]" style={{ borderColor: "#D9D4CA", color: MUTE }}>
-                  {inhoud.afzender_naam || offerte.afzender_naam || "React2u"}{inhoud.verstuurd_at ? ` · ${datumLang(inhoud.verstuurd_at)}` : ""}
+                  {inhoud.afzender_naam || offerte.afzender_naam || "React2u"}{inhoud.verstuurd_at ? `, ${datumLang(inhoud.verstuurd_at)}` : ""}
                 </p>
               </div>
               <div className="flex flex-col">
@@ -1522,10 +1597,10 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
                   <img src={offerte.handtekening} alt={`Handtekening van ${inhoud.getekend_naam}`} className="mt-4 h-auto w-full max-w-[320px]" />
                 )}
                 <p className="m-0 mt-2 border-t pt-2.5 text-[13.5px]" style={{ borderColor: "#D9D4CA", color: MUTE }}>
-                  {inhoud.getekend_naam}{inhoud.getekend_functie ? `, ${inhoud.getekend_functie}` : ""} · {momentLang(inhoud.getekend_at)}
+                  {inhoud.getekend_naam}{inhoud.getekend_functie ? `, ${inhoud.getekend_functie}` : ""}, {momentLang(inhoud.getekend_at)}
                 </p>
                 {inhoud.bevestiging && (
-                  <span className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-semibold" style={{ background: "#E5F6F4", color: "#0B7F78" }}>
+                  <span className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-semibold" style={{ background: "#E5F6F4", color: TEAL_TEKST }}>
                     <Vink size={12} /> E-mailadres bevestigd met een code
                   </span>
                 )}
@@ -1550,8 +1625,8 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
               </div>
             )}
             {offerte.getekend_hash && (
-              <p className="m-0 mt-8 break-all text-[12px] leading-[1.6]" style={{ color: MUTE }}>
-                Kenmerk van de ondertekende versie: <span className="font-mono">{offerte.getekend_hash}</span>.{" "}
+              <p className="m-0 mt-8 text-[13px] leading-[1.6]" style={{ color: MUTE }}>
+                Kenmerk van de ondertekende versie: <span className="break-all font-mono text-[12px]">{offerte.getekend_hash}</span>.{" "}
                 <a href={pdf} target="_blank" rel="noopener" className="font-semibold underline underline-offset-4" style={{ color: NAVY }}>Het ondertekeningscertificaat</a> staat achterin de pdf.
               </p>
             )}

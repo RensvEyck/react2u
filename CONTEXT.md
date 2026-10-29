@@ -917,25 +917,30 @@ foto's van de website") is het een persoonlijk offertedocument:
 
 - **Omslag als briefhoofd**: het React2u-logo groot met "Jouw mensen, onze
   aandacht.", het label waar de vorm onder valt (React2u Recover, Resist of
-  Restart, in de kleur van de tarievenpagina), dan het offertenummer, de titel
-  groot, "voor {bedrijf}" en een kopregel met opgesteld door, datum, geldig tot,
-  betreft en medewerkers. Geen foto's.
+  Restart, met een stip in de kleur van de tarievenpagina), de titel groot,
+  "voor {bedrijf}" en een kopregel met offertenummer, opgesteld door, datum,
+  geldig tot, betreft en medewerkers. Geen foto's. Op de telefoon staat het logo
+  alleen in de kopbalk.
 - **De echte kenmerken van React2u**: de keurmerken (SBCA, ISO 9001, ISO 27001,
-  ISO 27701, OVAL) met hun logo's, vóór het akkoord, in het beslispaneel en in de
-  voet; staat het certificaat als PDF in Instellingen, dan klik je erheen. De
+  ISO 27701, OVAL) met hun logo's, vóór het akkoord en in de voet (het paneel
+  verwijst er alleen naar, zodat de inhoudsopgave eronder in beeld blijft); staat het certificaat als PDF in Instellingen, dan klik je erheen. De
   bedrijfsgegevens (adres, telefoon, e-mail, KvK, btw) komen uit
   Instellingen → Contact (`lib/offerteHuisstijl.ts`) en staan in de voet en bij
   Opdrachtnemer, zoals op een offerte op papier.
-- **Eén vel met genummerde hoofdstukken** (01 Een persoonlijk woord, Over deze
+- **Eén vel met genummerde hoofdstukken** (1 Een persoonlijk woord, Over deze
   offerte, Stel je offerte samen, Voorwaarden, Zo gaat het verder, Akkoord),
   gescheiden door lijnen in plaats van losse kaarten. Onder de onderdelen staat
   het totaal als optelling, zoals op papier.
-- **Beslispaneel rechts** (vanaf 1024 px): het bedrag bij de huidige keuze, de
-  regels, een knop naar het akkoord, de contactpersoon en de keurmerken in één
-  regel; daaronder de inhoudsopgave, die meeloopt met waar je bent. Op de
-  telefoon staat het bedrag onder de omslag en een balk onderaan, die wegschuift
-  zodra je bij het akkoord bent. Een dun roze lijntje onder de kopbalk laat zien
-  hoe ver je bent.
+- **Beslispaneel rechts** (vanaf 1024 px): het bedrag bij de huidige keuze (telt
+  in 280 ms mee als de klant iets kiest; een schermlezer hoort alleen het
+  eindbedrag), de regels, een knop naar het akkoord (bij het akkoord zelf alleen
+  "Je ondertekent links in het document") en de contactpersoon; daaronder de
+  inhoudsopgave, die meeloopt met waar je bent. Is de offerte verlopen of
+  afgewezen, dan zegt het paneel dat. Op de telefoon staat het bedrag onder de
+  omslag en een balk onderaan, die wegschuift zodra je bij het akkoord bent. Een
+  dun indigo lijntje onder de kopbalk laat zien hoe ver je bent.
+- **Keuzekaarten** tonen eerst wat de organisatie per maand betaalt; per
+  medewerker en de prijslijst staan er klein onder. Eén keuzeteken (het rondje).
 - **Tekenen gebeurt in het document**: twee handtekeningvakken naast elkaar,
   Opdrachtnemer (React2u, "offerte aangeboden", de naam van de afzender in
   handschrift) en Opdrachtgever (het tekenvak van de klant), daaronder naam,
@@ -950,7 +955,16 @@ foto's van de website") is het een persoonlijk offertedocument:
   het maandbedrag is het jaarbedrag gedeeld door twaalf, op centen afgerond.
 - Letters: koppen in Outfit, tekst in DM Sans, de handtekening van de afzender in
   Caveat. Kleuren: zand als achtergrond, wit vel, indigo voor tekst en keuzes, roze
-  alleen voor de hoofdactie, teal voor vinkjes.
+  alleen voor de hoofdactie (de tekenknoppen, nergens anders), teal voor vinkjes
+  (als tekst `#08716B`, de merkteal is te licht). Grijze tekst `#6B6985`: minstens
+  4,5:1 op wit en zand.
+- **Huisregels voor de tekst** (ronde 29 okt, avond): labels in gewone letters, niet
+  in hoofdletters met spatiëring; geen reeksen met middenpuntjes maar zinnen of
+  regels; geen pijl naar rechts op knoppen (alleen het pijltje omlaag dat naar het
+  akkoord scrolt); hoofdstuknummers gewoon 1, 2, 3. Toetsenbordfocus heeft een
+  indigo ring, en bij "minder beweging" staan animaties en vloeiend scrollen uit.
+- Een onbekende of ingetrokken link toont hetzelfde vel (`OfferteMelding.tsx`):
+  briefhoofd, kop in Outfit, ronde knoppen naar de afzender.
 
 ### Vormen en sjablonen
 

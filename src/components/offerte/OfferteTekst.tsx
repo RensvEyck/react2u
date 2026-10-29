@@ -15,6 +15,8 @@ import { inlineDelen } from "@/lib/mdInline";
  */
 
 const NAVY = "#322E83";
+// Op de offertepagina Outfit (de koppen van het document), elders de koppen van de site.
+const KOP: React.CSSProperties = { fontFamily: "var(--font-offerte-kop), var(--font-heading), sans-serif" };
 const BODY = "#5E5C78";
 
 function Inline({ tekst }: { tekst: string }) {
@@ -82,7 +84,7 @@ export default function OfferteTekst({ tekst, klein = false }: { tekst: string; 
       {blokken.map((b, i) => {
         if (b.soort === "h2")
           return (
-            <h2 key={i} className={`font-heading m-0 text-[21px] font-bold tracking-[-0.01em] md:text-[23px] ${i ? "mt-5" : ""}`} style={{ color: NAVY }}>
+            <h2 key={i} className={`m-0 text-[21px] font-semibold tracking-[-0.015em] md:text-[23px] ${i ? "mt-5" : ""}`} style={{ ...KOP, color: NAVY }}>
               <Inline tekst={b.tekst} />
             </h2>
           );
@@ -94,7 +96,7 @@ export default function OfferteTekst({ tekst, klein = false }: { tekst: string; 
           );
         if (b.soort === "quote")
           return (
-            <blockquote key={i} className="font-heading m-0 rounded-[16px] px-5 py-4 text-[18px] font-semibold leading-[1.45] md:text-[20px]" style={{ background: "#ECEBF5", color: NAVY }}>
+            <blockquote key={i} className="m-0 rounded-[16px] px-5 py-4 text-[18px] font-semibold leading-[1.45] md:text-[20px]" style={{ ...KOP, background: "#ECEBF5", color: NAVY }}>
               <Inline tekst={b.tekst} />
             </blockquote>
           );
@@ -103,7 +105,7 @@ export default function OfferteTekst({ tekst, klein = false }: { tekst: string; 
             <ul key={i} className="m-0 flex list-none flex-col gap-2 p-0">
               {b.items.map((it, j) => (
                 <li key={j} className="flex gap-3">
-                  <span className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "#E61674" }} aria-hidden="true" />
+                  <span className="mt-[0.62em] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: NAVY }} aria-hidden="true" />
                   <span><Inline tekst={it} /></span>
                 </li>
               ))}
