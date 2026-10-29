@@ -888,11 +888,11 @@ salesrecht, net als partners.
   koos; prijzen en tekst komen uit de database. `geldigeKeuze()` in
   `lib/offertes.ts` doet hetzelfde als `offerte_effectieve_keuze` in SQL; houd die
   twee gelijk.
-- **Bewijs van ondertekening: ook het IP-adres.** Naam, e-mail, tijdstip, browser
-  en IP van dat ene moment staan bij de offerte (het tekenvenster zegt dat er
-  ook bij). Dat is de enige plek in de database met een IP-adres; de regel "geen
-  IP-kolom" bij *Architectuur* gaat over bezoekregistratie. Hoort in de
-  privacyverklaring.
+- **Bewijs van ondertekening: ook het IP-adres.** Naam, bevestigd e-mailadres,
+  tijdstip, browser en IP van dat ene moment staan bij de offerte (het
+  akkoordblok zegt dat er ook bij). Dat is de enige plek in de database met een
+  IP-adres; de regel "geen IP-kolom" bij *Architectuur* gaat over
+  bezoekregistratie. Hoort in de privacyverklaring, net als de code per mail.
 - **Mails** (Resend, zie *E-mail vanuit het systeem*): de offerte zelf (antwoorden
   gaat naar de afzender), een seintje aan de afzender bij de eerste keer openen,
   een bevestiging aan wie tekende, en "getekend" of "niet akkoord" aan sales
@@ -907,8 +907,7 @@ salesrecht, net als partners.
   externe sites) en `Cache-Control: private, no-store`.
 - **Vanuit het Postvak IN**: bij een offerteaanvraag staat *Offerte maken*; klant,
   aantal medewerkers en het passende startpunt staan dan al klaar.
-- **Pdf**: *Bewaar als pdf* op de getekende offerte is de printfunctie van de
-  browser met een eigen printopmaak; er is geen pdf-bibliotheek.
+- **Pdf**: zie *De offerte als contract* hieronder.
 
 ### De klantpagina: een document, geen webpagina
 
@@ -992,6 +991,51 @@ offertes worden nog aangepast; de vormen blijven. Daarom:
   bedrag kan een *prijs als tekst* hebben ("€ 89 p.p. en € 0,42 per km").
 - De ondertekende versie toont, zoals de Word-offertes, *Opdrachtnemer* (React2u,
   aangeboden door de afzender) naast *Opdrachtgever* (getekend voor akkoord).
+
+### De offerte als contract
+
+Sinds migratie [0026](supabase/migrations/0026_offertecontract.sql) (29 okt 2026)
+levert tekenen een stuk op dat inkoop en de boekhouding accepteren.
+
+- **Code per mail vóór het tekenen.** Wie op *Onderteken* klikt, krijgt een code
+  van 6 cijfers op het ingevulde e-mailadres (de code staat vooraan in het
+  onderwerp) en vult die in; bij 6 cijfers tekent de pagina meteen. Een kwartier
+  geldig, vijf pogingen, hooguit vijf codes per uur per offerte. Dat bewijst dat
+  wie tekent dat adres in handen heeft; het certificaat zegt het erbij.
+- **De database dwingt de code af, niet Next.** De functies zijn met de publieke
+  sleutel aan te roepen, dus een controle alleen in de server action zou je met
+  een directe aanroep overslaan. Next maakt en mailt de code; `offerte_code_vastleggen`
+  bewaart alleen de hash, en alleen met `OFFERTE_SLEUTEL` (env in Vercel; in de
+  database staat de sha-256 in `offerte_sleutel`, buiten git gezet).
+  `offerte_codes` en `offerte_sleutel` hebben geen policies: ook het beheer kan er
+  niet bij, anders kon een collega een code zetten en "namens de klant" tekenen.
+  `offerte_ondertekenen` vraagt sinds 0026 de code en de factuurgegevens; de
+  variant zonder code verdwijnt met 0027. Een nieuwe sleutel: nieuwe waarde in
+  Vercel én de hash in `offerte_sleutel`, anders kan niemand een code krijgen.
+- **Factuurgegevens** (`factuur`, jsonb): adres, postcode, plaats, het
+  factuurmailadres (standaard wie tekent), KvK (8 cijfers, mag leeg) en
+  inkoopnummer (mag leeg). Sales kan ze in de editor vooraf invullen (*Factuurgegevens
+  vooraf invullen*); de klant ziet ze ingevuld en bevestigt. Ze komen in de
+  vastgelegde versie en dus in de hash, in de melding aan sales en in de pdf.
+  `factuurFout()` in `lib/offertes.ts` controleert hetzelfde als de SQL.
+- **De pdf** ([`lib/offertePdf.tsx`](src/lib/offertePdf.tsx), `@react-pdf/renderer`):
+  dezelfde opbouw als de klantpagina (briefhoofd, genummerde hoofdstukken,
+  Opdrachtnemer naast Opdrachtgever, factuurgegevens, keurmerken), met achterin
+  het **ondertekeningscertificaat**: ondertekenaar, hoe het e-mailadres is
+  bevestigd, tijdstip tot op de seconde, IP-adres, apparaat, de tijdlijn vanaf
+  het versturen (`offerte_certificaat`) en de kenmerken van de getekende versie
+  en van de handtekening. Alles uit `getekend_inhoud`, dus de pdf van vandaag is
+  die van de dag van tekenen (op de bedrijfsgegevens in de voet na). Hij zit bij
+  de bevestiging aan de klant en de melding aan sales, en staat op
+  `/offerte/<token>/pdf` en `/admin/offertevoorbeeld/<id>/pdf` (`?download=1`
+  als bestand). Lettertypen (Outfit, Caveat) staan als woff in `src/lib/pdf/fonts`;
+  `outputFileTracingIncludes` in `next.config.ts` neemt ze en de keurmerklogo's
+  mee naar Vercel.
+- **Valkuilen in react-pdf 4.9**: een `Text` met `render` (paginanummer) binnen
+  een vaste `View` laat de hele View weg, en met `bottom` gepositioneerd wordt hij
+  niet getekend (vandaar `top: 806`); een unitless `lineHeight` op de pagina erft
+  als vaste waarde, dus grotere tekst krijgt een eigen `lineHeight`; `flex: 1` op
+  een Text in een kolom maakt zijn hoogte nul.
 
 ## Van Postvak IN naar bellijst
 

@@ -80,7 +80,10 @@ export type Verzonden =
  * `replyTo` is waar "beantwoorden" uitkomt: bij een uitnodiging de collega die
  * uitnodigde, niet een adres waar niemand meeleest.
  */
-async function verstuur(to: string[], subject: string, html: string, replyTo?: string): Promise<Verzonden> {
+/** Een bijlage voor Resend: de inhoud gaat er als base64 heen. */
+export type Bijlage = { filename: string; content: Buffer };
+
+async function verstuur(to: string[], subject: string, html: string, replyTo?: string, bijlagen?: Bijlage[]): Promise<Verzonden> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.NOTIFY_FROM;
   if (!key || !from || !to.length) return { ok: false, reden: "uit" };
@@ -89,7 +92,11 @@ async function verstuur(to: string[], subject: string, html: string, replyTo?: s
     const res = await fetch(api("/emails"), {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+      body: JSON.stringify({
+        from, to, subject, html,
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        ...(bijlagen?.length ? { attachments: bijlagen.map((b) => ({ filename: b.filename, content: b.content.toString("base64") })) } : {}),
+      }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (res.ok) return { ok: true };
@@ -110,8 +117,8 @@ async function verstuur(to: string[], subject: string, html: string, replyTo?: s
   }
 }
 
-async function post(to: string[], subject: string, html: string, replyTo?: string): Promise<boolean> {
-  return (await verstuur(to, subject, html, replyTo)).ok;
+async function post(to: string[], subject: string, html: string, replyTo?: string, bijlagen?: Bijlage[]): Promise<boolean> {
+  return (await verstuur(to, subject, html, replyTo, bijlagen)).ok;
 }
 
 const adressen = (s: string | undefined) => (s || "").split(",").map((x) => x.trim()).filter(Boolean);
@@ -439,10 +446,38 @@ export async function sendOfferte(o: {
   return verstuur([o.to], onderwerp, html, o.afzender.email || undefined);
 }
 
-/** Bevestiging aan wie tekende: wat er getekend is, met de link om het terug te zien of te bewaren. */
+/**
+ * De code waarmee wie tekent zijn e-mailadres bevestigt (0026). De code staat
+ * vooraan in het onderwerp, zodat hij al in de melding op de telefoon staat.
+ */
+export async function sendOfferteCode(c: { to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender }): Promise<Verzonden> {
+  const html = `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:520px;color:#1c1a4e">
+  <h2 style="margin:0 0 12px;font-size:20px;color:#312e82">Je code om te ondertekenen</h2>
+  <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#444">Vul deze code in op de offertepagina om offerte ${esc(c.nummer)} voor ${esc(c.bedrijf)} te ondertekenen.</p>
+  <p style="margin:0 0 16px;font-size:34px;font-weight:700;letter-spacing:8px;color:#312e82;font-family:ui-monospace,Menlo,monospace">${esc(c.code)}</p>
+  <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#666">De code is een kwartier geldig. Heb je niet zelf om deze code gevraagd? Dan hoef je niets te doen; zonder de code kan niemand namens jou tekenen.</p>
+  <p style="margin:0;font-size:13px;color:#888">${ondertekening(c.afzender)}</p>
+</div>`;
+  return verstuur([c.to], `${c.code} is je code voor offerte ${c.nummer}`, html, c.afzender.email || undefined);
+}
+
+/** Het factuurblok in de mail aan sales: adres, e-mail, KvK en inkoopnummer. */
+function factuurHtml(f: { email?: string; adres?: string; postcode?: string; plaats?: string; kvk?: string; inkoopnummer?: string; tav?: string } | null) {
+  if (!f) return "";
+  const regels = [
+    f.tav ? `T.a.v. ${f.tav}` : "", f.adres || "", [f.postcode, f.plaats].filter(Boolean).join(" "),
+    f.email ? `Facturen naar ${f.email}` : "", f.kvk ? `KvK ${f.kvk}` : "", f.inkoopnummer ? `Inkoopnummer ${f.inkoopnummer}` : "",
+  ].filter(Boolean);
+  return `<strong>Factuurgegevens</strong><br>${regels.map(esc).join("<br>")}`;
+}
+
+/**
+ * Bevestiging aan wie tekende: wat er getekend is, met de getekende offerte
+ * als pdf (met het ondertekeningscertificaat) en de link om hem terug te zien.
+ */
 export async function bevestigOfferteGetekend(b: {
   to: string; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
-  regels: { naam: string; bedrag: string }[]; totalen: { label: string; bedrag: string }[]; afzender: Afzender;
+  regels: { naam: string; bedrag: string }[]; totalen: { label: string; bedrag: string }[]; afzender: Afzender; pdf?: Bijlage | null;
 }): Promise<Verzonden> {
   const voornaam = b.naam.split(" ")[0] || b.naam;
   const html = persoonlijk(
@@ -451,12 +486,14 @@ export async function bevestigOfferteGetekend(b: {
       `Beste ${esc(voornaam)},`,
       `Je hebt op ${esc(b.moment)} offerte ${esc(b.nummer)} voor ${esc(b.bedrijf)} ondertekend. Hieronder staat wat je hebt gekozen; we nemen contact met je op om de start te plannen.`,
       offerteTabel(b.regels, b.totalen),
-      "Alle bedragen zijn exclusief btw. Via de knop zie je de ondertekende offerte terug en kun je hem als pdf bewaren.",
+      b.pdf
+        ? "Alle bedragen zijn exclusief btw. In de bijlage zit de ondertekende offerte als pdf, met achterin het ondertekeningscertificaat. Bewaar hem bij je administratie of stuur hem door naar inkoop."
+        : "Alle bedragen zijn exclusief btw. Via de knop zie je de ondertekende offerte terug en download je hem als pdf.",
     ],
     { tekst: "Bekijk de ondertekende offerte", link: b.link },
     `${ondertekening(b.afzender)}<br><br><span style="font-size:11px;color:#aaa">Kenmerk van de ondertekende versie: ${esc(b.hash)}</span>`
   );
-  return verstuur([b.to], `Ondertekend: offerte ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined);
+  return verstuur([b.to], `Ondertekend: offerte ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
 }
 
 /** Wie meldingen over een offerte krijgt: sales (NOTIFY_OFFERTE_TO) en de collega die hem stuurde. */
@@ -467,6 +504,7 @@ function offerteOntvangers(afzender: string | null) {
 export async function notifyOfferteGetekend(n: {
   nummer: string; bedrijf: string; naam: string; functie: string | null; email: string; perMaand: string; eenmalig: string | null;
   regels: string[]; adminLink: string; afzenderEmail: string | null;
+  factuur?: Parameters<typeof factuurHtml>[0]; pdf?: Bijlage | null;
 }) {
   await post(
     offerteOntvangers(n.afzenderEmail),
@@ -477,10 +515,13 @@ export async function notifyOfferteGetekend(n: {
         `${esc(n.naam)}${n.functie ? ` (${esc(n.functie)})` : ""} heeft offerte ${esc(n.nummer)} zojuist online ondertekend.`,
         `<strong>${esc(n.perMaand)} per maand</strong>${n.eenmalig ? ` en ${esc(n.eenmalig)} eenmalig` : ""}, exclusief btw.`,
         `Gekozen: ${n.regels.map(esc).join(", ")}.`,
-        `Bevestiging gestuurd naar ${esc(n.email)}.`,
+        ...(n.factuur ? [factuurHtml(n.factuur)] : []),
+        `E-mailadres ${esc(n.email)} bevestigd met een code; de bevestiging met de pdf is daarheen gestuurd.${n.pdf ? " De getekende offerte zit ook bij deze mail." : ""}`,
       ],
       { tekst: "Open de offerte", link: n.adminLink }
-    )
+    ),
+    undefined,
+    n.pdf ? [n.pdf] : undefined
   );
 }
 

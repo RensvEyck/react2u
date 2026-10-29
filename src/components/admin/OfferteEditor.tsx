@@ -25,7 +25,7 @@ import {
 export type EditorBegin = Partial<Pick<
   Offerte,
   | "id" | "status" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "medewerkers" | "titel" | "intro" | "geldig_tot"
-  | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "vorm" | "betreft" | "inhoud" | "voorwaarden"
+  | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "vorm" | "betreft" | "inhoud" | "voorwaarden" | "factuur"
 >> & { regels?: Regel[]; vervolg?: Stap[] | null };
 
 /** Tekstvak met een knop om te zien hoe het er voor de klant uitziet (OfferteTekst). */
@@ -277,6 +277,40 @@ export default function OfferteEditor({
                 <input id="of-tel" className="ainput" name="telefoon" type="tel" defaultValue={begin.telefoon || ""} />
               </div>
             </div>
+            {/* Vooraf invullen scheelt de klant werk: hij ziet het ingevuld en bevestigt bij het tekenen. */}
+            <details className="group mt-4 rounded-[12px] border border-black/[0.07] px-4 py-3" open={Boolean(begin.factuur?.adres)}>
+              <summary className="cursor-pointer list-none text-[13.5px] font-semibold text-[#312e82]">
+                <span className="group-open:hidden">+ Factuurgegevens vooraf invullen</span>
+                <span className="hidden group-open:inline">Factuurgegevens</span>
+                <span className="ml-2 font-normal text-black/45">mag leeg; de klant vult ze aan bij het tekenen</span>
+              </summary>
+              <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="lg:col-span-1">
+                  <label className="alabel" htmlFor="of-fadres">Straat en huisnummer</label>
+                  <input id="of-fadres" className="ainput" name="factuur_adres" defaultValue={begin.factuur?.adres || ""} maxLength={200} />
+                </div>
+                <div>
+                  <label className="alabel" htmlFor="of-fpostcode">Postcode</label>
+                  <input id="of-fpostcode" className="ainput" name="factuur_postcode" defaultValue={begin.factuur?.postcode || ""} maxLength={12} />
+                </div>
+                <div>
+                  <label className="alabel" htmlFor="of-fplaats">Plaats</label>
+                  <input id="of-fplaats" className="ainput" name="factuur_plaats" defaultValue={begin.factuur?.plaats || ""} maxLength={100} />
+                </div>
+                <div>
+                  <label className="alabel" htmlFor="of-femail">Facturen per mail naar</label>
+                  <input id="of-femail" className="ainput" name="factuur_email" type="email" defaultValue={begin.factuur?.email || ""} placeholder="Leeg: naar wie tekent" />
+                </div>
+                <div>
+                  <label className="alabel" htmlFor="of-fkvk">KvK-nummer</label>
+                  <input id="of-fkvk" className="ainput tabular-nums" name="factuur_kvk" inputMode="numeric" defaultValue={begin.factuur?.kvk || ""} maxLength={20} />
+                </div>
+                <div>
+                  <label className="alabel" htmlFor="of-finkoop">Inkoopnummer</label>
+                  <input id="of-finkoop" className="ainput" name="factuur_inkoopnummer" defaultValue={begin.factuur?.inkoopnummer || ""} maxLength={60} />
+                </div>
+              </div>
+            </details>
           </Kaart>
 
           <Kaart

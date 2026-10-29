@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   berekenTotalen, controleer, datumLang, euro, geldigeKeuze, herstelKeuze, isNaam, normaliseerRegels, prijsLabel,
   secties, standaardKeuze, waardeVan, weergaveVan, wissel, vulIn, normaliseerVervolg, maandprijs, regelbedrag, type Regel,
+  normaliseerFactuur, factuurFout, factuurRegels, apparaatUit, tijdlijnRegels, momentPrecies, pdfNaam,
 } from "./offertes";
 import { alleSjablonen, sjabloonVoorStart, sleutelUit } from "./offerteSjablonen";
 import { blokkenUit } from "@/components/offerte/OfferteTekst";
@@ -279,5 +280,67 @@ describe("per maand (29 okt 2026)", () => {
     expect(regelbedrag({ bedrag: 1617, periode: "jaar" })).toEqual({ bedrag: 134.75, per: "maand" });
     expect(regelbedrag({ bedrag: 495, periode: "eenmalig" })).toEqual({ bedrag: 495, per: "eenmalig" });
     expect(regelbedrag({ bedrag: null, periode: null })).toEqual({ bedrag: null, per: null });
+  });
+});
+
+describe("factuurgegevens (0026)", () => {
+  it("houdt alleen de bekende velden over, schoongemaakt", () => {
+    expect(normaliseerFactuur({ email: " Admin@Bedrijf.NL ", adres: " Straat  1 ", postcode: "1234 ab", plaats: "Eindhoven", kvk: "1234 5678", rommel: "x" })).toEqual({
+      email: "admin@bedrijf.nl", adres: "Straat 1", postcode: "1234 AB", plaats: "Eindhoven", kvk: "12345678",
+    });
+    expect(normaliseerFactuur(null)).toEqual({});
+    expect(normaliseerFactuur("tekst")).toEqual({});
+  });
+
+  it("controleert zoals de database", () => {
+    const goed = { email: "a@b.nl", adres: "Straat 1", postcode: "1234 AB", plaats: "Eindhoven" };
+    expect(factuurFout(goed)).toBeNull();
+    expect(factuurFout({ ...goed, email: "geen-adres" })).toBe("factuur-email");
+    expect(factuurFout({ ...goed, adres: "" })).toBe("factuur-adres");
+    expect(factuurFout({ ...goed, postcode: "12" })).toBe("factuur-adres");
+    expect(factuurFout({ ...goed, kvk: "1234" })).toBe("factuur-kvk");
+    expect(factuurFout({ ...goed, kvk: "12345678", inkoopnummer: "PO-1" })).toBeNull();
+  });
+
+  it("maakt adresregels", () => {
+    expect(factuurRegels({ adres: "Straat 1", postcode: "1234 AB", plaats: "Eindhoven", tav: "Crediteuren" })).toEqual(["T.a.v. Crediteuren", "Straat 1", "1234 AB Eindhoven"]);
+    expect(factuurRegels(null)).toEqual([]);
+  });
+});
+
+describe("ondertekeningscertificaat", () => {
+  it("herkent browser en systeem", () => {
+    expect(apparaatUit("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36")).toBe("Chrome op macOS");
+    expect(apparaatUit("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")).toBe("Safari op iPhone");
+    expect(apparaatUit("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36 Edg/140.0")).toBe("Edge op Windows");
+    expect(apparaatUit(null)).toBe("");
+  });
+
+  it("zet de tijdlijn in zinnen, met alleen de eerste keer bekijken", () => {
+    const regels = tijdlijnRegels({
+      ip: null, agent: null, aantal_bekeken: 4,
+      tijdlijn: [
+        { soort: "verstuurd", at: "2026-10-27T09:00:00Z", wie: "a@b.nl" },
+        { soort: "bekeken", at: "2026-10-27T10:00:00Z", wie: null },
+        { soort: "bekeken", at: "2026-10-28T10:00:00Z", wie: null },
+        { soort: "code", at: "2026-10-29T13:00:00Z", wie: "a@b.nl" },
+        { soort: "getekend", at: "2026-10-29T13:01:00Z", wie: "Jan Test" },
+      ],
+    }).map((r) => r.tekst);
+    expect(regels).toEqual([
+      "Offerte verstuurd aan a@b.nl",
+      "Offerte voor het eerst geopend (in totaal 4 keer)",
+      "Bevestigingscode gemaild naar a@b.nl",
+      "Ondertekend door Jan Test, met de juiste code",
+    ]);
+  });
+
+  it("geeft tijd tot op de seconde in Nederlandse tijd", () => {
+    expect(momentPrecies("2026-10-29T13:03:27Z")).toBe("29 oktober 2026, 14:03:27");
+    expect(momentPrecies("2026-07-01T10:00:05Z")).toBe("1 juli 2026, 12:00:05");
+  });
+
+  it("maakt een nette bestandsnaam", () => {
+    expect(pdfNaam({ nummer: "2026-0012", bedrijf: "Bakkerij \"De Korst\" / Zuid" })).toBe("Offerte 2026-0012 Bakkerij De Korst Zuid (getekend).pdf");
   });
 });
