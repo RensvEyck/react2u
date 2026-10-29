@@ -2,20 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  dupliceerOfferte, heropenOfferte, markeerVerstuurd, nieuweOfferteLink, saveOfferteNotitie, trekOfferteIn, verwijderOfferte,
+  bewaarAlsSjabloon, dupliceerOfferte, heropenOfferte, markeerVerstuurd, nieuweOfferteLink, saveOfferteNotitie, trekOfferteIn, verwijderOfferte,
 } from "@/app/admin/offerteActions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import OfferteEditor from "@/components/admin/OfferteEditor";
 import OfferteVersturen from "@/components/admin/OfferteVersturen";
-import { laadCatalogus, inVorm } from "@/lib/offerteBeheer";
+import { laadCatalogus, laadSjablonen, inVorm } from "@/lib/offerteBeheer";
+import type { Sjabloon } from "@/lib/offerteSjablonen";
 import { offerteUrl } from "@/lib/mail";
 import {
-  berekenTotalen, datumLang, euro, herstelKeuze, momentLang, normaliseerRegels, prijsLabel, weergaveVan, WEERGAVE,
+  berekenTotalen, datumLang, euro, herstelKeuze, momentLang, normaliseerRegels, prijsLabel, weergaveVan, WEERGAVE, VORMEN,
   type Gebeurtenis, type Offerte,
 } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuCopy, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil,
-  LuSignature, LuCircleX, LuMousePointerClick, LuStickyNote,
+  LuSignature, LuCircleX, LuMousePointerClick, LuStickyNote, LuBookmarkPlus,
 } from "react-icons/lu";
 
 /**
@@ -53,6 +54,7 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
     sb.from("offerte_gebeurtenissen").select("*").eq("offerte_id", id).order("at", { ascending: false }).limit(200),
     laadCatalogus(sb),
   ]);
+  const { sjablonen, tabel: sjabloonTabel } = await laadSjablonen(sb, catalogus);
   if (!offerteRes.data) notFound();
   const o = inVorm(offerteRes.data as Offerte);
   const tijdlijn = (tijdlijnRes.data as Gebeurtenis[]) || [];
@@ -72,6 +74,10 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="font-heading text-[26px] font-bold text-[#312e82]">{o.bedrijf}</h1>
             <span className="apill bg-black/[0.04] font-mono text-black/60">{o.nummer}</span>
+            <span className="apill bg-black/[0.04] text-black/60">
+              <span className="h-2 w-2 rounded-full" style={{ background: VORMEN[o.vorm].kleur }} aria-hidden="true" /> {VORMEN[o.vorm].kort}
+              {o.betreft ? ` · ${o.betreft}` : ""}
+            </span>
             <span className="apill" style={{ background: s.achter, color: s.kleur }}>{s.label}</span>
             {o.aantal_bekeken > 0 && (
               <span className="apill bg-black/[0.04] text-black/55" title={o.laatst_bekeken_at ? `Laatst ${momentLang(o.laatst_bekeken_at)}` : undefined}>
@@ -175,11 +181,15 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
             <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Tijdlijn</h2>
             <Tijdlijn items={tijdlijn} />
           </section>
+          {sjabloonTabel && <AlsSjabloon o={o} sjablonen={sjablonen} />}
         </div>
       ) : (
         <>
           <OfferteEditor key={o.updated_at} begin={o} catalogus={catalogus} />
-          <Notitie o={o} />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Notitie o={o} />
+            {sjabloonTabel && <AlsSjabloon o={o} sjablonen={sjablonen} />}
+          </div>
         </>
       )}
     </div>
@@ -278,5 +288,46 @@ function Getekend({ o }: { o: Offerte }) {
         <Link href={`/admin/offertevoorbeeld/${o.id}`} target="_blank" className="abtn-ghost mt-3 !py-1.5 text-[13px]"><LuEye /> Bekijk zoals de klant hem ziet</Link>
       </section>
     </div>
+  );
+}
+
+/**
+ * De tekst, onderdelen, voorwaarden en stappen van deze offerte als sjabloon
+ * bewaren, zodat de volgende offerte van deze vorm ermee begint. Zo pas je een
+ * sjabloon aan: maak een offerte, schaaf hem bij en bewaar hem hier.
+ */
+function AlsSjabloon({ o, sjablonen }: { o: Offerte; sjablonen: Sjabloon[] }) {
+  const zelfdeVorm = sjablonen.filter((s) => s.vorm === o.vorm);
+  const standaard = zelfdeVorm.length === 1 ? zelfdeVorm[0].sleutel : "nieuw";
+  return (
+    <section id="sjabloon" className="acard p-6">
+      <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]"><LuBookmarkPlus /> Bewaar als sjabloon</h2>
+      <p className="mt-0.5 text-[13px] text-black/45">
+        Tekst, onderdelen, voorwaarden en stappen van deze offerte worden het beginpunt voor nieuwe offertes. Klantgegevens gaan niet mee;
+        gebruik in de tekst {"{contactpersoon}"} en {"{bedrijf}"} in plaats van namen.
+      </p>
+      <form action={bewaarAlsSjabloon.bind(null, o.id)} className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label className="alabel" htmlFor="sj-keuze">Sjabloon</label>
+          <select id="sj-keuze" name="sjabloon" className="ainput" defaultValue={standaard}>
+            {sjablonen.map((s) => (
+              <option key={s.sleutel} value={s.sleutel}>Overschrijf: {s.naam}{s.vorm !== o.vorm ? ` (${VORMEN[s.vorm].kort})` : ""}</option>
+            ))}
+            <option value="nieuw">Nieuw sjabloon</option>
+          </select>
+        </div>
+        <div>
+          <label className="alabel" htmlFor="sj-naam">Naam (bij een nieuw sjabloon)</label>
+          <input id="sj-naam" name="naam" className="ainput" maxLength={120} placeholder={`Bijv. ${VORMEN[o.vorm].kort} voor de bouw`} />
+        </div>
+        <div>
+          <label className="alabel" htmlFor="sj-geldig">Standaard geldig (dagen)</label>
+          <input id="sj-geldig" name="geldig_dagen" className="ainput" inputMode="numeric" placeholder="Zoals nu" />
+        </div>
+        <div className="sm:col-span-2">
+          <button className="abtn-ghost !py-1.5 text-[13px]"><LuBookmarkPlus /> Bewaren als sjabloon</button>
+        </div>
+      </form>
+    </section>
   );
 }

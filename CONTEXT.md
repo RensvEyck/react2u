@@ -50,6 +50,8 @@ Gebruik deze termen; de code doet dat ook.
 | **Tarievenjaar** (`tarieven`) | Instelling `{jaar, geldigTot}`. De tariefblokken zetten het jaar in hun bovenkopje en tonen de geldigheid; per 1 januari pas je hier het jaar aan en in de blokken de bedragen. |
 | **Offerte** (`offertes`) | Een voorstel aan één klant, opgesteld in `/admin/offertes`. Statussen `concept`, `verstuurd`, `getekend`, `afgewezen` (de klant: niet akkoord) en `ingetrokken`; "bekeken" en "verlopen" leidt het beheer af. Nummer `jjjj-nnnn`. Zie *Offertes*. |
 | **Offerteregel** | Eén onderdeel van een offerte (`regels`, jsonb) met prijs, eenheid en soort: `vast`, `optie` (klant zet aan/uit), `keuze` (precies één uit zijn `groep`) of `tarief` (prijs bij gebruik, telt niet mee). Vorm en rekenregels in [`src/lib/offertes.ts`](src/lib/offertes.ts). |
+| **Offertevorm** (`vorm`) | Soort offerte: verzuimbegeleiding, RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject of arbeidsdeskundig onderzoek (migratie 0025). Bepaalt het label in het beheer en wat het veld *betreft* heet (werknemer, locatie, deelnemers). |
+| **Offertesjabloon** | Beginpunt van een nieuwe offerte per vorm: titel, aanhef, uitleg, onderdelen, voorwaarden, vervolgstappen en geldigheid. Standaard in [`src/lib/offerteSjablonen.ts`](src/lib/offerteSjablonen.ts); aanpassingen van het team in `offerte_sjablonen`. |
 | **Offertelink** | `/offerte/<token>`: de pagina waar de klant kiest en tekent. Het token (64 hex) is het enige geheim; *Nieuwe link* in het beheer maakt de oude ongeldig. |
 
 ## Architectuur
@@ -907,6 +909,46 @@ salesrecht, net als partners.
   aantal medewerkers en het passende startpunt staan dan al klaar.
 - **Pdf**: *Bewaar als pdf* op de getekende offerte is de printfunctie van de
   browser met een eigen printopmaak; er is geen pdf-bibliotheek.
+
+### Vormen en sjablonen
+
+Naast verzuimbegeleiding kent de module zes vormen uit de Word-offertes van
+oktober 2026: **RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject en
+arbeidsdeskundig onderzoek** (migratie
+[0025](supabase/migrations/0025_offertevormen.sql)). De inhoud en opmaak van die
+offertes worden nog aangepast; de vormen blijven. Daarom:
+
+- **Nieuwe offerte begint met de vorm.** `/admin/offertes/nieuw` toont de
+  sjablonen per groep (verzuim, preventie, re-integratie); daarna opent de editor
+  met alles ingevuld. Een offerteaanvraag uit het Postvak IN slaat de kiezer over
+  (verzuimbegeleiding met de gekozen aansluiting). Oude adressen met `?start=`
+  werken nog.
+- **De tekst staat in de offerte zelf**: `inhoud` (de uitleg, boven de
+  onderdelen) en `voorwaarden` (facturatie, betalingstermijn, annulering), in een
+  eigen mini-opmaak: `## kop`, `### tussenkop`, `- punt`, `1. stap`, `> uitgelichte
+  zin`, `**vet**` ([`OfferteTekst.tsx`](src/components/offerte/OfferteTekst.tsx)).
+  Plus `betreft` (de werknemer, locatie of deelnemers) en `vervolg` (de stappen
+  onder "Zo gaat het verder"). Al deze velden gaan mee in `getekend_inhoud` en dus
+  in de hash: de voorwaarden zijn onderdeel van wat er getekend is.
+- **Invulvelden**: `{bedrijf}`, `{contactpersoon}`, `{voornaam}` en `{betreft}`
+  worden bij het tonen ingevuld (`vulIn()`); zonder contactpersoon wordt het
+  "heer, mevrouw". Zo kan een sjabloon algemeen blijven.
+- **Sjablonen aanpassen zonder code**: maak een offerte, schaaf hem bij en kies
+  onderaan *Bewaar als sjabloon* (overschrijven of een nieuw sjabloon met eigen
+  naam). Dat komt in `offerte_sjablonen` en wint van de standaard in de code;
+  *Terug naar standaard* op `/admin/offertes/sjablonen` haalt het weg.
+  Klantgegevens gaan niet mee, de aanhef wel: gebruik daar de invulvelden.
+- **Prijzen**: spoor 2, arbeidsdeskundig onderzoek en de aansluitingen komen uit
+  de prijslijst (lopen mee met de tarievenpagina, zolang het sjabloon niet is
+  aangepast: een bewaard sjabloon heeft vaste prijzen). RI&E (€ 2.825), PAGO (€ 42,50
+  per medewerker), training (€ 595) en werkfit (€ 2.500, verlenging € 1.500) staan
+  vast in het sjabloon. Spoor 2 stond in de Word-offerte op € 3.250; het sjabloon
+  volgt de prijslijst 2027 (€ 3.365).
+- **Eenheid "per medewerker, eenmalig"** (PAGO, vragenlijsten) rekent met het
+  aantal medewerkers; een bedrag van € 0 heet "Inbegrepen"; een regel zonder
+  bedrag kan een *prijs als tekst* hebben ("€ 89 p.p. en € 0,42 per km").
+- De ondertekende versie toont, zoals de Word-offertes, *Opdrachtnemer* (React2u,
+  aangeboden door de afzender) naast *Opdrachtgever* (getekend voor akkoord).
 
 ## Van Postvak IN naar bellijst
 

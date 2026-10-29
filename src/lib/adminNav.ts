@@ -32,6 +32,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox", keywords: "inbox berichten sollicitaties inzendingen" },
   { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads", keywords: "leads bellen crm terugbellen" },
   { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding contract sales" },
+  { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
   { label: "Pagina's", href: "/admin/paginas", icon: LuFileText, keywords: "teksten blokken content cms" },
   { label: "Blog", href: "/admin/blog", icon: LuNewspaper, keywords: "artikelen nieuws posts" },
@@ -77,6 +78,6 @@ export const CRUMBS: Record<string, string> = {
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",
-  offertes: "Offertes", partners: "Partners", voorbeeld: "Voorbeeld",
+  offertes: "Offertes", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

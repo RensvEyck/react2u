@@ -3,7 +3,10 @@ import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
-import { controleer, datumLang, normaliseerRegels, type Offerte, type OfferteStatus } from "@/lib/offertes";
+import {
+  controleer, datumLang, isVorm, normaliseerRegels, normaliseerVervolg, type Offerte, type OfferteStatus,
+} from "@/lib/offertes";
+import { sleutelUit, STANDAARD_SJABLONEN } from "@/lib/offerteSjablonen";
 import { sendOfferte, offerteUrl } from "@/lib/mail";
 
 /*
@@ -24,6 +27,8 @@ function foutUit(error: { code?: string; hint?: string; message?: string } | nul
   if (!error) return "Opslaan mislukt.";
   if (error.hint === "offerte-getekend") return "Deze offerte is getekend en kan niet meer worden gewijzigd.";
   if (error.code === "PGRST205" || error.code === "42P01") return "Offertes staan nog niet aan: migratie 0024 moet eerst in Supabase worden uitgevoerd.";
+  // Een kolom uit 0025 (vorm, inhoud, voorwaarden, …) ontbreekt nog.
+  if (error.code === "PGRST204" || error.code === "42703") return "De offertevormen staan nog niet aan: migratie 0025 moet eerst in Supabase worden uitgevoerd.";
   if (error.code === "23514") return "Een van de velden klopt niet (bijvoorbeeld het e-mailadres of het aantal medewerkers).";
   return "Opslaan mislukt.";
 }
@@ -47,11 +52,14 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
   const { sb, user, admin } = await requirePerm("bellijst");
   const id = String(fd.get("id") || "");
   let regels: unknown = [];
+  let vervolg: unknown = [];
   try {
     regels = JSON.parse(String(fd.get("regels") || "[]"));
+    vervolg = JSON.parse(String(fd.get("vervolg") || "[]"));
   } catch {
     return { fout: "De onderdelen konden niet worden gelezen. Probeer het opnieuw." };
   }
+  const vorm = fd.get("vorm");
   const medewerkersRuw = Number(String(fd.get("medewerkers") || "").replace(/\D/g, ""));
   const geldig = String(fd.get("geldig_tot") || "");
   const rij = {
@@ -60,8 +68,13 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
     email: tekst(fd, "email", 254)?.toLowerCase() ?? null,
     telefoon: tekst(fd, "telefoon", 40),
     medewerkers: medewerkersRuw > 0 ? Math.min(medewerkersRuw, 1_000_000) : null,
+    vorm: isVorm(vorm) ? vorm : "verzuimbegeleiding",
     titel: tekst(fd, "titel") || "Offerte",
+    betreft: tekst(fd, "betreft"),
     intro: tekst(fd, "intro", 5000),
+    inhoud: tekst(fd, "inhoud", 30000),
+    voorwaarden: tekst(fd, "voorwaarden", 10000),
+    vervolg: normaliseerVervolg(vervolg),
     regels: normaliseerRegels(regels),
     geldig_tot: /^\d{4}-\d{2}-\d{2}$/.test(geldig) ? geldig : null,
     afzender_naam: tekst(fd, "afzender_naam"),
@@ -117,6 +130,7 @@ export async function verstuurOfferte(id: string, _prev: VersturenState, fd: For
     aanhef: tekst(fd, "aanhef", 120) ?? o.contactpersoon?.split(" ")[0] ?? null,
     bedrijf: o.bedrijf,
     nummer: o.nummer,
+    titel: o.titel,
     link: offerteUrl(o.token),
     bericht: tekst(fd, "bericht", 5000),
     geldigTot: o.geldig_tot ? datumLang(o.geldig_tot) : null,
@@ -189,6 +203,7 @@ export async function dupliceerOfferte(id: string) {
     .insert({
       bedrijf: bron.bedrijf, contactpersoon: bron.contactpersoon, email: bron.email, telefoon: bron.telefoon,
       medewerkers: bron.medewerkers, titel: bron.titel, intro: bron.intro, regels: normaliseerRegels(bron.regels),
+      vorm: bron.vorm, betreft: bron.betreft, inhoud: bron.inhoud, voorwaarden: bron.voorwaarden, vervolg: bron.vervolg,
       afzender_naam: bron.afzender_naam, afzender_functie: bron.afzender_functie,
       afzender_email: bron.afzender_email, afzender_telefoon: bron.afzender_telefoon,
       created_by: user.id,
@@ -227,4 +242,63 @@ export async function saveOfferteNotitie(id: string, fd: FormData) {
   await sb.from("offertes").update({ notitie: tekst(fd, "notitie", 5000) }).eq("id", id);
   ververs(id);
   redirect(`/admin/offertes/${id}?opgeslagen=notitie`);
+}
+
+/* ---------- sjablonen (migratie 0025) ---------- */
+
+/**
+ * De tekst, onderdelen, voorwaarden en stappen van deze offerte bewaren als
+ * sjabloon: een bestaand sjabloon overschrijven (dezelfde sleutel, ook een
+ * standaard) of een nieuw sjabloon met een eigen naam. Klantgegevens gaan niet
+ * mee; de aanhef wel, dus gebruik daar {contactpersoon} in plaats van een naam.
+ */
+export async function bewaarAlsSjabloon(id: string, fd: FormData) {
+  const { sb, admin } = await requirePerm("bellijst");
+  const o = await laad(sb, id);
+  if (!o) redirect("/admin/offertes");
+  const keuze = String(fd.get("sjabloon") || "");
+  const nieuweNaam = tekst(fd, "naam", 120);
+  const bestaand = keuze && keuze !== "nieuw" ? keuze : null;
+  if (!bestaand && !nieuweNaam) redirect(`/admin/offertes/${id}?fout=sjabloon-naam#sjabloon`);
+  const standaard = bestaand ? STANDAARD_SJABLONEN.find((s) => s.sleutel === bestaand) : undefined;
+  const { data: rij } = bestaand
+    ? await sb.from("offerte_sjablonen").select("naam, omschrijving, geldig_dagen").eq("sleutel", bestaand).maybeSingle()
+    : { data: null };
+  const huidig = rij as { naam: string; omschrijving: string | null; geldig_dagen: number } | null;
+  const geldig = Number(fd.get("geldig_dagen"));
+  const bron = o.status === "getekend" && o.getekend_inhoud ? { ...o, ...o.getekend_inhoud } : o;
+  const record = {
+    sleutel: bestaand || sleutelUit(nieuweNaam!),
+    vorm: o.vorm,
+    naam: bestaand ? huidig?.naam || standaard?.naam || bestaand : nieuweNaam!,
+    omschrijving: tekst(fd, "omschrijving", 300) ?? huidig?.omschrijving ?? standaard?.omschrijving ?? null,
+    titel: bron.titel,
+    intro: bron.intro,
+    inhoud: bron.inhoud ?? null,
+    voorwaarden: bron.voorwaarden ?? null,
+    vervolg: normaliseerVervolg(bron.vervolg),
+    regels: normaliseerRegels(bron.regels),
+    geldig_dagen: geldig >= 1 && geldig <= 365 ? Math.round(geldig) : huidig?.geldig_dagen ?? standaard?.geldigDagen ?? 30,
+    updated_at: new Date().toISOString(),
+    updated_by: admin.email,
+  };
+  // Een nieuwe naam mag geen bestaande sleutel overschrijven.
+  if (!bestaand) {
+    const bezet = STANDAARD_SJABLONEN.some((s) => s.sleutel === record.sleutel) ||
+      Boolean((await sb.from("offerte_sjablonen").select("sleutel").eq("sleutel", record.sleutel).maybeSingle()).data);
+    if (bezet) redirect(`/admin/offertes/${id}?fout=sjabloon-bestaat#sjabloon`);
+  }
+  const { error } = await sb.from("offerte_sjablonen").upsert(record);
+  if (error) redirect(`/admin/offertes/${id}?fout=${error.code === "PGRST205" || error.code === "42P01" ? "migratie-0025" : "opslaan"}#sjabloon`);
+  revalidatePath("/admin/offertes/sjablonen");
+  redirect(`/admin/offertes/${id}?opgeslagen=sjabloon#sjabloon`);
+}
+
+/** Een aangepast standaardsjabloon terug naar de versie uit de code, of een eigen sjabloon verwijderen. */
+export async function verwijderSjabloon(sleutel: string) {
+  const { sb } = await requirePerm("bellijst");
+  const isStandaard = STANDAARD_SJABLONEN.some((s) => s.sleutel === sleutel);
+  await sb.from("offerte_sjablonen").delete().eq("sleutel", sleutel);
+  revalidatePath("/admin/offertes/sjablonen");
+  redirect(`/admin/offertes/sjablonen?opgeslagen=${isStandaard ? "sjabloon-standaard" : "definitief-weg"}`);
 }
