@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  controleer, datumLang, isVorm, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, type Offerte, type OfferteStatus,
+  controleer, datumLang, isVorm, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, OFFERTE_EMAIL, type Offerte, type OfferteStatus,
 } from "@/lib/offertes";
 import { sleutelUit, STANDAARD_SJABLONEN } from "@/lib/offerteSjablonen";
 import { sendOfferte, offerteUrl } from "@/lib/mail";
@@ -144,7 +144,7 @@ export async function verstuurOfferte(id: string, _prev: VersturenState, fd: For
     link: offerteUrl(o.token),
     bericht: tekst(fd, "bericht", 5000),
     geldigTot: o.geldig_tot ? datumLang(o.geldig_tot) : null,
-    afzender: { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || admin.email, telefoon: o.afzender_telefoon },
+    afzender: { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || OFFERTE_EMAIL, telefoon: o.afzender_telefoon },
     herinnering,
   });
   if (!res.ok) {

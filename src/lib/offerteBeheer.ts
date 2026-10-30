@@ -1,7 +1,7 @@
 import "server-only";
 import type { supabaseServer } from "./supabase/server";
 import { catalogusStandaard, catalogusUit, type CatalogusGroep, type TarievenData } from "./offerteCatalogus";
-import { normaliseerRegels, normaliseerVervolg, type Offerte } from "./offertes";
+import { normaliseerRegels, normaliseerVervolg, OFFERTE_EMAIL, type Offerte } from "./offertes";
 import { alleSjablonen, type Sjabloon, type SjabloonRij } from "./offerteSjablonen";
 
 /*
@@ -49,7 +49,11 @@ export function naamUitEmail(email: string): string {
     .join(" ");
 }
 
-/** De afzender van een nieuwe offerte: die van je vorige offerte, anders je e-mail en het algemene nummer. */
+/**
+ * De afzender van een nieuwe offerte: naam, functie en telefoon van je vorige
+ * offerte (anders je naam uit je e-mail en het algemene nummer). Het mailadres
+ * is altijd de salesbox, ook als je vorige offerte een eigen adres had.
+ */
 export async function standaardAfzender(sb: Sb, userId: string, email: string) {
   const [vorigeRes, contactRes] = await Promise.all([
     sb.from("offertes").select("afzender_naam, afzender_functie, afzender_email, afzender_telefoon").eq("created_by", userId)
@@ -57,12 +61,12 @@ export async function standaardAfzender(sb: Sb, userId: string, email: string) {
     sb.from("site_settings").select("value").eq("key", "contact").maybeSingle(),
   ]);
   const vorige = vorigeRes.data as Pick<Offerte, "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon"> | null;
-  if (vorige?.afzender_naam) return vorige;
+  if (vorige?.afzender_naam) return { ...vorige, afzender_email: OFFERTE_EMAIL };
   const contact = (contactRes.data as { value?: { phoneDisplay?: string } } | null)?.value;
   return {
     afzender_naam: naamUitEmail(email),
     afzender_functie: null,
-    afzender_email: email,
+    afzender_email: OFFERTE_EMAIL,
     afzender_telefoon: (contact?.phoneDisplay || "085 - 620 58 00").replace(/\s*-\s*/, " "),
   };
 }

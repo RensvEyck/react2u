@@ -7,7 +7,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { supabaseServer } from "@/lib/supabase/server";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { notifyOfferteBekeken, offerteAdminUrl } from "@/lib/mail";
-import type { OffertePubliek } from "@/lib/offertes";
+import { OFFERTE_EMAIL, type OffertePubliek } from "@/lib/offertes";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +65,7 @@ export default async function OfferteRoute({ params }: { params: Promise<{ token
 
 function Ingetrokken({ offerte }: { offerte: OffertePubliek }) {
   return (
-    <OfferteMelding titel="Deze offerte is niet meer geldig" telefoon={offerte.afzender_telefoon} email={offerte.afzender_email}>
+    <OfferteMelding titel="Deze offerte is niet meer geldig" telefoon={offerte.afzender_telefoon} email={offerte.afzender_email || OFFERTE_EMAIL}>
       Offerte {offerte.nummer} voor {offerte.bedrijf} is ingetrokken, bijvoorbeeld omdat er een nieuwe versie is.
       {offerte.afzender_naam ? ` Neem contact op met ${offerte.afzender_naam} voor de actuele offerte.` : " Neem contact met ons op voor de actuele offerte."}
     </OfferteMelding>

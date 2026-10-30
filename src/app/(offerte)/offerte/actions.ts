@@ -6,7 +6,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { withinLimit } from "@/lib/rateLimit";
 import { clientIp } from "@/lib/analytics";
 import {
-  berekenTotalen, euro, factuurFout, momentLang, normaliseerFactuur, normaliseerRegels, ONDERTEKEN_FOUT, regelbedrag,
+  berekenTotalen, euro, factuurFout, momentLang, normaliseerFactuur, normaliseerRegels, OFFERTE_EMAIL, ONDERTEKEN_FOUT, regelbedrag,
   type Factuur, type OffertePubliek,
 } from "@/lib/offertes";
 import {
@@ -74,7 +74,7 @@ export async function vraagCode(token: string, email: string): Promise<CodeState
     code,
     nummer: o?.nummer || "",
     bedrijf: o?.bedrijf || "",
-    afzender: { naam: o?.afzender_naam ?? null, functie: o?.afzender_functie ?? null, email: o?.afzender_email ?? null, telefoon: o?.afzender_telefoon ?? null },
+    afzender: { naam: o?.afzender_naam ?? null, functie: o?.afzender_functie ?? null, email: o?.afzender_email || OFFERTE_EMAIL, telefoon: o?.afzender_telefoon ?? null },
   });
   if (!verzonden.ok) return { ok: false, fout: ONDERTEKEN_FOUT.mail };
   return { ok: true };
@@ -132,7 +132,7 @@ export async function ondertekenOfferte(
       ...(t.perMaand ? [{ label: "Per maand", bedrag: euro(t.perMaand) }] : []),
       ...(t.eenmalig ? [{ label: "Eenmalig", bedrag: euro(t.eenmalig) }] : []),
     ];
-    const afzender = { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email, telefoon: o.afzender_telefoon };
+    const afzender = { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || OFFERTE_EMAIL, telefoon: o.afzender_telefoon };
     await Promise.all([
       bevestigOfferteGetekend({
         to: inhoud.getekend_email,

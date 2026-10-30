@@ -13,7 +13,7 @@ import { bewaarKeuze, ondertekenOfferte, vraagCode, wijsOfferteAf } from "@/app/
 import {
   berekenTotalen, datumLang, euro, factuurFout, factuurRegels, herstelKeuze, isNaam, maandprijs, momentLang, normaliseerFactuur,
   normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, secties, wissel, aantalVoor, bedragVoor, vulIn, DIENSTLABEL,
-  ONDERTEKEN_FOUT, VERVOLG_STANDAARD, VORMEN,
+  OFFERTE_EMAIL, ONDERTEKEN_FOUT, VERVOLG_STANDAARD, VORMEN,
   type OffertePubliek, type Regel, type Stap, type Totalen, type Vorm,
 } from "@/lib/offertes";
 
@@ -729,11 +729,9 @@ function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, bijAkkoord }:
             <Telefoon size={16} />
           </a>
         )}
-        {offerte.afzender_email && (
-          <a href={`mailto:${offerte.afzender_email}?subject=${encodeURIComponent(`Vraag over offerte ${offerte.nummer}`)}`} aria-label={`Mail ${offerte.afzender_naam || "React2u"}`} className="flex h-10 w-10 items-center justify-center rounded-full border transition-colors hover:border-[#322E83]" style={{ borderColor: LIJN, color: NAVY }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
-          </a>
-        )}
+        <a href={`mailto:${offerte.afzender_email || OFFERTE_EMAIL}?subject=${encodeURIComponent(`Vraag over offerte ${offerte.nummer}`)}`} aria-label={`Mail ${offerte.afzender_naam || "React2u"}`} className="flex h-10 w-10 items-center justify-center rounded-full border transition-colors hover:border-[#322E83]" style={{ borderColor: LIJN, color: NAVY }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+        </a>
       </div>
       <p className="m-0 mt-5 flex items-center gap-2 border-t pt-4 text-[13px]" style={{ borderColor: LIJN, color: MUTE }}>
         <span style={{ color: TEAL_TEKST }}><Schild /></span> Gecertificeerde arbodienst
