@@ -1050,6 +1050,14 @@ levert tekenen een stuk op dat inkoop en de boekhouding accepteren.
   als bestand). Lettertypen (Outfit, Caveat) staan als woff in `src/lib/pdf/fonts`;
   `outputFileTracingIncludes` in `next.config.ts` neemt ze en de keurmerklogo's
   mee naar Vercel.
+- **Concept-pdf om intern te bespreken** (30 okt 2026): op de klantpagina (paneel,
+  het bedrag op de telefoon en het akkoordblok) en in het beheer (*Concept-pdf*).
+  Dezelfde opbouw met de keuze van dat moment (`?keuze=a,b`, anders de bewaarde
+  tussenstand), het watermerk CONCEPT, lege handtekeningvakken en de link om online
+  te tekenen; geen factuurgegevens en geen certificaat. `/offerte/<token>/concept`
+  (alleen een verstuurde offerte, telt niet als bezoek) en
+  `/admin/offertevoorbeeld/<id>/concept` (ook een concept). Na het tekenen geeft de
+  conceptroute een 404; dan is er de echte pdf.
 - **Valkuilen in react-pdf 4.9**: een `Text` met `render` (paginanummer) binnen
   een vaste `View` laat de hele View weg, en met `bottom` gepositioneerd wordt hij
   niet getekend (vandaar `top: 806`); een unitless `lineHeight` op de pagina erft
@@ -1418,6 +1426,13 @@ niets zegt.
 `public.opruimen_verlopen_gegevens()`. Die verwijdert contactberichten na 12
 maanden, leads na 24 maanden en bezoekgegevens na 12 maanden.
 
+**Offertes** (migratie 0028, job `opruimen-offertes` om 03:25): een offerte die
+niet is ondertekend gaat een jaar na de laatste activiteit (`updated_at`) weg, met
+zijn tijdlijn en code. Een getekende offerte is onderdeel van de overeenkomst en
+blijft; zeven jaar na het einde van de overeenkomst is dat handwerk (de trigger
+`offerte_bewaken` laat hem via de API ook niet verwijderen). De tekst voor de
+privacyverklaring staat in `docs/privacyverklaring/aanvulling-h-offertes.md`.
+
 **Sollicitaties staan er bewust niet in**, want daar hangt een cv-bestand aan,
 en dat moet via de Storage-API weg. Alleen de databaserij verwijderen laat de
 bytes in de bucket staan — het lijkt dan gewist terwijl het er nog is, en dat is
@@ -1557,5 +1572,23 @@ lokaal) registreert ze expliciet.
 
 **Tests:** `npm test` draait Vitest over de pure modules in `src/lib`
 (zoeken, doorverwijzingen, versies, dashboard, bewaartermijn, mediagebruik,
-bedrijfsherkenning). Die bevatten de
+bedrijfsherkenning, offertes, de offerte-pdf). Die bevatten de
 regels waar het op aankomt; de schermen eromheen zijn dun.
+
+**Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
+eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`). `e2e/run.mjs`
+bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
+testbeheerder, lege versies van twee productiefuncties en pg_cron uit
+`e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen
+(`.env.local` blijft onaangeroerd), vangt mails op in een nep-Resend, stelt een
+authenticator in voor de testbeheerder en ruimt alles weer op. Nodig: Docker en de
+Supabase CLI. Uitvoer (screenshots, mails, de pdf's) in `.e2e/uitvoer`.
+`E2E_HOUDEN=1` laat de stack staan, `E2E_GEEN_BUILD=1` slaat de build over,
+`E2E_ALLEEN=offerte` draait één test.
+
+**GitHub Actions** (`.github/workflows/tests.yml`) draait bij elke pull request en
+push naar master twee jobs: lint, typecheck en Vitest, en de browsertests (zo'n
+tien minuten). Mislukt een browsertest, dan staan de screenshots en mails als
+artefact bij de run. Er zijn geen geheimen voor nodig. Een nieuwe migratie die op
+productie iets verwacht wat niet in de migraties staat, krijgt een stub in
+`e2e/supabase/extra`.

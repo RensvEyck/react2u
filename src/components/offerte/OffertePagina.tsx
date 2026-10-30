@@ -122,6 +122,24 @@ function Slot() {
   );
 }
 
+function Download({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14" />
+    </svg>
+  );
+}
+
+/** De offerte als concept-pdf met de huidige keuze: om intern te bespreken voordat je tekent. */
+function ConceptLink({ href, className = "" }: { href: string | null; className?: string }) {
+  if (!href) return null;
+  return (
+    <a href={href} className={`inline-flex items-center gap-2 text-[14px] font-medium underline-offset-4 hover:underline ${className}`} style={{ color: NAVY }}>
+      <Download /> Download als pdf om intern te bespreken
+    </a>
+  );
+}
+
 function Envelop() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -490,6 +508,11 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
   const actief = useActiefHoofdstuk(hoofdstukken.map((h) => h.id));
   const naarAkkoord = () => scrollNaar("akkoord");
   const klik = (id: string) => kanKiezen && setKeuze((k) => wissel(regels, k, id));
+  // Concept-pdf: voor de klant via zijn link, in het voorbeeld via het beheer. Niet bij een afgewezen offerte.
+  const conceptHref =
+    offerte.status === "verstuurd" && token ? `/offerte/${token}/concept?keuze=${encodeURIComponent(keuze.join(","))}&download=1` :
+    modus === "voorbeeld" && offerte.status !== "afgewezen" ? `/admin/offertevoorbeeld/${offerte.id}/concept?keuze=${encodeURIComponent(keuze.join(","))}&download=1` :
+    null;
 
   return (
     <>
@@ -516,6 +539,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
             <Label>{open && heeftKeuze ? "Bij je huidige keuze" : open ? "Je investering" : "Deze offerte"}</Label>
             <div className="mt-2"><Bedrag t={totalen} maat="text-[38px]" /></div>
             <Kleintje t={totalen} />
+            {conceptHref && <ConceptLink href={conceptHref} className="mt-4" />}
           </div>
 
           <article className="overflow-hidden rounded-[28px] shadow-[0_1px_0_rgba(28,26,78,0.04),0_30px_80px_-50px_rgba(28,26,78,0.35)]" style={{ background: PAPIER }}>
@@ -571,6 +595,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
                 voorwaarden={voorwaarden}
                 afwijzen={kanTekenen ? () => setAfwijzen(true) : undefined}
                 huis={huis}
+                conceptHref={conceptHref}
               />
             </Hoofd>
           </article>
@@ -579,7 +604,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
         {/* Het beslispaneel: altijd in beeld op een groot scherm */}
         <aside className="hidden pt-16 lg:block print:hidden">
           <div className="sticky top-[88px] flex max-h-[calc(100vh-104px)] flex-col gap-4 overflow-y-auto pb-4">
-            <Paneel totalen={totalen} heeftKeuze={heeftKeuze} open={open} naarAkkoord={naarAkkoord} offerte={offerte} bijAkkoord={actief === "akkoord"} />
+            <Paneel totalen={totalen} heeftKeuze={heeftKeuze} open={open} naarAkkoord={naarAkkoord} offerte={offerte} bijAkkoord={actief === "akkoord"} conceptHref={conceptHref} />
             <nav aria-label="Inhoud van de offerte" className="rounded-[22px] border p-5" style={{ borderColor: "#E2DBCF" }}>
               <Label>In deze offerte</Label>
               <ol className="m-0 mt-3 flex list-none flex-col gap-0.5 p-0">
@@ -673,7 +698,9 @@ function Kleintje({ t }: { t: Totalen }) {
 
 /* ---------- beslispaneel ---------- */
 
-function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, bijAkkoord }: { totalen: Totalen; heeftKeuze: boolean; open: boolean; naarAkkoord: () => void; offerte: OffertePubliek; bijAkkoord: boolean }) {
+function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, bijAkkoord, conceptHref }: {
+  totalen: Totalen; heeftKeuze: boolean; open: boolean; naarAkkoord: () => void; offerte: OffertePubliek; bijAkkoord: boolean; conceptHref: string | null;
+}) {
   const tel = telLink(offerte.afzender_telefoon);
   const toestand =
     offerte.status === "afgewezen" ? "Je hebt laten weten niet akkoord te gaan." :
@@ -716,6 +743,7 @@ function Paneel({ totalen, heeftKeuze, open, naarAkkoord, offerte, bijAkkoord }:
           <span style={{ color: TEAL_TEKST }}><Vink size={15} /></span> Je ondertekent links in het document
         </p>
       )}
+      {conceptHref && <div className="mt-4 text-center"><ConceptLink href={conceptHref} className="text-[13.5px]" /></div>}
       {toestand && <p className="m-0 mt-6 rounded-[12px] bg-[#FFF4E5] px-4 py-3 text-[14px] leading-[1.5] text-[#7A4A06]">{toestand}</p>}
 
       <div className="mt-6 flex items-center gap-3 border-t pt-5" style={{ borderColor: LIJN }}>
@@ -1029,7 +1057,7 @@ function Vervolg({ stappen: eigen, klaar = 0 }: { stappen: Stap[] | null | undef
 /* ---------- akkoord: tekenen in het document ---------- */
 
 function Akkoord({
-  offerte, token, keuze, totalen, kanTekenen, open, modus, voorwaarden, afwijzen, huis,
+  offerte, token, keuze, totalen, kanTekenen, open, modus, voorwaarden, afwijzen, huis, conceptHref,
 }: {
   offerte: OffertePubliek;
   token?: string;
@@ -1041,6 +1069,7 @@ function Akkoord({
   voorwaarden: string;
   afwijzen?: () => void;
   huis: Huis;
+  conceptHref: string | null;
 }) {
   const router = useRouter();
   const vooraf = normaliseerFactuur(offerte.factuur);
@@ -1131,9 +1160,12 @@ function Akkoord({
     <div>
       {/* Wat je tekent, in één zin */}
       <div className="mb-8 flex flex-col gap-3 rounded-[18px] border p-5 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: LIJN, background: ZACHT }}>
-        <p className="m-0 text-[15px] leading-[1.55]" style={{ color: BODY }}>
-          Je geeft akkoord op <strong style={{ color: INKT }}>{totalen.regels.map((r) => r.regel.naam).join(", ") || offerte.titel}</strong>.
-        </p>
+        <div>
+          <p className="m-0 text-[15px] leading-[1.55]" style={{ color: BODY }}>
+            Je geeft akkoord op <strong style={{ color: INKT }}>{totalen.regels.map((r) => r.regel.naam).join(", ") || offerte.titel}</strong>.
+          </p>
+          {conceptHref && open && <ConceptLink href={conceptHref} className="mt-2 text-[13.5px]" />}
+        </div>
         <p className="m-0 shrink-0 text-[15px] font-semibold tabular-nums" style={{ color: INKT }}>
           {totalen.perMaand > 0 && <span className="whitespace-nowrap">{euro(totalen.perMaand)} per maand</span>}
           {totalen.perMaand > 0 && totalen.eenmalig > 0 ? " " : ""}

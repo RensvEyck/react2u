@@ -706,8 +706,8 @@ export function tijdlijnRegels(c: CertificaatGegevens): { at: string; tekst: str
   return uit;
 }
 
-/** Bestandsnaam van de getekende offerte: "Offerte 2026-0012 Bakkerij Jansen (getekend).pdf". */
-export function pdfNaam(i: Pick<GetekendeInhoud, "nummer" | "bedrijf">): string {
+/** Bestandsnaam van de pdf: "Offerte 2026-0012 Bakkerij Jansen (getekend).pdf", of "(concept)". */
+export function pdfNaam(i: Pick<GetekendeInhoud, "nummer" | "bedrijf">, soort: "getekend" | "concept" = "getekend"): string {
   const bedrijf = i.bedrijf.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
-  return `Offerte ${i.nummer} ${bedrijf} (getekend).pdf`;
+  return `Offerte ${i.nummer} ${bedrijf} (${soort}).pdf`;
 }

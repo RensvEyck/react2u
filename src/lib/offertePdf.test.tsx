@@ -99,7 +99,22 @@ describe("offertePdf", () => {
     // Minstens twee pagina's: de offerte en het certificaat.
     const paginas = (pdf.toString("latin1").match(/\/Type\s*\/Page[^s]/g) || []).length;
     expect(paginas).toBeGreaterThanOrEqual(2);
+    expect(pdf.toString("latin1")).toContain("ondertekeningscertificaat");
     if (process.env.PDF_UIT) writeFileSync(process.env.PDF_UIT, pdf);
+  }, 30000);
+
+  it("maakt een concept zonder handtekening en certificaat", async () => {
+    const concept: GetekendeInhoud = {
+      ...inhoud, factuur: undefined, bevestiging: undefined, handtekening_hash: undefined,
+      getekend_naam: "", getekend_functie: null, getekend_email: "", getekend_at: "",
+    };
+    const pdf = await offertePdf({ inhoud: concept, hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, link: "https://react2u.nl/offerte/x", concept: true });
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+    if (process.env.PDF_CONCEPT) writeFileSync(process.env.PDF_CONCEPT, pdf);
+    // In de metadata: een concept, zonder ondertekeningscertificaat.
+    const ruw = pdf.toString("latin1");
+    expect(ruw).toContain("offerte, concept");
+    expect(ruw).not.toContain("ondertekeningscertificaat");
   }, 30000);
 
   it("werkt ook voor een offerte van vóór de bevestigingscode", async () => {

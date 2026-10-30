@@ -49,7 +49,6 @@ function registreer() {
 
 const NAVY = "#322E83";
 const INKT = "#1C1A4E";
-const PINK = "#E61674";
 const TEAL = "#00A098";
 const BODY = "#55536F";
 const MUTE = "#7A7893";
@@ -61,9 +60,9 @@ const s = StyleSheet.create({
   voet: { position: "absolute", bottom: 26, left: 50, right: 50, fontSize: 7.5, color: MUTE, borderTopWidth: 0.6, borderTopColor: LIJN, paddingTop: 8, lineHeight: 1.3 },
   // Met `top`: een Text met `render` die met `bottom` staat, tekent react-pdf (4.9) niet. 806 = A4 (842) − 26 − de regel.
   paginanummer: { position: "absolute", top: 806, left: 50, right: 50, textAlign: "right", fontSize: 7.5, color: MUTE, lineHeight: 1.3 },
-  label: { fontSize: 7.5, fontWeight: 600, letterSpacing: 1.1, textTransform: "uppercase", color: MUTE },
+  label: { fontSize: 8.5, fontWeight: 600, color: MUTE },
   kop: { flexDirection: "row", alignItems: "baseline", marginBottom: 10 },
-  kopNr: { fontSize: 9, fontWeight: 700, color: PINK, width: 22 },
+  kopNr: { fontSize: 10, fontWeight: 600, color: NAVY, width: 18 },
   kopTekst: { fontSize: 15, fontWeight: 600, color: INKT, letterSpacing: -0.2, lineHeight: 1.25 },
   hoofdstuk: { paddingTop: 18, marginTop: 18, borderTopWidth: 0.6, borderTopColor: LIJN },
   rij: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderTopWidth: 0.6, borderTopColor: LIJN },
@@ -122,7 +121,7 @@ function Tekst({ tekst, basis, klein = false, kop }: { tekst: string; basis: str
             <View key={i} style={{ marginBottom: 6 }}>
               {b.items.map((it, j) => (
                 <View key={j} style={{ flexDirection: "row", marginBottom: 2.5 }} wrap={false}>
-                  <Text style={{ width: 14, color: b.soort === "ul" ? PINK : NAVY, fontWeight: 600, fontSize: maat }}>{b.soort === "ul" ? "•" : `${j + 1}.`}</Text>
+                  <Text style={{ width: 14, color: NAVY, fontWeight: 600, fontSize: maat }}>{b.soort === "ul" ? "•" : `${j + 1}.`}</Text>
                   <Text style={{ flex: 1, fontSize: maat }}><Inline tekst={it} basis={basis} /></Text>
                 </View>
               ))}
@@ -141,7 +140,7 @@ function Tekst({ tekst, basis, klein = false, kop }: { tekst: string; basis: str
 function Kop({ nr, titel }: { nr: number; titel: string }) {
   return (
     <View style={s.kop} minPresenceAhead={60}>
-      <Text style={s.kopNr}>{String(nr).padStart(2, "0")}</Text>
+      <Text style={s.kopNr}>{nr}</Text>
       <Text style={s.kopTekst}>{titel}</Text>
     </View>
   );
@@ -151,14 +150,27 @@ function Kop({ nr, titel }: { nr: number; titel: string }) {
  * De voet op elke pagina. Het paginanummer staat er los naast: een Text met
  * `render` binnen een vaste View laat react-pdf (4.9) de hele View weglaten.
  */
-function Voet({ contact, nummer }: { contact: ContactInfo; nummer: string }) {
+function Voet({ contact, nummer, concept = false }: { contact: ContactInfo; nummer: string; concept?: boolean }) {
   return (
     <>
       <View style={s.voet} fixed>
-        <Text>React2u · {contact.addressLine1}, {contact.addressLine2} · KvK {contact.kvk} · btw {contact.btw}</Text>
+        <Text>React2u, {contact.addressLine1}, {contact.addressLine2}, KvK {contact.kvk}, btw {contact.btw}</Text>
       </View>
-      <Text style={s.paginanummer} fixed render={({ pageNumber, totalPages }) => `Offerte ${nummer} · ${pageNumber} van ${totalPages}`} />
+      <Text
+        style={s.paginanummer}
+        fixed
+        render={({ pageNumber, totalPages }) => `Offerte ${nummer}${concept ? " (concept)" : ""}, pagina ${pageNumber} van ${totalPages}`}
+      />
     </>
+  );
+}
+
+/** Groot en licht schuin over elke pagina van een concept: dit is (nog) niet getekend. */
+function Watermerk() {
+  return (
+    <View fixed style={{ position: "absolute", top: 360, left: 0, right: 0, alignItems: "center" }}>
+      <Text style={{ fontSize: 92, fontWeight: 700, color: "#F3EFE8", letterSpacing: 4, transform: "rotate(-28deg)" }}>CONCEPT</Text>
+    </View>
   );
 }
 
@@ -182,9 +194,16 @@ export type OffertePdfInvoer = {
   link: string;
   /** Afzender zoals hij nu in de offerte staat, voor oude offertes van vóór 0026 zonder functie in de vastgelegde versie. */
   afzenderFunctie?: string | null;
+  /**
+   * Een concept om intern te bespreken: de offerte met de huidige keuze, nog
+   * niet getekend. Dan geen handtekening, factuurgegevens of certificaat, wel
+   * het watermerk en een verwijzing naar de link om online te tekenen. De
+   * getekend-velden in `inhoud` zijn dan leeg.
+   */
+  concept?: boolean;
 };
 
-function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, link, afzenderFunctie }: OffertePdfInvoer) {
+function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, link, afzenderFunctie, concept = false }: OffertePdfInvoer) {
   const regels = normaliseerRegels(inhoud.regels);
   const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
   const tarieven = regels.filter((r) => r.soort === "tarief");
@@ -194,7 +213,7 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
   const afzender = inhoud.afzender_naam || "React2u";
   const functie = inhoud.afzender_functie ?? afzenderFunctie ?? null;
   const bevestiging = inhoud.bevestiging;
-  const factuur = inhoud.factuur;
+  const factuur = concept ? null : inhoud.factuur;
   const basis = new URL(link).origin;
 
   const hoofdstukken = [
@@ -209,7 +228,7 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
 
   const meta: [string, string][] = [
     ["Offertenummer", inhoud.nummer],
-    ["Datum", datumLang(inhoud.verstuurd_at || inhoud.getekend_at)],
+    ["Datum", datumLang(inhoud.verstuurd_at || inhoud.getekend_at || new Date().toISOString())],
     ...(inhoud.geldig_tot ? [["Geldig tot", datumLang(inhoud.geldig_tot)] as [string, string]] : []),
     ...(inhoud.betreft
       ? [[VORMEN[vorm].betreft || "Betreft", inhoud.betreft] as [string, string]]
@@ -219,9 +238,18 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
   ];
 
   return (
-    <Document title={`Offerte ${inhoud.nummer} – ${inhoud.bedrijf}`} author="React2u" subject={inhoud.titel} creator="React2u" producer="React2u" language="nl-NL">
+    <Document
+      title={`Offerte ${inhoud.nummer} ${inhoud.bedrijf}${concept ? " (concept)" : ""}`}
+      author="React2u"
+      subject={inhoud.titel}
+      keywords={concept ? "offerte, concept" : "offerte, getekend, ondertekeningscertificaat"}
+      creator="React2u"
+      producer="React2u"
+      language="nl-NL"
+    >
       <Page size="A4" style={s.pagina}>
-        <Voet contact={contact} nummer={inhoud.nummer} />
+        {concept && <Watermerk />}
+        <Voet contact={contact} nummer={inhoud.nummer} concept={concept} />
         {/* Briefhoofd */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingBottom: 16, borderBottomWidth: 0.6, borderBottomColor: LIJN }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -230,7 +258,7 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
             <Text style={{ fontSize: 9.5, color: BODY, lineHeight: 1.35 }}>Jouw mensen,{"\n"}<Text style={s.vet}>onze aandacht.</Text></Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={{ fontSize: 7.5, fontWeight: 600, color: VORMEN[vorm].kleur, letterSpacing: 1, textTransform: "uppercase" }}>{DIENSTLABEL[vorm]}</Text>
+            <Text style={{ fontSize: 8.5, fontWeight: 600, color: VORMEN[vorm].kleur }}>{DIENSTLABEL[vorm]}</Text>
             <Text style={{ fontSize: 10, fontWeight: 600, color: INKT, marginTop: 2, lineHeight: 1.3 }}>Offerte {inhoud.nummer}</Text>
           </View>
         </View>
@@ -247,14 +275,24 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
               </View>
             ))}
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 18, backgroundColor: "#E5F6F4", borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12 }}>
-            <Vink kleur="#0B7F78" maat={11} />
-            <Text style={{ marginLeft: 7, fontSize: 9.5, color: "#0B5F5A" }}>
-              <Text style={{ fontWeight: 600 }}>Ondertekend voor akkoord</Text> door {inhoud.getekend_naam}
-              {inhoud.getekend_functie ? ` (${inhoud.getekend_functie})` : ""} op {momentLang(inhoud.getekend_at)}
-              {bevestiging ? ", e-mailadres bevestigd met een code" : ""}.
-            </Text>
-          </View>
+          {concept ? (
+            <View style={{ marginTop: 18, backgroundColor: "#FFF4E5", borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12 }}>
+              <Text style={{ fontSize: 9.5, color: "#7A4A06" }}>
+                <Text style={{ fontWeight: 600 }}>Concept, nog niet ondertekend.</Text> Deze versie is om intern te bespreken, met de onderdelen
+                die nu gekozen zijn. Ondertekenen gaat online via de persoonlijke link.
+              </Text>
+              <Link src={link} style={{ fontSize: 8, color: "#7A4A06", marginTop: 2 }}>{link}</Link>
+            </View>
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 18, backgroundColor: "#E5F6F4", borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12 }}>
+              <Vink kleur="#08716B" maat={11} />
+              <Text style={{ marginLeft: 7, fontSize: 9.5, color: "#0B5F5A" }}>
+                <Text style={{ fontWeight: 600 }}>Ondertekend voor akkoord</Text> door {inhoud.getekend_naam}
+                {inhoud.getekend_functie ? ` (${inhoud.getekend_functie})` : ""} op {momentLang(inhoud.getekend_at)}
+                {bevestiging ? ", e-mailadres bevestigd met een code" : ""}.
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* 1. Wat je afneemt */}
@@ -324,8 +362,8 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
           <Kop nr={nr("vervolg")} titel="Zo gaat het verder" />
           {stappen.map((st, i) => (
             <View key={i} style={{ flexDirection: "row", marginBottom: 6 }} wrap={false}>
-              <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: i === 0 ? TEAL : NAVY, alignItems: "center", justifyContent: "center", marginRight: 9 }}>
-                {i === 0 ? <Vink kleur="#FFFFFF" maat={8} /> : <Text style={{ color: "#FFFFFF", fontSize: 7.5, fontWeight: 700 }}>{i + 1}</Text>}
+              <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: i === 0 && !concept ? TEAL : NAVY, alignItems: "center", justifyContent: "center", marginRight: 9 }}>
+                {i === 0 && !concept ? <Vink kleur="#FFFFFF" maat={8} /> : <Text style={{ color: "#FFFFFF", fontSize: 7.5, fontWeight: 700 }}>{i + 1}</Text>}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: INKT, fontWeight: 600 }}>{st.kop}</Text>
@@ -349,27 +387,38 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
             <View style={{ flex: 1 }}>
               <Text style={s.label}>Opdrachtnemer</Text>
               <Text style={{ fontSize: 11, fontWeight: 600, color: INKT, marginTop: 3 }}>React2u</Text>
-              <Text style={{ fontSize: 8.5, color: MUTE }}>{contact.addressLine1}, {contact.addressLine2} · KvK {contact.kvk}</Text>
+              <Text style={{ fontSize: 8.5, color: MUTE }}>{contact.addressLine1}, {contact.addressLine2}, KvK {contact.kvk}</Text>
               <View style={{ height: 62, justifyContent: "flex-end" }}>
                 <Text style={{ fontFamily: "Caveat", fontSize: 26, color: NAVY, lineHeight: 1.15, paddingBottom: 2 }}>{afzender}</Text>
               </View>
               <Text style={{ fontSize: 8.5, color: MUTE, borderTopWidth: 0.6, borderTopColor: "#D9D4CA", paddingTop: 4 }}>
-                {[afzender, functie].filter(Boolean).join(", ")}{inhoud.verstuurd_at ? ` · ${datumLang(inhoud.verstuurd_at)}` : ""}
+                {[afzender, functie].filter(Boolean).join(", ")}{inhoud.verstuurd_at ? `, ${datumLang(inhoud.verstuurd_at)}` : ""}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={s.label}>Opdrachtgever</Text>
               <Text style={{ fontSize: 11, fontWeight: 600, color: INKT, marginTop: 3 }}>{inhoud.bedrijf}</Text>
-              <Text style={{ fontSize: 8.5, color: MUTE }}>Getekend voor akkoord</Text>
+              <Text style={{ fontSize: 8.5, color: MUTE }}>{concept ? "Nog niet getekend" : "Getekend voor akkoord"}</Text>
               <View style={{ height: 62, justifyContent: "flex-end" }}>
                 {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt */}
                 {handtekening ? <Image src={handtekening} style={{ width: 170, height: 51 }} /> : null}
               </View>
               <Text style={{ fontSize: 8.5, color: MUTE, borderTopWidth: 0.6, borderTopColor: "#D9D4CA", paddingTop: 4 }}>
-                {inhoud.getekend_naam}{inhoud.getekend_functie ? `, ${inhoud.getekend_functie}` : ""} · {momentLang(inhoud.getekend_at)}
+                {concept ? "Naam, functie en datum" : `${inhoud.getekend_naam}${inhoud.getekend_functie ? `, ${inhoud.getekend_functie}` : ""}, ${momentLang(inhoud.getekend_at)}`}
               </Text>
             </View>
           </View>
+
+          {concept && (
+            <View style={{ marginTop: 16, backgroundColor: ZACHT, borderRadius: 8, padding: 12 }}>
+              <Text style={{ fontWeight: 600, color: INKT }}>Ondertekenen gaat online</Text>
+              <Text style={{ fontSize: 8.8, marginTop: 2 }}>
+                Open de persoonlijke link, kies wat u wilt afnemen en zet uw handtekening. U bevestigt met een code uit uw mail en ontvangt de
+                ondertekende offerte als pdf.
+              </Text>
+              <Link src={link} style={{ fontSize: 8, color: NAVY, marginTop: 3 }}>{link}</Link>
+            </View>
+          )}
 
           {factuur ? (
             <View style={{ flexDirection: "row", marginTop: 16, backgroundColor: ZACHT, borderRadius: 8, padding: 12, gap: 24 }}>
@@ -397,7 +446,7 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
 
       </Page>
 
-      <Certificaat inhoud={inhoud} hash={hash} certificaat={certificaat} contact={contact} link={link} />
+      {!concept && <Certificaat inhoud={inhoud} hash={hash} certificaat={certificaat} contact={contact} link={link} />}
     </Document>
   );
 }
