@@ -88,6 +88,11 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href={`/admin/offertevoorbeeld/${o.id}`} target="_blank" className="abtn-ghost !py-1.5 text-[13px]"><LuEye /> Voorbeeld</Link>
+            {!getekend && o.regels.length > 0 && (
+              <a href={`/admin/offertevoorbeeld/${o.id}/concept?download=1`} className="abtn-ghost !py-1.5 text-[13px]" title="De offerte als pdf met het stempel CONCEPT, om mee te sturen of te printen">
+                <LuFileDown /> Concept-pdf
+              </a>
+            )}
             <form action={dupliceerOfferte.bind(null, o.id)}>
               <button className="abtn-ghost !py-1.5 text-[13px]"><LuCopy /> Dupliceren</button>
             </form>

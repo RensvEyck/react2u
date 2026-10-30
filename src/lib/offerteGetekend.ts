@@ -3,7 +3,7 @@ import { supabasePublic } from "./supabase/public";
 import { offerteUrl, type Bijlage } from "./mail";
 import { offerteHuisstijl } from "./offerteHuisstijl";
 import { offertePdf } from "./offertePdf";
-import { pdfNaam, type CertificaatGegevens, type OffertePubliek } from "./offertes";
+import { herstelKeuze, normaliseerRegels, pdfNaam, type CertificaatGegevens, type GetekendeInhoud, type OffertePubliek } from "./offertes";
 
 /**
  * De getekende offerte als pdf-bijlage, of null als hij (nog) niet getekend
@@ -29,6 +29,36 @@ export async function getekendePdf(token: string, bekend?: OffertePubliek | null
     afzenderFunctie: o.afzender_functie,
   });
   return { filename: pdfNaam(o.getekend_inhoud), content };
+}
+
+/**
+ * Een concept om intern te bespreken: de offerte zoals hij nu is, met de
+ * keuze die de klant op dat moment heeft (uit de pagina, anders zijn bewaarde
+ * tussenstand), zonder handtekening en certificaat. Alleen voor een offerte
+ * die (nog) niet getekend is; een getekende heeft zijn eigen pdf.
+ */
+export async function conceptPdf(o: OffertePubliek, keuze: string[] | null, link: string): Promise<Bijlage | null> {
+  if (o.status === "getekend" || o.status === "ingetrokken") return null;
+  const regels = normaliseerRegels(o.regels);
+  if (!regels.length) return null;
+  const huis = await offerteHuisstijl();
+  const inhoud: GetekendeInhoud = {
+    nummer: o.nummer, vorm: o.vorm, bedrijf: o.bedrijf, contactpersoon: o.contactpersoon, medewerkers: o.medewerkers,
+    titel: o.titel, betreft: o.betreft, intro: o.intro, inhoud: o.inhoud, voorwaarden: o.voorwaarden, vervolg: o.vervolg,
+    regels, keuze: herstelKeuze(regels, keuze ?? o.keuze), geldig_tot: o.geldig_tot,
+    afzender_naam: o.afzender_naam, afzender_functie: o.afzender_functie, afzender_email: o.afzender_email, verstuurd_at: o.verstuurd_at,
+    // Een concept is niet getekend; het document toont deze velden dan niet.
+    getekend_naam: "", getekend_functie: null, getekend_email: "", getekend_at: "",
+  };
+  const content = await offertePdf({ inhoud, hash: "", handtekening: null, certificaat: null, contact: huis.contact, link, concept: true });
+  return { filename: pdfNaam(o, "concept"), content };
+}
+
+/** De keuze uit `?keuze=a,b` van de downloadlink, of null als die er niet is. */
+export function keuzeUitUrl(url: URL): string[] | null {
+  const ruw = url.searchParams.get("keuze");
+  if (ruw === null) return null;
+  return ruw.split(",").map((k) => k.trim()).filter(Boolean).slice(0, 200);
 }
 
 /**

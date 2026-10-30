@@ -17,7 +17,7 @@
  * gebruiken; zie vulIn() in lib/offertes.ts.
  */
 import { alsRegel, STARTPUNTEN, type CatalogusGroep, type CatalogusItem } from "./offerteCatalogus";
-import { nieuwId, normaliseerRegels, normaliseerVervolg, type Regel, type Stap, type Vorm } from "./offertes";
+import { GELDIG_DAGEN, nieuwId, normaliseerRegels, normaliseerVervolg, type Regel, type Stap, type Vorm } from "./offertes";
 
 export type Sjabloon = {
   sleutel: string;
@@ -55,6 +55,8 @@ function uitCatalogus(c: CatalogusGroep[], naam: string): CatalogusItem | undefi
 }
 
 const BTW = "Alle bedragen zijn exclusief btw.";
+/** Voor elke vorm dezelfde betalingstermijn (Rens, 30 okt 2026). */
+const BETALING = "De betalingstermijn is 30 dagen.";
 
 const AANHEF = "Beste {contactpersoon},";
 
@@ -65,13 +67,13 @@ const VERZUIM: Omit<Standaard, "sleutel" | "naam" | "omschrijving" | "regels"> =
   titel: "Verzuimbegeleiding op maat",
   intro: `${AANHEF}\n\nBedankt voor het prettige gesprek. Hieronder vind je ons voorstel voor de verzuimbegeleiding van {bedrijf}.`,
   inhoud: "",
-  voorwaarden: `- Verrichtingen op uurbasis worden afgerekend per begonnen kwartier.\n- ${BTW}`,
+  voorwaarden: `- Verrichtingen op uurbasis worden afgerekend per begonnen kwartier.\n- ${BETALING}\n- ${BTW}`,
   vervolg: [
     { kop: "Je ondertekent online", tekst: "Kies wat je wilt, zet je handtekening en je krijgt direct een bevestiging per mail." },
     { kop: "We plannen de start", tekst: "We nemen contact met je op om de aansluiting en de eerste afspraken door te nemen." },
     { kop: "Je vaste aanspreekpunt", tekst: "Je krijgt een vaste casemanager die je organisatie en je mensen leert kennen." },
   ],
-  geldigDagen: 30,
+  geldigDagen: GELDIG_DAGEN,
 };
 
 /* ---------- RI&E ---------- */
@@ -267,13 +269,13 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
     titel: "Risico-inventarisatie en -evaluatie (RI&E)",
     intro: `${AANHEF}\n\nHet doet ons een genoegen je ons voorstel te doen voor het uitvoeren van de wettelijk verplichte risico-inventarisatie en -evaluatie (RI&E) voor {bedrijf}.`,
     inhoud: RIE_INHOUD,
-    voorwaarden: `- De RI&E wordt in rekening gebracht na oplevering van het concept-rapport.\n- Aanvullende werkzaamheden uit het Plan van Aanpak worden maandelijks achteraf in rekening gebracht.\n- De betalingstermijn is 30 dagen.\n- Alle bedragen zijn exclusief btw en inclusief reiskosten.`,
+    voorwaarden: `- De RI&E wordt in rekening gebracht na oplevering van het concept-rapport.\n- Aanvullende werkzaamheden uit het Plan van Aanpak worden maandelijks achteraf in rekening gebracht.\n- ${BETALING}\n- Alle bedragen zijn exclusief btw en inclusief reiskosten.`,
     vervolg: [
       { kop: "Je ondertekent online", tekst: "Je krijgt direct een bevestiging per mail." },
       { kop: "We plannen de inventarisatie", tekst: "We plannen de inventarisatie, de interviews en zo nodig een bezoek op locatie." },
       { kop: "Rapport en Plan van Aanpak", tekst: "Je ontvangt het getoetste rapport met Plan van Aanpak en een mondelinge toelichting." },
     ],
-    geldigDagen: 30,
+    geldigDagen: GELDIG_DAGEN,
     regels: () => [
       r({ sectie: "Kosten", naam: "RI&E, stap 1 tot en met 4", omschrijving: "Inventarisatie, evaluatie, Plan van Aanpak en toetsing door een hogere veiligheidskundige en een arbeidshygiënist, inclusief toetsingsverklaring en reiskosten.", prijs: 2825, eenheid: "eenmalig", soort: "vast" }),
       r({ sectie: "Kosten", naam: "Aanvullende werkzaamheden uit het Plan van Aanpak", prijs: null, eenheid: "uur", soort: "tarief" }),
@@ -287,13 +289,13 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
     titel: "Periodiek arbeidsgezondheidskundig onderzoek (PAGO)",
     intro: `${AANHEF}\n\nHierbij doen we je ons voorstel voor het uitvoeren van een PAGO bij {bedrijf}. Onze bedrijfsarts heeft je RI&E doorgenomen en sluit zich aan bij het advies van de kerndeskundigen.`,
     inhoud: PAGO_INHOUD,
-    voorwaarden: `- ${BTW}`,
+    voorwaarden: `- ${BETALING}\n- ${BTW}`,
     vervolg: [
       { kop: "Je ondertekent online", tekst: "Je krijgt direct een bevestiging per mail." },
       { kop: "De vragenlijst gaat uit", tekst: "We stemmen de planning af en zetten de vragenlijst uit bij je medewerkers." },
       { kop: "Rapportage en advies", tekst: "Medewerkers krijgen hun eigen rapport, jij een groepsrapportage met adviezen." },
     ],
-    geldigDagen: 14,
+    geldigDagen: GELDIG_DAGEN,
     regels: () => [
       r({ sectie: "Tarieven", naam: "Vragenlijst werkdruk en mentale belasting", omschrijving: "Inclusief analyse van de uitkomsten.", prijs: 42.5, eenheid: "medewerker", soort: "vast" }),
     ],
@@ -306,13 +308,13 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
     titel: "Verzuimtraining voor leidinggevenden",
     intro: `${AANHEF}\n\nHierbij doen we je ons voorstel voor een verzuimtraining voor de leidinggevenden van {bedrijf}.`,
     inhoud: TRAINING_INHOUD,
-    voorwaarden: `- Facturatie vindt plaats na uitvoering van de training.\n- De betalingstermijn is 14 dagen.\n- ${BTW}`,
+    voorwaarden: `- Facturatie vindt plaats na uitvoering van de training.\n- ${BETALING}\n- ${BTW}`,
     vervolg: [
       { kop: "Je ondertekent online", tekst: "Je krijgt direct een bevestiging per mail." },
       { kop: "Intake en voorbereiding", tekst: "We stemmen datum, groep en casuïstiek af en maken de training op maat." },
       { kop: "De training", tekst: "Een interactieve training van ongeveer 2,5 uur bij jullie op locatie." },
     ],
-    geldigDagen: 60,
+    geldigDagen: GELDIG_DAGEN,
     regels: () => [
       r({ sectie: "Investering", naam: "Verzuimtraining, 2,5 uur, incompany", prijs: 595, eenheid: "eenmalig", soort: "vast" }),
       r({ sectie: "Investering", naam: "Voorbereiding en maatwerk", prijs: 0, eenheid: "eenmalig", soort: "vast" }),
@@ -331,7 +333,7 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
     inhoud: SPOOR2_INHOUD,
     voorwaarden: `- Na je akkoord plannen we een intakegesprek met je werknemer en stellen we het trajectplan op.\n- Daarna volgt de factuur, met een betalingstermijn van 30 dagen.\n- ${BTW}`,
     vervolg: TRAJECT_VERVOLG,
-    geldigDagen: 30,
+    geldigDagen: GELDIG_DAGEN,
     regels: (c) => {
       const eerste = uitCatalogus(c, "Spoor 2, eerste zes maanden");
       const vervolg = uitCatalogus(c, "Spoor 2, vervolg");
@@ -353,7 +355,7 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
     inhoud: WERKFIT_INHOUD,
     voorwaarden: `- Na je akkoord plannen we een intakegesprek met je werknemer en stellen we het trajectplan op.\n- Daarna volgt de factuur, met een betalingstermijn van 30 dagen.\n- ${BTW}`,
     vervolg: TRAJECT_VERVOLG,
-    geldigDagen: 30,
+    geldigDagen: GELDIG_DAGEN,
     regels: () => [
       r({ sectie: "Offerte", naam: "Werkfittraject, 4 maanden", omschrijving: "Inclusief trajectplan en eindrapportage.", prijs: 2500, eenheid: "eenmalig", soort: "vast" }),
       r({ sectie: "Offerte", naam: "Verlenging met 3 maanden", prijs: 1500, eenheid: "eenmalig", soort: "optie" }),
@@ -367,13 +369,13 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
     titel: "Arbeidsdeskundig onderzoek",
     intro: `${AANHEF}\n\nOnlangs heeft de bedrijfsarts van React2u een Functionele Mogelijkhedenlijst opgesteld en geadviseerd een arbeidsdeskundig onderzoek te laten uitvoeren. Hierbij ons voorstel.`,
     inhoud: AD_INHOUD,
-    voorwaarden: `- Het onderzoek kan alleen met een goede reden worden geannuleerd. Geef een annulering tijdig en schriftelijk door, op werkdagen.\n- Bij een no-show of afzegging binnen 48 uur voor de afspraak brengen we 50% van de geoffreerde kosten in rekening.\n- ${BTW}`,
+    voorwaarden: `- Het onderzoek kan alleen met een goede reden worden geannuleerd. Geef een annulering tijdig en schriftelijk door, op werkdagen.\n- Bij een no-show of afzegging binnen 48 uur voor de afspraak brengen we 50% van de geoffreerde kosten in rekening.\n- ${BETALING}\n- ${BTW}`,
     vervolg: [
       { kop: "Je ondertekent online", tekst: "Je krijgt direct een bevestiging per mail." },
       { kop: "Dossier en gesprekken", tekst: "We bestuderen het dossier en spreken werkgever en werknemer." },
       { kop: "Rapport met advies", tekst: "Je ontvangt een rapport met een helder antwoord op de vragen hierboven." },
     ],
-    geldigDagen: 14,
+    geldigDagen: GELDIG_DAGEN,
     regels: (c) => {
       const ad = uitCatalogus(c, "Arbeidsdeskundig onderzoek");
       return [

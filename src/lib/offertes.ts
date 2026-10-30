@@ -94,6 +94,9 @@ export const VORM_KEYS = Object.keys(VORMEN) as Vorm[];
  */
 export const OFFERTE_EMAIL = "sales@react2u.nl";
 
+/** Hoe lang een nieuwe offerte geldig is: voor elke vorm dertig dagen (Rens, 30 okt 2026). */
+export const GELDIG_DAGEN = 30;
+
 /** Het label van React2u waar de vorm onder valt, in de kleur van de tarievenpagina. */
 export const DIENSTLABEL: Record<Vorm, string> = {
   verzuimbegeleiding: "React2u Recover",
@@ -706,8 +709,8 @@ export function tijdlijnRegels(c: CertificaatGegevens): { at: string; tekst: str
   return uit;
 }
 
-/** Bestandsnaam van de getekende offerte: "Offerte 2026-0012 Bakkerij Jansen (getekend).pdf". */
-export function pdfNaam(i: Pick<GetekendeInhoud, "nummer" | "bedrijf">): string {
+/** Bestandsnaam van de pdf: "Offerte 2026-0012 Bakkerij Jansen (getekend).pdf", of "(concept)". */
+export function pdfNaam(i: Pick<GetekendeInhoud, "nummer" | "bedrijf">, soort: "getekend" | "concept" = "getekend"): string {
   const bedrijf = i.bedrijf.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
-  return `Offerte ${i.nummer} ${bedrijf} (getekend).pdf`;
+  return `Offerte ${i.nummer} ${bedrijf} (${soort}).pdf`;
 }

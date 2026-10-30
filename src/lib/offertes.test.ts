@@ -344,3 +344,18 @@ describe("ondertekeningscertificaat", () => {
     expect(pdfNaam({ nummer: "2026-0012", bedrijf: "Bakkerij \"De Korst\" / Zuid" })).toBe("Offerte 2026-0012 Bakkerij De Korst Zuid (getekend).pdf");
   });
 });
+
+describe("geldigheid en betalingstermijn", () => {
+  it("elke standaardofferte is dertig dagen geldig", () => {
+    const sjablonen = alleSjablonen(catalogusStandaard());
+    expect(sjablonen.length).toBeGreaterThan(0);
+    expect(sjablonen.filter((s) => s.geldigDagen !== 30).map((s) => s.sleutel)).toEqual([]);
+  });
+
+  it("elke standaardofferte noemt een betalingstermijn van dertig dagen", () => {
+    const sjablonen = alleSjablonen(catalogusStandaard());
+    const zonder = sjablonen.filter((s) => !/betalingstermijn (is|van) 30 dagen/i.test(s.voorwaarden)).map((s) => s.sleutel);
+    expect(zonder).toEqual([]);
+    expect(sjablonen.filter((s) => /\b14 dagen\b/.test(s.voorwaarden)).map((s) => s.sleutel)).toEqual([]);
+  });
+});

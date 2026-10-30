@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  controleer, datumLang, isVorm, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, OFFERTE_EMAIL, type Offerte, type OfferteStatus,
+  controleer, datumLang, isVorm, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, GELDIG_DAGEN, OFFERTE_EMAIL, type Offerte, type OfferteStatus,
 } from "@/lib/offertes";
 import { sleutelUit, STANDAARD_SJABLONEN } from "@/lib/offerteSjablonen";
 import { sendOfferte, offerteUrl } from "@/lib/mail";
@@ -288,7 +288,7 @@ export async function bewaarAlsSjabloon(id: string, fd: FormData) {
     voorwaarden: bron.voorwaarden ?? null,
     vervolg: normaliseerVervolg(bron.vervolg),
     regels: normaliseerRegels(bron.regels),
-    geldig_dagen: geldig >= 1 && geldig <= 365 ? Math.round(geldig) : huidig?.geldig_dagen ?? standaard?.geldigDagen ?? 30,
+    geldig_dagen: geldig >= 1 && geldig <= 365 ? Math.round(geldig) : huidig?.geldig_dagen ?? standaard?.geldigDagen ?? GELDIG_DAGEN,
     updated_at: new Date().toISOString(),
     updated_by: admin.email,
   };

@@ -914,62 +914,79 @@ salesrecht, net als partners.
   aantal medewerkers en het passende startpunt staan dan al klaar.
 - **Pdf**: zie *De offerte als contract* hieronder.
 
-### De klantpagina: een document, geen webpagina
+### De klantpagina: in de vormgeving van de website
 
-De offertepagina is het moment waarop de klant akkoord geeft. Na twee rondes
-feedback van Rens (29 okt 2026: "design moet echt veel beter", daarna "geen
-foto's van de website") is het een persoonlijk offertedocument:
+De offertepagina is het moment waarop de klant akkoord geeft. Na drie rondes
+feedback van Rens (29 okt 2026: "design moet echt veel beter", "geen foto's van
+de website"; 30 okt: "bekijk de website en trek dat design door") is het een
+pagina in dezelfde taal als de werkgeverspagina's en de tarieven, zonder foto's
+([`OffertePagina.tsx`](src/components/offerte/OffertePagina.tsx)). Kleuren,
+`BREED`, `Eyebrow`, `Pijl` en de keurmerken komen uit
+[`Gedeeld.tsx`](src/components/blocks/Gedeeld.tsx); de knoppen zijn de
+`.hv-btn`-knoppen van de site.
 
-- **Omslag als briefhoofd**: het React2u-logo groot met "Jouw mensen, onze
-  aandacht.", het label waar de vorm onder valt (React2u Recover, Resist of
-  Restart, met een stip in de kleur van de tarievenpagina), de titel groot,
-  "voor {bedrijf}" en een kopregel met offertenummer, opgesteld door, datum,
-  geldig tot, betreft en medewerkers. Geen foto's. Op de telefoon staat het logo
-  alleen in de kopbalk.
-- **De echte kenmerken van React2u**: de keurmerken (SBCA, ISO 9001, ISO 27001,
-  ISO 27701, OVAL) met hun logo's, vóór het akkoord en in de voet (het paneel
-  verwijst er alleen naar, zodat de inhoudsopgave eronder in beeld blijft); staat het certificaat als PDF in Instellingen, dan klik je erheen. De
-  bedrijfsgegevens (adres, telefoon, e-mail, KvK, btw) komen uit
-  Instellingen → Contact (`lib/offerteHuisstijl.ts`) en staan in de voet en bij
-  Opdrachtnemer, zoals op een offerte op papier.
-- **Eén vel met genummerde hoofdstukken** (1 Een persoonlijk woord, Over deze
-  offerte, Stel je offerte samen, Voorwaarden, Zo gaat het verder, Akkoord),
-  gescheiden door lijnen in plaats van losse kaarten. Onder de onderdelen staat
-  het totaal als optelling, zoals op papier.
-- **Beslispaneel rechts** (vanaf 1024 px): het bedrag bij de huidige keuze (telt
-  in 280 ms mee als de klant iets kiest; een schermlezer hoort alleen het
-  eindbedrag), de regels, een knop naar het akkoord (bij het akkoord zelf alleen
-  "Je ondertekent links in het document") en de contactpersoon; daaronder de
-  inhoudsopgave, die meeloopt met waar je bent. Is de offerte verlopen of
-  afgewezen, dan zegt het paneel dat. Op de telefoon staat het bedrag onder de
-  omslag en een balk onderaan, die wegschuift zodra je bij het akkoord bent. Een
-  dun indigo lijntje onder de kopbalk laat zien hoe ver je bent.
-- **Keuzekaarten** tonen eerst wat de organisatie per maand betaalt; per
-  medewerker en de prijslijst staan er klein onder. Eén keuzeteken (het rondje).
-- **Tekenen gebeurt in het document**: twee handtekeningvakken naast elkaar,
-  Opdrachtnemer (React2u, "offerte aangeboden", de naam van de afzender in
-  handschrift) en Opdrachtgever (het tekenvak van de klant), daaronder naam,
-  functie, e-mail, het vinkje en één roze knop. Geen apart venster meer; alleen
-  "Niet akkoord" opent er nog een.
-- **Na ondertekening**: binnen een kwartier "Gelukt, …! Welkom bij React2u." met
-  stippen in de logokleuren (niet bij verminderde beweging), dan de vervolgstappen
-  met de eerste afgevinkt, en hetzelfde document met beide handtekeningen.
+- **Kopbalk zoals de site**: logo, "Offerte {nummer}", rechts "Bel {voornaam}" en
+  de roze knop Ondertekenen.
+- **Opening zoals de paginakop van een doelgroep**: een vlak in de pasteltint van
+  het label (Recover roze, Resist teal, Restart oranje) met de cirkels van de
+  dienstenkaarten, daarop het indigo vlak met de grote ronde hoek: offertenummer,
+  titel, voor wie, opgesteld door en geldig tot, en de knoppen "Stel je offerte
+  samen" en "Bel {voornaam}". Waar op de site de foto staat, staat de kaart
+  *Jouw voorstel* (`<aside>`): het label, het bedrag (telt in 280 ms mee; een
+  schermlezer hoort alleen het eindbedrag), per jaar en eenmalig, betreft,
+  medewerkers en geldig tot, de knop naar het akkoord, de concept-pdf en de
+  contactpersoon met bel- en mailknop.
+- **Banden van rand tot rand**, wit en lichtlila om en om, met de sectiekop van
+  de site (bovenkopje met stip, kop links, korte uitleg rechts): het voorwoord,
+  een persoonlijk woord (met de handtekening van de afzender in Caveat), over
+  deze offerte, de keuze, zo gaat het verder met de voorwaarden, de keurmerken
+  van de site, en het akkoord. De band vóór de keuze is altijd lila, ook als er
+  geen persoonlijk woord of uitleg is.
+- **Vast voorwoord van Cindy en Susanne** (Rens, 30 okt: "die moet vast
+  staan"): in elke offerte direct na de opening, en in de pdf als eerste
+  hoofdstuk. Het verhaal van React2u (waarom we begonnen, één vast gezicht,
+  voorkomen en herstellen, keurmerken), met een uitgelichte zin en hun twee
+  handtekeningen in handschrift. De tekst staat in
+  [`lib/offerteVoorwoord.ts`](src/lib/offerteVoorwoord.ts), niet in het beheer en
+  niet per offerte; alleen `{bedrijf}` wordt ingevuld. Daar staan ook hun
+  volledige namen en functies onder de handtekening (leeg = voornaam en
+  "React2u"). Niet op de pagina na ondertekening, wel in de getekende pdf. Het
+  zit niet in `getekend_inhoud` of de hash: het is geen afspraak, maar uitleg.
+- **Keuzes als de prijskaarten van de tarieven**: wit met een rand, en wat
+  gekozen is wordt indigo met witte letters (badge dan roze). Eerst wat de
+  organisatie per maand betaalt; per medewerker en de prijslijst klein eronder.
+  Extra's zijn witte kaarten met een schakelaar, vaste onderdelen en tarieven
+  lijsten zoals de prijslijst. Op een groot scherm loopt het totaal rechts mee;
+  onder de onderdelen staat het als indigo strook.
+- **Zo gaat het verder** met de genummerde indigo bolletjes van de site; na
+  ondertekening is de eerste stap een teal vinkje.
+- **Tekenen in een witte kaart** op de lila band: twee handtekeningvakken naast
+  elkaar, Opdrachtnemer (React2u, "offerte aangeboden", de naam van de afzender
+  in handschrift) en Opdrachtgever (het tekenvak), daaronder naam, functie,
+  e-mail, factuurgegevens, het vinkje en de roze knop. De codestap is een indigo
+  vlak. Alleen "Niet akkoord" opent een venster.
+- **Telefoon**: onderaan een balk met het bedrag en Ondertekenen, die wegschuift
+  zodra je bij het akkoord bent.
+- **Bedrijfsgegevens en keurmerken** komen uit Instellingen
+  (`lib/offerteHuisstijl.ts`): adres, telefoon, e-mail, KvK en btw in de voet en
+  bij Opdrachtnemer; staat een certificaat als PDF in Instellingen, dan klik je
+  vanaf het keurmerk erheen.
+- **Na ondertekening** dezelfde opening: "Gelukt, …! Welkom bij React2u." (binnen
+  een kwartier, met stippen in de logokleuren; niet bij verminderde beweging),
+  de kaart met het vinkje en het bedrag, de stappen, wat er is afgenomen, de tekst
+  achter "Lees de volledige tekst", voorwaarden en beide handtekeningen.
 - **Prijzen per maand**: wat per jaar loopt staat op de klantpagina, in de mails en
   in het beheer als maandbedrag (`perMaand`, `maandprijs()`, `regelbedrag()` in
   `lib/offertes.ts`), met het jaarbedrag klein erbij. De prijslijst blijft per jaar;
   het maandbedrag is het jaarbedrag gedeeld door twaalf, op centen afgerond.
-- Letters: koppen in Outfit, tekst in DM Sans, de handtekening van de afzender in
-  Caveat. Kleuren: zand als achtergrond, wit vel, indigo voor tekst en keuzes, roze
-  alleen voor de hoofdactie (de tekenknoppen, nergens anders), teal voor vinkjes
-  (als tekst `#08716B`, de merkteal is te licht). Grijze tekst `#6B6985`: minstens
-  4,5:1 op wit en zand.
-- **Huisregels voor de tekst** (ronde 29 okt, avond): labels in gewone letters, niet
-  in hoofdletters met spatiëring; geen reeksen met middenpuntjes maar zinnen of
-  regels; geen pijl naar rechts op knoppen (alleen het pijltje omlaag dat naar het
-  akkoord scrolt); hoofdstuknummers gewoon 1, 2, 3. Toetsenbordfocus heeft een
-  indigo ring, en bij "minder beweging" staan animaties en vloeiend scrollen uit.
-- Een onbekende of ingetrokken link toont hetzelfde vel (`OfferteMelding.tsx`):
-  briefhoofd, kop in Outfit, ronde knoppen naar de afzender.
+- **Huisregels van de site gelden ook hier**: bovenkopjes in hoofdletters met de
+  stip, ronde knoppen met een pijl, roze alleen voor de hoofdactie (ondertekenen),
+  teal voor vinkjes (als tekst `#08716B`, de merkteal is te licht), grijze tekst
+  `#6B6985` (4,5:1 op wit en lila). Bij "minder beweging" staan animaties en
+  vloeiend scrollen uit.
+- De pdf blijft een rustig document (zie *De offerte als contract*); de pagina
+  volgt de site, het papier niet.
+- Een onbekende of ingetrokken link toont `OfferteMelding.tsx`.
 
 ### Vormen en sjablonen
 
@@ -999,6 +1016,11 @@ offertes worden nog aangepast; de vormen blijven. Daarom:
   naam). Dat komt in `offerte_sjablonen` en wint van de standaard in de code;
   *Terug naar standaard* op `/admin/offertes/sjablonen` haalt het weg.
   Klantgegevens gaan niet mee, de aanhef wel: gebruik daar de invulvelden.
+- **Geldigheid en betalingstermijn**: elke offerte is standaard dertig dagen geldig
+  (`GELDIG_DAGEN` in `lib/offertes.ts`) en noemt in de voorwaarden een
+  betalingstermijn van dertig dagen (`BETALING` in `lib/offerteSjablonen.ts`), voor
+  elke vorm (Rens, 30 okt 2026). Per offerte aan te passen in de editor; een bewaard
+  sjabloon kan een eigen termijn hebben.
 - **Prijzen**: spoor 2, arbeidsdeskundig onderzoek en de aansluitingen komen uit
   de prijslijst (lopen mee met de tarievenpagina, zolang het sjabloon niet is
   aangepast: een bewaard sjabloon heeft vaste prijzen). RI&E (€ 2.825), PAGO (€ 42,50
@@ -1050,6 +1072,14 @@ levert tekenen een stuk op dat inkoop en de boekhouding accepteren.
   als bestand). Lettertypen (Outfit, Caveat) staan als woff in `src/lib/pdf/fonts`;
   `outputFileTracingIncludes` in `next.config.ts` neemt ze en de keurmerklogo's
   mee naar Vercel.
+- **Concept-pdf om intern te bespreken** (30 okt 2026): op de klantpagina (paneel,
+  het bedrag op de telefoon en het akkoordblok) en in het beheer (*Concept-pdf*).
+  Dezelfde opbouw met de keuze van dat moment (`?keuze=a,b`, anders de bewaarde
+  tussenstand), het watermerk CONCEPT, lege handtekeningvakken en de link om online
+  te tekenen; geen factuurgegevens en geen certificaat. `/offerte/<token>/concept`
+  (alleen een verstuurde offerte, telt niet als bezoek) en
+  `/admin/offertevoorbeeld/<id>/concept` (ook een concept). Na het tekenen geeft de
+  conceptroute een 404; dan is er de echte pdf.
 - **Valkuilen in react-pdf 4.9**: een `Text` met `render` (paginanummer) binnen
   een vaste `View` laat de hele View weg, en met `bottom` gepositioneerd wordt hij
   niet getekend (vandaar `top: 806`); een unitless `lineHeight` op de pagina erft
@@ -1418,6 +1448,13 @@ niets zegt.
 `public.opruimen_verlopen_gegevens()`. Die verwijdert contactberichten na 12
 maanden, leads na 24 maanden en bezoekgegevens na 12 maanden.
 
+**Offertes** (migratie 0028, job `opruimen-offertes` om 03:25): een offerte die
+niet is ondertekend gaat een jaar na de laatste activiteit (`updated_at`) weg, met
+zijn tijdlijn en code. Een getekende offerte is onderdeel van de overeenkomst en
+blijft; zeven jaar na het einde van de overeenkomst is dat handwerk (de trigger
+`offerte_bewaken` laat hem via de API ook niet verwijderen). De tekst voor de
+privacyverklaring staat in `docs/privacyverklaring/aanvulling-h-offertes.md`.
+
 **Sollicitaties staan er bewust niet in**, want daar hangt een cv-bestand aan,
 en dat moet via de Storage-API weg. Alleen de databaserij verwijderen laat de
 bytes in de bucket staan — het lijkt dan gewist terwijl het er nog is, en dat is
@@ -1557,5 +1594,23 @@ lokaal) registreert ze expliciet.
 
 **Tests:** `npm test` draait Vitest over de pure modules in `src/lib`
 (zoeken, doorverwijzingen, versies, dashboard, bewaartermijn, mediagebruik,
-bedrijfsherkenning). Die bevatten de
+bedrijfsherkenning, offertes, de offerte-pdf). Die bevatten de
 regels waar het op aankomt; de schermen eromheen zijn dun.
+
+**Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
+eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`). `e2e/run.mjs`
+bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
+testbeheerder, lege versies van twee productiefuncties en pg_cron uit
+`e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen
+(`.env.local` blijft onaangeroerd), vangt mails op in een nep-Resend, stelt een
+authenticator in voor de testbeheerder en ruimt alles weer op. Nodig: Docker en de
+Supabase CLI. Uitvoer (screenshots, mails, de pdf's) in `.e2e/uitvoer`.
+`E2E_HOUDEN=1` laat de stack staan, `E2E_GEEN_BUILD=1` slaat de build over,
+`E2E_ALLEEN=offerte` draait één test.
+
+**GitHub Actions** (`.github/workflows/tests.yml`) draait bij elke pull request en
+push naar master twee jobs: lint, typecheck en Vitest, en de browsertests (zo'n
+tien minuten). Mislukt een browsertest, dan staan de screenshots en mails als
+artefact bij de run. Er zijn geen geheimen voor nodig. Een nieuwe migratie die op
+productie iets verwacht wat niet in de migraties staat, krijgt een stub in
+`e2e/supabase/extra`.
