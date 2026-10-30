@@ -1,12 +1,15 @@
 import { Outfit } from "next/font/google";
 import Logo from "@/components/site/Logo";
+import { BODY, Eyebrow, kop, NAVY, Pijl, SOFT } from "@/components/blocks/Gedeeld";
 
-const kopLetter = Outfit({ subsets: ["latin"], weight: ["600"], display: "swap" });
+// Dezelfde variabele als de site (.hv .hv-kop leest --font-outfit).
+const outfit = Outfit({ subsets: ["latin"], weight: ["600"], variable: "--font-outfit", display: "swap" });
 
 /**
- * Een offertelink die niets (meer) toont: onbekend of ingetrokken. Hetzelfde
- * vel als de offerte zelf (briefhoofd, Outfit, ronde knoppen), zodat de klant
- * ziet dat hij op de goede plek is, met een weg naar een mens.
+ * Een offertelink die niets (meer) toont: onbekend of ingetrokken. In de
+ * vormgeving van de offerte en de site (lila band, Outfit, ronde knoppen met
+ * een pijl), zodat de klant ziet dat hij op de goede plek is, met een weg naar
+ * een mens.
  */
 export default function OfferteMelding({
   titel, children, telefoon, email,
@@ -16,29 +19,27 @@ export default function OfferteMelding({
   telefoon: string | null;
   email: string | null;
 }) {
+  const knop = "hv-btn inline-flex h-[52px] items-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold";
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F4EFE7] px-5 py-16">
-      <div className="w-full max-w-[560px] rounded-[28px] bg-white px-7 py-10 shadow-[0_30px_80px_-50px_rgba(28,26,78,0.35)] sm:px-12 sm:py-12">
-        <div className="flex items-center gap-4">
-          <Logo className="h-11 w-auto" />
-          <span className="h-9 w-px bg-[#E2DBCF]" aria-hidden="true" />
-          <p className="m-0 text-[14px] leading-snug text-[#55536F]">
-            Jouw mensen,<br /><span className="font-semibold text-[#1C1A4E]">onze aandacht.</span>
-          </p>
+    <main className={`hv ${outfit.variable} flex min-h-screen items-center justify-center px-5 py-16`} style={{ background: SOFT }}>
+      <div className="w-full max-w-[580px] rounded-[28px] bg-white px-7 py-10 shadow-[0_24px_48px_-36px_rgba(50,46,131,0.35)] sm:px-12 sm:py-12">
+        <Logo className="h-11 w-auto" />
+        <div className="mt-10 flex flex-col gap-4">
+          <Eyebrow>Offerte</Eyebrow>
+          {/* Kleur inline: de algemene kopstijl van de site staat buiten de Tailwind-lagen en wint anders */}
+          <h1 className={`${kop} m-0 text-[30px] leading-[1.12] tracking-[-0.8px] sm:text-[36px]`} style={{ color: NAVY }}>{titel}</h1>
         </div>
-        {/* Kleur inline: de algemene kopstijl van de site staat buiten de Tailwind-lagen en wint anders */}
-        <h1 className={`${kopLetter.className} m-0 mt-10 text-balance text-[28px] font-semibold leading-[1.15] tracking-[-0.025em] sm:text-[32px]`} style={{ color: "#1C1A4E" }}>{titel}</h1>
-        <p className="m-0 mt-4 text-[16px] leading-[1.7] text-[#55536F]">{children}</p>
+        <p className="m-0 mt-4 text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{children}</p>
         {(telefoon || email) && (
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-2.5">
             {telefoon && (
-              <a href={`tel:${telefoon.replace(/[^\d+]/g, "")}`} className="inline-flex h-[50px] items-center rounded-full bg-[#322E83] px-6 text-[15px] font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#322E83]">
-                Bel {telefoon}
+              <a href={`tel:${telefoon.replace(/[^\d+]/g, "")}`} className={`${knop} hv-btn-roze`}>
+                Bel {telefoon}<Pijl />
               </a>
             )}
             {email && (
-              <a href={`mailto:${email}`} className="inline-flex h-[50px] items-center rounded-full border border-[#E2DBCF] px-6 text-[15px] font-semibold text-[#322E83] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#322E83]">
-                Mail {email}
+              <a href={`mailto:${email}`} className={`${knop} hv-btn-rand`}>
+                Mail {email}<Pijl />
               </a>
             )}
           </div>

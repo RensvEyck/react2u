@@ -914,62 +914,68 @@ salesrecht, net als partners.
   aantal medewerkers en het passende startpunt staan dan al klaar.
 - **Pdf**: zie *De offerte als contract* hieronder.
 
-### De klantpagina: een document, geen webpagina
+### De klantpagina: in de vormgeving van de website
 
-De offertepagina is het moment waarop de klant akkoord geeft. Na twee rondes
-feedback van Rens (29 okt 2026: "design moet echt veel beter", daarna "geen
-foto's van de website") is het een persoonlijk offertedocument:
+De offertepagina is het moment waarop de klant akkoord geeft. Na drie rondes
+feedback van Rens (29 okt 2026: "design moet echt veel beter", "geen foto's van
+de website"; 30 okt: "bekijk de website en trek dat design door") is het een
+pagina in dezelfde taal als de werkgeverspagina's en de tarieven, zonder foto's
+([`OffertePagina.tsx`](src/components/offerte/OffertePagina.tsx)). Kleuren,
+`BREED`, `Eyebrow`, `Pijl` en de keurmerken komen uit
+[`Gedeeld.tsx`](src/components/blocks/Gedeeld.tsx); de knoppen zijn de
+`.hv-btn`-knoppen van de site.
 
-- **Omslag als briefhoofd**: het React2u-logo groot met "Jouw mensen, onze
-  aandacht.", het label waar de vorm onder valt (React2u Recover, Resist of
-  Restart, met een stip in de kleur van de tarievenpagina), de titel groot,
-  "voor {bedrijf}" en een kopregel met offertenummer, opgesteld door, datum,
-  geldig tot, betreft en medewerkers. Geen foto's. Op de telefoon staat het logo
-  alleen in de kopbalk.
-- **De echte kenmerken van React2u**: de keurmerken (SBCA, ISO 9001, ISO 27001,
-  ISO 27701, OVAL) met hun logo's, vóór het akkoord en in de voet (het paneel
-  verwijst er alleen naar, zodat de inhoudsopgave eronder in beeld blijft); staat het certificaat als PDF in Instellingen, dan klik je erheen. De
-  bedrijfsgegevens (adres, telefoon, e-mail, KvK, btw) komen uit
-  Instellingen → Contact (`lib/offerteHuisstijl.ts`) en staan in de voet en bij
-  Opdrachtnemer, zoals op een offerte op papier.
-- **Eén vel met genummerde hoofdstukken** (1 Een persoonlijk woord, Over deze
-  offerte, Stel je offerte samen, Voorwaarden, Zo gaat het verder, Akkoord),
-  gescheiden door lijnen in plaats van losse kaarten. Onder de onderdelen staat
-  het totaal als optelling, zoals op papier.
-- **Beslispaneel rechts** (vanaf 1024 px): het bedrag bij de huidige keuze (telt
-  in 280 ms mee als de klant iets kiest; een schermlezer hoort alleen het
-  eindbedrag), de regels, een knop naar het akkoord (bij het akkoord zelf alleen
-  "Je ondertekent links in het document") en de contactpersoon; daaronder de
-  inhoudsopgave, die meeloopt met waar je bent. Is de offerte verlopen of
-  afgewezen, dan zegt het paneel dat. Op de telefoon staat het bedrag onder de
-  omslag en een balk onderaan, die wegschuift zodra je bij het akkoord bent. Een
-  dun indigo lijntje onder de kopbalk laat zien hoe ver je bent.
-- **Keuzekaarten** tonen eerst wat de organisatie per maand betaalt; per
-  medewerker en de prijslijst staan er klein onder. Eén keuzeteken (het rondje).
-- **Tekenen gebeurt in het document**: twee handtekeningvakken naast elkaar,
-  Opdrachtnemer (React2u, "offerte aangeboden", de naam van de afzender in
-  handschrift) en Opdrachtgever (het tekenvak van de klant), daaronder naam,
-  functie, e-mail, het vinkje en één roze knop. Geen apart venster meer; alleen
-  "Niet akkoord" opent er nog een.
-- **Na ondertekening**: binnen een kwartier "Gelukt, …! Welkom bij React2u." met
-  stippen in de logokleuren (niet bij verminderde beweging), dan de vervolgstappen
-  met de eerste afgevinkt, en hetzelfde document met beide handtekeningen.
+- **Kopbalk zoals de site**: logo, "Offerte {nummer}", rechts "Bel {voornaam}" en
+  de roze knop Ondertekenen.
+- **Opening zoals de paginakop van een doelgroep**: een vlak in de pasteltint van
+  het label (Recover roze, Resist teal, Restart oranje) met de cirkels van de
+  dienstenkaarten, daarop het indigo vlak met de grote ronde hoek: offertenummer,
+  titel, voor wie, opgesteld door en geldig tot, en de knoppen "Stel je offerte
+  samen" en "Bel {voornaam}". Waar op de site de foto staat, staat de kaart
+  *Jouw voorstel* (`<aside>`): het label, het bedrag (telt in 280 ms mee; een
+  schermlezer hoort alleen het eindbedrag), per jaar en eenmalig, betreft,
+  medewerkers en geldig tot, de knop naar het akkoord, de concept-pdf en de
+  contactpersoon met bel- en mailknop.
+- **Banden van rand tot rand**, wit en lichtlila om en om, met de sectiekop van
+  de site (bovenkopje met stip, kop links, korte uitleg rechts): een persoonlijk
+  woord (met de handtekening van de afzender in Caveat), over deze offerte, de
+  keuze, zo gaat het verder met de voorwaarden, de keurmerken van de site, en het
+  akkoord.
+- **Keuzes als de prijskaarten van de tarieven**: wit met een rand, en wat
+  gekozen is wordt indigo met witte letters (badge dan roze). Eerst wat de
+  organisatie per maand betaalt; per medewerker en de prijslijst klein eronder.
+  Extra's zijn witte kaarten met een schakelaar, vaste onderdelen en tarieven
+  lijsten zoals de prijslijst. Op een groot scherm loopt het totaal rechts mee;
+  onder de onderdelen staat het als indigo strook.
+- **Zo gaat het verder** met de genummerde indigo bolletjes van de site; na
+  ondertekening is de eerste stap een teal vinkje.
+- **Tekenen in een witte kaart** op de lila band: twee handtekeningvakken naast
+  elkaar, Opdrachtnemer (React2u, "offerte aangeboden", de naam van de afzender
+  in handschrift) en Opdrachtgever (het tekenvak), daaronder naam, functie,
+  e-mail, factuurgegevens, het vinkje en de roze knop. De codestap is een indigo
+  vlak. Alleen "Niet akkoord" opent een venster.
+- **Telefoon**: onderaan een balk met het bedrag en Ondertekenen, die wegschuift
+  zodra je bij het akkoord bent.
+- **Bedrijfsgegevens en keurmerken** komen uit Instellingen
+  (`lib/offerteHuisstijl.ts`): adres, telefoon, e-mail, KvK en btw in de voet en
+  bij Opdrachtnemer; staat een certificaat als PDF in Instellingen, dan klik je
+  vanaf het keurmerk erheen.
+- **Na ondertekening** dezelfde opening: "Gelukt, …! Welkom bij React2u." (binnen
+  een kwartier, met stippen in de logokleuren; niet bij verminderde beweging),
+  de kaart met het vinkje en het bedrag, de stappen, wat er is afgenomen, de tekst
+  achter "Lees de volledige tekst", voorwaarden en beide handtekeningen.
 - **Prijzen per maand**: wat per jaar loopt staat op de klantpagina, in de mails en
   in het beheer als maandbedrag (`perMaand`, `maandprijs()`, `regelbedrag()` in
   `lib/offertes.ts`), met het jaarbedrag klein erbij. De prijslijst blijft per jaar;
   het maandbedrag is het jaarbedrag gedeeld door twaalf, op centen afgerond.
-- Letters: koppen in Outfit, tekst in DM Sans, de handtekening van de afzender in
-  Caveat. Kleuren: zand als achtergrond, wit vel, indigo voor tekst en keuzes, roze
-  alleen voor de hoofdactie (de tekenknoppen, nergens anders), teal voor vinkjes
-  (als tekst `#08716B`, de merkteal is te licht). Grijze tekst `#6B6985`: minstens
-  4,5:1 op wit en zand.
-- **Huisregels voor de tekst** (ronde 29 okt, avond): labels in gewone letters, niet
-  in hoofdletters met spatiëring; geen reeksen met middenpuntjes maar zinnen of
-  regels; geen pijl naar rechts op knoppen (alleen het pijltje omlaag dat naar het
-  akkoord scrolt); hoofdstuknummers gewoon 1, 2, 3. Toetsenbordfocus heeft een
-  indigo ring, en bij "minder beweging" staan animaties en vloeiend scrollen uit.
-- Een onbekende of ingetrokken link toont hetzelfde vel (`OfferteMelding.tsx`):
-  briefhoofd, kop in Outfit, ronde knoppen naar de afzender.
+- **Huisregels van de site gelden ook hier**: bovenkopjes in hoofdletters met de
+  stip, ronde knoppen met een pijl, roze alleen voor de hoofdactie (ondertekenen),
+  teal voor vinkjes (als tekst `#08716B`, de merkteal is te licht), grijze tekst
+  `#6B6985` (4,5:1 op wit en lila). Bij "minder beweging" staan animaties en
+  vloeiend scrollen uit.
+- De pdf blijft een rustig document (zie *De offerte als contract*); de pagina
+  volgt de site, het papier niet.
+- Een onbekende of ingetrokken link toont `OfferteMelding.tsx`.
 
 ### Vormen en sjablonen
 
