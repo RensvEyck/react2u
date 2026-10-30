@@ -94,6 +94,9 @@ export const VORM_KEYS = Object.keys(VORMEN) as Vorm[];
  */
 export const OFFERTE_EMAIL = "sales@react2u.nl";
 
+/** Hoe lang een nieuwe offerte geldig is: voor elke vorm dertig dagen (Rens, 30 okt 2026). */
+export const GELDIG_DAGEN = 30;
+
 /** Het label van React2u waar de vorm onder valt, in de kleur van de tarievenpagina. */
 export const DIENSTLABEL: Record<Vorm, string> = {
   verzuimbegeleiding: "React2u Recover",

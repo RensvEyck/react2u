@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import OfferteEditor, { type EditorBegin } from "@/components/admin/OfferteEditor";
 import { laadCatalogus, laadSjablonen, standaardAfzender, uitAanvraag } from "@/lib/offerteBeheer";
-import { datumOver, VORMEN, type Vorm } from "@/lib/offertes";
+import { datumOver, GELDIG_DAGEN, VORMEN, type Vorm } from "@/lib/offertes";
 import { aantalOnderdelen, sjabloonVoorStart, type Sjabloon } from "@/lib/offerteSjablonen";
 import { LuArrowLeft, LuInbox, LuFilePlus, LuSettings2, LuChevronRight } from "react-icons/lu";
 
@@ -63,7 +63,7 @@ export default async function NieuweOfferte({
 
   const begin: EditorBegin = {
     ...afzender,
-    geldig_tot: datumOver(gekozen?.geldigDagen ?? 30),
+    geldig_tot: datumOver(gekozen?.geldigDagen ?? GELDIG_DAGEN),
     ...(gekozen
       ? {
           vorm: gekozen.vorm, titel: gekozen.titel, intro: gekozen.intro, inhoud: gekozen.inhoud,

@@ -999,6 +999,11 @@ offertes worden nog aangepast; de vormen blijven. Daarom:
   naam). Dat komt in `offerte_sjablonen` en wint van de standaard in de code;
   *Terug naar standaard* op `/admin/offertes/sjablonen` haalt het weg.
   Klantgegevens gaan niet mee, de aanhef wel: gebruik daar de invulvelden.
+- **Geldigheid en betalingstermijn**: elke offerte is standaard dertig dagen geldig
+  (`GELDIG_DAGEN` in `lib/offertes.ts`) en noemt in de voorwaarden een
+  betalingstermijn van dertig dagen (`BETALING` in `lib/offerteSjablonen.ts`), voor
+  elke vorm (Rens, 30 okt 2026). Per offerte aan te passen in de editor; een bewaard
+  sjabloon kan een eigen termijn hebben.
 - **Prijzen**: spoor 2, arbeidsdeskundig onderzoek en de aansluitingen komen uit
   de prijslijst (lopen mee met de tarievenpagina, zolang het sjabloon niet is
   aangepast: een bewaard sjabloon heeft vaste prijzen). RI&E (€ 2.825), PAGO (€ 42,50
