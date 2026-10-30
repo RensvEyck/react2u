@@ -894,10 +894,15 @@ salesrecht, net als partners.
   IP-adres; de regel "geen IP-kolom" bij *Architectuur* gaat over
   bezoekregistratie. Hoort in de privacyverklaring, net als de code per mail.
 - **Mails** (Resend, zie *E-mail vanuit het systeem*): de offerte zelf (antwoorden
-  gaat naar de afzender), een seintje aan de afzender bij de eerste keer openen,
+  gaat naar het mailadres van de afzender), een seintje bij de eerste keer openen,
   een bevestiging aan wie tekende, en "getekend" of "niet akkoord" aan sales
-  (`NOTIFY_OFFERTE_TO`, standaard sales@) plus de afzender. Mailen staat uit? Dan
-  zet *Zet de link open, ik stuur hem zelf* de offerte open zonder mail.
+  (`NOTIFY_OFFERTE_TO`, standaard sales@) plus het afzenderadres. Mailen staat uit?
+  Dan zet *Zet de link open, ik stuur hem zelf* de offerte open zonder mail.
+- **Het mailadres voor de klant is sales@react2u.nl** (`OFFERTE_EMAIL` in
+  `lib/offertes.ts`), niet de mail van de collega die de offerte maakt (Rens, 29 okt
+  2026). Elke nieuwe offerte begint ermee, ook als je vorige offerte een ander adres
+  had; het is ook de terugval in het paneel, bij een ingetrokken link en als
+  antwoordadres. De naam en het telefoonnummer blijven die van de afzender.
 - **Een collega die de link opent** telt niet mee en kan niet tekenen (de pagina
   kijkt naar een beheersessie); het voorbeeld in het beheer
   (`/admin/offertevoorbeeld/<id>`, buiten het paneel) werkt ook voor een concept.

@@ -5,7 +5,7 @@ import { saveOfferte, type OfferteFormState } from "@/app/admin/offerteActions";
 import { LEAVE_QUESTION, setUnsaved } from "@/lib/unsaved";
 import {
   berekenTotalen, controleer, EENHEDEN, euro, nieuwId, prijsLabel, secties, SOORTEN, standaardKeuze, bedragVoor,
-  VORMEN, VORM_KEYS, regelbedrag, type Eenheid, type Offerte, type Regel, type Soort, type Stap, type Vorm,
+  VORMEN, VORM_KEYS, regelbedrag, OFFERTE_EMAIL, type Eenheid, type Offerte, type Regel, type Soort, type Stap, type Vorm,
 } from "@/lib/offertes";
 import { alsRegel, type CatalogusGroep } from "@/lib/offerteCatalogus";
 import OfferteTekst from "@/components/offerte/OfferteTekst";
@@ -458,8 +458,9 @@ export default function OfferteEditor({
                 <input id="of-af" className="ainput" name="afzender_functie" defaultValue={begin.afzender_functie || ""} placeholder="Bijvoorbeeld accountmanager" />
               </div>
               <div>
-                <label className="alabel" htmlFor="of-ae">E-mail</label>
-                <input id="of-ae" className="ainput" name="afzender_email" type="email" defaultValue={begin.afzender_email || ""} />
+                <label className="alabel" htmlFor="of-ae">E-mail voor de klant</label>
+                <input id="of-ae" className="ainput" name="afzender_email" type="email" defaultValue={begin.afzender_email || OFFERTE_EMAIL} placeholder={OFFERTE_EMAIL} />
+                <p className="mt-1 text-[12px] text-black/45">Hier antwoordt de klant op; standaard de salesbox.</p>
               </div>
               <div>
                 <label className="alabel" htmlFor="of-at">Telefoon</label>

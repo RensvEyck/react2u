@@ -87,6 +87,13 @@ export const VORMEN: Record<Vorm, { label: string; kort: string; groep: "Verzuim
 
 export const VORM_KEYS = Object.keys(VORMEN) as Vorm[];
 
+/**
+ * Het mailadres dat de klant ziet en waar hij op antwoordt: de salesbox, niet
+ * de mail van de collega die de offerte maakt (Rens, 29 okt 2026). Standaard
+ * bij elke nieuwe offerte en de terugval als een offerte geen adres heeft.
+ */
+export const OFFERTE_EMAIL = "sales@react2u.nl";
+
 /** Het label van React2u waar de vorm onder valt, in de kleur van de tarievenpagina. */
 export const DIENSTLABEL: Record<Vorm, string> = {
   verzuimbegeleiding: "React2u Recover",
