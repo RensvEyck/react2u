@@ -937,10 +937,21 @@ pagina in dezelfde taal als de werkgeverspagina's en de tarieven, zonder foto's
   medewerkers en geldig tot, de knop naar het akkoord, de concept-pdf en de
   contactpersoon met bel- en mailknop.
 - **Banden van rand tot rand**, wit en lichtlila om en om, met de sectiekop van
-  de site (bovenkopje met stip, kop links, korte uitleg rechts): een persoonlijk
-  woord (met de handtekening van de afzender in Caveat), over deze offerte, de
-  keuze, zo gaat het verder met de voorwaarden, de keurmerken van de site, en het
-  akkoord.
+  de site (bovenkopje met stip, kop links, korte uitleg rechts): het voorwoord,
+  een persoonlijk woord (met de handtekening van de afzender in Caveat), over
+  deze offerte, de keuze, zo gaat het verder met de voorwaarden, de keurmerken
+  van de site, en het akkoord. De band vóór de keuze is altijd lila, ook als er
+  geen persoonlijk woord of uitleg is.
+- **Vast voorwoord van Cindy en Susanne** (Rens, 30 okt: "die moet vast
+  staan"): in elke offerte direct na de opening, en in de pdf als eerste
+  hoofdstuk. Het verhaal van React2u (waarom we begonnen, één vast gezicht,
+  voorkomen en herstellen, keurmerken), met een uitgelichte zin en hun twee
+  handtekeningen in handschrift. De tekst staat in
+  [`lib/offerteVoorwoord.ts`](src/lib/offerteVoorwoord.ts), niet in het beheer en
+  niet per offerte; alleen `{bedrijf}` wordt ingevuld. Daar staan ook hun
+  volledige namen en functies onder de handtekening (leeg = voornaam en
+  "React2u"). Niet op de pagina na ondertekening, wel in de getekende pdf. Het
+  zit niet in `getekend_inhoud` of de hash: het is geen afspraak, maar uitleg.
 - **Keuzes als de prijskaarten van de tarieven**: wit met een rand, en wat
   gekozen is wordt indigo met witte letters (badge dan roze). Eerst wat de
   organisatie per maand betaalt; per medewerker en de prijslijst klein eronder.

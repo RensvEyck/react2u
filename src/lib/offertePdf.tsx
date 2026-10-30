@@ -8,6 +8,7 @@ import { blokkenUit } from "@/components/offerte/OfferteTekst";
 import type { ContactInfo } from "./content";
 import { DOCUMENTEN } from "./documenten";
 import { inlineDelen } from "./mdInline";
+import { ondertekenaarRegel, VOORWOORD } from "./offerteVoorwoord";
 import {
   aantalVoor, apparaatUit, berekenTotalen, datumLang, DIENSTLABEL, euro, factuurRegels, maandprijs, momentLang, momentPrecies,
   normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, tijdlijnRegels, vulIn, VERVOLG_STANDAARD, VORMEN,
@@ -217,6 +218,7 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
   const basis = new URL(link).origin;
 
   const hoofdstukken = [
+    "voorwoord",
     "afgenomen",
     ...(inhoud.intro?.trim() ? ["brief"] : []),
     ...(inhoud.inhoud?.trim() ? ["over"] : []),
@@ -295,7 +297,25 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
           )}
         </View>
 
-        {/* 1. Wat je afneemt */}
+        {/* Het vaste voorwoord van Cindy en Susanne (lib/offerteVoorwoord.ts) */}
+        <View style={s.hoofdstuk}>
+          <Kop nr={nr("voorwoord")} titel="Voorwoord" />
+          <Text style={{ fontSize: 12, fontWeight: 600, color: NAVY, lineHeight: 1.4, marginBottom: 10, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: TEAL }}>{VOORWOORD.citaat}</Text>
+          {VOORWOORD.alineas.map((a, i) => <Text key={i} style={s.p}>{vulIn(a, inhoud)}</Text>)}
+          <View wrap={false}>
+            <Text style={s.p}>{VOORWOORD.groet}</Text>
+            <View style={{ flexDirection: "row", gap: 24 }}>
+              {VOORWOORD.ondertekenaars.map((o) => (
+                <View key={o.naam} style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "Caveat", fontSize: 24, color: NAVY, lineHeight: 1.2 }}>{o.naam}</Text>
+                  <Text style={{ fontSize: 8.5, color: MUTE, borderTopWidth: 0.6, borderTopColor: LIJN, paddingTop: 3, marginTop: 1 }}>{ondertekenaarRegel(o)}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Wat je afneemt */}
         <View style={s.hoofdstuk}>
           <Kop nr={nr("afgenomen")} titel="Wat je afneemt" />
           {t.regels.map(({ regel, bedrag, periode }) => {

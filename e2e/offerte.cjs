@@ -131,6 +131,9 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await klant.goto(link);
   await klant.waitForSelector("h1");
   await shot(klant, "06-klant-desktop");
+  const voorwoord = klant.locator("section[aria-labelledby=voorwoord-kop]");
+  check(await voorwoord.count(), "vast voorwoord op de pagina");
+  check((await voorwoord.innerText()).includes("Cindy en Susanne") && (await voorwoord.innerText()).includes("voor Bakkerij De Gouden Korst BV kunnen betekenen"), "voorwoord van Cindy en Susanne, met de bedrijfsnaam ingevuld");
   const perJaar = async () => (await klant.locator("aside [aria-live]").first().innerText()).trim();
   check((await perJaar()) === "€134,75", `start per maand ${await perJaar()} (42 × €38,50 / 12)`);
   await klant.click("button[role=radio]:has-text('Casemanagement Compleet')");
@@ -165,8 +168,14 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await shot(tp, "08-klant-telefoon-boven", { fullPage: false });
   await shot(tp, "09-klant-telefoon-heel");
   await tp.click("div.fixed button:has-text('Ondertekenen')");
-  await tp.waitForTimeout(1200);
-  const top = (await tp.locator("#akkoord").boundingBox()).y;
+  // Vloeiend scrollen duurt langer naarmate de pagina langer is: wachten tot de positie stilstaat.
+  let top = -1;
+  for (let i = 0; i < 40; i++) {
+    await tp.waitForTimeout(150);
+    const nu = (await tp.locator("#akkoord").boundingBox()).y;
+    if (i > 3 && Math.abs(nu - top) < 1) break;
+    top = nu;
+  }
   check(top < 200, `knop onderaan brengt je naar het akkoord (${Math.round(top)})`);
   await shot(tp, "10-telefoon-akkoord", { fullPage: false });
   await tel.close();

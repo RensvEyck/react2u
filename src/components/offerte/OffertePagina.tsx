@@ -9,6 +9,7 @@ import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import type { Certificate } from "@/lib/nav";
 import Handtekening from "./Handtekening";
 import OfferteTekst from "./OfferteTekst";
+import { ondertekenaarRegel, VOORWOORD, VOORWOORD_VAN } from "@/lib/offerteVoorwoord";
 import { bewaarKeuze, ondertekenOfferte, vraagCode, wijsOfferteAf } from "@/app/(offerte)/offerte/actions";
 import {
   berekenTotalen, datumLang, euro, factuurFout, factuurRegels, herstelKeuze, isNaam, maandprijs, momentLang, normaliseerFactuur,
@@ -487,6 +488,9 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
   const label = labelVan(vorm);
   const heeftKeuze = regels.some((r) => r.soort === "optie" || r.soort === "keuze");
   const bijAkkoord = useInBeeld("akkoord");
+  // Wit en lila om en om tot aan de keuze (wit): de band ervoor is altijd lila, ook als er geen persoonlijk woord of uitleg is.
+  const kopBanden = ["voorwoord", ...(offerte.intro ? ["persoonlijk"] : []), ...(offerte.inhoud?.trim() ? ["over"] : [])];
+  const lila = (id: string) => (kopBanden.length - 1 - kopBanden.indexOf(id)) % 2 === 0;
 
   // De tussenstand bewaren, een moment nadat de klant stopt met klikken.
   const eerste = useRef(true);
@@ -544,8 +548,10 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
           </div>
         </Opening>
 
+        <Voorwoord offerte={offerte} lila={lila("voorwoord")} />
+
         {offerte.intro && (
-          <section className="bg-white">
+          <section style={{ background: lila("persoonlijk") ? SOFT : "#ffffff" }}>
             <div className={`${BREED} grid gap-8 py-14 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
               <div className="flex flex-col gap-4 lg:col-span-4">
                 <Eyebrow>Persoonlijk</Eyebrow>
@@ -566,13 +572,13 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
         )}
 
         {offerte.inhoud?.trim() && (
-          <section style={{ background: SOFT }}>
+          <section style={{ background: lila("over") ? SOFT : "#ffffff" }}>
             <div className={`${BREED} grid gap-8 py-14 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
               <div className="flex flex-col gap-4 lg:col-span-4">
                 <Eyebrow kleur={label.kleur}>{label.naam}</Eyebrow>
                 <h2 className={`${kop} m-0 text-[34px] leading-[1.08] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>Over deze offerte</h2>
               </div>
-              <div className="rounded-[26px] bg-white p-6 md:p-10 lg:col-span-8 lg:col-start-5">
+              <div className={`rounded-[26px] bg-white p-6 md:p-10 lg:col-span-8 lg:col-start-5 ${lila("over") ? "" : "border"}`} style={{ borderColor: LINE }}>
                 <Toelichting tekst={vulIn(offerte.inhoud, offerte)} />
               </div>
             </div>
@@ -676,6 +682,61 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
 
       {afwijzen && token && <AfwijsVenster offerte={offerte} token={token} sluit={() => setAfwijzen(false)} />}
     </>
+  );
+}
+
+/**
+ * Het vaste voorwoord van Cindy en Susanne (lib/offerteVoorwoord.ts): links de
+ * kop, de uitgelichte zin en wie het schrijven, rechts de brief met hun twee
+ * handtekeningen. Op een groot scherm blijft de linkerkant staan terwijl je leest.
+ */
+function Voorwoord({ offerte, lila }: { offerte: OffertePubliek; lila: boolean }) {
+  const v = VOORWOORD;
+  return (
+    <section aria-labelledby="voorwoord-kop" style={{ background: lila ? SOFT : "#ffffff" }}>
+      <div className={`${BREED} grid gap-8 py-14 md:py-[104px] lg:grid-cols-12 lg:gap-6`}>
+        <div className="flex flex-col gap-6 lg:sticky lg:top-[120px] lg:col-span-4 lg:self-start">
+          <div className="flex flex-col gap-4">
+            <Eyebrow>Voorwoord</Eyebrow>
+            <h2 id="voorwoord-kop" className={`${kop} m-0 text-[34px] leading-[1.08] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{v.kop}</h2>
+          </div>
+          <p className={`${kop} m-0 border-l-[3px] pl-5 text-[19px] leading-[1.45] md:text-[21px]`} style={{ borderColor: TEAL, color: NAVY }}>{v.citaat}</p>
+          <div className="flex items-center gap-4">
+            <span className="flex" aria-hidden="true">
+              {v.ondertekenaars.map((o, i) => (
+                <span
+                  key={o.naam}
+                  className={`${kop} flex h-12 w-12 items-center justify-center rounded-full text-[17px] text-white ${i ? "-ml-3" : ""}`}
+                  style={{ background: i ? TEAL : NAVY, boxShadow: `0 0 0 3px ${lila ? SOFT : "#ffffff"}` }}
+                >
+                  {o.naam[0]}
+                </span>
+              ))}
+            </span>
+            <span className="leading-tight">
+              <span className="block text-[16px] font-bold" style={{ color: NAVY }}>{VOORWOORD_VAN}</span>
+              <span className="block text-[14px]" style={{ color: MUTE }}>React2u</span>
+            </span>
+          </div>
+        </div>
+        <div className={`rounded-[26px] bg-white p-6 md:p-10 lg:col-span-7 lg:col-start-6 ${lila ? "" : "border"}`} style={{ borderColor: LINE }}>
+          <div className="flex max-w-[680px] flex-col gap-5">
+            {v.alineas.map((a, i) => (
+              <p key={i} className="m-0 text-[17px] leading-[1.75] md:text-[18px]" style={{ color: BODY }}>{vulIn(a, offerte)}</p>
+            ))}
+            <p className="m-0 text-[17px] md:text-[18px]" style={{ color: BODY }}>{v.groet}</p>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-5 sm:gap-6">
+            {v.ondertekenaars.map((o) => (
+              <div key={o.naam}>
+                <p className={`${handschrift.className} m-0 text-[42px] leading-none`} style={{ color: NAVY }}>{o.naam}</p>
+                <p className="m-0 mt-2 border-t pt-2 text-[14.5px]" style={{ borderColor: LINE, color: MUTE }}>{ondertekenaarRegel(o)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
