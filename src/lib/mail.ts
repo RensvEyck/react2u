@@ -18,6 +18,10 @@
 
 import type { Taal } from "./taal";
 import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
+import type { ContactInfo } from "./content";
+import type { Vorm } from "./offertes";
+import { merkVoorVorm } from "./offerteMerk";
+import { offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, type MailAfzender, type OfferteMail } from "./offerteMail";
 
 // RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
 // zou worden); in productie staat hij niet en is dit gewoon Resend.
@@ -395,31 +399,13 @@ export async function bevestigSollicitatie(b: { to: string; name: string; vacanc
 
 /* ---------- offertes (migratie 0024) ---------- */
 
-type Afzender = { naam: string | null; functie: string | null; email: string | null; telefoon: string | null };
+// De mails aan de klant (offerte, code, bevestiging) staan in lib/offerteMail.ts,
+// in de vormgeving van de site. De meldingen aan sales hieronder blijven sober.
 
-/** Tekst van een collega (de persoonlijke boodschap) als alinea's: escapen, lege regel = nieuwe alinea. */
-function alineasUit(tekst: string | null | undefined): string[] {
-  return (tekst || "")
-    .split(/\n\s*\n/)
-    .map((a) => a.trim())
-    .filter(Boolean)
-    .map((a) => esc(a).replace(/\n/g, "<br>"));
-}
+type Afzender = MailAfzender;
 
-function ondertekening(a: Afzender) {
-  const regels = [a.naam, a.functie ? `${a.functie}, React2u` : "React2u", a.telefoon].filter(Boolean).map((r) => esc(String(r)));
-  return `Met vriendelijke groet,<br>${regels.join("<br>")}`;
-}
-
-/** Een overzicht van de gekozen onderdelen met hun bedrag, en de totalen eronder. */
-function offerteTabel(regels: { naam: string; bedrag: string }[], totalen: { label: string; bedrag: string }[]) {
-  const rij = (l: string, r: string, vet = false) =>
-    `<tr><td style="padding:8px 12px 8px 0;font-size:14px;color:#1c1a4e;border-bottom:1px solid #eeedf5;${vet ? "font-weight:700" : ""}">${esc(l)}</td>` +
-    `<td style="padding:8px 0;font-size:14px;color:#1c1a4e;text-align:right;white-space:nowrap;border-bottom:1px solid #eeedf5;${vet ? "font-weight:700" : ""}">${esc(r)}</td></tr>`;
-  return `<table style="border-collapse:collapse;width:100%;margin:4px 0 20px">${regels.map((r) => rij(r.naam, r.bedrag)).join("")}${totalen
-    .map((t) => rij(t.label, t.bedrag, true))
-    .join("")}</table>`;
-}
+/** De opmaak van het label van de offerte (Recover, Resist, Restart); zonder vorm die van Recover. */
+const merkVan = (vorm: Vorm | null | undefined) => (vorm ? merkVoorVorm(vorm) : null);
 
 /**
  * De offerte naar de klant: een persoonlijke mail met één knop naar de
@@ -428,20 +414,27 @@ function offerteTabel(regels: { naam: string; bedrag: string }[], totalen: { lab
 export async function sendOfferte(o: {
   to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; titel?: string | null;
   bericht: string | null; geldigTot: string | null; afzender: Afzender; herinnering?: boolean;
+  /** Het label bepaalt kleur en woordmerk bovenaan. */
+  vorm?: Vorm | null;
+  /** Bedrag, geldigheid en onderdelen voor de offertekaart (offerteSamenvatting). */
+  samenvatting?: Pick<OfferteMail, "feiten" | "onderdelen" | "opties" | "kiezen">;
+  contact?: ContactInfo;
 }): Promise<Verzonden> {
-  const kop = o.herinnering ? `Je offerte van React2u staat nog voor je klaar` : `Je offerte van React2u`;
-  const html = persoonlijk(
-    kop,
-    [
-      `Beste ${esc(o.aanhef || "relatie")},`,
-      ...alineasUit(o.bericht),
-      `In de offerte${o.titel ? ` <strong>${esc(o.titel)}</strong>` : ""} voor ${esc(o.bedrijf)} zie je precies wat het kost, kies je waar dat kan zelf je onderdelen en onderteken je online.${
-        o.geldigTot ? ` De offerte is geldig tot en met ${esc(o.geldigTot)}.` : ""
-      }`,
-    ],
-    { tekst: "Bekijk en onderteken je offerte", link: o.link },
-    `${ondertekening(o.afzender)}<br><br>Deze link is persoonlijk: stuur hem alleen door aan wie mag meebeslissen.`
-  );
+  const html = offerteMailHtml({
+    basis: siteBasis(),
+    merk: merkVan(o.vorm),
+    aanhef: o.aanhef,
+    bedrijf: o.bedrijf,
+    nummer: o.nummer,
+    titel: o.titel,
+    link: o.link,
+    bericht: o.bericht,
+    geldigTot: o.geldigTot,
+    afzender: o.afzender,
+    herinnering: o.herinnering,
+    contact: o.contact,
+    ...o.samenvatting,
+  });
   const onderwerp = `${o.herinnering ? "Herinnering: o" : "O"}fferte ${o.nummer} voor ${o.bedrijf}`;
   return verstuur([o.to], onderwerp, html, o.afzender.email || undefined);
 }
@@ -450,14 +443,12 @@ export async function sendOfferte(o: {
  * De code waarmee wie tekent zijn e-mailadres bevestigt (0026). De code staat
  * vooraan in het onderwerp, zodat hij al in de melding op de telefoon staat.
  */
-export async function sendOfferteCode(c: { to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender }): Promise<Verzonden> {
-  const html = `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;max-width:520px;color:#1c1a4e">
-  <h2 style="margin:0 0 12px;font-size:20px;color:#312e82">Je code om te ondertekenen</h2>
-  <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#444">Vul deze code in op de offertepagina om offerte ${esc(c.nummer)} voor ${esc(c.bedrijf)} te ondertekenen.</p>
-  <p style="margin:0 0 16px;font-size:34px;font-weight:700;letter-spacing:8px;color:#312e82;font-family:ui-monospace,Menlo,monospace">${esc(c.code)}</p>
-  <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#666">De code is een kwartier geldig. Heb je niet zelf om deze code gevraagd? Dan hoef je niets te doen; zonder de code kan niemand namens jou tekenen.</p>
-  <p style="margin:0;font-size:13px;color:#888">${ondertekening(c.afzender)}</p>
-</div>`;
+export async function sendOfferteCode(c: {
+  to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender; vorm?: Vorm | null; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = offerteCodeHtml({
+    basis: siteBasis(), merk: merkVan(c.vorm), code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact,
+  });
   return verstuur([c.to], `${c.code} is je code voor offerte ${c.nummer}`, html, c.afzender.email || undefined);
 }
 
@@ -478,21 +469,12 @@ function factuurHtml(f: { email?: string; adres?: string; postcode?: string; pla
 export async function bevestigOfferteGetekend(b: {
   to: string; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
   regels: { naam: string; bedrag: string }[]; totalen: { label: string; bedrag: string }[]; afzender: Afzender; pdf?: Bijlage | null;
+  vorm?: Vorm | null; vervolg?: { kop: string; tekst: string }[] | null; contact?: ContactInfo;
 }): Promise<Verzonden> {
-  const voornaam = b.naam.split(" ")[0] || b.naam;
-  const html = persoonlijk(
-    "Bedankt, je offerte is ondertekend",
-    [
-      `Beste ${esc(voornaam)},`,
-      `Je hebt op ${esc(b.moment)} offerte ${esc(b.nummer)} voor ${esc(b.bedrijf)} ondertekend. Hieronder staat wat je hebt gekozen; we nemen contact met je op om de start te plannen.`,
-      offerteTabel(b.regels, b.totalen),
-      b.pdf
-        ? "Alle bedragen zijn exclusief btw. In de bijlage zit de ondertekende offerte als pdf, met achterin het ondertekeningscertificaat. Bewaar hem bij je administratie of stuur hem door naar inkoop."
-        : "Alle bedragen zijn exclusief btw. Via de knop zie je de ondertekende offerte terug en download je hem als pdf.",
-    ],
-    { tekst: "Bekijk de ondertekende offerte", link: b.link },
-    `${ondertekening(b.afzender)}<br><br><span style="font-size:11px;color:#aaa">Kenmerk van de ondertekende versie: ${esc(b.hash)}</span>`
-  );
+  const html = offerteGetekendHtml({
+    basis: siteBasis(), merk: merkVan(b.vorm), naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash,
+    moment: b.moment, regels: b.regels, totalen: b.totalen, afzender: b.afzender, vervolg: b.vervolg, pdf: Boolean(b.pdf), contact: b.contact,
+  });
   return verstuur([b.to], `Ondertekend: offerte ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
 }
 

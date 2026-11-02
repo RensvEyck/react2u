@@ -136,6 +136,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: SECURITY_HEADERS },
+      // De klantmails over een offerte (lib/offerteMail.ts) laden de lettertypen
+      // van de site. Een mailclient is een andere herkomst, en lettertypen van
+      // een andere herkomst laden alleen met deze header.
+      { source: "/fonts/:path*", headers: [{ key: "Access-Control-Allow-Origin", value: "*" }] },
       // Alleen react2u.nl hoort in Google. Het Vercel-adres van productie
       // (react2u.vercel.app) en elke preview-deploy (*.vercel.app) serveren
       // dezelfde pagina's; zonder deze header kon Google ze als dubbele site

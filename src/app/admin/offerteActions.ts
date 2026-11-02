@@ -8,6 +8,8 @@ import {
 } from "@/lib/offertes";
 import { sleutelUit, STANDAARD_SJABLONEN } from "@/lib/offerteSjablonen";
 import { sendOfferte, offerteUrl } from "@/lib/mail";
+import { offerteSamenvatting } from "@/lib/offerteMail";
+import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 /*
  * Offertes in het beheer (migratie 0024). Alles achter het salesrecht
@@ -135,6 +137,7 @@ export async function verstuurOfferte(id: string, _prev: VersturenState, fd: For
   if (fouten.length) return { fout: fouten[0] };
 
   const herinnering = o.status === "verstuurd";
+  const { contact } = await offerteHuisstijl();
   const res = await sendOfferte({
     to: aan,
     aanhef: tekst(fd, "aanhef", 120) ?? o.contactpersoon?.split(" ")[0] ?? null,
@@ -146,6 +149,9 @@ export async function verstuurOfferte(id: string, _prev: VersturenState, fd: For
     geldigTot: o.geldig_tot ? datumLang(o.geldig_tot) : null,
     afzender: { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || OFFERTE_EMAIL, telefoon: o.afzender_telefoon },
     herinnering,
+    vorm: o.vorm,
+    samenvatting: offerteSamenvatting(o),
+    contact,
   });
   if (!res.ok) {
     return {
