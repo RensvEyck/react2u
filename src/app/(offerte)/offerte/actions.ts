@@ -6,13 +6,14 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { withinLimit } from "@/lib/rateLimit";
 import { clientIp } from "@/lib/analytics";
 import {
-  berekenTotalen, euro, factuurFout, momentLang, normaliseerFactuur, normaliseerRegels, OFFERTE_EMAIL, ONDERTEKEN_FOUT, regelbedrag,
-  type Factuur, type OffertePubliek,
+  berekenTotalen, euro, factuurFout, momentLang, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, OFFERTE_EMAIL, ONDERTEKEN_FOUT,
+  regelbedrag, VERVOLG_STANDAARD, type Factuur, type OffertePubliek,
 } from "@/lib/offertes";
 import {
   bevestigOfferteGetekend, notifyOfferteAfgewezen, notifyOfferteGetekend, offerteAdminUrl, offerteUrl, sendOfferteCode,
 } from "@/lib/mail";
 import { getekendePdf } from "@/lib/offerteGetekend";
+import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 /*
  * Wat de klant op /offerte/<token> doet. Alles loopt via de functies uit
@@ -75,6 +76,7 @@ export async function vraagCode(token: string, email: string): Promise<CodeState
     nummer: o?.nummer || "",
     bedrijf: o?.bedrijf || "",
     afzender: { naam: o?.afzender_naam ?? null, functie: o?.afzender_functie ?? null, email: o?.afzender_email || OFFERTE_EMAIL, telefoon: o?.afzender_telefoon ?? null },
+    vorm: o?.vorm,
   });
   if (!verzonden.ok) return { ok: false, fout: ONDERTEKEN_FOUT.mail };
   return { ok: true };
@@ -133,6 +135,9 @@ export async function ondertekenOfferte(
       ...(t.eenmalig ? [{ label: "Eenmalig", bedrag: euro(t.eenmalig) }] : []),
     ];
     const afzender = { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || OFFERTE_EMAIL, telefoon: o.afzender_telefoon };
+    // Dezelfde stappen als onder "Zo gaat het verder" op de offertepagina.
+    const vervolg = normaliseerVervolg(inhoud.vervolg ?? o.vervolg);
+    const { contact } = await offerteHuisstijl();
     await Promise.all([
       bevestigOfferteGetekend({
         to: inhoud.getekend_email,
@@ -152,6 +157,9 @@ export async function ondertekenOfferte(
         totalen,
         afzender,
         pdf,
+        vorm: inhoud.vorm ?? o.vorm,
+        vervolg: vervolg.length ? vervolg : VERVOLG_STANDAARD,
+        contact,
       }),
       notifyOfferteGetekend({
         nummer: inhoud.nummer,
