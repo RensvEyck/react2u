@@ -19,7 +19,7 @@ import { euro, normaliseerRegels, waardeVan, type Offerte } from "./offertes";
  */
 
 /** Merkkleuren, gelijk aan globals.css; grijs is de contrastversie uit de offertepagina. */
-const KLEUR = {
+export const KLEUR = {
   indigo: "#312e82",
   inkt: "#1c1a4e",
   tekst: "#5a5870",
@@ -28,8 +28,8 @@ const KLEUR = {
   lijn: "#e6e0d6",
   roze: "#c8306a",
 };
-const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-const FONT_KOP = "Figtree, 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+export const FONT = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+export const FONT_KOP = "Figtree, 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 /** Wat de mail van het label nodig heeft. */
 export type MailMerk = Pick<Merk, "slug" | "naam" | "kleur" | "tekst" | "tint" | "dienst" | "tagline">;
@@ -39,7 +39,7 @@ export type MailAfzender = { naam: string | null; functie: string | null; email:
 /** Een kerngegeven in de offertekaart: "Per maand", "€1.234", "excl. btw". */
 export type Feit = { label: string; waarde: string; sub?: string };
 
-function esc(s: string) {
+export function esc(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
@@ -49,7 +49,7 @@ export function metPunt(s: string) {
 }
 
 /** Tekst van een collega als alinea's: escapen, lege regel = nieuwe alinea. */
-function alineasUit(tekst: string | null | undefined): string[] {
+export function alineasUit(tekst: string | null | undefined): string[] {
   return (tekst || "")
     .split(/\n\s*\n/)
     .map((a) => a.trim())
@@ -57,7 +57,7 @@ function alineasUit(tekst: string | null | undefined): string[] {
     .map((a) => esc(a).replace(/\n/g, "<br>"));
 }
 
-function initialen(naam: string | null) {
+export function initialen(naam: string | null) {
   const delen = (naam || "React2u").trim().split(/\s+/).filter((d) => /^[\p{Lu}\p{Ll}]/u.test(d));
   const eerste = delen[0]?.[0] || "R";
   const laatste = delen.length > 1 ? delen[delen.length - 1][0] : "";
@@ -66,18 +66,18 @@ function initialen(naam: string | null) {
 
 /* ---------- bouwstenen ---------- */
 
-const p = (html: string, stijl = "") =>
+export const p = (html: string, stijl = "") =>
   `<p style="margin:0 0 16px;font-family:${FONT};font-size:16px;line-height:1.65;color:${KLEUR.tekst};${stijl}">${html}</p>`;
 
 /** Klein label boven een blok, zoals "WAT JE KRIJGT" op de labelpagina. */
-const eyebrow = (tekst: string, kleur: string) =>
+export const eyebrow = (tekst: string, kleur: string) =>
   `<p style="margin:0 0 14px;font-family:${FONT};font-size:12px;line-height:1.4;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:${kleur}">${tekst}</p>`;
 
 /**
  * De knop: een pil zoals .hv-btn op de site, met pijl. Outlook voor Windows
  * tekent geen afgeronde links, dus daar een VML-vorm met dezelfde maat.
  */
-function knop(tekst: string, link: string, kleur = KLEUR.roze, breedte = 340) {
+export function knop(tekst: string, link: string, kleur = KLEUR.roze, breedte = 340) {
   const href = esc(link);
   return `<!--[if mso]>
 <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:54px;v-text-anchor:middle;width:${breedte}px;" arcsize="50%" stroke="f" fillcolor="${kleur}">
@@ -88,7 +88,7 @@ function knop(tekst: string, link: string, kleur = KLEUR.roze, breedte = 340) {
 }
 
 /** "React2u" met de labelnaam groot eronder: het woordmerk van de labelpagina. */
-function woordmerk(m: MailMerk, groot = 56) {
+export function woordmerk(m: MailMerk, groot = 56) {
   return `<p style="margin:0;font-family:${FONT_KOP};font-size:22px;line-height:1.1;font-weight:700;letter-spacing:-0.01em;color:${KLEUR.indigo}">React2u</p>
 <p class="label" style="margin:2px 0 0;font-family:${FONT_KOP};font-size:${groot}px;line-height:1;font-weight:700;letter-spacing:-0.025em;color:${m.kleur}">${esc(m.naam)}<sup style="font-size:15px;line-height:0;vertical-align:top;position:relative;top:10px;margin-left:2px">&reg;</sup></p>
 <p style="margin:18px 0 0;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${KLEUR.indigo}">${esc(m.dienst)}</p>
@@ -96,14 +96,14 @@ function woordmerk(m: MailMerk, groot = 56) {
 }
 
 /** Een pil met een stip (of een ander teken) ervoor, zoals de Eyebrow op de site. */
-function pil(tekst: string, kleur: string, teken = "&#9679;") {
+export function pil(tekst: string, kleur: string, teken = "&#9679;") {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
 <td style="background:#ffffff;border-radius:999px;padding:7px 14px 7px 12px;font-family:${FONT};font-size:13px;line-height:18px;font-weight:600;color:${KLEUR.indigo}"><span style="color:${kleur};font-size:15px;font-weight:700">${teken}</span>&nbsp; ${tekst}</td>
 </tr></table>`;
 }
 
 /** Genummerde stappen met een badge in de tint, zoals de onderdeelkaarten op de labelpagina. */
-function stappen(m: MailMerk, lijst: { kop: string; tekst: string }[]) {
+export function stappen(m: MailMerk, lijst: { kop: string; tekst: string }[]) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${lijst
     .map(
       (s, i) => `<tr>
@@ -120,7 +120,7 @@ function stappen(m: MailMerk, lijst: { kop: string; tekst: string }[]) {
 }
 
 /** Vinkjes in de labelkleur, zoals "Wat je krijgt" op de labelpagina. */
-function vinkjes(m: MailMerk, regels: string[]) {
+export function vinkjes(m: MailMerk, regels: string[]) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${regels
     .map(
       (r) => `<tr>
@@ -132,7 +132,7 @@ function vinkjes(m: MailMerk, regels: string[]) {
 }
 
 /** De groet met een kaartje van de collega: initialen, naam, functie en hoe je hem bereikt. */
-function afzenderKaart(a: MailAfzender, m: MailMerk) {
+export function afzenderKaart(a: MailAfzender, m: MailMerk) {
   const naam = a.naam?.trim() || "Team React2u";
   const functie = a.functie ? `${a.functie}, React2u` : "React2u";
   const tel = a.telefoon?.trim();
@@ -153,10 +153,10 @@ function afzenderKaart(a: MailAfzender, m: MailMerk) {
 </tr></table>`;
 }
 
-const scheiding = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${KLEUR.lijn};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table>`;
+export const scheiding = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${KLEUR.lijn};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table>`;
 
 /** De keurmerken uit de footer van de site, als ronde witte badges. */
-const KEURMERKEN = [
+export const KEURMERKEN = [
   { pad: "sbca.jpg", alt: "SBCA" },
   { pad: "iso9001.png", alt: "ISO 9001" },
   { pad: "iso27001.png", alt: "ISO 27001" },
@@ -170,11 +170,11 @@ const KEURMERKEN = [
  * De tekst die mailclients naast het onderwerp tonen. De opvulling erachter
  * houdt de rest van de mail uit dat voorbeeld.
  */
-function preheader(tekst: string) {
+export function preheader(tekst: string) {
   return `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${esc(tekst)}${"&#847;&zwnj;&nbsp;".repeat(60)}</div>`;
 }
 
-function omhulsel(o: {
+export function omhulsel(o: {
   basis: string; titel: string; preheader: string; kaart: string; voetnoot?: string; contact?: ContactInfo;
 }) {
   const c = { ...CONTACT_FALLBACK, ...(o.contact || {}) };
@@ -253,13 +253,13 @@ ${preheader(o.preheader)}
  * (public/mail/cirkel-<label>.png); zonder afbeeldingen blijft de tint over.
  * De kaart is half zo breed als de labelpagina, dus de cirkel ook.
  */
-function heldAchtergrond(basis: string, m: MailMerk) {
+export function heldAchtergrond(basis: string, m: MailMerk) {
   const cirkel = `${basis}/mail/cirkel-${MERKEN[m.slug] ? m.slug : "recover"}.png`;
   return `background-color:${m.tint};background-image:url('${esc(cirkel)}');background-repeat:no-repeat;background-position:right top;background-size:236px 224px`;
 }
 
 /** De kop van de kaart in de tint van het label, met een pil, het woordmerk en wat er nog onder moet. */
-function held(basis: string, m: MailMerk, pilTekst: string, onder: string) {
+export function held(basis: string, m: MailMerk, pilTekst: string, onder: string) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="held" style="${heldAchtergrond(basis, m)};border-radius:27px 27px 0 0;padding:38px 40px 36px">
   ${pil(pilTekst, m.kleur)}
@@ -269,10 +269,10 @@ function held(basis: string, m: MailMerk, pilTekst: string, onder: string) {
 </td></tr></table>`;
 }
 
-const vak = (inhoud: string, stijl = "") => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="vak" style="padding:36px 40px;${stijl}">${inhoud}</td></tr></table>`;
+export const vak = (inhoud: string, stijl = "") => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="vak" style="padding:36px 40px;${stijl}">${inhoud}</td></tr></table>`;
 
 /** "Werkt de knop niet?" met de link als tekst: klein, onderaan. */
-function linkAlsTekst(link: string) {
+export function linkAlsTekst(link: string) {
   return `<p style="margin:0 0 4px;font-family:${FONT};font-size:13px;line-height:1.5;color:${KLEUR.grijs}">Werkt de knop niet? Kopieer deze link naar je browser:</p>
 <p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.5;word-break:break-all"><a href="${esc(link)}" style="color:${KLEUR.indigo};text-decoration:underline">${esc(link)}</a></p>`;
 }

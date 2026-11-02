@@ -1,10 +1,9 @@
 import { after } from "next/server";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import OffertePagina from "@/components/offerte/OffertePagina";
 import OfferteMelding from "@/components/offerte/OfferteMelding";
 import { supabasePublic } from "@/lib/supabase/public";
-import { supabaseServer } from "@/lib/supabase/server";
+import { isCollega } from "@/lib/isCollega";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { notifyOfferteBekeken, offerteAdminUrl } from "@/lib/mail";
 import { OFFERTE_EMAIL, type OffertePubliek } from "@/lib/offertes";
@@ -15,24 +14,6 @@ export const dynamic = "force-dynamic";
 /** Net getekend (minder dan een kwartier geleden): dan krijgt de klant de felicitatie, later een rustige bevestiging. */
 function netGetekend(at: string | null): boolean {
   return Boolean(at) && Date.now() - new Date(at!).getTime() < 15 * 60_000;
-}
-
-/**
- * Is dit een collega met een sessie? Dan telt het bezoek niet mee en kan er
- * niet getekend worden: wie de link uit zijn eigen mail even controleert, moet
- * niet als "bekeken door de klant" in de tijdlijn komen. Alleen met een
- * sessiecookie een query, zoals de onderhoudspoort in de middleware.
- */
-async function isCollega(): Promise<boolean> {
-  const store = await cookies();
-  if (!store.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"))) return false;
-  try {
-    const sb = await supabaseServer();
-    const { data } = await sb.from("admins").select("user_id").limit(1);
-    return Boolean(data?.length);
-  } catch {
-    return false;
-  }
 }
 
 export default async function OfferteRoute({ params }: { params: Promise<{ token: string }> }) {

@@ -2,7 +2,7 @@ import {
   LuLayoutDashboard, LuFileText, LuBriefcase, LuUsers, LuInbox, LuImage,
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
-  LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine,
+  LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -33,6 +33,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads", keywords: "leads bellen crm terugbellen" },
   { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding contract sales" },
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
+  { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales" },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
   { label: "Pagina's", href: "/admin/paginas", icon: LuFileText, keywords: "teksten blokken content cms" },
   { label: "Blog", href: "/admin/blog", icon: LuNewspaper, keywords: "artikelen nieuws posts" },
@@ -61,6 +62,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "Nieuw artikel", href: "/admin/blog/nieuw", icon: LuPlus, keywords: "blog schrijven post toevoegen" },
   { label: "Nieuwe pagina", href: "/admin/paginas#nieuw", icon: LuPlus, keywords: "pagina toevoegen aanmaken" },
   { label: "Nieuwe offerte", href: "/admin/offertes/nieuw", icon: LuFilePenLine, keywords: "offerte maken opstellen voorstel prijsopgave versturen" },
+  { label: "Nieuwe brochure", href: "/admin/brochures/nieuw", icon: LuBookOpen, keywords: "brochure maken versturen prospect kennismaking" },
   { label: "Lead toevoegen", href: "/admin/bellijst#nieuw", icon: LuUserPlus, keywords: "lead nieuw bellijst" },
   { label: "Partner toevoegen", href: "/admin/partners#nieuw", icon: LuHandshake, keywords: "partner nieuw accountant aanmeldlink code" },
   { label: "Bestand uploaden", href: "/admin/media", icon: LuUpload, keywords: "media afbeelding pdf" },
@@ -74,7 +76,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
 ];
 
 export const CRUMBS: Record<string, string> = {
-  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", paginas: "Pagina's", blog: "Blog",
+  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", brochures: "Brochures", paginas: "Pagina's", blog: "Blog",
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",

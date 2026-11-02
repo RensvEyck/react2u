@@ -106,6 +106,7 @@ const nextConfig: NextConfig = {
   // tekenen), de downloadroute en het voorbeeld in het beheer.
   outputFileTracingIncludes: {
     "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
+    "/brochure/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
     "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
   },
   images: {
@@ -157,6 +158,11 @@ const nextConfig: NextConfig = {
       // het token gaat niet als referrer mee naar andere sites.
       {
         source: "/offerte/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
+      // Brochures (0030): dezelfde regels als offertes.
+      {
+        source: "/brochure/:path*",
         headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
       },
     ];

@@ -66,6 +66,9 @@ const FOUT_TEKST: Record<string, string> = {
   "sjabloon-naam": "Kies een sjabloon om te overschrijven, of geef het nieuwe sjabloon een naam.",
   "sjabloon-bestaat": "Er is al een sjabloon met (bijna) die naam. Kies een andere naam, of overschrijf het bestaande.",
   "migratie-0025": "Sjablonen staan nog niet aan: migratie 0025 moet eerst in Supabase worden uitgevoerd.",
+  // Brochures
+  "brochure-onvolledig": "Vul de naam van het bedrijf in voordat je de brochure openzet.",
+  "migratie-0030": "Brochures staan nog niet aan: migratie 0030 moet eerst in Supabase worden uitgevoerd.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
@@ -88,6 +91,12 @@ const OK_TEKST: Record<string, string> = {
   "offerte-nieuw": "Offerte aangemaakt. Bekijk het voorbeeld en verstuur hem als hij klaar is.",
   "offerte-open": "De link staat open voor de klant. Stuur hem door.",
   "offerte-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  brochure: "Brochure opgeslagen.",
+  "brochure-nieuw": "Brochure aangemaakt. Bekijk het voorbeeld en verstuur hem.",
+  "brochure-open": "De link staat open voor de prospect. Stuur hem door.",
+  "brochure-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  "brochure-heropend": "De brochure staat weer open.",
+  "brochure-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
   "offerte-heropend": "Heropend: de klant kan weer kiezen en tekenen.",
   "offerte-kopie": "Kopie gemaakt als nieuw concept, met een eigen nummer en link.",
   "offerte-link": "Nieuwe link gemaakt. De oude werkt niet meer.",

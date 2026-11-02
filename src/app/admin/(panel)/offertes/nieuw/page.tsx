@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import OfferteEditor, { type EditorBegin } from "@/components/admin/OfferteEditor";
-import { laadCatalogus, laadSjablonen, standaardAfzender, uitAanvraag } from "@/lib/offerteBeheer";
+import { laadCatalogus, laadSjablonen, standaardAfzender, uitAanvraag, uitBrochure } from "@/lib/offerteBeheer";
 import { datumOver, GELDIG_DAGEN, VORMEN, type Vorm, VORM_GROEPEN } from "@/lib/offertes";
 import { aantalOnderdelen, sjabloonVoorStart, type Sjabloon } from "@/lib/offerteSjablonen";
 import { LuArrowLeft, LuInbox, LuFilePlus, LuSettings2, LuChevronRight } from "react-icons/lu";
@@ -15,18 +15,21 @@ import { LuArrowLeft, LuInbox, LuFilePlus, LuSettings2, LuChevronRight } from "r
 export default async function NieuweOfferte({
   searchParams,
 }: {
-  searchParams: Promise<{ bericht?: string; start?: string; sjabloon?: string }>;
+  searchParams: Promise<{ bericht?: string; start?: string; sjabloon?: string; brochure?: string }>;
 }) {
   const { sb, user, admin } = await requirePerm("bellijst");
-  const { bericht, start, sjabloon } = await searchParams;
+  const { bericht, start, sjabloon, brochure } = await searchParams;
   const catalogus = await laadCatalogus(sb);
   const [{ sjablonen }, afzender, aanvraag] = await Promise.all([
     laadSjablonen(sb, catalogus),
     standaardAfzender(sb, user.id, admin.email),
     bericht && /^[0-9a-f-]{36}$/.test(bericht) && admin.permissions.includes("postvak") ? uitAanvraag(sb, bericht) : Promise.resolve(null),
   ]);
+  // Vanuit een brochure (0030): dezelfde prospect en afzender, de rest kies je hier.
+  const vanBrochure = brochure && /^[0-9a-f-]{36}$/.test(brochure) ? await uitBrochure(sb, brochure) : null;
 
   const sleutel = sjabloon || sjabloonVoorStart(start) || (aanvraag ? `verzuim-${aanvraag.startpunt}` : null);
+  const terugNaarKiezer = bericht && aanvraag ? `?bericht=${bericht}&sjabloon=kies` : brochure ? `?brochure=${brochure}&sjabloon=kies` : "";
   const gekozen = sjablonen.find((s) => s.sleutel === sleutel);
   const kop = (
     <div className="flex flex-col gap-3">
@@ -38,7 +41,7 @@ export default async function NieuweOfferte({
           Nieuwe offerte{gekozen ? `: ${gekozen.naam}` : ""}
         </h1>
         {(gekozen || sleutel === "leeg") && (
-          <Link href={`/admin/offertes/nieuw${bericht ? `?bericht=${bericht}&sjabloon=kies` : ""}`} className="text-[13.5px] font-semibold text-[#312e82] hover:underline">
+          <Link href={`/admin/offertes/nieuw${terugNaarKiezer}`} className="text-[13.5px] font-semibold text-[#312e82] hover:underline">
             Andere vorm kiezen
           </Link>
         )}
@@ -56,7 +59,7 @@ export default async function NieuweOfferte({
     return (
       <div className="space-y-6">
         {kop}
-        <Kiezer sjablonen={sjablonen} bericht={bericht && aanvraag ? bericht : undefined} />
+        <Kiezer sjablonen={sjablonen} bericht={bericht && aanvraag ? bericht : undefined} brochure={vanBrochure ? brochure : undefined} />
       </div>
     );
   }
@@ -73,6 +76,7 @@ export default async function NieuweOfferte({
     ...(aanvraag
       ? { bedrijf: aanvraag.bedrijf, contactpersoon: aanvraag.contactpersoon, email: aanvraag.email, telefoon: aanvraag.telefoon, medewerkers: aanvraag.medewerkers }
       : {}),
+    ...(vanBrochure ?? {}),
   };
 
   return (
@@ -83,8 +87,8 @@ export default async function NieuweOfferte({
   );
 }
 
-function Kiezer({ sjablonen, bericht }: { sjablonen: Sjabloon[]; bericht?: string }) {
-  const href = (sleutel: string) => `/admin/offertes/nieuw?${bericht ? `bericht=${bericht}&` : ""}sjabloon=${sleutel}`;
+function Kiezer({ sjablonen, bericht, brochure }: { sjablonen: Sjabloon[]; bericht?: string; brochure?: string }) {
+  const href = (sleutel: string) => `/admin/offertes/nieuw?${bericht ? `bericht=${bericht}&` : brochure ? `brochure=${brochure}&` : ""}sjabloon=${sleutel}`;
   return (
     <div className="space-y-6">
       {VORM_GROEPEN.map((groep) => {
