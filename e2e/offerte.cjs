@@ -80,7 +80,7 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await nieuweRij.locator("input[id$='-prijs']").fill("495");
   await nieuweRij.locator("select[id$='-eenheid']").selectOption("eenmalig");
   await nieuweRij.locator("textarea[id$='-oms']").fill("Kennismaking met je organisatie, inrichten van het verzuimdossier en een startsessie met leidinggevenden.");
-  await page.fill("#of-intro", "Beste Marieke,\n\nBedankt voor het fijne gesprek van dinsdag. Zoals besproken vind je hieronder twee manieren om aan te sluiten. Kies wat het beste past; het totaal rekent meteen mee.\n\nVragen? Bel me gerust.");
+  check((await page.locator("#of-intro").count()) === 0, "geen persoonlijke boodschap meer in de editor (het voorwoord staat er al)");
   check((await page.inputValue("#of-ae")) === "sales@react2u.nl", "afzendermail standaard sales@react2u.nl");
   await page.fill("#of-an", "Rens van Eyck");
   await page.fill("#of-af", "Eigenaar");

@@ -389,18 +389,6 @@ export default function OfferteEditor({
                   <input id="of-geldig" className="ainput" name="geldig_tot" type="date" value={geldig} onChange={(e) => setGeldig(e.target.value)} />
                 </div>
               </div>
-              <div>
-                <label className="alabel" htmlFor="of-intro">Persoonlijke boodschap</label>
-                <textarea
-                  id="of-intro"
-                  className="ainput min-h-[130px]"
-                  name="intro"
-                  maxLength={5000}
-                  defaultValue={begin.intro || ""}
-                  placeholder={"Bijvoorbeeld: Beste {contactpersoon}, bedankt voor het prettige gesprek van dinsdag…"}
-                />
-                <p className="mt-1.5 text-[12.5px] text-black/45">Bovenaan de offerte, met je naam erbij. Een lege regel begint een nieuwe alinea.</p>
-              </div>
               <TekstVeld
                 id="of-inhoud"
                 naam="inhoud"

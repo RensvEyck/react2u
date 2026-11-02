@@ -5,7 +5,8 @@
  *
  * Bewust niet per offerte aan te passen en niet in het beheer: het is het
  * verhaal van React2u, niet van één klant. Het persoonlijke woord van de
- * afzender (`intro`) blijft per offerte. De feiten komen van Over React2u
+ * afzender (`intro`) staat sinds 2 nov 2026 niet meer op de pagina of in de
+ * pdf: het voorwoord vervangt het. De feiten komen van Over React2u
  * (opgericht in 2023 in Eindhoven, één vast gezicht, zes specialismen,
  * keurmerken); verandert daar iets, pas het dan hier ook aan.
  *

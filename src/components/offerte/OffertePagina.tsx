@@ -25,6 +25,9 @@ import {
  * De offerte zoals de klant hem ziet (/offerte/<token>), en hetzelfde scherm
  * als voorbeeld in het beheer.
  *
+ * Geen persoonlijk woord van de afzender meer: het vaste voorwoord van Cindy
+ * en Susanne staat er al (Rens, 2 nov 2026).
+ *
  * Elk traject in de branding van zijn eigen label (Rens, 2 nov 2026: "het moet
  * deze branding zijn per offerte traject", bij de dienstenkaarten op
  * /werkgevers): Recover roze, Resist teal, Restart oranje, Reflex blauw, Ready
@@ -575,7 +578,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
     return { maand: Math.round((t.perMaand - totalen.perMaand) * 100) / 100, eenmalig: Math.round((t.eenmalig - totalen.eenmalig) * 100) / 100 };
   };
   // Wit en tint om en om onder de opening (die zelf in de tint staat, dus eerst wit), wat er ook in de offerte staat.
-  const banden = ["voorwoord", ...(offerte.intro ? ["persoonlijk"] : []), ...(offerte.inhoud?.trim() ? ["over"] : []), "keuze"];
+  const banden = ["voorwoord", ...(offerte.inhoud?.trim() ? ["over"] : []), "keuze"];
   const tint = (id: string) => banden.indexOf(id) % 2 === 1;
 
   // De tussenstand bewaren, een moment nadat de klant stopt met klikken.
@@ -645,26 +648,6 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
         />
 
         <Voorwoord offerte={offerte} tint={tint("voorwoord")} />
-
-        {offerte.intro && (
-          <section aria-label="Een persoonlijk woord" style={{ background: tint("persoonlijk") ? m.tint : "#ffffff" }}>
-            <div className={`${BREED} py-16 md:py-[112px]`}>
-              <figure className="m-0 mx-auto flex max-w-[920px] flex-col gap-8 rounded-[28px] px-6 py-9 sm:px-10 md:px-14 md:py-14" style={vlak(m, tint("persoonlijk"))}>
-                <div className="flex items-center gap-4">
-                  <Avatar naam={offerte.afzender_naam} maat={60} rand={tint("persoonlijk") ? "#ffffff" : m.tint} />
-                  <div className="leading-tight">
-                    <Eyebrow kleur={m.tekst}>Een persoonlijk woord</Eyebrow>
-                    <p className="m-0 mt-1.5 text-[15px]" style={{ color: MUTE }}>Van {offerte.afzender_naam || "React2u"}{offerte.afzender_functie ? `, ${offerte.afzender_functie}` : ""}</p>
-                  </div>
-                </div>
-                <blockquote className="m-0">
-                  <p className="m-0 whitespace-pre-line text-[17px] leading-[1.8] md:text-[19px]" style={{ color: BODY }}>{vulIn(offerte.intro, offerte)}</p>
-                </blockquote>
-                <figcaption className={`${handschrift.className} text-[44px] leading-none`} style={{ color: NAVY }}>{offerte.afzender_naam || "React2u"}</figcaption>
-              </figure>
-            </div>
-          </section>
-        )}
 
         {offerte.inhoud?.trim() && (
           <section aria-label="Over deze offerte" style={{ background: tint("over") ? m.tint : "#ffffff" }}>

@@ -220,7 +220,6 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
   const hoofdstukken = [
     "voorwoord",
     "afgenomen",
-    ...(inhoud.intro?.trim() ? ["brief"] : []),
     ...(inhoud.inhoud?.trim() ? ["over"] : []),
     "vervolg",
     "voorwaarden",
@@ -363,14 +362,6 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
           )}
         </View>
 
-        {inhoud.intro?.trim() ? (
-          <View style={s.hoofdstuk}>
-            <Kop nr={nr("brief")} titel="Persoonlijk" />
-            {inhoud.intro.split(/\n\s*\n/).map((a, i) => <Text key={i} style={s.p}>{vulIn(a.trim(), inhoud)}</Text>)}
-            <Text style={{ fontFamily: "Caveat", fontSize: 22, color: NAVY, marginTop: 2, lineHeight: 1.2 }}>{afzender}</Text>
-            <Text style={{ fontSize: 8.5, color: MUTE }}>{[afzender, functie].filter(Boolean).join(", ")}</Text>
-          </View>
-        ) : null}
 
         {inhoud.inhoud?.trim() ? (
           <View style={s.hoofdstuk}>

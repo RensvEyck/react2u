@@ -939,6 +939,10 @@ eigen label**, met de opbouw van de dienstpagina van dat label
   offerte zelf ("{titel} voor {bedrijf}", door en voor wie, de feiten, de
   knoppen). Rechts een witte kaart met het bedrag (telt mee), "Wat je krijgt"
   (de gekozen onderdelen, vinkjes in de labelkleur) en de contactpersoon.
+- **Geen persoonlijk woord van de afzender** (Rens, 2 nov: "haal die weg
+  aangezien er al een voorwoord is"): niet op de pagina, niet in de pdf en niet
+  meer als veld in de editor. De kolom `intro` en de aanheffen in de sjablonen
+  bestaan nog, maar worden niet getoond.
 - **Accenten in de labelkleur**: bovenkopjes, vinkjes in een rondje in de tint,
   de schakelaars van extra's, de badge op een gekozen kaart, de
   aanhalingstekens, de initialen van Susanne in het voorwoord. Banden onder de
@@ -1037,7 +1041,7 @@ offertes worden nog aangepast; de vormen blijven. Daarom:
   onderaan *Bewaar als sjabloon* (overschrijven of een nieuw sjabloon met eigen
   naam). Dat komt in `offerte_sjablonen` en wint van de standaard in de code;
   *Terug naar standaard* op `/admin/offertes/sjablonen` haalt het weg.
-  Klantgegevens gaan niet mee, de aanhef wel: gebruik daar de invulvelden.
+  Klantgegevens gaan niet mee; gebruik in de teksten de invulvelden.
 - **Geldigheid en betalingstermijn**: elke offerte is standaard dertig dagen geldig
   (`GELDIG_DAGEN` in `lib/offertes.ts`) en noemt in de voorwaarden een
   betalingstermijn van dertig dagen (`BETALING` in `lib/offerteSjablonen.ts`), voor

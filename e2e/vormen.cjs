@@ -108,8 +108,8 @@ async function teken(klant, naam) {
   klant.on("pageerror", (e) => paginafouten.push(String(e)));
   await klant.goto(rieLink);
   await klant.waitForSelector("h1");
-  check(await klant.locator("text=Beste Sanne Hendriks,").count(), "aanhef ingevuld");
-  check(await klant.locator("text=voor Bouwbedrijf Hendriks.").count(), "{bedrijf} ingevuld in de aanhef");
+  check((await klant.locator("text=Een persoonlijk woord").count()) === 0, "geen persoonlijk woord naast het voorwoord");
+  check(await klant.locator("text=voor Bouwbedrijf Hendriks kunnen betekenen").count(), "{bedrijf} ingevuld in het voorwoord");
   check(await klant.locator("dl div:has(dt:has-text('Locatie')) dd:has-text('Vestiging Helmond')").count(), "betreft op de omslag");
   check(await klant.locator("h3:has-text('Stap 1: Inventariseren van de risico')").count(), "tussenkoppen uit de uitleg");
   check(await klant.locator(":is(h2,h3):has-text('Voorwaarden')").count() && (await klant.locator("text=De betalingstermijn is 30 dagen.").count()), "voorwaarden");
@@ -163,7 +163,7 @@ async function teken(klant, naam) {
   await klant.goto(pagoLink);
   await klant.waitForSelector("h1");
   check((await klant.locator("aside [aria-live]").first().innerText()).trim() === "€212,50", "5 × €42,50 = €212,50");
-  check(await klant.locator("text=Beste heer, mevrouw,").count(), "zonder contactpersoon: heer, mevrouw");
+  check(await klant.locator("text=voor FlexWerk BV kunnen betekenen").count(), "zonder contactpersoon: voorwoord met de bedrijfsnaam");
   await shot(klant, "08-klant-pago", { fullPage: false });
 
   stap("Bewaar als sjabloon");
