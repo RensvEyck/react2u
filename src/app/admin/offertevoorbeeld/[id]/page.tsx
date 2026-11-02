@@ -3,7 +3,7 @@ import { requirePerm } from "@/lib/admin";
 import OffertePagina from "@/components/offerte/OffertePagina";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { datumOver, normaliseerRegels, type Offerte, type OffertePubliek } from "@/lib/offertes";
-import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
+import { offerteHuisstijl, offerteMerk } from "@/lib/offerteHuisstijl";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,8 @@ export default async function OfferteVoorbeeld({ params }: { params: Promise<{ i
     regels: normaliseerRegels(o.regels),
     verlopen: Boolean(o.geldig_tot && o.geldig_tot < datumOver(0)),
   };
+  const merk = await offerteMerk(offerte.getekend_inhoud?.vorm ?? offerte.vorm);
   return (
-    <OffertePagina offerte={offerte} modus="voorbeeld" voorwaarden={DOCUMENTEN.algemeneVoorwaarden} contact={huisstijl.contact} certificaten={huisstijl.certificaten} />
+    <OffertePagina offerte={offerte} modus="voorbeeld" voorwaarden={DOCUMENTEN.algemeneVoorwaarden} contact={huisstijl.contact} certificaten={huisstijl.certificaten} merk={merk} />
   );
 }

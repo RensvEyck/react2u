@@ -6,8 +6,8 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { withinLimit } from "@/lib/rateLimit";
 import { clientIp } from "@/lib/analytics";
 import {
-  berekenTotalen, euro, factuurFout, momentLang, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, OFFERTE_EMAIL, ONDERTEKEN_FOUT,
-  regelbedrag, VERVOLG_STANDAARD, type Factuur, type OffertePubliek,
+  bedragTekst, berekenTotalen, euro, factuurFout, momentLang, naamVoorSales, normaliseerFactuur, normaliseerRegels, normaliseerVervolg,
+  OFFERTE_EMAIL, ONDERTEKEN_FOUT, VERVOLG_STANDAARD, type Factuur, type OffertePubliek,
 } from "@/lib/offertes";
 import {
   bevestigOfferteGetekend, notifyOfferteAfgewezen, notifyOfferteGetekend, offerteAdminUrl, offerteUrl, sendOfferteCode,
@@ -149,10 +149,7 @@ export async function ondertekenOfferte(
         moment: momentLang(inhoud.getekend_at),
         regels: t.regels.map((r) => ({
           naam: r.regel.naam,
-          bedrag: r.bedrag === null ? "Op aanvraag" : r.bedrag === 0 ? "Inbegrepen" : (() => {
-            const b = regelbedrag(r);
-            return `${euro(b.bedrag!)} ${b.per === "maand" ? "per maand" : "eenmalig"}`;
-          })(),
+          bedrag: r.regel.bijGebruik ? `${bedragTekst(r)}, bij gebruik` : r.bedrag === null && r.regel.soort === "optie" ? "Voorstel volgt" : bedragTekst(r),
         })),
         totalen,
         afzender,
@@ -169,7 +166,7 @@ export async function ondertekenOfferte(
         email: inhoud.getekend_email,
         perMaand: euro(t.perMaand),
         eenmalig: t.eenmalig ? euro(t.eenmalig) : null,
-        regels: t.regels.map((r) => r.regel.naam),
+        regels: t.regels.map(naamVoorSales),
         adminLink: offerteAdminUrl(o.id),
         afzenderEmail: o.afzender_email,
         factuur: inhoud.factuur ?? null,

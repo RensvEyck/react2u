@@ -7,6 +7,7 @@ import {
   controleer, datumLang, isVorm, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, GELDIG_DAGEN, OFFERTE_EMAIL, type Offerte, type OfferteStatus,
 } from "@/lib/offertes";
 import { sleutelUit, STANDAARD_SJABLONEN } from "@/lib/offerteSjablonen";
+import { ruimModulesOp } from "@/lib/offerteCatalogus";
 import { sendOfferte, offerteUrl } from "@/lib/mail";
 import { offerteSamenvatting } from "@/lib/offerteMail";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
@@ -77,7 +78,7 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
     inhoud: tekst(fd, "inhoud", 30000),
     voorwaarden: tekst(fd, "voorwaarden", 10000),
     vervolg: normaliseerVervolg(vervolg),
-    regels: normaliseerRegels(regels),
+    regels: ruimModulesOp(normaliseerRegels(regels)),
     geldig_tot: /^\d{4}-\d{2}-\d{2}$/.test(geldig) ? geldig : null,
     afzender_naam: tekst(fd, "afzender_naam"),
     afzender_functie: tekst(fd, "afzender_functie"),
@@ -293,7 +294,8 @@ export async function bewaarAlsSjabloon(id: string, fd: FormData) {
     inhoud: bron.inhoud ?? null,
     voorwaarden: bron.voorwaarden ?? null,
     vervolg: normaliseerVervolg(bron.vervolg),
-    regels: normaliseerRegels(bron.regels),
+    // Zonder de modules: die komen bij een nieuwe offerte vers van de prijslijst (alleSjablonen).
+    regels: normaliseerRegels(bron.regels).filter((r) => !r.module),
     geldig_dagen: geldig >= 1 && geldig <= 365 ? Math.round(geldig) : huidig?.geldig_dagen ?? standaard?.geldigDagen ?? GELDIG_DAGEN,
     updated_at: new Date().toISOString(),
     updated_by: admin.email,

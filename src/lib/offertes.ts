@@ -64,10 +64,34 @@ export type Regel = {
   /** Hoeveel. Leeg: het aantal medewerkers bij "per medewerker per jaar", anders 1. */
   aantal?: number | null;
   soort: Soort;
-  /** Bij soort "keuze": de groep waaruit de klant er één kiest. */
+  /**
+   * Bij soort "keuze": de groep waaruit de klant er één kiest. Bij "optie":
+   * opties die elkaar uitsluiten (hooguit één aan), zoals maand- of
+   * vierwekelijkse verloning.
+   */
   groep?: string;
   /** Bij "optie": standaard aan. Bij "keuze": de voorgeselecteerde in zijn groep. */
   aan?: boolean;
+  /**
+   * Een extra uit een ander specialisme dat de klant er zelf bij kan
+   * aanklikken: op de klantpagina in het blok "Vaak gekozen erbij", niet bij de
+   * gewone onderdelen. Alleen bij "optie" (zie aanbevolenExtras in
+   * lib/offerteCatalogus.ts).
+   */
+  aanbevolen?: boolean;
+  /**
+   * Een dienst van de volledige prijslijst die de klant zelf kan aanzetten
+   * (Rens, 2 nov 2026: "klant moet zelf alle modules aan kunnen klikken"): op
+   * de klantpagina per label onder "Alles van React2u", in het beheer als één
+   * blok. Alleen bij "optie" (zie alleModules in lib/offerteCatalogus.ts).
+   */
+  module?: boolean;
+  /**
+   * Een optie zonder vast bedrag: aan betekent dat de klant hem afneemt tegen
+   * het tarief (per uur, per melding, per maand per dossier). Telt niet mee in
+   * het totaal, maar gaat wel mee in wat hij tekent.
+   */
+  bijGebruik?: boolean;
 };
 
 export type OfferteStatus = "concept" | "verstuurd" | "getekend" | "afgewezen" | "ingetrokken";
@@ -290,7 +314,8 @@ export function normaliseerRegels(input: unknown): Regel[] {
     const omschrijving = lang(r.omschrijving, 1000);
     if (omschrijving) regel.omschrijving = omschrijving;
     const prijsTekst = tekst(r.prijsTekst, 60);
-    if (prijsTekst && prijs === null) regel.prijsTekst = prijsTekst;
+    // Een bedrag als tekst: in plaats van een prijs, of bij een tarief bij gebruik ("€20 per ziekmelding").
+    if (prijsTekst && (prijs === null || (soort === "optie" && r.bijGebruik === true))) regel.prijsTekst = prijsTekst;
     const badge = tekst(r.badge, 40);
     if (badge) regel.badge = badge;
     if (Array.isArray(r.punten)) {
@@ -299,7 +324,11 @@ export function normaliseerRegels(input: unknown): Regel[] {
     }
     if (aantalRuw !== null && aantalRuw > 0) regel.aantal = Math.round(aantalRuw * 100) / 100;
     if (soort === "keuze") regel.groep = tekst(r.groep, 60) || "keuze";
+    if (soort === "optie" && tekst(r.groep, 60)) regel.groep = tekst(r.groep, 60);
     if ((soort === "optie" || soort === "keuze") && r.aan === true) regel.aan = true;
+    if (soort === "optie" && r.aanbevolen === true) regel.aanbevolen = true;
+    if (soort === "optie" && r.module === true) regel.module = true;
+    if (soort === "optie" && r.bijGebruik === true) regel.bijGebruik = true;
     uit.push(regel);
   }
   return uit;
@@ -317,9 +346,20 @@ function groepen(regels: Regel[]): Map<string, Regel[]> {
   return m;
 }
 
+/** Van opties die elkaar uitsluiten (zelfde `groep`) telt de eerste; de rest valt weg. */
+function eenPerGroep(opties: Regel[]): Regel[] {
+  const bezet = new Set<string>();
+  return opties.filter((r) => {
+    if (!r.groep) return true;
+    if (bezet.has(r.groep)) return false;
+    bezet.add(r.groep);
+    return true;
+  });
+}
+
 /** Wat er klaarstaat als de klant de pagina opent: opties die aan staan en per groep de voorgeselecteerde (of de eerste). */
 export function standaardKeuze(regels: Regel[]): string[] {
-  const uit = regels.filter((r) => r.soort === "optie" && r.aan).map((r) => r.id);
+  const uit = eenPerGroep(regels.filter((r) => r.soort === "optie" && r.aan)).map((r) => r.id);
   for (const lijst of groepen(regels).values()) uit.push((lijst.find((r) => r.aan) || lijst[0]).id);
   return uit;
 }
@@ -348,7 +388,7 @@ export function herstelKeuze(regels: Regel[], keuze: unknown): string[] {
   if (!Array.isArray(keuze)) return standaardKeuze(regels);
   const ids = new Set(regels.map((r) => r.id));
   const k = new Set(keuze.filter((x): x is string => typeof x === "string" && ids.has(x)));
-  const uit = regels.filter((r) => r.soort === "optie" && k.has(r.id)).map((r) => r.id);
+  const uit = eenPerGroep(regels.filter((r) => r.soort === "optie" && k.has(r.id))).map((r) => r.id);
   for (const lijst of groepen(regels).values()) {
     const gekozen = lijst.filter((r) => k.has(r.id));
     uit.push((gekozen.length === 1 ? gekozen[0] : lijst.find((r) => r.aan) || lijst[0]).id);
@@ -356,11 +396,19 @@ export function herstelKeuze(regels: Regel[], keuze: unknown): string[] {
   return uit;
 }
 
-/** Klikken op een regel: een optie gaat aan of uit, een keuze wordt de enige in zijn groep. Vast en tarief doen niets. */
+/**
+ * Klikken op een regel: een optie gaat aan of uit (en zet een optie uit zijn
+ * eigen groep uit), een keuze wordt de enige in zijn groep. Vast en tarief
+ * doen niets.
+ */
 export function wissel(regels: Regel[], keuze: readonly string[], id: string): string[] {
   const r = regels.find((x) => x.id === id);
   if (!r) return [...keuze];
-  if (r.soort === "optie") return keuze.includes(id) ? keuze.filter((x) => x !== id) : [...keuze, id];
+  if (r.soort === "optie") {
+    if (keuze.includes(id)) return keuze.filter((x) => x !== id);
+    const uitsluiten = new Set(r.groep ? regels.filter((x) => x.soort === "optie" && x.groep === r.groep && x.id !== id).map((x) => x.id) : []);
+    return [...keuze.filter((x) => !uitsluiten.has(x)), id];
+  }
   if (r.soort === "keuze") {
     const groep = new Set(regels.filter((x) => x.soort === "keuze" && (x.groep || "keuze") === (r.groep || "keuze")).map((x) => x.id));
     return [...keuze.filter((x) => !groep.has(x)), id];
@@ -381,9 +429,9 @@ export function aantalVoor(r: Regel, medewerkers: number | null | undefined): nu
   return 1;
 }
 
-/** Het bedrag van één regel en waar het bij hoort (per jaar of eenmalig). Null voor tarieven en op aanvraag. */
+/** Het bedrag van één regel en waar het bij hoort (per jaar of eenmalig). Null voor tarieven, bij gebruik en op aanvraag. */
 export function bedragVoor(r: Regel, medewerkers: number | null | undefined): { bedrag: number; periode: Periode } | null {
-  if (r.soort === "tarief" || r.prijs === null) return null;
+  if (r.soort === "tarief" || r.bijGebruik || r.prijs === null) return null;
   const periode = eenheidVan(r.eenheid).periode;
   if (!periode) return null;
   const factor = r.eenheid === "maand" ? 12 : 1;
@@ -436,8 +484,8 @@ export function euro(bedrag: number): string {
 }
 
 /** "€38,50 per medewerker per jaar", "€240 per uur", "Op aanvraag". */
-export function prijsLabel(r: Pick<Regel, "prijs" | "eenheid"> & { prijsTekst?: string }): string {
-  if (r.prijs === null && r.prijsTekst) return r.prijsTekst;
+export function prijsLabel(r: Pick<Regel, "prijs" | "eenheid"> & { prijsTekst?: string; bijGebruik?: boolean }): string {
+  if (r.prijsTekst && (r.prijs === null || r.bijGebruik)) return r.prijsTekst;
   if (r.prijs === null && r.eenheid === "uur") return "Uurtarief";
   if (r.prijs === null || r.eenheid === "op_aanvraag") return "Op aanvraag";
   if (r.prijs === 0) return "Inbegrepen";
@@ -459,6 +507,31 @@ export function maandprijs(r: Pick<Regel, "prijs" | "eenheid"> & { prijsTekst?: 
   }
   const tekst = prijsLabel(r);
   return { bedrag: r.prijs, achter: r.prijs === null || r.prijs === 0 ? "" : eenheidVan(r.eenheid).achter, tekst, jaar: null };
+}
+
+/**
+ * Wat er achter een gekozen regel staat in een overzicht, de pdf of een mail:
+ * "€290 per maand", "€1.975 eenmalig", "Inbegrepen", bij gebruik het tarief
+ * ("€240 per uur") en anders "Op aanvraag". `kort` geeft "p/m" voor smalle
+ * kolommen.
+ */
+export function bedragTekst(b: { regel: Regel; bedrag: number | null; periode: "jaar" | "eenmalig" | null }, kort = false): string {
+  if (b.regel.bijGebruik) return prijsLabel(b.regel);
+  const r = regelbedrag(b);
+  if (r.bedrag === null) return "Op aanvraag";
+  if (r.bedrag === 0) return "Inbegrepen";
+  return `${euro(r.bedrag)}${r.per === "maand" ? (kort ? " p/m" : " per maand") : " eenmalig"}`;
+}
+
+/**
+ * De naam van een gekozen regel voor sales, met wat aanzetten betekende als
+ * er geen bedrag bij hoort: "HR-advies op afroep (voorstel gevraagd)",
+ * "Training Leiderschap en Management (bij gebruik, €240 per uur)".
+ */
+export function naamVoorSales(b: { regel: Regel; bedrag: number | null }): string {
+  if (b.regel.bijGebruik) return `${b.regel.naam} (bij gebruik, ${prijsLabel(b.regel)})`;
+  if (b.bedrag === null && b.regel.soort === "optie") return `${b.regel.naam} (voorstel gevraagd)`;
+  return b.regel.naam;
 }
 
 /** Het bedrag van een regel in de keuze: per maand als het doorloopt, anders eenmalig. */

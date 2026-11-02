@@ -101,7 +101,7 @@ export default async function OfferteSjablonen() {
                     <div>
                       <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-black/40">Onderdelen</p>
                       <ul className="mt-1.5 divide-y divide-black/[0.05] text-[13px]">
-                        {s.regels.map((r) => (
+                        {s.regels.filter((r) => !r.module).map((r) => (
                           <li key={r.id} className="flex justify-between gap-3 py-1.5">
                             <span className="min-w-0 text-[#1c1a4e]">
                               {r.naam}
@@ -110,6 +110,11 @@ export default async function OfferteSjablonen() {
                             <span className="shrink-0 tabular-nums text-black/60">{prijsLabel(r)}</span>
                           </li>
                         ))}
+                        {s.regels.some((r) => r.module) && (
+                          <li className="py-1.5 text-black/50">
+                            Plus alle modules van de prijslijst ({s.regels.filter((r) => r.module).length}), om zelf aan te zetten
+                          </li>
+                        )}
                       </ul>
                     </div>
                     {s.voorwaarden.trim() && (

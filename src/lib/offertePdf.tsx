@@ -11,7 +11,7 @@ import { inlineDelen } from "./mdInline";
 import { ondertekenaarRegel, VOORWOORD } from "./offerteVoorwoord";
 import {
   aantalVoor, apparaatUit, berekenTotalen, datumLang, DIENSTLABEL, euro, factuurRegels, maandprijs, momentLang, momentPrecies,
-  normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, tijdlijnRegels, vulIn, VERVOLG_STANDAARD, VORMEN,
+  bedragTekst, normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, tijdlijnRegels, vulIn, VERVOLG_STANDAARD, VORMEN,
   type CertificaatGegevens, type GetekendeInhoud, type Vorm,
 } from "./offertes";
 
@@ -220,7 +220,6 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
   const hoofdstukken = [
     "voorwoord",
     "afgenomen",
-    ...(inhoud.intro?.trim() ? ["brief"] : []),
     ...(inhoud.inhoud?.trim() ? ["over"] : []),
     "vervolg",
     "voorwaarden",
@@ -329,9 +328,11 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
                   {regel.omschrijving ? <Text style={{ fontSize: 8.5, color: MUTE }}>{regel.omschrijving}</Text> : null}
                   {perMedewerker && n > 1 ? <Text style={{ fontSize: 8.5, color: MUTE }}>{maandprijs(regel).tekst} × {n}</Text> : null}
                 </View>
-                <Text style={{ color: INKT, fontWeight: 600, fontSize: 10, textAlign: "right" }}>
-                  {b.bedrag === null ? "Op aanvraag" : b.bedrag === 0 ? "Inbegrepen" : `${euro(b.bedrag)} ${b.per === "maand" ? "per maand" : "eenmalig"}`}
-                </Text>
+                <View>
+                  <Text style={{ color: INKT, fontWeight: 600, fontSize: 10, textAlign: "right" }}>{bedragTekst({ regel, bedrag, periode })}</Text>
+                  {regel.bijGebruik ? <Text style={{ fontSize: 8.5, color: MUTE, textAlign: "right" }}>bij gebruik</Text> : null}
+                  {b.bedrag === null && !regel.bijGebruik && regel.soort === "optie" ? <Text style={{ fontSize: 8.5, color: MUTE, textAlign: "right" }}>voorstel volgt</Text> : null}
+                </View>
               </View>
             );
           })}
@@ -363,14 +364,6 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
           )}
         </View>
 
-        {inhoud.intro?.trim() ? (
-          <View style={s.hoofdstuk}>
-            <Kop nr={nr("brief")} titel="Persoonlijk" />
-            {inhoud.intro.split(/\n\s*\n/).map((a, i) => <Text key={i} style={s.p}>{vulIn(a.trim(), inhoud)}</Text>)}
-            <Text style={{ fontFamily: "Caveat", fontSize: 22, color: NAVY, marginTop: 2, lineHeight: 1.2 }}>{afzender}</Text>
-            <Text style={{ fontSize: 8.5, color: MUTE }}>{[afzender, functie].filter(Boolean).join(", ")}</Text>
-          </View>
-        ) : null}
 
         {inhoud.inhoud?.trim() ? (
           <View style={s.hoofdstuk}>

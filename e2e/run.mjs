@@ -11,6 +11,8 @@
 //   E2E_GEEN_BUILD=1   bestaande .next gebruiken (alleen als die met deze
 //                      instellingen is gebouwd)
 //   E2E_ALLEEN=offerte alleen één test (offerte of vormen)
+//   E2E_POORT=3024     de site op een andere poort dan 3014 (en E2E_RESEND_POORT
+//                      voor de nep-Resend), als een vorige run nog draait
 import { execFileSync, spawn } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import fs from "node:fs";
@@ -22,8 +24,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WERK = path.join(ROOT, ".e2e");
 const STACK = path.join(WERK, "stack");
 const UIT = path.join(WERK, "uitvoer");
-const POORT = 3014;
-const RESEND_POORT = 56399;
+const POORT = Number(process.env.E2E_POORT) || 3014;
+const RESEND_POORT = Number(process.env.E2E_RESEND_POORT) || 56399;
 const BASIS = `http://localhost:${POORT}`;
 const PROJECT = "react2u-e2e";
 const DB = `supabase_db_${PROJECT}`;

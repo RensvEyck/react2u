@@ -914,34 +914,115 @@ salesrecht, net als partners.
   aantal medewerkers en het passende startpunt staan dan al klaar.
 - **Pdf**: zie *De offerte als contract* hieronder.
 
-### De klantpagina: in de vormgeving van de website
+### De klantpagina: de branding van het label
 
-De offertepagina is het moment waarop de klant akkoord geeft. Na drie rondes
+De offertepagina is het moment waarop de klant akkoord geeft. Na vijf rondes
 feedback van Rens (29 okt 2026: "design moet echt veel beter", "geen foto's van
-de website"; 30 okt: "bekijk de website en trek dat design door") is het een
-pagina in dezelfde taal als de werkgeverspagina's en de tarieven, zonder foto's
-([`OffertePagina.tsx`](src/components/offerte/OffertePagina.tsx)). Kleuren,
-`BREED`, `Eyebrow`, `Pijl` en de keurmerken komen uit
-[`Gedeeld.tsx`](src/components/blocks/Gedeeld.tsx); de knoppen zijn de
-`.hv-btn`-knoppen van de site.
+de website"; 30 okt: "trek het design van de website door", "design moet echt
+S TIER"; 2 nov: "het moet deze branding zijn per offerte traject", bij de
+dienstenkaarten op /werkgevers) staat elke offerte in de branding van **zijn
+eigen label**, met de opbouw van de dienstpagina van dat label
+([`DienstLabel.tsx`](src/components/blocks/DienstLabel.tsx)), zonder foto's
+([`OffertePagina.tsx`](src/components/offerte/OffertePagina.tsx)):
 
-- **Kopbalk zoals de site**: logo, "Offerte {nummer}", rechts "Bel {voornaam}" en
-  de roze knop Ondertekenen.
-- **Opening zoals de paginakop van een doelgroep**: een vlak in de pasteltint van
-  het label (Recover roze, Resist teal, Restart oranje) met de cirkels van de
-  dienstenkaarten, daarop het indigo vlak met de grote ronde hoek: offertenummer,
-  titel, voor wie, opgesteld door en geldig tot, en de knoppen "Stel je offerte
-  samen" en "Bel {voornaam}". Waar op de site de foto staat, staat de kaart
-  *Jouw voorstel* (`<aside>`): het label, het bedrag (telt in 280 ms mee; een
-  schermlezer hoort alleen het eindbedrag), per jaar en eenmalig, betreft,
-  medewerkers en geldig tot, de knop naar het akkoord, de concept-pdf en de
-  contactpersoon met bel- en mailknop.
-- **Banden van rand tot rand**, wit en lichtlila om en om, met de sectiekop van
-  de site (bovenkopje met stip, kop links, korte uitleg rechts): het voorwoord,
-  een persoonlijk woord (met de handtekening van de afzender in Caveat), over
-  deze offerte, de keuze, zo gaat het verder met de voorwaarden, de keurmerken
-  van de site, en het akkoord. De band vóór de keuze is altijd lila, ook als er
-  geen persoonlijk woord of uitleg is.
+- **Het label komt van de vorm** (`DIENSTLABEL`): verzuimbegeleiding Recover,
+  RI&E/PAGO/training Resist, spoor 2/werkfit/AD-onderzoek Restart. Kleur, tint,
+  dienst ("Verzuimbegeleiding.") en tagline ("Van ziekmelding tot herstel")
+  komen uit het dienstLabel-blok van de labelpagina in het CMS
+  (`offerteMerk()` in `lib/offerteHuisstijl.ts`), met de vaste waarden in
+  [`lib/offerteMerk.ts`](src/lib/offerteMerk.ts) als terugval. Daar staat per
+  label ook een donkerdere tekstkleur voor kleine letters (contrast). De
+  pagina deelt het label via een context (`useMerk()`).
+- **Opening als de specialismekaart**: de tint met de grote cirkel in de
+  labelkleur, het pad "Offerte {nummer} / {bedrijf}", "React2u" met de
+  labelnaam groot en het ®, de dienst en de tagline cursief; daaronder de
+  offerte zelf ("{titel} voor {bedrijf}", door en voor wie, de feiten, de
+  knoppen). Rechts een witte kaart met het bedrag (telt mee), "Wat je krijgt"
+  (de gekozen onderdelen, vinkjes in de labelkleur) en de contactpersoon.
+- **Geen persoonlijk woord van de afzender** (Rens, 2 nov: "haal die weg
+  aangezien er al een voorwoord is"): niet op de pagina, niet in de pdf en niet
+  meer als veld in de editor. De kolom `intro` en de aanheffen in de sjablonen
+  bestaan nog, maar worden niet getoond.
+- **Afwerking** (Rens, 2 nov: "maak de offerte S TIER"):
+  - de kopbalk heeft op een breed scherm de onderdelen als menu (Voorstel,
+    Voorwoord, Kiezen, Vervolg, Akkoord), met het onderdeel waar je bent in de
+    labelkleur, en onderaan een voortgangslijn in de labelkleur;
+  - in de kaart van de opening een label "Nog 30 dagen geldig" (in de browser
+    berekend);
+  - alle tarieven bij gebruik in één lijst (`TarievenBlok`), waarvan de eerste
+    vijf zichtbaar zijn en de rest uitklapt;
+  - het tekenen in drie zichtbare stappen (handtekening, je gegevens, code uit
+    je mail), die meelopen met wat de klant invult.
+- **Accenten in de labelkleur**: bovenkopjes, vinkjes in een rondje in de tint,
+  de schakelaars van extra's, de badge op een gekozen kaart, de
+  aanhalingstekens, de initialen van Susanne in het voorwoord. Banden onder de
+  opening wisselen wit en de tint af; vlakken binnen een band hebben de andere.
+  Een gekozen keuzekaart blijft indigo (de prijskaarten van de tarieven).
+- **Keuze** met rechts het **overzicht** (het eerste `<aside>`): het label in
+  zijn tint, elke gekozen regel met bedrag, het totaal dat meetelt, de knop
+  naar het akkoord, de concept-pdf en "Vragen?". Daaronder het totaal als
+  indigo strook.
+- **Upsell: "Vaak gekozen erbij"** (Rens, 2 nov: "de klant moet meer opties
+  kunnen aanklikken"). Elke nieuwe offerte uit een standaardsjabloon krijgt per
+  traject vaste aanbevolen extra's uit andere specialismen, als opties die uit
+  staan (`AANBEVOLEN` en `aanbevolenExtras()` in
+  [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts), regel met
+  `aanbevolen: true`): bij verzuim loopbaanscan, coaching, AD-onderzoek en
+  salarisadministratie; bij preventie de aansluiting verzuimbegeleiding en
+  coaching; bij re-integratie AD-onderzoek of spoor 2 en coaching. Alleen
+  diensten met een vaste prijs op de prijslijst, losse specialismen zonder
+  pakketkorting. De klant ziet ze direct na de keuzes als kaarten in de kleur
+  van hun eigen label met een schakelaar; aan = telt mee en wordt
+  meegetekend. Een prijs per medewerker verschijnt alleen als het aantal
+  bekend is. In de editor staan ze met "Aanbevolen extra" en kan sales er een
+  weghalen; een aangepast sjabloon houdt zijn eigen regels.
+- **Alle modules: de hele prijslijst om zelf aan te zetten** (Rens, 2 nov:
+  "klant moet zelf alle modules aan kunnen klikken"). Elke offerte uit een
+  sjabloon (standaard én eigen) krijgt alle diensten van de zes labels als
+  opties die uit staan (`alleModules()` in
+  [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts), regel met
+  `module: true`, kop "Alle modules"). Recover levert alleen zijn
+  aansluitingen (de losse verrichtingen en de uurtarieven van de
+  professionals gelden al onder een aansluiting); wat al in de offerte staat
+  (op naam) en de dienst die de offerte zelf is (`EIGEN_DIENST`, bijvoorbeeld
+  de RI&E bij een RI&E-offerte) komen er niet nog eens bij. De prijs bepaalt
+  wat aanzetten betekent: een vaste prijs telt mee; een tarief (per uur, per
+  melding, per maand per dossier, 6%) is **bij gebruik** (`bijGebruik: true`,
+  telt niet mee, het tarief staat in het overzicht, de pdf en de mails); op
+  aanvraag of op offerte = **voorstel gevraagd** (sales ziet dat zo in de
+  tussenstand en de melding na het tekenen). Een aansluiting en de manier van
+  verlonen sluiten elkaar uit: opties met dezelfde `groep` (`UITSLUITEND`),
+  hooguit één aan (`wissel`, `herstelKeuze`); de database kent die regel niet
+  en laat elke combinatie door. Op de klantpagina staan ze na "Vaak gekozen
+  erbij" als **panelen per label** in de kleur en tint van dat label, het
+  eigen label open, de rest in te klappen, met per paneel hoeveel er aan
+  staat. In de editor zijn ze één blok "Alle modules": per label uitklappen,
+  "aan bij openen", weghalen, of alles in één keer **Bijwerken** met de
+  prijslijst (ids en wat aan stond blijven) of **Weghalen**. Een andere vorm
+  ververst ze; "Bewaar als sjabloon" bewaart ze niet (ze komen vers van de
+  prijslijst). Een prijs per medewerker (aansluiting, salarisadministratie)
+  ziet de klant alleen als het aantal medewerkers is ingevuld; de editor
+  waarschuwt daarvoor.
+- **Upgrade-duwtje**: staat er naast de gekozen aansluiting een uitgebreidere,
+  dan zegt een regel onder de keuze wat die per maand meer kost ("Liever alles
+  geregeld? Met Casemanagement Compleet betaal je €353,50 per maand meer"),
+  met één klik om over te stappen. Het verschil wordt uit de offerte zelf
+  berekend.
+- **Zo gaat het verder** als "Onze aanpak" op de dienstpagina: indigo band met
+  de lichtere cirkel, genummerde stappen in de labelkleur (Ready: wit), na
+  ondertekening de eerste met een vinkje.
+- **Klanten aan het woord** (citaten in de tint), de klantlogo's en de
+  keurmerken, met de teksten en logo's van de site.
+- **Akkoord** weer in de tint met de cirkel, als slot van de opening: "Teken
+  voor akkoord. Wij doen de rest.", bel- en mailrijen, en een witte kaart met
+  de voorwaarden en het tekenformulier.
+- **Voet** als de footer van de site (ivoor met een witte kaart).
+- **Telefoon**: onderaan een balk met het bedrag en Ondertekenen, die wegschuift
+  zodra je bij het akkoord bent.
+- **Na ondertekening** dezelfde opening met "Gelukt, …! Welkom bij React2u."
+  (binnen een kwartier, met stippen uit het vinkje) en een kaart met het
+  vinkje in de labelkleur, dan de aanpak, wat er is afgenomen, de tekst achter
+  "Lees de volledige tekst", voorwaarden en beide handtekeningen.
 - **Vast voorwoord van Cindy en Susanne** (Rens, 30 okt: "die moet vast
   staan"): in elke offerte direct na de opening, en in de pdf als eerste
   hoofdstuk. Het verhaal van React2u (waarom we begonnen, één vast gezicht,
@@ -952,38 +1033,19 @@ pagina in dezelfde taal als de werkgeverspagina's en de tarieven, zonder foto's
   volledige namen en functies onder de handtekening (leeg = voornaam en
   "React2u"). Niet op de pagina na ondertekening, wel in de getekende pdf. Het
   zit niet in `getekend_inhoud` of de hash: het is geen afspraak, maar uitleg.
-- **Keuzes als de prijskaarten van de tarieven**: wit met een rand, en wat
-  gekozen is wordt indigo met witte letters (badge dan roze). Eerst wat de
-  organisatie per maand betaalt; per medewerker en de prijslijst klein eronder.
-  Extra's zijn witte kaarten met een schakelaar, vaste onderdelen en tarieven
-  lijsten zoals de prijslijst. Op een groot scherm loopt het totaal rechts mee;
-  onder de onderdelen staat het als indigo strook.
-- **Zo gaat het verder** met de genummerde indigo bolletjes van de site; na
-  ondertekening is de eerste stap een teal vinkje.
-- **Tekenen in een witte kaart** op de lila band: twee handtekeningvakken naast
-  elkaar, Opdrachtnemer (React2u, "offerte aangeboden", de naam van de afzender
-  in handschrift) en Opdrachtgever (het tekenvak), daaronder naam, functie,
-  e-mail, factuurgegevens, het vinkje en de roze knop. De codestap is een indigo
-  vlak. Alleen "Niet akkoord" opent een venster.
-- **Telefoon**: onderaan een balk met het bedrag en Ondertekenen, die wegschuift
-  zodra je bij het akkoord bent.
 - **Bedrijfsgegevens en keurmerken** komen uit Instellingen
   (`lib/offerteHuisstijl.ts`): adres, telefoon, e-mail, KvK en btw in de voet en
   bij Opdrachtnemer; staat een certificaat als PDF in Instellingen, dan klik je
   vanaf het keurmerk erheen.
-- **Na ondertekening** dezelfde opening: "Gelukt, …! Welkom bij React2u." (binnen
-  een kwartier, met stippen in de logokleuren; niet bij verminderde beweging),
-  de kaart met het vinkje en het bedrag, de stappen, wat er is afgenomen, de tekst
-  achter "Lees de volledige tekst", voorwaarden en beide handtekeningen.
 - **Prijzen per maand**: wat per jaar loopt staat op de klantpagina, in de mails en
   in het beheer als maandbedrag (`perMaand`, `maandprijs()`, `regelbedrag()` in
   `lib/offertes.ts`), met het jaarbedrag klein erbij. De prijslijst blijft per jaar;
   het maandbedrag is het jaarbedrag gedeeld door twaalf, op centen afgerond.
-- **Huisregels van de site gelden ook hier**: bovenkopjes in hoofdletters met de
-  stip, ronde knoppen met een pijl, roze alleen voor de hoofdactie (ondertekenen),
-  teal voor vinkjes (als tekst `#08716B`, de merkteal is te licht), grijze tekst
-  `#6B6985` (4,5:1 op wit en lila). Bij "minder beweging" staan animaties en
-  vloeiend scrollen uit.
+- **Huisregels van de site**: bovenkopjes in hoofdletters met de stip, ronde
+  knoppen met een pijl, roze voor de hoofdactie (ook bij andere labels, zoals
+  op de dienstpagina's), grijze tekst `#6B6985`. Witte koppen op indigo met
+  inline kleur (de globale kopkleur wint van een utility). Bij "minder
+  beweging" staan de animaties stil.
 - De pdf blijft een rustig document (zie *De offerte als contract*); de pagina
   volgt de site, het papier niet.
 - Een onbekende of ingetrokken link toont `OfferteMelding.tsx`.
@@ -1015,7 +1077,7 @@ offertes worden nog aangepast; de vormen blijven. Daarom:
   onderaan *Bewaar als sjabloon* (overschrijven of een nieuw sjabloon met eigen
   naam). Dat komt in `offerte_sjablonen` en wint van de standaard in de code;
   *Terug naar standaard* op `/admin/offertes/sjablonen` haalt het weg.
-  Klantgegevens gaan niet mee, de aanhef wel: gebruik daar de invulvelden.
+  Klantgegevens gaan niet mee; gebruik in de teksten de invulvelden.
 - **Geldigheid en betalingstermijn**: elke offerte is standaard dertig dagen geldig
   (`GELDIG_DAGEN` in `lib/offertes.ts`) en noemt in de voorwaarden een
   betalingstermijn van dertig dagen (`BETALING` in `lib/offerteSjablonen.ts`), voor
