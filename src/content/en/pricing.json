@@ -327,7 +327,7 @@
             "eyebrow": "React2u Reflex",
             "kleur": "#3AA5DD",
             "heading": "For staffing agencies",
-            "text": "Pay per case.",
+            "text": "Pay per case, or with a subscription.",
             "links": [
               {
                 "titel": "Per case",
@@ -362,8 +362,19 @@
             ],
             "rechts": [
               {
+                "titel": "Subscription",
+                "per": "per employee per year",
+                "regels": [
+                  {
+                    "naam": "Case management Reflex",
+                    "prijs": "€15",
+                    "sub": "On a per-service basis, linked to your HR system · plus €20 per sick report"
+                  }
+                ]
+              },
+              {
                 "titel": "Self-insurer or staffing agency?",
-                "text": "Then we charge differently than for a regular subscription: per sick report, per file or per hour. No annual fee, the same case managers.",
+                "text": "Then we charge differently than for a regular subscription: per sick report, per file or per hour, or with a subscription linked to your HR system. Always the same case managers.",
                 "label": "More about React2u Reflex",
                 "href": "/en/services/reflex"
               }
