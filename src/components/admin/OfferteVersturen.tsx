@@ -26,7 +26,7 @@ export default function OfferteVersturen({
   const [toonLink, setToonLink] = useState(verstuurd);
   const standaard = verstuurd
     ? `Ik wilde even checken of je de offerte voor ${bedrijf} hebt kunnen bekijken. Heb je nog vragen, of wil je iets anders zien? Laat het gerust weten, dan pas ik hem aan.`
-    : `Bedankt voor het prettige gesprek. Zoals besproken stuur ik je hierbij onze offerte voor ${bedrijf}.`;
+    : `Bedankt voor het prettige gesprek. Zoals besproken stuur ik je hierbij onze offerte voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
   const [bericht, setBericht] = useState(standaard);
   // Na een geslaagde verzending een nieuwe standaardtekst (van "hierbij de offerte" naar een herinnering).
   const [gezien, setGezien] = useState(state);
