@@ -32,7 +32,7 @@ const FONTS = path.join(process.cwd(), "src/lib/pdf/fonts");
 const BEELD = path.join(process.cwd(), "public");
 
 let geregistreerd = false;
-function registreer() {
+export function registreer() {
   if (geregistreerd) return;
   Font.register({
     family: "Outfit",
@@ -76,7 +76,7 @@ const s = StyleSheet.create({
 
 /* ---------- bouwstenen ---------- */
 
-function Logo({ breedte = 86 }: { breedte?: number }) {
+export function Logo({ breedte = 86 }: { breedte?: number }) {
   return (
     <Svg viewBox="0 0 125 76.303" style={{ width: breedte, height: (breedte * 76.303) / 125 }}>
       {DOTS.map(([fill, d, t], i) => <Path key={i} d={d} transform={t} fill={fill} />)}

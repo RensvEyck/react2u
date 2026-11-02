@@ -22,6 +22,7 @@ import type { ContactInfo } from "./content";
 import type { Vorm } from "./offertes";
 import { merkVoorVorm } from "./offerteMerk";
 import { offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, type MailAfzender, type OfferteMail } from "./offerteMail";
+import { brochureMailHtml, type MailDienst } from "./brochureMail";
 
 // RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
 // zou worden); in productie staat hij niet en is dit gewoon Resend.
@@ -546,4 +547,41 @@ export function offerteAdminUrl(id: string) {
 /** Adres van de offertepagina voor de klant. */
 export function offerteUrl(token: string) {
   return `${siteBasis()}/offerte/${token}`;
+}
+
+/* ---------- brochures (migratie 0030) ---------- */
+
+/**
+ * De brochure naar de prospect: een persoonlijke mail met één knop naar de
+ * brochurepagina, in de kleuren van React2u zelf (lib/brochureMail.ts).
+ * Antwoorden gaat naar de collega die hem stuurt.
+ */
+export async function sendBrochure(b: {
+  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; bericht: string | null;
+  afzender: Afzender; herinnering?: boolean; diensten: MailDienst[]; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const { to, ...rest } = b;
+  const html = brochureMailHtml({ basis: siteBasis(), ...rest });
+  const onderwerp = `${b.herinnering ? "Herinnering: b" : "B"}rochure van React2u voor ${b.bedrijf}`;
+  return verstuur([to], onderwerp, html, b.afzender.email || undefined);
+}
+
+export async function notifyBrochureBekeken(n: { to: string; nummer: string; bedrijf: string; adminLink: string }) {
+  await post(
+    [n.to],
+    `${n.bedrijf} bekijkt je brochure`,
+    persoonlijk(
+      `${n.bedrijf} heeft de brochure geopend`,
+      [`Brochure ${esc(n.nummer)} is zojuist voor het eerst geopend. Een goed moment om even te bellen.`],
+      { tekst: "Open de brochure", link: n.adminLink }
+    )
+  );
+}
+
+export function brochureAdminUrl(id: string) {
+  return `${siteBasis()}/admin/brochures/${id}`;
+}
+
+export function brochureUrl(token: string) {
+  return `${siteBasis()}/brochure/${token}`;
 }

@@ -10,7 +10,7 @@ import { LuSend, LuBellRing, LuCircleCheck, LuMessageCircle } from "react-icons/
  * Bij een concept werkt de link pas na versturen (of "zelf versturen").
  */
 export default function OfferteVersturen({
-  id, link, email, aanhef, bedrijf, verstuurd, afzenderNaam, zelfVersturen,
+  id, link, email, aanhef, bedrijf, verstuurd, afzenderNaam, zelfVersturen, actie, woord = "offerte",
 }: {
   id: string;
   link: string;
@@ -21,12 +21,16 @@ export default function OfferteVersturen({
   afzenderNaam: string | null;
   /** Server action om zonder mail open te zetten (alleen bij een concept). */
   zelfVersturen?: () => Promise<void>;
+  /** Een andere verzendactie dan die van offertes (brochures, 0030). */
+  actie?: (prev: VersturenState, fd: FormData) => Promise<VersturenState>;
+  /** Wat er verstuurd wordt, voor de teksten. */
+  woord?: "offerte" | "brochure";
 }) {
-  const [state, action, bezig] = useActionState<VersturenState, FormData>(verstuurOfferte.bind(null, id), null);
+  const [state, action, bezig] = useActionState<VersturenState, FormData>(actie ?? verstuurOfferte.bind(null, id), null);
   const [toonLink, setToonLink] = useState(verstuurd);
   const standaard = verstuurd
-    ? `Ik wilde even checken of je de offerte voor ${bedrijf} hebt kunnen bekijken. Heb je nog vragen, of wil je iets anders zien? Laat het gerust weten, dan pas ik hem aan.`
-    : `Bedankt voor het prettige gesprek. Zoals besproken stuur ik je hierbij onze offerte voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
+    ? `Ik wilde even checken of je de ${woord} voor ${bedrijf} hebt kunnen bekijken. Heb je nog vragen, of wil je iets anders zien? Laat het gerust weten${woord === "offerte" ? ", dan pas ik hem aan" : ""}.`
+    : `Bedankt voor het prettige gesprek. Zoals besproken stuur ik je hierbij onze ${woord} voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
   const [bericht, setBericht] = useState(standaard);
   // Na een geslaagde verzending een nieuwe standaardtekst (van "hierbij de offerte" naar een herinnering).
   const [gezien, setGezien] = useState(state);
@@ -35,7 +39,7 @@ export default function OfferteVersturen({
     if (state?.ok) setBericht(standaard);
   }
 
-  const whatsapp = `https://wa.me/?text=${encodeURIComponent(`Hoi${aanhef ? ` ${aanhef.split(" ")[0]}` : ""}, hierbij de offerte van React2u voor ${bedrijf}: ${link}`)}`;
+  const whatsapp = `https://wa.me/?text=${encodeURIComponent(`Hoi${aanhef ? ` ${aanhef.split(" ")[0]}` : ""}, hierbij de ${woord} van React2u voor ${bedrijf}: ${link}`)}`;
 
   return (
     <div className="space-y-4">
@@ -54,7 +58,7 @@ export default function OfferteVersturen({
           <label className="alabel" htmlFor="vs-bericht">Je bericht</label>
           <textarea id="vs-bericht" className="ainput min-h-[110px]" name="bericht" value={bericht} onChange={(e) => setBericht(e.target.value)} maxLength={5000} />
           <p className="mt-1.5 text-[12.5px] text-black/45">
-            Daaronder zet het systeem de knop naar de offerte, de geldigheid en je ondertekening{afzenderNaam ? ` (${afzenderNaam})` : ""}. Antwoorden komt bij jou uit.
+            Daaronder zet het systeem de knop naar de {woord}{woord === "offerte" ? ", de geldigheid" : ""} en je ondertekening{afzenderNaam ? ` (${afzenderNaam})` : ""}. Antwoorden komt bij jou uit.
           </p>
         </div>
         {state?.fout && <p role="alert" className="rounded-[10px] bg-[#fdecea] px-3 py-2 text-[13.5px] text-[#b42318]">{state.fout}</p>}
@@ -64,7 +68,7 @@ export default function OfferteVersturen({
           </p>
         )}
         <button className="abtn" disabled={bezig}>
-          {verstuurd ? <LuBellRing /> : <LuSend />} {bezig ? "Versturen…" : verstuurd ? "Herinnering sturen" : "Verstuur offerte"}
+          {verstuurd ? <LuBellRing /> : <LuSend />} {bezig ? "Versturen…" : verstuurd ? "Herinnering sturen" : `Verstuur ${woord}`}
         </button>
       </form>
 
@@ -72,7 +76,7 @@ export default function OfferteVersturen({
         {toonLink ? (
           <div className="space-y-2.5">
             <p className="text-[13px] font-semibold text-black/60">Of stuur de link zelf</p>
-            <KopieerLink link={link} label={`Link naar de offerte voor ${bedrijf}`} />
+            <KopieerLink link={link} label={`Link naar de ${woord} voor ${bedrijf}`} />
             <div className="flex flex-wrap gap-2">
               {verstuurd ? (
                 <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="abtn-ghost !py-1.5 text-[13px]"><LuMessageCircle /> Via WhatsApp</a>
@@ -84,7 +88,7 @@ export default function OfferteVersturen({
                 )
               )}
             </div>
-            {!verstuurd && <p className="text-[12.5px] text-black/45">Een concept is nog dicht: de link werkt pas als je hem openzet of de offerte verstuurt.</p>}
+            {!verstuurd && <p className="text-[12.5px] text-black/45">Een concept is nog dicht: de link werkt pas als je hem openzet of de {woord} verstuurt.</p>}
           </div>
         ) : (
           <button type="button" onClick={() => setToonLink(true)} className="text-[13px] font-semibold text-[#312e82] hover:underline">

@@ -53,6 +53,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Offertevorm** (`vorm`) | Soort offerte: verzuimbegeleiding, casemanagement Reflex (flexbranche), RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject of arbeidsdeskundig onderzoek (migraties 0025 en 0029). Bepaalt het label in het beheer en wat het veld *betreft* heet (werknemer, locatie, deelnemers). |
 | **Offertesjabloon** | Beginpunt van een nieuwe offerte per vorm: titel, aanhef, uitleg, onderdelen, voorwaarden, vervolgstappen en geldigheid. Standaard in [`src/lib/offerteSjablonen.ts`](src/lib/offerteSjablonen.ts); aanpassingen van het team in `offerte_sjablonen`. |
 | **Offertelink** | `/offerte/<token>`: de pagina waar de klant kiest en tekent. Het token (64 hex) is het enige geheim; *Nieuwe link* in het beheer maakt de oude ongeldig. |
+| **Brochure** (`brochures`) | Een persoonlijke brochure met alle zes diensten voor één prospect, nog vóór er een offerte is (migratie 0030, `/admin/brochures`). Statussen `concept`, `verstuurd`, `ingetrokken`; de link `/brochure/<token>` werkt als een offertelink, met pdf. De inhoud komt van de labelpagina's en is niet per brochure aan te passen; alleen het persoonlijke woord en de afzender. |
 
 ## Architectuur
 
@@ -1153,6 +1154,53 @@ levert tekenen een stuk op dat inkoop en de boekhouding accepteren.
   niet getekend (vandaar `top: 806`); een unitless `lineHeight` op de pagina erft
   als vaste waarde, dus grotere tekst krijgt een eigen `lineHeight`; `flex: 1` op
   een Text in een kolom maakt zijn hoogte nul.
+
+## Brochures
+
+Sinds 2 november 2026 (migratie [0030](supabase/migrations/0030_brochures.sql)):
+sales stuurt een prospect een **persoonlijke brochure met alle zes diensten**, nog
+vóór er een offerte is (Rens: "maak een brochure pagina zodat we een template
+handig kunnen versturen, offerte zelf volgt later"). Dezelfde opzet als de
+offertemodule, zonder prijzen, keuzes of ondertekening.
+
+- **Eén inhoud, per prospect een woord.** De zes diensten komen van de
+  dienstLabel-blokken van de labelpagina's in het CMS
+  ([`lib/brochureHuisstijl.ts`](src/lib/brochureHuisstijl.ts), met vaste terugval),
+  in de volgorde Recover, Resist, Restart, Reflex, Ready, Reward. Per brochure
+  vult sales alleen de prospect, het persoonlijke woord (`bericht`, met
+  `{bedrijf}` en `{voornaam}`) en de afzender in. Zo zegt elke brochure wat de
+  site zegt.
+- **Beheer**: `/admin/brochures` (overzicht), `/admin/brochures/nieuw` (ook vanuit
+  een aanvraag in het Postvak IN met `?bericht=<id>`) en `/admin/brochures/<id>`
+  (versturen of herinneren, link kopiëren of via WhatsApp, tijdlijn, intrekken,
+  nieuwe link). Hetzelfde verzendblok als offertes (`OfferteVersturen` met
+  `actie` en `woord`). Recht: `bellijst`. *Maak offerte* opent de kiezer met
+  `?brochure=<id>`: dezelfde prospect en afzender, de rest kies je daar.
+- **Prospect**: `/brochure/<token>` ([`BrochurePagina.tsx`](src/components/brochure/BrochurePagina.tsx)),
+  in de vormgeving van de site: opening in de indigo tint met het woord van de
+  afzender, de zes diensten als de dienstenkaarten op /werkgevers, het verhaal
+  van Cindy en Susanne (het voorwoord zonder de zinnen over "dit voorstel"),
+  klanten, keurmerken en een uitnodiging om te bellen of een offerte te vragen.
+  Dezelfde pagina als pdf op `/brochure/<token>/pdf`
+  ([`lib/brochurePdf.tsx`](src/lib/brochurePdf.tsx), `?download=1` als bestand).
+  Een concept is al te bekijken (sales ziet hem vooraf), maar een bezoek telt
+  pas als hij verstuurd is; een collega met een sessie telt nooit
+  ([`lib/isCollega.ts`](src/lib/isCollega.ts), gedeeld met de offertepagina).
+- **Mail** in de kleuren van React2u zelf ([`lib/brochureMail.ts`](src/lib/brochureMail.ts),
+  op de bouwstenen van `offerteMail.ts`): kop met de belofte van de site, kaart
+  met de knop, het bericht, de zes diensten met een stip in hun kleur, de
+  afzenderkaart. Antwoorden gaat naar `sales@react2u.nl`. Opent de prospect de
+  link voor het eerst, dan krijgt de afzender "… bekijkt je brochure".
+- **Database**: tabel `brochures` (nummer `B2026-0001`, token als bij offertes)
+  en `brochure_gebeurtenissen`; `brochure_bekijken(token, tel)` als enige
+  publieke ingang; trigger `brochure_bewaken` houdt de bezoekvelden bij de API
+  vandaan. Middleware en `next.config.ts` behandelen `/brochure/*` als
+  `/offerte/*` (geen onderhoudspagina, noindex, no-referrer, no-store, fonts
+  voor de pdf). Niet-verstuurde en verstuurde brochures gaan een jaar na de
+  laatste activiteit weg (`opruimen-brochures`).
+- **Tests**: [`e2e/brochure.cjs`](e2e/brochure.cjs) (aanmaken, collega telt niet,
+  versturen, prospect opent, melding aan sales, pdf, telefoon, offerte vanuit
+  de brochure, intrekken, onbekende link) en `lib/brochures.test.ts`.
 
 ## Van Postvak IN naar bellijst
 

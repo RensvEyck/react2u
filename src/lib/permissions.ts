@@ -84,6 +84,7 @@ const PATH_PERMISSIONS: [string, Permission][] = [
   ["/admin/bellijst", "bellijst"],
   ["/admin/partners", "bellijst"],
   ["/admin/offertes", "bellijst"],
+  ["/admin/brochures", "bellijst"],
   ["/admin/offertevoorbeeld", "bellijst"],
   ["/admin/paginas", "paginas"],
   ["/admin/blog", "blog"],

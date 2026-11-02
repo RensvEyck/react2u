@@ -3,6 +3,7 @@ import type { supabaseServer } from "./supabase/server";
 import { catalogusStandaard, catalogusUit, type CatalogusGroep, type TarievenData } from "./offerteCatalogus";
 import { normaliseerRegels, normaliseerVervolg, OFFERTE_EMAIL, type Offerte } from "./offertes";
 import { alleSjablonen, type Sjabloon, type SjabloonRij } from "./offerteSjablonen";
+import type { Brochure } from "./brochures";
 
 /*
  * Wat de offerteschermen in het beheer uit de database halen, los van de
@@ -107,4 +108,19 @@ export async function laadSjablonen(sb: Sb, catalogus?: CatalogusGroep[]): Promi
   const [c, res] = await Promise.all([catalogus ? Promise.resolve(catalogus) : laadCatalogus(sb), sb.from("offerte_sjablonen").select("*")]);
   const rijen = res.error ? [] : ((res.data as SjabloonRij[]) || []);
   return { sjablonen: alleSjablonen(c, rijen), tabel: !res.error };
+}
+
+/**
+ * Een brochure (0030) als beginpunt van een offerte (?brochure=<id>): dezelfde
+ * prospect en dezelfde afzender. Null als hij niet bestaat.
+ */
+export async function uitBrochure(sb: Sb, id: string) {
+  const { data } = await sb
+    .from("brochures")
+    .select("bedrijf, contactpersoon, email, telefoon, afzender_naam, afzender_functie, afzender_email, afzender_telefoon")
+    .eq("id", id)
+    .maybeSingle();
+  if (!data) return null;
+  const b = data as Pick<Brochure, "bedrijf" | "contactpersoon" | "email" | "telefoon" | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon">;
+  return { ...b, afzender_email: b.afzender_email || OFFERTE_EMAIL };
 }
