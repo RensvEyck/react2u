@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import OfferteEditor, { type EditorBegin } from "@/components/admin/OfferteEditor";
 import { laadCatalogus, laadSjablonen, standaardAfzender, uitAanvraag } from "@/lib/offerteBeheer";
-import { datumOver, GELDIG_DAGEN, VORMEN, type Vorm } from "@/lib/offertes";
+import { datumOver, GELDIG_DAGEN, VORMEN, type Vorm, VORM_GROEPEN } from "@/lib/offertes";
 import { aantalOnderdelen, sjabloonVoorStart, type Sjabloon } from "@/lib/offerteSjablonen";
 import { LuArrowLeft, LuInbox, LuFilePlus, LuSettings2, LuChevronRight } from "react-icons/lu";
 
@@ -83,13 +83,11 @@ export default async function NieuweOfferte({
   );
 }
 
-const GROEPEN = ["Verzuim", "Preventie", "Re-integratie"] as const;
-
 function Kiezer({ sjablonen, bericht }: { sjablonen: Sjabloon[]; bericht?: string }) {
   const href = (sleutel: string) => `/admin/offertes/nieuw?${bericht ? `bericht=${bericht}&` : ""}sjabloon=${sleutel}`;
   return (
     <div className="space-y-6">
-      {GROEPEN.map((groep) => {
+      {VORM_GROEPEN.map((groep) => {
         const lijst = sjablonen.filter((s) => VORMEN[s.vorm].groep === groep);
         if (!lijst.length) return null;
         return (

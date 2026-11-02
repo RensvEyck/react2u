@@ -96,11 +96,21 @@ export type Regel = {
 
 export type OfferteStatus = "concept" | "verstuurd" | "getekend" | "afgewezen" | "ingetrokken";
 
-/** De zeven offertevormen (migratie 0025). Elke vorm heeft standaardsjablonen in lib/offerteSjablonen.ts. */
-export type Vorm = "verzuimbegeleiding" | "rie" | "pago" | "verzuimtraining" | "spoor2" | "werkfit" | "arbeidsdeskundig";
+/**
+ * De acht offertevormen (migratie 0025; Reflex in 0029). Elke vorm heeft
+ * standaardsjablonen in lib/offerteSjablonen.ts.
+ */
+export type Vorm = "verzuimbegeleiding" | "reflex" | "rie" | "pago" | "verzuimtraining" | "spoor2" | "werkfit" | "arbeidsdeskundig";
 
-export const VORMEN: Record<Vorm, { label: string; kort: string; groep: "Verzuim" | "Preventie" | "Re-integratie"; kleur: string; betreft?: string; betreftHint?: string }> = {
+/** De groepen van de kiezer bij een nieuwe offerte, in deze volgorde. */
+export const VORM_GROEPEN = ["Verzuim", "Flexbranche", "Preventie", "Re-integratie"] as const;
+
+export type VormGroep = (typeof VORM_GROEPEN)[number];
+
+export const VORMEN: Record<Vorm, { label: string; kort: string; groep: VormGroep; kleur: string; betreft?: string; betreftHint?: string }> = {
   verzuimbegeleiding: { label: "Verzuimbegeleiding", kort: "Verzuim", groep: "Verzuim", kleur: "#E61674" },
+  // Casemanagement Reflex: het abonnement voor uitzendbureaus en eigenrisicodragers Ziektewet (Rens, 2 nov 2026).
+  reflex: { label: "Casemanagement Reflex", kort: "Reflex", groep: "Flexbranche", kleur: "#3AA5DD" },
   rie: { label: "Risico-inventarisatie en -evaluatie (RI&E)", kort: "RI&E", groep: "Preventie", kleur: "#00A098", betreft: "Locatie", betreftHint: "Bijvoorbeeld de vestiging in Eindhoven" },
   pago: { label: "Periodiek arbeidsgezondheidskundig onderzoek (PAGO)", kort: "PAGO", groep: "Preventie", kleur: "#00A098" },
   verzuimtraining: { label: "Verzuimtraining voor leidinggevenden", kort: "Training", groep: "Preventie", kleur: "#00A098", betreft: "Deelnemers", betreftHint: "Bijvoorbeeld 12 leidinggevenden" },
@@ -124,6 +134,7 @@ export const GELDIG_DAGEN = 30;
 /** Het label van React2u waar de vorm onder valt, in de kleur van de tarievenpagina. */
 export const DIENSTLABEL: Record<Vorm, string> = {
   verzuimbegeleiding: "React2u Recover",
+  reflex: "React2u Reflex",
   rie: "React2u Resist",
   pago: "React2u Resist",
   verzuimtraining: "React2u Resist",

@@ -5,7 +5,7 @@ import ConfirmButton from "@/components/admin/ConfirmButton";
 import OfferteTekst from "@/components/offerte/OfferteTekst";
 import { laadSjablonen } from "@/lib/offerteBeheer";
 import { aantalOnderdelen } from "@/lib/offerteSjablonen";
-import { momentLang, prijsLabel, SOORTEN, VORMEN } from "@/lib/offertes";
+import { momentLang, prijsLabel, SOORTEN, VORMEN, VORM_GROEPEN } from "@/lib/offertes";
 import { LuArrowLeft, LuPlus, LuRotateCcw, LuTrash2, LuDatabase, LuInfo } from "react-icons/lu";
 
 /**
@@ -13,8 +13,6 @@ import { LuArrowLeft, LuPlus, LuRotateCcw, LuTrash2, LuDatabase, LuInfo } from "
  * offerte. De standaard staat in de code (lib/offerteSjablonen.ts); wat het
  * team via "Bewaar als sjabloon" aanpaste staat in de database en wint.
  */
-
-const GROEPEN = ["Verzuim", "Preventie", "Re-integratie"] as const;
 
 export default async function OfferteSjablonen() {
   const { sb } = await requirePerm("bellijst");
@@ -53,7 +51,7 @@ export default async function OfferteSjablonen() {
         </div>
       )}
 
-      {GROEPEN.map((groep) => {
+      {VORM_GROEPEN.map((groep) => {
         const lijst = sjablonen.filter((s) => VORMEN[s.vorm].groep === groep);
         if (!lijst.length) return null;
         return (

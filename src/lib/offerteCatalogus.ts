@@ -190,6 +190,7 @@ export const STARTPUNTEN: Startpunt[] = [
  */
 export const AANBEVOLEN: Record<Vorm, string[]> = {
   verzuimbegeleiding: ["Loopbaanscan", "Coaching", "Arbeidsdeskundig onderzoek", "Salarisadministratie, maandverloning"],
+  reflex: ["Salarisadministratie, vierwekelijks", "Arbeidsdeskundig onderzoek", "Coaching"],
   rie: ["Verrichtingenbasis", "Coaching", "Loopbaanscan"],
   pago: ["Verrichtingenbasis", "Coaching", "Burn-outcoaching, 1-op-1"],
   verzuimtraining: ["Verrichtingenbasis", "Coaching", "Burn-outcoaching, 1-op-1"],
@@ -271,6 +272,7 @@ export const MODULE_LABELS = ["React2u Recover", "React2u Resist", "React2u Rest
  * valt sowieso weg.
  */
 const EIGEN_DIENST: Partial<Record<Vorm, string[]>> = {
+  reflex: ["Casemanagement Reflex"],
   rie: ["Risico-inventarisatie en -evaluatie (RI&E)"],
   verzuimtraining: ["Training Verzuim en Preventie"],
   spoor2: ["Spoor 2, eerste zes maanden", "Spoor 2, vervolg"],

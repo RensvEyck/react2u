@@ -72,7 +72,7 @@ async function teken(klant, naam) {
   stap("Kiezer: eerst de vorm");
   await page.goto(`${BASIS}/admin/offertes/nieuw`);
   await page.waitForSelector("text=Re-integratie");
-  for (const naam of ["Verzuimbegeleiding: klant kiest", "RI&E", "PAGO", "Verzuimtraining", "Spoor 2", "Werkfittraject", "Arbeidsdeskundig onderzoek"]) {
+  for (const naam of ["Verzuimbegeleiding: klant kiest", "Casemanagement Reflex", "RI&E", "PAGO", "Verzuimtraining", "Spoor 2", "Werkfittraject", "Arbeidsdeskundig onderzoek"]) {
     check(await page.locator(`a:has-text("${naam}")`).count(), `sjabloon ${naam}`);
   }
   await shot(page, "01-kiezer");
@@ -165,6 +165,31 @@ async function teken(klant, naam) {
   check((await klant.locator("aside [aria-live]").first().innerText()).trim() === "€212,50", "5 × €42,50 = €212,50");
   check(await klant.locator("text=voor FlexWerk BV kunnen betekenen").count(), "zonder contactpersoon: voorwoord met de bedrijfsnaam");
   await shot(klant, "08-klant-pago", { fullPage: false });
+
+  stap("Casemanagement Reflex: eigen keuze in de kiezer (Rens, 2 nov 2026)");
+  await page.goto(`${BASIS}/admin/offertes/nieuw`);
+  await page.waitForSelector("text=Flexbranche");
+  await page.click("a:has-text('Casemanagement Reflex')");
+  await page.waitForSelector("#of-bedrijf");
+  check((await page.inputValue("#of-titel")) === "Casemanagement Reflex", "titel uit het sjabloon");
+  check((await page.inputValue("#of-vorm")) === "reflex", "vorm reflex");
+  check((await page.inputValue("#of-inhoud")).includes("Koppeling met je HRM-systeem"), "uitleg uit het sjabloon");
+  await page.fill("#of-bedrijf", "Uitzendbureau Flexwerk");
+  await page.fill("#of-cp", "Joost Vermeer");
+  await page.fill("#of-email", "joost@flexwerk.test");
+  await page.fill("#of-mw", "120");
+  await page.click("button:has-text('Offerte aanmaken')");
+  await page.waitForURL(/\/admin\/offertes\/[0-9a-f-]{36}$/, { timeout: 30000 });
+  check(await page.locator("text=Reflex").count(), "vorm Reflex in de kop");
+  const reflexLink = await openLink(page);
+  await klant.goto(reflexLink);
+  await klant.waitForSelector("h1");
+  check(await klant.locator("text=Casemanagement Reflex").first().count(), "abonnement op de offerte");
+  check((await klant.locator("aside [aria-live]").first().innerText()).trim() === "€150", "120 × €15 per jaar = €150 per maand");
+  check(await klant.locator("text=€20 per ziekmelding").count(), "tarief per ziekmelding uit de prijslijst");
+  check(await klant.locator("text=We koppelen je HRM-systeem").count(), "eigen vervolgstappen");
+  check((await klant.locator("button[role=switch]:has-text('Casemanagement Reflex')").count()) === 0, "het abonnement staat niet nog eens als module");
+  await shot(klant, "08b-klant-reflex");
 
   stap("Bewaar als sjabloon");
   await page.goto(rieUrl);

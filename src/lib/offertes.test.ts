@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  berekenTotalen, controleer, datumLang, euro, geldigeKeuze, herstelKeuze, isNaam, normaliseerRegels, prijsLabel,
-  secties, standaardKeuze, waardeVan, weergaveVan, wissel, vulIn, normaliseerVervolg, maandprijs, regelbedrag, type Regel,
-  normaliseerFactuur, factuurFout, factuurRegels, apparaatUit, tijdlijnRegels, momentPrecies, pdfNaam,
+  apparaatUit, berekenTotalen, controleer, datumLang, DIENSTLABEL, euro, factuurFout, factuurRegels, geldigeKeuze, herstelKeuze, isNaam, maandprijs, momentPrecies, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, pdfNaam, prijsLabel, regelbedrag, secties, standaardKeuze, tijdlijnRegels, VORM_GROEPEN, VORMEN, vulIn, waardeVan, weergaveVan, wissel, type Regel,
 } from "./offertes";
 import { alleSjablonen, sjabloonVoorStart, sleutelUit } from "./offerteSjablonen";
 import { blokkenUit } from "@/components/offerte/OfferteTekst";
@@ -209,13 +207,28 @@ describe("offertevormen (0025)", () => {
 
   it("elk standaardsjabloon levert een offerte die de deur uit kan", () => {
     const sjablonen = alleSjablonen(catalogusStandaard());
-    expect(new Set(sjablonen.map((s) => s.vorm))).toEqual(new Set(["verzuimbegeleiding", "rie", "pago", "verzuimtraining", "spoor2", "werkfit", "arbeidsdeskundig"]));
+    expect(new Set(sjablonen.map((s) => s.vorm))).toEqual(new Set(["verzuimbegeleiding", "reflex", "rie", "pago", "verzuimtraining", "spoor2", "werkfit", "arbeidsdeskundig"]));
     for (const s of sjablonen) {
       expect(controleer({ bedrijf: "X", email: "a@b.nl", regels: s.regels }), s.sleutel).toEqual([]);
       expect(geldigeKeuze(s.regels, standaardKeuze(s.regels)), s.sleutel).not.toBeNull();
       expect(s.titel.length, s.sleutel).toBeGreaterThan(3);
       expect(s.geldigDagen, s.sleutel).toBeGreaterThan(0);
     }
+  });
+
+  it("Casemanagement Reflex (Rens, 2 nov 2026): eigen keuze in de groep Flexbranche, abonnement uit de prijslijst", () => {
+    const s = alleSjablonen(catalogusStandaard()).find((x) => x.sleutel === "reflex")!;
+    expect(VORMEN.reflex.groep).toBe("Flexbranche");
+    expect(VORM_GROEPEN).toContain("Flexbranche");
+    expect(DIENSTLABEL.reflex).toBe("React2u Reflex");
+    const abonnement = s.regels.find((r) => r.naam === "Casemanagement Reflex")!;
+    expect(abonnement).toMatchObject({ soort: "vast", prijs: 15, eenheid: "medewerker_jaar", sectie: "Abonnement" });
+    const tarieven = s.regels.filter((r) => r.sectie === "Tarieven bij gebruik");
+    expect(tarieven.map((r) => prijsLabel(r))).toEqual(["€20 per ziekmelding", "€186,50 per uur", "€95 per dossier per maand"]);
+    // 120 flexkrachten × €15 per jaar = €150 per maand; de tarieven tellen niet mee.
+    expect(berekenTotalen(s.regels, standaardKeuze(s.regels), 120).perMaand).toBe(150);
+    // Het abonnement en de tarieven staan niet nog eens als module; de rest van Reflex wel.
+    expect(s.regels.filter((r) => r.module && r.label === "React2u Reflex").map((r) => r.naam)).toEqual(["Whk-check en bezwaar", "WGA-schadelast en verzekering"]);
   });
 
   it("de prijzen uit de Word-offertes en de prijslijst", () => {
