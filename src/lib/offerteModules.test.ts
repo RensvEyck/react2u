@@ -65,6 +65,20 @@ describe("alle modules (Rens, 2 nov 2026: de klant klikt zelf alle modules aan)"
     expect(t.perMaand).toBe(441);
   });
 
+  it("Casemanagement Reflex (Rens, 2 nov 2026): €15 per medewerker per jaar telt mee, de €20 per ziekmelding staat erbij", () => {
+    const m = alleModules("verzuimbegeleiding", catalogus);
+    const reflex = zoek(m, "Casemanagement Reflex");
+    expect(reflex).toMatchObject({ label: "React2u Reflex", prijs: 15, eenheid: "medewerker_jaar", soort: "optie", module: true });
+    expect(reflex.bijGebruik).toBeUndefined();
+    expect(reflex.groep).toBeUndefined();
+    expect(reflex.omschrijving).toContain("HRM-systeem");
+    expect(reflex.omschrijving).toContain("€20 per ziekmelding");
+    // Een losse module: naast de aansluiting aan te zetten, niet in plaats ervan.
+    const t = berekenTotalen(m, [reflex.id], 40);
+    expect(t.perMaand).toBe(50);
+    expect(bedragTekst(t.regels[0])).toBe("€50 per maand");
+  });
+
   it("één aansluiting en één manier van verlonen: de tweede zet de eerste uit", () => {
     const m = alleModules("rie", catalogus);
     const basis = zoek(m, "Verrichtingenbasis");

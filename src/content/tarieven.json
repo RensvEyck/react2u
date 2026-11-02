@@ -327,7 +327,7 @@
             "eyebrow": "React2u Reflex",
             "kleur": "#3AA5DD",
             "heading": "Voor uitzendbureaus",
-            "text": "Betalen per geval.",
+            "text": "Betalen per geval, of met een abonnement.",
             "links": [
               {
                 "titel": "Per geval",
@@ -362,8 +362,19 @@
             ],
             "rechts": [
               {
+                "titel": "Abonnement",
+                "per": "per werknemer per jaar",
+                "regels": [
+                  {
+                    "naam": "Casemanagement Reflex",
+                    "prijs": "€15",
+                    "sub": "Op verrichtingenbasis, met een koppeling met je HRM-systeem · plus €20 per ziekmelding"
+                  }
+                ]
+              },
+              {
                 "titel": "Eigenrisicodrager of uitzendbureau?",
-                "text": "Dan rekenen we je werk anders af dan bij een gewone aansluiting: per ziekmelding, per dossier of per uur. Geen jaarbijdrage, wel dezelfde casemanagers.",
+                "text": "Dan rekenen we je werk anders af dan bij een gewone aansluiting: per ziekmelding, per dossier of per uur, of met een abonnement dat aansluit op je HRM-systeem. Altijd dezelfde casemanagers.",
                 "label": "Meer over React2u Reflex",
                 "href": "/reflex"
               }
