@@ -207,6 +207,13 @@ const AANSLUITING_ALS_EXTRA: Partial<Regel> = {
   omschrijving: "Je verzuimbegeleiding ook bij React2u: een vaste casemanager die je mensen kent, verrichtingen tegen de tarieven bij gebruik.",
 };
 
+/** Een korte uitleg voor extra's die op de prijslijst zonder toelichting staan. */
+const UITLEG_EXTRA: Record<string, string> = {
+  "arbeidsdeskundig onderzoek": "Duidelijkheid over passend werk, binnen of buiten je organisatie.",
+  "salarisadministratie, maandverloning": "Elke maand op tijd, door mensen die verzuim kennen.",
+  "spoor 2, eerste zes maanden": "Begeleiding naar werk buiten je organisatie, de eerste zes maanden.",
+};
+
 /**
  * De aanbevolen extra's voor een vorm als opties die uit staan, zonder wat al
  * in de offerte staat (op naam). Een dienst die niet (meer) op de prijslijst
@@ -221,7 +228,9 @@ export function aanbevolenExtras(vorm: Vorm, catalogus: CatalogusGroep[], bestaa
     if (!item || item.prijs === null) continue;
     const { punten: _punten, badge: _badge, groep: _groep, aan: _aan, ...rest } = item;
     void _punten; void _badge; void _groep; void _aan;
+    const uitleg = !rest.omschrijving ? UITLEG_EXTRA[naam.toLowerCase()] : undefined;
     uit.push(alsRegel(rest, {
+      ...(uitleg ? { omschrijving: uitleg } : {}),
       ...(item.soort === "keuze" ? AANSLUITING_ALS_EXTRA : {}),
       sectie: AANBEVOLEN_SECTIE,
       soort: "optie",

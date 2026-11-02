@@ -943,6 +943,16 @@ eigen label**, met de opbouw van de dienstpagina van dat label
   aangezien er al een voorwoord is"): niet op de pagina, niet in de pdf en niet
   meer als veld in de editor. De kolom `intro` en de aanheffen in de sjablonen
   bestaan nog, maar worden niet getoond.
+- **Afwerking** (Rens, 2 nov: "maak de offerte S TIER"):
+  - de kopbalk heeft op een breed scherm de onderdelen als menu (Voorstel,
+    Voorwoord, Kiezen, Vervolg, Akkoord), met het onderdeel waar je bent in de
+    labelkleur, en onderaan een voortgangslijn in de labelkleur;
+  - in de kaart van de opening een label "Nog 30 dagen geldig" (in de browser
+    berekend);
+  - alle tarieven bij gebruik in één lijst (`TarievenBlok`), waarvan de eerste
+    vijf zichtbaar zijn en de rest uitklapt;
+  - het tekenen in drie zichtbare stappen (handtekening, je gegevens, code uit
+    je mail), die meelopen met wat de klant invult.
 - **Accenten in de labelkleur**: bovenkopjes, vinkjes in een rondje in de tint,
   de schakelaars van extra's, de badge op een gekozen kaart, de
   aanhalingstekens, de initialen van Susanne in het voorwoord. Banden onder de

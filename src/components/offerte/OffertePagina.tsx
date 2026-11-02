@@ -360,9 +360,62 @@ export default function OffertePagina({
 
 /* ---------- kop, meldingen en voet ---------- */
 
-/** De kopbalk van de site: logo, waar je bent, en rechts de hoofdactie. */
-function Kopbalk({ offerte, actie }: { offerte: OffertePubliek; actie?: React.ReactNode }) {
+/** Hoe ver je bent (0 tot 1), voor de voortgangslijn onder de kopbalk. */
+function useVoortgang() {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    let r = 0;
+    const meet = () => {
+      r = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setV(max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0);
+    };
+    const opScroll = () => { if (!r) r = requestAnimationFrame(meet); };
+    meet();
+    window.addEventListener("scroll", opScroll, { passive: true });
+    window.addEventListener("resize", opScroll);
+    return () => { window.removeEventListener("scroll", opScroll); window.removeEventListener("resize", opScroll); cancelAnimationFrame(r); };
+  }, []);
+  return v;
+}
+
+/** Welk onderdeel nu bovenaan staat: het laatste waarvan de bovenkant voorbij de kopbalk is. */
+function useActief(ids: string[]) {
+  const [actief, setActief] = useState(ids[0] || "");
+  const sleutel = ids.join(",");
+  useEffect(() => {
+    const lijst = sleutel.split(",").filter(Boolean);
+    let r = 0;
+    const meet = () => {
+      r = 0;
+      let nu = lijst[0] || "";
+      for (const id of lijst) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 140) nu = id;
+      }
+      setActief(nu);
+    };
+    const opScroll = () => { if (!r) r = requestAnimationFrame(meet); };
+    meet();
+    window.addEventListener("scroll", opScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", opScroll); cancelAnimationFrame(r); };
+  }, [sleutel]);
+  return actief;
+}
+
+export type Onderdeel = { id: string; label: string };
+
+/**
+ * De kopbalk van de site: logo, waar je bent, in het midden de onderdelen van
+ * de offerte zoals het menu van de site (op een breed scherm, met het
+ * onderdeel waar je bent in de labelkleur), rechts de hoofdactie. Onderaan een
+ * dunne lijn in de labelkleur die laat zien hoe ver je bent.
+ */
+function Kopbalk({ offerte, actie, onderdelen = [] }: { offerte: OffertePubliek; actie?: React.ReactNode; onderdelen?: Onderdeel[] }) {
+  const m = useMerk();
   const tel = telLink(offerte.afzender_telefoon);
+  const voortgang = useVoortgang();
+  const actief = useActief(onderdelen.map((o) => o.id));
   return (
     <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur-md print:static" style={{ borderColor: LINE }}>
       <div className={`${BREED} flex h-[72px] items-center justify-between gap-4 md:h-[88px]`}>
@@ -371,6 +424,19 @@ function Kopbalk({ offerte, actie }: { offerte: OffertePubliek; actie?: React.Re
           <span className="hidden h-8 w-px sm:block" style={{ background: LINE }} aria-hidden="true" />
           <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>Offerte {offerte.nummer}</span>
         </div>
+        {onderdelen.length > 0 && (
+          <nav aria-label="Onderdelen van de offerte" className="hidden items-center gap-7 xl:flex print:hidden">
+            {onderdelen.map((o) => {
+              const hier = o.id === actief;
+              return (
+                <a key={o.id} href={`#${o.id}`} aria-current={hier ? "true" : undefined} className="relative py-2 text-[15px] font-bold transition-colors" style={{ color: hier ? m.tekst : NAVY }}>
+                  {o.label}
+                  <span aria-hidden className="absolute inset-x-0 -bottom-0.5 h-[2px] rounded-full transition-opacity" style={{ background: m.kleur, opacity: hier ? 1 : 0 }} />
+                </a>
+              );
+            })}
+          </nav>
+        )}
         <div className="flex shrink-0 items-center gap-5">
           {tel && (
             <a href={tel} className="inline-flex items-center gap-2 text-[15px] font-bold print:hidden" style={{ color: NAVY }}>
@@ -381,6 +447,7 @@ function Kopbalk({ offerte, actie }: { offerte: OffertePubliek; actie?: React.Re
           {actie && <div className="hidden sm:block">{actie}</div>}
         </div>
       </div>
+      <span aria-hidden className="absolute bottom-[-1px] left-0 h-[2px] print:hidden" style={{ width: `${voortgang * 100}%`, background: m.kleur }} />
     </header>
   );
 }
@@ -455,7 +522,8 @@ function Voet({ offerte, voorwaarden, huis }: { offerte: OffertePubliek; voorwaa
  * tagline, en rechts een witte kaart. Daaronder de offerte zelf: voor wie, door
  * wie, de feiten en de knoppen.
  */
-function Opening({ nummer, bedrijf, zin, tekst, feiten, knoppen, kaart }: {
+function Opening({ id, nummer, bedrijf, zin, tekst, feiten, knoppen, kaart }: {
+  id?: string;
   nummer: string;
   bedrijf: string;
   /** De offerte in één regel, groot onder de dienst: "Verzuimbegeleiding op maat voor …". */
@@ -467,7 +535,7 @@ function Opening({ nummer, bedrijf, zin, tekst, feiten, knoppen, kaart }: {
 }) {
   const m = useMerk();
   return (
-    <section className="px-[6px] pt-2 md:px-6 md:pt-6 xl:px-10">
+    <section id={id} className="scroll-mt-[96px] px-[6px] pt-2 md:px-6 md:pt-6 xl:px-10">
       <div className="relative mx-auto grid max-w-[1360px] gap-10 overflow-hidden rounded-[28px] px-6 pb-8 pt-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center lg:gap-14 lg:p-16 xl:p-[72px]" style={{ background: m.tint }}>
         <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[560px] md:w-[560px]" style={{ background: m.kleur, opacity: 0.12 }} />
         <span aria-hidden className="absolute bottom-[-120px] left-[38%] hidden h-[220px] w-[220px] rounded-full lg:block" style={{ background: m.kleur, opacity: 0.06 }} />
@@ -514,15 +582,34 @@ function Opening({ nummer, bedrijf, zin, tekst, feiten, knoppen, kaart }: {
  * gekozen onderdelen) en de contactpersoon. Geen <aside>: het overzicht bij de
  * keuzes is het eerste.
  */
+/** "Nog 30 dagen geldig": pas in de browser berekend, zodat server en browser niet verschillen rond middernacht. */
+function useDagenGeldig(tot: string | null) {
+  const [dagen, setDagen] = useState<number | null>(null);
+  useEffect(() => {
+    if (!tot) return;
+    const eind = new Date(`${tot}T23:59:59`);
+    const t = setTimeout(() => setDagen(Math.ceil((eind.getTime() - Date.now()) / 86_400_000) - 1), 0);
+    return () => clearTimeout(t);
+  }, [tot]);
+  return dagen;
+}
+
 function VoorstelKaart({ offerte, totalen, open, heeftKeuze }: { offerte: OffertePubliek; totalen: Totalen; open: boolean; heeftKeuze: boolean }) {
   const m = useMerk();
   const tel = telLink(offerte.afzender_telefoon);
   const onderdelen = totalen.regels.map((r) => r.regel.naam);
+  const dagen = useDagenGeldig(open ? offerte.geldig_tot : null);
   return (
     <div className="rounded-[24px] bg-white p-6 shadow-[0_30px_70px_-40px_rgba(50,46,131,0.45)] md:p-8">
       <div className="flex items-start justify-between gap-4">
         <Label>{open && heeftKeuze ? "Jouw keuze" : "Jouw voorstel"}</Label>
-        <span className="h-3 w-3 rounded-full" style={{ background: m.kleur }} aria-hidden="true" />
+        {dagen !== null && dagen >= 0 ? (
+          <span className="rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={{ background: m.tint, color: m.tekst }}>
+            {dagen === 0 ? "Vandaag nog geldig" : `Nog ${dagen} ${dagen === 1 ? "dag" : "dagen"} geldig`}
+          </span>
+        ) : (
+          <span className="h-3 w-3 rounded-full" style={{ background: m.kleur }} aria-hidden="true" />
+        )}
       </div>
       <div className="mt-3"><Bedrag t={totalen} maat="text-[48px] md:text-[54px]" live={false} /></div>
       <Kleintje t={totalen} />
@@ -611,6 +698,13 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
     <>
       <Kopbalk
         offerte={offerte}
+        onderdelen={[
+          { id: "voorstel", label: "Voorstel" },
+          { id: "voorwoord", label: "Voorwoord" },
+          { id: "keuze", label: heeftKeuze ? "Kiezen" : "Onderdelen" },
+          { id: "verder", label: "Vervolg" },
+          { id: "akkoord", label: "Akkoord" },
+        ]}
         actie={open ? <button type="button" onClick={naarAkkoord} className={`${knop.roze} !h-[48px] md:!h-[52px]`}>Ondertekenen<Pijl /></button> : null}
       />
       <Melding modus={modus} />
@@ -627,6 +721,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
 
       <main>
         <Opening
+          id="voorstel"
           nummer={offerte.nummer}
           bedrijf={offerte.bedrijf}
           zin={<>{offerte.titel} voor {offerte.bedrijf}</>}
@@ -667,7 +762,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
           <SectieKop
             eyebrow={heeftKeuze ? "Stel je offerte samen" : "Wat je krijgt"}
             titel={heeftKeuze ? "Kies wat bij jullie past" : "Dit doen we voor je"}
-            tekst={heeftKeuze ? "Kies je aansluiting en zet extra's aan of uit. Rechts zie je meteen wat het per maand kost." : "Wat we voor je doen en wat het kost, precies zoals in de prijslijst."}
+            tekst={heeftKeuze ? "Kies je aansluiting en zet extra's aan of uit. Het bedrag rekent meteen mee." : "Wat we voor je doen en wat het kost, precies zoals in de prijslijst."}
           />
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-6">
             <div className="flex min-w-0 flex-col gap-12 lg:col-span-8">
@@ -676,9 +771,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
                 <Sectie key={s.naam} sectie={s} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} verschil={open ? verschil : undefined} />
               ))}
               <Extras regels={extras} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} achter={tint("keuze") ? m.tint : "#ffffff"} />
-              {secties(gewoon).filter((s) => s.regels.every((r) => r.soort === "tarief")).map((s) => (
-                <Sectie key={s.naam} sectie={s} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} />
-              ))}
+              <TarievenBlok regels={secties(gewoon).filter((s) => s.regels.every((r) => r.soort === "tarief")).flatMap((s) => s.regels)} />
             </div>
             {/* Op een groot scherm loopt het overzicht mee langs de keuzes */}
             <div className="hidden lg:col-span-4 lg:block">
@@ -868,7 +961,7 @@ function Voorwoord({ offerte, tint }: { offerte: OffertePubliek; tint: boolean }
   const [eerste, ...rest] = v.alineas;
   const kleur2 = opKleur(m);
   return (
-    <section aria-labelledby="voorwoord-kop" style={{ background: achter }}>
+    <section id="voorwoord" aria-labelledby="voorwoord-kop" className="scroll-mt-[96px]" style={{ background: achter }}>
       <div className={`${BREED} grid gap-10 py-16 md:py-[112px] lg:grid-cols-12 lg:gap-6`}>
         <div className="flex flex-col gap-7 lg:sticky lg:top-[120px] lg:col-span-5 lg:self-start xl:col-span-4">
           <div className="relative h-[112px] w-[200px]" aria-hidden="true">
@@ -1101,6 +1194,42 @@ function Upgrade({ lijst, keuze, klik, verschil }: { lijst: Regel[]; keuze: stri
   );
 }
 
+/**
+ * De tarieven bij gebruik in één lijst, als naslag onder de keuzes: de eerste
+ * vijf staan er, de rest klapt uit (en staat bij afdrukken gewoon open).
+ */
+function TarievenBlok({ regels }: { regels: Regel[] }) {
+  const [open, setOpen] = useState(false);
+  if (!regels.length) return null;
+  const kort = 5;
+  const meer = regels.length > kort + 1;
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3 className={`${kop} m-0 text-[24px] tracking-[-0.4px]`} style={{ color: NAVY }}>Tarieven bij gebruik</h3>
+        <span className="text-[14px]" style={{ color: MUTE }}>Alleen als je er gebruik van maakt, exclusief btw</span>
+      </div>
+      <div className="flex flex-col rounded-[22px] border bg-white px-6 py-2 md:px-7" style={{ borderColor: LINE }}>
+        {regels.map((r, i) => (
+          <div key={r.id} className={`items-start justify-between gap-4 border-b py-3.5 last:border-b-0 ${meer && !open && i >= kort ? "hidden print:flex" : "flex"}`} style={{ borderColor: LINE }}>
+            <span className="flex flex-col">
+              <span className="text-[15px] font-bold" style={{ color: NAVY }}>{r.naam}</span>
+              {r.omschrijving && <span className="text-[13.5px]" style={{ color: MUTE }}>{r.omschrijving}</span>}
+            </span>
+            <span className="shrink-0 text-right text-[15px] font-bold tabular-nums" style={{ color: NAVY }}>{prijsLabel(r)}</span>
+          </div>
+        ))}
+        {meer && (
+          <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex items-center justify-center gap-2 py-4 text-[14.5px] font-bold print:hidden" style={{ color: NAVY }}>
+            {open ? "Minder tonen" : `Toon alle ${regels.length} tarieven`}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className={open ? "rotate-180" : ""} aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Het label van een regel ("React2u Restart") als branding, of null. */
 function merkVanLabel(label: string | undefined): Merk | null {
   if (!label) return null;
@@ -1165,16 +1294,16 @@ function ExtraKaart({ r, aan, klik, medewerkers, kanKiezen, achter }: { r: Regel
         <span className={`${kop} text-[20px] leading-[1.25]`} style={{ color: NAVY }}>{r.naam}</span>
         {r.omschrijving && <span className="text-[14.5px] leading-[1.55]" style={{ color: BODY }}>{r.omschrijving}</span>}
       </span>
-      <span className="relative mt-auto flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-t pt-4" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
-        <span className="flex flex-col">
-          <span className={`${kop} text-[24px] tabular-nums tracking-[-0.5px]`} style={{ color: NAVY }}>
+      <span className="relative mt-auto flex items-end justify-between gap-4 border-t pt-4" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
+        <span className="flex min-w-0 flex-col">
+          <span className={`${kop} text-[22px] tabular-nums tracking-[-0.5px] md:text-[24px]`} style={{ color: NAVY }}>
             {organisatie ? `${euro(organisatie.bedrag!)} ${organisatie.per === "maand" ? "per maand" : "eenmalig"}` : mp.tekst}
           </span>
           {organisatie && mp.bedrag !== null && (
-            <span className="text-[13px]" style={{ color: MUTE }}>{euro(mp.bedrag)} per medewerker per maand × {n.toLocaleString("nl-NL")}</span>
+            <span className="text-[13px]" style={{ color: MUTE }}>{n.toLocaleString("nl-NL")} medewerkers × {euro(mp.bedrag)}</span>
           )}
         </span>
-        <span className="inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: aan ? lm.tekst : NAVY }}>
+        <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap pb-1 text-[14px] font-bold" style={{ color: aan ? lm.tekst : NAVY }}>
           {aan ? <><Vink size={14} /> Toegevoegd</> : <>Voeg toe<span aria-hidden className="text-[17px] leading-none">+</span></>}
         </span>
       </span>
@@ -1284,7 +1413,7 @@ function Aanpak({ stappen: eigen, klaar = 0, titel, tekst }: { stappen: Stap[] |
   const stappen = lijst.length ? lijst : VERVOLG_STANDAARD;
   const bol = opKleur(m);
   return (
-    <section aria-label="Zo gaat het verder" className="relative overflow-hidden" style={{ background: NAVY }}>
+    <section id="verder" aria-label="Zo gaat het verder" className="relative scroll-mt-[88px] overflow-hidden" style={{ background: NAVY }}>
       <span aria-hidden className="absolute right-[-180px] top-[-220px] h-[540px] w-[540px] rounded-full" style={{ background: NAVY_LICHT }} />
       <div className={`${BREED} relative flex flex-col gap-10 py-16 md:gap-[52px] md:py-[104px]`}>
         <SectieKop eyebrow="Zo gaat het verder" titel={titel} tekst={tekst} licht />
@@ -1482,9 +1611,39 @@ function Akkoord({
   }
 
   const veldLabel = "text-[14.5px] font-bold";
+  // Drie stappen, zodat je ziet waar je bent: zet je handtekening, vul je gegevens in, bevestig met de code.
+  const gegevensKlaar = isNaam(naam) && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()) && !factuurFout(factuurInvoer()) && akkoord;
+  const stappen = [
+    { label: "Handtekening", klaar: Boolean(png) },
+    { label: "Je gegevens", klaar: gegevensKlaar },
+    { label: "Code uit je mail", klaar: false },
+  ];
+  const huidig = stap === "code" ? 2 : !png ? 0 : !gegevensKlaar ? 1 : 2;
 
   return (
     <div>
+      {!uit && (
+        <ol aria-label="Zo teken je" className="m-0 mb-8 flex list-none items-center gap-2 p-0 sm:gap-3">
+          {stappen.map((st, i) => {
+            const klaar = st.klaar && i !== huidig;
+            const nu = i === huidig;
+            return (
+              <li key={st.label} className={`flex items-center gap-2 sm:gap-3 ${i < stappen.length - 1 ? "flex-1" : ""}`} aria-current={nu ? "step" : undefined}>
+                <span
+                  className={`${kop} grid h-8 w-8 shrink-0 place-items-center rounded-full text-[14px] transition-colors`}
+                  style={klaar ? opKleur(m) : nu ? { background: "#ffffff", color: m.tekst, boxShadow: `inset 0 0 0 2px ${m.kleur}` } : { background: SOFT, color: MUTE }}
+                >
+                  {klaar ? <Vink size={14} dik={3} /> : i + 1}
+                </span>
+                <span className="whitespace-nowrap text-[13.5px] font-bold sm:text-[14.5px]" style={{ color: nu || klaar ? NAVY : MUTE }}>
+                  <span className={nu ? "" : "hidden sm:inline"}>{st.label}</span>
+                </span>
+                {i < stappen.length - 1 && <span aria-hidden className="h-px min-w-4 flex-1" style={{ background: klaar ? m.kleur : LINE }} />}
+              </li>
+            );
+          })}
+        </ol>
+      )}
       {/* Wat je tekent, in één regel */}
       <div className="mb-9 flex flex-col gap-3 rounded-[20px] p-5 sm:flex-row sm:items-center sm:justify-between md:px-7" style={{ background: m.tint }}>
         <div>
