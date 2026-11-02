@@ -22,7 +22,8 @@ describe("aanbevolen extra's", () => {
   it("de aansluiting als extra hoort bij Recover en is geen keuze meer", () => {
     const [aansluiting] = aanbevolenExtras("rie", catalogus);
     expect(aansluiting).toMatchObject({ naam: "Verrichtingenbasis", label: "React2u Recover", soort: "optie", eenheid: "medewerker_jaar" });
-    expect(aansluiting.groep).toBeUndefined();
+    // Een optie uit de groep van de aansluitingen: met een tweede aansluiting als module staat er hooguit één aan.
+    expect(aansluiting.groep).toBe("Recover-aansluiting");
     expect(aansluiting.punten).toBeUndefined();
   });
 

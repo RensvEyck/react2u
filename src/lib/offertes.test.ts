@@ -225,7 +225,7 @@ describe("offertevormen (0025)", () => {
     expect(berekenTotalen(s.verzuimtraining.regels, standaardKeuze(s.verzuimtraining.regels), null).eenmalig).toBe(595);
     expect(berekenTotalen(s.werkfit.regels, standaardKeuze(s.werkfit.regels), null).eenmalig).toBe(2500);
     // De eigen optie van het sjabloon (de verlenging), niet de aanbevolen extra's.
-    const werkfitMet = s.werkfit.regels.filter((r) => r.soort === "optie" && !r.aanbevolen).map((r) => r.id);
+    const werkfitMet = s.werkfit.regels.filter((r) => r.soort === "optie" && !r.aanbevolen && !r.module).map((r) => r.id);
     expect(berekenTotalen(s.werkfit.regels, werkfitMet, null).eenmalig).toBe(4000);
     // Uit de prijslijst 2027: loopt mee met de tarievenpagina.
     expect(berekenTotalen(s.spoor2.regels, [], null).eenmalig).toBe(3365);

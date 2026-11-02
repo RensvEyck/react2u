@@ -975,8 +975,34 @@ eigen label**, met de opbouw van de dienstpagina van dat label
   van hun eigen label met een schakelaar; aan = telt mee en wordt
   meegetekend. Een prijs per medewerker verschijnt alleen als het aantal
   bekend is. In de editor staan ze met "Aanbevolen extra" en kan sales er een
-  weghalen; een aangepast sjabloon houdt zijn eigen regels. Diensten zonder
-  vaste prijs (RI&E, PMO, HR-advies) als "Interesse" is een volgende stap.
+  weghalen; een aangepast sjabloon houdt zijn eigen regels.
+- **Alle modules: de hele prijslijst om zelf aan te zetten** (Rens, 2 nov:
+  "klant moet zelf alle modules aan kunnen klikken"). Elke offerte uit een
+  sjabloon (standaard én eigen) krijgt alle diensten van de zes labels als
+  opties die uit staan (`alleModules()` in
+  [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts), regel met
+  `module: true`, kop "Alle modules"). Recover levert alleen zijn
+  aansluitingen (de losse verrichtingen en de uurtarieven van de
+  professionals gelden al onder een aansluiting); wat al in de offerte staat
+  (op naam) en de dienst die de offerte zelf is (`EIGEN_DIENST`, bijvoorbeeld
+  de RI&E bij een RI&E-offerte) komen er niet nog eens bij. De prijs bepaalt
+  wat aanzetten betekent: een vaste prijs telt mee; een tarief (per uur, per
+  melding, per maand per dossier, 6%) is **bij gebruik** (`bijGebruik: true`,
+  telt niet mee, het tarief staat in het overzicht, de pdf en de mails); op
+  aanvraag of op offerte = **voorstel gevraagd** (sales ziet dat zo in de
+  tussenstand en de melding na het tekenen). Een aansluiting en de manier van
+  verlonen sluiten elkaar uit: opties met dezelfde `groep` (`UITSLUITEND`),
+  hooguit één aan (`wissel`, `herstelKeuze`); de database kent die regel niet
+  en laat elke combinatie door. Op de klantpagina staan ze na "Vaak gekozen
+  erbij" als **panelen per label** in de kleur en tint van dat label, het
+  eigen label open, de rest in te klappen, met per paneel hoeveel er aan
+  staat. In de editor zijn ze één blok "Alle modules": per label uitklappen,
+  "aan bij openen", weghalen, of alles in één keer **Bijwerken** met de
+  prijslijst (ids en wat aan stond blijven) of **Weghalen**. Een andere vorm
+  ververst ze; "Bewaar als sjabloon" bewaart ze niet (ze komen vers van de
+  prijslijst). Een prijs per medewerker (aansluiting, salarisadministratie)
+  ziet de klant alleen als het aantal medewerkers is ingevuld; de editor
+  waarschuwt daarvoor.
 - **Upgrade-duwtje**: staat er naast de gekozen aansluiting een uitgebreidere,
   dan zegt een regel onder de keuze wat die per maand meer kost ("Liever alles
   geregeld? Met Casemanagement Compleet betaal je €353,50 per maand meer"),

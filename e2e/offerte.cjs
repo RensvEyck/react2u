@@ -89,6 +89,13 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await page.fill("#of-fadres", "Korenstraat 8");
   await page.fill("#of-fpostcode", "5611 KL");
   await page.fill("#of-fplaats", "Eindhoven");
+  // Alle modules (Rens, 2 nov 2026): de hele prijslijst, per specialisme, staat er vanzelf in (uit)
+  const modulesKaart = page.locator("section#modules");
+  check(/\d{2} modules/.test(await modulesKaart.innerText()), `blok met alle modules: ${(await modulesKaart.innerText()).split("\n").find((r) => /modules uit/.test(r))}`);
+  // Recover levert alleen zijn aansluitingen, en die staan al in een verzuimofferte: vijf andere specialismen.
+  check((await modulesKaart.locator("summary").count()) === 5, `vijf andere specialismen in het blok (${await modulesKaart.locator("summary").count()})`);
+  check((await modulesKaart.locator("li:has-text('Burn-outcoaching, 1-op-1')").count()) === 0, "wat uit de prijslijst is toegevoegd, staat niet nog eens bij de modules");
+  check((await modulesKaart.locator("li:has-text('Casemanagement Compleet')").count()) === 0, "geen tweede aansluiting als module bij verzuimbegeleiding");
   const totaalTekst = await page.locator("aside .acard").first().innerText();
   check(totaalTekst.includes("€1.617"), `totaal bij standaardkeuze klopt (42 × €38,50 = €1.617): ${totaalTekst.split("\n")[1]}`);
   await shot(page, "02-editor");
@@ -154,6 +161,40 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await klant.click("button[role=switch]:has-text('Loopbaanscan')");
   const samenvatting = await klant.locator("aside").first().innerText();
   check(samenvatting.includes("€2.520 eenmalig"), "eenmalig met intake en loopbaanscan: €2.520 (€495 + €2.025)");
+
+  stap("Alle modules: de klant zet zelf diensten uit elk specialisme aan");
+  const modules = klant.locator("#modules");
+  check(await modules.locator("text=Alles van React2u, los aan te zetten").count(), "blok met alle modules");
+  const panelen = modules.locator("button[aria-controls^='modules-']");
+  check((await panelen.count()) === 5, `vijf specialismen naast Recover (${await panelen.count()})`);
+  check((await modules.locator("button[aria-controls='modules-recover']").count()) === 0, "geen tweede aansluiting als module");
+  check((await panelen.first().getAttribute("aria-expanded")) === "true", "het eerste specialisme staat open");
+  check((await modules.locator("button[aria-controls='modules-restart']").getAttribute("aria-expanded")) === "false", "de andere specialismen zijn ingeklapt");
+  const eenmalig = async () => ((await klant.locator("aside").first().innerText()).match(/plus €([\d.]+) eenmalig/) || [])[1];
+  const maand = perJaar;
+  const voor = { maand: await maand(), eenmalig: await eenmalig() };
+  // Resist (staat al open): een training tegen uurtarief, bij gebruik (het bedrag blijft gelijk)
+  await modules.locator("#modules-resist button[role=switch]:has-text('Training Leiderschap en Management')").click();
+  check((await maand()) === voor.maand && (await eenmalig()) === voor.eenmalig, "training bij gebruik: het totaal verandert niet");
+  check((await klant.locator("aside").first().innerText()).includes("€240 per uur"), "in het overzicht met het uurtarief");
+  // Reflex: Whk-check is een vaste prijs, die telt mee
+  await modules.locator("button[aria-controls='modules-reflex']").click();
+  await modules.locator("#modules-reflex button[role=switch]:has-text('Whk-check en bezwaar')").click();
+  check((await eenmalig()) === "3.015", `Whk-check telt mee: €${await eenmalig()} eenmalig (€2.520 + €495)`);
+  // Ready: op aanvraag, een voorstel
+  await modules.locator("button[aria-controls='modules-ready']").click();
+  await modules.locator("#modules-ready button[role=switch]:has-text('HR-advies op afroep')").click();
+  check((await modules.locator("button[aria-controls='modules-ready']").innerText()).includes("1 aan"), "het paneel telt wat aan staat");
+  // Reward: maand- of vierwekelijks, hooguit één (de aanbevolen maandverloning gaat uit)
+  await klant.click("button[role=switch]:has-text('Salarisadministratie, maandverloning')");
+  const metMaand = await maand();
+  await modules.locator("button[aria-controls='modules-reward']").click();
+  await modules.locator("#modules-reward button[role=switch]:has-text('Salarisadministratie, vierwekelijks')").click();
+  check((await klant.locator("button[role=switch]:has-text('Salarisadministratie, maandverloning')").first().getAttribute("aria-checked")) === "false", "vierwekelijks zet maandverloning uit");
+  check((await maand()) === "€966" && metMaand === "€929,25", `vierwekelijks per maand: ${await maand()} (€488,25 + 42 × €136,50 / 12), was ${metMaand}`);
+  await modules.locator("#modules-reward button[role=switch]:has-text('Salarisadministratie, vierwekelijks')").click();
+  check((await maand()) === "€488,25", `weer uit: ${await maand()}`);
+  await modules.screenshot({ path: path.join(SHOTS, "07b-alle-modules.png") });
   await klant.waitForTimeout(1500); // tussenstand bewaren
   await shot(klant, "07-klant-gekozen");
 
@@ -177,6 +218,11 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   check(await tp.locator("div.fixed:has-text('per maand'):has-text('exclusief btw')").first().isVisible(), "vaste balk onderaan met het maandbedrag");
   await shot(tp, "08-klant-telefoon-boven", { fullPage: false });
   await shot(tp, "09-klant-telefoon-heel");
+  await tp.locator("#modules button[aria-controls='modules-restart']").click();
+  await tp.locator("#modules").scrollIntoViewIfNeeded();
+  await tp.locator("#modules").screenshot({ path: path.join(SHOTS, "09b-telefoon-modules.png") });
+  const breedModules = await tp.evaluate(() => document.documentElement.scrollWidth);
+  check(breedModules <= 390, `ook met een open specialisme geen horizontale scroll (${breedModules})`);
   await tp.click("div.fixed button:has-text('Ondertekenen')");
   // Vloeiend scrollen duurt langer naarmate de pagina langer is: wachten tot de positie stilstaat.
   let top = -1;
@@ -193,6 +239,7 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   stap("Admin ziet de tussenstand van de klant");
   await page.goto(offerteUrl);
   check(await page.locator("text=Aangeklikt").count(), "tussenstand zichtbaar in het beheer");
+  check(await page.locator("text=HR-advies op afroep (voorstel gevraagd)").count(), "tussenstand: module op aanvraag als voorstel gevraagd");
   check(await page.locator("text=Bekeken door de klant").count(), "bekeken in de tijdlijn");
   const bekekenMail = mails().find((m) => /bekijkt je offerte/.test(m.subject));
   check(Boolean(bekekenMail), "seintje aan de afzender bij eerste keer openen");
@@ -255,6 +302,9 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   check(await klant.locator("text=Kenmerk van de ondertekende versie").count(), "kenmerk (hash) zichtbaar");
   check(await klant.locator("text=E-mailadres bevestigd met een code").count(), "bevestigd-label bij de handtekening");
   check(await klant.locator("text=Inkoopnummer PO-2026-118").count(), "factuurgegevens in de getekende versie");
+  const afgenomen = await klant.locator("section[aria-label='Wat je hebt afgenomen']").innerText();
+  check(["Whk-check en bezwaar", "Training Leiderschap en Management", "HR-advies op afroep", "Loopbaanscan"].every((n) => afgenomen.includes(n)), "getekende versie: ook de modules die de klant aanzette");
+  check(afgenomen.includes("€240 per uur") && afgenomen.includes("bij gebruik"), "training met uurtarief, bij gebruik");
   await klant.waitForTimeout(4000); // mails (met pdf) na het antwoord
 
   stap("Mails na ondertekening");
@@ -269,6 +319,9 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   check(Boolean(bijlage) && /\.pdf$/.test(bijlage.filename) && Buffer.from(bijlage.content, "base64").subarray(0, 5).toString() === "%PDF-", `pdf bij de bevestiging: ${bijlage?.filename}`);
   check(Boolean(getekendMail?.attachments?.[0]), "pdf ook bij de melding aan sales");
   check(/Factuurgegevens/.test(getekendMail?.html || "") && /PO-2026-118/.test(getekendMail?.html || ""), "factuurgegevens met inkoopnummer in de melding aan sales");
+  check(/HR-advies op afroep \(voorstel gevraagd\)/.test(getekendMail?.html || ""), "melding aan sales: voorstel gevraagd voor HR-advies");
+  check(/Training Leiderschap en Management \(bij gebruik, €240 per uur\)/.test(getekendMail?.html || ""), "melding aan sales: training bij gebruik met tarief");
+  check(/Whk-check en bezwaar/.test(bevestiging?.html || "") && /Voorstel volgt/.test(bevestiging?.html || ""), "bevestiging aan de klant: modules erin, voorstel volgt");
   if (bijlage) fs.writeFileSync(path.join(SHOTS, "getekend-uit-mail.pdf"), Buffer.from(bijlage.content, "base64"));
 
   stap("Pdf-route voor de klant");

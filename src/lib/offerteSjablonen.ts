@@ -16,7 +16,7 @@
  * In de teksten kun je {bedrijf}, {contactpersoon}, {voornaam} en {betreft}
  * gebruiken; zie vulIn() in lib/offertes.ts.
  */
-import { aanbevolenExtras, alsRegel, STARTPUNTEN, type CatalogusGroep, type CatalogusItem } from "./offerteCatalogus";
+import { aanbevolenExtras, alsRegel, STARTPUNTEN, vernieuwModules, type CatalogusGroep, type CatalogusItem } from "./offerteCatalogus";
 import { GELDIG_DAGEN, nieuwId, normaliseerRegels, normaliseerVervolg, type Regel, type Stap, type Vorm } from "./offertes";
 
 export type Sjabloon = {
@@ -413,14 +413,16 @@ function uitRij(rij: SjabloonRij, heeftStandaard: boolean): Sjabloon {
  */
 export function alleSjablonen(catalogus: CatalogusGroep[], rijen: SjabloonRij[] = []): Sjabloon[] {
   const perSleutel = new Map(rijen.map((x) => [x.sleutel, x]));
+  // Elk sjabloon krijgt alle modules van de prijslijst zoals die nu is; een bewaard sjabloon houdt ze niet vast.
+  const metModules = (s: Sjabloon): Sjabloon => ({ ...s, regels: vernieuwModules(s.vorm, catalogus, s.regels) });
   const standaard = STANDAARD_SJABLONEN.map((s): Sjabloon => {
     const rij = perSleutel.get(s.sleutel);
-    if (rij) return uitRij(rij, true);
+    if (rij) return metModules(uitRij(rij, true));
     // De standaard plus de aanbevolen extra's van het traject (een aangepast sjabloon heeft zijn eigen regels).
     const regels = s.regels(catalogus);
-    return { ...s, regels: [...regels, ...aanbevolenExtras(s.vorm, catalogus, regels)], bron: { soort: "standaard" } };
+    return metModules({ ...s, regels: [...regels, ...aanbevolenExtras(s.vorm, catalogus, regels)], bron: { soort: "standaard" } });
   });
-  const eigen = rijen.filter((x) => !STANDAARD_SJABLONEN.some((s) => s.sleutel === x.sleutel)).map((x) => uitRij(x, false));
+  const eigen = rijen.filter((x) => !STANDAARD_SJABLONEN.some((s) => s.sleutel === x.sleutel)).map((x) => metModules(uitRij(x, false)));
   const volgorde = (v: Vorm) => ["verzuimbegeleiding", "rie", "pago", "verzuimtraining", "spoor2", "werkfit", "arbeidsdeskundig"].indexOf(v);
   return [...standaard, ...eigen].sort((a, b) => volgorde(a.vorm) - volgorde(b.vorm));
 }
@@ -445,8 +447,8 @@ export function sjabloonVoorStart(start: string | undefined | null): string | nu
   return ["keuze", "basis", "compleet"].includes(start) ? `verzuim-${start}` : start;
 }
 
-/** "1 onderdeel", "3 onderdelen": wat de klant afneemt, zonder de tarieven bij gebruik. */
+/** "1 onderdeel", "3 onderdelen": wat de klant afneemt, zonder de tarieven bij gebruik, de extra's en de modules. */
 export function aantalOnderdelen(regels: Regel[]): string {
-  const n = regels.filter((x) => x.soort !== "tarief").length;
+  const n = regels.filter((x) => x.soort !== "tarief" && !x.aanbevolen && !x.module).length;
   return `${n} ${n === 1 ? "onderdeel" : "onderdelen"}`;
 }

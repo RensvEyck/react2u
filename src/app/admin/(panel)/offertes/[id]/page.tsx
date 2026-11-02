@@ -11,7 +11,7 @@ import { laadCatalogus, laadSjablonen, inVorm } from "@/lib/offerteBeheer";
 import type { Sjabloon } from "@/lib/offerteSjablonen";
 import { offerteUrl } from "@/lib/mail";
 import {
-  apparaatUit, berekenTotalen, datumLang, euro, factuurRegels, herstelKeuze, momentLang, normaliseerRegels, prijsLabel, regelbedrag, weergaveVan,
+  apparaatUit, bedragTekst, berekenTotalen, datumLang, euro, factuurRegels, herstelKeuze, momentLang, naamVoorSales, normaliseerRegels, prijsLabel, regelbedrag, weergaveVan,
   WEERGAVE, VORMEN, type Gebeurtenis, type Offerte,
 } from "@/lib/offertes";
 import {
@@ -171,7 +171,7 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
             {klantKeuze && (
               <div className="mt-3 rounded-[12px] bg-[#eef0ff] px-4 py-3 text-[13.5px] text-[#312e82]">
                 <p className="flex items-center gap-2 font-semibold"><LuMousePointerClick /> Aangeklikt{o.keuze_at ? ` (${momentLang(o.keuze_at)})` : ""}</p>
-                <p className="mt-1 text-black/60">{klantKeuze.regels.map((r) => r.regel.naam).join(", ")}</p>
+                <p className="mt-1 text-black/60">{klantKeuze.regels.map(naamVoorSales).join(", ")}</p>
                 <p className="mt-1 font-semibold">{euro(klantKeuze.perMaand)} per maand{klantKeuze.eenmalig ? ` + ${euro(klantKeuze.eenmalig)} eenmalig` : ""}</p>
               </div>
             )}
@@ -259,7 +259,7 @@ function Getekend({ o }: { o: Offerte }) {
                   <span className="block text-[12.5px] text-black/45">{prijsLabel(regel)}</span>
                 </td>
                 <td className="py-2.5 text-right tabular-nums text-[#1c1a4e]">
-                  {bedrag === null ? "op aanvraag" : bedrag === 0 ? "inbegrepen" : `${euro(regelbedrag({ bedrag, periode }).bedrag!)}${periode === "jaar" ? " per maand" : " eenmalig"}`}
+                  {regel.bijGebruik ? "bij gebruik" : bedrag === null && regel.soort === "optie" ? "voorstel gevraagd" : bedragTekst({ regel, bedrag, periode }).toLowerCase()}
                 </td>
               </tr>
             ))}

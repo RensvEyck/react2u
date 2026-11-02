@@ -4,14 +4,14 @@ import Link from "next/link";
 import { saveOfferte, type OfferteFormState } from "@/app/admin/offerteActions";
 import { LEAVE_QUESTION, setUnsaved } from "@/lib/unsaved";
 import {
-  berekenTotalen, controleer, EENHEDEN, euro, nieuwId, prijsLabel, secties, SOORTEN, standaardKeuze, bedragVoor,
+  bedragTekst, berekenTotalen, controleer, EENHEDEN, euro, nieuwId, prijsLabel, secties, SOORTEN, standaardKeuze, bedragVoor,
   VORMEN, VORM_KEYS, regelbedrag, OFFERTE_EMAIL, type Eenheid, type Offerte, type Regel, type Soort, type Stap, type Vorm,
 } from "@/lib/offertes";
-import { alsRegel, type CatalogusGroep } from "@/lib/offerteCatalogus";
+import { alsRegel, ruimModulesOp, vernieuwModules, type CatalogusGroep } from "@/lib/offerteCatalogus";
 import OfferteTekst from "@/components/offerte/OfferteTekst";
 import {
   LuPlus, LuSave, LuEye, LuArrowUp, LuArrowDown, LuCopy, LuTrash2, LuChevronDown, LuSearch, LuX, LuListPlus,
-  LuCircleAlert, LuCircleCheck, LuPencil,
+  LuCircleAlert, LuCircleCheck, LuPencil, LuRefreshCw, LuLayoutGrid,
 } from "react-icons/lu";
 
 /*
@@ -147,7 +147,10 @@ export default function OfferteEditor({
   const totalen = useMemo(() => berekenTotalen(regels, standaardKeuze(regels), n), [regels, n]);
   const fouten = controleer({ bedrijf, email, regels, geldig_tot: geldig || null });
   const groepNamen = [...new Set(regels.filter((r) => r.soort === "keuze").map((r) => r.groep || "keuze"))];
-  const sectieNamen = [...new Set([...regels.map((r) => r.sectie), ...catalogus.map((g) => g.items[0]?.sectie).filter(Boolean) as string[]])];
+  // De modules (de hele prijslijst om zelf aan te zetten) staan in hun eigen blok, altijd achteraan.
+  const gewoon = regels.filter((r) => !r.module);
+  const modules = regels.filter((r) => r.module);
+  const sectieNamen = [...new Set([...gewoon.map((r) => r.sectie), ...catalogus.map((g) => g.items[0]?.sectie).filter(Boolean) as string[]])];
 
   // Niet opgeslagen werk: vragen bij weggaan (zie BlockEditor voor het waarom van de capture-fase).
   useEffect(() => {
@@ -180,7 +183,7 @@ export default function OfferteEditor({
   }, [state]);
 
   const wijzig = (f: (r: Regel[]) => Regel[]) => {
-    setRegels(f);
+    setRegels((rs) => ruimModulesOp(f(rs)));
     setDirty(true);
   };
   const zet = (id: string, patch: Partial<Regel>) => wijzig((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -205,17 +208,17 @@ export default function OfferteEditor({
   /** Een hele kop omhoog of omlaag. */
   const schuifSectie = (naam: string, richting: -1 | 1) =>
     wijzig((rs) => {
-      const s = secties(rs);
+      const s = secties(rs.filter((r) => !r.module));
       const i = s.findIndex((x) => x.naam === naam);
       const j = i + richting;
       if (i < 0 || j < 0 || j >= s.length) return rs;
       [s[i], s[j]] = [s[j], s[i]];
-      return s.flatMap((x) => x.regels);
+      return [...s.flatMap((x) => x.regels), ...rs.filter((r) => r.module)];
     });
   const hernoemSectie = (oud: string, nieuw: string) => wijzig((rs) => rs.map((r) => (r.sectie === oud ? { ...r, sectie: nieuw } : r)));
   const eigenRegel = () => {
     // Onder de eerste kop (meestal Aansluiting): daar hoort een eigen regel als een intake of korting meestal thuis.
-    const r: Regel = { id: nieuwId(), sectie: secties(regels)[0]?.naam || "Onderdelen", naam: "Nieuw onderdeel", prijs: null, eenheid: "eenmalig", soort: "optie" };
+    const r: Regel = { id: nieuwId(), sectie: secties(gewoon)[0]?.naam || "Onderdelen", naam: "Nieuw onderdeel", prijs: null, eenheid: "eenmalig", soort: "optie" };
     wijzig((rs) => [...rs, r]);
     setOpen(r.id);
   };
@@ -245,7 +248,10 @@ export default function OfferteEditor({
                   className="ainput"
                   value={vorm}
                   onChange={(e) => {
-                    setVorm(e.target.value as Vorm);
+                    const nieuw = e.target.value as Vorm;
+                    setVorm(nieuw);
+                    // Andere vorm: de modules opnieuw, met het eigen label vooraan en zonder de dienst die de offerte zelf is.
+                    if (modules.length) setRegels((rs) => vernieuwModules(nieuw, catalogus, rs));
                     setDirty(true);
                   }}
                 >
@@ -318,7 +324,7 @@ export default function OfferteEditor({
             titel="Onderdelen"
             uitleg="Wat de klant ziet en kan aanklikken. Bedragen exclusief btw."
             actie={
-              regels.length > 0 && (
+              gewoon.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   <button type="button" className="abtn !py-1.5 text-[13px]" onClick={() => setKiezer(true)}><LuListPlus /> Uit de prijslijst</button>
                   <button type="button" className="abtn-ghost !py-1.5 text-[13px]" onClick={eigenRegel}><LuPlus /> Eigen onderdeel</button>
@@ -326,7 +332,7 @@ export default function OfferteEditor({
               )
             }
           >
-            {regels.length === 0 ? (
+            {gewoon.length === 0 ? (
               <div>
                 <p className="text-[14px] text-black/50">Nog geen onderdelen. Kies ze uit de prijslijst of voeg een eigen onderdeel toe.</p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -336,7 +342,7 @@ export default function OfferteEditor({
               </div>
             ) : (
               <div className="space-y-6">
-                {secties(regels).map((s, si, alle) => (
+                {secties(gewoon).map((s, si, alle) => (
                   <div key={s.naam}>
                     <div className="mb-2 flex items-center gap-2">
                       {s.kleur && <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.kleur }} aria-hidden="true" />}
@@ -376,6 +382,15 @@ export default function OfferteEditor({
             <datalist id="of-groepen">{groepNamen.map((g) => <option key={g} value={g} />)}</datalist>
             <datalist id="of-secties">{sectieNamen.map((g) => <option key={g} value={g} />)}</datalist>
           </Kaart>
+
+          <Modules
+            modules={modules}
+            medewerkers={n}
+            toevoegen={() => wijzig((rs) => vernieuwModules(vorm, catalogus, rs))}
+            weghalen={() => wijzig((rs) => rs.filter((r) => !r.module))}
+            zet={zet}
+            weg={weg}
+          />
 
           <Kaart titel="Tekst" uitleg="Gebruik {bedrijf}, {contactpersoon}, {voornaam} of {betreft}: die worden op de offerte ingevuld.">
             <div className="grid gap-5">
@@ -476,7 +491,7 @@ export default function OfferteEditor({
                 <li key={regel.id} className="flex justify-between gap-3">
                   <span className="min-w-0 truncate text-black/60">{regel.naam}</span>
                   <span className="shrink-0 tabular-nums text-[#1c1a4e]">
-                    {bedrag === null ? "op aanvraag" : `${euro(regelbedrag({ bedrag, periode }).bedrag!)}${periode === "jaar" ? " /mnd" : ""}`}
+                    {bedragTekst({ regel, bedrag, periode }, true)}
                   </span>
                 </li>
               ))}
@@ -509,7 +524,7 @@ export default function OfferteEditor({
       {kiezer && (
         <CatalogusKiezer
           catalogus={catalogus}
-          aanwezig={new Set(regels.map((r) => r.naam.toLowerCase()))}
+          aanwezig={new Set(gewoon.map((r) => r.naam.toLowerCase()))}
           sluit={() => setKiezer(false)}
           voegToe={(items) => {
             wijzig((rs) => [...rs, ...items]);
@@ -518,6 +533,99 @@ export default function OfferteEditor({
         />
       )}
     </form>
+  );
+}
+
+/**
+ * Alle modules: de hele prijslijst, per label, die de klant zelf kan aanzetten
+ * (Rens, 2 nov 2026: "klant moet zelf alle modules aan kunnen klikken"). Hier
+ * als één blok: per label in- en uitklappen, een module standaard aan zetten
+ * of weghalen, en alles in één keer bijwerken met de prijslijst of weghalen.
+ */
+function Modules({
+  modules, medewerkers, toevoegen, weghalen, zet, weg,
+}: {
+  modules: Regel[]; medewerkers: number | null; toevoegen: () => void; weghalen: () => void;
+  zet: (id: string, p: Partial<Regel>) => void; weg: (id: string) => void;
+}) {
+  // In de volgorde van de offerte: het eigen label vooraan (alleModules).
+  const labels = [...new Set(modules.map((r) => r.label || "Overig"))];
+  const perMedewerker = modules.filter((r) => r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker");
+  return (
+    <Kaart
+      id="modules"
+      titel="Alle modules"
+      uitleg="De hele prijslijst, per specialisme. De klant zet zelf aan wat hij wil; zolang er niets aan staat, verandert het bedrag niet."
+      actie={
+        modules.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="abtn-ghost !py-1.5 text-[13px]" onClick={toevoegen} title="Opnieuw van de prijslijst; wat al aan stond blijft aan"><LuRefreshCw /> Bijwerken</button>
+            <button type="button" className="abtn-ghost !py-1.5 text-[13px] text-[#b42318]" onClick={weghalen}><LuTrash2 /> Weghalen</button>
+          </div>
+        ) : null
+      }
+    >
+      {modules.length === 0 ? (
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-[14px] text-black/55">Nu kan de klant alleen de onderdelen hierboven kiezen.</p>
+          <button type="button" className="abtn !py-1.5 text-[13px]" onClick={toevoegen}><LuLayoutGrid /> Alle modules toevoegen</button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-[13.5px] text-black/55">
+            <strong className="text-[#1c1a4e]">{modules.length} modules</strong> uit {labels.length} specialismen.
+            {modules.some((r) => r.aan) ? ` ${modules.filter((r) => r.aan).length} staan al aan als de klant de offerte opent.` : " Ze staan uit; zet er een aan als je hem alvast wilt voorstellen."}
+          </p>
+          {!medewerkers && perMedewerker.length > 0 && (
+            <p className="flex items-start gap-2 rounded-[10px] bg-[#fff4e5] px-3 py-2 text-[13px] text-[#7a4a06]">
+              <LuCircleAlert className="mt-0.5 shrink-0" />
+              Vul het aantal medewerkers in: zonder dat ziet de klant {perMedewerker.map((r) => r.naam).join(", ")} niet (die prijs is per medewerker).
+            </p>
+          )}
+          {labels.map((label) => {
+            const lijst = modules.filter((r) => (r.label || "Overig") === label);
+            const kleur = lijst[0]?.kleur || "#312e82";
+            const aan = lijst.filter((r) => r.aan).length;
+            return (
+              <details key={label} className="group rounded-[12px] border border-black/[0.07]">
+                <summary className="flex cursor-pointer list-none items-center gap-2.5 px-4 py-3">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: kleur }} aria-hidden="true" />
+                  <span className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: kleur }}>{label.replace(/^React2u\s+/i, "")}</span>
+                  <span className="text-[13px] text-black/45">{lijst.length} {lijst.length === 1 ? "module" : "modules"}{aan ? `, ${aan} aan` : ""}</span>
+                  <LuChevronDown className="ml-auto text-black/35 transition-transform group-open:rotate-180" />
+                </summary>
+                <ul className="divide-y divide-black/[0.05] border-t border-black/[0.06]">
+                  {lijst.map((r) => (
+                    <li key={r.id} className="flex items-center gap-3 px-4 py-2.5">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13.5px] font-semibold text-[#1c1a4e]">{r.naam}</span>
+                        <span className="block text-[12px] text-black/45">
+                          {r.prijs === null && !r.bijGebruik ? "Op aanvraag: de klant vraagt een voorstel" : r.bijGebruik ? `${prijsLabel(r)}, bij gebruik` : `${prijsLabel(r)}, telt mee`}
+                          {r.groep ? " · hooguit één uit deze groep" : ""}
+                        </span>
+                      </span>
+                      <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[12.5px] text-black/55">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(r.aan)}
+                          onChange={(e) => {
+                            // Hooguit één uit een groep (één aansluiting, één manier van verlonen).
+                            if (e.target.checked && r.groep) for (const x of lijst) if (x.groep === r.groep && x.id !== r.id && x.aan) zet(x.id, { aan: undefined });
+                            zet(r.id, { aan: e.target.checked || undefined });
+                          }}
+                        />
+                        aan bij openen
+                      </label>
+                      <button type="button" onClick={() => weg(r.id)} className="rounded-lg p-1.5 text-black/30 hover:bg-[#fdecea] hover:text-[#b42318]" aria-label={`${r.naam} weghalen`}><LuX /></button>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            );
+          })}
+        </div>
+      )}
+    </Kaart>
   );
 }
 

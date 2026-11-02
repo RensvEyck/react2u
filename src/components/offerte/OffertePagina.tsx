@@ -15,7 +15,7 @@ import { ondertekenaarRegel, VOORWOORD, VOORWOORD_VAN } from "@/lib/offerteVoorw
 import { MERKEN, merkVoorVorm, type Merk } from "@/lib/offerteMerk";
 import { bewaarKeuze, ondertekenOfferte, vraagCode, wijsOfferteAf } from "@/app/(offerte)/offerte/actions";
 import {
-  berekenTotalen, datumLang, euro, factuurFout, factuurRegels, herstelKeuze, isNaam, maandprijs, momentLang, normaliseerFactuur,
+  bedragTekst, berekenTotalen, datumLang, euro, factuurFout, factuurRegels, herstelKeuze, isNaam, maandprijs, momentLang, normaliseerFactuur,
   normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, secties, wissel, aantalVoor, bedragVoor, vulIn,
   OFFERTE_EMAIL, ONDERTEKEN_FOUT, VERVOLG_STANDAARD, VORMEN,
   type OffertePubliek, type Regel, type Stap, type Totalen, type Vorm,
@@ -653,12 +653,11 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
   const vorm: Vorm = VORMEN[offerte.vorm] ? offerte.vorm : "verzuimbegeleiding";
   const heeftKeuze = regels.some((r) => r.soort === "optie" || r.soort === "keuze");
   const bijAkkoord = useInBeeld("akkoord");
-  // De aanbevolen extra's staan in hun eigen blok; een prijs per medewerker alleen als het aantal bekend is.
-  const gewoon = useMemo(() => regels.filter((r) => !r.aanbevolen), [regels]);
-  const extras = useMemo(
-    () => regels.filter((r) => r.aanbevolen && (offerte.medewerkers || (r.eenheid !== "medewerker_jaar" && r.eenheid !== "medewerker"))),
-    [regels, offerte.medewerkers]
-  );
+  // De aanbevolen extra's en alle modules staan in hun eigen blok; een prijs per medewerker alleen als het aantal bekend is.
+  const gewoon = useMemo(() => regels.filter((r) => !r.aanbevolen && !r.module), [regels]);
+  const extras = useMemo(() => regels.filter((r) => r.aanbevolen && telbaar(r, offerte.medewerkers)), [regels, offerte.medewerkers]);
+  const modules = useMemo(() => regels.filter((r) => r.module && telbaar(r, offerte.medewerkers)), [regels, offerte.medewerkers]);
+  const heeftGroep = gewoon.some((r) => r.soort === "keuze");
   // Wat een andere keuze in een groep per maand en eenmalig scheelt, voor het upgrade-duwtje.
   const verschil = (id: string) => {
     const t = berekenTotalen(regels, wissel(regels, keuze, id), offerte.medewerkers);
@@ -762,7 +761,11 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
           <SectieKop
             eyebrow={heeftKeuze ? "Stel je offerte samen" : "Wat je krijgt"}
             titel={heeftKeuze ? "Kies wat bij jullie past" : "Dit doen we voor je"}
-            tekst={heeftKeuze ? "Kies je aansluiting en zet extra's aan of uit. Het bedrag rekent meteen mee." : "Wat we voor je doen en wat het kost, precies zoals in de prijslijst."}
+            tekst={
+              !heeftKeuze ? "Wat we voor je doen en wat het kost, precies zoals in de prijslijst." :
+              heeftGroep ? "Kies je aansluiting en zet aan wat je erbij wilt. Het bedrag rekent meteen mee." :
+              "Zet aan wat je erbij wilt, uit de hele prijslijst. Het bedrag rekent meteen mee."
+            }
           />
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-6">
             <div className="flex min-w-0 flex-col gap-12 lg:col-span-8">
@@ -771,6 +774,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
                 <Sectie key={s.naam} sectie={s} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} verschil={open ? verschil : undefined} />
               ))}
               <Extras regels={extras} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} achter={tint("keuze") ? m.tint : "#ffffff"} />
+              <AlleModules regels={modules} alle={regels} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} achter={tint("keuze") ? m.tint : "#ffffff"} />
               <TarievenBlok regels={secties(gewoon).filter((s) => s.regels.every((r) => r.soort === "tarief")).flatMap((s) => s.regels)} />
             </div>
             {/* Op een groot scherm loopt het overzicht mee langs de keuzes */}
@@ -913,8 +917,8 @@ function Overzicht({ offerte, totalen, open, heeftKeuze, bijAkkoord, naarAkkoord
             return (
               <li key={regel.id} className="offerte-regel flex items-baseline justify-between gap-4 border-b py-2.5 text-[14.5px]" style={{ borderColor: LINE }}>
                 <span style={{ color: BODY }}>{regel.naam}</span>
-                <span className="shrink-0 font-bold tabular-nums" style={{ color: b.bedrag === 0 ? m.tekst : NAVY }}>
-                  {b.bedrag === null ? "Op aanvraag" : b.bedrag === 0 ? "Inbegrepen" : `${euro(b.bedrag)}${b.per === "maand" ? " p/m" : " eenmalig"}`}
+                <span className="shrink-0 text-right font-bold tabular-nums" style={{ color: b.bedrag === 0 && !regel.bijGebruik ? m.tekst : NAVY }}>
+                  {bedragTekst({ regel, bedrag, periode }, true)}
                 </span>
               </li>
             );
@@ -1230,6 +1234,11 @@ function TarievenBlok({ regels }: { regels: Regel[] }) {
   );
 }
 
+/** Een prijs per medewerker kan alleen meetellen als het aantal medewerkers bekend is. */
+function telbaar(r: Regel, medewerkers: number | null): boolean {
+  return Boolean(medewerkers) || (r.eenheid !== "medewerker_jaar" && r.eenheid !== "medewerker");
+}
+
 /** Het label van een regel ("React2u Restart") als branding, of null. */
 function merkVanLabel(label: string | undefined): Merk | null {
   if (!label) return null;
@@ -1308,6 +1317,156 @@ function ExtraKaart({ r, aan, klik, medewerkers, kanKiezen, achter }: { r: Regel
         </span>
       </span>
     </button>
+  );
+}
+
+/**
+ * Alle modules: de hele prijslijst om zelf aan te zetten (Rens, 2 nov 2026:
+ * "klant moet zelf alle modules aan kunnen klikken"), per label in een paneel
+ * in de kleur en tint van dat label, zoals de dienstenkaarten op de site. Het
+ * label van de offerte staat vooraan en open; de rest klapt uit. Wat aan
+ * staat telt mee en wordt meegetekend; bij afdrukken staat alleen dat er.
+ */
+function AlleModules({ regels, alle, keuze, klik, medewerkers, kanKiezen, achter }: { regels: Regel[]; alle: Regel[]; keuze: string[]; klik: (id: string) => void; medewerkers: number | null; kanKiezen: boolean; achter: string }) {
+  const m = useMerk();
+  const labels = [...new Set(regels.map((r) => r.label || ""))];
+  // Open bij het laden: het eigen label (of anders het eerste), en elk paneel waarin al iets aan staat.
+  const [open, setOpen] = useState<Set<string>>(() => {
+    const eigen = labels.find((l) => merkVanLabel(l)?.slug === m.slug) ?? labels[0];
+    return new Set(labels.filter((l) => l === eigen || regels.some((r) => r.label === l && keuze.includes(r.id))));
+  });
+  if (!regels.length) return null;
+  const aantal = regels.filter((r) => keuze.includes(r.id)).length;
+  const wissel = (l: string) => setOpen((o) => {
+    const n = new Set(o);
+    if (n.has(l)) n.delete(l);
+    else n.add(l);
+    return n;
+  });
+  return (
+    <div id="modules" className={`flex scroll-mt-[112px] flex-col gap-5 ${aantal ? "" : "print:hidden"}`}>
+      <div className="flex flex-col gap-2">
+        <h3 className={`${kop} m-0 text-[24px] tracking-[-0.4px]`} style={{ color: NAVY }}>Alles van React2u, los aan te zetten</h3>
+        <p className="m-0 max-w-[680px] text-[16px] leading-[1.65]" style={{ color: BODY }}>
+          De hele prijslijst, per specialisme. Elk specialisme neem je los af. Een vaste prijs rekent meteen mee, een tarief betaal je alleen als je er gebruik van maakt, en bij op aanvraag sturen we je een voorstel.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3">
+        {labels.map((l) => (
+          <ModulePaneel
+            key={l}
+            label={l}
+            regels={regels.filter((r) => (r.label || "") === l)}
+            alle={alle}
+            keuze={keuze}
+            klik={klik}
+            medewerkers={medewerkers}
+            kanKiezen={kanKiezen}
+            achter={achter}
+            open={open.has(l)}
+            wissel={() => wissel(l)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ModulePaneel({ label, regels, alle, keuze, klik, medewerkers, kanKiezen, achter, open, wissel }: {
+  label: string; regels: Regel[]; alle: Regel[]; keuze: string[]; klik: (id: string) => void; medewerkers: number | null; kanKiezen: boolean; achter: string; open: boolean; wissel: () => void;
+}) {
+  const m = useMerk();
+  const lm = merkVanLabel(label) || m;
+  const id = `modules-${lm.slug}`;
+  const aan = regels.filter((r) => keuze.includes(r.id)).length;
+  // Opties die elkaar uitsluiten, ook met een aanbevolen extra erbuiten: zeg het één keer boven de lijst.
+  const groepen = [...new Set(regels.map((r) => r.groep).filter(Boolean))]
+    .map((g) => alle.filter((r) => r.soort === "optie" && r.groep === g && telbaar(r, medewerkers)).map((r) => r.naam))
+    .filter((namen) => namen.length > 1);
+  const opTint = lm.tint.toLowerCase() === achter.toLowerCase();
+  return (
+    <div className={`relative overflow-hidden rounded-[26px] ${aan ? "" : "print:hidden"}`} style={{ background: opTint ? "#ffffff" : lm.tint, border: opTint ? `1px solid ${LINE}` : undefined }}>
+      <span aria-hidden className="absolute right-[-48px] top-[-48px] h-[140px] w-[140px] rounded-full" style={{ background: lm.kleur, opacity: 0.14 }} />
+      <h4 className="relative m-0">
+        <button
+          type="button"
+          onClick={wissel}
+          aria-expanded={open}
+          aria-controls={id}
+          className="flex w-full items-center gap-4 p-5 text-left md:px-7 md:py-6 print:pointer-events-none"
+        >
+          <Merknaam m={lm} klein />
+          <span className="hidden min-w-0 flex-1 text-[15px] leading-[1.45] sm:block" style={{ color: BODY }}>
+            {lm.dienst.replace(/\.$/, "")}
+            <span className="block text-[13.5px]" style={{ color: MUTE }}>{regels.length} {regels.length === 1 ? "module" : "modules"}</span>
+          </span>
+          <span className="ml-auto flex shrink-0 items-center gap-3">
+            {aan > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-bold" style={opKleur(lm)}>
+                <Vink size={12} /> {aan} aan
+              </span>
+            )}
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-white print:hidden" style={{ color: NAVY, boxShadow: "0 8px 20px -14px rgba(50,46,131,0.5)" }} aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
+            </span>
+          </span>
+        </button>
+      </h4>
+      <div id={id} role="region" aria-label={`Modules van React2u ${lm.naam}`} className={`relative px-3 pb-3 md:px-4 md:pb-4 ${open ? "" : "hidden print:block"}`}>
+        {groepen.map((namen) => (
+          <p key={namen.join()} className="m-0 px-3 pb-3 text-[14px] print:hidden" style={{ color: BODY }}>
+            Je kiest hooguit één van {namen.length === 2 ? `${namen[0]} en ${namen[1]}` : `${namen.slice(0, -1).join(", ")} en ${namen[namen.length - 1]}`}.
+          </p>
+        ))}
+        <ul className="m-0 flex list-none flex-col overflow-hidden rounded-[20px] bg-white p-0" style={{ border: opTint ? `1px solid ${LINE}` : undefined }}>
+          {regels.map((r) => (
+            <ModuleRij key={r.id} r={r} lm={lm} aan={keuze.includes(r.id)} klik={() => klik(r.id)} medewerkers={medewerkers} kanKiezen={kanKiezen} />
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Eén module: schakelaar, naam en uitleg, en rechts wat het kost en wat aanzetten betekent. */
+function ModuleRij({ r, lm, aan, klik, medewerkers, kanKiezen }: { r: Regel; lm: Merk; aan: boolean; klik: () => void; medewerkers: number | null; kanKiezen: boolean }) {
+  const b = bedragVoor(r, medewerkers);
+  const perMedewerker = r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker";
+  const organisatie = b && b.bedrag ? regelbedrag(b) : null;
+  const [prijs, onder] =
+    r.bijGebruik ? [prijsLabel(r), "bij gebruik"] :
+    r.prijs === null ? ["Op aanvraag", "we sturen een voorstel"] :
+    organisatie ? [
+      `${euro(organisatie.bedrag!)} ${organisatie.per === "maand" ? "per maand" : "eenmalig"}`,
+      perMedewerker ? `${aantalVoor(r, medewerkers).toLocaleString("nl-NL")} medewerkers × ${prijsLabel(r).replace(/ per medewerker/, "")}` : "",
+    ] :
+    [prijsLabel(r), ""];
+  return (
+    <li className={`border-b last:border-b-0 ${aan ? "" : "print:hidden"}`} style={{ borderColor: LINE }}>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={aan}
+        disabled={!kanKiezen}
+        onClick={klik}
+        className="flex w-full items-start gap-4 px-4 py-4 text-left transition-colors disabled:cursor-default enabled:hover:bg-[#FAF9FD] md:px-5"
+      >
+        <span className="relative mt-0.5 inline-flex h-[26px] w-[46px] shrink-0 rounded-full transition-colors print:hidden" style={{ background: aan ? lm.kleur : "#DCDAE8" }} aria-hidden="true">
+          <span className={`absolute top-[3px] h-5 w-5 rounded-full bg-white shadow-sm transition-[left] ${aan ? "left-[23px]" : "left-[3px]"}`} />
+        </span>
+        {/* Naam en uitleg links, prijs rechts in een eigen kolom; op de telefoon de prijs eronder */}
+        <span className="flex min-w-0 flex-1 flex-col gap-x-6 gap-y-1.5 sm:flex-row sm:items-start sm:justify-between">
+          <span className="min-w-0">
+            <span className="block text-[16px] font-bold leading-[1.35]" style={{ color: NAVY }}>{r.naam}</span>
+            {r.omschrijving && <span className="mt-0.5 block text-[14px] leading-[1.5]" style={{ color: BODY }}>{r.omschrijving}</span>}
+          </span>
+          <span className="shrink-0 leading-[1.35] sm:max-w-[42%] sm:text-right">
+            <span className="block text-[16px] font-bold tabular-nums" style={{ color: NAVY }}>{prijs}</span>
+            {onder && <span className="mt-0.5 block text-[13.5px]" style={{ color: MUTE }}>{onder}</span>}
+          </span>
+        </span>
+      </button>
+    </li>
   );
 }
 
@@ -2031,7 +2190,6 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
                 <span className="text-[13px]" style={{ color: MUTE }}>exclusief btw</span>
               </div>
               {t.regels.map(({ regel, bedrag, periode }) => {
-                const b = regelbedrag({ bedrag, periode });
                 const n = aantalVoor(regel, inhoud.medewerkers);
                 const perMedewerker = regel.eenheid === "medewerker_jaar" || regel.eenheid === "medewerker";
                 return (
@@ -2041,7 +2199,9 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
                       {perMedewerker && n > 1 && <span className="text-[13.5px]" style={{ color: MUTE }}>{maandprijs(regel).tekst} × {n}</span>}
                     </span>
                     <span className="shrink-0 text-right text-[16px] font-bold tabular-nums" style={{ color: NAVY }}>
-                      {b.bedrag === null ? "Op aanvraag" : b.bedrag === 0 ? "Inbegrepen" : `${euro(b.bedrag)} ${b.per === "maand" ? "per maand" : "eenmalig"}`}
+                      {bedragTekst({ regel, bedrag, periode })}
+                      {regel.bijGebruik && <span className="block text-[13px] font-normal" style={{ color: MUTE }}>bij gebruik</span>}
+                      {bedrag === null && !regel.bijGebruik && regel.soort === "optie" && <span className="block text-[13px] font-normal" style={{ color: MUTE }}>voorstel volgt</span>}
                     </span>
                   </div>
                 );

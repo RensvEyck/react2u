@@ -9,7 +9,7 @@
  * CONTEXT.md, *Tarievenjaar*) en loopt de offertemodule vanzelf mee.
  */
 import tarievenJson from "@/content/tarieven.json";
-import { nieuwId, type Eenheid, type Regel, type Soort, type Vorm } from "./offertes";
+import { DIENSTLABEL, euro, nieuwId, type Eenheid, type Regel, type Soort, type Vorm } from "./offertes";
 
 export type CatalogusItem = Omit<Regel, "id">;
 export type CatalogusGroep = { naam: string; label?: string; kleur?: string; items: CatalogusItem[] };
@@ -212,7 +212,23 @@ const UITLEG_EXTRA: Record<string, string> = {
   "arbeidsdeskundig onderzoek": "Duidelijkheid over passend werk, binnen of buiten je organisatie.",
   "salarisadministratie, maandverloning": "Elke maand op tijd, door mensen die verzuim kennen.",
   "spoor 2, eerste zes maanden": "Begeleiding naar werk buiten je organisatie, de eerste zes maanden.",
+  "spoor 2, vervolg": "Als het tweede spoor na zes maanden doorloopt.",
 };
+
+/**
+ * Diensten die je niet tegelijk afneemt: één aansluiting, één manier van
+ * verlonen. Als optie in dezelfde groep staat er hooguit één aan (wissel in
+ * lib/offertes.ts), of ze nu aanbevolen zijn of bij alle modules staan.
+ */
+const UITSLUITEND: Record<string, string[]> = {
+  "Recover-aansluiting": ["Verrichtingenbasis", "Casemanagement Compleet", "Grotere organisaties"],
+  "Reward-verloning": ["Salarisadministratie, maandverloning", "Salarisadministratie, vierwekelijks"],
+};
+
+function uitsluitGroep(naam: string): string | undefined {
+  const n = naam.toLowerCase();
+  return Object.keys(UITSLUITEND).find((g) => UITSLUITEND[g].some((x) => x.toLowerCase() === n));
+}
 
 /**
  * De aanbevolen extra's voor een vorm als opties die uit staan, zonder wat al
@@ -229,14 +245,129 @@ export function aanbevolenExtras(vorm: Vorm, catalogus: CatalogusGroep[], bestaa
     const { punten: _punten, badge: _badge, groep: _groep, aan: _aan, ...rest } = item;
     void _punten; void _badge; void _groep; void _aan;
     const uitleg = !rest.omschrijving ? UITLEG_EXTRA[naam.toLowerCase()] : undefined;
+    const groep = uitsluitGroep(item.naam);
     uit.push(alsRegel(rest, {
       ...(uitleg ? { omschrijving: uitleg } : {}),
       ...(item.soort === "keuze" ? AANSLUITING_ALS_EXTRA : {}),
+      ...(groep ? { groep } : {}),
       sectie: AANBEVOLEN_SECTIE,
       soort: "optie",
       aanbevolen: true,
     }));
   }
   return uit;
+}
+
+/* ---------- alle modules: de hele prijslijst om zelf aan te zetten ---------- */
+
+export const MODULES_SECTIE = "Alle modules";
+
+/** De labels in de volgorde van de prijslijst; het label van de offerte zelf komt vooraan. */
+export const MODULE_LABELS = ["React2u Recover", "React2u Resist", "React2u Restart", "React2u Reflex", "React2u Ready", "React2u Reward"];
+
+/**
+ * Wat een offerte van een vorm zelf al is: die dienst hoort niet nog eens
+ * als module (de RI&E-offerte ís de RI&E). Wat op naam al in de offerte staat,
+ * valt sowieso weg.
+ */
+const EIGEN_DIENST: Partial<Record<Vorm, string[]>> = {
+  rie: ["Risico-inventarisatie en -evaluatie (RI&E)"],
+  verzuimtraining: ["Training Verzuim en Preventie"],
+  spoor2: ["Spoor 2, eerste zes maanden", "Spoor 2, vervolg"],
+  arbeidsdeskundig: ["Arbeidsdeskundig onderzoek"],
+};
+
+/**
+ * Een dienst van de prijslijst als module. De prijs bepaalt wat aanzetten
+ * betekent:
+ *  - een vaste prijs (eenmalig, per traject, per medewerker per jaar) telt
+ *    mee in het totaal;
+ *  - een tarief (per uur, per melding, per maand per dossier, een
+ *    percentage) is "bij gebruik": aan = je neemt het af tegen dat tarief;
+ *  - op aanvraag of op offerte: aan = je wilt een voorstel.
+ * "Vast, plus 15% van de besparing" (Whk-check) is een vaste prijs per keer.
+ */
+function alsModule(item: CatalogusItem, label: string, kleur: string | undefined): Regel {
+  const { punten: _punten, badge: _badge, groep: _groep, aan: _aan, ...rest } = item;
+  void _punten; void _badge; void _groep; void _aan;
+  const vastPerKeer = item.eenheid === "stuk" && /^vast\b/i.test(item.omschrijving || "");
+  const eenheid: Eenheid = vastPerKeer ? "eenmalig" : item.eenheid;
+  const bijGebruik = !vastPerKeer && (eenheid === "uur" || eenheid === "stuk" || eenheid === "maand" || Boolean(item.prijsTekst));
+  const groep = uitsluitGroep(item.naam);
+  // Een tarief zoals de prijslijst het zegt: "€20 per ziekmelding", niet "€20 per stuk".
+  const segmenten = (item.omschrijving || "").split(/\s*[·,]\s*/);
+  const per = segmenten.find((x) => /^per\s/i.test(x));
+  const prijsTekst = bijGebruik && item.prijs !== null && per ? `${euro(item.prijs)} ${per.toLowerCase()}` : undefined;
+  const alleenPer = per !== undefined && segmenten.length === 1;
+  const uitleg = UITLEG_EXTRA[item.naam.toLowerCase()];
+  return alsRegel(rest, {
+    ...(item.soort === "keuze" && /^verrichtingenbasis$/i.test(item.naam) ? { omschrijving: AANSLUITING_ALS_EXTRA.omschrijving } : {}),
+    ...(prijsTekst ? { prijsTekst } : {}),
+    ...(prijsTekst && alleenPer ? { omschrijving: undefined } : {}),
+    ...(!item.omschrijving && uitleg ? { omschrijving: uitleg } : {}),
+    label,
+    ...(kleur ? { kleur } : {}),
+    eenheid,
+    sectie: MODULES_SECTIE,
+    soort: "optie",
+    module: true,
+    ...(bijGebruik ? { bijGebruik: true } : {}),
+    ...(groep ? { groep } : {}),
+  });
+}
+
+/**
+ * Alle diensten van de prijslijst als modules die uit staan, per label: de
+ * klant zet zelf aan wat hij wil (Rens, 2 nov 2026). De aansluitingen horen
+ * bij Recover; de losse verrichtingen van Recover en de uurtarieven van de
+ * professionals niet, want die gelden al onder een aansluiting (tarieven bij
+ * gebruik). Zonder wat al in de offerte staat (op naam) en zonder de dienst
+ * die de offerte zelf is. Het label van de vorm komt vooraan.
+ */
+export function alleModules(vorm: Vorm, catalogus: CatalogusGroep[], bestaand: Regel[] = []): Regel[] {
+  const al = new Set(bestaand.filter((r) => !r.module).map((r) => r.naam.toLowerCase()));
+  for (const n of EIGEN_DIENST[vorm] || []) al.add(n.toLowerCase());
+  const recover = catalogus.find((g) => g.label === "React2u Recover");
+  const perLabel = new Map<string, Regel[]>();
+  const voegToe = (label: string, kleur: string | undefined, items: CatalogusItem[]) => {
+    for (const item of items) {
+      if (al.has(item.naam.toLowerCase())) continue;
+      al.add(item.naam.toLowerCase());
+      perLabel.set(label, [...(perLabel.get(label) || []), alsModule(item, label, kleur)]);
+    }
+  };
+  // Hoort één aansluiting al in de offerte (verzuimbegeleiding), dan alle drie niet.
+  const aansluitingen = catalogus.find((g) => g.naam === "Aansluiting")?.items || [];
+  if (!aansluitingen.some((i) => al.has(i.naam.toLowerCase()))) voegToe("React2u Recover", recover?.kleur || AANSLUITING_ALS_EXTRA.kleur, aansluitingen);
+  for (const g of catalogus) {
+    if (!g.label || g.label === "React2u Recover") continue;
+    voegToe(g.label, g.kleur, g.items);
+  }
+  const eigen = DIENSTLABEL[vorm];
+  const volgorde = [eigen, ...MODULE_LABELS.filter((l) => l !== eigen), ...[...perLabel.keys()].filter((l) => !MODULE_LABELS.includes(l))];
+  return volgorde.flatMap((l) => perLabel.get(l) || []);
+}
+
+/**
+ * De modules van een offerte vernieuwen: na een andere vorm of nieuwe
+ * onderdelen. Wat er al stond, houdt zijn id (en dus een keuze van de klant)
+ * en of hij standaard aan staat; een module die nu als gewoon onderdeel in de
+ * offerte staat, valt weg.
+ */
+export function vernieuwModules(vorm: Vorm, catalogus: CatalogusGroep[], regels: Regel[]): Regel[] {
+  const gewoon = regels.filter((r) => !r.module);
+  const oud = new Map(regels.filter((r) => r.module).map((r) => [r.naam.toLowerCase(), r]));
+  const nieuw = alleModules(vorm, catalogus, gewoon).map((r) => {
+    const was = oud.get(r.naam.toLowerCase());
+    return was ? { ...r, id: was.id, ...(was.aan ? { aan: true } : {}) } : r;
+  });
+  return [...gewoon, ...nieuw];
+}
+
+/** Modules die op naam ook als gewoon onderdeel in de offerte staan, eruit; de modules achteraan. */
+export function ruimModulesOp(regels: Regel[]): Regel[] {
+  const gewoon = regels.filter((r) => !r.module);
+  const namen = new Set(gewoon.map((r) => r.naam.toLowerCase()));
+  return [...gewoon, ...regels.filter((r) => r.module && !namen.has(r.naam.toLowerCase()))];
 }
 
