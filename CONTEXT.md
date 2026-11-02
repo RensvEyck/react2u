@@ -50,7 +50,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Tarievenjaar** (`tarieven`) | Instelling `{jaar, geldigTot}`. De tariefblokken zetten het jaar in hun bovenkopje en tonen de geldigheid; per 1 januari pas je hier het jaar aan en in de blokken de bedragen. |
 | **Offerte** (`offertes`) | Een voorstel aan één klant, opgesteld in `/admin/offertes`. Statussen `concept`, `verstuurd`, `getekend`, `afgewezen` (de klant: niet akkoord) en `ingetrokken`; "bekeken" en "verlopen" leidt het beheer af. Nummer `jjjj-nnnn`. Zie *Offertes*. |
 | **Offerteregel** | Eén onderdeel van een offerte (`regels`, jsonb) met prijs, eenheid en soort: `vast`, `optie` (klant zet aan/uit), `keuze` (precies één uit zijn `groep`) of `tarief` (prijs bij gebruik, telt niet mee). Vorm en rekenregels in [`src/lib/offertes.ts`](src/lib/offertes.ts). |
-| **Offertevorm** (`vorm`) | Soort offerte: verzuimbegeleiding, RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject of arbeidsdeskundig onderzoek (migratie 0025). Bepaalt het label in het beheer en wat het veld *betreft* heet (werknemer, locatie, deelnemers). |
+| **Offertevorm** (`vorm`) | Soort offerte: verzuimbegeleiding, casemanagement Reflex (flexbranche), RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject of arbeidsdeskundig onderzoek (migraties 0025 en 0029). Bepaalt het label in het beheer en wat het veld *betreft* heet (werknemer, locatie, deelnemers). |
 | **Offertesjabloon** | Beginpunt van een nieuwe offerte per vorm: titel, aanhef, uitleg, onderdelen, voorwaarden, vervolgstappen en geldigheid. Standaard in [`src/lib/offerteSjablonen.ts`](src/lib/offerteSjablonen.ts); aanpassingen van het team in `offerte_sjablonen`. |
 | **Offertelink** | `/offerte/<token>`: de pagina waar de klant kiest en tekent. Het token (64 hex) is het enige geheim; *Nieuwe link* in het beheer maakt de oude ongeldig. |
 
@@ -1056,10 +1056,16 @@ Naast verzuimbegeleiding kent de module zes vormen uit de Word-offertes van
 oktober 2026: **RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject en
 arbeidsdeskundig onderzoek** (migratie
 [0025](supabase/migrations/0025_offertevormen.sql)). De inhoud en opmaak van die
-offertes worden nog aangepast; de vormen blijven. Daarom:
+offertes worden nog aangepast; de vormen blijven. Sinds 2 nov 2026 is er een achtste
+vorm, **Casemanagement Reflex** (migratie
+[0029](supabase/migrations/0029_offertevorm_reflex.sql)): het abonnement voor
+uitzendbureaus en eigenrisicodragers Ziektewet, als eigen keuze in de groep
+*Flexbranche* van de kiezer (Rens: "dit moet een losse keuze worden bij het
+aanmaken"). Het sjabloon neemt het abonnement en de Reflex-tarieven uit de
+prijslijst. Daarom:
 
 - **Nieuwe offerte begint met de vorm.** `/admin/offertes/nieuw` toont de
-  sjablonen per groep (verzuim, preventie, re-integratie); daarna opent de editor
+  sjablonen per groep (verzuim, flexbranche, preventie, re-integratie; `VORM_GROEPEN`); daarna opent de editor
   met alles ingevuld. Een offerteaanvraag uit het Postvak IN slaat de kiezer over
   (verzuimbegeleiding met de gekozen aansluiting). Oude adressen met `?start=`
   werken nog.

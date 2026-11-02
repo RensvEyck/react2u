@@ -17,7 +17,7 @@
  * gebruiken; zie vulIn() in lib/offertes.ts.
  */
 import { aanbevolenExtras, alsRegel, STARTPUNTEN, vernieuwModules, type CatalogusGroep, type CatalogusItem } from "./offerteCatalogus";
-import { GELDIG_DAGEN, nieuwId, normaliseerRegels, normaliseerVervolg, type Regel, type Stap, type Vorm } from "./offertes";
+import { euro, GELDIG_DAGEN, nieuwId, normaliseerRegels, normaliseerVervolg, type Regel, type Stap, type Vorm } from "./offertes";
 
 export type Sjabloon = {
   sleutel: string;
@@ -75,6 +75,25 @@ const VERZUIM: Omit<Standaard, "sleutel" | "naam" | "omschrijving" | "regels"> =
   ],
   geldigDagen: GELDIG_DAGEN,
 };
+
+/* ---------- casemanagement Reflex ---------- */
+
+/*
+ * Het abonnement voor uitzendbureaus en eigenrisicodragers Ziektewet (Rens,
+ * 2 nov 2026: "dit moet een losse keuze worden bij het aanmaken"). De tekst
+ * volgt de labelpagina /reflex; de prijzen komen uit de Reflex-groep van de
+ * prijslijst.
+ */
+const REFLEX_INHOUD = `In de flexbranche loopt een ziekmelding vaak door na het einde van het contract. Als eigenrisicodrager voor de Ziektewet draag je dan zelf de kosten en de re-integratie. React2u Reflex kent die wereld: we begeleiden zieke flexkrachten snel en gericht naar passend werk, ook na het einde van het dienstverband, en helpen je de instroom in de WGA te beperken.
+
+## Zo werkt het abonnement
+- **Koppeling met je HRM-systeem.** Elke ziek- en herstelmelding komt automatisch bij ons binnen, zonder dubbel invoeren. De melding bij UWV doen wij.
+- **Vaste casemanager.** Eén aanspreekpunt dat je organisatie en je flexkrachten leert kennen en binnen 48 uur de triage doet, ook meertalig.
+- **Verrichtingenbasis.** Een laag vast bedrag per werknemer per jaar; de rest betaal je alleen als je er gebruik van maakt.
+- **Ook na einde dienstverband.** We begeleiden door tot passend werk, ook als het contract al is gestopt.
+
+## Wat je ervoor betaalt
+Je betaalt een aansluittarief per werknemer per jaar en een vast bedrag per ziekmelding. Casemanagement op uurbasis en de uitvoering van het eigenrisicodragerschap rekenen we af tegen de tarieven bij gebruik hieronder; specialisten op aanvraag.`;
 
 /* ---------- RI&E ---------- */
 
@@ -262,6 +281,42 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
     regels: s.regels,
   })),
   {
+    sleutel: "reflex",
+    vorm: "reflex",
+    naam: "Casemanagement Reflex",
+    omschrijving: "Abonnement op verrichtingenbasis voor uitzendbureaus en eigenrisicodragers Ziektewet, gekoppeld aan je HRM-systeem.",
+    titel: "Casemanagement Reflex",
+    intro: `${AANHEF}\n\nBedankt voor het prettige gesprek. Hieronder vind je ons voorstel voor de verzuimbegeleiding van de flexkrachten van {bedrijf}: casemanagement Reflex, gekoppeld aan je HRM-systeem.`,
+    inhoud: REFLEX_INHOUD,
+    voorwaarden: `- Het aansluittarief brengen we per jaar vooraf in rekening, op basis van het aantal werknemers in je HRM-systeem; ziekmeldingen en verrichtingen maandelijks achteraf.\n- Verrichtingen op uurbasis worden afgerekend per begonnen kwartier.\n- ${BETALING}\n- ${BTW}`,
+    vervolg: [
+      { kop: "Je ondertekent online", tekst: "Zet je handtekening en je krijgt direct een bevestiging per mail." },
+      { kop: "We koppelen je HRM-systeem", tekst: "We richten de koppeling in en testen de eerste ziek- en herstelmelding samen met je." },
+      { kop: "Je vaste casemanager", tekst: "Je krijgt een vaste casemanager die je organisatie en je flexkrachten leert kennen." },
+    ],
+    geldigDagen: GELDIG_DAGEN,
+    regels: (c) => {
+      const reflex = c.find((g) => g.label === "React2u Reflex")?.items || [];
+      const vind = (naam: string) => reflex.find((i) => i.naam.toLowerCase() === naam.toLowerCase());
+      const abonnement = vind("Casemanagement Reflex");
+      const omschrijving = "Op verrichtingenbasis, gekoppeld aan je HRM-systeem: elke ziek- en herstelmelding komt automatisch bij ons binnen.";
+      // Een tarief zoals de prijslijst het zegt ("€20 per ziekmelding"), niet "€20 per stuk".
+      const tarief = (naam: string, per: string, uitleg: string): Regel[] => {
+        const i = vind(naam);
+        if (!i || i.prijs === null) return [];
+        return [alsRegel(i, { sectie: "Tarieven bij gebruik", label: undefined, kleur: undefined, soort: "tarief", prijs: null, prijsTekst: `${euro(i.prijs)} ${per}`, omschrijving: uitleg })];
+      };
+      return [
+        abonnement
+          ? alsRegel(abonnement, { sectie: "Abonnement", label: undefined, kleur: undefined, soort: "vast", omschrijving })
+          : r({ sectie: "Abonnement", naam: "Casemanagement Reflex", omschrijving, prijs: null, eenheid: "op_aanvraag", soort: "vast" }),
+        ...tarief("Ziek- en herstelmelding", "per ziekmelding", "Inclusief de melding bij UWV."),
+        ...tarief("Casemanagement flex, meertalig", "per uur", "Inclusief tolk, triage binnen 48 uur."),
+        ...tarief("Eigenrisicodragerschap Ziektewet", "per dossier per maand", "Volledige uitvoering van het eigenrisicodragerschap."),
+      ];
+    },
+  },
+  {
     sleutel: "rie",
     vorm: "rie",
     naam: "RI&E",
@@ -423,7 +478,7 @@ export function alleSjablonen(catalogus: CatalogusGroep[], rijen: SjabloonRij[] 
     return metModules({ ...s, regels: [...regels, ...aanbevolenExtras(s.vorm, catalogus, regels)], bron: { soort: "standaard" } });
   });
   const eigen = rijen.filter((x) => !STANDAARD_SJABLONEN.some((s) => s.sleutel === x.sleutel)).map((x) => metModules(uitRij(x, false)));
-  const volgorde = (v: Vorm) => ["verzuimbegeleiding", "rie", "pago", "verzuimtraining", "spoor2", "werkfit", "arbeidsdeskundig"].indexOf(v);
+  const volgorde = (v: Vorm) => ["verzuimbegeleiding", "reflex", "rie", "pago", "verzuimtraining", "spoor2", "werkfit", "arbeidsdeskundig"].indexOf(v);
   return [...standaard, ...eigen].sort((a, b) => volgorde(a.vorm) - volgorde(b.vorm));
 }
 
