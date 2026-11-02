@@ -8,7 +8,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { notifyOfferteBekeken, offerteAdminUrl } from "@/lib/mail";
 import { OFFERTE_EMAIL, type OffertePubliek } from "@/lib/offertes";
-import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
+import { offerteHuisstijl, offerteMerk } from "@/lib/offerteHuisstijl";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +50,7 @@ export default async function OfferteRoute({ params }: { params: Promise<{ token
     after(() => notifyOfferteBekeken({ to: afzender_email, nummer, bedrijf, adminLink: offerteAdminUrl(id) }));
   }
 
+  const merk = await offerteMerk(offerte.getekend_inhoud?.vorm ?? offerte.vorm);
   return (
     <OffertePagina
       offerte={offerte}
@@ -59,6 +60,7 @@ export default async function OfferteRoute({ params }: { params: Promise<{ token
       vers={netGetekend(offerte.getekend_at)}
       contact={huisstijl.contact}
       certificaten={huisstijl.certificaten}
+      merk={merk}
     />
   );
 }

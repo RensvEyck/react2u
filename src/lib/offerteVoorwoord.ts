@@ -35,8 +35,8 @@ export const VOORWOORD = {
   ],
   groet: "Hartelijke groet,",
   ondertekenaars: [
-    { naam: "Cindy", volledigeNaam: null, functie: null },
-    { naam: "Susanne", volledigeNaam: null, functie: null },
+    { naam: "Cindy", volledigeNaam: "Cindy Faro", functie: null },
+    { naam: "Susanne", volledigeNaam: "Susanne Linders", functie: null },
   ] as Ondertekenaar[],
 };
 

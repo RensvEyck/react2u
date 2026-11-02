@@ -9,7 +9,7 @@
  * CONTEXT.md, *Tarievenjaar*) en loopt de offertemodule vanzelf mee.
  */
 import tarievenJson from "@/content/tarieven.json";
-import { nieuwId, type Eenheid, type Regel, type Soort } from "./offertes";
+import { nieuwId, type Eenheid, type Regel, type Soort, type Vorm } from "./offertes";
 
 export type CatalogusItem = Omit<Regel, "id">;
 export type CatalogusGroep = { naam: string; label?: string; kleur?: string; items: CatalogusItem[] };
@@ -177,3 +177,57 @@ export const STARTPUNTEN: Startpunt[] = [
     },
   },
 ];
+
+/* ---------- aanbevolen extra's: de upsell per traject ---------- */
+
+/**
+ * Per traject de diensten uit andere specialismen die de klant er zelf bij kan
+ * aanklikken (Rens, 2 nov 2026: "de klant moet meer opties kunnen
+ * aanklikken"). Alleen diensten met een vaste prijs op de prijslijst, zodat
+ * het totaal kan meetellen; losse specialismen, geen pakketkorting. Elke
+ * nieuwe offerte uit een standaardsjabloon krijgt ze als opties die uit staan;
+ * sales kan er in de editor een weghalen.
+ */
+export const AANBEVOLEN: Record<Vorm, string[]> = {
+  verzuimbegeleiding: ["Loopbaanscan", "Coaching", "Arbeidsdeskundig onderzoek", "Salarisadministratie, maandverloning"],
+  rie: ["Verrichtingenbasis", "Coaching", "Loopbaanscan"],
+  pago: ["Verrichtingenbasis", "Coaching", "Burn-outcoaching, 1-op-1"],
+  verzuimtraining: ["Verrichtingenbasis", "Coaching", "Burn-outcoaching, 1-op-1"],
+  spoor2: ["Arbeidsdeskundig onderzoek", "Coaching", "Burn-outcoaching, 1-op-1"],
+  werkfit: ["Arbeidsdeskundig onderzoek", "Coaching", "Loopbaanscan"],
+  arbeidsdeskundig: ["Spoor 2, eerste zes maanden", "Coaching", "Loopbaanscan"],
+};
+
+export const AANBEVOLEN_SECTIE = "Vaak gekozen erbij";
+
+/** De aansluiting staat op de prijslijst zonder label; als extra hoort hij bij Recover, met een eigen korte uitleg. */
+const AANSLUITING_ALS_EXTRA: Partial<Regel> = {
+  label: "React2u Recover",
+  kleur: "#E61674",
+  omschrijving: "Je verzuimbegeleiding ook bij React2u: een vaste casemanager die je mensen kent, verrichtingen tegen de tarieven bij gebruik.",
+};
+
+/**
+ * De aanbevolen extra's voor een vorm als opties die uit staan, zonder wat al
+ * in de offerte staat (op naam). Een dienst die niet (meer) op de prijslijst
+ * staat, valt weg.
+ */
+export function aanbevolenExtras(vorm: Vorm, catalogus: CatalogusGroep[], bestaand: Regel[] = []): Regel[] {
+  const al = new Set(bestaand.map((r) => r.naam.toLowerCase()));
+  const uit: Regel[] = [];
+  for (const naam of AANBEVOLEN[vorm] || []) {
+    if (al.has(naam.toLowerCase())) continue;
+    const item = catalogus.flatMap((g) => g.items).find((i) => i.naam.toLowerCase() === naam.toLowerCase());
+    if (!item || item.prijs === null) continue;
+    const { punten: _punten, badge: _badge, groep: _groep, aan: _aan, ...rest } = item;
+    void _punten; void _badge; void _groep; void _aan;
+    uit.push(alsRegel(rest, {
+      ...(item.soort === "keuze" ? AANSLUITING_ALS_EXTRA : {}),
+      sectie: AANBEVOLEN_SECTIE,
+      soort: "optie",
+      aanbevolen: true,
+    }));
+  }
+  return uit;
+}
+

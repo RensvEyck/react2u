@@ -68,6 +68,13 @@ export type Regel = {
   groep?: string;
   /** Bij "optie": standaard aan. Bij "keuze": de voorgeselecteerde in zijn groep. */
   aan?: boolean;
+  /**
+   * Een extra uit een ander specialisme dat de klant er zelf bij kan
+   * aanklikken: op de klantpagina in het blok "Vaak gekozen erbij", niet bij de
+   * gewone onderdelen. Alleen bij "optie" (zie aanbevolenExtras in
+   * lib/offerteCatalogus.ts).
+   */
+  aanbevolen?: boolean;
 };
 
 export type OfferteStatus = "concept" | "verstuurd" | "getekend" | "afgewezen" | "ingetrokken";
@@ -300,6 +307,7 @@ export function normaliseerRegels(input: unknown): Regel[] {
     if (aantalRuw !== null && aantalRuw > 0) regel.aantal = Math.round(aantalRuw * 100) / 100;
     if (soort === "keuze") regel.groep = tekst(r.groep, 60) || "keuze";
     if ((soort === "optie" || soort === "keuze") && r.aan === true) regel.aan = true;
+    if (soort === "optie" && r.aanbevolen === true) regel.aanbevolen = true;
     uit.push(regel);
   }
   return uit;

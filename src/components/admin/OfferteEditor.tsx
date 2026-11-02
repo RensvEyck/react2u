@@ -554,6 +554,9 @@ function RegelRij({
             <span className={`apill !px-2 !py-0.5 !text-[11px] ${SOORT_KLEUR[r.soort]}`}>
               {SOORT_KORT[r.soort]}{r.soort === "keuze" ? `: ${r.groep}` : ""}{(r.soort === "optie" || r.soort === "keuze") && r.aan ? " · standaard aan" : ""}
             </span>
+            {r.aanbevolen && (
+              <span className="apill !px-2 !py-0.5 !text-[11px]" title="De klant ziet hem onder Vaak gekozen erbij en kan hem zelf aanzetten">Aanbevolen extra</span>
+            )}
           </span>
           <span className="mt-0.5 block text-[12.5px] text-black/45">
             {prijsLabel(r)}{r.aantal ? ` × ${r.aantal}` : ""}

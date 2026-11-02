@@ -61,14 +61,17 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await page.fill("#of-email", "marieke@goudenkorst.test");
   await page.waitForSelector("text=Casemanagement Compleet");
   check(await page.locator("text=Verrichtingenbasis").count(), "startpunt zet de aansluitingen erin");
-  // Uit de prijslijst: salarisadministratie als optie en een loopbaanscan
+  // Aanbevolen extra's van het traject staan er vanzelf in (uit): loopbaanscan, coaching, AD-onderzoek, salarisadministratie
+  check(await page.locator("li:has-text('Loopbaanscan') >> text=Aanbevolen extra").count(), "loopbaanscan als aanbevolen extra");
+  check(await page.locator("li:has-text('Salarisadministratie, maandverloning') >> text=Aanbevolen extra").count(), "salarisadministratie als aanbevolen extra");
+  // Uit de prijslijst: twee diensten die niet bij de aanbevolen extra's horen
   await page.click("button:has-text('Uit de prijslijst')");
-  await page.fill("dialog input[placeholder^='Zoek']", "maandverloning");
-  await page.click("dialog label:has-text('Salarisadministratie, maandverloning') input");
-  await page.fill("dialog input[placeholder^='Zoek']", "loopbaanscan");
-  await page.click("dialog label:has-text('Loopbaanscan') input");
+  await page.fill("dialog input[placeholder^='Zoek']", "burn-out");
+  await page.click("dialog label:has-text('Burn-outcoaching, 1-op-1') input");
+  await page.fill("dialog input[placeholder^='Zoek']", "actueel oordeel");
+  await page.click("dialog label:has-text('Actueel oordeel') input");
   await page.click("dialog button:has-text('2 toevoegen')");
-  check(await page.locator("text=Loopbaanscan").count(), "twee onderdelen uit de prijslijst toegevoegd");
+  check(await page.locator("text=Burn-outcoaching, 1-op-1").count(), "twee onderdelen uit de prijslijst toegevoegd");
   // Eigen onderdeel: eenmalige intake, vast
   await page.click("button:has-text('Eigen onderdeel')");
   const nieuweRij = page.locator("li:has(input[id$='-naam'])");
@@ -136,6 +139,13 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   check((await voorwoord.innerText()).includes("Cindy en Susanne") && (await voorwoord.innerText()).includes("voor Bakkerij De Gouden Korst BV kunnen betekenen"), "voorwoord van Cindy en Susanne, met de bedrijfsnaam ingevuld");
   const perJaar = async () => (await klant.locator("aside [aria-live]").first().innerText()).trim();
   check((await perJaar()) === "€134,75", `start per maand ${await perJaar()} (42 × €38,50 / 12)`);
+  check(await klant.locator("text=Vaak gekozen erbij").count(), "blok met aanbevolen extra's");
+  const duwtje = klant.locator("div:has(> p:has-text('Liever alles geregeld?'))");
+  check((await duwtje.innerText()).includes("€353,50 per maand"), "upgrade-duwtje: Compleet kost €353,50 per maand meer");
+  await duwtje.locator("button:has-text('Kies Casemanagement Compleet')").click();
+  check((await perJaar()) === "€488,25", `Compleet via het duwtje: ${await perJaar()} per maand (42 × €139,50 / 12)`);
+  check((await klant.locator("text=Liever alles geregeld?").count()) === 0, "geen duwtje meer bij de uitgebreidste keuze");
+  await klant.click("button[role=radio]:has-text('Verrichtingenbasis')");
   await klant.click("button[role=radio]:has-text('Casemanagement Compleet')");
   check((await perJaar()) === "€488,25", `Compleet gekozen: ${await perJaar()} per maand (42 × €139,50 / 12)`);
   await klant.click("button[role=switch]:has-text('Salarisadministratie')");

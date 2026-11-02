@@ -16,7 +16,7 @@
  * In de teksten kun je {bedrijf}, {contactpersoon}, {voornaam} en {betreft}
  * gebruiken; zie vulIn() in lib/offertes.ts.
  */
-import { alsRegel, STARTPUNTEN, type CatalogusGroep, type CatalogusItem } from "./offerteCatalogus";
+import { aanbevolenExtras, alsRegel, STARTPUNTEN, type CatalogusGroep, type CatalogusItem } from "./offerteCatalogus";
 import { GELDIG_DAGEN, nieuwId, normaliseerRegels, normaliseerVervolg, type Regel, type Stap, type Vorm } from "./offertes";
 
 export type Sjabloon = {
@@ -416,7 +416,9 @@ export function alleSjablonen(catalogus: CatalogusGroep[], rijen: SjabloonRij[] 
   const standaard = STANDAARD_SJABLONEN.map((s): Sjabloon => {
     const rij = perSleutel.get(s.sleutel);
     if (rij) return uitRij(rij, true);
-    return { ...s, regels: s.regels(catalogus), bron: { soort: "standaard" } };
+    // De standaard plus de aanbevolen extra's van het traject (een aangepast sjabloon heeft zijn eigen regels).
+    const regels = s.regels(catalogus);
+    return { ...s, regels: [...regels, ...aanbevolenExtras(s.vorm, catalogus, regels)], bron: { soort: "standaard" } };
   });
   const eigen = rijen.filter((x) => !STANDAARD_SJABLONEN.some((s) => s.sleutel === x.sleutel)).map((x) => uitRij(x, false));
   const volgorde = (v: Vorm) => ["verzuimbegeleiding", "rie", "pago", "verzuimtraining", "spoor2", "werkfit", "arbeidsdeskundig"].indexOf(v);

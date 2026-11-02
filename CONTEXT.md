@@ -914,46 +914,75 @@ salesrecht, net als partners.
   aantal medewerkers en het passende startpunt staan dan al klaar.
 - **Pdf**: zie *De offerte als contract* hieronder.
 
-### De klantpagina: in de beeldtaal van de site
+### De klantpagina: de branding van het label
 
-De offertepagina is het moment waarop de klant akkoord geeft. Na vier rondes
+De offertepagina is het moment waarop de klant akkoord geeft. Na vijf rondes
 feedback van Rens (29 okt 2026: "design moet echt veel beter", "geen foto's van
-de website"; 30 okt: "bekijk de website en trek dat design door", daarna
-"design moet echt S TIER ... past in de look en feel van de huisstijl") gebruikt
-hij de sterkste blokken van de site, zonder foto's
+de website"; 30 okt: "trek het design van de website door", "design moet echt
+S TIER"; 2 nov: "het moet deze branding zijn per offerte traject", bij de
+dienstenkaarten op /werkgevers) staat elke offerte in de branding van **zijn
+eigen label**, met de opbouw van de dienstpagina van dat label
+([`DienstLabel.tsx`](src/components/blocks/DienstLabel.tsx)), zonder foto's
 ([`OffertePagina.tsx`](src/components/offerte/OffertePagina.tsx)):
 
-- **Opening als "Eén casemanager die je kent"** op de startpagina
-  (`HomeEenMens` in HomeVerhaal.tsx): lila band, label met de stip in een zacht
-  rondje (in de kleur van het label), de kop in twee kleuren (titel in indigo,
-  "voor {bedrijf}" in teal), opgesteld door en voor wie, feiten (betreft,
-  medewerkers, geldig tot) en de knoppen. Rechts de stippenconstellatie van het
-  logo; waar de site foto's in witte cirkels heeft, staan drie medaillons: het
-  bedrag (telt mee), de contactpersoon (initialen) en het label. De stippen
-  ploppen één keer op en zweven daarna (`ReisSpeler`, `hv-f1..3`).
-- **Voorwoord** als redactionele brief (zie hieronder), **persoonlijk woord** als
-  kaart met de initialen van de afzender en zijn handtekening.
-- **Keuze** zoals de prijskaarten van de tarieven, met rechts het **overzicht**
-  (het eerste `<aside>`): het label in zijn tint, elke gekozen regel met bedrag,
-  het totaal dat meetelt, de knop naar het akkoord, de concept-pdf en "Vragen?".
-  Onder de onderdelen het totaal als indigo strook.
-- **Zo gaat het verder** als de stippenreis van de startpagina (`HomeReis`):
-  gekleurde stations met icoon en nummer, een spoor van stippen dat zichzelf
-  tekent (2 tot 4 stappen, `reisVoor()`), na ondertekening de eerste met een
-  vinkje. Daaronder de voorwaarden.
-- **Klanten aan het woord**, de klantlogo's en de keurmerken, met de teksten
-  en logo's van de site (woordenboek `gedeeld`, `KLANTEN`, `KEURMERKEN`).
-- **Akkoord** in de indigo contactband van de site: "Teken voor akkoord. Wij
-  doen de rest.", bel- en mailrijen, en het tekenformulier in een witte kaart.
+- **Het label komt van de vorm** (`DIENSTLABEL`): verzuimbegeleiding Recover,
+  RI&E/PAGO/training Resist, spoor 2/werkfit/AD-onderzoek Restart. Kleur, tint,
+  dienst ("Verzuimbegeleiding.") en tagline ("Van ziekmelding tot herstel")
+  komen uit het dienstLabel-blok van de labelpagina in het CMS
+  (`offerteMerk()` in `lib/offerteHuisstijl.ts`), met de vaste waarden in
+  [`lib/offerteMerk.ts`](src/lib/offerteMerk.ts) als terugval. Daar staat per
+  label ook een donkerdere tekstkleur voor kleine letters (contrast). De
+  pagina deelt het label via een context (`useMerk()`).
+- **Opening als de specialismekaart**: de tint met de grote cirkel in de
+  labelkleur, het pad "Offerte {nummer} / {bedrijf}", "React2u" met de
+  labelnaam groot en het ®, de dienst en de tagline cursief; daaronder de
+  offerte zelf ("{titel} voor {bedrijf}", door en voor wie, de feiten, de
+  knoppen). Rechts een witte kaart met het bedrag (telt mee), "Wat je krijgt"
+  (de gekozen onderdelen, vinkjes in de labelkleur) en de contactpersoon.
+- **Accenten in de labelkleur**: bovenkopjes, vinkjes in een rondje in de tint,
+  de schakelaars van extra's, de badge op een gekozen kaart, de
+  aanhalingstekens, de initialen van Susanne in het voorwoord. Banden onder de
+  opening wisselen wit en de tint af; vlakken binnen een band hebben de andere.
+  Een gekozen keuzekaart blijft indigo (de prijskaarten van de tarieven).
+- **Keuze** met rechts het **overzicht** (het eerste `<aside>`): het label in
+  zijn tint, elke gekozen regel met bedrag, het totaal dat meetelt, de knop
+  naar het akkoord, de concept-pdf en "Vragen?". Daaronder het totaal als
+  indigo strook.
+- **Upsell: "Vaak gekozen erbij"** (Rens, 2 nov: "de klant moet meer opties
+  kunnen aanklikken"). Elke nieuwe offerte uit een standaardsjabloon krijgt per
+  traject vaste aanbevolen extra's uit andere specialismen, als opties die uit
+  staan (`AANBEVOLEN` en `aanbevolenExtras()` in
+  [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts), regel met
+  `aanbevolen: true`): bij verzuim loopbaanscan, coaching, AD-onderzoek en
+  salarisadministratie; bij preventie de aansluiting verzuimbegeleiding en
+  coaching; bij re-integratie AD-onderzoek of spoor 2 en coaching. Alleen
+  diensten met een vaste prijs op de prijslijst, losse specialismen zonder
+  pakketkorting. De klant ziet ze direct na de keuzes als kaarten in de kleur
+  van hun eigen label met een schakelaar; aan = telt mee en wordt
+  meegetekend. Een prijs per medewerker verschijnt alleen als het aantal
+  bekend is. In de editor staan ze met "Aanbevolen extra" en kan sales er een
+  weghalen; een aangepast sjabloon houdt zijn eigen regels. Diensten zonder
+  vaste prijs (RI&E, PMO, HR-advies) als "Interesse" is een volgende stap.
+- **Upgrade-duwtje**: staat er naast de gekozen aansluiting een uitgebreidere,
+  dan zegt een regel onder de keuze wat die per maand meer kost ("Liever alles
+  geregeld? Met Casemanagement Compleet betaal je €353,50 per maand meer"),
+  met één klik om over te stappen. Het verschil wordt uit de offerte zelf
+  berekend.
+- **Zo gaat het verder** als "Onze aanpak" op de dienstpagina: indigo band met
+  de lichtere cirkel, genummerde stappen in de labelkleur (Ready: wit), na
+  ondertekening de eerste met een vinkje.
+- **Klanten aan het woord** (citaten in de tint), de klantlogo's en de
+  keurmerken, met de teksten en logo's van de site.
+- **Akkoord** weer in de tint met de cirkel, als slot van de opening: "Teken
+  voor akkoord. Wij doen de rest.", bel- en mailrijen, en een witte kaart met
+  de voorwaarden en het tekenformulier.
 - **Voet** als de footer van de site (ivoor met een witte kaart).
-- Banden wisselen wit en lila af, wat er ook in de offerte staat; vlakken
-  binnen een band hebben de andere kleur (`vlak()`).
 - **Telefoon**: onderaan een balk met het bedrag en Ondertekenen, die wegschuift
-  zodra je bij het akkoord bent; de constellatie staat onder de kop.
-- **Na ondertekening** dezelfde opening ("Gelukt, …! Welkom bij React2u." binnen
-  een kwartier, met stippen uit het teal vinkje-medaillon), de reis, wat er is
-  afgenomen, de tekst achter "Lees de volledige tekst", voorwaarden en beide
-  handtekeningen.
+  zodra je bij het akkoord bent.
+- **Na ondertekening** dezelfde opening met "Gelukt, …! Welkom bij React2u."
+  (binnen een kwartier, met stippen uit het vinkje) en een kaart met het
+  vinkje in de labelkleur, dan de aanpak, wat er is afgenomen, de tekst achter
+  "Lees de volledige tekst", voorwaarden en beide handtekeningen.
 - **Vast voorwoord van Cindy en Susanne** (Rens, 30 okt: "die moet vast
   staan"): in elke offerte direct na de opening, en in de pdf als eerste
   hoofdstuk. Het verhaal van React2u (waarom we begonnen, één vast gezicht,
@@ -973,10 +1002,10 @@ hij de sterkste blokken van de site, zonder foto's
   `lib/offertes.ts`), met het jaarbedrag klein erbij. De prijslijst blijft per jaar;
   het maandbedrag is het jaarbedrag gedeeld door twaalf, op centen afgerond.
 - **Huisregels van de site**: bovenkopjes in hoofdletters met de stip, ronde
-  knoppen met een pijl, roze alleen voor de hoofdactie, teal voor vinkjes (als
-  tekst `#08716B`), grijze tekst `#6B6985`. Witte koppen op indigo met inline
-  kleur (de globale kopkleur wint van een utility). Bij "minder beweging" staan
-  alle animaties stil en is alles meteen zichtbaar.
+  knoppen met een pijl, roze voor de hoofdactie (ook bij andere labels, zoals
+  op de dienstpagina's), grijze tekst `#6B6985`. Witte koppen op indigo met
+  inline kleur (de globale kopkleur wint van een utility). Bij "minder
+  beweging" staan de animaties stil.
 - De pdf blijft een rustig document (zie *De offerte als contract*); de pagina
   volgt de site, het papier niet.
 - Een onbekende of ingetrokken link toont `OfferteMelding.tsx`.

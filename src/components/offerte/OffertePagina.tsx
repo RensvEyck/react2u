@@ -1,22 +1,22 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Caveat, Outfit } from "next/font/google";
-import { LuCalendarCheck, LuCheck, LuHandshake, LuPenLine, LuRoute } from "react-icons/lu";
+import { LuCheck } from "react-icons/lu";
 import Logo from "@/components/site/Logo";
 import Beeld from "@/components/site/Beeld";
-import ReisSpeler from "@/components/blocks/ReisSpeler";
-import { BODY, BREED, Eyebrow, KEURMERKEN, KLANTEN, kop, LINE, NAVY, ORANGE, PINK, Pijl, SKY, SOFT, TEAL } from "@/components/blocks/Gedeeld";
+import { BODY, BREED, Eyebrow, KEURMERKEN, KLANTEN, kop, LINE, NAVY, Pijl, SOFT } from "@/components/blocks/Gedeeld";
 import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import type { Certificate } from "@/lib/nav";
 import { woordenboek } from "@/lib/woordenboek";
 import Handtekening from "./Handtekening";
 import OfferteTekst from "./OfferteTekst";
 import { ondertekenaarRegel, VOORWOORD, VOORWOORD_VAN } from "@/lib/offerteVoorwoord";
+import { MERKEN, merkVoorVorm, type Merk } from "@/lib/offerteMerk";
 import { bewaarKeuze, ondertekenOfferte, vraagCode, wijsOfferteAf } from "@/app/(offerte)/offerte/actions";
 import {
   berekenTotalen, datumLang, euro, factuurFout, factuurRegels, herstelKeuze, isNaam, maandprijs, momentLang, normaliseerFactuur,
-  normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, secties, wissel, aantalVoor, bedragVoor, vulIn, DIENSTLABEL,
+  normaliseerRegels, normaliseerVervolg, prijsLabel, regelbedrag, secties, wissel, aantalVoor, bedragVoor, vulIn,
   OFFERTE_EMAIL, ONDERTEKEN_FOUT, VERVOLG_STANDAARD, VORMEN,
   type OffertePubliek, type Regel, type Stap, type Totalen, type Vorm,
 } from "@/lib/offertes";
@@ -25,18 +25,21 @@ import {
  * De offerte zoals de klant hem ziet (/offerte/<token>), en hetzelfde scherm
  * als voorbeeld in het beheer.
  *
- * In de beeldtaal van de "Home S-tier"-blokken van de site (HomeVerhaal.tsx),
- * want "offerte is zo belangrijk dat het past in de look en feel van de
- * huisstijl" (Rens, 30 okt 2026):
- *  - de opening als "Eén casemanager die je kent": een kop in twee kleuren en
- *    rechts de stippenconstellatie uit het logo, met drie medaillons waar de
- *    site foto's heeft (het bedrag, de contactpersoon, het label);
- *  - "Zo gaat het verder" als de stippenreis: gekleurde stations met een
- *    spoor van stippen dat zichzelf tekent;
- *  - klanten aan het woord, de klantlogo's en de keurmerken van de site;
- *  - het akkoord in de indigo contactband ("Een vraag? Bel gewoon even.");
- *  - de voet zoals de footer van de site.
- * Geen foto's (Rens, 29 okt). Animaties staan uit bij "minder beweging".
+ * Elk traject in de branding van zijn eigen label (Rens, 2 nov 2026: "het moet
+ * deze branding zijn per offerte traject", bij de dienstenkaarten op
+ * /werkgevers): Recover roze, Resist teal, Restart oranje, Reflex blauw, Ready
+ * indigo, Reward rood. De opbouw is die van de dienstpagina van het label
+ * (DienstLabel.tsx):
+ *  - de opening als de specialismekaart: de tint met de grote cirkel,
+ *    "React2u Recover®", de dienst en de tagline, en rechts een witte kaart
+ *    met het voorstel;
+ *  - accenten (bovenkopjes, vinkjes, schakelaars, badges) in de labelkleur,
+ *    banden afwisselend wit en in de tint;
+ *  - "Zo gaat het verder" als de indigo band "Onze aanpak", met de stappen in
+ *    de labelkleur;
+ *  - het akkoord weer in de tint, als slot van de opening.
+ * Kleur, tint, dienst en tagline komen uit het dienstLabel-blok in het CMS
+ * (lib/offerteMerk.ts). Geen foto's (Rens, 29 okt).
  *
  * Modus:
  *  - klant      de echte link: keuze wordt bewaard, tekenen kan;
@@ -48,12 +51,10 @@ import {
 const outfit = Outfit({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-outfit", display: "swap" });
 const handschrift = Caveat({ subsets: ["latin"], weight: ["600"], display: "swap" });
 
-// Grijs van de site (#77758F), net iets donkerder: 4,5:1 op wit en lila.
+// Grijs van de site (#77758F), net iets donkerder: 4,5:1 op wit en de tinten.
 const MUTE = "#6B6985";
-// Teal als tekst: de merkteal is te licht voor kleine letters op wit.
-const TEAL_TEKST = "#08716B";
-const CHECK = "#E5F5F4";
-const RED = "#CA152A";
+// De lichtere cirkel in de indigo band, zoals op de dienstpagina's.
+const NAVY_LICHT = "#3B378F";
 // De achtergrond van de footer van de site (r2uStijl.ts).
 const IVOOR = "#F8F5F1";
 
@@ -62,18 +63,11 @@ export type Modus = "klant" | "collega" | "voorbeeld";
 /** Wat React2u zelf meegeeft: bedrijfsgegevens en certificaten (Instellingen), zoals in de footer van de site. */
 type Huis = { contact: ContactInfo; certificaten: Certificate[] };
 
-type Dienstlabel = { naam: string; kleur: string; tint: string };
-
-/** Kleur en pasteltint per label, zoals op de dienstenkaarten van de site. */
-const LABELKLEUR: Record<string, { kleur: string; tint: string }> = {
-  Recover: { kleur: PINK, tint: "#FDECF4" },
-  Resist: { kleur: TEAL, tint: "#E5F5F4" },
-  Restart: { kleur: ORANGE, tint: "#FEF3E3" },
-};
-function labelVan(vorm: Vorm): Dienstlabel {
-  const naam = DIENSTLABEL[vorm].replace(/^React2u\s+/i, "");
-  return { naam, ...(LABELKLEUR[naam] || { kleur: NAVY, tint: "#ECEBF5" }) };
-}
+/** De branding van dit traject, voor elk onderdeel van de pagina. */
+const MerkContext = createContext<Merk>(MERKEN.recover);
+const useMerk = () => useContext(MerkContext);
+/** Een vlak in de labelkleur: wit erop, behalve bij Ready (indigo op indigo), dan omgekeerd. */
+const opKleur = (m: Merk) => (m.kleur.toLowerCase() === NAVY.toLowerCase() ? { background: "#ffffff", color: NAVY } : { background: m.kleur, color: "#ffffff" });
 
 /**
  * De keurmerken met hun echte logo's (Gedeeld.tsx, dezelfde als op de site).
@@ -98,7 +92,6 @@ const knop = {
   rand: `hv-btn hv-btn-rand ${KNOP}`,
   navy: `hv-btn border-[1.5px] border-[#322E83] bg-[#322E83] text-white hover:bg-[#262268] ${KNOP}`,
   wit: `hv-btn border-[1.5px] border-white bg-white text-[#322E83] ${KNOP}`,
-  witrand: `hv-btn border-[1.5px] border-white/50 text-white hover:bg-white/10 ${KNOP}`,
 };
 
 const veld =
@@ -168,12 +161,12 @@ function initialen(naam: string | null) {
   return (naam || "React2u").split(/\s+/).filter(Boolean).map((w) => w[0]).filter((c) => /[A-Za-zÀ-ÿ]/.test(c)).slice(0, 2).join("").toUpperCase() || "R";
 }
 
-/** Initialen in een cirkel met een witte rand, zoals de fotocirkels van de site. */
-function Avatar({ naam, maat = 44, kleur = NAVY, rand = "#ffffff" }: { naam: string | null; maat?: number; kleur?: string; rand?: string }) {
+/** Initialen in een cirkel met een rand in de kleur van de achtergrond. */
+function Avatar({ naam, maat = 44, kleur = NAVY, tekst = "#ffffff", rand = "#ffffff" }: { naam: string | null; maat?: number; kleur?: string; tekst?: string; rand?: string }) {
   return (
     <span
-      className={`${kop} flex shrink-0 items-center justify-center rounded-full text-white`}
-      style={{ width: maat, height: maat, fontSize: maat * 0.36, background: kleur, boxShadow: `0 0 0 ${Math.max(3, Math.round(maat / 16))}px ${rand}` }}
+      className={`${kop} flex shrink-0 items-center justify-center rounded-full`}
+      style={{ width: maat, height: maat, fontSize: maat * 0.36, background: kleur, color: tekst, boxShadow: `0 0 0 ${Math.max(3, Math.round(maat / 16))}px ${rand}` }}
       aria-hidden="true"
     >
       {initialen(naam)}
@@ -186,42 +179,54 @@ function Label({ children, licht = false }: { children: React.ReactNode; licht?:
   return <span className="block text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: licht ? "rgba(255,255,255,0.72)" : MUTE }}>{children}</span>;
 }
 
-/** Het label met de stip in een zacht rondje, zoals op de startpagina (HomeVerhaal.tsx). */
-function Stiplabel({ children, kleur = TEAL, zacht = "#D7F0EE" }: { children: React.ReactNode; kleur?: string; zacht?: string }) {
+/** Vinkje in een rondje, in de tint en kleur van het label. */
+function Bolvink({ maat = 22 }: { maat?: number }) {
+  const m = useMerk();
   return (
-    <span className="inline-flex items-center gap-2 self-start text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: kleur }}>
-      <span className="grid h-[18px] w-[18px] place-items-center rounded-full" style={{ background: zacht }}>
-        <span className="h-[7px] w-[7px] rounded-full" style={{ background: kleur }} />
+    <span className="mt-0.5 grid shrink-0 place-items-center rounded-full" style={{ width: maat, height: maat, background: m.tint, color: m.tekst }} aria-hidden="true">
+      <Vink size={Math.round(maat * 0.52)} dik={3} />
+    </span>
+  );
+}
+
+/** "React2u" met de labelnaam groot in de labelkleur, zoals op de dienstkaarten. */
+function Merknaam({ m, klein = false }: { m: Merk; klein?: boolean }) {
+  return (
+    <span className={`${kop} flex flex-col leading-[1.05]`} style={{ color: NAVY, fontSize: klein ? 15 : 17 }}>
+      React2u
+      <span className="tracking-[-0.5px]" style={{ color: m.kleur, fontSize: klein ? 24 : 30 }}>
+        {m.naam}<sup style={{ color: NAVY, fontSize: klein ? 11 : 13 }}>®</sup>
       </span>
-      {children}
     </span>
   );
 }
 
 /** De sectiekop van de site: links bovenkopje en kop, rechts een korte toelichting. */
 function SectieKop({ eyebrow, kleur, titel, tekst, licht = false }: { eyebrow: string; kleur?: string; titel: string; tekst?: React.ReactNode; licht?: boolean }) {
+  const m = useMerk();
   return (
     <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
       <div className="flex flex-col gap-4 lg:col-span-7">
-        <Eyebrow kleur={licht ? "rgba(255,255,255,0.85)" : kleur}>{eyebrow}</Eyebrow>
+        <Eyebrow kleur={licht ? "rgba(255,255,255,0.85)" : kleur || m.tekst}>{eyebrow}</Eyebrow>
         <h2 className={`${kop} m-0 leading-[1.1] tracking-[-0.9px]`} style={{ color: licht ? "#ffffff" : NAVY, fontSize: "clamp(32px, 4vw, 46px)" }}>{titel}</h2>
       </div>
-      {tekst && <div className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: licht ? "rgba(255,255,255,0.82)" : BODY }}>{tekst}</div>}
+      {tekst && <div className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: licht ? "rgba(255,255,255,0.8)" : BODY }}>{tekst}</div>}
     </div>
   );
 }
 
-/** Een band van rand tot rand, wit of lichtlila, met de maten van de site. */
-function Band({ id, lila = false, children, label }: { id?: string; lila?: boolean; children: React.ReactNode; label?: string }) {
+/** Een band van rand tot rand, wit of in de tint van het label, met de maten van de site. */
+function Band({ id, tint = false, children, label }: { id?: string; tint?: boolean; children: React.ReactNode; label?: string }) {
+  const m = useMerk();
   return (
-    <section id={id} aria-label={label} className="scroll-mt-[96px]" style={{ background: lila ? SOFT : "#ffffff" }}>
+    <section id={id} aria-label={label} className="scroll-mt-[96px]" style={{ background: tint ? m.tint : "#ffffff" }}>
       <div className={`${BREED} flex flex-col gap-10 py-16 md:gap-14 md:py-[112px]`}>{children}</div>
     </section>
   );
 }
 
-/** Een vlak binnen een band: wit op lila, lila op wit. */
-const vlak = (lila: boolean): React.CSSProperties => ({ background: lila ? "#ffffff" : SOFT });
+/** Een vlak binnen een band: wit op de tint, de tint op wit. */
+const vlak = (m: Merk, tint: boolean): React.CSSProperties => ({ background: tint ? "#ffffff" : m.tint });
 
 /**
  * Een bedrag dat naar zijn nieuwe waarde telt als de klant iets aan- of
@@ -319,7 +324,7 @@ function useInBeeld(id: string) {
 /* ---------- de pagina ---------- */
 
 export default function OffertePagina({
-  offerte, token, modus, voorwaarden, vers = false, contact = CONTACT_FALLBACK, certificaten = [],
+  offerte, token, modus, voorwaarden, vers = false, contact = CONTACT_FALLBACK, certificaten = [], merk,
 }: {
   offerte: OffertePubliek;
   token?: string;
@@ -329,18 +334,24 @@ export default function OffertePagina({
   vers?: boolean;
   contact?: ContactInfo;
   certificaten?: Certificate[];
+  /** De branding van het label uit het CMS; zonder: de vaste gegevens bij de vorm. */
+  merk?: Merk;
 }) {
   const getekend = offerte.status === "getekend" && offerte.getekend_inhoud;
   const huis: Huis = { contact, certificaten };
+  const vorm = (getekend ? offerte.getekend_inhoud!.vorm : offerte.vorm) as Vorm | null;
+  const m = merk || merkVoorVorm(vorm && VORMEN[vorm] ? vorm : "verzuimbegeleiding");
   return (
-    <div className={`hv ${outfit.variable} offerte-doc min-h-screen bg-white`}>
-      <style>{PAGINA_CSS}</style>
-      {getekend ? (
-        <Getekend offerte={offerte} token={token} voorwaarden={voorwaarden} modus={modus} vers={vers} huis={huis} />
-      ) : (
-        <Document offerte={offerte} token={token} modus={modus} voorwaarden={voorwaarden} huis={huis} />
-      )}
-    </div>
+    <MerkContext.Provider value={m}>
+      <div className={`hv ${outfit.variable} offerte-doc min-h-screen bg-white`}>
+        <style>{PAGINA_CSS}</style>
+        {getekend ? (
+          <Getekend offerte={offerte} token={token} voorwaarden={voorwaarden} modus={modus} vers={vers} huis={huis} />
+        ) : (
+          <Document offerte={offerte} token={token} modus={modus} voorwaarden={voorwaarden} huis={huis} />
+        )}
+      </div>
+    </MerkContext.Provider>
   );
 }
 
@@ -433,116 +444,52 @@ function Voet({ offerte, voorwaarden, huis }: { offerte: OffertePubliek; voorwaa
   );
 }
 
-/* ---------- de opening: de stippenconstellatie ---------- */
-
-// Constellatie op een vlak van 640 × 600, zoals op de startpagina; alles in procenten zodat hij meeschaalt.
-const CW = 640, CH = 600;
-const pct = (v: number, of: number) => `${(v / of) * 100}%`;
-// [x, y, maat, kleur, zweefritme]
-const STIPPEN: [number, number, number, string, number][] = [
-  [196, 18, 42, TEAL, 2], [262, 0, 26, TEAL, 1], [584, 74, 34, NAVY, 3], [58, 128, 30, SKY, 1], [128, 196, 18, SKY, 2],
-  [18, 470, 52, ORANGE, 2], [104, 548, 26, ORANGE, 1],
-  [560, 380, 56, PINK, 3], [606, 470, 30, RED, 1], [520, 540, 22, RED, 2], [470, 586, 14, PINK, 1], [236, 566, 20, PINK, 2],
-];
-// [x, y, maat, zweefritme] van de drie medaillons: bedrag, contactpersoon, label.
-const PLEKKEN: [number, number, number, number][] = [
-  [262, 72, 286, 1], [22, 232, 206, 3], [300, 374, 184, 2],
-];
+/* ---------- de opening: de specialismekaart van het label ---------- */
 
 /**
- * De constellatie van de opening: stippen in de kleuren van het logo, en drie
- * medaillons met een witte rand waar de site foto's heeft. Tekstgrootte in
- * cqw, zodat alles meeschaalt met de breedte. Speelt één keer af (stippen
- * ploppen, medaillons komen op) en zweeft dan zacht; stil bij minder beweging.
+ * De opening als de specialismekaart op de dienstpagina van het label: de tint
+ * met de grote cirkel in de labelkleur, "React2u Recover®" met de dienst en de
+ * tagline, en rechts een witte kaart. Daaronder de offerte zelf: voor wie, door
+ * wie, de feiten en de knoppen.
  */
-function Constellatie({ medaillons }: { medaillons: [React.ReactNode, React.ReactNode, React.ReactNode] }) {
-  const kleur = ["#ffffff", NAVY, "#ffffff"];
-  return (
-    <ReisSpeler>
-      <div className="relative mx-auto w-full max-w-[600px]" style={{ aspectRatio: `${CW} / ${CH}`, containerType: "inline-size" }}>
-        {STIPPEN.map(([x, y, s, c, f], i) => (
-          <span key={i} aria-hidden className="hv-jd absolute" style={{ left: pct(x, CW), top: pct(y, CH), width: pct(s, CW), aspectRatio: "1", animationDelay: `${(0.25 + i * 0.05).toFixed(2)}s` }}>
-            <span className={`hv-f${f} absolute inset-0 rounded-full`} style={{ background: c }} />
-          </span>
-        ))}
-        {PLEKKEN.map(([x, y, s, f], i) => (
-          <span key={`m${i}`} className="hv-js absolute" style={{ left: pct(x, CW), top: pct(y, CH), width: pct(s, CW), aspectRatio: "1", animationDelay: `${(0.05 + i * 0.14).toFixed(2)}s` }}>
-            <span
-              className={`hv-f${f} absolute inset-0 flex flex-col items-center justify-center rounded-full text-center`}
-              style={{ background: kleur[i], boxShadow: "0 0 0 1.1cqw #ffffff, 0 30px 60px -30px rgba(50,46,131,.55)" }}
-            >
-              {medaillons[i]}
-            </span>
-          </span>
-        ))}
-      </div>
-    </ReisSpeler>
-  );
-}
-
-/** Het bedrag in het grote medaillon: groot, met kleinere letters als het bedrag lang is. */
-function PrijsMedaillon({ t, kop: titel = "Jouw voorstel" }: { t: Totalen; kop?: string }) {
-  const hoofd = hoofdbedrag(t);
-  const getoond = useTelwaarde(hoofd?.bedrag ?? 0);
-  const tekst = hoofd ? euro(getoond) : "Op aanvraag";
-  const maat = tekst.length > 9 ? 6.4 : tekst.length > 7 ? 7.6 : 8.8;
-  return (
-    <>
-      <span className="font-bold uppercase" style={{ color: MUTE, fontSize: "1.9cqw", letterSpacing: "0.25cqw" }}>{titel}</span>
-      <span className={`${kop} tabular-nums`} style={{ color: NAVY, fontSize: `${maat}cqw`, lineHeight: 1.05, letterSpacing: "-0.25cqw", marginTop: "1cqw" }}>{tekst}</span>
-      {hoofd && <span style={{ color: BODY, fontSize: "2.5cqw", marginTop: "0.4cqw" }}>{hoofd.per}</span>}
-      <span style={{ color: MUTE, fontSize: "1.9cqw", marginTop: "0.9cqw" }}>exclusief btw</span>
-    </>
-  );
-}
-
-function ContactMedaillon({ naam, functie }: { naam: string | null; functie: string | null }) {
-  return (
-    <>
-      <span className={kop} style={{ color: "#ffffff", fontSize: "7.4cqw", lineHeight: 1 }}>{initialen(naam)}</span>
-      <span className="font-bold" style={{ color: "#ffffff", fontSize: "2.2cqw", marginTop: "1.6cqw", maxWidth: "80%" }}>{naam || "React2u"}</span>
-      <span style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.8cqw", marginTop: "0.3cqw" }}>{functie ? "je contactpersoon" : "React2u"}</span>
-    </>
-  );
-}
-
-function LabelMedaillon({ label }: { label: Dienstlabel }) {
-  return (
-    <span className="absolute inset-0 flex flex-col items-center justify-center rounded-full" style={{ background: label.tint }}>
-      <span className={kop} style={{ color: NAVY, fontSize: "2.6cqw", lineHeight: 1.1 }}>React2u</span>
-      <span className={kop} style={{ color: label.kleur, fontSize: "4.8cqw", lineHeight: 1.05, letterSpacing: "-0.1cqw" }}>
-        {label.naam}<sup style={{ color: NAVY, fontSize: "1.8cqw" }}>®</sup>
-      </span>
-    </span>
-  );
-}
-
-/**
- * De opening, als "Eén casemanager die je kent" op de startpagina: links de
- * kop in twee kleuren, de afspraken en de knoppen, rechts de constellatie.
- */
-function Opening({ label, regels, tekst, feiten, punten, knoppen, constellatie }: {
-  label: React.ReactNode;
-  regels: [string, string];
+function Opening({ nummer, bedrijf, zin, tekst, feiten, knoppen, kaart }: {
+  nummer: string;
+  bedrijf: string;
+  /** De offerte in één regel, groot onder de dienst: "Verzuimbegeleiding op maat voor …". */
+  zin: React.ReactNode;
   tekst: React.ReactNode;
   feiten?: [string, string][];
-  punten?: string[];
   knoppen: React.ReactNode;
-  constellatie: React.ReactNode;
+  kaart: React.ReactNode;
 }) {
+  const m = useMerk();
   return (
-    <section style={{ background: SOFT }}>
-      <div className={`${BREED} grid items-center gap-10 pb-14 pt-10 md:pb-20 md:pt-14 lg:grid-cols-12 lg:gap-8 lg:pb-[88px] lg:pt-[64px]`}>
-        <div className="flex flex-col gap-6 lg:col-span-6">
-          {label}
-          {/* Kleur inline: de algemene kopstijl van de site staat buiten de Tailwind-lagen en wint anders */}
-          <h1 className={`${kop} m-0 text-balance text-[36px] leading-[1.06] tracking-[-1px] md:text-[44px] md:tracking-[-1.2px] xl:text-[50px] xl:tracking-[-1.4px]`}>
-            <span className="block" style={{ color: NAVY }}>{regels[0]}</span>
-            <span className="block" style={{ color: TEAL }}>{regels[1]}</span>
-          </h1>
-          <div className="m-0 max-w-[540px] text-[17px] leading-[1.75] md:text-[18px]" style={{ color: BODY }}>{tekst}</div>
+    <section className="px-[6px] pt-2 md:px-6 md:pt-6 xl:px-10">
+      <div className="relative mx-auto grid max-w-[1360px] gap-10 overflow-hidden rounded-[28px] px-6 pb-8 pt-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center lg:gap-14 lg:p-16 xl:p-[72px]" style={{ background: m.tint }}>
+        <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[560px] md:w-[560px]" style={{ background: m.kleur, opacity: 0.12 }} />
+        <span aria-hidden className="absolute bottom-[-120px] left-[38%] hidden h-[220px] w-[220px] rounded-full lg:block" style={{ background: m.kleur, opacity: 0.06 }} />
+        <div className="relative flex flex-col gap-6">
+          <p className="m-0 flex flex-col gap-0.5 text-[14px] font-semibold sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5" style={{ color: MUTE }}>
+            <span>Offerte {nummer}</span><span aria-hidden className="hidden sm:inline">/</span><span style={{ color: NAVY }}>{bedrijf}</span>
+          </p>
+          <div>
+            {/* Kleur inline: de algemene kopstijl van de site staat buiten de Tailwind-lagen en wint anders */}
+            <h1 className={`${kop} m-0 text-[24px] leading-[1.05] tracking-[-0.4px] md:text-[32px]`} style={{ color: NAVY }}>
+              React2u<br />
+              <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[80px] md:tracking-[-2.2px]">
+                <span style={{ color: m.kleur }}>{m.naam}</span>
+                <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
+              </span>
+              <span className="hv-dienst mt-4 block text-[18px] font-bold leading-[1.5] tracking-normal md:text-[21px]">{m.dienst}</span>
+            </h1>
+            <p className="m-0 text-[18px] leading-[1.5] md:text-[21px]" style={{ color: NAVY }}><em>{m.tagline}</em></p>
+          </div>
+          <div className="flex max-w-[600px] flex-col gap-3 border-t pt-6" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
+            <p className={`${kop} m-0 text-[24px] leading-[1.25] tracking-[-0.4px] md:text-[28px]`} style={{ color: NAVY }}>{zin}</p>
+            <div className="text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{tekst}</div>
+          </div>
           {feiten && feiten.length > 0 && (
-            <dl className="m-0 grid max-w-[540px] grid-cols-2 gap-x-6 gap-y-4 border-y py-5 sm:flex sm:flex-wrap sm:gap-x-10" style={{ borderColor: "#E3E1EE" }}>
+            <dl className="m-0 flex flex-wrap gap-x-10 gap-y-4">
               {feiten.map(([k, v]) => (
                 <div key={k} className="min-w-0">
                   <dt className="text-[13px]" style={{ color: MUTE }}>{k}</dt>
@@ -551,27 +498,61 @@ function Opening({ label, regels, tekst, feiten, punten, knoppen, constellatie }
               ))}
             </dl>
           )}
-          {punten && punten.length > 0 && (
-            <ul className="m-0 flex list-none flex-col gap-3 p-0">
-              {punten.map((p) => (
-                <li key={p} className="flex items-start gap-3 text-[16px] leading-[1.5]" style={{ color: NAVY }}>
-                  <span className="mt-[1px] grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full" style={{ background: "#EEEDF8", color: NAVY }}><Vink size={12} dik={3} /></span>
-                  {p}
-                </li>
-              ))}
-            </ul>
-          )}
           <div className="flex flex-wrap gap-3 pt-1 print:hidden">{knoppen}</div>
         </div>
-        <div className="lg:col-span-6">{constellatie}</div>
+        <div className="relative">{kaart}</div>
       </div>
     </section>
+  );
+}
+
+/**
+ * De witte kaart in de opening: het bedrag dat meetelt, wat je krijgt (de
+ * gekozen onderdelen) en de contactpersoon. Geen <aside>: het overzicht bij de
+ * keuzes is het eerste.
+ */
+function VoorstelKaart({ offerte, totalen, open, heeftKeuze }: { offerte: OffertePubliek; totalen: Totalen; open: boolean; heeftKeuze: boolean }) {
+  const m = useMerk();
+  const tel = telLink(offerte.afzender_telefoon);
+  const onderdelen = totalen.regels.map((r) => r.regel.naam);
+  return (
+    <div className="rounded-[24px] bg-white p-6 shadow-[0_30px_70px_-40px_rgba(50,46,131,0.45)] md:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <Label>{open && heeftKeuze ? "Jouw keuze" : "Jouw voorstel"}</Label>
+        <span className="h-3 w-3 rounded-full" style={{ background: m.kleur }} aria-hidden="true" />
+      </div>
+      <div className="mt-3"><Bedrag t={totalen} maat="text-[48px] md:text-[54px]" live={false} /></div>
+      <Kleintje t={totalen} />
+      {onderdelen.length > 0 && (
+        <div className="mt-6 flex flex-col gap-3 border-t pt-5" style={{ borderColor: LINE }}>
+          <Label>Wat je krijgt</Label>
+          {onderdelen.slice(0, 6).map((n) => (
+            <span key={n} className="flex items-start gap-2.5 text-[15.5px] leading-[1.45]" style={{ color: NAVY }}>
+              <span className="mt-0.5 shrink-0" style={{ color: m.kleur }}><Vink size={17} dik={2.8} /></span>{n}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="mt-6 flex items-center gap-3 border-t pt-5" style={{ borderColor: LINE }}>
+        <Avatar naam={offerte.afzender_naam} maat={42} />
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="m-0 text-[15px] font-bold" style={{ color: NAVY }}>{offerte.afzender_naam || "React2u"}</p>
+          <p className="m-0 truncate text-[13.5px]" style={{ color: MUTE }}>Je contactpersoon bij React2u</p>
+        </div>
+        {tel && (
+          <a href={tel} aria-label={`Bel ${offerte.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
+            <Telefoon size={16} />
+          </a>
+        )}
+      </div>
+    </div>
   );
 }
 
 /* ---------- het document ---------- */
 
 function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: OffertePubliek; token?: string; modus: Modus; voorwaarden: string; huis: Huis }) {
+  const m = useMerk();
   const regels = useMemo(() => normaliseerRegels(offerte.regels), [offerte.regels]);
   const [keuze, setKeuze] = useState<string[]>(() => herstelKeuze(regels, offerte.keuze));
   const totalen = useMemo(() => berekenTotalen(regels, keuze, offerte.medewerkers), [regels, keuze, offerte.medewerkers]);
@@ -580,12 +561,22 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
   const kanKiezen = offerte.status === "verstuurd" || modus === "voorbeeld";
   const [afwijzen, setAfwijzen] = useState(false);
   const vorm: Vorm = VORMEN[offerte.vorm] ? offerte.vorm : "verzuimbegeleiding";
-  const label = labelVan(vorm);
   const heeftKeuze = regels.some((r) => r.soort === "optie" || r.soort === "keuze");
   const bijAkkoord = useInBeeld("akkoord");
-  // Wit en lila om en om, wat er ook in de offerte staat.
-  const banden = ["voorwoord", ...(offerte.intro ? ["persoonlijk"] : []), ...(offerte.inhoud?.trim() ? ["over"] : []), "keuze", "verder", "vertrouwen", "akkoord"];
-  const lila = (id: string) => banden.indexOf(id) % 2 === 1;
+  // De aanbevolen extra's staan in hun eigen blok; een prijs per medewerker alleen als het aantal bekend is.
+  const gewoon = useMemo(() => regels.filter((r) => !r.aanbevolen), [regels]);
+  const extras = useMemo(
+    () => regels.filter((r) => r.aanbevolen && (offerte.medewerkers || (r.eenheid !== "medewerker_jaar" && r.eenheid !== "medewerker"))),
+    [regels, offerte.medewerkers]
+  );
+  // Wat een andere keuze in een groep per maand en eenmalig scheelt, voor het upgrade-duwtje.
+  const verschil = (id: string) => {
+    const t = berekenTotalen(regels, wissel(regels, keuze, id), offerte.medewerkers);
+    return { maand: Math.round((t.perMaand - totalen.perMaand) * 100) / 100, eenmalig: Math.round((t.eenmalig - totalen.eenmalig) * 100) / 100 };
+  };
+  // Wit en tint om en om onder de opening (die zelf in de tint staat, dus eerst wit), wat er ook in de offerte staat.
+  const banden = ["voorwoord", ...(offerte.intro ? ["persoonlijk"] : []), ...(offerte.inhoud?.trim() ? ["over"] : []), "keuze"];
+  const tint = (id: string) => banden.indexOf(id) % 2 === 1;
 
   // De tussenstand bewaren, een moment nadat de klant stopt met klikken.
   const eerste = useRef(true);
@@ -633,8 +624,9 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
 
       <main>
         <Opening
-          label={<Stiplabel kleur={label.kleur} zacht={label.tint}>Offerte {offerte.nummer}</Stiplabel>}
-          regels={[offerte.titel, `voor ${offerte.bedrijf}`]}
+          nummer={offerte.nummer}
+          bedrijf={offerte.bedrijf}
+          zin={<>{offerte.titel} voor {offerte.bedrijf}</>}
           tekst={
             <p className="m-0">
               Opgesteld door {offerte.afzender_naam || "React2u"}{offerte.contactpersoon ? ` voor ${offerte.contactpersoon}` : ""}, op{" "}
@@ -649,27 +641,19 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
               {tel && <a href={tel} className={knop.rand}>Bel {voornaam(offerte.afzender_naam) || "ons"}<Pijl /></a>}
             </>
           }
-          constellatie={
-            <Constellatie
-              medaillons={[
-                <PrijsMedaillon key="p" t={totalen} kop={open && heeftKeuze ? "Jouw keuze" : "Jouw voorstel"} />,
-                <ContactMedaillon key="c" naam={offerte.afzender_naam} functie={offerte.afzender_functie} />,
-                <LabelMedaillon key="l" label={label} />,
-              ]}
-            />
-          }
+          kaart={<VoorstelKaart offerte={offerte} totalen={totalen} open={open} heeftKeuze={heeftKeuze} />}
         />
 
-        <Voorwoord offerte={offerte} lila={lila("voorwoord")} />
+        <Voorwoord offerte={offerte} tint={tint("voorwoord")} />
 
         {offerte.intro && (
-          <section aria-label="Een persoonlijk woord" style={{ background: lila("persoonlijk") ? SOFT : "#ffffff" }}>
+          <section aria-label="Een persoonlijk woord" style={{ background: tint("persoonlijk") ? m.tint : "#ffffff" }}>
             <div className={`${BREED} py-16 md:py-[112px]`}>
-              <figure className="m-0 mx-auto flex max-w-[920px] flex-col gap-8 rounded-[28px] px-6 py-9 sm:px-10 md:px-14 md:py-14" style={vlak(lila("persoonlijk"))}>
+              <figure className="m-0 mx-auto flex max-w-[920px] flex-col gap-8 rounded-[28px] px-6 py-9 sm:px-10 md:px-14 md:py-14" style={vlak(m, tint("persoonlijk"))}>
                 <div className="flex items-center gap-4">
-                  <Avatar naam={offerte.afzender_naam} maat={60} rand={lila("persoonlijk") ? "#ffffff" : SOFT} />
+                  <Avatar naam={offerte.afzender_naam} maat={60} rand={tint("persoonlijk") ? "#ffffff" : m.tint} />
                   <div className="leading-tight">
-                    <Eyebrow>Een persoonlijk woord</Eyebrow>
+                    <Eyebrow kleur={m.tekst}>Een persoonlijk woord</Eyebrow>
                     <p className="m-0 mt-1.5 text-[15px]" style={{ color: MUTE }}>Van {offerte.afzender_naam || "React2u"}{offerte.afzender_functie ? `, ${offerte.afzender_functie}` : ""}</p>
                   </div>
                 </div>
@@ -683,99 +667,88 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
         )}
 
         {offerte.inhoud?.trim() && (
-          <section aria-label="Over deze offerte" style={{ background: lila("over") ? SOFT : "#ffffff" }}>
+          <section aria-label="Over deze offerte" style={{ background: tint("over") ? m.tint : "#ffffff" }}>
             <div className={`${BREED} grid gap-8 py-16 md:py-[112px] lg:grid-cols-12 lg:gap-6`}>
               <div className="flex flex-col gap-4 lg:col-span-4">
-                <Eyebrow kleur={label.kleur}>{label.naam}</Eyebrow>
+                <Eyebrow kleur={m.tekst}>React2u {m.naam}</Eyebrow>
                 <h2 className={`${kop} m-0 text-[34px] leading-[1.08] tracking-[-0.9px] md:text-[46px]`} style={{ color: NAVY }}>Over deze offerte</h2>
               </div>
-              <div className="rounded-[28px] p-6 md:p-10 lg:col-span-8 lg:col-start-5" style={vlak(lila("over"))}>
-                <Toelichting tekst={vulIn(offerte.inhoud, offerte)} achter={lila("over") ? "#ffffff" : SOFT} />
+              <div className="rounded-[28px] p-6 md:p-10 lg:col-span-8 lg:col-start-5" style={vlak(m, tint("over"))}>
+                <Toelichting tekst={vulIn(offerte.inhoud, offerte)} achter={tint("over") ? "#ffffff" : m.tint} />
               </div>
             </div>
           </section>
         )}
 
-        <Band id="keuze" lila={lila("keuze")}>
+        <Band id="keuze" tint={tint("keuze")}>
           <SectieKop
             eyebrow={heeftKeuze ? "Stel je offerte samen" : "Wat je krijgt"}
-            kleur={TEAL}
             titel={heeftKeuze ? "Kies wat bij jullie past" : "Dit doen we voor je"}
             tekst={heeftKeuze ? "Kies je aansluiting en zet extra's aan of uit. Rechts zie je meteen wat het per maand kost." : "Wat we voor je doen en wat het kost, precies zoals in de prijslijst."}
           />
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-6">
             <div className="flex min-w-0 flex-col gap-12 lg:col-span-8">
-              {secties(regels).map((s) => (
+              {/* Eerst wat je kiest, dan de aanbevolen extra's, en de tarieven bij gebruik als naslag onderaan */}
+              {secties(gewoon).filter((s) => s.regels.some((r) => r.soort !== "tarief")).map((s) => (
+                <Sectie key={s.naam} sectie={s} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} verschil={open ? verschil : undefined} />
+              ))}
+              <Extras regels={extras} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} achter={tint("keuze") ? m.tint : "#ffffff"} />
+              {secties(gewoon).filter((s) => s.regels.every((r) => r.soort === "tarief")).map((s) => (
                 <Sectie key={s.naam} sectie={s} keuze={keuze} klik={klik} medewerkers={offerte.medewerkers} kanKiezen={kanKiezen} />
               ))}
             </div>
             {/* Op een groot scherm loopt het overzicht mee langs de keuzes */}
             <div className="hidden lg:col-span-4 lg:block">
-              <Overzicht
-                offerte={offerte}
-                totalen={totalen}
-                label={label}
-                open={open}
-                heeftKeuze={heeftKeuze}
-                bijAkkoord={bijAkkoord}
-                naarAkkoord={naarAkkoord}
-                conceptHref={conceptHref}
-              />
+              <Overzicht offerte={offerte} totalen={totalen} open={open} heeftKeuze={heeftKeuze} bijAkkoord={bijAkkoord} naarAkkoord={naarAkkoord} conceptHref={conceptHref} />
             </div>
           </div>
           <Optelling t={totalen} open={open} naarAkkoord={naarAkkoord} />
         </Band>
 
-        <Band lila={lila("verder")} label="Zo gaat het verder">
-          <SectieKop eyebrow="Zo gaat het verder" titel="Na je akkoord" tekst="Je tekent online met een code uit je mail. Daarna plannen we samen de start." />
-          <Reis stappen={offerte.vervolg} achter={lila("verder") ? SOFT : "#ffffff"} />
-          <div className="grid gap-6 rounded-[28px] p-6 md:grid-cols-12 md:p-10" style={vlak(lila("verder"))}>
-            <div className="md:col-span-7">
-              <h3 className={`${kop} m-0 text-[22px]`} style={{ color: NAVY }}>Voorwaarden</h3>
-              <div className="mt-4"><OfferteTekst tekst={vulIn(offerte.voorwaarden, offerte).trim() || "- Alle bedragen zijn exclusief btw."} klein /></div>
+        <Aanpak stappen={offerte.vervolg} titel="Na je akkoord" tekst="Je tekent online met een code uit je mail. Daarna plannen we samen de start." />
+
+        <Vertrouwen huis={huis} />
+
+        <section id="akkoord" aria-label="Akkoord" className="scroll-mt-[96px] bg-white px-[6px] pb-10 md:px-6 md:pb-16 xl:px-10">
+          <div className="relative mx-auto max-w-[1360px] overflow-hidden rounded-[28px] px-5 py-12 sm:px-8 md:rounded-[36px] md:px-12 md:py-16 xl:px-[72px] xl:py-[88px]" style={{ background: m.tint }}>
+            <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[560px] md:w-[560px]" style={{ background: m.kleur, opacity: 0.12 }} />
+            <div className="relative grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-6">
+              <div className="flex flex-col gap-5 lg:col-span-6">
+                <Eyebrow kleur={m.tekst}>Akkoord</Eyebrow>
+                <h2 className={`${kop} m-0 text-[36px] leading-[1.05] tracking-[-1px] md:text-[50px] md:tracking-[-1.4px]`}>
+                  <span className="block" style={{ color: NAVY }}>Teken voor akkoord.</span>
+                  <span className="block" style={{ color: m.kleur }}>Wij doen de rest.</span>
+                </h2>
+                <p className="m-0 max-w-[480px] text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>
+                  {open ? "Zet je handtekening en bevestig met de code uit je mail. De getekende offerte krijg je meteen als pdf." : "Ondertekenen kan bij deze offerte niet meer. Neem gerust contact op."}
+                </p>
+              </div>
+              <ContactRijen offerte={offerte} huis={huis} />
             </div>
-            <p className="m-0 text-[15px] leading-[1.7] md:col-span-4 md:col-start-9 md:self-end" style={{ color: BODY }}>
-              {offerte.geldig_tot ? `Deze offerte is geldig tot en met ${datumLang(offerte.geldig_tot)}. ` : ""}Op deze offerte zijn de{" "}
-              <a href={voorwaarden} target="_blank" rel="noopener" className="font-bold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a> van React2u van toepassing.
-            </p>
-          </div>
-        </Band>
-
-        <Vertrouwen huis={huis} lila={lila("vertrouwen")} />
-
-        <section id="akkoord" aria-label="Akkoord" className="scroll-mt-[96px]" style={{ background: lila("akkoord") ? SOFT : "#ffffff" }}>
-          <div className={`${BREED} py-10 md:py-16`}>
-            <div className="relative overflow-hidden rounded-[28px] px-5 py-12 sm:px-8 md:px-12 md:py-16 xl:px-[72px] xl:py-[88px]" style={{ background: NAVY }}>
-              {/* Het lichtere vlak van de contactband van de site */}
-              <span aria-hidden className="absolute -left-[180px] -top-[300px] h-[560px] w-[560px] rounded-full md:-left-[200px] md:-top-[420px] md:h-[900px] md:w-[900px]" style={{ background: "rgba(255,255,255,0.05)" }} />
-              <div className="relative grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-6">
-                <div className="flex flex-col gap-5 lg:col-span-6">
-                  <span className="text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: "rgba(255,255,255,0.75)" }}>Akkoord</span>
-                  <h2 className={`${kop} m-0 text-[36px] leading-[1.05] tracking-[-1px] md:text-[48px] md:tracking-[-1.3px]`}>
-                    <span className="block" style={{ color: "#ffffff" }}>Teken voor akkoord.</span>
-                    <span className="block" style={{ color: "#8FD8D2" }}>Wij doen de rest.</span>
-                  </h2>
-                  <p className="m-0 max-w-[480px] text-[16px] leading-[1.7] md:text-[17px]" style={{ color: "rgba(255,255,255,0.8)" }}>
-                    {open ? "Zet je handtekening en bevestig met de code uit je mail. De getekende offerte krijg je meteen als pdf." : "Ondertekenen kan bij deze offerte niet meer. Neem gerust contact op."}
-                  </p>
+            <div className="relative mt-10 rounded-[24px] bg-white p-5 shadow-[0_30px_70px_-50px_rgba(50,46,131,0.5)] sm:p-7 md:mt-14 md:p-10">
+              <div className="mb-9 grid gap-5 border-b pb-8 md:grid-cols-12" style={{ borderColor: LINE }}>
+                <div className="md:col-span-7">
+                  <h3 className={`${kop} m-0 text-[22px]`} style={{ color: NAVY }}>Voorwaarden</h3>
+                  <div className="mt-4"><OfferteTekst tekst={vulIn(offerte.voorwaarden, offerte).trim() || "- Alle bedragen zijn exclusief btw."} klein /></div>
                 </div>
-                <ContactRijen offerte={offerte} huis={huis} />
+                <p className="m-0 text-[15px] leading-[1.7] md:col-span-4 md:col-start-9 md:self-end" style={{ color: BODY }}>
+                  {offerte.geldig_tot ? `Deze offerte is geldig tot en met ${datumLang(offerte.geldig_tot)}. ` : ""}Op deze offerte zijn de{" "}
+                  <a href={voorwaarden} target="_blank" rel="noopener" className="font-bold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a> van React2u van toepassing.
+                </p>
               </div>
-              <div className="relative mt-10 rounded-[24px] bg-white p-5 sm:p-7 md:mt-14 md:p-10">
-                <Akkoord
-                  offerte={offerte}
-                  token={token}
-                  keuze={keuze}
-                  totalen={totalen}
-                  kanTekenen={kanTekenen}
-                  open={open}
-                  modus={modus}
-                  voorwaarden={voorwaarden}
-                  afwijzen={kanTekenen ? () => setAfwijzen(true) : undefined}
-                  huis={huis}
-                  conceptHref={conceptHref}
-                />
-              </div>
+              <Akkoord
+                offerte={offerte}
+                token={token}
+                keuze={keuze}
+                totalen={totalen}
+                kanTekenen={kanTekenen}
+                open={open}
+                modus={modus}
+                voorwaarden={voorwaarden}
+                afwijzen={kanTekenen ? () => setAfwijzen(true) : undefined}
+                huis={huis}
+                conceptHref={conceptHref}
+              />
             </div>
           </div>
         </section>
@@ -810,8 +783,9 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
   );
 }
 
-/** Bellen en mailen in de indigo band, zoals de contactband van de site. */
+/** Bellen en mailen naast het akkoord, zoals de contactrijen van de site, op de tint van het label. */
 function ContactRijen({ offerte, huis }: { offerte: OffertePubliek; huis: Huis }) {
+  const m = useMerk();
   const tel = telLink(offerte.afzender_telefoon) || `tel:${huis.contact.phone}`;
   const telTekst = offerte.afzender_telefoon || telefoonTekst(huis.contact);
   const mail = offerte.afzender_email || OFFERTE_EMAIL;
@@ -822,11 +796,11 @@ function ContactRijen({ offerte, huis }: { offerte: OffertePubliek; huis: Huis }
   return (
     <ul className="m-0 flex list-none flex-col p-0 lg:col-span-5 lg:col-start-8">
       {rijen.map((r) => (
-        <li key={r.groot} className="border-t last:border-b" style={{ borderColor: "rgba(255,255,255,0.14)" }}>
-          <a href={r.href} className="hv-btn group flex items-center gap-4 py-5 text-white">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>{r.icoon}</span>
+        <li key={r.groot} className="border-t last:border-b" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
+          <a href={r.href} className="hv-btn group flex items-center gap-4 py-5" style={{ color: NAVY }}>
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white" style={{ color: m.tekst }}>{r.icoon}</span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[13px] font-bold" style={{ color: "rgba(255,255,255,0.7)" }}>{r.klein}</span>
+              <span className="block text-[13px] font-bold" style={{ color: MUTE }}>{r.klein}</span>
               <span className={`${kop} block truncate text-[19px] md:text-[21px]`}>{r.groot}</span>
             </span>
             <Pijl />
@@ -842,18 +816,17 @@ function ContactRijen({ offerte, huis }: { offerte: OffertePubliek; huis: Huis }
  * het totaal dat meetelt. Het eerste <aside> van de pagina (de browsertests
  * lezen het bedrag hier).
  */
-function Overzicht({ offerte, totalen, label, open, heeftKeuze, bijAkkoord, naarAkkoord, conceptHref }: {
-  offerte: OffertePubliek; totalen: Totalen; label: Dienstlabel; open: boolean; heeftKeuze: boolean; bijAkkoord: boolean; naarAkkoord: () => void; conceptHref: string | null;
+function Overzicht({ offerte, totalen, open, heeftKeuze, bijAkkoord, naarAkkoord, conceptHref }: {
+  offerte: OffertePubliek; totalen: Totalen; open: boolean; heeftKeuze: boolean; bijAkkoord: boolean; naarAkkoord: () => void; conceptHref: string | null;
 }) {
+  const m = useMerk();
   const tel = telLink(offerte.afzender_telefoon);
   return (
     <aside aria-label="Jouw voorstel" className="sticky top-[112px] overflow-hidden rounded-[28px] bg-white shadow-[0_30px_70px_-40px_rgba(50,46,131,0.45)]" style={{ border: `1px solid ${LINE}` }}>
-      <div className="relative px-7 pb-5 pt-6" style={{ background: label.tint }}>
-        <span aria-hidden className="absolute -right-[36px] -top-[36px] h-[110px] w-[110px] rounded-full" style={{ background: label.kleur, opacity: 0.16 }} />
+      <div className="relative overflow-hidden px-7 pb-5 pt-6" style={{ background: m.tint }}>
+        <span aria-hidden className="absolute -right-[36px] -top-[36px] h-[110px] w-[110px] rounded-full" style={{ background: m.kleur, opacity: 0.16 }} />
         <span className="relative flex items-start justify-between gap-3">
-          <span className={`${kop} flex flex-col text-[15px] leading-[1.1]`} style={{ color: NAVY }}>
-            React2u<span className="text-[24px] tracking-[-0.5px]" style={{ color: label.kleur }}>{label.naam}<sup className="text-[11px]" style={{ color: NAVY }}>®</sup></span>
-          </span>
+          <Merknaam m={m} klein />
           <span className="relative rounded-md bg-white px-2.5 py-1 text-[12.5px] font-bold" style={{ color: NAVY }}>{open && heeftKeuze ? "Jouw keuze" : "Voorstel"}</span>
         </span>
       </div>
@@ -864,7 +837,7 @@ function Overzicht({ offerte, totalen, label, open, heeftKeuze, bijAkkoord, naar
             return (
               <li key={regel.id} className="offerte-regel flex items-baseline justify-between gap-4 border-b py-2.5 text-[14.5px]" style={{ borderColor: LINE }}>
                 <span style={{ color: BODY }}>{regel.naam}</span>
-                <span className="shrink-0 font-bold tabular-nums" style={{ color: b.bedrag === 0 ? TEAL_TEKST : NAVY }}>
+                <span className="shrink-0 font-bold tabular-nums" style={{ color: b.bedrag === 0 ? m.tekst : NAVY }}>
                   {b.bedrag === null ? "Op aanvraag" : b.bedrag === 0 ? "Inbegrepen" : `${euro(b.bedrag)}${b.per === "maand" ? " p/m" : " eenmalig"}`}
                 </span>
               </li>
@@ -877,7 +850,7 @@ function Overzicht({ offerte, totalen, label, open, heeftKeuze, bijAkkoord, naar
           <Kleintje t={totalen} />
         </div>
         {open && (bijAkkoord ? (
-          <p className="m-0 mt-6 flex items-center gap-2 text-[15px] font-bold" style={{ color: TEAL_TEKST }}><Vink size={15} /> Je ondertekent hieronder</p>
+          <p className="m-0 mt-6 flex items-center gap-2 text-[15px] font-bold" style={{ color: m.tekst }}><Vink size={15} /> Je ondertekent hieronder</p>
         ) : (
           <button type="button" onClick={naarAkkoord} className={`${knop.roze} mt-6 w-full`}>Naar ondertekenen<Pijl /></button>
         ))}
@@ -901,31 +874,32 @@ function Overzicht({ offerte, totalen, label, open, heeftKeuze, bijAkkoord, naar
 
 /**
  * Het vaste voorwoord van Cindy en Susanne (lib/offerteVoorwoord.ts): links
- * hun initialen tussen de stippen, de kop en de uitgelichte zin zoals de
- * klantcitaten van de site; rechts de brief, met de eerste alinea als intro
- * en onderaan hun twee handtekeningen. Op een groot scherm blijft links staan.
+ * hun initialen, de kop en de uitgelichte zin zoals de klantcitaten van de
+ * site; rechts de brief, met de eerste alinea als intro en onderaan hun twee
+ * handtekeningen. Op een groot scherm blijft links staan.
  */
-function Voorwoord({ offerte, lila }: { offerte: OffertePubliek; lila: boolean }) {
+function Voorwoord({ offerte, tint }: { offerte: OffertePubliek; tint: boolean }) {
+  const m = useMerk();
   const v = VOORWOORD;
-  const achter = lila ? SOFT : "#ffffff";
+  const achter = tint ? m.tint : "#ffffff";
   const [eerste, ...rest] = v.alineas;
+  const kleur2 = opKleur(m);
   return (
     <section aria-labelledby="voorwoord-kop" style={{ background: achter }}>
       <div className={`${BREED} grid gap-10 py-16 md:py-[112px] lg:grid-cols-12 lg:gap-6`}>
         <div className="flex flex-col gap-7 lg:sticky lg:top-[120px] lg:col-span-5 lg:self-start xl:col-span-4">
-          <div className="relative h-[120px] w-[220px]" aria-hidden="true">
-            {([[0, 26, 10, TEAL, 2], [176, 4, 16, ORANGE, 1], [204, 74, 12, PINK, 3], [150, 102, 8, SKY, 2], [58, 108, 9, RED, 1]] as [number, number, number, string, number][]).map(([x, y, s, c, f], i) => (
-              <span key={i} className={`hv-f${f} absolute rounded-full`} style={{ left: x, top: y, width: s, height: s, background: c }} />
-            ))}
-            <span className="absolute left-[22px] top-[14px]"><Avatar naam={v.ondertekenaars[0]?.naam || "C"} maat={88} rand={achter} /></span>
-            <span className="absolute left-[92px] top-[24px]"><Avatar naam={v.ondertekenaars[1]?.naam || "S"} maat={88} kleur={TEAL} rand={achter} /></span>
+          <div className="relative h-[112px] w-[200px]" aria-hidden="true">
+            <span className="absolute left-0 top-[8px]"><Avatar naam={v.ondertekenaars[0]?.naam || "C"} maat={88} rand={achter} /></span>
+            <span className="absolute left-[70px] top-[18px]"><Avatar naam={v.ondertekenaars[1]?.naam || "S"} maat={88} kleur={kleur2.background} tekst={kleur2.color} rand={achter} /></span>
+            <span className="absolute left-[170px] top-0 h-4 w-4 rounded-full" style={{ background: m.kleur, opacity: 0.35 }} />
+            <span className="absolute left-[176px] top-[84px] h-2.5 w-2.5 rounded-full" style={{ background: m.kleur }} />
           </div>
           <div className="flex flex-col gap-4">
-            <Eyebrow>Voorwoord</Eyebrow>
+            <Eyebrow kleur={m.tekst}>Voorwoord</Eyebrow>
             <h2 id="voorwoord-kop" className={`${kop} m-0 text-[34px] leading-[1.08] tracking-[-0.9px] md:text-[46px]`} style={{ color: NAVY }}>{v.kop}</h2>
           </div>
           <figure className="m-0 flex flex-col gap-3">
-            <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: PINK }}>“</span>
+            <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: m.kleur }}>“</span>
             <blockquote className="m-0">
               <p className={`${kop} m-0 text-[20px] leading-[1.45] md:text-[22px]`} style={{ color: NAVY, fontWeight: 500 }}>{v.citaat}</p>
             </blockquote>
@@ -987,14 +961,17 @@ function bedragZin(r: Regel, medewerkers: number | null) {
 }
 
 function Sectie({
-  sectie, keuze, klik, medewerkers, kanKiezen,
+  sectie, keuze, klik, medewerkers, kanKiezen, verschil,
 }: {
   sectie: ReturnType<typeof secties>[number];
   keuze: string[];
   klik: (id: string) => void;
   medewerkers: number | null;
   kanKiezen: boolean;
+  /** Wat een andere keuze scheelt; alleen bij een open offerte. */
+  verschil?: (id: string) => { maand: number; eenmalig: number };
 }) {
+  const m = useMerk();
   const keuzes = new Map<string, Regel[]>();
   for (const r of sectie.regels.filter((r) => r.soort === "keuze")) keuzes.set(r.groep || "keuze", [...(keuzes.get(r.groep || "keuze") || []), r]);
   const vast = sectie.regels.filter((r) => r.soort === "vast");
@@ -1015,8 +992,11 @@ function Sectie({
       </h3>
 
       {[...keuzes.values()].map((lijst, gi) => (
-        <div key={gi} role="radiogroup" aria-label={`Kies: ${sectie.naam}`} className={`grid gap-5 ${lijst.length >= 2 ? "md:grid-cols-2" : ""}`}>
-          {lijst.map((r) => <KeuzeKaart key={r.id} r={r} aan={keuze.includes(r.id)} klik={() => klik(r.id)} medewerkers={medewerkers} kanKiezen={kanKiezen} />)}
+        <div key={gi} className="flex flex-col gap-4">
+          <div role="radiogroup" aria-label={`Kies: ${sectie.naam}`} className={`grid gap-5 ${lijst.length >= 2 ? "md:grid-cols-2" : ""}`}>
+            {lijst.map((r) => <KeuzeKaart key={r.id} r={r} aan={keuze.includes(r.id)} klik={() => klik(r.id)} medewerkers={medewerkers} kanKiezen={kanKiezen} />)}
+          </div>
+          {kanKiezen && verschil && <Upgrade lijst={lijst} keuze={keuze} klik={klik} verschil={verschil} />}
         </div>
       ))}
 
@@ -1024,11 +1004,11 @@ function Sectie({
         <div className="flex flex-col rounded-[22px] border bg-white px-6 py-2 md:px-7" style={{ borderColor: LINE }}>
           {vast.map((r) => (
             <div key={r.id} className="flex items-start gap-3.5 border-b py-4 last:border-b-0" style={{ borderColor: LINE }}>
-              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full" style={{ background: CHECK, color: TEAL_TEKST }} aria-hidden="true"><Vink size={12} /></span>
+              <Bolvink maat={24} />
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   <span className="text-[16px] font-bold" style={{ color: NAVY }}>{r.naam}</span>
-                  <span className="text-[16px] font-bold tabular-nums" style={{ color: r.prijs === 0 ? TEAL_TEKST : NAVY }}>{maandprijs(r).tekst}</span>
+                  <span className="text-[16px] font-bold tabular-nums" style={{ color: r.prijs === 0 ? m.tekst : NAVY }}>{maandprijs(r).tekst}</span>
                 </span>
                 <Onder r={r} medewerkers={medewerkers} />
               </span>
@@ -1050,9 +1030,10 @@ function Sectie({
                   aria-checked={aan}
                   disabled={!kanKiezen}
                   onClick={() => klik(r.id)}
-                  className={`flex w-full items-start gap-4 rounded-[22px] border-[1.5px] bg-white p-5 text-left transition-[border-color,box-shadow,transform] disabled:cursor-default enabled:active:scale-[0.995] md:px-7 ${aan ? "border-[#322E83] shadow-[0_18px_36px_-28px_rgba(50,46,131,0.55)]" : "border-[#E6E5EF] enabled:hover:border-[#B9B6DA]"}`}
+                  className="flex w-full items-start gap-4 rounded-[22px] border-[1.5px] bg-white p-5 text-left transition-[border-color,box-shadow,transform] disabled:cursor-default enabled:active:scale-[0.995] md:px-7"
+                  style={{ borderColor: aan ? m.kleur : LINE, boxShadow: aan ? "0 18px 36px -28px rgba(50,46,131,0.55)" : undefined }}
                 >
-                  <span className={`relative mt-0.5 inline-flex h-[26px] w-[46px] shrink-0 rounded-full transition-colors print:hidden ${aan ? "bg-[#322E83]" : "bg-[#DCDAE8]"}`} aria-hidden="true">
+                  <span className="relative mt-0.5 inline-flex h-[26px] w-[46px] shrink-0 rounded-full transition-colors print:hidden" style={{ background: aan ? m.kleur : "#DCDAE8" }} aria-hidden="true">
                     <span className={`absolute top-[3px] h-5 w-5 rounded-full bg-white shadow-sm transition-[left] ${aan ? "left-[23px]" : "left-[3px]"}`} />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -1108,11 +1089,123 @@ function Onder({ r, medewerkers }: { r: Regel; medewerkers: number | null }) {
 }
 
 /**
+ * Het upgrade-duwtje onder een keuze: staat er een uitgebreidere keuze naast
+ * de gekozen, dan zegt een regel wat die per maand meer kost, met één klik om
+ * over te stappen. Het verschil komt uit de offerte zelf.
+ */
+function Upgrade({ lijst, keuze, klik, verschil }: { lijst: Regel[]; keuze: string[]; klik: (id: string) => void; verschil: (id: string) => { maand: number; eenmalig: number } }) {
+  const m = useMerk();
+  if (!lijst.some((r) => keuze.includes(r.id))) return null;
+  // De eerstvolgende stap omhoog: van de duurdere keuzes de kleinste stap.
+  const beter = lijst
+    .filter((r) => !keuze.includes(r.id))
+    .map((r) => ({ r, v: verschil(r.id) }))
+    .filter(({ v }) => v.maand > 0)
+    .sort((a, b) => a.v.maand - b.v.maand)[0];
+  if (!beter) return null;
+  const zin = (beter.r.omschrijving || "").split(/(?<=\.)\s/)[0];
+  return (
+    <div className="flex flex-col gap-4 rounded-[22px] p-5 sm:flex-row sm:items-center sm:justify-between md:px-7" style={{ background: m.tint }}>
+      <p className="m-0 text-[15.5px] leading-[1.55]" style={{ color: BODY }}>
+        <strong style={{ color: NAVY }}>Liever alles geregeld?</strong> Met {beter.r.naam} betaal je{" "}
+        <strong className="whitespace-nowrap" style={{ color: NAVY }}>{euro(beter.v.maand)} per maand</strong> meer.
+        {zin && zin.length <= 140 ? ` ${zin}` : ""}
+      </p>
+      <button type="button" onClick={() => klik(beter.r.id)} className={`${knop.navy} !h-[46px] shrink-0 self-start sm:self-auto`}>
+        Kies {beter.r.naam}<Pijl />
+      </button>
+    </div>
+  );
+}
+
+/** Het label van een regel ("React2u Restart") als branding, of null. */
+function merkVanLabel(label: string | undefined): Merk | null {
+  if (!label) return null;
+  return MERKEN[label.replace(/^React2u\s+/i, "").toLowerCase()] || null;
+}
+
+/**
+ * "Vaak gekozen erbij": diensten uit andere specialismen die de klant er zelf
+ * bij kan aanklikken (aanbevolenExtras in lib/offerteCatalogus.ts), als kaarten
+ * in de kleur van hun eigen label, zoals de dienstenkaarten op de site. Aan
+ * betekent: telt mee en wordt meegetekend.
+ */
+function Extras({ regels, keuze, klik, medewerkers, kanKiezen, achter }: { regels: Regel[]; keuze: string[]; klik: (id: string) => void; medewerkers: number | null; kanKiezen: boolean; achter: string }) {
+  const m = useMerk();
+  if (!regels.length) return null;
+  return (
+    <div className="flex flex-col gap-5 print:hidden">
+      <div className="flex flex-col gap-2">
+        <h3 className={`${kop} m-0 text-[24px] tracking-[-0.4px]`} style={{ color: NAVY }}>Vaak gekozen erbij</h3>
+        <p className="m-0 max-w-[640px] text-[16px] leading-[1.65]" style={{ color: BODY }}>
+          Specialismen die goed aansluiten bij React2u {m.naam}. Zet aan wat je wilt meenemen, het bedrag rekent meteen mee.
+        </p>
+      </div>
+      <ul className="m-0 grid list-none gap-4 p-0 md:grid-cols-2">
+        {regels.map((r) => (
+          <li key={r.id} className="flex">
+            <ExtraKaart r={r} aan={keuze.includes(r.id)} klik={() => klik(r.id)} medewerkers={medewerkers} kanKiezen={kanKiezen} achter={achter} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ExtraKaart({ r, aan, klik, medewerkers, kanKiezen, achter }: { r: Regel; aan: boolean; klik: () => void; medewerkers: number | null; kanKiezen: boolean; achter: string }) {
+  const m = useMerk();
+  const lm = merkVanLabel(r.label) || m;
+  const mp = maandprijs(r);
+  const perMedewerker = r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker";
+  const b = bedragVoor(r, medewerkers);
+  const organisatie = perMedewerker && b && b.bedrag ? regelbedrag(b) : null;
+  const n = aantalVoor(r, medewerkers);
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={aan}
+      disabled={!kanKiezen}
+      onClick={klik}
+      className="relative flex w-full flex-col gap-4 overflow-hidden rounded-[26px] border-2 p-6 text-left transition-[border-color,box-shadow,transform] duration-300 disabled:cursor-default enabled:hover:-translate-y-0.5 md:p-7"
+      // Op een band in dezelfde tint wordt de kaart wit, anders valt hij weg.
+      style={{ background: lm.tint.toLowerCase() === achter.toLowerCase() ? "#ffffff" : lm.tint, borderColor: aan ? lm.kleur : "transparent", boxShadow: aan ? "0 24px 48px -32px rgba(50,46,131,0.45)" : "0 18px 40px -36px rgba(50,46,131,0.35)" }}
+    >
+      <span aria-hidden className="absolute right-[-40px] top-[-40px] h-[120px] w-[120px] rounded-full" style={{ background: lm.kleur, opacity: 0.16 }} />
+      <span className="relative flex items-start justify-between gap-4">
+        <Merknaam m={lm} klein />
+        <span className="relative mt-1 inline-flex h-[26px] w-[46px] shrink-0 rounded-full transition-colors" style={{ background: aan ? lm.kleur : "rgba(50,46,131,0.18)" }} aria-hidden="true">
+          <span className={`absolute top-[3px] h-5 w-5 rounded-full bg-white shadow-sm transition-[left] ${aan ? "left-[23px]" : "left-[3px]"}`} />
+        </span>
+      </span>
+      <span className="relative flex flex-col gap-1">
+        <span className={`${kop} text-[20px] leading-[1.25]`} style={{ color: NAVY }}>{r.naam}</span>
+        {r.omschrijving && <span className="text-[14.5px] leading-[1.55]" style={{ color: BODY }}>{r.omschrijving}</span>}
+      </span>
+      <span className="relative mt-auto flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-t pt-4" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
+        <span className="flex flex-col">
+          <span className={`${kop} text-[24px] tabular-nums tracking-[-0.5px]`} style={{ color: NAVY }}>
+            {organisatie ? `${euro(organisatie.bedrag!)} ${organisatie.per === "maand" ? "per maand" : "eenmalig"}` : mp.tekst}
+          </span>
+          {organisatie && mp.bedrag !== null && (
+            <span className="text-[13px]" style={{ color: MUTE }}>{euro(mp.bedrag)} per medewerker per maand × {n.toLocaleString("nl-NL")}</span>
+          )}
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-[14px] font-bold" style={{ color: aan ? lm.tekst : NAVY }}>
+          {aan ? <><Vink size={14} /> Toegevoegd</> : <>Voeg toe<span aria-hidden className="text-[17px] leading-none">+</span></>}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+/**
  * Een keuze als de prijskaarten op de tarievenpagina: wit met een rand, en
- * indigo als hij gekozen is. Het bedrag is wat de organisatie per maand
- * betaalt; per medewerker en de prijslijst staan eronder.
+ * indigo als hij gekozen is, met de badge in de labelkleur. Het bedrag is wat
+ * de organisatie per maand betaalt; per medewerker en de prijslijst eronder.
  */
 function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: boolean; klik: () => void; medewerkers: number | null; kanKiezen: boolean }) {
+  const m = useMerk();
   const mp = maandprijs(r);
   const perMedewerker = r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker";
   const b = bedragVoor(r, medewerkers);
@@ -1120,6 +1213,7 @@ function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: b
   const n = aantalVoor(r, medewerkers);
   const tekst = aan ? "#ffffff" : NAVY;
   const zacht = aan ? "rgba(255,255,255,0.78)" : BODY;
+  const badge = aan ? opKleur(m) : { background: m.tint, color: m.tekst };
   return (
     <button
       type="button"
@@ -1130,10 +1224,10 @@ function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: b
       className={`group relative flex flex-col gap-5 overflow-hidden rounded-[28px] border p-6 text-left transition-[background-color,border-color,box-shadow,transform] duration-300 disabled:cursor-default md:p-8 ${aan ? "" : "enabled:hover:-translate-y-0.5 enabled:hover:border-[#B9B6DA] print:hidden"}`}
       style={{ background: aan ? NAVY : "#ffffff", borderColor: aan ? NAVY : LINE, boxShadow: aan ? "0 30px 60px -36px rgba(50,46,131,0.7)" : "0 24px 48px -36px rgba(50,46,131,0.35)" }}
     >
-      {aan && <span aria-hidden className="absolute -right-[60px] -top-[60px] h-[180px] w-[180px] rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />}
+      {aan && <span aria-hidden className="absolute -right-[60px] -top-[60px] h-[180px] w-[180px] rounded-full" style={{ background: m.kleur, opacity: 0.22 }} />}
       <span className="relative flex items-start justify-between gap-4">
         <span className={`${kop} text-[22px] leading-[1.2]`} style={{ color: tekst }}>{r.naam}</span>
-        {r.badge && <span className="shrink-0 rounded-md px-2.5 py-1 text-[13px] font-bold" style={{ background: aan ? PINK : SOFT, color: aan ? "#ffffff" : NAVY }}>{r.badge}</span>}
+        {r.badge && <span className="shrink-0 rounded-md px-2.5 py-1 text-[13px] font-bold" style={badge}>{r.badge}</span>}
       </span>
       <span className="relative flex flex-col gap-1.5">
         <span className="flex flex-wrap items-end gap-x-2">
@@ -1158,7 +1252,7 @@ function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: b
         <span className="relative flex flex-col gap-3">
           {r.punten.map((p) => (
             <span key={p} className="flex items-start gap-3 text-[15px] leading-[1.5]" style={{ color: tekst }}>
-              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full" style={{ background: aan ? "rgba(255,255,255,0.12)" : CHECK, color: aan ? "#ffffff" : TEAL }}><Vink size={11} /></span>
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full" style={{ background: aan ? "rgba(255,255,255,0.12)" : m.tint, color: aan ? "#ffffff" : m.tekst }}><Vink size={11} /></span>
               {p}
             </span>
           ))}
@@ -1177,7 +1271,7 @@ function KeuzeKaart({ r, aan, klik, medewerkers, kanKiezen }: { r: Regel; aan: b
 function Optelling({ t, open, naarAkkoord }: { t: Totalen; open: boolean; naarAkkoord: () => void }) {
   return (
     <div className="relative flex flex-col gap-6 overflow-hidden rounded-[28px] px-6 py-8 md:flex-row md:items-center md:justify-between md:px-10 md:py-9" style={{ background: NAVY }}>
-      <span aria-hidden className="absolute -left-[12%] top-1/2 aspect-square w-[46%] -translate-y-1/2 rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
+      <span aria-hidden className="absolute -right-[80px] -top-[140px] h-[300px] w-[300px] rounded-full" style={{ background: NAVY_LICHT }} />
       <div className="relative">
         <Label licht>Totaal</Label>
         <div className="mt-2"><Bedrag t={t} maat="text-[48px]" licht live={false} /></div>
@@ -1194,138 +1288,54 @@ function Optelling({ t, open, naarAkkoord }: { t: Totalen; open: boolean; naarAk
   );
 }
 
-/* ---------- zo gaat het verder: de stippenreis ---------- */
-
-const STAP_KLEUR = [TEAL, SKY, PINK, ORANGE];
-const STAP_ICOON = [LuPenLine, LuCalendarCheck, LuHandshake, LuRoute];
-// Reis op een vlak van 1200 × 250, zoals op de startpagina: stations, daartussen een S-bocht van stippen.
-const JW = 1200, JH = 250, JR = 66, SEG = 0.9;
-const tStation = (i: number) => 0.15 + i * 0.22;
-const tSpoor = (i: number) => 0.5 + i * SEG;
-
-function hex(c: string) { return [1, 3, 5].map((k) => parseInt(c.slice(k, k + 2), 16)); }
-function mix(a: string, b: string, t: number) {
-  const A = hex(a), B = hex(b);
-  return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join("");
-}
-
-type Stip = { x: number; y: number; s: number; c: string; delay: number };
-/** Stations en het spoor voor 2 tot 4 stappen (de reis van HomeVerhaal, met een variabel aantal stations). */
-function reisVoor(n: number) {
-  const sx = Array.from({ length: n }, (_, i) => (n === 1 ? JW / 2 : 150 + (i * 900) / (n - 1)));
-  const sy = sx.map((_, i) => (i % 2 ? 150 : 110));
-  const spoor: Stip[] = [];
-  for (let i = 0; i < n - 1; i++) {
-    const [x0, y0, x1, y1] = [sx[i], sy[i], sx[i + 1], sy[i + 1]];
-    const pts: [number, number][] = [];
-    for (let k = 0; k < 400; k++) {
-      const u = k / 399;
-      pts.push([x0 + (x1 - x0) * u, y0 + (y1 - y0) * (3 * u * u - 2 * u * u * u) - 28 * Math.sin(Math.PI * u)]);
-    }
-    let acc = 0, last = pts[0];
-    let gekozen: [number, number][] = [];
-    for (const p of pts.slice(1)) {
-      acc += Math.hypot(p[0] - last[0], p[1] - last[1]); last = p;
-      if (acc >= 19) { gekozen.push(p); acc = 0; }
-    }
-    gekozen = gekozen.filter((p) => Math.hypot(p[0] - x0, p[1] - y0) > JR + 14 && Math.hypot(p[0] - x1, p[1] - y1) > JR + 14);
-    const start = tSpoor(i);
-    gekozen.forEach((p, j) => {
-      const t = j / Math.max(gekozen.length - 1, 1);
-      spoor.push({ x: p[0], y: p[1], s: 8 + 4 * Math.sin(Math.PI * t), c: mix(STAP_KLEUR[i % 4], STAP_KLEUR[(i + 1) % 4], t), delay: start + t * SEG });
-    });
-  }
-  return { sx, sy, spoor };
-}
+/* ---------- zo gaat het verder: de aanpak ---------- */
 
 /**
- * De vervolgstappen als de stippenreis van de startpagina. Stappen die al
- * gedaan zijn (na ondertekening de eerste) krijgen een vinkje.
+ * De vervolgstappen als "Onze aanpak" op de dienstpagina van het label: een
+ * indigo band met de lichtere cirkel, en genummerde stappen in de labelkleur.
+ * Wat al gedaan is (na ondertekening de eerste stap) krijgt een vinkje.
  */
-function Reis({ stappen: eigen, klaar = 0, achter = "#ffffff" }: { stappen: Stap[] | null | undefined; klaar?: number; achter?: string }) {
+function Aanpak({ stappen: eigen, klaar = 0, titel, tekst }: { stappen: Stap[] | null | undefined; klaar?: number; titel: string; tekst?: React.ReactNode }) {
+  const m = useMerk();
   const lijst = normaliseerVervolg(eigen);
-  const stappen = (lijst.length ? lijst : VERVOLG_STANDAARD).slice(0, 4);
-  const { sx, sy, spoor } = useMemo(() => reisVoor(stappen.length), [stappen.length]);
+  const stappen = lijst.length ? lijst : VERVOLG_STANDAARD;
+  const bol = opKleur(m);
   return (
-    <ReisSpeler>
-      {/* Breed: het spoor met stations, met de teksten eronder */}
-      <div className="hidden md:block">
-        <div className="relative mx-auto w-full max-w-[1200px]" style={{ aspectRatio: `${JW} / ${JH}`, containerType: "inline-size" }} aria-hidden="true">
-          {spoor.map((p, i) => (
-            <span key={i} className="hv-jd absolute rounded-full"
-              style={{ left: pct(p.x - p.s / 2, JW), top: pct(p.y - p.s / 2, JH), width: pct(p.s, JW), aspectRatio: "1", background: p.c, animationDelay: `${p.delay.toFixed(2)}s` }} />
-          ))}
-          {stappen.map((_, i) => {
+    <section aria-label="Zo gaat het verder" className="relative overflow-hidden" style={{ background: NAVY }}>
+      <span aria-hidden className="absolute right-[-180px] top-[-220px] h-[540px] w-[540px] rounded-full" style={{ background: NAVY_LICHT }} />
+      <div className={`${BREED} relative flex flex-col gap-10 py-16 md:gap-[52px] md:py-[104px]`}>
+        <SectieKop eyebrow="Zo gaat het verder" titel={titel} tekst={tekst} licht />
+        <ol className={`m-0 grid list-none gap-6 p-0 md:grid-cols-2 md:gap-8 ${stappen.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+          {stappen.map((s, i) => {
             const gedaan = i < klaar;
-            const Ic = gedaan ? LuCheck : STAP_ICOON[i % 4];
-            const c = STAP_KLEUR[i % 4];
             return (
-              <span key={i} className="hv-js absolute"
-                style={{ left: pct(sx[i] - JR, JW), top: pct(sy[i] - JR, JH), width: pct(2 * JR, JW), aspectRatio: "1", animationDelay: `${tStation(i).toFixed(2)}s` }}>
-                <span className={`hv-f${[1, 2, 3, 1][i % 4]} absolute inset-0 grid place-items-center rounded-full text-white`}
-                  style={{ background: c, boxShadow: `0 0 0 10px ${achter}, 0 30px 60px -28px ${c}` }}>
-                  <Ic style={{ width: "3.8cqw", height: "3.8cqw" }} strokeWidth={gedaan ? 2.6 : 1.7} />
-                  <span className={`${kop} absolute grid place-items-center rounded-full bg-white`}
-                    style={{ right: "-0.35cqw", top: "-0.35cqw", width: "3.3cqw", height: "3.3cqw", fontSize: "1.4cqw", fontWeight: 800, color: c, boxShadow: "0 6px 16px -6px rgba(50,46,131,.35)" }}>{i + 1}</span>
+              <li key={`${s.kop}-${i}`} className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-4 gap-y-1.5 md:flex md:flex-col md:gap-3.5">
+                <span className="row-span-2 flex items-start gap-3 md:row-span-1 md:items-center">
+                  <span className={`${kop} grid h-12 w-12 shrink-0 place-items-center rounded-full text-[19px]`} style={bol}>
+                    {gedaan ? <LuCheck className="text-[22px]" strokeWidth={3} aria-hidden /> : i + 1}
+                  </span>
+                  {i < stappen.length - 1 && <span aria-hidden className="hidden h-px grow lg:block" style={{ background: "rgba(255,255,255,0.18)" }} />}
                 </span>
-              </span>
+                <span className="text-[13px] font-bold uppercase tracking-[1.3px] md:mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>{gedaan ? "Gedaan" : `Stap ${i + 1}`}</span>
+                <span className={`${kop} col-start-2 text-[21px] leading-[1.3]`} style={{ color: "#ffffff" }}>{s.kop}</span>
+                {s.tekst && <span className="col-start-2 text-[15.5px] leading-[1.65]" style={{ color: "rgba(255,255,255,0.75)" }}>{s.tekst}</span>}
+              </li>
             );
           })}
-        </div>
-        <ol className="m-0 mx-auto mt-2 grid max-w-[1200px] list-none gap-10 p-0" style={{ gridTemplateColumns: `repeat(${stappen.length}, minmax(0, 1fr))` }}>
-          {stappen.map((s, i) => (
-            <li key={`${s.kop}-${i}`} className="hv-jc flex flex-col items-center gap-2 px-2 text-center" style={{ animationDelay: `${(tStation(i) + 0.12).toFixed(2)}s` }}>
-              <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: i < klaar ? TEAL_TEKST : STAP_KLEUR[i % 4] }}>{i < klaar ? "Gedaan" : `Stap ${i + 1}`}</span>
-              <span className={`${kop} text-[20px] leading-[1.3] lg:text-[22px]`} style={{ color: NAVY }}>{s.kop}</span>
-              {s.tekst && <span className="text-[15px] leading-[1.75] lg:text-[16px]" style={{ color: BODY }}>{s.tekst}</span>}
-            </li>
-          ))}
         </ol>
       </div>
-
-      {/* Smal: dezelfde reis van boven naar beneden */}
-      <ol className="m-0 flex list-none flex-col p-0 md:hidden">
-        {stappen.map((s, i) => {
-          const gedaan = i < klaar;
-          const Ic = gedaan ? LuCheck : STAP_ICOON[i % 4];
-          const c = STAP_KLEUR[i % 4];
-          const laatste = i === stappen.length - 1;
-          return (
-            <li key={`${s.kop}-${i}`} className="grid grid-cols-[64px_1fr] gap-x-5">
-              <div className="flex flex-col items-center">
-                <span className="hv-js grid h-16 w-16 shrink-0 place-items-center rounded-full text-white"
-                  style={{ background: c, boxShadow: `0 0 0 6px ${achter}, 0 20px 40px -22px ${c}`, animationDelay: `${tStation(i).toFixed(2)}s` }}>
-                  <Ic className="text-[26px]" strokeWidth={gedaan ? 2.6 : 1.7} aria-hidden />
-                </span>
-                {!laatste && (
-                  <span aria-hidden className="flex grow flex-col items-center justify-around gap-2 py-3">
-                    {[0, 1, 2, 3].map((k) => (
-                      <span key={k} className="hv-jd h-2 w-2 rounded-full"
-                        style={{ background: mix(c, STAP_KLEUR[(i + 1) % 4], k / 3), animationDelay: `${(tStation(i) + 0.3 + k * 0.08).toFixed(2)}s` }} />
-                    ))}
-                  </span>
-                )}
-              </div>
-              <div className={`hv-jc flex flex-col gap-1.5 pt-2 ${laatste ? "" : "pb-8"}`} style={{ animationDelay: `${(tStation(i) + 0.12).toFixed(2)}s` }}>
-                <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: gedaan ? TEAL_TEKST : c }}>{gedaan ? "Gedaan" : `Stap ${i + 1}`}</span>
-                <span className={`${kop} text-[20px] leading-[1.3]`} style={{ color: NAVY }}>{s.kop}</span>
-                {s.tekst && <span className="text-[15px] leading-[1.7]" style={{ color: BODY }}>{s.tekst}</span>}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </ReisSpeler>
+    </section>
   );
 }
 
 /* ---------- vertrouwen: klanten aan het woord en de keurmerken ---------- */
 
 /** Klanten aan het woord, de klantlogo's en de keurmerken, zoals op de site (Gedeeld.tsx). */
-function Vertrouwen({ huis, lila }: { huis: Huis; lila: boolean }) {
+function Vertrouwen({ huis }: { huis: Huis }) {
+  const m = useMerk();
   const g = woordenboek("nl").gedeeld;
   return (
-    <Band lila={lila} label="Klanten en kwaliteit">
+    <Band label="Klanten en kwaliteit">
       <SectieKop
         eyebrow={g.ervaringenEyebrow}
         titel={g.ervaringenKop}
@@ -1333,12 +1343,12 @@ function Vertrouwen({ huis, lila }: { huis: Huis; lila: boolean }) {
       />
       <div className="grid gap-5 md:grid-cols-2 md:gap-6">
         {g.citaten.map((q) => (
-          <figure key={q.naam} className="m-0 flex flex-col justify-between gap-7 rounded-[28px] p-6 sm:gap-8 sm:p-8 md:p-10" style={vlak(lila)}>
+          <figure key={q.naam} className="m-0 flex flex-col justify-between gap-7 rounded-[28px] p-6 sm:gap-8 sm:p-8 md:p-10" style={{ background: m.tint }}>
             <blockquote className="m-0 flex flex-col gap-4">
-              <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: PINK }}>“</span>
+              <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: m.kleur }}>“</span>
               <p className={`${kop} m-0 text-[19px] leading-[1.45] sm:text-[20px] md:text-[22px]`} style={{ color: NAVY, fontWeight: 500 }}>{q.tekst}</p>
             </blockquote>
-            <figcaption className="flex items-center justify-between gap-6 border-t pt-6" style={{ borderColor: LINE }}>
+            <figcaption className="flex items-center justify-between gap-6 border-t pt-6" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
               <span className="flex flex-col gap-0.5">
                 <span className="text-[16px] font-bold" style={{ color: NAVY }}>{q.naam}</span>
                 <span className="text-[14.5px]" style={{ color: MUTE }}>{q.rol}</span>
@@ -1402,6 +1412,7 @@ function Akkoord({
   huis: Huis;
   conceptHref: string | null;
 }) {
+  const m = useMerk();
   const router = useRouter();
   const vooraf = normaliseerFactuur(offerte.factuur);
   const [naam, setNaam] = useState(offerte.contactpersoon || "");
@@ -1492,7 +1503,7 @@ function Akkoord({
   return (
     <div>
       {/* Wat je tekent, in één regel */}
-      <div className="mb-9 flex flex-col gap-3 rounded-[20px] p-5 sm:flex-row sm:items-center sm:justify-between md:px-7" style={{ background: SOFT }}>
+      <div className="mb-9 flex flex-col gap-3 rounded-[20px] p-5 sm:flex-row sm:items-center sm:justify-between md:px-7" style={{ background: m.tint }}>
         <div>
           <p className="m-0 text-[15.5px] leading-[1.55]" style={{ color: BODY }}>
             Je geeft akkoord op <strong style={{ color: NAVY }}>{totalen.regels.map((r) => r.regel.naam).join(", ") || offerte.titel}</strong>.
@@ -1514,7 +1525,7 @@ function Akkoord({
             <p className={`${kop} m-0 mt-2 text-[20px]`} style={{ color: NAVY }}>React2u</p>
             <p className="m-0 min-h-[2.9em] text-[14px] leading-[1.45]" style={{ color: MUTE }}>{huis.contact.addressLine1}, {huis.contact.addressLine2}<br />KvK {huis.contact.kvk}</p>
             <div className="mt-3 flex h-[44px] items-center">
-              <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-bold" style={{ background: CHECK, color: TEAL_TEKST }}>
+              <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-bold" style={{ background: m.tint, color: m.tekst }}>
                 <Vink size={12} /> Offerte aangeboden
               </span>
             </div>
@@ -1621,7 +1632,7 @@ function Akkoord({
 
         {!uit && stap === "code" ? (
           <div className="relative mt-6 overflow-hidden rounded-[22px] p-5 md:p-7" style={{ background: NAVY }} aria-live="polite">
-            <span aria-hidden className="absolute -right-[60px] -top-[80px] h-[220px] w-[220px] rounded-full" style={{ background: "rgba(255,255,255,0.05)" }} />
+            <span aria-hidden className="absolute -right-[60px] -top-[80px] h-[220px] w-[220px] rounded-full" style={{ background: NAVY_LICHT }} />
             <div className="relative flex items-start gap-4">
               <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full sm:flex" style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}><Mail size={20} /></span>
               <div className="min-w-0">
@@ -1755,26 +1766,28 @@ function AfwijsVenster({ offerte, token, sluit }: { offerte: OffertePubliek; tok
 
 /* ---------- na ondertekening ---------- */
 
-/** Stippen in de kleuren van het logo die uit het vinkje springen; alleen bij een verse ondertekening, en niet bij verminderde beweging. */
+/** Stippen in de labelkleur die uit het vinkje springen; alleen bij een verse ondertekening, en niet bij verminderde beweging. */
 function Feest() {
-  const kleuren = [NAVY, PINK, TEAL, ORANGE, SKY, RED];
+  const m = useMerk();
+  const kleuren = [m.kleur, NAVY, m.kleur, "#ffffff"];
   return (
     <span className="pointer-events-none absolute inset-0 motion-reduce:hidden" aria-hidden="true">
       {Array.from({ length: 16 }, (_, i) => {
         const hoek = (i / 16) * Math.PI * 2;
-        const afstand = 34 + (i % 3) * 7;
-        const maat = 2.2 + (i % 3) * 0.9;
+        const afstand = 58 + (i % 3) * 16;
+        const maat = 7 + (i % 3) * 3;
         return (
           <span
             key={i}
             className="offerte-stip absolute left-1/2 top-1/2 rounded-full"
             style={{
-              width: `${maat}cqw`,
-              height: `${maat}cqw`,
+              width: maat,
+              height: maat,
               background: kleuren[i % kleuren.length],
-              ["--x" as string]: `${Math.cos(hoek) * afstand}cqw`,
-              ["--y" as string]: `${Math.sin(hoek) * afstand}cqw`,
-              animationDelay: `${300 + (i % 4) * 40}ms`,
+              boxShadow: kleuren[i % kleuren.length] === "#ffffff" ? `0 0 0 1px ${m.kleur}` : undefined,
+              ["--x" as string]: `${Math.cos(hoek) * afstand}px`,
+              ["--y" as string]: `${Math.sin(hoek) * afstand}px`,
+              animationDelay: `${150 + (i % 4) * 40}ms`,
             }}
           />
         );
@@ -1784,30 +1797,45 @@ function Feest() {
 }
 
 const FEEST_CSS = `
-.offerte-stip { transform: translate(-50%, -50%) scale(0); opacity: 0; animation: offerte-stip 1100ms cubic-bezier(.2,.8,.2,1) forwards; }
+.offerte-stip { transform: translate(-50%, -50%) scale(0); opacity: 0; animation: offerte-stip 1000ms cubic-bezier(.2,.8,.2,1) forwards; }
 @keyframes offerte-stip {
   0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
   30% { opacity: 1; }
   100% { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1); opacity: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .offerte-stip { animation: none; } }
+.offerte-vink { animation: offerte-vink 520ms cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes offerte-vink { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .offerte-stip, .offerte-vink { animation: none; } }
 `;
 
-/** Het medaillon na ondertekening: een teal vinkje, ondertekend en wanneer. */
-function GetekendMedaillon({ moment, vers }: { moment: string; vers: boolean }) {
+/** De witte kaart in de opening na ondertekening: het vinkje in de labelkleur, wanneer, en het bedrag. */
+function GetekendKaart({ moment, vers, t, bevestigd }: { moment: string; vers: boolean; t: Totalen; bevestigd: boolean }) {
+  const m = useMerk();
   return (
-    <>
-      {vers && <Feest />}
-      <span className="grid place-items-center rounded-full text-white" style={{ background: TEAL, width: "12cqw", height: "12cqw" }}>
-        <LuCheck style={{ width: "6cqw", height: "6cqw" }} strokeWidth={3} aria-hidden />
+    <div className="rounded-[24px] bg-white p-6 text-center shadow-[0_30px_70px_-40px_rgba(50,46,131,0.45)] md:p-8">
+      <span className="relative mx-auto flex h-24 w-24 items-center justify-center">
+        {vers && <Feest />}
+        <span className={`flex h-[72px] w-[72px] items-center justify-center rounded-full ${vers ? "offerte-vink" : ""}`} style={opKleur(m)}>
+          <LuCheck className="text-[34px]" strokeWidth={3} aria-hidden />
+        </span>
       </span>
-      <span className={kop} style={{ color: NAVY, fontSize: "4.4cqw", marginTop: "1.8cqw", lineHeight: 1.1 }}>Ondertekend</span>
-      <span style={{ color: MUTE, fontSize: "2cqw", marginTop: "0.6cqw", maxWidth: "76%" }}>{moment}</span>
-    </>
+      <p className={`${kop} m-0 mt-4 text-[24px]`} style={{ color: NAVY }}>Ondertekend</p>
+      <p className="m-0 mt-1 text-[15px]" style={{ color: MUTE }}>{moment}</p>
+      <div className="mt-6 border-t pt-5 text-left" style={{ borderColor: LINE }}>
+        <Bedrag t={t} maat="text-[44px]" live={false} />
+        <Kleintje t={t} />
+      </div>
+      {bevestigd && (
+        <span className="mt-5 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-bold" style={{ background: m.tint, color: m.tekst }}>
+          <Vink size={12} /> E-mailadres bevestigd met een code
+        </span>
+      )}
+    </div>
   );
 }
 
 function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte: OffertePubliek; token?: string; voorwaarden: string; modus: Modus; vers: boolean; huis: Huis }) {
+  const m = useMerk();
   const inhoud = offerte.getekend_inhoud!;
   // De pdf met het ondertekeningscertificaat: via het token, of in het voorbeeld via het beheer.
   const pdf = token ? `/offerte/${token}/pdf` : `/admin/offertevoorbeeld/${offerte.id}/pdf`;
@@ -1815,7 +1843,6 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
   const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
   const tarieven = regels.filter((r) => r.soort === "tarief");
   const vorm: Vorm = inhoud.vorm && VORMEN[inhoud.vorm] ? inhoud.vorm : "verzuimbegeleiding";
-  const label = labelVan(vorm);
   const afzender = inhoud.afzender_naam || offerte.afzender_naam || "React2u";
   const metTekst = Boolean(inhoud.inhoud?.trim());
   return (
@@ -1826,45 +1853,35 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
 
       <main>
         <Opening
-          label={<Stiplabel>Offerte {inhoud.nummer} is ondertekend</Stiplabel>}
-          regels={vers ? [`Gelukt, ${voornaam(inhoud.getekend_naam)}!`, "Welkom bij React2u."] : [`Ondertekend door ${inhoud.getekend_naam}`, "Welkom bij React2u."]}
+          nummer={inhoud.nummer}
+          bedrijf={inhoud.bedrijf}
+          zin={vers ? <>Gelukt, {voornaam(inhoud.getekend_naam)}! Welkom bij React2u.</> : <>Ondertekend door {inhoud.getekend_naam}</>}
           tekst={
             <p className="m-0">
-              <span className="hidden print:inline">{inhoud.titel}. </span>
               {inhoud.titel} voor {inhoud.bedrijf}
               {inhoud.betreft ? ` (${VORMEN[vorm].betreft || "betreft"}: ${inhoud.betreft})` : ""}, ondertekend op {momentLang(inhoud.getekend_at)}.
               {vers ? ` De getekende offerte staat als pdf in je mail op ${inhoud.getekend_email}.` : ""}
             </p>
           }
-          punten={inhoud.bevestiging ? ["E-mailadres bevestigd met een code", "De getekende versie ligt vast, met een kenmerk"] : ["De getekende versie ligt vast, met een kenmerk"]}
           knoppen={
             <>
               <a href={`${pdf}?download=1`} className={knop.roze}><Download /> Download de getekende offerte</a>
               <a href={pdf} target="_blank" rel="noopener" className={knop.rand}>Bekijk de pdf<Pijl /></a>
             </>
           }
-          constellatie={
-            <Constellatie
-              medaillons={[
-                <GetekendMedaillon key="g" moment={momentLang(inhoud.getekend_at)} vers={vers} />,
-                <ContactMedaillon key="c" naam={afzender} functie={inhoud.afzender_functie ?? offerte.afzender_functie} />,
-                <LabelMedaillon key="l" label={label} />,
-              ]}
-            />
-          }
+          kaart={<GetekendKaart moment={momentLang(inhoud.getekend_at)} vers={vers} t={t} bevestigd={Boolean(inhoud.bevestiging)} />}
         />
 
-        <Band label="Zo gaat het verder">
-          <SectieKop
-            eyebrow="Zo gaat het verder"
-            titel="De eerste stap is gezet"
-            tekst={offerte.afzender_telefoon ? <>Vragen over de start? Bel {voornaam(afzender) || "ons"} op <span className="whitespace-nowrap">{offerte.afzender_telefoon}</span>.</> : undefined}
-          />
-          <Reis stappen={inhoud.vervolg ?? offerte.vervolg} klaar={1} />
-        </Band>
+        <div className="h-10 md:h-16" />
+        <Aanpak
+          stappen={inhoud.vervolg ?? offerte.vervolg}
+          klaar={1}
+          titel="De eerste stap is gezet"
+          tekst={offerte.afzender_telefoon ? <>Vragen over de start? Bel {voornaam(afzender) || "ons"} op <span className="whitespace-nowrap">{offerte.afzender_telefoon}</span>.</> : undefined}
+        />
 
-        <Band lila label="Wat je hebt afgenomen">
-          <SectieKop eyebrow={label.naam} kleur={label.kleur} titel="Wat je hebt afgenomen" />
+        <Band tint label="Wat je hebt afgenomen">
+          <SectieKop eyebrow={`React2u ${m.naam}`} titel="Wat je hebt afgenomen" />
           <div className="grid items-start gap-5 lg:grid-cols-12 lg:gap-6">
             <div className="flex flex-col rounded-[28px] bg-white px-6 pb-3 pt-6 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)] md:px-8 lg:col-span-7">
               <div className="flex items-baseline justify-between border-b pb-3" style={{ borderColor: LINE }}>
@@ -1911,7 +1928,7 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
           <section aria-label="Over deze offerte" className="bg-white">
             <div className={`${BREED} grid gap-8 py-16 md:py-[112px] lg:grid-cols-12 lg:gap-6`}>
               <div className="flex flex-col gap-4 lg:col-span-4">
-                <Eyebrow kleur={label.kleur}>{label.naam}</Eyebrow>
+                <Eyebrow kleur={m.tekst}>React2u {m.naam}</Eyebrow>
                 <h2 className={`${kop} m-0 text-[34px] leading-[1.08] tracking-[-0.9px] md:text-[46px]`} style={{ color: NAVY }}>Over deze offerte</h2>
               </div>
               <div className="lg:col-span-8 lg:col-start-5">
@@ -1929,9 +1946,9 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
           </section>
         )}
 
-        <Band lila={metTekst} label="Voorwaarden en ondertekening">
+        <Band tint={metTekst} label="Voorwaarden en ondertekening">
           <div className="grid items-start gap-5 lg:grid-cols-12 lg:gap-6">
-            <div className="rounded-[28px] p-6 md:p-9 lg:col-span-5" style={vlak(metTekst)}>
+            <div className="rounded-[28px] p-6 md:p-9 lg:col-span-5" style={vlak(m, metTekst)}>
               <h3 className={`${kop} m-0 text-[22px]`} style={{ color: NAVY }}>Voorwaarden</h3>
               <div className="mt-4"><OfferteTekst tekst={vulIn(inhoud.voorwaarden, inhoud).trim() || "- Alle bedragen zijn exclusief btw."} klein /></div>
               <p className="m-0 mt-5 text-[15px]" style={{ color: BODY }}>
