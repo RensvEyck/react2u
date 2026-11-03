@@ -53,7 +53,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Offertevorm** (`vorm`) | Soort offerte: verzuimbegeleiding, casemanagement Reflex (flexbranche), RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject of arbeidsdeskundig onderzoek (migraties 0025 en 0029). Bepaalt het label in het beheer en wat het veld *betreft* heet (werknemer, locatie, deelnemers). |
 | **Offertesjabloon** | Beginpunt van een nieuwe offerte per vorm: titel, aanhef, uitleg, onderdelen, voorwaarden, vervolgstappen en geldigheid. Standaard in [`src/lib/offerteSjablonen.ts`](src/lib/offerteSjablonen.ts); aanpassingen van het team in `offerte_sjablonen`. |
 | **Offertelink** | `/offerte/<token>`: de pagina waar de klant kiest en tekent. Het token (64 hex) is het enige geheim; *Nieuwe link* in het beheer maakt de oude ongeldig. |
-| **Brochure** (`brochures`) | Een persoonlijke brochure met alle zes diensten voor één prospect, nog vóór er een offerte is (migratie 0030, `/admin/brochures`). Statussen `concept`, `verstuurd`, `ingetrokken`; de link `/brochure/<token>` werkt als een offertelink, met pdf. De inhoud komt van de labelpagina's en is niet per brochure aan te passen; alleen het persoonlijke woord en de afzender. |
+| **Brochure** (`brochures`) | Een persoonlijke brochure met alle zes diensten en de prijslijst voor één prospect, nog vóór er een offerte is (migratie 0030, `/admin/brochures`). Statussen `concept`, `verstuurd`, `ingetrokken`; de link `/brochure/<token>` werkt als een offertelink, met pdf. De inhoud komt van de labelpagina's en het tarievenblok en is niet per brochure aan te passen; alleen het persoonlijke woord en de afzender. |
 
 ## Architectuur
 
@@ -1199,7 +1199,9 @@ Sinds 2 november 2026 (migratie [0030](supabase/migrations/0030_brochures.sql)):
 sales stuurt een prospect een **persoonlijke brochure met alle zes diensten**, nog
 vóór er een offerte is (Rens: "maak een brochure pagina zodat we een template
 handig kunnen versturen, offerte zelf volgt later"). Dezelfde opzet als de
-offertemodule, zonder prijzen, keuzes of ondertekening.
+offertemodule, zonder keuzes of ondertekening. Sinds 3 november 2026 staat de
+prijslijst erin (Rens: "Ga verder met de brochure. hierbij prijslijst", met de
+pdf van de prijslijst 2027).
 
 - **Eén inhoud, per prospect een woord.** De zes diensten komen van de
   dienstLabel-blokken van de labelpagina's in het CMS
@@ -1208,6 +1210,17 @@ offertemodule, zonder prijzen, keuzes of ondertekening.
   vult sales alleen de prospect, het persoonlijke woord (`bericht`, met
   `{bedrijf}` en `{voornaam}`) en de afzender in. Zo zegt elke brochure wat de
   site zegt.
+- **Prijslijst**: dezelfde bron als /verzuimabonnementen en de offertemodule, het
+  blok `dgTarieven` (live uit het CMS, anders `src/content/tarieven.json`) met het
+  jaar uit Instellingen → Tarievenjaar ([`lib/brochurePrijslijst.ts`](src/lib/brochurePrijslijst.ts),
+  geladen in `brochureHuisstijl.ts`). Nieuwe prijzen hoeven dus niet apart in de
+  brochure. De indeling volgt de gedrukte prijslijst: de drie aansluitingen, de
+  uurtarieven, een kaart per label in zijn kleur en tot slot maatwerk en
+  specialisten; één lange lijst (uurtarieven, Ready) staat over twee kolommen, de
+  uitlegkaarten van de site vallen weg. In de pdf beslaat hij twee pagina's tussen
+  de diensten en het verhaal, met twee kleine labels naast elkaar (Reflex en Ready,
+  `prijsRijen` in `brochurePdf.tsx`). Op de pagina linkt elke dienstenkaart naar
+  zijn tarieven (`#tarieven-<label>`).
 - **Beheer**: `/admin/brochures` (overzicht), `/admin/brochures/nieuw` (ook vanuit
   een aanvraag in het Postvak IN met `?bericht=<id>`) en `/admin/brochures/<id>`
   (versturen of herinneren, link kopiëren of via WhatsApp, tijdlijn, intrekken,
@@ -1216,7 +1229,7 @@ offertemodule, zonder prijzen, keuzes of ondertekening.
   `?brochure=<id>`: dezelfde prospect en afzender, de rest kies je daar.
 - **Prospect**: `/brochure/<token>` ([`BrochurePagina.tsx`](src/components/brochure/BrochurePagina.tsx)),
   in de vormgeving van de site: opening in de indigo tint met het woord van de
-  afzender, de zes diensten als de dienstenkaarten op /werkgevers, het verhaal
+  afzender, de zes diensten als de dienstenkaarten op /werkgevers, de prijslijst, het verhaal
   van Cindy en Susanne (het voorwoord zonder de zinnen over "dit voorstel"),
   klanten, keurmerken en een uitnodiging om te bellen of een offerte te vragen.
   Dezelfde pagina als pdf op `/brochure/<token>/pdf`
@@ -1238,7 +1251,8 @@ offertemodule, zonder prijzen, keuzes of ondertekening.
   laatste activiteit weg (`opruimen-brochures`).
 - **Tests**: [`e2e/brochure.cjs`](e2e/brochure.cjs) (aanmaken, collega telt niet,
   versturen, prospect opent, melding aan sales, pdf, telefoon, offerte vanuit
-  de brochure, intrekken, onbekende link) en `lib/brochures.test.ts`.
+  de brochure, intrekken, onbekende link, de prijslijst op de pagina),
+  `lib/brochures.test.ts`, `lib/brochurePrijslijst.test.ts` en `lib/brochurePdf.test.tsx`.
 
 ## Contracten
 

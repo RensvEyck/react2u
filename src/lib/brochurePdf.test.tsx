@@ -6,23 +6,28 @@ const { brochurePdf } = await import("./brochurePdf");
 const { CONTACT_FALLBACK } = await import("./content");
 const { MERKEN } = await import("./offerteMerk");
 const { BROCHURE_DIENSTEN } = await import("./brochures");
+const { prijslijstStandaard } = await import("./brochurePrijslijst");
 import type { BrochurePubliek } from "./brochures";
 import type { Dienst } from "./brochureHuisstijl";
 
 describe("brochurePdf", () => {
-  it("maakt een pdf met de omslag, de zes diensten en het verhaal van React2u", async () => {
-    const diensten: Dienst[] = BROCHURE_DIENSTEN.map((slug) => ({ ...MERKEN[slug], slug, tekst: `Over ${MERKEN[slug].naam}.`, href: `/${slug}` }));
+  it("maakt een pdf met de omslag, de zes diensten, de prijslijst en het verhaal van React2u", async () => {
+    const diensten: Dienst[] = BROCHURE_DIENSTEN.map((slug) => ({ ...MERKEN[slug], slug, omschrijving: `Over ${MERKEN[slug].naam}.`, href: `/${slug}` }));
     const brochure: BrochurePubliek = {
       id: "b1", nummer: "B2026-0001", status: "verstuurd", bedrijf: "Transportbedrijf Vermeulen", contactpersoon: "Karin Vermeulen",
       bericht: null, afzender_naam: "Rens van Eyck", afzender_functie: "Eigenaar", afzender_email: "sales@react2u.nl", afzender_telefoon: "085 620 58 00",
       verstuurd_at: "2026-11-02T10:00:00Z", created_at: "2026-11-02T09:00:00Z",
     };
-    const pdf = await brochurePdf({ brochure, diensten, contact: CONTACT_FALLBACK });
+    const prijslijst = prijslijstStandaard({ jaar: "2027", geldigTot: "31 december 2027" });
+    const pdf = await brochurePdf({ brochure, diensten, prijslijst, contact: CONTACT_FALLBACK });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
-    // Drie pagina's met lettertypen en het logo: ruim boven een lege pdf.
+    // Omslag, diensten, prijslijst en verhaal, met lettertypen en het logo: ruim boven een lege pdf.
     expect(pdf.length).toBeGreaterThan(20_000);
+    const paginas = (pdf.toString("latin1").match(/\/Type\s*\/Page\b/g) || []).length;
+    expect(paginas).toBeGreaterThanOrEqual(5);
+    expect(paginas).toBeLessThanOrEqual(6);
     // Zonder contactpersoon en afzender ook: de brochure valt terug op "relatie" en "Team React2u".
-    const kaal = await brochurePdf({ brochure: { ...brochure, contactpersoon: null, afzender_naam: null, afzender_functie: null, afzender_telefoon: null, status: "concept", verstuurd_at: null }, diensten, contact: CONTACT_FALLBACK });
+    const kaal = await brochurePdf({ brochure: { ...brochure, contactpersoon: null, afzender_naam: null, afzender_functie: null, afzender_telefoon: null, status: "concept", verstuurd_at: null }, diensten, prijslijst, contact: CONTACT_FALLBACK });
     expect(kaal.subarray(0, 5).toString()).toBe("%PDF-");
   }, 30_000);
 });

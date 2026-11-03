@@ -1,6 +1,6 @@
 // Brochures (0030) van begin tot eind: aanmaken in het beheer, als collega bekijken (telt niet),
-// versturen, de prospect opent hem (melding aan sales), de pdf, de offerte die eruit volgt,
-// intrekken en een onbekende link. Draaien via e2e/run.mjs, na offerte.cjs en vormen.cjs.
+// met de prijslijst, versturen, de prospect opent hem (melding aan sales), de pdf, de offerte die
+// eruit volgt, intrekken en een onbekende link. Draaien via e2e/run.mjs, na offerte.cjs en vormen.cjs.
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
@@ -72,6 +72,15 @@ const LABELS = ["Recover", "Resist", "Restart", "Reflex", "Ready", "Reward"];
   check(await collega.locator("text=Beste Karin,").count(), "aanhef met de voornaam");
   check(await collega.locator("text=voor Transportbedrijf Vermeulen kan betekenen").count(), "{bedrijf} ingevuld in het persoonlijke woord");
   for (const l of LABELS) check(await collega.locator(`#diensten article:has-text("${l}")`).count(), `dienst ${l}`);
+  check(await collega.locator("#tarieven h2:has-text('Heldere prijzen, vooraf bekend')").count(), "de prijslijst in de brochure");
+  check(await collega.locator("#tarieven >> text=/Tarieven 20\\d{2}, geldig tot en met/").count(), "geldigheid van de tarieven");
+  check(await collega.locator("#tarieven article:has-text('Verrichtingenbasis') >> text=€38,50").count(), "Verrichtingenbasis €38,50 per werknemer");
+  check(await collega.locator("#tarieven-uur >> text=Casemanager").count(), "tarieven per uur");
+  for (const l of LABELS) check(await collega.locator(`#tarieven-${l.toLowerCase()}`).count(), `tarieven van ${l}`);
+  check(await collega.locator("#tarieven-reflex >> text=Casemanagement Reflex").count(), "Reflex-abonnement in de prijslijst");
+  check(await collega.locator('#diensten a[href="#tarieven-recover"]').count(), "een dienst linkt naar zijn tarieven");
+  check(await collega.locator("#tarieven >> text=Maatwerk en specialisten").count(), "maatwerk en specialisten");
+  await collega.locator("#tarieven").screenshot({ path: path.join(SHOTS, "03b-tarieven.png") });
   check(await collega.locator("h2:has-text('Waarom we React2u zijn begonnen')").count(), "het verhaal van Cindy en Susanne");
   check(await collega.locator("a:has-text('Plan een kennismaking')").count(), "knop om kennis te maken");
   check(sql(`select aantal_bekeken from public.brochures where id = '${id}'`) === "0", "bezoek van een collega telt niet");
@@ -131,6 +140,7 @@ const LABELS = ["Recover", "Resist", "Restart", "Reflex", "Ready", "Reward"];
   await tp.waitForSelector("h1");
   check((await tp.evaluate(() => document.documentElement.scrollWidth)) <= 390, "telefoon: geen horizontale scroll");
   await shot(tp, "06-brochure-telefoon", { fullPage: false });
+  await tp.locator("#tarieven").screenshot({ path: path.join(SHOTS, "06b-tarieven-telefoon.png") });
   await tel.close();
 
   stap("Overzicht met status");

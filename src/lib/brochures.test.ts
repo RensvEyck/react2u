@@ -43,6 +43,7 @@ describe("brochures (migratie 0030)", () => {
     expect(html).not.toContain("<Transport>");
     for (const d of diensten) expect(html).toContain(`>${d.naam}</span>`);
     expect(html).toContain("Bekijk de brochure");
+    expect(html).toContain("met al onze tarieven op een rij");
     expect(html).toContain("Rens van Eyck");
     expect(html).toContain("mailto:sales@react2u.nl");
     // Een herinnering zegt dat hij nog klaarstaat.

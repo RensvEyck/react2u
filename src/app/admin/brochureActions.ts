@@ -106,7 +106,7 @@ export async function verstuurBrochure(id: string, _prev: VersturenState, fd: Fo
     bericht: tekst(fd, "bericht", 5000),
     afzender: { naam: b.afzender_naam, functie: b.afzender_functie, email: b.afzender_email || BROCHURE_EMAIL, telefoon: b.afzender_telefoon },
     herinnering,
-    diensten: diensten.map((d) => ({ naam: d.naam, kleur: d.kleur, tekst: d.tekst, dienst: d.dienst })),
+    diensten: diensten.map((d) => ({ naam: d.naam, kleur: d.kleur, tekst: d.omschrijving, dienst: d.dienst })),
     contact,
   });
   if (!res.ok) {
