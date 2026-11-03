@@ -759,6 +759,34 @@ hoofddomein, en daarmee de mail van Microsoft 365, blijven ongemoeid. DMARC
 (`p=reject`, relaxed) slaagt via de DKIM-handtekening van react2u.nl. Komt de
 testmail niet binnen, kijk dan in de quarantaine van Sophos.
 
+### Mails aan kandidaten
+
+Een sollicitant krijgt vanzelf alleen de ontvangstbevestiging
+(`bevestigSollicitatie`). Al het andere stuurt een collega zelf, met **Mail
+kandidaat** op de kaart in Sollicitaties: zes vaste mails (uitnodiging, tweede
+gesprek, tussenbericht, afwijzing, afwijzing na gesprek, aanbod) in
+[`src/lib/kandidaatMail.ts`](src/lib/kandidaatMail.ts), in het Nederlands of
+Engels naar de taal van de sollicitatie. Je vult het moment of de plek in, voegt
+eventueel een eigen alinea toe en ziet ernaast de mail zoals de kandidaat hem
+leest. Antwoorden komt bij jou uit, niet bij het noreply-adres.
+
+- **De fase alleen verzetten mailt niemand.** Andersom wel: na het versturen
+  zet `sendKandidaatMail` de fase die bij de mail hoort (uitnodiging → gesprek,
+  afwijzing → afgewezen, aanbod → aanbod). Eerst versturen, dan de fase: een
+  afwijzing die niet wegging zet niemand stilletjes op afgewezen.
+- **Logboek** in `applications.mails` (migratie 0032): wat er wanneer door wie
+  is gestuurd, als pillen onder de kaart. Zo mailt niemand dubbel. Staat de
+  kolom er nog niet, dan komt de regel in de notitie.
+- Staat een kandidaat op afgewezen zonder afwijzing in het logboek, dan toont
+  de kaart **Nog geen afwijzing gemaild**, met één klik naar het juiste sjabloon
+  (`mailVoorstel`).
+- De mail is een gewone brief in het omhulsel van de klantmails
+  (`omhulsel()` in `offerteMail.ts`): logo, witte kaart op zand, voet met
+  keurmerken. Geen label, geen knop: het is een bericht van een collega.
+- De tekst van een afwijzing noemt de bewaartermijn: een jaar als de kandidaat
+  daar toestemming voor gaf (`retain_longer`), anders "na afloop van de
+  procedure".
+
 ## Partnerpagina
 
 `/partners` werft accountants, salariskantoren en HR- en verzekeringsadviseurs

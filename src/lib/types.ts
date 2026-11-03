@@ -149,6 +149,8 @@ export type Application = {
   retain_longer?: boolean | null;
   /** Via welke taal van de site de sollicitatie binnenkwam (migratie 0015); ontbreekt bij oudere rijen. */
   lang?: "nl" | "en";
+  /** Vaste mails die collega's naar de kandidaat stuurden (migratie 0032). */
+  mails?: import("./kandidaatMail").KandidaatMailLog[] | null;
   created_at: string;
 };
 
