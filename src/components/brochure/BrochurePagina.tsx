@@ -6,16 +6,17 @@ import type { ContactInfo } from "@/lib/content";
 import type { Certificate } from "@/lib/nav";
 import { BERICHT_STANDAARD, BROCHURE_EMAIL, type BrochurePubliek } from "@/lib/brochures";
 import type { Dienst } from "@/lib/brochureHuisstijl";
+import { halveKolom, prijsRijen, type Aansluiting, type PrijsGroep, type Prijslijst } from "@/lib/brochurePrijslijst";
 import { datumLang, vulIn } from "@/lib/offertes";
 import { ondertekenaarRegel, VOORWOORD } from "@/lib/offerteVoorwoord";
 
 /*
  * De brochurepagina (/brochure/<token>, migratie 0030): alles wat React2u
- * voor één prospect kan betekenen, in de vormgeving van de site. Geen prijzen
- * en geen keuzes, dat komt in de offerte; wel het persoonlijke woord van de
- * afzender, de zes diensten als de dienstenkaarten op /werkgevers, het
- * verhaal van Cindy en Susanne, de klanten en keurmerken, en overal de
- * uitnodiging om te bellen.
+ * voor één prospect kan betekenen, in de vormgeving van de site. Het
+ * persoonlijke woord van de afzender, de zes diensten als de dienstenkaarten
+ * op /werkgevers, de prijslijst van dit jaar zoals op papier, het verhaal van
+ * Cindy en Susanne, de klanten en keurmerken, en overal de uitnodiging om te
+ * bellen. Geen keuzes en geen ondertekening: dat komt in de offerte.
  */
 
 // Dezelfde variabele als de site (.hv .hv-kop leest --font-outfit).
@@ -68,9 +69,157 @@ function SectieKop({ eyebrow, titel, tekst, licht = false }: { eyebrow: string; 
   );
 }
 
-export default function BrochurePagina({ brochure: b, diensten, huis, modus, pdfHref }: {
+/* ---------- De prijslijst: de indeling van de gedrukte prijslijst ---------- */
+
+const RIJLIJN = "rgba(50,46,131,0.12)";
+
+function AansluitingKaart({ a, plek }: { a: Aansluiting; plek: string }) {
+  const donker = a.uitgelicht;
+  const tekst = donker ? "#ffffff" : NAVY;
+  const zacht = donker ? "rgba(255,255,255,0.78)" : BODY;
+  return (
+    <article className={`relative flex flex-col gap-4 overflow-hidden rounded-[24px] p-6 md:p-8 ${plek}`} style={{ background: donker ? NAVY : "#ffffff", boxShadow: donker ? "none" : "0 24px 48px -36px rgba(50,46,131,0.35)" }}>
+      <span aria-hidden className="absolute right-[-50px] top-[-50px] h-[150px] w-[150px] rounded-full" style={{ background: donker ? "#ffffff" : NAVY, opacity: donker ? 0.06 : 0.05 }} />
+      {a.badge && <span className="relative text-[12.5px] font-bold uppercase tracking-[1.4px]" style={{ color: donker ? "#F7A8CB" : MUTE }}>{a.badge}</span>}
+      <span className="relative flex flex-col gap-1">
+        <span className={`${kop} leading-[0.95] ${a.bedrag ? (donker ? "text-[56px] tracking-[-1.8px] md:text-[72px]" : "text-[44px] tracking-[-1.2px]") : "text-[36px] tracking-[-0.8px]"}`} style={{ color: tekst }}>{a.prijs}</span>
+        {a.per && <span className="text-[14px]" style={{ color: zacht }}>{a.per}</span>}
+      </span>
+      <span className="relative flex flex-col gap-2 border-t pt-4" style={{ borderColor: donker ? "rgba(255,255,255,0.15)" : LINE }}>
+        <span className={`${kop} text-[20px] leading-[1.2]`} style={{ color: tekst }}>{a.naam}</span>
+        {a.tekst && <span className="text-[15px] leading-[1.6]" style={{ color: zacht }}>{a.tekst}</span>}
+      </span>
+      {donker && a.punten.length > 0 && (
+        <ul className="relative m-0 flex list-none flex-col gap-2.5 p-0">
+          {a.punten.map((p) => (
+            <li key={p} className="flex gap-3 text-[15px]" style={{ color: tekst }}>
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full" style={{ background: "rgba(255,255,255,0.12)" }}><Vink size={11} /></span>{p}
+            </li>
+          ))}
+        </ul>
+      )}
+      {donker && a.voorbeeld && (
+        <div className="relative flex flex-col rounded-[18px] px-5 py-2" style={{ background: "rgba(255,255,255,0.08)" }}>
+          {a.voorbeeld.kop && <span className="pb-1 pt-3 text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: zacht }}>{a.voorbeeld.kop}</span>}
+          {a.voorbeeld.regels.map((r) => (
+            <span key={r.naam} className="flex items-baseline justify-between gap-4 border-t py-2.5 text-[15px]" style={{ borderColor: "rgba(255,255,255,0.12)", color: tekst }}>
+              <span>{r.naam}</span><span className="shrink-0 font-bold">{r.prijs}</span>
+            </span>
+          ))}
+        </div>
+      )}
+      {a.noot && <span className="relative mt-auto text-[13.5px] leading-[1.55]" style={{ color: zacht }}>{a.noot}</span>}
+    </article>
+  );
+}
+
+/** Een label of de uurtarieven. Op halve breedte (naast een ander label) in één kolom, de ondertitel onder de naam. */
+function GroepKaart({ g, half = false }: { g: PrijsGroep; half?: boolean }) {
+  const kolommen = half ? [halveKolom(g)] : g.kolommen;
+  return (
+    <article id={`tarieven-${g.id}`} aria-label={g.slug ? `React2u ${g.naam}` : g.naam} className="relative scroll-mt-[104px] overflow-hidden rounded-[24px] px-5 pb-3 pt-6 md:px-8 md:pt-7" style={{ background: g.tint }}>
+      {g.slug && <span aria-hidden className="absolute right-[-44px] top-[-44px] h-[132px] w-[132px] rounded-full" style={{ background: g.kleur, opacity: 0.14 }} />}
+      <div className={`relative flex flex-col gap-1.5 border-b-[1.5px] pb-4 ${half ? "" : "md:flex-row md:items-end md:justify-between md:gap-8"}`} style={{ borderColor: g.kleur }}>
+        {g.slug ? (
+          <span className={`${kop} flex flex-col text-[15px] leading-[1.1]`} style={{ color: NAVY }}>
+            React2u<span className="text-[28px] tracking-[-0.6px]" style={{ color: g.kleur }}>{g.naam}<sup className="text-[12px]" style={{ color: NAVY }}>®</sup></span>
+          </span>
+        ) : (
+          <span className={`${kop} text-[24px] tracking-[-0.4px]`} style={{ color: NAVY }}>{g.naam}</span>
+        )}
+        {g.ondertitel && <span className={`text-[14px] leading-[1.5] ${half ? "" : "md:max-w-[460px] md:text-right"}`} style={{ color: MUTE }}>{g.ondertitel}</span>}
+      </div>
+      <div className={`relative grid gap-x-12 ${kolommen.length > 1 ? "md:grid-cols-2" : ""}`}>
+        {kolommen.map((kolom, k) => (
+          <div key={k} className="flex min-w-0 flex-col">
+            {kolom.map((lijst, li) => (
+              <div key={li} className="flex flex-col">
+                {g.metTitels && lijst.titel && (
+                  // Op de telefoon de eenheid onder de titel: naast elkaar braken ze allebei af.
+                  <span className="flex flex-col gap-0.5 pb-1 pt-5 text-[12.5px] font-bold uppercase tracking-[1.1px] sm:flex-row sm:items-baseline sm:justify-between sm:gap-4" style={{ color: g.tekst }}>
+                    {lijst.titel}{lijst.per && <span className="font-semibold normal-case tracking-normal sm:shrink-0" style={{ color: MUTE }}>{lijst.per}</span>}
+                  </span>
+                )}
+                {lijst.regels.map((r, ri) => (
+                  <div key={ri} className="flex items-start justify-between gap-4 border-b py-3 last:border-b-0" style={{ borderColor: RIJLIJN }}>
+                    <span className="flex min-w-0 flex-col [overflow-wrap:anywhere]">
+                      <span className="text-[15px] font-semibold leading-[1.4]" style={{ color: NAVY }}>{r.naam}</span>
+                      {r.sub && <span className="text-[13.5px] leading-[1.45]" style={{ color: MUTE }}>{r.sub}</span>}
+                    </span>
+                    <span className={`shrink-0 whitespace-nowrap ${r.bedrag ? "text-[15.5px] font-bold" : "pt-0.5 text-[13.5px] font-semibold"}`} style={{ color: r.bedrag ? NAVY : MUTE }}>{r.prijs}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function Tarieven({ p, bedrijf, offerte }: { p: Prijslijst; bedrijf: string; offerte: string }) {
+  const drie = p.aansluitingen.length === 3;
+  return (
+    <section id="tarieven" aria-label={`Tarieven ${p.jaar}`} className="scroll-mt-[96px] bg-white px-[6px] pb-16 md:px-6 md:pb-[112px] xl:px-10">
+      <div className="mx-auto flex max-w-[1360px] flex-col gap-10 rounded-[28px] px-[14px] py-10 sm:px-6 md:gap-12 md:rounded-[36px] md:p-14 lg:p-16 xl:p-[72px]" style={{ background: SOFT }}>
+        <div className="px-2 sm:px-0">
+          <SectieKop
+            eyebrow={`Tarieven ${p.jaar}`}
+            titel="Heldere prijzen, vooraf bekend"
+            tekst={`Alle tarieven van ${p.jaar} op een rij, precies zoals op onze prijslijst. Wat het voor ${bedrijf} kost, zetten we graag in een voorstel op maat.`}
+          />
+        </div>
+        <nav aria-label="Naar de tarieven van" className="-mt-2 flex flex-wrap gap-2 px-2 sm:px-0 md:-mt-4">
+          {p.groepen.map((g) => (
+            <a key={g.id} href={`#tarieven-${g.id}`} className="inline-flex h-10 items-center gap-2 rounded-full border bg-white px-4 text-[14px] font-bold transition-colors hover:border-[#322E83]" style={{ color: NAVY, borderColor: LINE }}>
+              <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ background: g.slug ? g.kleur : NAVY }} />{g.naam}
+            </a>
+          ))}
+        </nav>
+
+        {p.aansluitingen.length > 0 && (
+          <div className={`grid gap-4 md:grid-cols-2 md:gap-5 ${drie ? "xl:grid-cols-12" : ""}`}>
+            {p.aansluitingen.map((a, i) => (
+              <AansluitingKaart key={i} a={a} plek={drie ? (a.uitgelicht ? "md:col-span-2 xl:col-span-7 xl:row-span-2" : "xl:col-span-5") : ""} />
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-4 md:gap-5">
+          {prijsRijen(p.groepen).map((rij) => (
+            rij.length > 1 ? (
+              <div key={rij[0].id} className="grid gap-4 md:gap-5 lg:grid-cols-2">
+                {rij.map((g) => <GroepKaart key={g.id} g={g} half />)}
+              </div>
+            ) : <GroepKaart key={rij[0].id} g={rij[0]} />
+          ))}
+          {p.maatwerk && (
+            <div className="grid gap-3 rounded-[24px] px-5 py-6 md:grid-cols-12 md:items-center md:gap-8 md:px-8 md:py-7" style={{ background: LAV }}>
+              <span className="flex flex-col gap-1 md:col-span-4">
+                <span className="text-[12.5px] font-bold uppercase tracking-[1.4px]" style={{ color: MUTE }}>Op aanvraag</span>
+                <span className={`${kop} text-[22px] leading-[1.2]`} style={{ color: NAVY }}>{p.maatwerk.titel}</span>
+              </span>
+              <span className="text-[15px] leading-[1.65] md:col-span-8" style={{ color: BODY }}>{p.maatwerk.tekst}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4 border-t pt-6 md:flex-row md:items-center md:justify-between md:gap-8" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
+          <p className="m-0 max-w-[720px] px-2 text-[14px] leading-[1.6] sm:px-0" style={{ color: MUTE }}>
+            {p.geldigheid} Prijswijzigingen voorbehouden.
+          </p>
+          <a href={offerte} className={`${knop.roze} self-start md:self-auto`}>Vraag een voorstel op maat <Pijl size={14} /></a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis, modus, pdfHref }: {
   brochure: BrochurePubliek;
   diensten: Dienst[];
+  prijslijst: Prijslijst;
   huis: Huis;
   modus: "klant" | "collega";
   pdfHref: string;
@@ -87,6 +236,7 @@ export default function BrochurePagina({ brochure: b, diensten, huis, modus, pdf
   const offerte = `mailto:${mail}?subject=${encodeURIComponent(`Offerte voor ${b.bedrijf}`)}`;
   // Het voorwoord zonder de zinnen over "dit voorstel": dat komt pas met de offerte.
   const verhaal = VOORWOORD.alineas.slice(1, -1).map((a) => vulIn(a, { bedrijf: b.bedrijf }));
+  const tarievenVan = new Set(prijslijst.groepen.map((g) => g.slug).filter(Boolean));
 
   return (
     <div className={`hv ${outfit.variable} ${caveat.variable} min-h-screen bg-white`}>
@@ -104,6 +254,7 @@ export default function BrochurePagina({ brochure: b, diensten, huis, modus, pdf
             <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>Brochure voor {b.bedrijf}</span>
           </div>
           <div className="flex shrink-0 items-center gap-5">
+            <a href="#tarieven" className="hidden text-[15px] font-bold hover:underline lg:inline" style={{ color: NAVY }}>Tarieven {prijslijst.jaar}</a>
             {tel && (
               <a href={tel} className="inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: NAVY }}>
                 <Telefoon size={15} /> <span className="hidden md:inline">Bel {naam || "ons"}</span><span className="md:hidden">Bellen</span>
@@ -181,7 +332,7 @@ export default function BrochurePagina({ brochure: b, diensten, huis, modus, pdf
                 <span className="text-[15px] leading-[1.45]" style={{ color: NAVY }}>
                   <strong>{d.dienst}</strong><br /><em>{d.tagline}</em>
                 </span>
-                <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{d.tekst}</span>
+                <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{d.omschrijving}</span>
                 <ul className="m-0 flex list-none flex-col gap-2 p-0">
                   {d.punten.map((p, j) => (
                     <li key={j} className="flex min-w-0 gap-2.5 text-[14.5px] leading-[1.45] [overflow-wrap:anywhere]" style={{ color: NAVY }}>
@@ -189,14 +340,23 @@ export default function BrochurePagina({ brochure: b, diensten, huis, modus, pdf
                     </li>
                   ))}
                 </ul>
-                <Link href={d.href} target="_blank" rel="noopener" className="hv-btn hv-btn-rand mt-auto inline-flex h-11 items-center gap-2 self-start rounded-full px-5 text-[14.5px] font-bold" style={{ background: "transparent" }}>
-                  Lees meer op de site<Pijl size={14} />
-                </Link>
+                <span className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3">
+                  <Link href={d.href} target="_blank" rel="noopener" className="hv-btn hv-btn-rand inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14.5px] font-bold" style={{ background: "transparent" }}>
+                    Lees meer op de site<Pijl size={14} />
+                  </Link>
+                  {tarievenVan.has(d.slug) && (
+                    <a href={`#tarieven-${d.slug}`} className="inline-flex h-11 items-center gap-1.5 text-[14.5px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>
+                      Tarieven <Omlaag />
+                    </a>
+                  )}
+                </span>
               </article>
             ))}
           </div>
         </div>
       </section>
+
+      <Tarieven p={prijslijst} bedrijf={b.bedrijf} offerte={offerte} />
 
       {/* Het verhaal van Cindy en Susanne, zoals het voorwoord van de offerte. */}
       <section aria-label={VOORWOORD.kop} style={{ background: SOFT }}>

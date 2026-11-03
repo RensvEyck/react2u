@@ -1,9 +1,10 @@
 /**
- * Brochures (migratie 0030): een persoonlijke brochure met alle zes diensten,
- * die sales een prospect stuurt vóór er een offerte is. Dezelfde opzet als
- * een offerte (link met token, mail in huisstijl, tijdlijn), maar zonder
- * prijzen, keuzes of ondertekening: de inhoud is voor elke brochure gelijk en
- * komt van de labelpagina's in het CMS (lib/brochureHuisstijl.ts).
+ * Brochures (migratie 0030): een persoonlijke brochure met alle zes diensten
+ * en de prijslijst, die sales een prospect stuurt vóór er een offerte is.
+ * Dezelfde opzet als een offerte (link met token, mail in huisstijl,
+ * tijdlijn), maar zonder keuzes of ondertekening: de inhoud is voor elke
+ * brochure gelijk en komt van de labelpagina's en het tarievenblok in het CMS
+ * (lib/brochureHuisstijl.ts, lib/brochurePrijslijst.ts).
  *
  * Puur, zonder database: dezelfde helpers in het beheer, op de klantpagina en
  * in de mails.

@@ -7,7 +7,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { isCollega } from "@/lib/isCollega";
 import { brochureAdminUrl, notifyBrochureBekeken } from "@/lib/mail";
 import { BROCHURE_EMAIL, type BrochurePubliek } from "@/lib/brochures";
-import { brochureDiensten } from "@/lib/brochureHuisstijl";
+import { brochureDiensten, brochurePrijslijst } from "@/lib/brochureHuisstijl";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 export const dynamic = "force-dynamic";
@@ -16,18 +16,19 @@ export const metadata: Metadata = { title: "Je brochure van React2u" };
 
 /**
  * De brochure voor één prospect (/brochure/<token>, migratie 0030): alle zes
- * diensten in de stijl van de site, met het persoonlijke woord van de
- * afzender. Dezelfde regels als een offerte: het token is de sleutel, een
- * collega met een sessie telt niet als bezoek, en de eerste keer dat de
- * prospect hem opent krijgt de afzender een seintje.
+ * diensten en de prijslijst in de stijl van de site, met het persoonlijke
+ * woord van de afzender. Dezelfde regels als een offerte: het token is de
+ * sleutel, een collega met een sessie telt niet als bezoek, en de eerste keer
+ * dat de prospect hem opent krijgt de afzender een seintje.
  */
 export default async function BrochureRoute({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!/^[a-f0-9]{48,}$/.test(token)) notFound();
   const collega = await isCollega();
-  const [{ data }, diensten, huis] = await Promise.all([
+  const [{ data }, [diensten, prijslijst], huis] = await Promise.all([
     supabasePublic().rpc("brochure_bekijken", { p_token: token, p_tel: !collega }),
-    brochureDiensten(),
+    // De prijslijst krijgt de labelkleuren van de diensten mee.
+    brochureDiensten().then(async (d) => [d, await brochurePrijslijst(d)] as const),
     offerteHuisstijl(),
   ]);
   const brochure = data as BrochurePubliek | null;
@@ -46,5 +47,5 @@ export default async function BrochureRoute({ params }: { params: Promise<{ toke
     after(() => notifyBrochureBekeken({ to: afzender_email, nummer, bedrijf, adminLink: brochureAdminUrl(id) }));
   }
 
-  return <BrochurePagina brochure={brochure} diensten={diensten} huis={huis} modus={collega ? "collega" : "klant"} pdfHref={`/brochure/${token}/pdf`} />;
+  return <BrochurePagina brochure={brochure} diensten={diensten} prijslijst={prijslijst} huis={huis} modus={collega ? "collega" : "klant"} pdfHref={`/brochure/${token}/pdf`} />;
 }

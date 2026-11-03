@@ -11,6 +11,7 @@ import {
  * plaats van één label, want de brochure gaat over alle zes diensten. Bovenaan
  * het woordmerk met de belofte van de site, een kaart met de knop, daaronder
  * het persoonlijke woord van de afzender en de zes diensten in hun eigen kleur.
+ * De prijzen staan in de brochure zelf, niet in de mail.
  */
 
 /** Wat de mail per dienst nodig heeft. */
@@ -53,7 +54,7 @@ export function brochureMailHtml(b: BrochureMail): string {
 <td style="background:#ffffff;border-radius:20px;padding:26px 28px 28px" class="binnen">
   ${eyebrow(`Brochure ${esc(b.nummer)}`, HUIS.tekst)}
   <p class="kop-groot" style="margin:0;font-family:${FONT_KOP};font-size:28px;line-height:1.18;font-weight:700;letter-spacing:-0.015em;color:${KLEUR.inkt}">Voor ${bedrijf}</p>
-  <p style="margin:6px 0 0;font-family:${FONT};font-size:16px;line-height:1.5;color:${KLEUR.tekst}">Alles wat React2u voor je organisatie kan doen, in één overzicht. Lezen op je telefoon of achter je bureau, en als pdf om door te sturen.</p>
+  <p style="margin:6px 0 0;font-family:${FONT};font-size:16px;line-height:1.5;color:${KLEUR.tekst}">Alles wat React2u voor je organisatie kan doen, met onze tarieven, in één overzicht. Lezen op je telefoon of achter je bureau, en als pdf om door te sturen.</p>
   <div style="height:26px;line-height:26px;font-size:0">&nbsp;</div>
   ${knop("Bekijk de brochure", b.link)}
 </td></tr></table>`;
@@ -74,7 +75,7 @@ export function brochureMailHtml(b: BrochureMail): string {
     ...alineasUit(b.bericht),
     b.herinnering
       ? `Je brochure voor ${esc(metPunt(b.bedrijf))} staat nog voor je klaar. Lees hem rustig door, en bel of mail me als je ergens meer over wilt weten.`
-      : `In de brochure lees je per specialisme wat we doen en voor wie. Wil je weten wat het voor ${bedrijf} kost? Dan maak ik een voorstel op maat.`,
+      : `In de brochure lees je per specialisme wat we doen en voor wie, met al onze tarieven op een rij. Wil je weten wat het voor ${bedrijf} precies kost? Dan maak ik een voorstel op maat.`,
   ].map((a) => p(a));
 
   const romp = vak(`${brief.join("")}

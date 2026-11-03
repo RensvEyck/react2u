@@ -1,7 +1,8 @@
 import "server-only";
-import { getPage } from "./content";
+import { getPage, getSetting } from "./content";
 import { MERKEN, merkMet, type Merk } from "./offerteMerk";
 import { BROCHURE_DIENSTEN, type DienstSlug } from "./brochures";
+import { prijslijstStandaard, prijslijstUit, type Prijslijst } from "./brochurePrijslijst";
 
 /**
  * De zes diensten zoals de brochure ze laat zien: de branding van het label
@@ -13,8 +14,11 @@ import { BROCHURE_DIENSTEN, type DienstSlug } from "./brochures";
  */
 export type Dienst = Merk & {
   slug: DienstSlug;
-  /** De korte omschrijving van de dienst (het veld `text` van de labelpagina). */
-  tekst: string;
+  /**
+   * De korte omschrijving van de dienst (het veld `text` van de labelpagina).
+   * Niet `tekst`: dat is in Merk de tekstkleur van het label.
+   */
+  omschrijving: string;
   /** De pagina op de site. */
   href: string;
 };
@@ -39,8 +43,28 @@ export async function brochureDiensten(): Promise<Dienst[]> {
       } catch {
         data = null;
       }
-      const tekst = typeof data?.text === "string" && data.text.trim() ? data.text.trim() : TEKST[slug];
-      return { ...merkMet(basis, data), slug, tekst, href: `/${slug}` };
+      const omschrijving = typeof data?.text === "string" && data.text.trim() ? data.text.trim() : TEKST[slug];
+      return { ...merkMet(basis, data), slug, omschrijving, href: `/${slug}` };
     }),
   );
+}
+
+/**
+ * De prijslijst zoals hij live staat: het blok `dgTarieven` op
+ * /verzuimabonnementen en het jaar uit Instellingen → Tarievenjaar, in de
+ * kleuren van de diensten hierboven. Lukt het ophalen niet, dan de versie uit
+ * de repo; ook de prijslijst mag een brochure niet laten stuklopen.
+ */
+export async function brochurePrijslijst(diensten: Dienst[]): Promise<Prijslijst> {
+  const kleuren = Object.fromEntries(diensten.map((d) => [d.slug, d]));
+  let data: unknown = null;
+  let instelling: unknown = null;
+  try {
+    const [pagina, tarieven] = await Promise.all([getPage("verzuimabonnementen"), getSetting<unknown>("tarieven")]);
+    data = pagina?.blocks.find((b) => b.type === "dgTarieven")?.data ?? null;
+    instelling = tarieven;
+  } catch {
+    data = null;
+  }
+  return prijslijstUit(data, instelling, kleuren) ?? prijslijstStandaard(instelling, kleuren);
 }
