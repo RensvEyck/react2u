@@ -21,7 +21,9 @@ import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
 import type { ContactInfo } from "./content";
 import type { Vorm } from "./offertes";
 import { merkVoorVorm } from "./offerteMerk";
-import { offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, type MailAfzender, type OfferteMail } from "./offerteMail";
+import {
+  FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail,
+} from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
 import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
 
@@ -205,6 +207,44 @@ export async function sendMfaResetNotice(n: { to: string; door: string }): Promi
     `Was dit niet de bedoeling? Neem dan meteen contact op met ${esc(n.door)}.`
   );
   return verstuur([n.to], "Je tweestapsverificatie voor react2u.nl is gewist", html, n.door);
+}
+
+/**
+ * Een persoonlijke brief aan een kandidaat: aanhef, alinea's en groet, zoals
+ * je hem zelf zou typen, in het omhulsel van de klantmails (logo, witte kaart
+ * op zand, voet met keurmerken). Geen kop, geen knop en geen label: het is een
+ * bericht van een collega, geen campagne. De laatste regel van de groet (het
+ * bedrijf) staat gedempt, zoals een handtekening.
+ */
+function brief(b: { aanhef: string; alineas: string[]; groet: string[]; onderwerp: string; taal?: Taal; contact?: ContactInfo }) {
+  const regel = (t: string) => esc(t).replace(/\n/g, "<br>");
+  const alineas = b.alineas.filter((a) => a.trim());
+  const [groet, naam, ...onder] = b.groet;
+  const kaart = vak(`${p(esc(b.aanhef), `color:${KLEUR.inkt}`)}
+${alineas.map((a) => p(regel(a))).join("\n")}
+<p style="margin:26px 0 0;font-family:${FONT};font-size:16px;line-height:1.5;color:${KLEUR.tekst}">${esc(groet || "")}</p>
+${naam ? `<p style="margin:4px 0 0;font-family:${FONT_KOP};font-size:17px;line-height:1.35;font-weight:700;color:${KLEUR.inkt}">${esc(naam)}</p>` : ""}
+${onder.map((r) => `<p style="margin:1px 0 0;font-family:${FONT};font-size:14px;line-height:1.5;color:${KLEUR.grijs}">${esc(r)}</p>`).join("\n")}`);
+  return omhulsel({
+    basis: siteBasis(),
+    titel: b.onderwerp,
+    preheader: alineas[0] || b.onderwerp,
+    kaart,
+    contact: b.contact,
+    taal: b.taal,
+  });
+}
+
+/**
+ * Een vaste, persoonlijke mail aan een kandidaat vanuit Sollicitaties (de
+ * sjablonen staan in lib/kandidaatMail.ts). Antwoorden komt uit bij de collega
+ * die hem stuurde, niet bij het noreply-adres.
+ */
+export async function sendBrief(b: {
+  to: string; subject: string; aanhef: string; alineas: string[]; groet: string[]; replyTo?: string; taal?: Taal; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = brief({ aanhef: b.aanhef, alineas: b.alineas, groet: b.groet, onderwerp: b.subject, taal: b.taal, contact: b.contact });
+  return verstuur([b.to], b.subject, html, b.replyTo);
 }
 
 /** Testmail vanuit Instellingen: werkt de koppeling, en komt het aan? */

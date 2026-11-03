@@ -9,6 +9,9 @@ import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads"
 import { removeCvs } from "@/lib/cvs";
 import { normalizeTracking } from "@/lib/tracking";
 import { normalizeTarieven } from "@/lib/tarieven";
+import { isSjabloon, ontbreekt, sjabloonDef, stelOp, voornaamUitEmail, type KandidaatMailLog } from "@/lib/kandidaatMail";
+import type { Verzonden } from "@/lib/mail";
+import type { Application } from "@/lib/types";
 
 type Sb = Awaited<ReturnType<typeof requirePerm>>["sb"];
 
@@ -537,11 +540,70 @@ export async function sendTestMailAction(): Promise<TestMailState> {
   const { sendTestMail } = await import("@/lib/mail");
   const r = await sendTestMail(admin.email);
   if (r.ok) return { status: "ok", naar: admin.email };
-  if (r.reden === "uit") {
-    return { status: "fout", melding: "Mailen staat uit: RESEND_API_KEY of NOTIFY_FROM ontbreekt in Vercel." };
+  return { status: "fout", melding: mailFout(r) };
+}
+
+/** Waarom een mail niet wegging, in gewone taal. */
+function mailFout(r: Exclude<Verzonden, { ok: true }>): string {
+  if (r.reden === "uit") return "Mailen staat uit: RESEND_API_KEY of NOTIFY_FROM ontbreekt in Vercel.";
+  if (r.reden === "onbereikbaar") return "Resend was niet bereikbaar. Probeer het zo opnieuw.";
+  return `Resend weigerde de mail: ${r.melding || "geen reden opgegeven"}`;
+}
+
+export type KandidaatMailState =
+  | { status: "idle" }
+  | { status: "ok"; naar: string; onderwerp: string; fase: string | null }
+  | { status: "fout"; melding: string };
+
+/**
+ * Een vaste, persoonlijke mail aan een kandidaat (sjablonen in
+ * lib/kandidaatMail.ts): versturen, de fase zetten die erbij hoort en een regel
+ * in het logboek van de sollicitatie. Antwoorden komt uit bij wie hem stuurde.
+ *
+ * Eerst versturen, dan pas de fase: een afwijzing die niet wegging mag de
+ * kandidaat niet stilletjes op "afgewezen" zetten.
+ */
+export async function sendKandidaatMail(id: string, _prev: KandidaatMailState, formData: FormData): Promise<KandidaatMailState> {
+  const { sb, admin } = await requirePerm("postvak");
+  const { data } = await sb.from("applications").select("*").eq("id", id).maybeSingle();
+  const a = data as Application | null;
+  if (!a) return { status: "fout", melding: "Deze sollicitatie bestaat niet meer." };
+  const sjabloon = formData.get("sjabloon");
+  if (!isSjabloon(sjabloon)) return { status: "fout", melding: "Kies een sjabloon." };
+  const veld = (k: string, max = 300) => String(formData.get(k) || "").trim().slice(0, max);
+  const taal = a.lang === "en" ? "en" : "nl";
+  const velden = { moment: veld("moment"), locatie: veld("locatie"), uiterlijk: veld("uiterlijk") };
+  const leeg = ontbreekt(sjabloon, velden, taal);
+  if (leeg) return { status: "fout", melding: `Vul "${leeg}" nog in.` };
+  const brief = stelOp(sjabloon, {
+    naam: a.name, vacature: a.vacancy_title, taal, retainLonger: a.retain_longer === true,
+    afzender: veld("afzender", 80) || voornaamUitEmail(admin.email), ...velden, toevoeging: veld("toevoeging", 2000),
+  });
+
+  const [{ sendBrief }, { offerteHuisstijl }] = await Promise.all([import("@/lib/mail"), import("@/lib/offerteHuisstijl")]);
+  const { contact } = await offerteHuisstijl();
+  const r = await sendBrief({
+    to: a.email, subject: brief.onderwerp, aanhef: brief.aanhef, alineas: brief.alineas, groet: brief.groet,
+    replyTo: admin.email, taal, contact,
+  });
+  if (!r.ok) return { status: "fout", melding: mailFout(r) };
+
+  const regel: KandidaatMailLog = { sjabloon, onderwerp: brief.onderwerp, at: new Date().toISOString(), door: admin.email };
+  const fase = sjabloonDef(sjabloon).fase;
+  const faseUpdate = fase && fase !== a.status ? { status: fase, status_at: regel.at } : {};
+  const { error } = await sb.from("applications").update({ ...faseUpdate, mails: [...(a.mails || []), regel] }).eq("id", id);
+  if (error && (error.code === "42703" || error.code === "PGRST204")) {
+    // Migratie 0032 nog niet gedraaid: dan in de notitie, zodat de mail niet onzichtbaar blijft.
+    const datum = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Amsterdam" });
+    const notitie = `${a.notitie ? `${a.notitie}\n` : ""}Gemaild: ${sjabloonDef(sjabloon).label} (${datum}, ${voornaamUitEmail(admin.email)})`.slice(0, 4000);
+    const { error: nogmaals } = await sb.from("applications").update({ ...faseUpdate, notitie }).eq("id", id);
+    if (nogmaals) await sb.from("applications").update({ ...(fase ? { status: fase } : {}), notitie }).eq("id", id);
+  } else if (error) {
+    console.error("[kandidaatmail] logboek bijwerken mislukt: %s", error.message);
   }
-  if (r.reden === "onbereikbaar") return { status: "fout", melding: "Resend was niet bereikbaar. Probeer het zo opnieuw." };
-  return { status: "fout", melding: `Resend weigerde de mail: ${r.melding || "geen reden opgegeven"}` };
+  revalidatePath("/admin/sollicitaties");
+  revalidatePath("/admin/postvak-in");
+  return { status: "ok", naar: a.email, onderwerp: brief.onderwerp, fase: fase && fase !== a.status ? fase : null };
 }
 
 // Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt

@@ -176,6 +176,8 @@ export function preheader(tekst: string) {
 
 export function omhulsel(o: {
   basis: string; titel: string; preheader: string; kaart: string; voetnoot?: string; contact?: ContactInfo;
+  /** De taal van de inhoud; alleen de kandidaatmails komen ook in het Engels. */
+  taal?: "nl" | "en";
 }) {
   const c = { ...CONTACT_FALLBACK, ...(o.contact || {}) };
   const link = (href: string, tekst: string) => `<a href="${esc(href)}" style="color:${KLEUR.indigo};text-decoration:none">${esc(tekst)}</a>`;
@@ -184,7 +186,7 @@ export function omhulsel(o: {
       `<td style="padding:0 5px"><img src="${esc(`${o.basis}/beeld/keurmerken/${k.pad}`)}" width="46" height="46" alt="${esc(k.alt)}" style="display:block;width:46px;height:46px;border-radius:999px;border:1px solid ${KLEUR.lijn};background:#ffffff"></td>`
   ).join("");
   return `<!doctype html>
-<html lang="nl" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="${o.taal === "en" ? "en" : "nl"}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
