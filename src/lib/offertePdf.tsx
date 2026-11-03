@@ -8,6 +8,7 @@ import { blokkenUit } from "@/components/offerte/OfferteTekst";
 import type { ContactInfo } from "./content";
 import { DOCUMENTEN } from "./documenten";
 import { inlineDelen } from "./mdInline";
+import { ONDERTEKENAAR, ondertekeningRegel } from "./offerteOndertekenaar";
 import { ondertekenaarRegel, VOORWOORD } from "./offerteVoorwoord";
 import {
   aantalVoor, apparaatUit, berekenTotalen, datumLang, DIENSTLABEL, euro, factuurRegels, maandprijs, momentLang, momentPrecies,
@@ -193,8 +194,6 @@ export type OffertePdfInvoer = {
   contact: ContactInfo;
   /** De persoonlijke link, waar dezelfde versie en hetzelfde kenmerk online staan. */
   link: string;
-  /** Afzender zoals hij nu in de offerte staat, voor oude offertes van vóór 0026 zonder functie in de vastgelegde versie. */
-  afzenderFunctie?: string | null;
   /**
    * Een concept om intern te bespreken: de offerte met de huidige keuze, nog
    * niet getekend. Dan geen handtekening, factuurgegevens of certificaat, wel
@@ -204,15 +203,13 @@ export type OffertePdfInvoer = {
   concept?: boolean;
 };
 
-function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, link, afzenderFunctie, concept = false }: OffertePdfInvoer) {
+function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, link, concept = false }: OffertePdfInvoer) {
   const regels = normaliseerRegels(inhoud.regels);
   const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
   const tarieven = regels.filter((r) => r.soort === "tarief");
   const vorm: Vorm = inhoud.vorm && VORMEN[inhoud.vorm] ? inhoud.vorm : "verzuimbegeleiding";
   const vervolg = normaliseerVervolg(inhoud.vervolg);
   const stappen = vervolg.length ? vervolg : VERVOLG_STANDAARD;
-  const afzender = inhoud.afzender_naam || "React2u";
-  const functie = inhoud.afzender_functie ?? afzenderFunctie ?? null;
   const bevestiging = inhoud.bevestiging;
   const factuur = concept ? null : inhoud.factuur;
   const basis = new URL(link).origin;
@@ -401,11 +398,13 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
               <Text style={s.label}>Opdrachtnemer</Text>
               <Text style={{ fontSize: 11, fontWeight: 600, color: INKT, marginTop: 3 }}>React2u</Text>
               <Text style={{ fontSize: 8.5, color: MUTE }}>{contact.addressLine1}, {contact.addressLine2}, KvK {contact.kvk}</Text>
-              <View style={{ height: 62, justifyContent: "flex-end" }}>
-                <Text style={{ fontFamily: "Caveat", fontSize: 26, color: NAVY, lineHeight: 1.15, paddingBottom: 2 }}>{afzender}</Text>
+              {/* Namens React2u tekent de bestuurder (lib/offerteOndertekenaar.ts), niet de afzender. */}
+              <View style={{ height: 62, justifyContent: "flex-end", alignItems: "flex-start" }}>
+                {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt */}
+                <Image src={path.join(BEELD, ONDERTEKENAAR.handtekening)} style={{ height: 56, width: 74, objectFit: "contain", marginBottom: 2 }} />
               </View>
               <Text style={{ fontSize: 8.5, color: MUTE, borderTopWidth: 0.6, borderTopColor: "#D9D4CA", paddingTop: 4 }}>
-                {[afzender, functie].filter(Boolean).join(", ")}{inhoud.verstuurd_at ? `, ${datumLang(inhoud.verstuurd_at)}` : ""}
+                {ondertekeningRegel(inhoud.verstuurd_at, datumLang)}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
