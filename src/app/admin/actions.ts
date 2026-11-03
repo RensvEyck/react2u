@@ -9,7 +9,7 @@ import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads"
 import { removeCvs } from "@/lib/cvs";
 import { normalizeTracking } from "@/lib/tracking";
 import { normalizeTarieven } from "@/lib/tarieven";
-import { isSjabloon, ontbreekt, sjabloonDef, stelOp, voornaamUitEmail, type KandidaatMailLog } from "@/lib/kandidaatMail";
+import { alineasUitTekst, groetVoor, isSjabloon, openPlek, sjabloonDef, voornaamUitEmail, type KandidaatMailLog } from "@/lib/kandidaatMail";
 import type { Verzonden } from "@/lib/mail";
 import type { Application } from "@/lib/types";
 
@@ -556,9 +556,14 @@ export type KandidaatMailState =
   | { status: "fout"; melding: string };
 
 /**
- * Een vaste, persoonlijke mail aan een kandidaat (sjablonen in
- * lib/kandidaatMail.ts): versturen, de fase zetten die erbij hoort en een regel
- * in het logboek van de sollicitatie. Antwoorden komt uit bij wie hem stuurde.
+ * Een persoonlijke mail aan een kandidaat: versturen, de fase zetten die bij
+ * het gekozen sjabloon hoort en een regel in het logboek van de sollicitatie.
+ * Antwoorden komt uit bij wie hem stuurde.
+ *
+ * Verstuurd wordt het onderwerp en de tekst zoals ze in het formulier staan: het
+ * sjabloon (lib/kandidaatMail.ts) is de begintekst, de collega mag alles
+ * aanpassen. Alleen de groet maakt de server zelf. Staat er nog een lege plek
+ * als "[moment]" in, dan gaat er niets weg.
  *
  * Eerst versturen, dan pas de fase: een afwijzing die niet wegging mag de
  * kandidaat niet stilletjes op "afgewezen" zetten.
@@ -572,23 +577,20 @@ export async function sendKandidaatMail(id: string, _prev: KandidaatMailState, f
   if (!isSjabloon(sjabloon)) return { status: "fout", melding: "Kies een sjabloon." };
   const veld = (k: string, max = 300) => String(formData.get(k) || "").trim().slice(0, max);
   const taal = a.lang === "en" ? "en" : "nl";
-  const velden = { moment: veld("moment"), locatie: veld("locatie"), uiterlijk: veld("uiterlijk") };
-  const leeg = ontbreekt(sjabloon, velden, taal);
-  if (leeg) return { status: "fout", melding: `Vul "${leeg}" nog in.` };
-  const brief = stelOp(sjabloon, {
-    naam: a.name, vacature: a.vacancy_title, taal, retainLonger: a.retain_longer === true,
-    afzender: veld("afzender", 80) || voornaamUitEmail(admin.email), ...velden, toevoeging: veld("toevoeging", 2000),
-  });
+  const onderwerp = veld("onderwerp", 200).replace(/\s+/g, " ");
+  const alineas = alineasUitTekst(String(formData.get("tekst") || "").slice(0, 8000));
+  if (!onderwerp) return { status: "fout", melding: "Het onderwerp is leeg." };
+  if (!alineas.length) return { status: "fout", melding: "De mail is leeg." };
+  const plek = openPlek(`${onderwerp}\n${alineas.join("\n")}`);
+  if (plek) return { status: "fout", melding: `Er staat nog ${plek} in de mail. Vul het in, of pas de tekst aan.` };
+  const groet = groetVoor(taal, veld("afzender", 80) || voornaamUitEmail(admin.email));
 
   const [{ sendBrief }, { offerteHuisstijl }] = await Promise.all([import("@/lib/mail"), import("@/lib/offerteHuisstijl")]);
   const { contact } = await offerteHuisstijl();
-  const r = await sendBrief({
-    to: a.email, subject: brief.onderwerp, aanhef: brief.aanhef, alineas: brief.alineas, groet: brief.groet,
-    replyTo: admin.email, taal, contact,
-  });
+  const r = await sendBrief({ to: a.email, subject: onderwerp, alineas, groet, replyTo: admin.email, taal, contact });
   if (!r.ok) return { status: "fout", melding: mailFout(r) };
 
-  const regel: KandidaatMailLog = { sjabloon, onderwerp: brief.onderwerp, at: new Date().toISOString(), door: admin.email };
+  const regel: KandidaatMailLog = { sjabloon, onderwerp, at: new Date().toISOString(), door: admin.email };
   const fase = sjabloonDef(sjabloon).fase;
   const faseUpdate = fase && fase !== a.status ? { status: fase, status_at: regel.at } : {};
   const { error } = await sb.from("applications").update({ ...faseUpdate, mails: [...(a.mails || []), regel] }).eq("id", id);
@@ -603,7 +605,7 @@ export async function sendKandidaatMail(id: string, _prev: KandidaatMailState, f
   }
   revalidatePath("/admin/sollicitaties");
   revalidatePath("/admin/postvak-in");
-  return { status: "ok", naar: a.email, onderwerp: brief.onderwerp, fase: fase && fase !== a.status ? fase : null };
+  return { status: "ok", naar: a.email, onderwerp, fase: fase && fase !== a.status ? fase : null };
 }
 
 // Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt
