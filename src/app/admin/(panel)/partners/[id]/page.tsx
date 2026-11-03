@@ -5,6 +5,7 @@ import { deletePartner, deletePartnerKlant, savePartner, savePartnerKlant, setPa
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import KopieerLink from "@/components/admin/KopieerLink";
 import Uitklap from "@/components/admin/Uitklap";
+import VerzendKnop from "@/components/admin/VerzendKnop";
 import { siteUrl } from "@/lib/invite";
 import {
   aanmeldlink, euroCent, kwartaalLabel, kwartaalOverzicht, kwartaalVan, laatsteKwartalen,
@@ -176,18 +177,21 @@ export default async function PartnerAdmin({ params }: { params: Promise<{ id: s
                       {k.medewerkers} medewerkers × {euroCent(Number(k.tarief))} · sinds {datum(k.start)} · {euroCent(k.medewerkers * Number(k.tarief))} per jaar
                     </span>
                   </summary>
-                  <form action={savePartnerKlant.bind(null, p.id)} className="mt-4 rounded-xl bg-black/[0.02] p-4">
-                    <input type="hidden" name="klant" value={k.id} />
-                    <KlantVelden k={k} />
+                  {/* ConfirmButton is zelf een formulier; daarom staat de knoppenrij buiten dit formulier en hangt Opslaan er via form= aan. */}
+                  <div className="mt-4 rounded-xl bg-black/[0.02] p-4">
+                    <form id={`klant-${k.id}`} action={savePartnerKlant.bind(null, p.id)}>
+                      <input type="hidden" name="klant" value={k.id} />
+                      <KlantVelden k={k} />
+                    </form>
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <ConfirmButton action={deletePartnerKlant.bind(null, p.id, k.id)}
                         message={`${k.bedrijf} weghalen bij ${p.kantoor}? Het kwartaaloverzicht rekent dan zonder deze klant.`}
                         className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] text-black/45 hover:bg-[#fdeef4] hover:text-[#e0356b]">
                         <LuTrash2 className="text-[13px]" /> Weghalen
                       </ConfirmButton>
-                      <button className="abtn">Opslaan</button>
+                      <button form={`klant-${k.id}`} className="abtn">Opslaan</button>
                     </div>
-                  </form>
+                  </div>
                 </details>
               </li>
             ))}
@@ -199,7 +203,7 @@ export default async function PartnerAdmin({ params }: { params: Promise<{ id: s
         <form action={savePartnerKlant.bind(null, p.id)}>
           <KlantVelden />
           <div className="mt-5 flex justify-end">
-            <button className="abtn"><LuPlus /> Toevoegen</button>
+            <VerzendKnop><LuPlus /> Toevoegen</VerzendKnop>
           </div>
         </form>
       </Uitklap>
@@ -231,7 +235,8 @@ export default async function PartnerAdmin({ params }: { params: Promise<{ id: s
       {/* Gegevens */}
       <section className="acard p-6">
         <h2 className="mb-4 font-heading text-[16px] font-bold text-[#312e82]">Gegevens</h2>
-        <form action={savePartner}>
+        {/* Zelfde opzet als bij de klanten: de verwijderknop is een eigen formulier en mag niet binnen dit formulier staan. */}
+        <form id="partner-gegevens" action={savePartner}>
           <input type="hidden" name="id" value={p.id} />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div>
@@ -275,15 +280,15 @@ export default async function PartnerAdmin({ params }: { params: Promise<{ id: s
               <textarea className="ainput min-h-[80px]" name="notitie" defaultValue={p.notitie ?? ""} />
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between gap-3">
-            <ConfirmButton action={deletePartner.bind(null, p.id)}
-              message={`${p.kantoor} verwijderen? Dat kan alleen zonder klanten; anders zet je hem op inactief.`}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] text-black/45 hover:bg-[#fdeef4] hover:text-[#e0356b]">
-              <LuTrash2 className="text-[13px]" /> Partner verwijderen
-            </ConfirmButton>
-            <button className="abtn">Opslaan</button>
-          </div>
         </form>
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <ConfirmButton action={deletePartner.bind(null, p.id)}
+            message={`${p.kantoor} verwijderen? Dat kan alleen zonder klanten; anders zet je hem op inactief.`}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] text-black/45 hover:bg-[#fdeef4] hover:text-[#e0356b]">
+            <LuTrash2 className="text-[13px]" /> Partner verwijderen
+          </ConfirmButton>
+          <button form="partner-gegevens" className="abtn">Opslaan</button>
+        </div>
       </section>
     </div>
   );

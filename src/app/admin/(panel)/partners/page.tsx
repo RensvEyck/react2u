@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import { savePartner } from "@/app/admin/actions";
 import Uitklap from "@/components/admin/Uitklap";
+import VerzendKnop from "@/components/admin/VerzendKnop";
 import { isMissingTable } from "@/lib/dbErrors";
 import { euroCent, kwartaalLabel, kwartaalOverzicht, kwartaalVan, laatsteKwartalen, type PartnerKlantRij } from "@/lib/partners";
 import type { Partner } from "@/lib/types";
@@ -94,7 +95,7 @@ export default async function PartnersAdmin() {
             </div>
           </div>
           <div className="mt-5 flex justify-end">
-            <button className="abtn"><LuPlus /> Toevoegen</button>
+            <VerzendKnop><LuPlus /> Toevoegen</VerzendKnop>
           </div>
         </form>
       </Uitklap>
