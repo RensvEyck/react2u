@@ -105,9 +105,13 @@ const nextConfig: NextConfig = {
   // regel ontbreken ze op Vercel. De pdf ontstaat op de klantpagina (bij het
   // tekenen), de downloadroute en het voorbeeld in het beheer.
   outputFileTracingIncludes: {
-    "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
+    // De handtekening van de bestuurder (lib/offerteOndertekenaar.ts) staat sinds 3 nov 2026 ook in de pdf.
+    "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     "/brochure/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
-    "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
+    "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
+    // Contracten (0031): dezelfde bestanden.
+    "/contract/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
+    "/admin/contractvoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
   },
   images: {
     // Next 16 staat alleen kwaliteiten uit deze lijst toe. 75 is de standaard;
@@ -163,6 +167,11 @@ const nextConfig: NextConfig = {
       // Brochures (0030): dezelfde regels als offertes.
       {
         source: "/brochure/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
+      // Contracten (0031): dezelfde regels als offertes.
+      {
+        source: "/contract/:path*",
         headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
       },
     ];

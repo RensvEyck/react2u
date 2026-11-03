@@ -10,7 +10,7 @@
 //   E2E_HOUDEN=1       stack na afloop laten draaien (om rond te kijken)
 //   E2E_GEEN_BUILD=1   bestaande .next gebruiken (alleen als die met deze
 //                      instellingen is gebouwd)
-//   E2E_ALLEEN=offerte alleen één test (offerte, vormen, brochure of partner)
+//   E2E_ALLEEN=offerte alleen één test (offerte, vormen, brochure, contract of partner)
 //   E2E_POORT=3024     de site op een andere poort dan 3014 (en E2E_RESEND_POORT
 //                      voor de nep-Resend), als een vorige run nog draait
 import { execFileSync, spawn } from "node:child_process";
@@ -189,7 +189,7 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
   await wachtOp(BASIS, 90);
 
   const testEnv = { ...env, E2E_BASIS: BASIS, E2E_UIT: UIT, E2E_DB_CONTAINER: DB };
-  const tests = process.env.E2E_ALLEEN ? [process.env.E2E_ALLEEN] : ["offerte", "vormen", "brochure", "partner"];
+  const tests = process.env.E2E_ALLEEN ? [process.env.E2E_ALLEEN] : ["offerte", "vormen", "brochure", "contract", "partner"];
   const mislukt = [];
   for (const t of tests) {
     stap(`Test: ${t}`);
