@@ -93,8 +93,8 @@ describe("uitnodiging via het systeem", () => {
 
 describe("persoonlijke brief aan een kandidaat", () => {
   const brief = {
-    to: "kandidaat@voorbeeld.nl", subject: "Je sollicitatie bij React2u", aanhef: "Hoi Yasmin,",
-    alineas: ["Bedankt voor je sollicitatie.", "", "Regel één\nregel twee & meer"], groet: ["Groet,", "Rens", "React2u · 085 - 620 58 00"],
+    to: "kandidaat@voorbeeld.nl", subject: "Je sollicitatie bij React2u",
+    alineas: ["Hoi Yasmin,", "Bedankt voor je sollicitatie.", "", "Regel één\nregel twee & meer"], groet: ["Groet,", "Rens", "React2u · 085 - 620 58 00"],
     replyTo: "rens@react2u.nl",
   };
 
@@ -119,13 +119,19 @@ describe("persoonlijke brief aan een kandidaat", () => {
     const html = String(aanroepen[0].body!.html);
     expect(html).toContain("Regel één<br>regel twee &amp; meer");
     expect(html).not.toMatch(/<p [^>]*><\/p>/);
-    // De eerste alinea is ook de tekst naast het onderwerp in de inbox.
+    // Naast het onderwerp in de inbox: de eerste echte zin, niet de aanhef.
     expect(html).toMatch(/<div style="display:none[^>]*>Bedankt voor je sollicitatie\./);
+  });
+
+  it("zonder aanhef is gewoon de eerste alinea de tekst in de inbox", async () => {
+    nepFetch(() => new Response("{}", { status: 200 }));
+    await sendBrief({ ...brief, alineas: ["Beste Yasmin, dank voor je tijd vandaag.", "Tweede alinea."] });
+    expect(String(aanroepen[0].body!.html)).toMatch(/<div style="display:none[^>]*>Beste Yasmin, dank voor je tijd vandaag\./);
   });
 
   it("een Engelse kandidaat krijgt een Engelse mail, ook voor schermlezers", async () => {
     nepFetch(() => new Response("{}", { status: 200 }));
-    await sendBrief({ ...brief, aanhef: "Hi Yasmin,", taal: "en" });
+    await sendBrief({ ...brief, alineas: ["Hi Yasmin,", "Thank you."], taal: "en" });
     expect(String(aanroepen[0].body!.html)).toContain('<html lang="en"');
   });
 });

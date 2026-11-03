@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { SJABLONEN, mailVoorstel, ontbreekt, stelOp, voornaamUitEmail } from "./kandidaatMail";
+import {
+  SJABLONEN, alineasUitTekst, briefAlsTekst, groetVoor, mailVoorstel, openPlek, stelOp, voornaamUitEmail,
+} from "./kandidaatMail";
 
 const basis = { naam: "Yasmin El Amrani", vacature: "Casemanager verzuim", afzender: "Rens" };
 
@@ -22,12 +24,33 @@ describe("vaste mails aan kandidaten", () => {
     expect(stelOp("afwijzing", { ...basis, retainLonger: true }).alineas.join(" ")).toContain("een jaar te bewaren");
   });
 
-  it("een persoonlijke toevoeging wordt een eigen alinea; leeg valt weg", () => {
-    const zonder = stelOp("uitnodiging", { ...basis, moment: "donderdag om 10.00 uur" });
-    const met = stelOp("uitnodiging", { ...basis, moment: "donderdag om 10.00 uur", toevoeging: "  Neem gerust je vragen mee.  " });
-    expect(met.alineas).toHaveLength(zonder.alineas.length + 1);
-    expect(met.alineas).toContain("Neem gerust je vragen mee.");
-    expect(zonder.alineas.some((a) => a === "")).toBe(false);
+  it("de tekst om te bewerken komt na het versturen terug als dezelfde alinea's", () => {
+    const b = stelOp("uitnodiging", { ...basis, moment: "donderdag om 10.00 uur" });
+    const tekst = briefAlsTekst(b);
+    expect(tekst.startsWith("Hoi Yasmin,\n\nBedankt voor je sollicitatie")).toBe(true);
+    expect(alineasUitTekst(tekst)).toEqual([b.aanhef, ...b.alineas]);
+    expect(b.alineas.some((a) => a === "")).toBe(false);
+  });
+
+  it("een aangepaste tekst: witregel is een nieuwe alinea, een enkele regelovergang blijft", () => {
+    expect(alineasUitTekst("Hoi Tom,\r\n\r\nRegel één  \nregel twee\n \n\n\nLaatste alinea.\n")).toEqual([
+      "Hoi Tom,", "Regel één\nregel twee", "Laatste alinea.",
+    ]);
+    expect(alineasUitTekst("  \n\n ")).toEqual([]);
+  });
+
+  it("een leeg veld staat als plek in de tekst, en die wordt gevonden", () => {
+    const leeg = briefAlsTekst(stelOp("uitnodiging", basis));
+    expect(leeg).toContain("We nodigen je uit voor een gesprek op [moment], bij ons op kantoor");
+    expect(openPlek(leeg)).toBe("[moment]");
+    expect(openPlek(briefAlsTekst(stelOp("uitnodiging", { ...basis, moment: "morgen" })))).toBeNull();
+    expect(openPlek(briefAlsTekst(stelOp("tussenbericht", basis)))).toBeNull(); // heeft een standaard
+    expect(openPlek(briefAlsTekst(stelOp("afwijzing", basis)))).toBeNull();
+  });
+
+  it("de groet volgt de taal en valt zonder naam terug op React2u", () => {
+    expect(groetVoor("nl", " Cindy ")).toEqual(["Groet,", "Cindy", "React2u · 085 - 620 58 00"]);
+    expect(groetVoor("en", "")).toEqual(["Kind regards,", "React2u", "React2u · +31 85 620 58 00"]);
   });
 
   it("vult de standaardlocatie in de taal van de kandidaat in", () => {
@@ -38,13 +61,6 @@ describe("vaste mails aan kandidaten", () => {
     expect(en.onderwerp).toBe("Invitation to an introductory meeting at React2u");
     expect(en.alineas[1]).toContain("at our office at Stratumsedijk 29 in Eindhoven");
     expect(en.groet[0]).toBe("Kind regards,");
-  });
-
-  it("zegt welk verplicht veld nog leeg is", () => {
-    expect(ontbreekt("uitnodiging", {})).toBe("Wanneer");
-    expect(ontbreekt("uitnodiging", { moment: "morgen" })).toBeNull();
-    expect(ontbreekt("tussenbericht", {})).toBeNull(); // heeft een standaard
-    expect(ontbreekt("afwijzing", {})).toBeNull();
   });
 
   it("elk sjabloon heeft in beide talen een onderwerp en tekst", () => {

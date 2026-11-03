@@ -4,8 +4,12 @@
  *
  * Alleen de tekst en de keuzes staan hier; versturen doet `sendKandidaatMail`
  * in app/admin/actions.ts via `sendBrief()` in mail.ts. Dit bestand heeft geen
- * server-afhankelijkheden, want het formulier gebruikt het ook in de browser
- * voor het voorbeeld terwijl je typt.
+ * server-afhankelijkheden, want het formulier gebruikt het ook in de browser.
+ *
+ * Een sjabloon is een begintekst, geen keurslijf: in het formulier pas je het
+ * onderwerp en de hele tekst zelf aan (`briefAlsTekst`), en de server verstuurt
+ * wat er staat (`alineasUitTekst`). Een veld dat nog leeg is, staat als
+ * `[moment]` in de tekst; zolang zo'n plek er staat, gaat de mail niet weg.
  *
  * De toon is die van React2u: je-vorm, korte zinnen, een mens aan het woord.
  * Een afwijzing noemt een reden en biedt een telefoontje aan; niemand hoort
@@ -125,8 +129,6 @@ export type Invoer = {
   moment?: string;
   locatie?: string;
   uiterlijk?: string;
-  /** Eigen tekst, komt als eigen alinea in de mail. */
-  toevoeging?: string;
 };
 
 export type Brief = { onderwerp: string; aanhef: string; alineas: string[]; groet: string[] };
@@ -141,11 +143,34 @@ export function veldWaarde(def: SjabloonDef, key: VeldKey, invoer: Partial<Recor
   return def.velden.find((v) => v.key === key)?.standaard?.[taal] || "";
 }
 
-/** Het eerste verplichte veld dat leeg is, als label; null als alles er is. */
-export function ontbreekt(sjabloon: Sjabloon, invoer: Partial<Record<VeldKey, string>>, taal: Taal = "nl"): string | null {
-  const def = sjabloonDef(sjabloon);
-  const leeg = def.velden.find((v) => v.verplicht && !veldWaarde(def, v.key, invoer, taal));
-  return leeg ? leeg.label : null;
+/** Wat er in de tekst staat zolang een veld leeg is: zichtbaar voor de collega, en de server weigert het. */
+export const PLEK: Record<VeldKey, string> = { moment: "[moment]", locatie: "[plek]", uiterlijk: "[datum]" };
+
+/** De eerste plek die nog ingevuld moet worden ("[moment]"), of null. */
+export function openPlek(tekst: string): string | null {
+  return Object.values(PLEK).find((p) => tekst.includes(p)) ?? null;
+}
+
+/** De groet onder de mail; geen deel van de bewerkbare tekst, zodat hij altijd klopt. */
+export function groetVoor(taal: Taal | undefined, afzender: string): string[] {
+  const naam = afzender.trim() || "React2u";
+  return taal === "en"
+    ? ["Kind regards,", naam, "React2u · +31 85 620 58 00"]
+    : ["Groet,", naam, "React2u · 085 - 620 58 00"];
+}
+
+/** Aanhef en alinea's als één tekst om te bewerken, met een witregel tussen de alinea's. */
+export function briefAlsTekst(b: Pick<Brief, "aanhef" | "alineas">): string {
+  return [b.aanhef, ...b.alineas].join("\n\n");
+}
+
+/** De bewerkte tekst terug als alinea's: een witregel is een nieuwe alinea, een enkele regelovergang blijft staan. */
+export function alineasUitTekst(tekst: string): string[] {
+  return tekst
+    .replace(/\r\n?/g, "\n")
+    .split(/\n[ \t]*\n/)
+    .map((a) => a.replace(/[ \t]+$/gm, "").trim())
+    .filter(Boolean);
 }
 
 /** "rens@react2u.nl" → "Rens"; "cindy.jansen@…" → "Cindy". */
@@ -159,7 +184,7 @@ const voornaamVan = (naam: string) => naam.trim().split(/\s+/)[0] || naam;
 export function stelOp(sjabloon: Sjabloon, i: Invoer): Brief {
   const taal: Taal = i.taal === "en" ? "en" : "nl";
   const def = sjabloonDef(sjabloon);
-  const w = (k: VeldKey) => veldWaarde(def, k, i, taal);
+  const w = (k: VeldKey) => veldWaarde(def, k, i, taal) || PLEK[k];
   const voornaam = voornaamVan(i.naam);
   const tekst = (taal === "en" ? EN : NL)[sjabloon]({
     vacature: i.vacature?.trim() || null,
@@ -167,20 +192,16 @@ export function stelOp(sjabloon: Sjabloon, i: Invoer): Brief {
     moment: w("moment"),
     locatie: w("locatie"),
     uiterlijk: w("uiterlijk"),
-    extra: (i.toevoeging || "").trim(),
   });
-  const afzender = i.afzender.trim() || "React2u";
   return {
     onderwerp: tekst.onderwerp,
     aanhef: taal === "en" ? `Hi ${voornaam},` : `Hoi ${voornaam},`,
     alineas: tekst.alineas.filter(Boolean),
-    groet: taal === "en"
-      ? ["Kind regards,", afzender, "React2u · +31 85 620 58 00"]
-      : ["Groet,", afzender, "React2u · 085 - 620 58 00"],
+    groet: groetVoor(taal, i.afzender),
   };
 }
 
-type Ctx = { vacature: string | null; retainLonger: boolean; moment: string; locatie: string; uiterlijk: string; extra: string };
+type Ctx = { vacature: string | null; retainLonger: boolean; moment: string; locatie: string; uiterlijk: string };
 type Teksten = Record<Sjabloon, (c: Ctx) => { onderwerp: string; alineas: string[] }>;
 
 const sollicitatieNl = (v: string | null) => (v ? `sollicitatie als ${v}` : "open sollicitatie");
@@ -198,7 +219,6 @@ const NL: Teksten = {
       `Bedankt voor je ${sollicitatieNl(c.vacature)}. We hebben je gegevens met interesse gelezen en maken graag kennis met je.`,
       `We nodigen je uit voor een gesprek op ${c.moment}, ${c.locatie}.`,
       "Reken op ongeveer een uur. We vertellen je over React2u en het werk, en zijn vooral benieuwd naar jou. Voorbereiden hoeft niet.",
-      c.extra,
       ANDER_MOMENT_NL,
       "Tot dan!",
     ],
@@ -208,7 +228,6 @@ const NL: Teksten = {
     alineas: [
       "Fijn dat we elkaar hebben gesproken. We waren enthousiast en nodigen je graag uit voor een tweede gesprek.",
       `Dat is op ${c.moment}, ${c.locatie}. Je maakt dan kennis met een paar collega's uit het team.`,
-      c.extra,
       ANDER_MOMENT_NL,
       "Tot dan!",
     ],
@@ -218,7 +237,6 @@ const NL: Teksten = {
     alineas: [
       `Even een bericht tussendoor. Je ${sollicitatieNl(c.vacature)} heeft onze aandacht, maar we hebben iets meer tijd nodig dan we hadden beloofd.`,
       `Je hoort uiterlijk ${c.uiterlijk} van ons. We laten je niet in het ongewisse.`,
-      c.extra,
       "Heb je in de tussentijd vragen? Antwoord gerust op deze mail.",
     ],
   }),
@@ -227,7 +245,6 @@ const NL: Teksten = {
     alineas: [
       `Bedankt voor je ${sollicitatieNl(c.vacature)} en voor de tijd die je erin hebt gestoken.`,
       "We hebben je gegevens zorgvuldig bekeken. Helaas gaan we niet met je verder: we kiezen voor kandidaten van wie de ervaring dichter ligt bij wat we voor deze functie zoeken. Dat zegt niets over jouw kwaliteiten, wel over wat wij nu nodig hebben.",
-      c.extra,
       bewaarNl(c.retainLonger),
       SUCCES_NL,
     ],
@@ -237,7 +254,6 @@ const NL: Teksten = {
     alineas: [
       "Bedankt voor het gesprek. We vonden het fijn om je te leren kennen en waarderen de openheid waarmee je over je werk en jezelf vertelde.",
       "Toch hebben we besloten niet met je verder te gaan. We kiezen voor een kandidaat die op dit moment net beter past bij de functie en het team. Dat was geen makkelijke keuze.",
-      c.extra,
       "Wil je weten wat de doorslag gaf? Antwoord dan op deze mail, dan bel ik je om het toe te lichten.",
       bewaarNl(c.retainLonger),
       SUCCES_NL,
@@ -248,7 +264,6 @@ const NL: Teksten = {
     alineas: [
       `We hebben goed nieuws: we willen je graag een aanbod doen${c.vacature ? ` voor de functie van ${c.vacature}` : ""}.`,
       `Ik bel je ${c.moment} om het aanbod door te nemen: salaris, uren, startdatum en alles wat je verder wilt weten. Daarna zetten we het op papier.`,
-      c.extra,
       "We hopen dat je net zo enthousiast bent als wij.",
     ],
   }),
@@ -269,7 +284,6 @@ const EN: Teksten = {
       `Thank you for your ${applicationEn(c.vacature)}. We read your details with interest and would like to get to know you.`,
       `We would like to invite you for a meeting on ${c.moment}, ${c.locatie}.`,
       "Count on about an hour. We will tell you about React2u and the work, and above all we are curious about you. No preparation needed.",
-      c.extra,
       ANDER_MOMENT_EN,
       "See you then!",
     ],
@@ -279,7 +293,6 @@ const EN: Teksten = {
     alineas: [
       "It was good to talk to you. We were enthusiastic and would like to invite you for a second meeting.",
       `That is on ${c.moment}, ${c.locatie}. You will meet a few colleagues from the team.`,
-      c.extra,
       ANDER_MOMENT_EN,
       "See you then!",
     ],
@@ -289,7 +302,6 @@ const EN: Teksten = {
     alineas: [
       `A quick note in the meantime. Your ${applicationEn(c.vacature)} has our attention, but we need a little more time than we promised.`,
       `You will hear from us by ${c.uiterlijk} at the latest. We will not leave you guessing.`,
-      c.extra,
       "Any questions in the meantime? Feel free to reply to this email.",
     ],
   }),
@@ -298,7 +310,6 @@ const EN: Teksten = {
     alineas: [
       `Thank you for your ${applicationEn(c.vacature)} and for the time you put into it.`,
       "We have looked at your details carefully. Unfortunately we will not be taking your application further: we are choosing candidates whose experience is closer to what we are looking for in this role. That says nothing about your qualities, only about what we need right now.",
-      c.extra,
       bewaarEn(c.retainLonger),
       SUCCES_EN,
     ],
@@ -308,7 +319,6 @@ const EN: Teksten = {
     alineas: [
       "Thank you for the conversation. We enjoyed getting to know you and appreciate how openly you talked about your work and yourself.",
       "Still, we have decided not to continue with your application. We are choosing a candidate who, at this moment, is a slightly better fit for the role and the team. It was not an easy choice.",
-      c.extra,
       "Would you like to know what tipped the balance? Reply to this email and I will call you to explain.",
       bewaarEn(c.retainLonger),
       SUCCES_EN,
@@ -319,7 +329,6 @@ const EN: Teksten = {
     alineas: [
       `We have good news: we would like to make you an offer${c.vacature ? ` for the position of ${c.vacature}` : ""}.`,
       `I will call you ${c.moment} to go through the offer: salary, hours, start date and anything else you want to know. After that we put it in writing.`,
-      c.extra,
       "We hope you are as enthusiastic as we are.",
     ],
   }),

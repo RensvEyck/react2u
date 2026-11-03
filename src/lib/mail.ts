@@ -210,25 +210,27 @@ export async function sendMfaResetNotice(n: { to: string; door: string }): Promi
 }
 
 /**
- * Een persoonlijke brief aan een kandidaat: aanhef, alinea's en groet, zoals
- * je hem zelf zou typen, in het omhulsel van de klantmails (logo, witte kaart
- * op zand, voet met keurmerken). Geen kop, geen knop en geen label: het is een
- * bericht van een collega, geen campagne. De laatste regel van de groet (het
- * bedrijf) staat gedempt, zoals een handtekening.
+ * Een persoonlijke brief aan een kandidaat: de tekst zoals de collega hem in
+ * het beheer heeft staan, en de groet, in het omhulsel van de klantmails (logo,
+ * witte kaart op zand, voet met keurmerken). Geen kop, geen knop en geen label:
+ * het is een bericht van een collega, geen campagne. Een aanhef ("Hoi Yasmin,")
+ * staat iets donkerder; de laatste regel van de groet (het bedrijf) gedempt,
+ * zoals een handtekening.
  */
-function brief(b: { aanhef: string; alineas: string[]; groet: string[]; onderwerp: string; taal?: Taal; contact?: ContactInfo }) {
+function brief(b: { alineas: string[]; groet: string[]; onderwerp: string; taal?: Taal; contact?: ContactInfo }) {
   const regel = (t: string) => esc(t).replace(/\n/g, "<br>");
   const alineas = b.alineas.filter((a) => a.trim());
+  const isAanhef = (a: string, i: number) => i === 0 && a.length <= 60 && !a.includes("\n") && a.trimEnd().endsWith(",");
   const [groet, naam, ...onder] = b.groet;
-  const kaart = vak(`${p(esc(b.aanhef), `color:${KLEUR.inkt}`)}
-${alineas.map((a) => p(regel(a))).join("\n")}
+  const kaart = vak(`${alineas.map((a, i) => p(regel(a), isAanhef(a, i) ? `color:${KLEUR.inkt}` : "")).join("\n")}
 <p style="margin:26px 0 0;font-family:${FONT};font-size:16px;line-height:1.5;color:${KLEUR.tekst}">${esc(groet || "")}</p>
 ${naam ? `<p style="margin:4px 0 0;font-family:${FONT_KOP};font-size:17px;line-height:1.35;font-weight:700;color:${KLEUR.inkt}">${esc(naam)}</p>` : ""}
 ${onder.map((r) => `<p style="margin:1px 0 0;font-family:${FONT};font-size:14px;line-height:1.5;color:${KLEUR.grijs}">${esc(r)}</p>`).join("\n")}`);
   return omhulsel({
     basis: siteBasis(),
     titel: b.onderwerp,
-    preheader: alineas[0] || b.onderwerp,
+    // Naast het onderwerp in de inbox: de eerste echte zin, niet "Hoi Yasmin,".
+    preheader: alineas.find((a, i) => !isAanhef(a, i)) || b.onderwerp,
     kaart,
     contact: b.contact,
     taal: b.taal,
@@ -236,14 +238,14 @@ ${onder.map((r) => `<p style="margin:1px 0 0;font-family:${FONT};font-size:14px;
 }
 
 /**
- * Een vaste, persoonlijke mail aan een kandidaat vanuit Sollicitaties (de
- * sjablonen staan in lib/kandidaatMail.ts). Antwoorden komt uit bij de collega
- * die hem stuurde, niet bij het noreply-adres.
+ * Een persoonlijke mail aan een kandidaat vanuit Sollicitaties (begintekst uit
+ * lib/kandidaatMail.ts, daarna door de collega aan te passen). Antwoorden komt
+ * uit bij de collega die hem stuurde, niet bij het noreply-adres.
  */
 export async function sendBrief(b: {
-  to: string; subject: string; aanhef: string; alineas: string[]; groet: string[]; replyTo?: string; taal?: Taal; contact?: ContactInfo;
+  to: string; subject: string; alineas: string[]; groet: string[]; replyTo?: string; taal?: Taal; contact?: ContactInfo;
 }): Promise<Verzonden> {
-  const html = brief({ aanhef: b.aanhef, alineas: b.alineas, groet: b.groet, onderwerp: b.subject, taal: b.taal, contact: b.contact });
+  const html = brief({ alineas: b.alineas, groet: b.groet, onderwerp: b.subject, taal: b.taal, contact: b.contact });
   return verstuur([b.to], b.subject, html, b.replyTo);
 }
 

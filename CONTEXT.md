@@ -766,10 +766,19 @@ Een sollicitant krijgt vanzelf alleen de ontvangstbevestiging
 kandidaat** op de kaart in Sollicitaties: zes vaste mails (uitnodiging, tweede
 gesprek, tussenbericht, afwijzing, afwijzing na gesprek, aanbod) in
 [`src/lib/kandidaatMail.ts`](src/lib/kandidaatMail.ts), in het Nederlands of
-Engels naar de taal van de sollicitatie. Je vult het moment of de plek in, voegt
-eventueel een eigen alinea toe en ziet ernaast de mail zoals de kandidaat hem
-leest. Antwoorden komt bij jou uit, niet bij het noreply-adres.
+Engels naar de taal van de sollicitatie. Antwoorden komt bij jou uit, niet bij
+het noreply-adres.
 
+- **Het sjabloon is een begintekst.** Je vult het moment of de plek in, en
+  daarna pas je het onderwerp en de hele tekst zelf aan, in het formulier zoals
+  de kandidaat de mail krijgt. Zolang je niet in de tekst typt, volgt hij het
+  sjabloon en de velden; daarna blijft jouw versie staan, tot *Terug naar het
+  sjabloon*. De server verstuurt wat er staat (`alineasUitTekst`: een witregel
+  is een nieuwe alinea); alleen de groet met je naam maakt hij zelf
+  (`groetVoor`).
+- **Lege plekken.** Een leeg veld staat als `[moment]`, `[plek]` of `[datum]` in
+  de tekst. Zolang zo'n plek er staat, kan de knop niet en weigert de server
+  (`openPlek`): zo krijgt niemand "een gesprek op [moment]".
 - **De fase alleen verzetten mailt niemand.** Andersom wel: na het versturen
   zet `sendKandidaatMail` de fase die bij de mail hoort (uitnodiging → gesprek,
   afwijzing → afgewezen, aanbod → aanbod). Eerst versturen, dan de fase: een
