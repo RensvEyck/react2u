@@ -323,7 +323,8 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
               <span>Brochure {b.nummer}</span><span aria-hidden className="hidden sm:inline">/</span><span style={{ color: NAVY }}>voor {b.bedrijf}</span>
             </p>
             <div className="flex flex-col gap-4">
-              <h1 className={`${kop} m-0 text-[40px] leading-[1.04] tracking-[-1.2px] md:text-[58px] md:tracking-[-1.8px]`} style={{ color: NAVY }}>
+              {/* Op 1024 px staat de kop naast het contactblok in een smalle kolom: daar kleiner. */}
+              <h1 className={`${kop} m-0 text-[40px] leading-[1.04] tracking-[-1.2px] md:text-[58px] md:tracking-[-1.8px] lg:text-[44px] lg:tracking-[-1.2px] xl:text-[58px] xl:tracking-[-1.8px]`} style={{ color: NAVY }}>
                 {OPENING.kop}<br />
                 {/* "re-integratie" niet afbreken op het streepje. */}
                 <span style={{ color: PINK }}>{OPENING.accent.split(" ").slice(0, -1).join(" ")} <span className="whitespace-nowrap">{OPENING.accent.split(" ").at(-1)}</span></span>
