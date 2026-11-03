@@ -1212,6 +1212,90 @@ offertemodule, zonder prijzen, keuzes of ondertekening.
   versturen, prospect opent, melding aan sales, pdf, telefoon, offerte vanuit
   de brochure, intrekken, onbekende link) en `lib/brochures.test.ts`.
 
+## Contracten
+
+Sinds 3 november 2026 (migratie [0031](supabase/migrations/0031_contracten.sql)):
+het **Basiscontract Arbodienstverlening** dat de Arbowet sinds 1 juli 2017 vraagt,
+op dezelfde manier als een offerte (Rens: "deze moet op dezelfde wijze worden
+ingebouwd in de admin zoals we de offerte versturen en in nieuwe stijl"). Sales
+stuurt een link; de klant leest het contract, vult de gegevens van zijn
+organisatie in en tekent online met een code per mail.
+
+- **De tekst** staat in [`lib/contractTekst.ts`](src/lib/contractTekst.ts),
+  letterlijk uit het Word-bestand "Basiscontract arbodienst React2u LEEG nieuw"
+  (overwegingen A tot en met F, artikelen 1 tot en met 8), in een eigen
+  mini-opmaak (`## 1. Titel`, `1.1. bepaling`, `A. overweging`, `**vet**`) met de
+  invulvelden `{ingangsdatum}`, `{einddatum}` en `{offerte}`. Alleen de opmaak is
+  nieuw (titels van bepalingen vet). Elk contract krijgt bij het aanmaken een
+  **kopie** (kolom `tekst`, met `tekst_versie`), zodat een verstuurd contract niet
+  verandert als de standaard wijzigt en de database bij het tekenen precies kan
+  vastleggen wat er getekend is. Per contract aan te passen in het beheer; een
+  afwijking staat er als "Aangepaste tekst" bij, en "In het kort" laat dan alleen
+  de looptijd zien. Wijzig je de standaard, verhoog dan `CONTRACT_VERSIE`.
+  *Aanvullende afspraken* (`aanvullend`) worden het laatste artikel (9).
+- **De partijen** ("De ondergetekenden") maakt de code, in de bewoording van het
+  Word-bestand (`comparitieOpdrachtnemer()`/`comparitieOpdrachtgever()` in
+  [`lib/contracten.ts`](src/lib/contracten.ts)). React2u komt uit Instellingen
+  (adres, KvK; `opdrachtnemer`, bij opslaan en versturen ververst) en wordt
+  vertegenwoordigd door de bestuurder, net als bij offertes
+  (`ONDERTEKENAAR.formeel`: "de heer R. van Eyck", functie bestuurder). Het
+  Word-bestand noemde "Eigenaar", KvK 866991906 (dat is het btw-nummer) en
+  postcode 5632 NB, en zette "S. Linders/C. Faro" onder de handtekening; het
+  contract volgt Instellingen en de handtekening van de offerte. De klant
+  (`opdrachtgever`: statutaire naam, adres, postcode, plaats, KvK van 8 cijfers)
+  kan sales vooraf invullen; de klant bevestigt of vult aan bij het tekenen, met
+  zijn naam en (verplichte) functie als vertegenwoordiger en de plaats van
+  ondertekening.
+- **Overweging D** ("akkoord met de offerte met kenmerk ...") krijgt het kenmerk
+  van de gekoppelde offerte ("Offerte 2026-0012 van 3 november 2026"); zonder
+  offerte de naam en het KvK-nummer van de klant, zoals het Word-bestand zegt.
+- **Looptijd** (artikel 1.1): standaard de eerste van de volgende maand, een
+  jaar; daarna telkens 12 maanden verlengd, opzeggen 3 maanden voor het einde.
+  `looptijdNu()` rekent uit tot wanneer een getekend contract nu loopt en tot
+  wanneer het nog kan worden opgezegd; het overzicht toont dat als register en
+  telt de contracten waarvan die datum binnen drie maanden valt.
+- **Beheer**: `/admin/contracten` (register), `/admin/contracten/nieuw` (ook
+  `?offerte=<id>`: klant, afzender, kenmerk, en het factuuradres en KvK uit de
+  getekende offerte), `/admin/contracten/<id>` (versturen met `OfferteVersturen`
+  en `woord="contract"`, tijdlijn, formulier, na het tekenen de handtekening en het
+  bewijs), `/admin/contractvoorbeeld/<id>` (+ `/pdf`, `/concept`). Bij een
+  verstuurde of getekende offerte staat de knop *Basiscontract* (of het contract
+  dat er al bij hoort). Recht: `bellijst`.
+- **Klantpagina** `/contract/<token>`
+  ([`ContractPagina.tsx`](src/components/contract/ContractPagina.tsx)) in de
+  vormgeving van de site, in de kleuren van React2u zelf zoals de brochure (een
+  basiscontract hoort bij de arbodienst, niet bij één label): opening in de lila
+  tint met "In het kort" (`contractKort()`, de volledige tekst is leidend), het
+  contract als wit vel met een inhoudsopgave die meeloopt, en ondertekenen in drie
+  stappen. De kop van het contract en "Zo staat het in het contract" vullen zich
+  terwijl de klant typt. Documenten bij het contract: algemene voorwaarden,
+  privacyreglement en klachtenregeling (de pdf's van de site). Na het tekenen:
+  felicitatie (binnen een kwartier), beide handtekeningen met plaats en datum, tot
+  wanneer het loopt, en de tekst zoals getekend.
+- **Bewijs zoals bij offertes**: `contract_bekijken`, `contract_code_vastleggen`
+  (dezelfde `OFFERTE_SLEUTEL`, de hash staat al in `offerte_sleutel`),
+  `contract_ondertekenen` (eerst alle velden, dan de code; legt `getekend_inhoud`
+  vast met de tekst, beide partijen, de looptijd en de bevestiging, plus een
+  sha-256) en `contract_certificaat`. `contract_codes` heeft geen policies; de
+  trigger `contract_bewaken` laat het beheer niet tekenen en een getekend contract
+  niet wijzigen of verwijderen (de notitie wel). Niet-getekende contracten gaan na
+  een jaar weg (`opruimen-contracten`).
+- **Pdf** ([`lib/contractPdf.tsx`](src/lib/contractPdf.tsx)): de opbouw van het
+  Word-bestand op het papier van de offerte-pdf, met achterin het
+  ondertekeningscertificaat; concept met watermerk en open plekken. Bij de
+  bevestiging aan de klant en de melding aan sales.
+- **Mails** ([`lib/contractMail.ts`](src/lib/contractMail.ts), op de bouwstenen van
+  `offerteMail.ts`): het contract, de code en de bevestiging; meldingen "bekijkt"
+  en "getekend" sober, zoals bij offertes.
+- **Tests**: [`e2e/contract.cjs`](e2e/contract.cjs) (vanuit een offerte, aanmaken,
+  versturen, klant leest, telefoon, tekenen met foute en goede code, mails, pdf,
+  getekend is vast, register, collega, onbekende link), `lib/contracten.test.ts`
+  (o.a. dat er geen woord uit het Word-bestand verloren gaat) en
+  `lib/contractPdf.test.tsx`.
+- `next.config.ts` neemt voor `/contract/**` en `/admin/contractvoorbeeld/**` de
+  lettertypen, keurmerken en de handtekening van de bestuurder mee naar Vercel;
+  dat laatste nu ook voor `/offerte/**` (de offerte-pdf tekent hem sinds 3 nov).
+
 ## Van Postvak IN naar bellijst
 
 Elke kaart in het Postvak IN heeft een knop **Op bellijst**. Die maakt een lead

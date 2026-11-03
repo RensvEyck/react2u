@@ -16,7 +16,7 @@ import {
 } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuCopy, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil,
-  LuSignature, LuCircleX, LuMousePointerClick, LuStickyNote, LuBookmarkPlus, LuMailCheck, LuFileDown, LuShieldCheck,
+  LuSignature, LuCircleX, LuMousePointerClick, LuStickyNote, LuBookmarkPlus, LuMailCheck, LuFileDown, LuShieldCheck, LuScrollText,
 } from "react-icons/lu";
 
 /**
@@ -50,11 +50,14 @@ function zin(g: Gebeurtenis): string {
 export default async function OfferteAdmin({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { sb } = await requirePerm("bellijst");
-  const [offerteRes, tijdlijnRes, catalogus] = await Promise.all([
+  const [offerteRes, tijdlijnRes, catalogus, contractRes] = await Promise.all([
     sb.from("offertes").select("*").eq("id", id).maybeSingle(),
     sb.from("offerte_gebeurtenissen").select("*").eq("offerte_id", id).order("at", { ascending: false }).limit(200),
     laadCatalogus(sb),
+    // Het basiscontract bij deze offerte (0031); zonder die migratie gewoon geen.
+    sb.from("contracten").select("id, nummer, status").eq("offerte_id", id).neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
+  const contract = (contractRes.error ? null : contractRes.data) as { id: string; nummer: string; status: string } | null;
   const { sjablonen, tabel: sjabloonTabel } = await laadSjablonen(sb, catalogus);
   if (!offerteRes.data) notFound();
   const o = inVorm(offerteRes.data as Offerte);
@@ -93,6 +96,15 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
                 <LuFileDown /> Concept-pdf
               </a>
             )}
+            {contract ? (
+              <Link href={`/admin/contracten/${contract.id}`} className="abtn-ghost !py-1.5 text-[13px]" title="Het basiscontract bij deze offerte">
+                <LuScrollText /> Contract {contract.nummer}{contract.status === "getekend" ? " (getekend)" : ""}
+              </Link>
+            ) : (o.status === "verstuurd" || getekend) && !contractRes.error ? (
+              <Link href={`/admin/contracten/nieuw?offerte=${o.id}`} className="abtn-ghost !py-1.5 text-[13px]" title="Het Basiscontract Arbodienstverlening voor deze klant, met de gegevens van de offerte al ingevuld">
+                <LuScrollText /> Basiscontract
+              </Link>
+            ) : null}
             <form action={dupliceerOfferte.bind(null, o.id)}>
               <button className="abtn-ghost !py-1.5 text-[13px]"><LuCopy /> Dupliceren</button>
             </form>
