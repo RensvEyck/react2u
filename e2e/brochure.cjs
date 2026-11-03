@@ -1,5 +1,5 @@
 // Brochures (0030) van begin tot eind: aanmaken in het beheer, als collega bekijken (telt niet),
-// met de prijslijst, versturen, de prospect opent hem (melding aan sales), de pdf, de offerte die
+// de acht hoofdstukken en de prijslijst, versturen, de prospect opent hem (melding aan sales), de pdf, de offerte die
 // eruit volgt, intrekken en een onbekende link. Draaien via e2e/run.mjs, na offerte.cjs en vormen.cjs.
 const { chromium } = require("playwright");
 const fs = require("fs");
@@ -68,7 +68,17 @@ const LABELS = ["Recover", "Resist", "Restart", "Reflex", "Ready", "Reward"];
   await collega.goto(link);
   await collega.waitForSelector("h1");
   check(await collega.locator("text=Je bekijkt deze brochure als collega").count(), "melding voor de collega");
-  check(await collega.locator("h1:has-text('Jouw mensen')").count(), "belofte van de site in de kop");
+  check(await collega.locator("h1:has-text('Grip op verzuim')").count(), "belofte van de brochure in de kop");
+  check((await collega.locator("#inhoud ol > li").count()) === 8, "inhoud met acht hoofdstukken");
+  for (const id of ["hoe-het-gaat", "voorwoord", "werkwijze", "kosten", "diensten", "jouw-rol", "tarieven", "overstappen"]) {
+    check(await collega.locator(`section#${id}`).count(), `hoofdstuk ${id}`);
+  }
+  check(await collega.locator("#hoe-het-gaat >> text=Maandagochtend, 08:12").count(), "01: de maandagochtend");
+  check(await collega.locator("#kosten >> text=€94.500").count(), "04: de rekensom");
+  check(await collega.locator("#kosten >> text=Eén voorkomen sanctie betaalt 4,5 jaar dienstverlening.").count(), "04: Compleet uit de prijslijst");
+  check(await collega.locator("#jouw-rol >> text=Of hij onder een vangnetregeling van de Ziektewet valt (niet welke)").count(), "06: vangnetregeling mag je vragen");
+  check(await collega.locator("#overstappen >> text=instemmingsrecht").count(), "08: de OR");
+  check(await collega.locator('#overstappen a[href="https://flexhero.com"]').count(), "08: de zusterlabels");
   check(await collega.locator("text=Beste Karin,").count(), "aanhef met de voornaam");
   check(await collega.locator("text=voor Transportbedrijf Vermeulen kan betekenen").count(), "{bedrijf} ingevuld in het persoonlijke woord");
   for (const l of LABELS) check(await collega.locator(`#diensten article:has-text("${l}")`).count(), `dienst ${l}`);
@@ -81,7 +91,7 @@ const LABELS = ["Recover", "Resist", "Restart", "Reflex", "Ready", "Reward"];
   check(await collega.locator('#diensten a[href="#tarieven-recover"]').count(), "een dienst linkt naar zijn tarieven");
   check(await collega.locator("#tarieven >> text=Maatwerk en specialisten").count(), "maatwerk en specialisten");
   await collega.locator("#tarieven").screenshot({ path: path.join(SHOTS, "03b-tarieven.png") });
-  check(await collega.locator("h2:has-text('Waarom we React2u zijn begonnen')").count(), "het verhaal van Cindy en Susanne");
+  check(await collega.locator("#voorwoord h3:has-text('Waarom we React2u zijn begonnen')").count(), "02: het verhaal van Cindy en Susanne");
   check(await collega.locator("a:has-text('Plan een kennismaking')").count(), "knop om kennis te maken");
   check(sql(`select aantal_bekeken from public.brochures where id = '${id}'`) === "0", "bezoek van een collega telt niet");
   await shot(collega, "03-brochure-collega");

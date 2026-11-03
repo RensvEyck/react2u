@@ -11,7 +11,7 @@ import type { BrochurePubliek } from "./brochures";
 import type { Dienst } from "./brochureHuisstijl";
 
 describe("brochurePdf", () => {
-  it("maakt een pdf met de omslag, de zes diensten, de prijslijst en het verhaal van React2u", async () => {
+  it("maakt een pdf met de omslag en de acht hoofdstukken", async () => {
     const diensten: Dienst[] = BROCHURE_DIENSTEN.map((slug) => ({ ...MERKEN[slug], slug, omschrijving: `Over ${MERKEN[slug].naam}.`, href: `/${slug}` }));
     const brochure: BrochurePubliek = {
       id: "b1", nummer: "B2026-0001", status: "verstuurd", bedrijf: "Transportbedrijf Vermeulen", contactpersoon: "Karin Vermeulen",
@@ -21,11 +21,12 @@ describe("brochurePdf", () => {
     const prijslijst = prijslijstStandaard({ jaar: "2027", geldigTot: "31 december 2027" });
     const pdf = await brochurePdf({ brochure, diensten, prijslijst, contact: CONTACT_FALLBACK });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
-    // Omslag, diensten, prijslijst en verhaal, met lettertypen en het logo: ruim boven een lege pdf.
-    expect(pdf.length).toBeGreaterThan(20_000);
+    // Omslag en acht hoofdstukken, met lettertypen, logo's en keurmerken: ruim boven een lege pdf.
+    expect(pdf.length).toBeGreaterThan(100_000);
+    // Compact (Susanne: "te veel pagina's"): het voorbeeld had er veertien.
     const paginas = (pdf.toString("latin1").match(/\/Type\s*\/Page\b/g) || []).length;
-    expect(paginas).toBeGreaterThanOrEqual(5);
-    expect(paginas).toBeLessThanOrEqual(6);
+    expect(paginas).toBeGreaterThanOrEqual(8);
+    expect(paginas).toBeLessThanOrEqual(11);
     // Zonder contactpersoon en afzender ook: de brochure valt terug op "relatie" en "Team React2u".
     const kaal = await brochurePdf({ brochure: { ...brochure, contactpersoon: null, afzender_naam: null, afzender_functie: null, afzender_telefoon: null, status: "concept", verstuurd_at: null }, diensten, prijslijst, contact: CONTACT_FALLBACK });
     expect(kaal.subarray(0, 5).toString()).toBe("%PDF-");
