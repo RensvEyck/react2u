@@ -248,6 +248,9 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await klant.click("aside button:has-text('Naar ondertekenen')");
   await klant.waitForTimeout(900);
   check((await klant.inputValue("#akkoord input[autocomplete=name]")) === "Marieke Jansen", "naam vooringevuld");
+  // Namens React2u tekent de bestuurder, niet de afzender (Rens, 3 nov 2026).
+  check(await klant.locator('img[alt="Handtekening van Rens van Eyck"]').count(), "handtekening van de bestuurder in het vak Opdrachtnemer");
+  check(await klant.locator("text=Rens van Eyck, Bestuurder").count(), "naam en functie van de bestuurder onder de handtekening");
   await klant.click("#akkoord button[type=submit]");
   check(await klant.locator("#akkoord [role=alert]").count(), `zonder handtekening een melding: ${await klant.locator("#akkoord [role=alert]").innerText()}`);
   await klant.fill("#akkoord input[autocomplete=organization-title]", "Directeur");
@@ -339,6 +342,8 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   stap("Nog eens tekenen kan niet; de link toont de getekende versie");
   await klant.goto(link);
   check(await klant.locator("text=Ondertekend").count(), "link toont getekende versie");
+  check(await klant.locator('img[alt="Handtekening van Rens van Eyck"]').count(), "getekende versie: handtekening van de bestuurder");
+  check(await klant.locator("text=Rens van Eyck, Bestuurder").count(), "getekende versie: naam en functie van de bestuurder");
 
   stap("Beheer na ondertekening");
   await page.goto(offerteUrl);

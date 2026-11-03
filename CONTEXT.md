@@ -1038,6 +1038,16 @@ eigen label**, met de opbouw van de dienstpagina van dat label
   (`lib/offerteHuisstijl.ts`): adres, telefoon, e-mail, KvK en btw in de voet en
   bij Opdrachtnemer; staat een certificaat als PDF in Instellingen, dan klik je
   vanaf het keurmerk erheen.
+- **Ondertekening namens React2u door de bestuurder** (Rens, 3 nov 2026: "zet
+  mijn handtekening bij alle offertes"): in het vak *Opdrachtnemer* op de
+  klantpagina (vóór en na het tekenen) en in de pdf staat de echte handtekening
+  van Rens van Eyck met "Rens van Eyck, Bestuurder" en de datum van versturen,
+  ongeacht wie de offerte opstelde. De afzender blijft de contactpersoon op de
+  pagina en in de mails. Naam, functie en de png staan in
+  [`lib/offerteOndertekenaar.ts`](src/lib/offerteOndertekenaar.ts); de
+  handtekening is `public/beeld/handtekening-rens.png` (scan, wit weggehaald).
+  Ook getekende offertes van vóór 3 nov tonen hem: de pdf wordt steeds opnieuw
+  gemaakt uit `getekend_inhoud`, en de ondertekenaar zit daar niet in.
 - **Prijzen per maand**: wat per jaar loopt staat op de klantpagina, in de mails en
   in het beheer als maandbedrag (`perMaand`, `maandprijs()`, `regelbedrag()` in
   `lib/offertes.ts`), met het jaarbedrag klein erbij. De prijslijst blijft per jaar;
@@ -1100,7 +1110,7 @@ prijslijst. Daarom:
   aantal medewerkers; een bedrag van € 0 heet "Inbegrepen"; een regel zonder
   bedrag kan een *prijs als tekst* hebben ("€ 89 p.p. en € 0,42 per km").
 - De ondertekende versie toont, zoals de Word-offertes, *Opdrachtnemer* (React2u,
-  aangeboden door de afzender) naast *Opdrachtgever* (getekend voor akkoord).
+  getekend door de bestuurder) naast *Opdrachtgever* (getekend voor akkoord).
 
 ### De offerte als contract
 

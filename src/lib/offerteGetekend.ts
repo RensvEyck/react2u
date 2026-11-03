@@ -26,7 +26,6 @@ export async function getekendePdf(token: string, bekend?: OffertePubliek | null
     certificaat: (certificaat as CertificaatGegevens | null) ?? null,
     contact: huis.contact,
     link: offerteUrl(token),
-    afzenderFunctie: o.afzender_functie,
   });
   return { filename: pdfNaam(o.getekend_inhoud), content };
 }

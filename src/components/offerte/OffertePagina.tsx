@@ -12,6 +12,7 @@ import { woordenboek } from "@/lib/woordenboek";
 import Handtekening from "./Handtekening";
 import OfferteTekst from "./OfferteTekst";
 import { ondertekenaarRegel, VOORWOORD, VOORWOORD_VAN } from "@/lib/offerteVoorwoord";
+import { ONDERTEKENAAR, ondertekeningRegel } from "@/lib/offerteOndertekenaar";
 import { MERKEN, merkVoorVorm, type Merk } from "@/lib/offerteMerk";
 import { bewaarKeuze, ondertekenOfferte, vraagCode, wijsOfferteAf } from "@/app/(offerte)/offerte/actions";
 import {
@@ -1830,14 +1831,13 @@ function Akkoord({
                 <Vink size={12} /> Offerte aangeboden
               </span>
             </div>
-            <div className="relative mt-2.5 flex aspect-[10/3] items-end overflow-hidden rounded-[16px] border px-[6%] pb-[7%]" style={{ borderColor: LINE, background: SOFT }}>
-              <p className={`${handschrift.className} relative z-10 m-0 text-[clamp(30px,4vw,44px)] leading-none`} style={{ color: NAVY }}>{offerte.afzender_naam || "React2u"}</p>
+            {/* Namens React2u tekent de bestuurder (lib/offerteOndertekenaar.ts), niet de afzender. */}
+            <div className="relative mt-2.5 flex aspect-[10/3] items-end overflow-hidden rounded-[16px] border px-[6%] pb-[5%]" style={{ borderColor: LINE, background: SOFT }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={ONDERTEKENAAR.handtekening} alt={`Handtekening van ${ONDERTEKENAAR.naam}`} className="relative z-10 h-[88%] w-auto" />
               <span className="absolute inset-x-[6%] bottom-[24%] border-b" style={{ borderColor: "#D6D4E4" }} aria-hidden="true" />
             </div>
-            <p className="m-0 mt-2.5 text-[14px]" style={{ color: MUTE }}>
-              {[offerte.afzender_naam, offerte.afzender_functie].filter(Boolean).join(", ") || "React2u"}
-              {offerte.verstuurd_at ? `, ${datumLang(offerte.verstuurd_at)}` : ""}
-            </p>
+            <p className="m-0 mt-2.5 text-[14px]" style={{ color: MUTE }}>{ondertekeningRegel(offerte.verstuurd_at, datumLang)}</p>
           </div>
           <div>
             <Label>Opdrachtgever</Label>
@@ -2265,9 +2265,12 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
                   <Label>Opdrachtnemer</Label>
                   <p className={`${kop} m-0 mt-2 text-[19px]`} style={{ color: NAVY }}>React2u</p>
                   <p className="m-0 text-[14px]" style={{ color: MUTE }}>{huis.contact.addressLine1}, {huis.contact.addressLine2}, KvK {huis.contact.kvk}</p>
-                  <p className={`${handschrift.className} m-0 mt-auto pt-6 text-[38px] leading-none`} style={{ color: NAVY }}>{afzender}</p>
+                  <div className="mt-auto pt-5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={ONDERTEKENAAR.handtekening} alt={`Handtekening van ${ONDERTEKENAAR.naam}`} className="h-[104px] w-auto" />
+                  </div>
                   <p className="m-0 mt-3 border-t pt-2.5 text-[14px]" style={{ borderColor: LINE, color: MUTE }}>
-                    {afzender}{inhoud.verstuurd_at ? `, ${datumLang(inhoud.verstuurd_at)}` : ""}
+                    {ondertekeningRegel(inhoud.verstuurd_at, datumLang)}
                   </p>
                 </div>
                 <div className="flex flex-col">
