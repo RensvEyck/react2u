@@ -12,9 +12,11 @@ const outfit = Outfit({ subsets: ["latin"], weight: ["600"], variable: "--font-o
  * een mens.
  */
 export default function OfferteMelding({
-  titel, children, telefoon, email,
+  titel, children, telefoon, email, soort = "Offerte",
 }: {
   titel: string;
+  /** Het bovenkopje: waar de link voor was (een contract, 0031, gebruikt dezelfde melding). */
+  soort?: string;
   children: React.ReactNode;
   telefoon: string | null;
   email: string | null;
@@ -25,7 +27,7 @@ export default function OfferteMelding({
       <div className="w-full max-w-[580px] rounded-[28px] bg-white px-7 py-10 shadow-[0_24px_48px_-36px_rgba(50,46,131,0.35)] sm:px-12 sm:py-12">
         <Logo className="h-11 w-auto" />
         <div className="mt-10 flex flex-col gap-4">
-          <Eyebrow>Offerte</Eyebrow>
+          <Eyebrow>{soort}</Eyebrow>
           {/* Kleur inline: de algemene kopstijl van de site staat buiten de Tailwind-lagen en wint anders */}
           <h1 className={`${kop} m-0 text-[30px] leading-[1.12] tracking-[-0.8px] sm:text-[36px]`} style={{ color: NAVY }}>{titel}</h1>
         </div>

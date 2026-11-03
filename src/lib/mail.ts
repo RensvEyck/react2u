@@ -23,6 +23,7 @@ import type { Vorm } from "./offertes";
 import { merkVoorVorm } from "./offerteMerk";
 import { offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, type MailAfzender, type OfferteMail } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
+import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
 
 // RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
 // zou worden); in productie staat hij niet en is dit gewoon Resend.
@@ -584,4 +585,78 @@ export function brochureAdminUrl(id: string) {
 
 export function brochureUrl(token: string) {
   return `${siteBasis()}/brochure/${token}`;
+}
+
+/* ---------- contracten (migratie 0031) ---------- */
+
+/**
+ * Het basiscontract naar de klant: een persoonlijke mail met één knop naar de
+ * contractpagina (lib/contractMail.ts). Antwoorden gaat naar de afzender.
+ */
+export async function sendContract(c: Omit<ContractMail, "basis"> & { to: string }): Promise<Verzonden> {
+  const { to, ...rest } = c;
+  const html = contractMailHtml({ basis: siteBasis(), ...rest });
+  const onderwerp = `${c.herinnering ? "Herinnering: b" : "B"}asiscontract ${c.nummer} voor ${c.bedrijf}`;
+  return verstuur([to], onderwerp, html, c.afzender.email || undefined);
+}
+
+/** De code waarmee wie tekent zijn e-mailadres bevestigt; vooraan in het onderwerp, net als bij offertes. */
+export async function sendContractCode(c: { to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender; contact?: ContactInfo }): Promise<Verzonden> {
+  const html = contractCodeHtml({ basis: siteBasis(), code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact });
+  return verstuur([c.to], `${c.code} is je code voor contract ${c.nummer}`, html, c.afzender.email || undefined);
+}
+
+/** Bevestiging aan wie tekende, met het getekende contract als pdf (met het ondertekeningscertificaat). */
+export async function bevestigContractGetekend(b: {
+  to: string; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
+  regels: { label: string; waarde: string }[]; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = contractGetekendHtml({
+    basis: siteBasis(), naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash, moment: b.moment,
+    regels: b.regels, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact,
+  });
+  return verstuur([b.to], `Ondertekend: basiscontract ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
+}
+
+export async function notifyContractGetekend(n: {
+  nummer: string; bedrijf: string; naam: string; functie: string; email: string; organisatie: string[]; looptijd: string;
+  adminLink: string; afzenderEmail: string | null; pdf?: Bijlage | null;
+}) {
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `Getekend: basiscontract ${n.nummer} voor ${n.bedrijf}`,
+    persoonlijk(
+      `${n.bedrijf} heeft het basiscontract getekend`,
+      [
+        `${esc(n.naam)} (${esc(n.functie)}) heeft basiscontract ${esc(n.nummer)} zojuist online ondertekend.`,
+        `<strong>Looptijd</strong><br>${esc(n.looptijd)}`,
+        `<strong>Opdrachtgever</strong><br>${n.organisatie.map(esc).join("<br>")}`,
+        `E-mailadres ${esc(n.email)} bevestigd met een code; de bevestiging met de pdf is daarheen gestuurd.${n.pdf ? " Het getekende contract zit ook bij deze mail." : ""}`,
+      ],
+      { tekst: "Open het contract", link: n.adminLink }
+    ),
+    undefined,
+    n.pdf ? [n.pdf] : undefined
+  );
+}
+
+/** De eerste keer dat de klant het contract opent: alleen naar de collega die het stuurde. */
+export async function notifyContractBekeken(n: { to: string; nummer: string; bedrijf: string; adminLink: string }) {
+  await post(
+    [n.to],
+    `${n.bedrijf} bekijkt het basiscontract`,
+    persoonlijk(
+      `${n.bedrijf} heeft het basiscontract geopend`,
+      [`Contract ${esc(n.nummer)} is zojuist voor het eerst geopend. Een goed moment om even te bellen.`],
+      { tekst: "Open het contract", link: n.adminLink }
+    )
+  );
+}
+
+export function contractAdminUrl(id: string) {
+  return `${siteBasis()}/admin/contracten/${id}`;
+}
+
+export function contractUrl(token: string) {
+  return `${siteBasis()}/contract/${token}`;
 }

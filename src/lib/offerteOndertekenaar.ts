@@ -13,6 +13,8 @@ export const ONDERTEKENAAR = {
   naam: "Rens van Eyck",
   functie: "Bestuurder",
   handtekening: "/beeld/handtekening-rens.png",
+  /** Zoals in de kop van het basiscontract (lib/contracten.ts): "vertegenwoordigd door de heer R. van Eyck". */
+  formeel: "de heer R. van Eyck",
 } as const;
 
 /** "Rens van Eyck, Bestuurder, 3 november 2026": de regel onder de handtekening. */
