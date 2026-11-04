@@ -1221,8 +1221,8 @@ is niet goed alleen wel de opbouw"), met de opmerkingen van Susanne verwerkt.
   casemanager, XpertSuite bewaakt de termijnen), 04 Wat het kost (€94.500, met
   Compleet en spoor 2 uit de prijslijst), 05 Onze diensten (eigen teksten en
   vinkjes per label, kleuren uit het CMS), 06 Jouw rol (wat je mag vragen, en wat
-  je per termijn doet), dan klanten aan het woord, 07 Tarieven en 08 Overstappen
-  met de zusterlabels.
+  je per termijn doet), 07 Tarieven en 08 Overstappen met de zusterlabels;
+  klanten aan het woord staat tussen 05 en 06.
 - **Beeldtaal: die van de homepage** (sinds 4 nov 2026; Rens over eerdere
   versies: "visueel niet een samenhangend verhaal", "ziet er standaard uit",
   "het verhaal komt niet over"). De stippentaal van "Home S-tier" (koppen in de

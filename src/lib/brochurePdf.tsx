@@ -620,6 +620,32 @@ function BrochureDocument({ brochure: b, diensten, prijslijst, contact }: Brochu
           </View>
         </View>
 
+        {/* Tussen 05 en 06: wat werkgevers zeggen. */}
+        <View style={[s.hoofdstuk, { backgroundColor: GRIJS, borderRadius: 14, padding: 14 }]} wrap={false}>
+          <Stiplabel kleur={ROZE}>Klanten aan het woord</Stiplabel>
+          <Text style={[s.tussenkop, { marginTop: 6 }]}>{KLANTEN_KOP}</Text>
+          <View style={{ flexDirection: "row", marginTop: 8 }}>
+            <Text style={{ fontSize: 30, fontWeight: 700, color: ROZE, lineHeight: 1, width: 24 }}>“</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 11, fontWeight: 600, color: NAVY, lineHeight: 1.45 }}>{citaat.tekst}</Text>
+              <Text style={{ fontSize: 8.4, color: MUTE, marginTop: 4 }}>{citaat.naam}, {citaat.rol}</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12, backgroundColor: "#ffffff", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 }}>
+            {KLANTEN.map((kl) => (
+              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt
+              <Image key={kl.src} src={path.join(BEELD, kl.src)} style={{ height: 18, maxWidth: 66, objectFit: "contain" }} />
+            ))}
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10, gap: 14 }}>
+            {KEURMERKEN.map((km) => (
+              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt
+              <Image key={km.naam} src={path.join(BEELD, km.src)} style={{ height: 22, objectFit: "contain" }} />
+            ))}
+            <Text style={{ fontSize: 7.5, color: MUTE, flex: 1, textAlign: "right" }}>Gecertificeerde arbodienst · ISO 9001, 27001 en 27701 · OVAL</Text>
+          </View>
+        </View>
+
         {/* 06 Jouw rol: wat je mag vragen, en dezelfde reis als in 01, nu in kleur. */}
         <View style={s.hoofdstuk}>
           <View wrap={false} style={{ backgroundColor: GRIJS, borderRadius: 14, padding: 14 }}>
@@ -663,32 +689,6 @@ function BrochureDocument({ brochure: b, diensten, prijslijst, contact }: Brochu
                 ),
               }))}
             />
-          </View>
-        </View>
-
-        {/* Tussen 06 en 07: wat werkgevers zeggen. */}
-        <View style={[s.hoofdstuk, { backgroundColor: GRIJS, borderRadius: 14, padding: 14 }]} wrap={false}>
-          <Stiplabel kleur={ROZE}>Klanten aan het woord</Stiplabel>
-          <Text style={[s.tussenkop, { marginTop: 6 }]}>{KLANTEN_KOP}</Text>
-          <View style={{ flexDirection: "row", marginTop: 8 }}>
-            <Text style={{ fontSize: 30, fontWeight: 700, color: ROZE, lineHeight: 1, width: 24 }}>“</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 11, fontWeight: 600, color: NAVY, lineHeight: 1.45 }}>{citaat.tekst}</Text>
-              <Text style={{ fontSize: 8.4, color: MUTE, marginTop: 4 }}>{citaat.naam}, {citaat.rol}</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12, backgroundColor: "#ffffff", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 }}>
-            {KLANTEN.map((kl) => (
-              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt
-              <Image key={kl.src} src={path.join(BEELD, kl.src)} style={{ height: 18, maxWidth: 66, objectFit: "contain" }} />
-            ))}
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10, gap: 14 }}>
-            {KEURMERKEN.map((km) => (
-              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt
-              <Image key={km.naam} src={path.join(BEELD, km.src)} style={{ height: 22, objectFit: "contain" }} />
-            ))}
-            <Text style={{ fontSize: 7.5, color: MUTE, flex: 1, textAlign: "right" }}>Gecertificeerde arbodienst · ISO 9001, 27001 en 27701 · OVAL</Text>
           </View>
         </View>
 

@@ -579,15 +579,19 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
         </div>
       </Hoofdstuk>
 
+      {/* Tussen 05 en 06: wat werkgevers over ons zeggen. */}
+      <KlantenAanHetWoord bg={GRIJS} heading={KLANTEN_KOP} />
+      <KlantenStrook />
+
       {/* 06 Jouw rol: wat je mag vragen, en dezelfde reis als in 01, nu in kleur en met React2u. */}
-      <Hoofdstuk id="jouw-rol" grijs>
+      <Hoofdstuk id="jouw-rol">
         <Kop id="jouw-rol" regels={["Wat mag je vragen,", "en wat moet je doen?"]} lead={VRAGEN.lead} />
         <div className="grid gap-4 md:grid-cols-2 md:gap-5">
           {[
             { ...VRAGEN.mag, kleur: KLEUR.teal, Icoon: Vink },
             { ...VRAGEN.magNiet, kleur: PINK, Icoon: Kruis },
           ].map((kolom) => (
-            <div key={kolom.kop} className="relative flex flex-col gap-4 overflow-hidden rounded-[28px] bg-white p-7 md:p-8">
+            <div key={kolom.kop} className="relative flex flex-col gap-4 overflow-hidden rounded-[28px] p-7 md:p-8" style={{ background: GRIJS }}>
               <span aria-hidden className="absolute right-[-36px] top-[-36px] h-[110px] w-[110px] rounded-full" style={{ background: ZACHT[kolom.kleur] }} />
               <span className="relative flex flex-col gap-1">
                 <span className={`${kop} text-[22px] leading-[1.25]`} style={{ color: kolom.kleur }}>{kolom.kop}</span>
@@ -603,7 +607,7 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
             </div>
           ))}
         </div>
-        <div className="grid gap-4 rounded-[28px] bg-white px-7 py-8 md:grid-cols-12 md:items-center md:gap-8 md:px-10">
+        <div className="grid gap-4 rounded-[28px] px-7 py-8 md:grid-cols-12 md:items-center md:gap-8 md:px-10" style={{ background: GRIJS }}>
           <p className={`${kop} m-0 text-[24px] leading-[1.25] md:col-span-4`} style={{ color: NAVY }}>{VRAGEN.bedrijfsarts}</p>
           <p className="m-0 text-[16px] leading-[1.7] md:col-span-8" style={{ color: TEKST }}>{VRAGEN.bedrijfsartsTekst}</p>
         </div>
@@ -622,7 +626,7 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
                   <div className="flex flex-col gap-3">
                     <span className={`${kop} text-[20px] leading-[1.25]`} style={{ color: NAVY }}>{r.stap}</span>
                     <div className="grid gap-3 md:grid-cols-2">
-                      <div className="flex flex-col gap-1 rounded-[18px] bg-white px-5 py-4">
+                      <div className="flex flex-col gap-1 rounded-[18px] px-5 py-4" style={{ background: GRIJS }}>
                         <Label kleur={MUTE}>Jij als werkgever</Label>
                         <p className="m-0 text-[15px] leading-[1.6]" style={{ color: TEKST }}>{r.jij}</p>
                       </div>
@@ -638,10 +642,6 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
           </div>
         </div>
       </Hoofdstuk>
-
-      {/* Tussen 06 en 07: wat werkgevers over ons zeggen. */}
-      <KlantenAanHetWoord bg="#ffffff" heading={KLANTEN_KOP} />
-      <KlantenStrook />
 
       {/* 07 Tarieven: de prijslijst van dit jaar, per label in te klappen. */}
       <Hoofdstuk id="tarieven" grijs>

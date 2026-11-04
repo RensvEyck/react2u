@@ -268,7 +268,7 @@ export const TERMIJNEN = {
   ],
 };
 
-/* ---------- Tussen 06 en 07: klanten ---------- */
+/* ---------- Tussen 05 en 06: klanten ---------- */
 
 export const KLANTEN_KOP = "Wat werkgevers over ons zeggen";
 
