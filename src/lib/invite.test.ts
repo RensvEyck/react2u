@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inviteErrorText, inviteLink, isEmail, isExistingAccount, parseInviteUrl } from "./invite";
+import { eersteCode, instelFoutText, inviteErrorText, inviteLink, isEmail, isExistingAccount, parseInviteUrl } from "./invite";
 
 describe("uitnodigen", () => {
   it("bouwt een link met alleen de gehashte token", () => {
@@ -53,5 +53,33 @@ describe("uitnodigen", () => {
     expect(isEmail("cindy@react2u")).toBe(false);
     expect(isEmail("cindy react2u.nl")).toBe(false);
     expect(isEmail("cindy@@react2u.nl")).toBe(false);
+  });
+});
+
+describe("wachtwoord kiezen via de link", () => {
+  it("vraagt eerst een code als er een geverifieerde authenticator is en de sessie nog aal1 is", () => {
+    expect(eersteCode("aal1", [{ id: "f1", status: "verified" }])).toBe("f1");
+    expect(eersteCode("aal1", [{ id: "half", status: "unverified" }, { id: "f2", status: "verified" }])).toBe("f2");
+    expect(eersteCode(null, [{ id: "f1", status: "verified" }])).toBe("f1");
+  });
+
+  it("laat het wachtwoord meteen toe zonder authenticator, of als de sessie al aal2 is", () => {
+    expect(eersteCode("aal1", [])).toBeNull();
+    expect(eersteCode("aal1", undefined)).toBeNull();
+    expect(eersteCode("aal1", [{ id: "half", status: "unverified" }])).toBeNull();
+    expect(eersteCode("aal2", [{ id: "f1", status: "verified" }])).toBeNull();
+  });
+
+  it("legt de weigering van Supabase uit in plaats van hem door te geven", () => {
+    expect(instelFoutText({ code: "insufficient_aal", message: "AAL2 session is required to update email or password when MFA is enabled." }))
+      .toMatch(/eerst een code/);
+    expect(instelFoutText({ message: "AAL2 session is required to update email or password when MFA is enabled." }))
+      .toMatch(/eerst een code/);
+    expect(instelFoutText({ code: "same_password", message: "New password should be different from the old password." }))
+      .toMatch(/huidige wachtwoord/);
+    expect(instelFoutText({ code: "weak_password", message: "Password is known to be weak and easy to guess, please choose a different one." }))
+      .toMatch(/makkelijk te raden/);
+    expect(instelFoutText({ status: 401, message: "invalid JWT" })).toMatch(/nieuwe link/);
+    expect(instelFoutText({ message: "boem" })).toBe("Instellen mislukt: boem");
   });
 });
