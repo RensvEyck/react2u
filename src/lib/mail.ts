@@ -18,6 +18,15 @@
 
 import type { Taal } from "./taal";
 import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
+import type { ContactInfo } from "./content";
+import type { Vorm } from "./offertes";
+import { merkVoorVorm } from "./offerteMerk";
+import {
+  FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail,
+} from "./offerteMail";
+import { brochureMailHtml, type MailDienst } from "./brochureMail";
+import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
+import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
 
 // RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
 // zou worden); in productie staat hij niet en is dit gewoon Resend.
@@ -80,7 +89,10 @@ export type Verzonden =
  * `replyTo` is waar "beantwoorden" uitkomt: bij een uitnodiging de collega die
  * uitnodigde, niet een adres waar niemand meeleest.
  */
-async function verstuur(to: string[], subject: string, html: string, replyTo?: string): Promise<Verzonden> {
+/** Een bijlage voor Resend: de inhoud gaat er als base64 heen. */
+export type Bijlage = { filename: string; content: Buffer };
+
+async function verstuur(to: string[], subject: string, html: string, replyTo?: string, bijlagen?: Bijlage[]): Promise<Verzonden> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.NOTIFY_FROM;
   if (!key || !from || !to.length) return { ok: false, reden: "uit" };
@@ -89,7 +101,11 @@ async function verstuur(to: string[], subject: string, html: string, replyTo?: s
     const res = await fetch(api("/emails"), {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+      body: JSON.stringify({
+        from, to, subject, html,
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        ...(bijlagen?.length ? { attachments: bijlagen.map((b) => ({ filename: b.filename, content: b.content.toString("base64") })) } : {}),
+      }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (res.ok) return { ok: true };
@@ -110,8 +126,8 @@ async function verstuur(to: string[], subject: string, html: string, replyTo?: s
   }
 }
 
-async function post(to: string[], subject: string, html: string, replyTo?: string): Promise<boolean> {
-  return (await verstuur(to, subject, html, replyTo)).ok;
+async function post(to: string[], subject: string, html: string, replyTo?: string, bijlagen?: Bijlage[]): Promise<boolean> {
+  return (await verstuur(to, subject, html, replyTo, bijlagen)).ok;
 }
 
 const adressen = (s: string | undefined) => (s || "").split(",").map((x) => x.trim()).filter(Boolean);
@@ -128,7 +144,8 @@ export function mailReady() {
 /** Opmaak van de mails aan collega's: kop, tekst, één knop, en de link als tekst. */
 function persoonlijk(kop: string, alineas: string[], knop?: { tekst: string; link: string }, voet?: string) {
   const p = alineas
-    .map((a) => `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#444">${a}</p>`)
+    // Een tabel (het overzicht in een offertemail) mag niet in een <p>.
+    .map((a) => (a.startsWith("<table") ? a : `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#444">${a}</p>`))
     .join("");
   const k = knop
     ? `<p style="margin:8px 0 24px"><a href="${esc(knop.link)}" style="display:inline-block;background:#e75387;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:12px">${esc(knop.tekst)}</a></p>
@@ -191,6 +208,46 @@ export async function sendMfaResetNotice(n: { to: string; door: string }): Promi
     `Was dit niet de bedoeling? Neem dan meteen contact op met ${esc(n.door)}.`
   );
   return verstuur([n.to], "Je tweestapsverificatie voor react2u.nl is gewist", html, n.door);
+}
+
+/**
+ * Een persoonlijke brief aan een kandidaat: de tekst zoals de collega hem in
+ * het beheer heeft staan, en de groet, in het omhulsel van de klantmails (logo,
+ * witte kaart op zand, voet met keurmerken). Geen kop, geen knop en geen label:
+ * het is een bericht van een collega, geen campagne. Een aanhef ("Hoi Yasmin,")
+ * staat iets donkerder; de laatste regel van de groet (het bedrijf) gedempt,
+ * zoals een handtekening.
+ */
+function brief(b: { alineas: string[]; groet: string[]; onderwerp: string; taal?: Taal; contact?: ContactInfo }) {
+  const regel = (t: string) => esc(t).replace(/\n/g, "<br>");
+  const alineas = b.alineas.filter((a) => a.trim());
+  const isAanhef = (a: string, i: number) => i === 0 && a.length <= 60 && !a.includes("\n") && a.trimEnd().endsWith(",");
+  const [groet, naam, ...onder] = b.groet;
+  const kaart = vak(`${alineas.map((a, i) => p(regel(a), isAanhef(a, i) ? `color:${KLEUR.inkt}` : "")).join("\n")}
+<p style="margin:26px 0 0;font-family:${FONT};font-size:16px;line-height:1.5;color:${KLEUR.tekst}">${esc(groet || "")}</p>
+${naam ? `<p style="margin:4px 0 0;font-family:${FONT_KOP};font-size:17px;line-height:1.35;font-weight:700;color:${KLEUR.inkt}">${esc(naam)}</p>` : ""}
+${onder.map((r) => `<p style="margin:1px 0 0;font-family:${FONT};font-size:14px;line-height:1.5;color:${KLEUR.grijs}">${esc(r)}</p>`).join("\n")}`);
+  return omhulsel({
+    basis: siteBasis(),
+    titel: b.onderwerp,
+    // Naast het onderwerp in de inbox: de eerste echte zin, niet "Hoi Yasmin,".
+    preheader: alineas.find((a, i) => !isAanhef(a, i)) || b.onderwerp,
+    kaart,
+    contact: b.contact,
+    taal: b.taal,
+  });
+}
+
+/**
+ * Een persoonlijke mail aan een kandidaat vanuit Sollicitaties (begintekst uit
+ * lib/kandidaatMail.ts, daarna door de collega aan te passen). Antwoorden komt
+ * uit bij de collega die hem stuurde, niet bij het noreply-adres.
+ */
+export async function sendBrief(b: {
+  to: string; subject: string; alineas: string[]; groet: string[]; replyTo?: string; taal?: Taal; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = brief({ alineas: b.alineas, groet: b.groet, onderwerp: b.subject, taal: b.taal, contact: b.contact });
+  return verstuur([b.to], b.subject, html, b.replyTo);
 }
 
 /** Testmail vanuit Instellingen: werkt de koppeling, en komt het aan? */
@@ -383,4 +440,270 @@ export async function bevestigSollicitatie(b: { to: string; name: string; vacanc
   <p style="margin:0">Groet,<br>Rens van Eyck<br><span style="color:#666">Eigenaar React2u</span></p>
 </div>`;
   await post([b.to], en ? "We have received your application" : "We hebben je sollicitatie ontvangen", html);
+}
+
+/* ---------- offertes (migratie 0024) ---------- */
+
+// De mails aan de klant (offerte, code, bevestiging) staan in lib/offerteMail.ts,
+// in de vormgeving van de site. De meldingen aan sales hieronder blijven sober.
+
+type Afzender = MailAfzender;
+
+/** De opmaak van het label van de offerte (Recover, Resist, Restart); zonder vorm die van Recover. */
+const merkVan = (vorm: Vorm | null | undefined) => (vorm ? merkVoorVorm(vorm) : null);
+
+/**
+ * De offerte naar de klant: een persoonlijke mail met één knop naar de
+ * offertepagina. Antwoorden gaat naar de collega die hem stuurt.
+ */
+export async function sendOfferte(o: {
+  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; titel?: string | null;
+  bericht: string | null; geldigTot: string | null; afzender: Afzender; herinnering?: boolean;
+  /** Het label bepaalt kleur en woordmerk bovenaan. */
+  vorm?: Vorm | null;
+  /** Bedrag, geldigheid en onderdelen voor de offertekaart (offerteSamenvatting). */
+  samenvatting?: Pick<OfferteMail, "feiten" | "onderdelen" | "opties" | "kiezen">;
+  contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = offerteMailHtml({
+    basis: siteBasis(),
+    merk: merkVan(o.vorm),
+    aanhef: o.aanhef,
+    bedrijf: o.bedrijf,
+    nummer: o.nummer,
+    titel: o.titel,
+    link: o.link,
+    bericht: o.bericht,
+    geldigTot: o.geldigTot,
+    afzender: o.afzender,
+    herinnering: o.herinnering,
+    contact: o.contact,
+    ...o.samenvatting,
+  });
+  const onderwerp = `${o.herinnering ? "Herinnering: o" : "O"}fferte ${o.nummer} voor ${o.bedrijf}`;
+  return verstuur([o.to], onderwerp, html, o.afzender.email || undefined);
+}
+
+/**
+ * De code waarmee wie tekent zijn e-mailadres bevestigt (0026). De code staat
+ * vooraan in het onderwerp, zodat hij al in de melding op de telefoon staat.
+ */
+export async function sendOfferteCode(c: {
+  to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender; vorm?: Vorm | null; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = offerteCodeHtml({
+    basis: siteBasis(), merk: merkVan(c.vorm), code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact,
+  });
+  return verstuur([c.to], `${c.code} is je code voor offerte ${c.nummer}`, html, c.afzender.email || undefined);
+}
+
+/** Het factuurblok in de mail aan sales: adres, e-mail, KvK en inkoopnummer. */
+function factuurHtml(f: { email?: string; adres?: string; postcode?: string; plaats?: string; kvk?: string; inkoopnummer?: string; tav?: string } | null) {
+  if (!f) return "";
+  const regels = [
+    f.tav ? `T.a.v. ${f.tav}` : "", f.adres || "", [f.postcode, f.plaats].filter(Boolean).join(" "),
+    f.email ? `Facturen naar ${f.email}` : "", f.kvk ? `KvK ${f.kvk}` : "", f.inkoopnummer ? `Inkoopnummer ${f.inkoopnummer}` : "",
+  ].filter(Boolean);
+  return `<strong>Factuurgegevens</strong><br>${regels.map(esc).join("<br>")}`;
+}
+
+/**
+ * Bevestiging aan wie tekende: wat er getekend is, met de getekende offerte
+ * als pdf (met het ondertekeningscertificaat) en de link om hem terug te zien.
+ */
+export async function bevestigOfferteGetekend(b: {
+  to: string; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
+  regels: { naam: string; bedrag: string }[]; totalen: { label: string; bedrag: string }[]; afzender: Afzender; pdf?: Bijlage | null;
+  vorm?: Vorm | null; vervolg?: { kop: string; tekst: string }[] | null; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = offerteGetekendHtml({
+    basis: siteBasis(), merk: merkVan(b.vorm), naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash,
+    moment: b.moment, regels: b.regels, totalen: b.totalen, afzender: b.afzender, vervolg: b.vervolg, pdf: Boolean(b.pdf), contact: b.contact,
+  });
+  return verstuur([b.to], `Ondertekend: offerte ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
+}
+
+/** Wie meldingen over een offerte krijgt: sales (NOTIFY_OFFERTE_TO) en de collega die hem stuurde. */
+function offerteOntvangers(afzender: string | null) {
+  return [...new Set([...adressen(process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"), ...(afzender ? [afzender] : [])])];
+}
+
+export async function notifyOfferteGetekend(n: {
+  nummer: string; bedrijf: string; naam: string; functie: string | null; email: string; perMaand: string; eenmalig: string | null;
+  regels: string[]; adminLink: string; afzenderEmail: string | null;
+  factuur?: Parameters<typeof factuurHtml>[0]; pdf?: Bijlage | null;
+}) {
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `Getekend: offerte ${n.nummer} voor ${n.bedrijf} (${n.perMaand} per maand)`,
+    persoonlijk(
+      `${n.bedrijf} heeft getekend`,
+      [
+        `${esc(n.naam)}${n.functie ? ` (${esc(n.functie)})` : ""} heeft offerte ${esc(n.nummer)} zojuist online ondertekend.`,
+        `<strong>${esc(n.perMaand)} per maand</strong>${n.eenmalig ? ` en ${esc(n.eenmalig)} eenmalig` : ""}, exclusief btw.`,
+        `Gekozen: ${n.regels.map(esc).join(", ")}.`,
+        ...(n.factuur ? [factuurHtml(n.factuur)] : []),
+        `E-mailadres ${esc(n.email)} bevestigd met een code; de bevestiging met de pdf is daarheen gestuurd.${n.pdf ? " De getekende offerte zit ook bij deze mail." : ""}`,
+      ],
+      { tekst: "Open de offerte", link: n.adminLink }
+    ),
+    undefined,
+    n.pdf ? [n.pdf] : undefined
+  );
+}
+
+export async function notifyOfferteAfgewezen(n: {
+  nummer: string; bedrijf: string; reden: string | null; naam: string | null; adminLink: string; afzenderEmail: string | null;
+}) {
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `Niet akkoord: offerte ${n.nummer} voor ${n.bedrijf}`,
+    persoonlijk(
+      `${n.bedrijf} gaat niet akkoord`,
+      [
+        `${n.naam ? esc(n.naam) : "De klant"} heeft bij offerte ${esc(n.nummer)} aangegeven niet akkoord te gaan.`,
+        n.reden ? `Toelichting: &ldquo;${esc(n.reden)}&rdquo;` : "Er is geen toelichting gegeven.",
+        "Bellen loont: vaak is het de prijs of één onderdeel. Je kunt de offerte aanpassen en heropenen.",
+      ],
+      { tekst: "Open de offerte", link: n.adminLink }
+    )
+  );
+}
+
+/** De eerste keer dat de klant de offerte opent: alleen naar de collega die hem stuurde. */
+export async function notifyOfferteBekeken(n: { to: string; nummer: string; bedrijf: string; adminLink: string }) {
+  await post(
+    [n.to],
+    `${n.bedrijf} bekijkt je offerte`,
+    persoonlijk(
+      `${n.bedrijf} heeft de offerte geopend`,
+      [`Offerte ${esc(n.nummer)} is zojuist voor het eerst geopend. Een goed moment om even te bellen.`],
+      { tekst: "Open de offerte", link: n.adminLink }
+    )
+  );
+}
+
+/** Adres van een offerte in het beheer, voor de meldingen. */
+export function offerteAdminUrl(id: string) {
+  return `${siteBasis()}/admin/offertes/${id}`;
+}
+
+/** Adres van de offertepagina voor de klant. */
+export function offerteUrl(token: string) {
+  return `${siteBasis()}/offerte/${token}`;
+}
+
+/* ---------- brochures (migratie 0030) ---------- */
+
+/**
+ * De brochure naar de prospect: een persoonlijke mail met één knop naar de
+ * brochurepagina, in de kleuren van React2u zelf (lib/brochureMail.ts).
+ * Antwoorden gaat naar de collega die hem stuurt.
+ */
+export async function sendBrochure(b: {
+  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; bericht: string | null;
+  afzender: Afzender; herinnering?: boolean; diensten: MailDienst[]; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const { to, ...rest } = b;
+  const html = brochureMailHtml({ basis: siteBasis(), ...rest });
+  const onderwerp = `${b.herinnering ? "Herinnering: b" : "B"}rochure van React2u voor ${b.bedrijf}`;
+  return verstuur([to], onderwerp, html, b.afzender.email || undefined);
+}
+
+export async function notifyBrochureBekeken(n: { to: string; nummer: string; bedrijf: string; adminLink: string }) {
+  await post(
+    [n.to],
+    `${n.bedrijf} bekijkt je brochure`,
+    persoonlijk(
+      `${n.bedrijf} heeft de brochure geopend`,
+      [`Brochure ${esc(n.nummer)} is zojuist voor het eerst geopend. Een goed moment om even te bellen.`],
+      { tekst: "Open de brochure", link: n.adminLink }
+    )
+  );
+}
+
+export function brochureAdminUrl(id: string) {
+  return `${siteBasis()}/admin/brochures/${id}`;
+}
+
+export function brochureUrl(token: string) {
+  return `${siteBasis()}/brochure/${token}`;
+}
+
+/* ---------- contracten (migratie 0031, de resellerovereenkomst sinds 0033) ---------- */
+
+/**
+ * Het contract naar de klant of de partner: een persoonlijke mail met één knop
+ * naar de contractpagina (lib/contractMail.ts). Antwoorden gaat naar de afzender.
+ */
+export async function sendContract(c: Omit<ContractMail, "basis"> & { to: string }): Promise<Verzonden> {
+  const { to, ...rest } = c;
+  const html = contractMailHtml({ basis: siteBasis(), ...rest });
+  const naam = CONTRACT_SOORT[soortVan(c)].naam;
+  const onderwerp = `${c.herinnering ? `Herinnering: ${naam.toLowerCase()}` : naam} ${c.nummer} voor ${c.bedrijf}`;
+  return verstuur([to], onderwerp, html, c.afzender.email || undefined);
+}
+
+/** De code waarmee wie tekent zijn e-mailadres bevestigt; vooraan in het onderwerp, net als bij offertes. */
+export async function sendContractCode(c: { to: string; soort?: ContractSoort; code: string; nummer: string; bedrijf: string; afzender: Afzender; contact?: ContactInfo }): Promise<Verzonden> {
+  const html = contractCodeHtml({ basis: siteBasis(), soort: c.soort, code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact });
+  return verstuur([c.to], `${c.code} is je code voor contract ${c.nummer}`, html, c.afzender.email || undefined);
+}
+
+/** Bevestiging aan wie tekende, met het getekende contract als pdf (met het ondertekeningscertificaat). */
+export async function bevestigContractGetekend(b: {
+  to: string; soort?: ContractSoort; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
+  regels: { label: string; waarde: string }[]; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = contractGetekendHtml({
+    basis: siteBasis(), soort: b.soort, naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash, moment: b.moment,
+    regels: b.regels, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact,
+  });
+  return verstuur([b.to], `Ondertekend: ${CONTRACT_SOORT[soortVan(b)].zin.replace(/^(het|de) /, "")} ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
+}
+
+export async function notifyContractGetekend(n: {
+  soort?: ContractSoort; nummer: string; bedrijf: string; naam: string; functie: string; email: string; organisatie: string[]; looptijd: string;
+  adminLink: string; afzenderEmail: string | null; pdf?: Bijlage | null;
+}) {
+  const sd = CONTRACT_SOORT[soortVan(n)];
+  const woord = sd.zin.replace(/^(het|de) /, "");
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `Getekend: ${woord} ${n.nummer} voor ${n.bedrijf}`,
+    persoonlijk(
+      `${n.bedrijf} heeft ${sd.zin} getekend`,
+      [
+        `${esc(n.naam)} (${esc(n.functie)}) heeft ${woord} ${esc(n.nummer)} zojuist online ondertekend.`,
+        `<strong>Looptijd</strong><br>${esc(n.looptijd)}`,
+        `<strong>${sd.rollen[1]}</strong><br>${n.organisatie.map(esc).join("<br>")}`,
+        `E-mailadres ${esc(n.email)} bevestigd met een code; de bevestiging met de pdf is daarheen gestuurd.${n.pdf ? " Het getekende contract zit ook bij deze mail." : ""}`,
+      ],
+      { tekst: "Open het contract", link: n.adminLink }
+    ),
+    undefined,
+    n.pdf ? [n.pdf] : undefined
+  );
+}
+
+/** De eerste keer dat de klant het contract opent: alleen naar de collega die het stuurde. */
+export async function notifyContractBekeken(n: { to: string; soort?: ContractSoort; nummer: string; bedrijf: string; adminLink: string }) {
+  const zin = CONTRACT_SOORT[soortVan(n)].zin;
+  await post(
+    [n.to],
+    `${n.bedrijf} bekijkt ${zin}`,
+    persoonlijk(
+      `${n.bedrijf} heeft ${zin} geopend`,
+      [`Contract ${esc(n.nummer)} is zojuist voor het eerst geopend. Een goed moment om even te bellen.`],
+      { tekst: "Open het contract", link: n.adminLink }
+    )
+  );
+}
+
+export function contractAdminUrl(id: string) {
+  return `${siteBasis()}/admin/contracten/${id}`;
+}
+
+export function contractUrl(token: string) {
+  return `${siteBasis()}/contract/${token}`;
 }

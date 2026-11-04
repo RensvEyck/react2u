@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import { saveApplicationNote, setApplicationStatus } from "@/app/admin/actions";
 import StatusSelect from "@/components/admin/StatusSelect";
+import KandidaatMail, { type Gemaild } from "@/components/admin/KandidaatMail";
+import { mailVoorstel, SJABLONEN, voornaamUitEmail } from "@/lib/kandidaatMail";
 import type { Application } from "@/lib/types";
 import { SAMENVATTING_LABELS } from "@/lib/cvSamenvatting";
 import { LuMail, LuPhone, LuFileText, LuLinkedin } from "react-icons/lu";
@@ -10,7 +12,9 @@ import { LuMail, LuPhone, LuFileText, LuLinkedin } from "react-icons/lu";
  * Sollicitaties als pijplijn: nieuw, gebeld, gesprek, aanbod, aangenomen,
  * afgewezen (migratie 0018). Bovenaan per fase het aantal; een nieuwe
  * sollicitatie die langer dan 2 werkdagen wacht, valt op. Per sollicitant de
- * bron (aanbrenger, campagne, verwijzer) en een interne notitie.
+ * bron (aanbrenger, campagne, verwijzer), een interne notitie en "Mail kandidaat":
+ * vaste mails (uitnodiging, tussenbericht, afwijzing, aanbod) in de taal van de
+ * kandidaat, met de fase die erbij hoort en een logboek van wat er al gestuurd is.
  */
 
 const FASEN: [string, string][] = [
@@ -50,7 +54,8 @@ function laatste90Dagen(alle: Application[]) {
 }
 
 export default async function ApplicationsAdmin({ searchParams }: { searchParams: Promise<{ fase?: string }> }) {
-  const { sb } = await requirePerm("postvak");
+  const { sb, admin } = await requirePerm("postvak");
+  const afzender = voornaamUitEmail(admin.email);
   const { fase: gekozen = "actief" } = await searchParams;
   const { data } = await sb.from("applications").select("*").order("created_at", { ascending: false });
   const alle = (data as Application[]) || [];
@@ -75,7 +80,8 @@ export default async function ApplicationsAdmin({ searchParams }: { searchParams
       <div>
         <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Sollicitaties</h1>
         <p className="text-[14.5px] text-black/50">
-          Zet de fase direct via het menu. Bel nieuwe kandidaten binnen 2 werkdagen: daarna haken de meesten af.
+          Zet de fase via het menu, of mail de kandidaat met een vaste mail: dan schuift de fase vanzelf mee. Alleen de fase
+          verzetten mailt niemand. Bel nieuwe kandidaten binnen 2 werkdagen: daarna haken de meesten af.
         </p>
       </div>
 
@@ -106,6 +112,12 @@ export default async function ApplicationsAdmin({ searchParams }: { searchParams
       <div className="space-y-3">
         {apps.map((a) => {
           const wacht = fase(a.status) === "nieuw" ? werkdagenSinds(a.created_at) : 0;
+          const gemaild: Gemaild[] = (a.mails || []).map((m) => ({
+            label: SJABLONEN.find((t) => t.key === m.sjabloon)?.label || m.sjabloon,
+            wanneer: new Date(m.at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }),
+            door: voornaamUitEmail(m.door),
+          }));
+          const { voorstel, herinnering } = mailVoorstel(fase(a.status), a.mails || []);
           return (
             <div key={a.id} className={`acard p-6 ${wacht > 2 ? "ring-2 ring-[#e0356b]/40" : ""}`}>
               <div className="flex flex-wrap items-start justify-between gap-4">
@@ -185,6 +197,11 @@ export default async function ApplicationsAdmin({ searchParams }: { searchParams
                   className="ainput flex-1 text-[13.5px]" />
                 <button className="abtn-ghost !py-2 text-[13px]">Notitie opslaan</button>
               </form>
+              <KandidaatMail
+                appId={a.id} naam={a.name} email={a.email} vacature={a.vacancy_title}
+                taal={a.lang === "en" ? "en" : "nl"} retainLonger={a.retain_longer === true}
+                afzender={afzender} gemaild={gemaild} voorstel={voorstel} herinnering={herinnering}
+              />
             </div>
           );
         })}

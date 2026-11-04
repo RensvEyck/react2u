@@ -1,0 +1,60 @@
+# Tests bij elke pull request en elke push naar master.
+#
+# - controle: lint, typecheck en de unittests (een paar minuten);
+# - browsertests: de offertemodule van begin tot eind tegen een lokale
+#   Supabase-stack met alle migraties (e2e/run.mjs, zo'n tien minuten). Gaat het
+#   mis, dan staan screenshots en mails als artefact bij de run.
+#
+# Geen geheimen nodig: de stack gebruikt de standaardsleutels van `supabase
+# start` en mailt naar een nep-Resend.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  controle:
+    name: Lint, typecheck en unittests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+
+  browsertests:
+    name: Browsertests offertes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.98.2
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - name: Screenshots en mails bewaren
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browsertests-uitvoer
+          path: .e2e/uitvoer
+          retention-days: 7

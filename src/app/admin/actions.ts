@@ -9,6 +9,9 @@ import { leadFromApplication, leadFromMessage, type NewLead } from "@/lib/leads"
 import { removeCvs } from "@/lib/cvs";
 import { normalizeTracking } from "@/lib/tracking";
 import { normalizeTarieven } from "@/lib/tarieven";
+import { alineasUitTekst, groetVoor, isSjabloon, openPlek, sjabloonDef, voornaamUitEmail, type KandidaatMailLog } from "@/lib/kandidaatMail";
+import type { Verzonden } from "@/lib/mail";
+import type { Application } from "@/lib/types";
 
 type Sb = Awaited<ReturnType<typeof requirePerm>>["sb"];
 
@@ -537,11 +540,72 @@ export async function sendTestMailAction(): Promise<TestMailState> {
   const { sendTestMail } = await import("@/lib/mail");
   const r = await sendTestMail(admin.email);
   if (r.ok) return { status: "ok", naar: admin.email };
-  if (r.reden === "uit") {
-    return { status: "fout", melding: "Mailen staat uit: RESEND_API_KEY of NOTIFY_FROM ontbreekt in Vercel." };
+  return { status: "fout", melding: mailFout(r) };
+}
+
+/** Waarom een mail niet wegging, in gewone taal. */
+function mailFout(r: Exclude<Verzonden, { ok: true }>): string {
+  if (r.reden === "uit") return "Mailen staat uit: RESEND_API_KEY of NOTIFY_FROM ontbreekt in Vercel.";
+  if (r.reden === "onbereikbaar") return "Resend was niet bereikbaar. Probeer het zo opnieuw.";
+  return `Resend weigerde de mail: ${r.melding || "geen reden opgegeven"}`;
+}
+
+export type KandidaatMailState =
+  | { status: "idle" }
+  | { status: "ok"; naar: string; onderwerp: string; fase: string | null }
+  | { status: "fout"; melding: string };
+
+/**
+ * Een persoonlijke mail aan een kandidaat: versturen, de fase zetten die bij
+ * het gekozen sjabloon hoort en een regel in het logboek van de sollicitatie.
+ * Antwoorden komt uit bij wie hem stuurde.
+ *
+ * Verstuurd wordt het onderwerp en de tekst zoals ze in het formulier staan: het
+ * sjabloon (lib/kandidaatMail.ts) is de begintekst, de collega mag alles
+ * aanpassen. Alleen de groet maakt de server zelf. Staat er nog een lege plek
+ * als "[moment]" in, dan gaat er niets weg.
+ *
+ * Eerst versturen, dan pas de fase: een afwijzing die niet wegging mag de
+ * kandidaat niet stilletjes op "afgewezen" zetten.
+ */
+export async function sendKandidaatMail(id: string, _prev: KandidaatMailState, formData: FormData): Promise<KandidaatMailState> {
+  const { sb, admin } = await requirePerm("postvak");
+  const { data } = await sb.from("applications").select("*").eq("id", id).maybeSingle();
+  const a = data as Application | null;
+  if (!a) return { status: "fout", melding: "Deze sollicitatie bestaat niet meer." };
+  const sjabloon = formData.get("sjabloon");
+  if (!isSjabloon(sjabloon)) return { status: "fout", melding: "Kies een sjabloon." };
+  const veld = (k: string, max = 300) => String(formData.get(k) || "").trim().slice(0, max);
+  const taal = a.lang === "en" ? "en" : "nl";
+  const onderwerp = veld("onderwerp", 200).replace(/\s+/g, " ");
+  const alineas = alineasUitTekst(String(formData.get("tekst") || "").slice(0, 8000));
+  if (!onderwerp) return { status: "fout", melding: "Het onderwerp is leeg." };
+  if (!alineas.length) return { status: "fout", melding: "De mail is leeg." };
+  const plek = openPlek(`${onderwerp}\n${alineas.join("\n")}`);
+  if (plek) return { status: "fout", melding: `Er staat nog ${plek} in de mail. Vul het in, of pas de tekst aan.` };
+  const groet = groetVoor(taal, veld("afzender", 80) || voornaamUitEmail(admin.email));
+
+  const [{ sendBrief }, { offerteHuisstijl }] = await Promise.all([import("@/lib/mail"), import("@/lib/offerteHuisstijl")]);
+  const { contact } = await offerteHuisstijl();
+  const r = await sendBrief({ to: a.email, subject: onderwerp, alineas, groet, replyTo: admin.email, taal, contact });
+  if (!r.ok) return { status: "fout", melding: mailFout(r) };
+
+  const regel: KandidaatMailLog = { sjabloon, onderwerp, at: new Date().toISOString(), door: admin.email };
+  const fase = sjabloonDef(sjabloon).fase;
+  const faseUpdate = fase && fase !== a.status ? { status: fase, status_at: regel.at } : {};
+  const { error } = await sb.from("applications").update({ ...faseUpdate, mails: [...(a.mails || []), regel] }).eq("id", id);
+  if (error && (error.code === "42703" || error.code === "PGRST204")) {
+    // Migratie 0032 nog niet gedraaid: dan in de notitie, zodat de mail niet onzichtbaar blijft.
+    const datum = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Amsterdam" });
+    const notitie = `${a.notitie ? `${a.notitie}\n` : ""}Gemaild: ${sjabloonDef(sjabloon).label} (${datum}, ${voornaamUitEmail(admin.email)})`.slice(0, 4000);
+    const { error: nogmaals } = await sb.from("applications").update({ ...faseUpdate, notitie }).eq("id", id);
+    if (nogmaals) await sb.from("applications").update({ ...(fase ? { status: fase } : {}), notitie }).eq("id", id);
+  } else if (error) {
+    console.error("[kandidaatmail] logboek bijwerken mislukt: %s", error.message);
   }
-  if (r.reden === "onbereikbaar") return { status: "fout", melding: "Resend was niet bereikbaar. Probeer het zo opnieuw." };
-  return { status: "fout", melding: `Resend weigerde de mail: ${r.melding || "geen reden opgegeven"}` };
+  revalidatePath("/admin/sollicitaties");
+  revalidatePath("/admin/postvak-in");
+  return { status: "ok", naar: a.email, onderwerp, fase: fase && fase !== a.status ? fase : null };
 }
 
 // Geen revalidateSite(): de pagina's zelf veranderen niet, de middleware houdt
@@ -1200,8 +1264,12 @@ export async function setPartnerActief(id: string, actief: boolean) {
 /** Alleen zonder klanten; anders weigert de database (on delete restrict) en blijft hij staan. */
 export async function deletePartner(id: string) {
   const { sb } = await requirePerm("bellijst");
+  // De bestanden (0034) gaan mee: de rijen via on delete cascade, de bestanden zelf hierna uit de bucket.
+  const { data: bestanden } = await sb.from("partner_bestanden").select("pad").eq("partner_id", id);
   const { error } = await sb.from("partners").delete().eq("id", id);
   if (error) redirect(`/admin/partners/${id}?fout=${error.code === "23503" ? "partner-klanten" : "opslaan"}`);
+  const paden = ((bestanden as { pad: string }[] | null) || []).map((b) => b.pad);
+  if (paden.length) await sb.storage.from("partnerbestanden").remove(paden);
   revalidatePath("/admin/partners");
   redirect("/admin/partners?opgeslagen=definitief-weg");
 }

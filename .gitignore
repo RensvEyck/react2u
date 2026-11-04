@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+# browsertests (e2e/run.mjs): stack, screenshots, mails
+/.e2e/
 
 # next.js
 /.next/

@@ -17,7 +17,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Blok** (`blocks`) | Eén sectie binnen een pagina. Heeft een `type` (welk component) en `data` (jsonb, vorm hangt af van het type). Volgorde via `sort`. |
 | **Bloktype** | De sleutel die een blok aan een React-component koppelt, bv. `hero`, `ctaBanner`. Zie *Valkuilen*. |
 | **Vacature** (`vacancies`) | Statussen: `draft`, `published`, `closed`. Alleen `published` is publiek. |
-| **Artikel** (`posts`) | Blogartikel op `/blog/<slug>`. Markdown-body, statussen `draft` en `published`. `published_at` wordt bij de eerste publicatie gezet en blijft daarna staan, zodat een latere correctie de datum niet verzet. |
+| **Artikel** (`posts`) | Blogartikel op `/blog/<slug>`. Markdown-body, statussen `draft` en `published`. `published_at` wordt bij de eerste publicatie gezet en blijft daarna staan, zodat een latere correctie de datum niet verzet. De body kent de mini-markdown van [`lib/md.tsx`](src/lib/md.tsx): `## ` voor een hoofdstuk (en de inhoudsopgave), `### ` voor een tussenkop, alinea's, `- ` lijsten, `**vet**` en `[links](/pad)`. Een link mag naar een eigen pad, een anker, http(s), mail of telefoon; iets anders blijft tekst ([`lib/mdInline.ts`](src/lib/mdInline.ts)). Geen tabellen of genummerde lijsten. |
 | **Sollicitatie** (`applications`) | Inzending op een vacature of open sollicitatie. Cv gaat naar de private `cvs`-bucket. |
 | **Bericht** (`contact_messages`) | Inzending van het contactformulier. Bevat sinds `0005` een telefoonnummer: het formulier vraagt er verplicht om, zodat een bericht een belbare lead oplevert. Berichten van vóór die migratie hebben er geen — de kolom is nullable. |
 | **Postvak IN** | Eén overzicht dat berichten en sollicitaties samenvoegt op volgorde van binnenkomst (`/admin/postvak-in`). Geen eigen tabel — een view over de twee bestaande. De losse pagina's Berichten en Sollicitaties blijven bestaan. |
@@ -48,6 +48,15 @@ Gebruik deze termen; de code doet dat ook.
 | **Conversie** (`conversions`) | Eén verstuurd formulier: het soort (`contact`, `offerte`, `sollicitatie`, `terugbel`) en de pagina waar het stond. Geen persoonsgegevens. Zie *Bewaartermijnen en privacy*, "Conversies". |
 | **Belbalk** | Vaste balk onderaan het scherm op de telefoon, alleen op werkgeverspagina's: bellen of een terugbelmoment aanvragen (`BelBalk.tsx`, `lib/belbalk.ts`). Een terugbelverzoek is een bericht met onderwerp "Terugbelverzoek". |
 | **Tarievenjaar** (`tarieven`) | Instelling `{jaar, geldigTot}`. De tariefblokken zetten het jaar in hun bovenkopje en tonen de geldigheid; per 1 januari pas je hier het jaar aan en in de blokken de bedragen. |
+| **Offerte** (`offertes`) | Een voorstel aan één klant, opgesteld in `/admin/offertes`. Statussen `concept`, `verstuurd`, `getekend`, `afgewezen` (de klant: niet akkoord) en `ingetrokken`; "bekeken" en "verlopen" leidt het beheer af. Nummer `jjjj-nnnn`. Zie *Offertes*. |
+| **Offerteregel** | Eén onderdeel van een offerte (`regels`, jsonb) met prijs, eenheid en soort: `vast`, `optie` (klant zet aan/uit), `keuze` (precies één uit zijn `groep`) of `tarief` (prijs bij gebruik, telt niet mee). Vorm en rekenregels in [`src/lib/offertes.ts`](src/lib/offertes.ts). |
+| **Offertevorm** (`vorm`) | Soort offerte: verzuimbegeleiding, casemanagement Reflex (flexbranche), RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject of arbeidsdeskundig onderzoek (migraties 0025 en 0029). Bepaalt het label in het beheer en wat het veld *betreft* heet (werknemer, locatie, deelnemers). |
+| **Offertesjabloon** | Beginpunt van een nieuwe offerte per vorm: titel, aanhef, uitleg, onderdelen, voorwaarden, vervolgstappen en geldigheid. Standaard in [`src/lib/offerteSjablonen.ts`](src/lib/offerteSjablonen.ts); aanpassingen van het team in `offerte_sjablonen`. |
+| **Offertelink** | `/offerte/<token>`: de pagina waar de klant kiest en tekent. Het token (64 hex) is het enige geheim; *Nieuwe link* in het beheer maakt de oude ongeldig. |
+| **Brochure** (`brochures`) | Een persoonlijke brochure met alle zes diensten en de prijslijst voor één prospect, nog vóór er een offerte is (migratie 0030, `/admin/brochures`). Statussen `concept`, `verstuurd`, `ingetrokken`; de link `/brochure/<token>` werkt als een offertelink, met pdf. De inhoud komt van de labelpagina's en het tarievenblok en is niet per brochure aan te passen; alleen het persoonlijke woord en de afzender. |
+| **Abonnement** | Een getekende offerte als bron van omzet: vanaf de maand van tekenen het jaarbedrag gedeeld door twaalf, tot hij is beëindigd (`abonnementen_gestopt`, migratie 0035). Zie *Omzet en uren*. |
+| **Medewerker** (`medewerkers`) | Iemand van React2u die declarabele uren schrijft, met contracturen per week, een norm en een uurtarief. Heeft geen login: de super admin vult de uren in. Niet te verwarren met *medewerkers* op een offerte (het aantal werknemers van de klant). |
+| **Declarabiliteit** | Declarabele uren gedeeld door de beschikbare uren (contracturen min afwezig), in procenten, tegenover de norm van de medewerker. |
 
 ## Architectuur
 
@@ -758,6 +767,43 @@ hoofddomein, en daarmee de mail van Microsoft 365, blijven ongemoeid. DMARC
 (`p=reject`, relaxed) slaagt via de DKIM-handtekening van react2u.nl. Komt de
 testmail niet binnen, kijk dan in de quarantaine van Sophos.
 
+### Mails aan kandidaten
+
+Een sollicitant krijgt vanzelf alleen de ontvangstbevestiging
+(`bevestigSollicitatie`). Al het andere stuurt een collega zelf, met **Mail
+kandidaat** op de kaart in Sollicitaties: zes vaste mails (uitnodiging, tweede
+gesprek, tussenbericht, afwijzing, afwijzing na gesprek, aanbod) in
+[`src/lib/kandidaatMail.ts`](src/lib/kandidaatMail.ts), in het Nederlands of
+Engels naar de taal van de sollicitatie. Antwoorden komt bij jou uit, niet bij
+het noreply-adres.
+
+- **Het sjabloon is een begintekst.** Je vult het moment of de plek in, en
+  daarna pas je het onderwerp en de hele tekst zelf aan, in het formulier zoals
+  de kandidaat de mail krijgt. Zolang je niet in de tekst typt, volgt hij het
+  sjabloon en de velden; daarna blijft jouw versie staan, tot *Terug naar het
+  sjabloon*. De server verstuurt wat er staat (`alineasUitTekst`: een witregel
+  is een nieuwe alinea); alleen de groet met je naam maakt hij zelf
+  (`groetVoor`).
+- **Lege plekken.** Een leeg veld staat als `[moment]`, `[plek]` of `[datum]` in
+  de tekst. Zolang zo'n plek er staat, kan de knop niet en weigert de server
+  (`openPlek`): zo krijgt niemand "een gesprek op [moment]".
+- **De fase alleen verzetten mailt niemand.** Andersom wel: na het versturen
+  zet `sendKandidaatMail` de fase die bij de mail hoort (uitnodiging → gesprek,
+  afwijzing → afgewezen, aanbod → aanbod). Eerst versturen, dan de fase: een
+  afwijzing die niet wegging zet niemand stilletjes op afgewezen.
+- **Logboek** in `applications.mails` (migratie 0032): wat er wanneer door wie
+  is gestuurd, als pillen onder de kaart. Zo mailt niemand dubbel. Staat de
+  kolom er nog niet, dan komt de regel in de notitie.
+- Staat een kandidaat op afgewezen zonder afwijzing in het logboek, dan toont
+  de kaart **Nog geen afwijzing gemaild**, met één klik naar het juiste sjabloon
+  (`mailVoorstel`).
+- De mail is een gewone brief in het omhulsel van de klantmails
+  (`omhulsel()` in `offerteMail.ts`): logo, witte kaart op zand, voet met
+  keurmerken. Geen label, geen knop: het is een bericht van een collega.
+- De tekst van een afwijzing noemt de bewaartermijn: een jaar als de kandidaat
+  daar toestemming voor gaf (`retain_longer`), anders "na afloop van de
+  procedure".
+
 ## Partnerpagina
 
 `/partners` werft accountants, salariskantoren en HR- en verzekeringsadviseurs
@@ -810,9 +856,9 @@ kantoor (`public/beeld/partners/`). Een quote staat alleen live met
 `goedgekeurd: true`; zonder die vlag toont alleen staging hem, met het label
 Concept. Zo komt een tekst die het kantoor nog niet heeft goedgekeurd nooit als
 zijn woorden online, ook niet via `--alle`. De quotes van Jouw HR Partner en
-Spine Services (22 oktober 2026) zijn concepten van React2u en wachten op hun
-akkoord; daarna `goedgekeurd: true`, eventueel naam en functie, en het blok in
-de database zetten. Het witte logo van Jouw HR Partner (overgenomen van hun
+Spine Services zijn door React2u geschreven; beide kantoren gaven op 22 oktober
+2026 toestemming (volgens Rens), daarom staan ze op `goedgekeurd: true`. Komt er
+een naam en functie bij, dan in `naam` en `rol`. Het witte logo van Jouw HR Partner (overgenomen van hun
 site) staat op hun eigen donkergroen (`logoBg`).
 
 Het rekenvoorbeeld rekent met
@@ -853,10 +899,631 @@ In het beheer staat **Partners** (`/admin/partners`, recht `bellijst`):
   Dat is een indicatie op de contractgegevens; de overeenkomst rekent met wat de
   klant werkelijk betaalde.
 
+De **resellerovereenkomst** met een partner stel je op en stuur je vanuit het
+partnerscherm; hij wordt online getekend zoals het basiscontract (zie
+*Contracten, De resellerovereenkomst*).
+
+**Bestanden bij een partner** (migratie [0034](supabase/migrations/0034_partnerbestanden.sql),
+4 november 2026, Rens: "er is een losse resell overeenkomst verstuurd zorg dat je
+ook een upload vak hebt van bestanden"). Onder de resellerovereenkomst op
+`/admin/partners/<id>` staat een uploadvak (`PartnerBestanden`): slepen of
+kiezen, meerdere tegelijk, als *getekende resellerovereenkomst* (met de datum van
+ondertekening) of als *ander bestand*. Een los getekende overeenkomst telt als
+getekend: de kop zegt "Los getekend op …", de knop wordt *Getekende
+overeenkomst*, en de partnerlijst toont "Overeenkomst getekend".
+- De bestanden staan in de **privébucket** `partnerbestanden` (tot 20 MB, alleen
+  pdf, Word en afbeeldingen; [`lib/partnerBestanden.ts`](src/lib/partnerBestanden.ts)
+  controleert hetzelfde vooraf), onder `<partner_id>/<tijdstempel>-<naam>`. De
+  tabel `partner_bestanden` legt naam, soort, datum en wie uploadde vast; een
+  check eist dat het pad onder de partner valt.
+- **Uploaden** gaat vanuit de browser met de sessie van de collega rechtstreeks de
+  bucket in (geen limiet van een server action), daarna legt
+  `registreerPartnerBestand` het vast (en haalt het bestand weg als dat mislukt).
+- **Downloaden** via `/admin/partnerbestand/<id>`: het bestand zelf, als download
+  met de originele naam en nosniff, zoals de cv-route; nooit een deelbare link.
+- Alles achter het salesrecht (`bellijst`). Een partner verwijderen haalt ook zijn
+  bestanden uit de bucket.
+
 Een partner met klanten kan niet weg (on delete restrict); zet hem op inactief,
 dan koppelt zijn link geen nieuwe aanvragen meer. Zonder migratie 0022 werkt de
 site gewoon: de code staat dan alleen in de tekst van het bericht en het
 partnerscherm wacht met een melding.
+
+## Offertes
+
+Sales stelt in `/admin/offertes` een offerte samen en stuurt de klant een link.
+Op `/offerte/<token>` klikt de klant zelf de onderdelen aan, ziet het totaal
+meerekenen en ondertekent online (tekenen of naam typen). Migratie
+[0024](supabase/migrations/0024_offertes.sql); rechten achter `bellijst`, het
+salesrecht, net als partners.
+
+- **De prijslijst is de bouwdoos.** [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts)
+  maakt van het blok `dgTarieven` op /verzuimabonnementen offerteregels met een
+  getal als prijs. Het beheer leest het live blok uit de database, met
+  `tarieven.json` als terugval: een nieuwe prijslijst loopt vanzelf mee. Drie
+  startpunten (klant kiest de aansluiting, Verrichtingenbasis, Compleet) zetten
+  in één klik een offerte klaar. Een offerte bewaart zijn eigen prijzen: een
+  latere prijswijziging verandert een verstuurde offerte niet.
+- **De klant komt nooit bij de tabellen.** `anon` heeft geen enkel recht op
+  `offertes`; de pagina loopt via vier functies (security definer) met het token
+  als sleutel: `offerte_bekijken` (alleen wat de klant mag zien, telt het bezoek),
+  `offerte_keuze_bewaren` (de tussenstand, zodat sales ziet wat er aangeklikt
+  is), `offerte_ondertekenen` en `offerte_afwijzen`. Een concept of onbekend token
+  geeft een 404.
+- **Alleen de klant tekent.** De trigger `offerte_bewaken` laat het beheer (rol
+  `authenticated`) geen handtekening, keuze, bezoek of afwijzing schrijven, en
+  een getekende offerte niet meer wijzigen of verwijderen (de interne notitie
+  blijft bewerkbaar). Bij het tekenen legt de database de inhoud vast
+  (`getekend_inhoud`) met een sha-256 (`getekend_hash`), die ook in de
+  bevestigingsmail en op de pagina staat. De klant stuurt alleen welke regels hij
+  koos; prijzen en tekst komen uit de database. `geldigeKeuze()` in
+  `lib/offertes.ts` doet hetzelfde als `offerte_effectieve_keuze` in SQL; houd die
+  twee gelijk.
+- **Bewijs van ondertekening: ook het IP-adres.** Naam, bevestigd e-mailadres,
+  tijdstip, browser en IP van dat ene moment staan bij de offerte (het
+  akkoordblok zegt dat er ook bij). Dat is de enige plek in de database met een
+  IP-adres; de regel "geen IP-kolom" bij *Architectuur* gaat over
+  bezoekregistratie. Hoort in de privacyverklaring, net als de code per mail.
+- **Mails** (Resend, zie *E-mail vanuit het systeem*): de offerte zelf (antwoorden
+  gaat naar het mailadres van de afzender), een seintje bij de eerste keer openen,
+  een bevestiging aan wie tekende, en "getekend" of "niet akkoord" aan sales
+  (`NOTIFY_OFFERTE_TO`, standaard sales@) plus het afzenderadres. Mailen staat uit?
+  Dan zet *Zet de link open, ik stuur hem zelf* de offerte open zonder mail.
+- **Het mailadres voor de klant is sales@react2u.nl** (`OFFERTE_EMAIL` in
+  `lib/offertes.ts`), niet de mail van de collega die de offerte maakt (Rens, 29 okt
+  2026). Elke nieuwe offerte begint ermee, ook als je vorige offerte een ander adres
+  had; het is ook de terugval in het paneel, bij een ingetrokken link en als
+  antwoordadres. De naam en het telefoonnummer blijven die van de afzender.
+- **Een collega die de link opent** telt niet mee en kan niet tekenen (de pagina
+  kijkt naar een beheersessie); het voorbeeld in het beheer
+  (`/admin/offertevoorbeeld/<id>`, buiten het paneel) werkt ook voor een concept.
+- **Buiten de site.** `/offerte/*` heeft een eigen root layout zonder menu's, valt
+  buiten de onderhoudsmodus en de doorverwijzingen (middleware), en krijgt
+  `noindex`, `Referrer-Policy: no-referrer` (anders gaat het token mee naar
+  externe sites) en `Cache-Control: private, no-store`.
+- **Vanuit het Postvak IN**: bij een offerteaanvraag staat *Offerte maken*; klant,
+  aantal medewerkers en het passende startpunt staan dan al klaar.
+- **Pdf**: zie *De offerte als contract* hieronder.
+
+### De klantpagina: de branding van het label
+
+De offertepagina is het moment waarop de klant akkoord geeft. Na vijf rondes
+feedback van Rens (29 okt 2026: "design moet echt veel beter", "geen foto's van
+de website"; 30 okt: "trek het design van de website door", "design moet echt
+S TIER"; 2 nov: "het moet deze branding zijn per offerte traject", bij de
+dienstenkaarten op /werkgevers) staat elke offerte in de branding van **zijn
+eigen label**, met de opbouw van de dienstpagina van dat label
+([`DienstLabel.tsx`](src/components/blocks/DienstLabel.tsx)), zonder foto's
+([`OffertePagina.tsx`](src/components/offerte/OffertePagina.tsx)):
+
+- **Het label komt van de vorm** (`DIENSTLABEL`): verzuimbegeleiding Recover,
+  RI&E/PAGO/training Resist, spoor 2/werkfit/AD-onderzoek Restart. Kleur, tint,
+  dienst ("Verzuimbegeleiding.") en tagline ("Van ziekmelding tot herstel")
+  komen uit het dienstLabel-blok van de labelpagina in het CMS
+  (`offerteMerk()` in `lib/offerteHuisstijl.ts`), met de vaste waarden in
+  [`lib/offerteMerk.ts`](src/lib/offerteMerk.ts) als terugval. Daar staat per
+  label ook een donkerdere tekstkleur voor kleine letters (contrast). De
+  pagina deelt het label via een context (`useMerk()`).
+- **Opening als de specialismekaart**: de tint met de grote cirkel in de
+  labelkleur, het pad "Offerte {nummer} / {bedrijf}", "React2u" met de
+  labelnaam groot en het ®, de dienst en de tagline cursief; daaronder de
+  offerte zelf ("{titel} voor {bedrijf}", door en voor wie, de feiten, de
+  knoppen). Rechts een witte kaart met het bedrag (telt mee), "Wat je krijgt"
+  (de gekozen onderdelen, vinkjes in de labelkleur) en de contactpersoon.
+- **Geen persoonlijk woord van de afzender** (Rens, 2 nov: "haal die weg
+  aangezien er al een voorwoord is"): niet op de pagina, niet in de pdf en niet
+  meer als veld in de editor. De kolom `intro` en de aanheffen in de sjablonen
+  bestaan nog, maar worden niet getoond.
+- **Afwerking** (Rens, 2 nov: "maak de offerte S TIER"):
+  - de kopbalk heeft op een breed scherm de onderdelen als menu (Voorstel,
+    Voorwoord, Kiezen, Vervolg, Akkoord), met het onderdeel waar je bent in de
+    labelkleur, en onderaan een voortgangslijn in de labelkleur;
+  - in de kaart van de opening een label "Nog 30 dagen geldig" (in de browser
+    berekend);
+  - alle tarieven bij gebruik in één lijst (`TarievenBlok`), waarvan de eerste
+    vijf zichtbaar zijn en de rest uitklapt;
+  - het tekenen in drie zichtbare stappen (handtekening, je gegevens, code uit
+    je mail), die meelopen met wat de klant invult.
+- **Accenten in de labelkleur**: bovenkopjes, vinkjes in een rondje in de tint,
+  de schakelaars van extra's, de badge op een gekozen kaart, de
+  aanhalingstekens, de initialen van Susanne in het voorwoord. Banden onder de
+  opening wisselen wit en de tint af; vlakken binnen een band hebben de andere.
+  Een gekozen keuzekaart blijft indigo (de prijskaarten van de tarieven).
+- **Keuze** met rechts het **overzicht** (het eerste `<aside>`): het label in
+  zijn tint, elke gekozen regel met bedrag, het totaal dat meetelt, de knop
+  naar het akkoord, de concept-pdf en "Vragen?". Daaronder het totaal als
+  indigo strook.
+- **Upsell: "Vaak gekozen erbij"** (Rens, 2 nov: "de klant moet meer opties
+  kunnen aanklikken"). Elke nieuwe offerte uit een standaardsjabloon krijgt per
+  traject vaste aanbevolen extra's uit andere specialismen, als opties die uit
+  staan (`AANBEVOLEN` en `aanbevolenExtras()` in
+  [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts), regel met
+  `aanbevolen: true`): bij verzuim loopbaanscan, coaching, AD-onderzoek en
+  salarisadministratie; bij preventie de aansluiting verzuimbegeleiding en
+  coaching; bij re-integratie AD-onderzoek of spoor 2 en coaching. Alleen
+  diensten met een vaste prijs op de prijslijst, losse specialismen zonder
+  pakketkorting. De klant ziet ze direct na de keuzes als kaarten in de kleur
+  van hun eigen label met een schakelaar; aan = telt mee en wordt
+  meegetekend. Een prijs per medewerker verschijnt alleen als het aantal
+  bekend is. In de editor staan ze met "Aanbevolen extra" en kan sales er een
+  weghalen; een aangepast sjabloon houdt zijn eigen regels.
+- **Alle modules: de hele prijslijst om zelf aan te zetten** (Rens, 2 nov:
+  "klant moet zelf alle modules aan kunnen klikken"). Elke offerte uit een
+  sjabloon (standaard én eigen) krijgt alle diensten van de zes labels als
+  opties die uit staan (`alleModules()` in
+  [`lib/offerteCatalogus.ts`](src/lib/offerteCatalogus.ts), regel met
+  `module: true`, kop "Alle modules"). Recover levert alleen zijn
+  aansluitingen (de losse verrichtingen en de uurtarieven van de
+  professionals gelden al onder een aansluiting); wat al in de offerte staat
+  (op naam) en de dienst die de offerte zelf is (`EIGEN_DIENST`, bijvoorbeeld
+  de RI&E bij een RI&E-offerte) komen er niet nog eens bij. De prijs bepaalt
+  wat aanzetten betekent: een vaste prijs telt mee; een tarief (per uur, per
+  melding, per maand per dossier, 6%) is **bij gebruik** (`bijGebruik: true`,
+  telt niet mee, het tarief staat in het overzicht, de pdf en de mails); op
+  aanvraag of op offerte = **voorstel gevraagd** (sales ziet dat zo in de
+  tussenstand en de melding na het tekenen). Een aansluiting en de manier van
+  verlonen sluiten elkaar uit: opties met dezelfde `groep` (`UITSLUITEND`),
+  hooguit één aan (`wissel`, `herstelKeuze`); de database kent die regel niet
+  en laat elke combinatie door. Op de klantpagina staan ze na "Vaak gekozen
+  erbij" als **panelen per label** in de kleur en tint van dat label, het
+  eigen label open, de rest in te klappen, met per paneel hoeveel er aan
+  staat. In de editor zijn ze één blok "Alle modules": per label uitklappen,
+  "aan bij openen", weghalen, of alles in één keer **Bijwerken** met de
+  prijslijst (ids en wat aan stond blijven) of **Weghalen**. Een andere vorm
+  ververst ze; "Bewaar als sjabloon" bewaart ze niet (ze komen vers van de
+  prijslijst). Een prijs per medewerker (aansluiting, salarisadministratie)
+  ziet de klant alleen als het aantal medewerkers is ingevuld; de editor
+  waarschuwt daarvoor.
+- **Upgrade-duwtje**: staat er naast de gekozen aansluiting een uitgebreidere,
+  dan zegt een regel onder de keuze wat die per maand meer kost ("Liever alles
+  geregeld? Met Casemanagement Compleet betaal je €353,50 per maand meer"),
+  met één klik om over te stappen. Het verschil wordt uit de offerte zelf
+  berekend.
+- **Zo gaat het verder** als "Onze aanpak" op de dienstpagina: indigo band met
+  de lichtere cirkel, genummerde stappen in de labelkleur (Ready: wit), na
+  ondertekening de eerste met een vinkje.
+- **Klanten aan het woord** (citaten in de tint), de klantlogo's en de
+  keurmerken, met de teksten en logo's van de site.
+- **Akkoord** weer in de tint met de cirkel, als slot van de opening: "Teken
+  voor akkoord. Wij doen de rest.", bel- en mailrijen, en een witte kaart met
+  de voorwaarden en het tekenformulier.
+- **Voet** als de footer van de site (ivoor met een witte kaart).
+- **Telefoon**: onderaan een balk met het bedrag en Ondertekenen, die wegschuift
+  zodra je bij het akkoord bent.
+- **Na ondertekening** dezelfde opening met "Gelukt, …! Welkom bij React2u."
+  (binnen een kwartier, met stippen uit het vinkje) en een kaart met het
+  vinkje in de labelkleur, dan de aanpak, wat er is afgenomen, de tekst achter
+  "Lees de volledige tekst", voorwaarden en beide handtekeningen.
+- **Vast voorwoord van Cindy en Susanne** (Rens, 30 okt: "die moet vast
+  staan"): in elke offerte direct na de opening, en in de pdf als eerste
+  hoofdstuk. Het verhaal van React2u (waarom we begonnen, één vast gezicht,
+  voorkomen en herstellen, keurmerken), met een uitgelichte zin en hun twee
+  handtekeningen in handschrift. De tekst staat in
+  [`lib/offerteVoorwoord.ts`](src/lib/offerteVoorwoord.ts), niet in het beheer en
+  niet per offerte; alleen `{bedrijf}` wordt ingevuld. Daar staan ook hun
+  volledige namen en functies onder de handtekening (leeg = voornaam en
+  "React2u"). Niet op de pagina na ondertekening, wel in de getekende pdf. Het
+  zit niet in `getekend_inhoud` of de hash: het is geen afspraak, maar uitleg.
+- **Bedrijfsgegevens en keurmerken** komen uit Instellingen
+  (`lib/offerteHuisstijl.ts`): adres, telefoon, e-mail, KvK en btw in de voet en
+  bij Opdrachtnemer; staat een certificaat als PDF in Instellingen, dan klik je
+  vanaf het keurmerk erheen.
+- **Ondertekening namens React2u door de bestuurder** (Rens, 3 nov 2026: "zet
+  mijn handtekening bij alle offertes"): in het vak *Opdrachtnemer* op de
+  klantpagina (vóór en na het tekenen) en in de pdf staat de echte handtekening
+  van Rens van Eyck met "Rens van Eyck, Bestuurder" en de datum van versturen,
+  ongeacht wie de offerte opstelde. De afzender blijft de contactpersoon op de
+  pagina en in de mails. Naam, functie en de png staan in
+  [`lib/offerteOndertekenaar.ts`](src/lib/offerteOndertekenaar.ts); de
+  handtekening is `public/beeld/handtekening-rens.png` (scan, wit weggehaald).
+  Ook getekende offertes van vóór 3 nov tonen hem: de pdf wordt steeds opnieuw
+  gemaakt uit `getekend_inhoud`, en de ondertekenaar zit daar niet in.
+- **Prijzen per maand**: wat per jaar loopt staat op de klantpagina, in de mails en
+  in het beheer als maandbedrag (`perMaand`, `maandprijs()`, `regelbedrag()` in
+  `lib/offertes.ts`), met het jaarbedrag klein erbij. De prijslijst blijft per jaar;
+  het maandbedrag is het jaarbedrag gedeeld door twaalf, op centen afgerond.
+- **Huisregels van de site**: bovenkopjes in hoofdletters met de stip, ronde
+  knoppen met een pijl, roze voor de hoofdactie (ook bij andere labels, zoals
+  op de dienstpagina's), grijze tekst `#6B6985`. Witte koppen op indigo met
+  inline kleur (de globale kopkleur wint van een utility). Bij "minder
+  beweging" staan de animaties stil.
+- De pdf blijft een rustig document (zie *De offerte als contract*); de pagina
+  volgt de site, het papier niet.
+- Een onbekende of ingetrokken link toont `OfferteMelding.tsx`.
+
+### Vormen en sjablonen
+
+Naast verzuimbegeleiding kent de module zes vormen uit de Word-offertes van
+oktober 2026: **RI&E, PAGO, verzuimtraining, spoor 2, werkfittraject en
+arbeidsdeskundig onderzoek** (migratie
+[0025](supabase/migrations/0025_offertevormen.sql)). De inhoud en opmaak van die
+offertes worden nog aangepast; de vormen blijven. Sinds 2 nov 2026 is er een achtste
+vorm, **Casemanagement Reflex** (migratie
+[0029](supabase/migrations/0029_offertevorm_reflex.sql)): het abonnement voor
+uitzendbureaus en eigenrisicodragers Ziektewet, als eigen keuze in de groep
+*Flexbranche* van de kiezer (Rens: "dit moet een losse keuze worden bij het
+aanmaken"). Het sjabloon neemt het abonnement en de Reflex-tarieven uit de
+prijslijst. Daarom:
+
+- **Nieuwe offerte begint met de vorm.** `/admin/offertes/nieuw` toont de
+  sjablonen per groep (verzuim, flexbranche, preventie, re-integratie; `VORM_GROEPEN`); daarna opent de editor
+  met alles ingevuld. Een offerteaanvraag uit het Postvak IN slaat de kiezer over
+  (verzuimbegeleiding met de gekozen aansluiting). Oude adressen met `?start=`
+  werken nog.
+- **De tekst staat in de offerte zelf**: `inhoud` (de uitleg, boven de
+  onderdelen) en `voorwaarden` (facturatie, betalingstermijn, annulering), in een
+  eigen mini-opmaak: `## kop`, `### tussenkop`, `- punt`, `1. stap`, `> uitgelichte
+  zin`, `**vet**` ([`OfferteTekst.tsx`](src/components/offerte/OfferteTekst.tsx)).
+  Plus `betreft` (de werknemer, locatie of deelnemers) en `vervolg` (de stappen
+  onder "Zo gaat het verder"). Al deze velden gaan mee in `getekend_inhoud` en dus
+  in de hash: de voorwaarden zijn onderdeel van wat er getekend is.
+- **Invulvelden**: `{bedrijf}`, `{contactpersoon}`, `{voornaam}` en `{betreft}`
+  worden bij het tonen ingevuld (`vulIn()`); zonder contactpersoon wordt het
+  "heer, mevrouw". Zo kan een sjabloon algemeen blijven.
+- **Sjablonen aanpassen zonder code**: maak een offerte, schaaf hem bij en kies
+  onderaan *Bewaar als sjabloon* (overschrijven of een nieuw sjabloon met eigen
+  naam). Dat komt in `offerte_sjablonen` en wint van de standaard in de code;
+  *Terug naar standaard* op `/admin/offertes/sjablonen` haalt het weg.
+  Klantgegevens gaan niet mee; gebruik in de teksten de invulvelden.
+- **Geldigheid en betalingstermijn**: elke offerte is standaard dertig dagen geldig
+  (`GELDIG_DAGEN` in `lib/offertes.ts`) en noemt in de voorwaarden een
+  betalingstermijn van dertig dagen (`BETALING` in `lib/offerteSjablonen.ts`), voor
+  elke vorm (Rens, 30 okt 2026). Per offerte aan te passen in de editor; een bewaard
+  sjabloon kan een eigen termijn hebben.
+- **Prijzen**: spoor 2, arbeidsdeskundig onderzoek en de aansluitingen komen uit
+  de prijslijst (lopen mee met de tarievenpagina, zolang het sjabloon niet is
+  aangepast: een bewaard sjabloon heeft vaste prijzen). RI&E (€ 2.825), PAGO (€ 42,50
+  per medewerker), training (€ 595) en werkfit (€ 2.500, verlenging € 1.500) staan
+  vast in het sjabloon. Spoor 2 stond in de Word-offerte op € 3.250; het sjabloon
+  volgt de prijslijst 2027 (€ 3.365).
+- **Eenheid "per medewerker, eenmalig"** (PAGO, vragenlijsten) rekent met het
+  aantal medewerkers; een bedrag van € 0 heet "Inbegrepen"; een regel zonder
+  bedrag kan een *prijs als tekst* hebben ("€ 89 p.p. en € 0,42 per km").
+- De ondertekende versie toont, zoals de Word-offertes, *Opdrachtnemer* (React2u,
+  getekend door de bestuurder) naast *Opdrachtgever* (getekend voor akkoord).
+
+### De offerte als contract
+
+Sinds migratie [0026](supabase/migrations/0026_offertecontract.sql) (29 okt 2026)
+levert tekenen een stuk op dat inkoop en de boekhouding accepteren.
+
+- **Code per mail vóór het tekenen.** Wie op *Onderteken* klikt, krijgt een code
+  van 6 cijfers op het ingevulde e-mailadres (de code staat vooraan in het
+  onderwerp) en vult die in; bij 6 cijfers tekent de pagina meteen. Een kwartier
+  geldig, vijf pogingen, hooguit vijf codes per uur per offerte. Dat bewijst dat
+  wie tekent dat adres in handen heeft; het certificaat zegt het erbij.
+- **De database dwingt de code af, niet Next.** De functies zijn met de publieke
+  sleutel aan te roepen, dus een controle alleen in de server action zou je met
+  een directe aanroep overslaan. Next maakt en mailt de code; `offerte_code_vastleggen`
+  bewaart alleen de hash, en alleen met `OFFERTE_SLEUTEL` (env in Vercel; in de
+  database staat de sha-256 in `offerte_sleutel`, buiten git gezet).
+  `offerte_codes` en `offerte_sleutel` hebben geen policies: ook het beheer kan er
+  niet bij, anders kon een collega een code zetten en "namens de klant" tekenen.
+  `offerte_ondertekenen` vraagt sinds 0026 de code en de factuurgegevens; de
+  variant zonder code verdwijnt met 0027. Een nieuwe sleutel: nieuwe waarde in
+  Vercel én de hash in `offerte_sleutel`, anders kan niemand een code krijgen.
+- **Factuurgegevens** (`factuur`, jsonb): adres, postcode, plaats, het
+  factuurmailadres (standaard wie tekent), KvK (8 cijfers, mag leeg) en
+  inkoopnummer (mag leeg). Sales kan ze in de editor vooraf invullen (*Factuurgegevens
+  vooraf invullen*); de klant ziet ze ingevuld en bevestigt. Ze komen in de
+  vastgelegde versie en dus in de hash, in de melding aan sales en in de pdf.
+  `factuurFout()` in `lib/offertes.ts` controleert hetzelfde als de SQL.
+- **De pdf** ([`lib/offertePdf.tsx`](src/lib/offertePdf.tsx), `@react-pdf/renderer`):
+  dezelfde opbouw als de klantpagina (briefhoofd, genummerde hoofdstukken,
+  Opdrachtnemer naast Opdrachtgever, factuurgegevens, keurmerken), met achterin
+  het **ondertekeningscertificaat**: ondertekenaar, hoe het e-mailadres is
+  bevestigd, tijdstip tot op de seconde, IP-adres, apparaat, de tijdlijn vanaf
+  het versturen (`offerte_certificaat`) en de kenmerken van de getekende versie
+  en van de handtekening. Alles uit `getekend_inhoud`, dus de pdf van vandaag is
+  die van de dag van tekenen (op de bedrijfsgegevens in de voet na). Hij zit bij
+  de bevestiging aan de klant en de melding aan sales, en staat op
+  `/offerte/<token>/pdf` en `/admin/offertevoorbeeld/<id>/pdf` (`?download=1`
+  als bestand). Lettertypen (Outfit, Caveat) staan als woff in `src/lib/pdf/fonts`;
+  `outputFileTracingIncludes` in `next.config.ts` neemt ze en de keurmerklogo's
+  mee naar Vercel.
+- **Concept-pdf om intern te bespreken** (30 okt 2026): op de klantpagina (paneel,
+  het bedrag op de telefoon en het akkoordblok) en in het beheer (*Concept-pdf*).
+  Dezelfde opbouw met de keuze van dat moment (`?keuze=a,b`, anders de bewaarde
+  tussenstand), het watermerk CONCEPT, lege handtekeningvakken en de link om online
+  te tekenen; geen factuurgegevens en geen certificaat. `/offerte/<token>/concept`
+  (alleen een verstuurde offerte, telt niet als bezoek) en
+  `/admin/offertevoorbeeld/<id>/concept` (ook een concept). Na het tekenen geeft de
+  conceptroute een 404; dan is er de echte pdf.
+- **Valkuilen in react-pdf 4.9**: een `Text` met `render` (paginanummer) binnen
+  een vaste `View` laat de hele View weg, en met `bottom` gepositioneerd wordt hij
+  niet getekend (vandaar `top: 806`); een unitless `lineHeight` op de pagina erft
+  als vaste waarde, dus grotere tekst krijgt een eigen `lineHeight`; `flex: 1` op
+  een Text in een kolom maakt zijn hoogte nul.
+
+## Brochures
+
+Sinds 2 november 2026 (migratie [0030](supabase/migrations/0030_brochures.sql)):
+sales stuurt een prospect een **persoonlijke brochure met alle zes diensten**, nog
+vóór er een offerte is (Rens: "maak een brochure pagina zodat we een template
+handig kunnen versturen, offerte zelf volgt later"). Dezelfde opzet als de
+offertemodule, zonder keuzes of ondertekening. Sinds 3 november 2026 staat de
+prijslijst erin (Rens: "Ga verder met de brochure. hierbij prijslijst", met de
+pdf van de prijslijst 2027), en volgt hij de opbouw van een voorbeeldbrochure
+(Rens: "er moet een veel duidelijkere lijn inzitten, geen kopie want dit ontwerp
+is niet goed alleen wel de opbouw"), met de opmerkingen van Susanne verwerkt.
+
+- **Het verhaal in acht hoofdstukken** ([`lib/brochureVerhaal.ts`](src/lib/brochureVerhaal.ts),
+  gedeeld door pagina en pdf): 01 Hoe het gaat (maandagochtend 08:12, de klok van
+  een ziekmelding), 02 Voorwoord (het vaste voorwoord van de offerte), 03 Onze
+  werkwijze (één aanspreekpunt, het medisch team met de taakgedelegeerde
+  casemanager, XpertSuite bewaakt de termijnen), 04 Wat het kost (€94.500, met
+  Compleet en spoor 2 uit de prijslijst), 05 Onze diensten (eigen teksten en
+  vinkjes per label, kleuren uit het CMS), 06 Jouw rol (wat je mag vragen, en wat
+  je per termijn doet), 07 Tarieven en 08 Overstappen met de zusterlabels;
+  klanten aan het woord staat tussen 05 en 06.
+- **Beeldtaal: die van de homepage** (sinds 4 nov 2026; Rens over eerdere
+  versies: "visueel niet een samenhangend verhaal", "ziet er standaard uit",
+  "het verhaal komt niet over"). De stippentaal van "Home S-tier" (koppen in de
+  kleuren van het logo, de constellatie van ronde foto's, de stippenreis) staat
+  als rekenwerk in [`lib/stippenSpoor.ts`](src/lib/stippenSpoor.ts) en als
+  bouwstenen in [`Stippen.tsx`](src/components/brochure/Stippen.tsx); de pdf
+  tekent dezelfde reis met react-pdf-Views. De reis is de lijn: de inhoud is
+  een reis langs acht stations, 01 dezelfde reis zonder regie (grijs,
+  onderbroken), 06 met React2u (in kleur), 03 en 08 stations zoals op de
+  homepage. Elk hoofdstuk krijgt de reiskleur van zijn station
+  (`hoofdstukKleur`). Ronde foto's voor de pdf staan als png in
+  `public/beeld/brochure` (react-pdf leest geen webp en knipt niet rond). De
+  vaste voet van de pdf heeft een vaste hoogte: zonder groeide die per pagina
+  tot react-pdf vastliep ("unsupported number"). De marktvergelijking uit het
+  voorbeeld staat er bewust niet in. De vinkjes per dienst wijken af van de
+  labelpagina's op de site (Susanne's correcties); die staan alleen in de brochure.
+
+- **Eén inhoud, per prospect een woord.** De zes diensten komen van de
+  dienstLabel-blokken van de labelpagina's in het CMS
+  ([`lib/brochureHuisstijl.ts`](src/lib/brochureHuisstijl.ts), met vaste terugval),
+  in de volgorde Recover, Resist, Restart, Reflex, Ready, Reward. Per brochure
+  vult sales alleen de prospect, het persoonlijke woord (`bericht`, met
+  `{bedrijf}` en `{voornaam}`) en de afzender in. Zo zegt elke brochure wat de
+  site zegt.
+- **Prijslijst**: dezelfde bron als /verzuimabonnementen en de offertemodule, het
+  blok `dgTarieven` (live uit het CMS, anders `src/content/tarieven.json`) met het
+  jaar uit Instellingen → Tarievenjaar ([`lib/brochurePrijslijst.ts`](src/lib/brochurePrijslijst.ts),
+  geladen in `brochureHuisstijl.ts`). Nieuwe prijzen hoeven dus niet apart in de
+  brochure. De indeling volgt de gedrukte prijslijst: de drie aansluitingen, de
+  uurtarieven, een kaart per label in zijn kleur en tot slot maatwerk en
+  specialisten; één lange lijst (uurtarieven, Ready) staat over twee kolommen, de
+  uitlegkaarten van de site vallen weg. In de pdf beslaat hij twee pagina's tussen
+  de diensten en het verhaal, met twee kleine labels naast elkaar (Reflex en Ready,
+  `prijsRijen` in `brochurePdf.tsx`). Op de pagina linkt elke dienstenkaart naar
+  zijn tarieven (`#tarieven-<label>`).
+- **Beheer**: `/admin/brochures` (overzicht), `/admin/brochures/nieuw` (ook vanuit
+  een aanvraag in het Postvak IN met `?bericht=<id>`) en `/admin/brochures/<id>`
+  (versturen of herinneren, link kopiëren of via WhatsApp, tijdlijn, intrekken,
+  nieuwe link). Hetzelfde verzendblok als offertes (`OfferteVersturen` met
+  `actie` en `woord`). Recht: `bellijst`. *Maak offerte* opent de kiezer met
+  `?brochure=<id>`: dezelfde prospect en afzender, de rest kies je daar.
+- **Prospect**: `/brochure/<token>` ([`BrochurePagina.tsx`](src/components/brochure/BrochurePagina.tsx)),
+  in de vormgeving van de site: opening in de indigo tint met de belofte ("Grip
+  op verzuim, van preventie tot re-integratie.") en het woord van de afzender,
+  de inhoud, de acht hoofdstukken, een uitnodiging om te bellen of een offerte te
+  vragen, en de keurmerken. Hetzelfde verhaal als pdf op `/brochure/<token>/pdf`
+  ([`lib/brochurePdf.tsx`](src/lib/brochurePdf.tsx), `?download=1` als bestand):
+  na de omslag loopt alles door (zo'n tien pagina's), met elke hoofdstukkop vast
+  aan zijn eerste blok; de klantlogo's komen uit `public/beeld/klanten`
+  (`outputFileTracingIncludes` in `next.config.ts`).
+  Een concept is al te bekijken (sales ziet hem vooraf), maar een bezoek telt
+  pas als hij verstuurd is; een collega met een sessie telt nooit
+  ([`lib/isCollega.ts`](src/lib/isCollega.ts), gedeeld met de offertepagina).
+- **Mail** in de kleuren van React2u zelf ([`lib/brochureMail.ts`](src/lib/brochureMail.ts),
+  op de bouwstenen van `offerteMail.ts`): kop met de belofte van de site, kaart
+  met de knop, het bericht, de zes diensten met een stip in hun kleur, de
+  afzenderkaart. Antwoorden gaat naar `sales@react2u.nl`. Opent de prospect de
+  link voor het eerst, dan krijgt de afzender "… bekijkt je brochure".
+- **Database**: tabel `brochures` (nummer `B2026-0001`, token als bij offertes)
+  en `brochure_gebeurtenissen`; `brochure_bekijken(token, tel)` als enige
+  publieke ingang; trigger `brochure_bewaken` houdt de bezoekvelden bij de API
+  vandaan. Middleware en `next.config.ts` behandelen `/brochure/*` als
+  `/offerte/*` (geen onderhoudspagina, noindex, no-referrer, no-store, fonts
+  voor de pdf). Niet-verstuurde en verstuurde brochures gaan een jaar na de
+  laatste activiteit weg (`opruimen-brochures`).
+- **Tests**: [`e2e/brochure.cjs`](e2e/brochure.cjs) (aanmaken, collega telt niet,
+  versturen, prospect opent, melding aan sales, pdf, telefoon, offerte vanuit
+  de brochure, intrekken, onbekende link, de acht hoofdstukken en de prijslijst),
+  `lib/brochures.test.ts`, `lib/brochurePrijslijst.test.ts`, `lib/brochureVerhaal.test.ts`
+  en `lib/brochurePdf.test.tsx`.
+
+## Contracten
+
+Sinds 3 november 2026 (migratie [0031](supabase/migrations/0031_contracten.sql)):
+het **Basiscontract Arbodienstverlening** dat de Arbowet sinds 1 juli 2017 vraagt,
+op dezelfde manier als een offerte (Rens: "deze moet op dezelfde wijze worden
+ingebouwd in de admin zoals we de offerte versturen en in nieuwe stijl"). Sales
+stuurt een link; de klant leest het contract, vult de gegevens van zijn
+organisatie in en tekent online met een code per mail.
+
+- **De tekst** staat in [`lib/contractTekst.ts`](src/lib/contractTekst.ts),
+  letterlijk uit het Word-bestand "Basiscontract arbodienst React2u LEEG nieuw"
+  (overwegingen A tot en met F, artikelen 1 tot en met 8), in een eigen
+  mini-opmaak (`## 1. Titel`, `1.1. bepaling`, `A. overweging`, `**vet**`) met de
+  invulvelden `{ingangsdatum}`, `{einddatum}` en `{offerte}`. Alleen de opmaak is
+  nieuw (titels van bepalingen vet). Elk contract krijgt bij het aanmaken een
+  **kopie** (kolom `tekst`, met `tekst_versie`), zodat een verstuurd contract niet
+  verandert als de standaard wijzigt en de database bij het tekenen precies kan
+  vastleggen wat er getekend is. Per contract aan te passen in het beheer; een
+  afwijking staat er als "Aangepaste tekst" bij, en "In het kort" laat dan alleen
+  de looptijd zien. Wijzig je de standaard, verhoog dan `CONTRACT_VERSIE`.
+  *Aanvullende afspraken* (`aanvullend`) worden het laatste artikel (9).
+- **De partijen** ("De ondergetekenden") maakt de code, in de bewoording van het
+  Word-bestand (`comparitieOpdrachtnemer()`/`comparitieOpdrachtgever()` in
+  [`lib/contracten.ts`](src/lib/contracten.ts)). React2u komt uit Instellingen
+  (adres, KvK; `opdrachtnemer`, bij opslaan en versturen ververst) en wordt
+  vertegenwoordigd door de bestuurder, net als bij offertes
+  (`ONDERTEKENAAR.formeel`: "de heer R. van Eyck", functie bestuurder). Het
+  Word-bestand noemde "Eigenaar", KvK 866991906 (dat is het btw-nummer) en
+  postcode 5632 NB, en zette "S. Linders/C. Faro" onder de handtekening; het
+  contract volgt Instellingen en de handtekening van de offerte. De klant
+  (`opdrachtgever`: statutaire naam, adres, postcode, plaats, KvK van 8 cijfers)
+  kan sales vooraf invullen; de klant bevestigt of vult aan bij het tekenen, met
+  zijn naam en (verplichte) functie als vertegenwoordiger en de plaats van
+  ondertekening.
+- **Overweging D** ("akkoord met de offerte met kenmerk ...") krijgt het kenmerk
+  van de gekoppelde offerte ("Offerte 2026-0012 van 3 november 2026"); zonder
+  offerte de naam en het KvK-nummer van de klant, zoals het Word-bestand zegt.
+- **Looptijd** (artikel 1.1): standaard de eerste van de volgende maand, een
+  jaar; daarna telkens 12 maanden verlengd, opzeggen 3 maanden voor het einde.
+  `looptijdNu()` rekent uit tot wanneer een getekend contract nu loopt en tot
+  wanneer het nog kan worden opgezegd; het overzicht toont dat als register en
+  telt de contracten waarvan die datum binnen drie maanden valt.
+- **Beheer**: `/admin/contracten` (register), `/admin/contracten/nieuw` (ook
+  `?offerte=<id>`: klant, afzender, kenmerk, en het factuuradres en KvK uit de
+  getekende offerte), `/admin/contracten/<id>` (versturen met `OfferteVersturen`
+  en `woord="contract"`, tijdlijn, formulier, na het tekenen de handtekening en het
+  bewijs), `/admin/contractvoorbeeld/<id>` (+ `/pdf`, `/concept`). Bij een
+  verstuurde of getekende offerte staat de knop *Basiscontract* (of het contract
+  dat er al bij hoort). Recht: `bellijst`.
+- **Klantpagina** `/contract/<token>`
+  ([`ContractPagina.tsx`](src/components/contract/ContractPagina.tsx)) in de
+  vormgeving van de site, in de kleuren van React2u zelf zoals de brochure (een
+  basiscontract hoort bij de arbodienst, niet bij één label): opening in de lila
+  tint met "In het kort" (`contractKort()`, de volledige tekst is leidend), het
+  contract als wit vel met een inhoudsopgave die meeloopt, en ondertekenen in drie
+  stappen. De kop van het contract en "Zo staat het in het contract" vullen zich
+  terwijl de klant typt. Documenten bij het contract: algemene voorwaarden,
+  privacyreglement en klachtenregeling (de pdf's van de site). Na het tekenen:
+  felicitatie (binnen een kwartier), beide handtekeningen met plaats en datum, tot
+  wanneer het loopt, en de tekst zoals getekend.
+- **Bewijs zoals bij offertes**: `contract_bekijken`, `contract_code_vastleggen`
+  (dezelfde `OFFERTE_SLEUTEL`, de hash staat al in `offerte_sleutel`),
+  `contract_ondertekenen` (eerst alle velden, dan de code; legt `getekend_inhoud`
+  vast met de tekst, beide partijen, de looptijd en de bevestiging, plus een
+  sha-256) en `contract_certificaat`. `contract_codes` heeft geen policies; de
+  trigger `contract_bewaken` laat het beheer niet tekenen en een getekend contract
+  niet wijzigen of verwijderen (de notitie wel). Niet-getekende contracten gaan na
+  een jaar weg (`opruimen-contracten`).
+- **Pdf** ([`lib/contractPdf.tsx`](src/lib/contractPdf.tsx)): de opbouw van het
+  Word-bestand op het papier van de offerte-pdf, met achterin het
+  ondertekeningscertificaat; concept met watermerk en open plekken. Bij de
+  bevestiging aan de klant en de melding aan sales.
+- **Mails** ([`lib/contractMail.ts`](src/lib/contractMail.ts), op de bouwstenen van
+  `offerteMail.ts`): het contract, de code en de bevestiging; meldingen "bekijkt"
+  en "getekend" sober, zoals bij offertes.
+- **Tests**: [`e2e/contract.cjs`](e2e/contract.cjs) (vanuit een offerte, aanmaken,
+  versturen, klant leest, telefoon, tekenen met foute en goede code, mails, pdf,
+  getekend is vast, register, collega, onbekende link), `lib/contracten.test.ts`
+  (o.a. dat er geen woord uit het Word-bestand verloren gaat) en
+  `lib/contractPdf.test.tsx`.
+- `next.config.ts` neemt voor `/contract/**` en `/admin/contractvoorbeeld/**` de
+  lettertypen, keurmerken en de handtekening van de bestuurder mee naar Vercel;
+  dat laatste nu ook voor `/offerte/**` (de offerte-pdf tekent hem sinds 3 nov).
+
+### De resellerovereenkomst
+
+Sinds migratie [0033](supabase/migrations/0033_resellerovereenkomst.sql) (4 november
+2026) is er een tweede soort contract: de **Resellerovereenkomst arbodienstverlening**
+met een partner (Rens: "zorg dat we deze ook via de route digitaal kunnen laten
+ondertekenen"). Dezelfde route, tabel, functies en bewijs als het basiscontract;
+`contracten.soort` is `basiscontract` of `reseller` en ligt vast bij het aanmaken.
+Wat per soort verschilt (titel, woordmerk, rollen, kopjes, slotzin) staat in
+`CONTRACT_SOORT` in [`lib/contracten.ts`](src/lib/contracten.ts).
+
+- **De tekst** (`RESELLER_STANDAARD` in [`lib/contractTekst.ts`](src/lib/contractTekst.ts))
+  komt letterlijk uit het Word-bestand "Resellerovereenkomst React2u - model":
+  overwegingen A tot en met E, artikelen 1 tot en met 11. De leden heten 8.3 in
+  plaats van "artikel 8 lid 3"; a en b van 3.1 zijn alinea's van die bepaling
+  (ingesprongen op de pagina en in de pdf). Vet zijn alleen de begrippen in
+  artikel 1. "hierna gezamenlijk: Partijen", "Partijen komen het volgende
+  overeen:" en "Aldus overeengekomen en in tweevoud ondertekend." staan niet in de
+  tekst maar in `CONTRACT_SOORT`, net als bij het basiscontract.
+- **De vergoeding** in 3.1 hoort bij de partner: vanuit een partner krijgt de
+  tekst diens `pct_jaar_een` en `pct_vervolg` (`resellerTekst()`; Spine Services
+  heeft live 50% en 50%). Andere percentages tellen niet als aangepaste tekst
+  (`wijktAf(tekst, "reseller")`), en "In het kort" en de kerngegevens lezen ze uit
+  de tekst (`resellerVergoeding()`). In het beheer zijn ze als twee vakken te
+  wijzigen; wijkt het af van de partner, dan staat dat erbij.
+- **De partijen** in de bewoording van het Word-bestand (`comparitieReact2u()`,
+  `comparitieReseller()`): "React2u II B.V., handelend onder de naam React2u",
+  met sales@react2u.nl en het telefoonnummer uit Instellingen (`REACT2U_STATUTAIR`,
+  `opdrachtnemerUit()`); bij de handtekening "React2u II B.V. h.o.d.n. React2u". De
+  reseller vult naast naam, adres en KvK ook het **e-mailadres en telefoonnummer**
+  van het kantoor in: daar gaan aanmeldingen, specificaties en opzeggingen heen
+  (artikel 11.2). `contract_ondertekenen` controleert die (foutcodes
+  `organisatie-email`, `organisatie-telefoon`: 8 tot 15 cijfers).
+- **Looptijd**: geen einddatum (de check `contracten_looptijd` eist dat), en de
+  ingangsdatum zet `contract_ondertekenen` op de dag van ondertekening, Nederlandse
+  tijd (artikel 8.1). Opzeggen per e-mail met een maand. Het register telt hem
+  daarom niet mee bij "Opzegtermijn loopt af".
+- **Partner**: `contracten.partner_id` (on delete set null). Interne
+  administratie, geen deel van wat getekend is, dus ook na het tekenen vrij
+  (`contract_bewaken` kent hem als vrij veld, zodat een partner met een getekende
+  overeenkomst nog weg kan). Op `/admin/partners/<id>` staat het blok
+  *Resellerovereenkomst*: opstellen (`/admin/contracten/nieuw?partner=<id>`: kantoor,
+  contactpersoon, mail, telefoon en de percentages staan klaar), de status, en na
+  het tekenen de pdf.
+- **Beheer**: `/admin/contracten` met de filters Alle, Basiscontracten en
+  Resellerovereenkomsten (`?soort=`), en de knop *Nieuwe resellerovereenkomst*
+  (`?soort=reseller`). Geen offerte, geen looptijdvakken; wel de partner en de
+  vergoeding.
+- **Pagina, pdf en mails**: hetzelfde scherm in de lila tint, met "React2u /
+  Reseller. / Overeenkomst arbodienstverlening." (het hele woord past niet groot
+  op een telefoon), geen documenten van het basiscontract, de link naar
+  `/partners` in de voet, "Welkom als partner." na het tekenen. Onderwerpen:
+  "Resellerovereenkomst C2026-… voor …", "Ondertekend: resellerovereenkomst …".
+- **Tests**: [`e2e/reseller.cjs`](e2e/reseller.cjs) (vanuit de partner met 50% en
+  50%, versturen, de partner leest, telefoon, tekenen met mail en telefoon,
+  ingangsdatum vandaag, mails, pdf, getekend is vast maar de partner vrij, geen
+  einddatum, register en partnerpagina) en de resellertests in
+  `lib/contracten.test.ts` (o.a. dat er geen woord uit het Word-bestand verloren
+  gaat) en `lib/contractPdf.test.tsx`. `E2E_ALLEEN` neemt nu ook een lijst met
+  komma's (`E2E_ALLEEN=contract,reseller`).
+- **Pdf-afbreking** (geldt voor beide soorten): de artikelen staan los op de pagina,
+  niet in één omhullend blok. Daarin brak react-pdf (4.9) een artikel dat onderaan
+  een pagina begon niet af en schreef het over de voet heen (ook op master, als de
+  paginagrens net bij artikel 1 viel). Elke bepaling is onbreekbaar (`wrap={false}`),
+  zodat het nummer niet alleen onderaan staat; zet nooit een `wrap={false}` om een
+  kop en een bepaling samen, ook dat tekende over elkaar heen.
+
+## Omzet en uren
+
+Sinds migratie [0035](supabase/migrations/0035_omzet_uren.sql) (Rens, 4 nov 2026:
+"ik wil een sales dashboard en een omzet module en daarbij een overzicht te
+vullen met werknemers met het aantal declarable uren"; zien en invullen:
+"super admin"). Drie schermen:
+
+- **`/admin/verkoop`** (salesrecht `bellijst`): het salesdashboard over 30
+  dagen, 90 dagen of 12 maanden. Getekend in de periode (op de datum van
+  tekenen), de hitrate (het cohort dat in de periode verstuurd is, dezelfde
+  `hitrate()` als het dashboard en /admin/offertes), de doorlooptijd (mediaan
+  van versturen tot tekenen) en de gemiddelde deal; de open pijplijn per fase
+  (niet geopend, bekeken, koos onderdelen); de trechter van brochure tot
+  handtekening (een brochure "leidde tot een offerte" als er daarna een offerte
+  voor dezelfde klant kwam, zoals in het Verkoopblok); offertes per maand; per
+  soort en per verkoper (de afzender op de offerte); en de hele opvolglijst.
+  Regels in [`lib/verkoop.ts`](src/lib/verkoop.ts).
+- **`/admin/omzet`** (nieuw recht `omzet`, alleen de super admin): de omzet per
+  maand uit **abonnementen** (elke getekende offerte, met de keuze die de klant
+  tekende, vanaf de maand van tekenen tot hij is beëindigd), **eenmalige**
+  onderdelen (in de maand van tekenen) en **declarabele uren** × het uurtarief
+  van de medewerker (in de maand van de donderdag van de week). Kerncijfers,
+  12 maanden gestapeld, de abonnementsbrug (liep vorige maand + nieuw −
+  gestopt = loopt nu), per label (uit de `label` van de offerteregels), de
+  klanten (op bedrijfsnaam zonder rechtsvorm) en de uren van deze maand.
+  *Abonnement beëindigen* zet een rij in `abonnementen_gestopt` (eerste maand
+  zonder omzet); *Hervatten* haalt hem weg. Een eigen tabel, want
+  `offerte_bewaken` houdt een getekende offerte ongewijzigd. Regels in
+  [`lib/omzet.ts`](src/lib/omzet.ts).
+- **`/admin/omzet/uren`** (recht `omzet`): het rooster, zes weken naast
+  elkaar. Per medewerker per week de declarabele uren en de uren afwezig
+  (verlof, ziekte, feestdag); elk vakje bewaart zichzelf bij het verlaten
+  (`urenBewaren`), Enter gaat een rij omlaag, *als vorige* vult de lege vakjes
+  van een week met die van de week ervoor, en twee keer leeg haalt de week weg
+  (niet ingevuld is iets anders dan nul uur). Daaronder de medewerkers:
+  contracturen, norm, uurtarief (leeg: de uren tellen niet in de omzet) en
+  actief. Regels in [`lib/uren.ts`](src/lib/uren.ts).
+
+Het is **omzet uit afspraken, geen boekhouding**: wat niet betaald wordt of
+niet in een offerte staat, zit er niet in. Een getekende offerte telt door tot
+hij is beëindigd; er is geen koppeling met de looptijd van het basiscontract.
+Het recht `omzet` mag ook getekende offertes lezen (policy in 0035), zodat een
+rol met omzet maar zonder salesrecht de abonnementen ziet. De grafieken
+(`components/admin/Grafiek.tsx`) volgen de grafiekregels: dunne staven, één
+as, 2px tussen stapeldelen, een legenda vanaf twee reeksen, een tip bij
+aanwijzen en de cijfers als tabel; violet, aqua en geel zijn getoetst op
+kleurenblindheid. Browsertest: `e2e/omzet.cjs`.
 
 ## Van Postvak IN naar bellijst
 
@@ -896,13 +1563,49 @@ Beide slaan onderdelen over waar de gebruiker geen recht op heeft; RLS zou ze
 anders toch leeg teruggeven.
 
 **Het dashboard** toont per rol wat vandaag aandacht vraagt: te behandelen
-inzendingen (oudste eerst), wie vandaag gebeld moet worden, bezoek deze week
-tegenover vorige week, SEO-problemen en 404's, concepten, vacatures die aflopen,
-de laatste wijzigingen, en voor wie instellingen beheert welke koppelingen uit
-staan (mail, bezoekregistratie, bedrijfsherkenning, uitnodigen — alleen óf ze
-gezet zijn, nooit de waarde). Wie geen tweestapsverificatie heeft, krijgt
-bovenaan een oproep. Tijden en de begroeting rekenen in Europe/Amsterdam; de
-server draait in UTC.
+inzendingen (oudste eerst), wie vandaag gebeld moet worden, de verkoop (zie
+hieronder), bezoek deze week tegenover vorige week, SEO-problemen en 404's,
+concepten, vacatures die aflopen, de laatste wijzigingen, en voor wie
+instellingen beheert welke koppelingen uit staan (mail, bezoekregistratie,
+bedrijfsherkenning, uitnodigen — alleen óf ze gezet zijn, nooit de waarde). Wie
+geen tweestapsverificatie heeft, krijgt bovenaan een oproep. Tijden en de
+begroeting rekenen in Europe/Amsterdam; de server draait in UTC.
+
+**Het Verkoopblok** (salesrecht `bellijst`) zet offertes, brochures en
+contracten bij elkaar: vier cijfers (open offertes per maand, getekend de
+laatste 30 dagen, de hitrate over 90 dagen — dezelfde berekening als op
+/admin/offertes — en de getekende basiscontracten) en daaronder wat er
+opgevolgd moet worden, belangrijkste eerst. De regels staan in
+[`lib/opvolgen.ts`](src/lib/opvolgen.ts), met de grenzen in `DREMPELS`:
+
+- **Offerte** (verstuurd): *Koos onderdelen* (de klant klikte zelf iets aan en
+  keek deze week), *Net bekeken* (laatste 48 uur) of *Bekeken* (deze week),
+  *Daarna stil* (bekeken, al een week niets), *Niet geopend* (na 3 dagen),
+  *Verlopen* (een maand lang). Loopt de geldigheid binnen 5 dagen af, dan staat
+  dat erbij en gaat hij omhoog.
+- **Getekend zonder basiscontract**: alleen bij verzuimbegeleiding en Reflex
+  (een RI&E of traject is een losse opdracht), 60 dagen lang. Eén verstuurd of
+  getekend contract voor die klant is genoeg; staat er een concept klaar, dan
+  gaat de rij daarheen, anders naar een nieuw contract bij deze offerte.
+- **Brochure**: bekeken in de laatste 14 dagen en nog geen offerte voor die
+  klant (ook geen concept), of na 5 dagen niet geopend.
+- **Contract** (verstuurd): net bekeken, bekeken, daarna stil of niet geopend,
+  net als een offerte; dat geldt ook voor een resellerovereenkomst. Getekend
+  basiscontract: de laatste opzegdag valt binnen 60 dagen, tijd voor een
+  evaluatiegesprek. Een resellerovereenkomst loopt voor onbepaalde tijd en telt
+  niet als basiscontract, ook niet in het cijfer erboven.
+
+Een herinnering of nieuwe verzending (gebeurtenis `verstuurd` of `herinnering`)
+zet *Niet geopend* en *Daarna stil* drie dagen stil: `verstuurd_at` blijft op
+de eerste keer staan, dus daar is de tijdlijn voor nodig. **Dezelfde klant**
+herkent het blok aan de bedrijfsnaam zonder rechtsvorm, het e-mailadres of het
+maildomein (niet bij Gmail, Hotmail en dergelijke): een brochure weet niet
+welke offerte eruit volgde, en een klant met twee offertes heeft maar één
+basiscontract nodig. Met het recht op Bezoek komt erbij of het bedrijf de
+laatste dagen op de site was (*Op de site 40 min geleden, 3 pagina's*); dat
+duwt de rij omhoog. Er is geen knop "afgehandeld": een signaal verdwijnt als de
+reden weg is (getekend, afgewezen, gemaild of te lang stil om nog warm te zijn).
+Browsertest: `e2e/dashboard.cjs`.
 
 ## Doorverwijzingen en 404's
 
@@ -1220,6 +1923,13 @@ niets zegt.
 `public.opruimen_verlopen_gegevens()`. Die verwijdert contactberichten na 12
 maanden, leads na 24 maanden en bezoekgegevens na 12 maanden.
 
+**Offertes** (migratie 0028, job `opruimen-offertes` om 03:25): een offerte die
+niet is ondertekend gaat een jaar na de laatste activiteit (`updated_at`) weg, met
+zijn tijdlijn en code. Een getekende offerte is onderdeel van de overeenkomst en
+blijft; zeven jaar na het einde van de overeenkomst is dat handwerk (de trigger
+`offerte_bewaken` laat hem via de API ook niet verwijderen). De tekst voor de
+privacyverklaring staat in `docs/privacyverklaring/aanvulling-h-offertes.md`.
+
 **Sollicitaties staan er bewust niet in**, want daar hangt een cv-bestand aan,
 en dat moet via de Storage-API weg. Alleen de databaserij verwijderen laat de
 bytes in de bucket staan — het lijkt dan gewist terwijl het er nog is, en dat is
@@ -1359,5 +2069,28 @@ lokaal) registreert ze expliciet.
 
 **Tests:** `npm test` draait Vitest over de pure modules in `src/lib`
 (zoeken, doorverwijzingen, versies, dashboard, bewaartermijn, mediagebruik,
-bedrijfsherkenning). Die bevatten de
+bedrijfsherkenning, offertes, de offerte-pdf). Die bevatten de
 regels waar het op aankomt; de schermen eromheen zijn dun.
+
+**Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
+eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`). `e2e/run.mjs`
+bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
+testbeheerder, lege versies van twee productiefuncties en pg_cron uit
+`e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen
+(`.env.local` blijft onaangeroerd), vangt mails op in een nep-Resend, stelt een
+authenticator in voor de testbeheerder en ruimt alles weer op. Nodig: Docker en de
+Supabase CLI. Uitvoer (screenshots, mails, de pdf's) in `.e2e/uitvoer`.
+`E2E_HOUDEN=1` laat de stack staan, `E2E_GEEN_BUILD=1` slaat de build over,
+`E2E_ALLEEN=offerte` draait één test. Test een andere sessie tegelijk, geef dan
+`E2E_STACK=2` (eigen stack `react2u-e2e-2` op poorten 573xx) met een eigen
+`E2E_POORT` en `E2E_RESEND_POORT`: de stacks heten anders allebei
+`react2u-e2e`, en de ene `supabase stop` legt dan de andere plat.
+`e2e/dashboard.cjs` draait als laatste, want hij maakt de verkooptabellen leeg
+voor zijn eigen vaste set.
+
+**GitHub Actions** (`.github/workflows/tests.yml`) draait bij elke pull request en
+push naar master twee jobs: lint, typecheck en Vitest, en de browsertests (zo'n
+tien minuten). Mislukt een browsertest, dan staan de screenshots en mails als
+artefact bij de run. Er zijn geen geheimen voor nodig. Een nieuwe migratie die op
+productie iets verwacht wat niet in de migraties staat, krijgt een stub in
+`e2e/supabase/extra`.

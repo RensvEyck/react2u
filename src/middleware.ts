@@ -177,6 +177,10 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     await supabase.auth.getUser();
     return response();
   }
+  // Een offerte (/offerte/<token>), brochure (/brochure/<token>) of contract (/contract/<token>)
+  // is voor één klant, geen pagina van de site: geen onderhoudspagina en geen doorverwijzingen
+  // ervoor. Een klant die net wil tekenen, moet dat ook kunnen als de site even dicht is.
+  if (pathname.startsWith("/offerte/") || pathname.startsWith("/brochure/") || pathname.startsWith("/contract/")) return NextResponse.next();
   return publicGate(request, event);
 }
 

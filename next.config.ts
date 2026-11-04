@@ -100,6 +100,20 @@ const nextConfig: NextConfig = {
   // verzoek maar 1 MB zijn; Vercel accepteert maximaal 4,5 MB per verzoek.
   // Vandaar 4 MB per cv (src/lib/cvs.ts) en hier wat ruimte voor de rest.
   experimental: { serverActions: { bodySizeLimit: "4.4mb" } },
+  // De pdf van een getekende offerte (lib/offertePdf.tsx) leest zijn lettertypen
+  // en de keurmerklogo's van schijf. Dat ziet de bundelaar niet; zonder deze
+  // regel ontbreken ze op Vercel. De pdf ontstaat op de klantpagina (bij het
+  // tekenen), de downloadroute en het voorbeeld in het beheer.
+  outputFileTracingIncludes: {
+    // De handtekening van de bestuurder (lib/offerteOndertekenaar.ts) staat sinds 3 nov 2026 ook in de pdf.
+    "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
+    // De brochure-pdf toont sinds 3-4 nov 2026 ook de klantlogo's en ronde foto's (public/beeld/brochure).
+    "/brochure/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/klanten/*", "./public/beeld/brochure/*"],
+    "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
+    // Contracten (0031): dezelfde bestanden.
+    "/contract/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
+    "/admin/contractvoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
+  },
   images: {
     // Next 16 staat alleen kwaliteiten uit deze lijst toe. 75 is de standaard;
     // 85 is voor de foto's (Beeld): de AI-serie heeft fijne details en werd bij
@@ -128,6 +142,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: SECURITY_HEADERS },
+      // De klantmails over een offerte (lib/offerteMail.ts) laden de lettertypen
+      // van de site. Een mailclient is een andere herkomst, en lettertypen van
+      // een andere herkomst laden alleen met deze header.
+      { source: "/fonts/:path*", headers: [{ key: "Access-Control-Allow-Origin", value: "*" }] },
       // Alleen react2u.nl hoort in Google. Het Vercel-adres van productie
       // (react2u.vercel.app) en elke preview-deploy (*.vercel.app) serveren
       // dezelfde pagina's; zonder deze header kon Google ze als dubbele site
@@ -141,6 +159,22 @@ const nextConfig: NextConfig = {
       // regel staat als <meta> in app/admin/layout.tsx; robots.txt laat /admin
       // bewust open, anders ziet een crawler deze header nooit.
       { source: "/admin/:path*", headers: [NOINDEX] },
+      // Offertes: nooit in Google, nooit in een gedeelde cache, en de link met
+      // het token gaat niet als referrer mee naar andere sites.
+      {
+        source: "/offerte/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
+      // Brochures (0030): dezelfde regels als offertes.
+      {
+        source: "/brochure/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
+      // Contracten (0031): dezelfde regels als offertes.
+      {
+        source: "/contract/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
     ];
   },
 };

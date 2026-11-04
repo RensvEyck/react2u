@@ -54,12 +54,28 @@ const FOUT_TEKST: Record<string, string> = {
   "bedrijf-weg": "Dat bedrijf staat niet (meer) in het bezoek van de afgelopen 90 dagen.",
   "migratie-0010": "Hiervoor moet migratie 0010 eerst in Supabase worden uitgevoerd.",
   // Partners
+  // Omzet en uren
+  "medewerker-naam": "Vul de naam van de medewerker in.",
+  "migratie-0035": "Hiervoor moet migratie 0035 eerst in Supabase worden uitgevoerd.",
+  stoppen: "Beëindigen mislukt: kies de maand vanaf wanneer het abonnement stopt.",
   "partner-kantoor": "Vul de naam van het kantoor in.",
   "partner-code": "Die partnercode is al in gebruik. Kies een andere, of laat het veld leeg voor een voorstel.",
   "partner-klanten": "Deze partner heeft klanten en kan niet weg. Zet hem op inactief: dan koppelt zijn link geen nieuwe aanvragen meer.",
   "partner-klant": "Vul bedrijf, aantal medewerkers, tarief en startdatum in.",
   "partner-eind": "De einddatum ligt vóór de startdatum.",
   "migratie-0022": "Partners staan nog niet aan: migratie 0022 moet eerst in Supabase worden uitgevoerd.",
+  // Offertes
+  "offerte-onvolledig": "De offerte is nog niet compleet: kijk bij Versturen wat er ontbreekt.",
+  "offerte-getekend": "Deze offerte is getekend en kan niet meer worden gewijzigd of verwijderd.",
+  "sjabloon-naam": "Kies een sjabloon om te overschrijven, of geef het nieuwe sjabloon een naam.",
+  "sjabloon-bestaat": "Er is al een sjabloon met (bijna) die naam. Kies een andere naam, of overschrijf het bestaande.",
+  "migratie-0025": "Sjablonen staan nog niet aan: migratie 0025 moet eerst in Supabase worden uitgevoerd.",
+  // Brochures
+  "brochure-onvolledig": "Vul de naam van het bedrijf in voordat je de brochure openzet.",
+  "migratie-0030": "Brochures staan nog niet aan: migratie 0030 moet eerst in Supabase worden uitgevoerd.",
+  // Contracten
+  "contract-onvolledig": "Het contract is nog niet compleet: kijk bij Versturen wat er ontbreekt.",
+  "migratie-0031": "Contracten staan nog niet aan: migratie 0031 moet eerst in Supabase worden uitgevoerd.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
@@ -78,6 +94,31 @@ const OK_TEKST: Record<string, string> = {
   vergeten: "Vergeten — de bedrijfsnaam is uit alle eerdere bezoeken gehaald.",
   partner: "Partner toegevoegd. Stuur de aanmeldlink hieronder naar het kantoor.",
   "partner-klant": "Klant opgeslagen; het kwartaaloverzicht is bijgewerkt.",
+  offerte: "Offerte opgeslagen.",
+  "offerte-nieuw": "Offerte aangemaakt. Bekijk het voorbeeld en verstuur hem als hij klaar is.",
+  "offerte-open": "De link staat open voor de klant. Stuur hem door.",
+  "offerte-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  brochure: "Brochure opgeslagen.",
+  "brochure-nieuw": "Brochure aangemaakt. Bekijk het voorbeeld en verstuur hem.",
+  "brochure-open": "De link staat open voor de prospect. Stuur hem door.",
+  "brochure-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  "brochure-heropend": "De brochure staat weer open.",
+  "brochure-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
+  "offerte-heropend": "Heropend: de klant kan weer kiezen en tekenen.",
+  "offerte-kopie": "Kopie gemaakt als nieuw concept, met een eigen nummer en link.",
+  "offerte-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
+  contract: "Contract opgeslagen.",
+  medewerker: "Medewerker opgeslagen.",
+  "medewerker-weg": "Medewerker en zijn uren verwijderd.",
+  gestopt: "Abonnement beëindigd: vanaf die maand telt het niet meer in de omzet.",
+  hervat: "Abonnement loopt weer: het telt opnieuw mee in de omzet.",
+  "contract-nieuw": "Contract aangemaakt. Bekijk het voorbeeld en verstuur het als het klaar is.",
+  "contract-open": "De link staat open voor de klant. Stuur hem door.",
+  "contract-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  "contract-heropend": "Het contract staat weer open.",
+  "contract-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
+  sjabloon: "Bewaard als sjabloon. Nieuwe offertes van deze vorm beginnen voortaan hiermee.",
+  "sjabloon-standaard": "Terug naar de standaardversie.",
 };
 
 export default function Toast() {
