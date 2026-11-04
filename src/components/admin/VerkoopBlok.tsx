@@ -46,8 +46,9 @@ export default function VerkoopBlok({ signalen, cijfers, leeg }: { signalen: Sig
         <div className="flex items-center gap-4">
           <Link href="/admin/brochures" className="hidden text-[13px] font-semibold text-black/45 hover:text-[#312e82] sm:inline">Brochures</Link>
           <Link href="/admin/contracten" className="hidden text-[13px] font-semibold text-black/45 hover:text-[#312e82] sm:inline">Contracten</Link>
-          <Link href="/admin/offertes" className="flex items-center gap-1 text-[13px] font-semibold text-[#e75387] hover:underline">
-            Offertes <LuArrowRight className="text-[13px]" />
+          <Link href="/admin/offertes" className="hidden text-[13px] font-semibold text-black/45 hover:text-[#312e82] sm:inline">Offertes</Link>
+          <Link href="/admin/verkoop" className="flex items-center gap-1 text-[13px] font-semibold text-[#e75387] hover:underline">
+            Salesdashboard <LuArrowRight className="text-[13px]" />
           </Link>
         </div>
       </div>
@@ -106,7 +107,7 @@ export default function VerkoopBlok({ signalen, cijfers, leeg }: { signalen: Sig
           ) : (
             <>
               <div className="divide-y divide-black/[0.05]">
-                {eerst.map((s) => <Rij key={s.key} s={s} />)}
+                {eerst.map((s) => <OpvolgRij key={s.key} s={s} />)}
               </div>
               {rest.length > 0 && (
                 <details className="group/meer border-t border-black/[0.05]">
@@ -116,7 +117,7 @@ export default function VerkoopBlok({ signalen, cijfers, leeg }: { signalen: Sig
                     <LuChevronDown className="text-[14px] transition group-open/meer:rotate-180" />
                   </summary>
                   <div className="divide-y divide-black/[0.05] border-t border-black/[0.05]">
-                    {rest.map((s) => <Rij key={s.key} s={s} />)}
+                    {rest.map((s) => <OpvolgRij key={s.key} s={s} />)}
                   </div>
                 </details>
               )}
@@ -157,7 +158,8 @@ function Cijfer({
   );
 }
 
-function Rij({ s }: { s: Signaal }) {
+/** Eén signaal: wie, wat er aan de hand is, en bellen. Ook op /admin/verkoop. */
+export function OpvolgRij({ s }: { s: Signaal }) {
   const wie = s.contactpersoon || s.bedrijf;
   return (
     <div className="flex items-center gap-3 px-4 py-3 sm:gap-3.5 sm:px-6">

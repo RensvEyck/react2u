@@ -23,6 +23,7 @@ export const PERMISSIONS = [
   { key: "bezoek", label: "Bezoek", hint: "Bezoekcijfers en bedrijfsherkenning" },
   { key: "instellingen", label: "Instellingen", hint: "Contactgegevens, documenten, certificaten" },
   { key: "gebruikers", label: "Gebruikers", hint: "Collega's uitnodigen en rollen beheren" },
+  { key: "omzet", label: "Omzet", hint: "Omzet, declarabele uren en medewerkers (sinds 0035)" },
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number]["key"];
@@ -82,6 +83,7 @@ const PATH_PERMISSIONS: [string, Permission][] = [
   ["/admin/berichten", "postvak"],
   ["/admin/sollicitaties", "postvak"],
   ["/admin/bellijst", "bellijst"],
+  ["/admin/verkoop", "bellijst"],
   ["/admin/partners", "bellijst"],
   ["/admin/offertes", "bellijst"],
   ["/admin/brochures", "bellijst"],
@@ -96,6 +98,7 @@ const PATH_PERMISSIONS: [string, Permission][] = [
   ["/admin/bezoek", "bezoek"],
   ["/admin/instellingen", "instellingen"],
   ["/admin/gebruikers", "gebruikers"],
+  ["/admin/omzet", "omzet"],
 ];
 
 export function permissionForPath(path: string): Permission | null {
