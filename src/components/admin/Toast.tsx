@@ -54,6 +54,10 @@ const FOUT_TEKST: Record<string, string> = {
   "bedrijf-weg": "Dat bedrijf staat niet (meer) in het bezoek van de afgelopen 90 dagen.",
   "migratie-0010": "Hiervoor moet migratie 0010 eerst in Supabase worden uitgevoerd.",
   // Partners
+  // Omzet en uren
+  "medewerker-naam": "Vul de naam van de medewerker in.",
+  "migratie-0035": "Hiervoor moet migratie 0035 eerst in Supabase worden uitgevoerd.",
+  stoppen: "Beëindigen mislukt: kies de maand vanaf wanneer het abonnement stopt.",
   "partner-kantoor": "Vul de naam van het kantoor in.",
   "partner-code": "Die partnercode is al in gebruik. Kies een andere, of laat het veld leeg voor een voorstel.",
   "partner-klanten": "Deze partner heeft klanten en kan niet weg. Zet hem op inactief: dan koppelt zijn link geen nieuwe aanvragen meer.",
@@ -104,6 +108,10 @@ const OK_TEKST: Record<string, string> = {
   "offerte-kopie": "Kopie gemaakt als nieuw concept, met een eigen nummer en link.",
   "offerte-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
   contract: "Contract opgeslagen.",
+  medewerker: "Medewerker opgeslagen.",
+  "medewerker-weg": "Medewerker en zijn uren verwijderd.",
+  gestopt: "Abonnement beëindigd: vanaf die maand telt het niet meer in de omzet.",
+  hervat: "Abonnement loopt weer: het telt opnieuw mee in de omzet.",
   "contract-nieuw": "Contract aangemaakt. Bekijk het voorbeeld en verstuur het als het klaar is.",
   "contract-open": "De link staat open voor de klant. Stuur hem door.",
   "contract-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",

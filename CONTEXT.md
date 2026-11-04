@@ -54,6 +54,9 @@ Gebruik deze termen; de code doet dat ook.
 | **Offertesjabloon** | Beginpunt van een nieuwe offerte per vorm: titel, aanhef, uitleg, onderdelen, voorwaarden, vervolgstappen en geldigheid. Standaard in [`src/lib/offerteSjablonen.ts`](src/lib/offerteSjablonen.ts); aanpassingen van het team in `offerte_sjablonen`. |
 | **Offertelink** | `/offerte/<token>`: de pagina waar de klant kiest en tekent. Het token (64 hex) is het enige geheim; *Nieuwe link* in het beheer maakt de oude ongeldig. |
 | **Brochure** (`brochures`) | Een persoonlijke brochure met alle zes diensten en de prijslijst voor één prospect, nog vóór er een offerte is (migratie 0030, `/admin/brochures`). Statussen `concept`, `verstuurd`, `ingetrokken`; de link `/brochure/<token>` werkt als een offertelink, met pdf. De inhoud komt van de labelpagina's en het tarievenblok en is niet per brochure aan te passen; alleen het persoonlijke woord en de afzender. |
+| **Abonnement** | Een getekende offerte als bron van omzet: vanaf de maand van tekenen het jaarbedrag gedeeld door twaalf, tot hij is beëindigd (`abonnementen_gestopt`, migratie 0035). Zie *Omzet en uren*. |
+| **Medewerker** (`medewerkers`) | Iemand van React2u die declarabele uren schrijft, met contracturen per week, een norm en een uurtarief. Heeft geen login: de super admin vult de uren in. Niet te verwarren met *medewerkers* op een offerte (het aantal werknemers van de klant). |
+| **Declarabiliteit** | Declarabele uren gedeeld door de beschikbare uren (contracturen min afwezig), in procenten, tegenover de norm van de medewerker. |
 
 ## Architectuur
 
@@ -1468,6 +1471,54 @@ Wat per soort verschilt (titel, woordmerk, rollen, kopjes, slotzin) staat in
   paginagrens net bij artikel 1 viel). Elke bepaling is onbreekbaar (`wrap={false}`),
   zodat het nummer niet alleen onderaan staat; zet nooit een `wrap={false}` om een
   kop en een bepaling samen, ook dat tekende over elkaar heen.
+
+## Omzet en uren
+
+Sinds migratie [0035](supabase/migrations/0035_omzet_uren.sql) (Rens, 4 nov 2026:
+"ik wil een sales dashboard en een omzet module en daarbij een overzicht te
+vullen met werknemers met het aantal declarable uren"; zien en invullen:
+"super admin"). Drie schermen:
+
+- **`/admin/verkoop`** (salesrecht `bellijst`): het salesdashboard over 30
+  dagen, 90 dagen of 12 maanden. Getekend in de periode (op de datum van
+  tekenen), de hitrate (het cohort dat in de periode verstuurd is, dezelfde
+  `hitrate()` als het dashboard en /admin/offertes), de doorlooptijd (mediaan
+  van versturen tot tekenen) en de gemiddelde deal; de open pijplijn per fase
+  (niet geopend, bekeken, koos onderdelen); de trechter van brochure tot
+  handtekening (een brochure "leidde tot een offerte" als er daarna een offerte
+  voor dezelfde klant kwam, zoals in het Verkoopblok); offertes per maand; per
+  soort en per verkoper (de afzender op de offerte); en de hele opvolglijst.
+  Regels in [`lib/verkoop.ts`](src/lib/verkoop.ts).
+- **`/admin/omzet`** (nieuw recht `omzet`, alleen de super admin): de omzet per
+  maand uit **abonnementen** (elke getekende offerte, met de keuze die de klant
+  tekende, vanaf de maand van tekenen tot hij is beëindigd), **eenmalige**
+  onderdelen (in de maand van tekenen) en **declarabele uren** × het uurtarief
+  van de medewerker (in de maand van de donderdag van de week). Kerncijfers,
+  12 maanden gestapeld, de abonnementsbrug (liep vorige maand + nieuw −
+  gestopt = loopt nu), per label (uit de `label` van de offerteregels), de
+  klanten (op bedrijfsnaam zonder rechtsvorm) en de uren van deze maand.
+  *Abonnement beëindigen* zet een rij in `abonnementen_gestopt` (eerste maand
+  zonder omzet); *Hervatten* haalt hem weg. Een eigen tabel, want
+  `offerte_bewaken` houdt een getekende offerte ongewijzigd. Regels in
+  [`lib/omzet.ts`](src/lib/omzet.ts).
+- **`/admin/omzet/uren`** (recht `omzet`): het rooster, zes weken naast
+  elkaar. Per medewerker per week de declarabele uren en de uren afwezig
+  (verlof, ziekte, feestdag); elk vakje bewaart zichzelf bij het verlaten
+  (`urenBewaren`), Enter gaat een rij omlaag, *als vorige* vult de lege vakjes
+  van een week met die van de week ervoor, en twee keer leeg haalt de week weg
+  (niet ingevuld is iets anders dan nul uur). Daaronder de medewerkers:
+  contracturen, norm, uurtarief (leeg: de uren tellen niet in de omzet) en
+  actief. Regels in [`lib/uren.ts`](src/lib/uren.ts).
+
+Het is **omzet uit afspraken, geen boekhouding**: wat niet betaald wordt of
+niet in een offerte staat, zit er niet in. Een getekende offerte telt door tot
+hij is beëindigd; er is geen koppeling met de looptijd van het basiscontract.
+Het recht `omzet` mag ook getekende offertes lezen (policy in 0035), zodat een
+rol met omzet maar zonder salesrecht de abonnementen ziet. De grafieken
+(`components/admin/Grafiek.tsx`) volgen de grafiekregels: dunne staven, één
+as, 2px tussen stapeldelen, een legenda vanaf twee reeksen, een tip bij
+aanwijzen en de cijfers als tabel; violet, aqua en geel zijn getoetst op
+kleurenblindheid. Browsertest: `e2e/omzet.cjs`.
 
 ## Van Postvak IN naar bellijst
 

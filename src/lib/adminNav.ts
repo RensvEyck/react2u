@@ -3,6 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
+  LuTrendingUp, LuEuro, LuClock,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -31,10 +32,13 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LuLayoutDashboard, keywords: "home start overzicht vandaag" },
   { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox", keywords: "inbox berichten sollicitaties inzendingen" },
   { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads", keywords: "leads bellen crm terugbellen" },
+  { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen" },
   { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding sales" },
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
   { label: "Contracten", href: "/admin/contracten", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening arbowet overeenkomst ondertekenen tekenen looptijd opzeggen verlengen sales" },
   { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales" },
+  { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
+  { label: "Uren", href: "/admin/omzet/uren", icon: LuClock, keywords: "declarabele uren medewerkers werknemers urenregistratie declarabiliteit norm week invullen", paletteOnly: true },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
   { label: "Pagina's", href: "/admin/paginas", icon: LuFileText, keywords: "teksten blokken content cms" },
   { label: "Blog", href: "/admin/blog", icon: LuNewspaper, keywords: "artikelen nieuws posts" },
@@ -82,6 +86,6 @@ export const CRUMBS: Record<string, string> = {
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",
-  offertes: "Offertes", contracten: "Contracten", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
+  offertes: "Offertes", contracten: "Contracten", verkoop: "Verkoop", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };
