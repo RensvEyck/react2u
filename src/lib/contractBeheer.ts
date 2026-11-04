@@ -1,11 +1,14 @@
 import "server-only";
 import type { supabaseServer } from "./supabase/server";
-import { normaliseerOpdrachtgever, offerteKenmerk, type OfferteKeuze } from "./contracten";
+import { normaliseerOpdrachtgever, offerteKenmerk, type OfferteKeuze, type PartnerKeuze } from "./contracten";
+import { resellerTekst } from "./contractTekst";
 import { normaliseerFactuur, OFFERTE_EMAIL, type Offerte } from "./offertes";
+import type { Partner } from "./types";
 
 /*
  * Wat de contractschermen in het beheer uit de database halen: de offertes om
- * aan te koppelen, en een offerte als beginpunt van een nieuw contract.
+ * aan te koppelen, een offerte als beginpunt van een nieuw basiscontract, en de
+ * partners voor een resellerovereenkomst (0033).
  */
 
 type Sb = Awaited<ReturnType<typeof supabaseServer>>;
@@ -47,4 +50,33 @@ export async function uitOfferte(sb: Sb, id: string) {
     afzender_telefoon: o.afzender_telefoon,
   };
   return { nummer: o.nummer, velden };
+}
+
+/** Alle partners, actief eerst: bij wie een resellerovereenkomst hoort. Leeg zonder migratie 0022. */
+export async function partnerKeuzes(sb: Sb): Promise<PartnerKeuze[]> {
+  const { data } = await sb.from("partners").select("id, kantoor, code, actief, pct_jaar_een, pct_vervolg").order("actief", { ascending: false }).order("kantoor");
+  return ((data as PartnerKeuze[] | null) || []).map((p) => ({ ...p, pct_jaar_een: Number(p.pct_jaar_een), pct_vervolg: Number(p.pct_vervolg) }));
+}
+
+/**
+ * Een partner als beginpunt (?partner=<id>): het kantoor, de contactpersoon en
+ * zijn gegevens, en de tekst met de percentages die met deze partner zijn
+ * afgesproken (artikel 3.1). Het KvK-nummer en het adres vult de partner zelf
+ * in bij het tekenen.
+ */
+export async function uitPartner(sb: Sb, id: string) {
+  const { data } = await sb.from("partners").select("*").eq("id", id).maybeSingle();
+  if (!data) return null;
+  const p = data as Partner;
+  const pct = { jaarEen: Number(p.pct_jaar_een), vervolg: Number(p.pct_vervolg) };
+  const velden = {
+    partner_id: p.id,
+    bedrijf: p.kantoor,
+    contactpersoon: p.naam,
+    email: p.email,
+    telefoon: p.telefoon,
+    opdrachtgever: normaliseerOpdrachtgever({ naam: p.kantoor, email: p.email, telefoon: p.telefoon }),
+    tekst: resellerTekst(pct),
+  };
+  return { kantoor: p.kantoor, pct, velden };
 }

@@ -1,28 +1,42 @@
 import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
-import { CONTRACT_WEERGAVE, contractWeergave, looptijdNu, type Contract } from "@/lib/contracten";
+import { CONTRACT_SOORT, CONTRACT_WEERGAVE, contractWeergave, looptijdNu, soortVan, type Contract, type ContractSoort } from "@/lib/contracten";
 import { datumLang, datumOver, momentLang } from "@/lib/offertes";
-import { LuChevronRight, LuDatabase, LuEye, LuScrollText, LuPlus } from "react-icons/lu";
+import { LuChevronRight, LuDatabase, LuEye, LuScrollText, LuPlus, LuHandshake } from "react-icons/lu";
 
 /**
- * Alle basiscontracten (migratie 0031): wat er verstuurd en getekend is, en
- * van elk getekend contract tot wanneer het loopt en tot wanneer het nog kan
- * worden opgezegd (artikel 1.1: telkens 12 maanden verlengd, 3 maanden
- * opzegtermijn).
+ * Alle contracten (migratie 0031 en 0033): de basiscontracten met klanten en
+ * de resellerovereenkomsten met partners. Wat er verstuurd en getekend is, en
+ * van elk getekend basiscontract tot wanneer het loopt en tot wanneer het nog
+ * kan worden opgezegd (artikel 1.1: telkens 12 maanden verlengd, 3 maanden
+ * opzegtermijn). Een resellerovereenkomst loopt voor onbepaalde tijd.
  */
-export default async function Contracten() {
+
+/** Een basiscontract waarvan de laatste dag om op te zeggen binnen drie maanden valt: tijd voor een gesprek over de verlenging. */
+function opzeggenKrap(c: Contract, vandaag: string): boolean {
+  if (c.status !== "getekend" || soortVan(c) !== "basiscontract" || !c.ingangsdatum || !c.einddatum) return false;
+  const n = looptijdNu(c.ingangsdatum, c.einddatum, vandaag);
+  return n.opzeggenUiterlijk >= vandaag && n.opzeggenUiterlijk <= datumOver(92);
+}
+
+const FILTERS: { soort: ContractSoort | null; label: string }[] = [
+  { soort: null, label: "Alle" },
+  { soort: "basiscontract", label: "Basiscontracten" },
+  { soort: "reseller", label: "Resellerovereenkomsten" },
+];
+
+export default async function Contracten({ searchParams }: { searchParams: Promise<{ soort?: string }> }) {
   const { sb } = await requirePerm("bellijst");
+  const filter = (await searchParams).soort;
+  const gekozen: ContractSoort | null = filter === "reseller" || filter === "basiscontract" ? filter : null;
   const { data, error } = await sb.from("contracten").select("*").order("created_at", { ascending: false }).limit(300);
   const tabel = !error || (error.code !== "PGRST205" && error.code !== "42P01");
   const vandaag = datumOver(0);
-  const alle = ((data as Contract[] | null) || []).map((c) => ({ c, w: contractWeergave(c) }));
+  const rijen = ((data as Contract[] | null) || []).map((c) => ({ c, w: contractWeergave(c) }));
+  const alle = gekozen ? rijen.filter(({ c }) => soortVan(c) === gekozen) : rijen;
   const getekend = alle.filter(({ c }) => c.status === "getekend");
   const open = alle.filter(({ c }) => c.status === "verstuurd");
-  // Binnen drie maanden de laatste dag om op te zeggen: tijd voor een gesprek over de verlenging.
-  const binnenkort = getekend.filter(({ c }) => {
-    const n = looptijdNu(c.ingangsdatum, c.einddatum, vandaag);
-    return n.opzeggenUiterlijk >= vandaag && n.opzeggenUiterlijk <= datumOver(92);
-  });
+  const binnenkort = getekend.filter(({ c }) => opzeggenKrap(c, vandaag));
 
   return (
     <div className="space-y-6">
@@ -30,11 +44,32 @@ export default async function Contracten() {
         <div>
           <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Contracten</h1>
           <p className="text-[14.5px] text-black/50">
-            Het Basiscontract Arbodienstverlening: stuur de klant een link, hij leest het, vult zijn gegevens in en tekent online.
+            Het Basiscontract Arbodienstverlening met klanten en de Resellerovereenkomst met partners: stuur een link, de ander leest het, vult zijn gegevens in en tekent online.
           </p>
         </div>
-        <Link href="/admin/contracten/nieuw" className="abtn"><LuPlus /> Nieuw contract</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/contracten/nieuw?soort=reseller" className="abtn-ghost"><LuHandshake /> Nieuwe resellerovereenkomst</Link>
+          <Link href="/admin/contracten/nieuw" className="abtn"><LuPlus /> Nieuw basiscontract</Link>
+        </div>
       </div>
+
+      {rijen.some(({ c }) => soortVan(c) === "reseller") && (
+        <nav aria-label="Soort contract" className="flex flex-wrap gap-2">
+          {FILTERS.map((f) => {
+            const hier = f.soort === gekozen;
+            return (
+              <Link
+                key={f.label}
+                href={f.soort ? `/admin/contracten?soort=${f.soort}` : "/admin/contracten"}
+                aria-current={hier ? "page" : undefined}
+                className={`apill transition-colors ${hier ? "bg-[#312e82] text-white" : "bg-black/[0.04] text-black/60 hover:bg-black/[0.08]"}`}
+              >
+                {f.label} <span className={hier ? "text-white/70" : "text-black/40"}>{f.soort ? rijen.filter(({ c }) => soortVan(c) === f.soort).length : rijen.length}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
 
       {!tabel && (
         <div className="acard flex items-start gap-4 p-6">
@@ -49,7 +84,11 @@ export default async function Contracten() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Kpi label="Getekend" waarde={String(getekend.length)} sub={`${alle.length} contracten in totaal`} accent />
         <Kpi label="Wacht op ondertekening" waarde={String(open.length)} sub={`${alle.filter(({ w }) => w === "bekeken").length} al bekeken door de klant`} />
-        <Kpi label="Opzegtermijn loopt af" waarde={String(binnenkort.length)} sub="binnen 3 maanden de laatste dag om op te zeggen" />
+        {gekozen === "reseller" ? (
+          <Kpi label="Partners met overeenkomst" waarde={String(new Set(getekend.map(({ c }) => c.partner_id || c.id)).size)} sub="getekend, voor onbepaalde tijd" />
+        ) : (
+          <Kpi label="Opzegtermijn loopt af" waarde={String(binnenkort.length)} sub="basiscontracten: binnen 3 maanden de laatste dag om op te zeggen" />
+        )}
       </div>
 
       <section className="acard overflow-hidden">
@@ -58,16 +97,19 @@ export default async function Contracten() {
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef0ff] text-[22px] text-[#312e82]"><LuScrollText /></span>
             <p className="text-[15px] font-semibold text-[#1c1a4e]">Nog geen contracten</p>
             <p className="max-w-[440px] text-[13.5px] text-black/50">
-              Maak er een voor een klant, of open een getekende offerte en kies daar Basiscontract: dan staat alles al klaar.
+              Maak er een voor een klant, of open een getekende offerte en kies daar Basiscontract: dan staat alles al klaar. Een resellerovereenkomst
+              maak je het snelst vanuit de partner.
             </p>
-            <Link href="/admin/contracten/nieuw" className="abtn mt-2"><LuPlus /> Nieuw contract</Link>
+            <Link href={gekozen === "reseller" ? "/admin/contracten/nieuw?soort=reseller" : "/admin/contracten/nieuw"} className="abtn mt-2">
+              <LuPlus /> {gekozen === "reseller" ? "Nieuwe resellerovereenkomst" : "Nieuw basiscontract"}
+            </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-[14px]">
               <thead>
                 <tr className="border-b border-black/[0.06] text-left text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45">
-                  <th className="px-6 py-3">Klant</th>
+                  <th className="px-6 py-3">{gekozen === "reseller" ? "Partner" : "Klant"}</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Looptijd</th>
                   <th className="px-4 py-3">Laatste activiteit</th>
@@ -77,8 +119,9 @@ export default async function Contracten() {
               <tbody>
                 {alle.map(({ c, w }) => {
                   const s = CONTRACT_WEERGAVE[w];
-                  const n = looptijdNu(c.ingangsdatum, c.einddatum, vandaag);
-                  const krap = c.status === "getekend" && n.opzeggenUiterlijk >= vandaag && n.opzeggenUiterlijk <= datumOver(92);
+                  const reseller = soortVan(c) === "reseller";
+                  const n = !reseller && c.ingangsdatum && c.einddatum ? looptijdNu(c.ingangsdatum, c.einddatum, vandaag) : null;
+                  const krap = opzeggenKrap(c, vandaag);
                   const activiteit = c.getekend_at
                     ? `Getekend ${momentLang(c.getekend_at)}`
                     : c.laatst_bekeken_at
@@ -91,7 +134,7 @@ export default async function Contracten() {
                       <td className="px-6 py-3.5">
                         <Link href={`/admin/contracten/${c.id}`} className="font-semibold text-[#1c1a4e] hover:text-[#312e82]">{c.bedrijf}</Link>
                         <p className="mt-0.5 text-[12.5px] text-black/45">
-                          {c.nummer}{c.offerte_kenmerk ? ` · ${c.offerte_kenmerk}` : ""}{c.afzender_naam ? ` · door ${c.afzender_naam}` : ""}
+                          {c.nummer} · {CONTRACT_SOORT[soortVan(c)].naam}{c.offerte_kenmerk ? ` · ${c.offerte_kenmerk}` : ""}{c.afzender_naam ? ` · door ${c.afzender_naam}` : ""}
                         </p>
                       </td>
                       <td className="px-4 py-3.5">
@@ -101,7 +144,12 @@ export default async function Contracten() {
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-black/60">
-                        {c.status === "getekend" ? (
+                        {reseller ? (
+                          <>
+                            <span className="block text-[#1c1a4e]">Onbepaalde tijd</span>
+                            <span className="block text-[12.5px] text-black/45">{c.ingangsdatum ? `Sinds ${datumLang(c.ingangsdatum)}, opzeggen met 1 maand` : "Gaat in bij ondertekening"}</span>
+                          </>
+                        ) : c.status === "getekend" && n ? (
                           <>
                             <span className="block text-[#1c1a4e]">{n.verlengd ? "Verlengd tot" : n.begonnen ? "Loopt tot" : `Start ${datumLang(c.ingangsdatum)}, tot`} {datumLang(n.periodeEinde)}</span>
                             <span className={`block text-[12.5px] ${krap ? "font-semibold text-[#b25e09]" : "text-black/45"}`}>Opzeggen uiterlijk {datumLang(n.opzeggenUiterlijk)}</span>
