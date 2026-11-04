@@ -107,8 +107,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     // De handtekening van de bestuurder (lib/offerteOndertekenaar.ts) staat sinds 3 nov 2026 ook in de pdf.
     "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
-    // De brochure-pdf toont sinds 3-4 nov 2026 ook de klantlogo's en ronde foto's (public/beeld/brochure).
-    "/brochure/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/klanten/*", "./public/beeld/brochure/*"],
+    "/brochure/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
     "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     // Contracten (0031): dezelfde bestanden.
     "/contract/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],

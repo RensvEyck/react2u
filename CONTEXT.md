@@ -1244,35 +1244,7 @@ vóór er een offerte is (Rens: "maak een brochure pagina zodat we een template
 handig kunnen versturen, offerte zelf volgt later"). Dezelfde opzet als de
 offertemodule, zonder keuzes of ondertekening. Sinds 3 november 2026 staat de
 prijslijst erin (Rens: "Ga verder met de brochure. hierbij prijslijst", met de
-pdf van de prijslijst 2027), en volgt hij de opbouw van een voorbeeldbrochure
-(Rens: "er moet een veel duidelijkere lijn inzitten, geen kopie want dit ontwerp
-is niet goed alleen wel de opbouw"), met de opmerkingen van Susanne verwerkt.
-
-- **Het verhaal in acht hoofdstukken** ([`lib/brochureVerhaal.ts`](src/lib/brochureVerhaal.ts),
-  gedeeld door pagina en pdf): 01 Hoe het gaat (maandagochtend 08:12, de klok van
-  een ziekmelding), 02 Voorwoord (het vaste voorwoord van de offerte), 03 Onze
-  werkwijze (één aanspreekpunt, het medisch team met de taakgedelegeerde
-  casemanager, XpertSuite bewaakt de termijnen), 04 Wat het kost (€94.500, met
-  Compleet en spoor 2 uit de prijslijst), 05 Onze diensten (eigen teksten en
-  vinkjes per label, kleuren uit het CMS), 06 Jouw rol (wat je mag vragen, en wat
-  je per termijn doet), 07 Tarieven en 08 Overstappen met de zusterlabels;
-  klanten aan het woord staat tussen 05 en 06.
-- **Beeldtaal: die van de homepage** (sinds 4 nov 2026; Rens over eerdere
-  versies: "visueel niet een samenhangend verhaal", "ziet er standaard uit",
-  "het verhaal komt niet over"). De stippentaal van "Home S-tier" (koppen in de
-  kleuren van het logo, de constellatie van ronde foto's, de stippenreis) staat
-  als rekenwerk in [`lib/stippenSpoor.ts`](src/lib/stippenSpoor.ts) en als
-  bouwstenen in [`Stippen.tsx`](src/components/brochure/Stippen.tsx); de pdf
-  tekent dezelfde reis met react-pdf-Views. De reis is de lijn: de inhoud is
-  een reis langs acht stations, 01 dezelfde reis zonder regie (grijs,
-  onderbroken), 06 met React2u (in kleur), 03 en 08 stations zoals op de
-  homepage. Elk hoofdstuk krijgt de reiskleur van zijn station
-  (`hoofdstukKleur`). Ronde foto's voor de pdf staan als png in
-  `public/beeld/brochure` (react-pdf leest geen webp en knipt niet rond). De
-  vaste voet van de pdf heeft een vaste hoogte: zonder groeide die per pagina
-  tot react-pdf vastliep ("unsupported number"). De marktvergelijking uit het
-  voorbeeld staat er bewust niet in. De vinkjes per dienst wijken af van de
-  labelpagina's op de site (Susanne's correcties); die staan alleen in de brochure.
+pdf van de prijslijst 2027).
 
 - **Eén inhoud, per prospect een woord.** De zes diensten komen van de
   dienstLabel-blokken van de labelpagina's in het CMS
@@ -1299,14 +1271,12 @@ is niet goed alleen wel de opbouw"), met de opmerkingen van Susanne verwerkt.
   `actie` en `woord`). Recht: `bellijst`. *Maak offerte* opent de kiezer met
   `?brochure=<id>`: dezelfde prospect en afzender, de rest kies je daar.
 - **Prospect**: `/brochure/<token>` ([`BrochurePagina.tsx`](src/components/brochure/BrochurePagina.tsx)),
-  in de vormgeving van de site: opening in de indigo tint met de belofte ("Grip
-  op verzuim, van preventie tot re-integratie.") en het woord van de afzender,
-  de inhoud, de acht hoofdstukken, een uitnodiging om te bellen of een offerte te
-  vragen, en de keurmerken. Hetzelfde verhaal als pdf op `/brochure/<token>/pdf`
-  ([`lib/brochurePdf.tsx`](src/lib/brochurePdf.tsx), `?download=1` als bestand):
-  na de omslag loopt alles door (zo'n tien pagina's), met elke hoofdstukkop vast
-  aan zijn eerste blok; de klantlogo's komen uit `public/beeld/klanten`
-  (`outputFileTracingIncludes` in `next.config.ts`).
+  in de vormgeving van de site: opening in de indigo tint met het woord van de
+  afzender, de zes diensten als de dienstenkaarten op /werkgevers, de prijslijst, het verhaal
+  van Cindy en Susanne (het voorwoord zonder de zinnen over "dit voorstel"),
+  klanten, keurmerken en een uitnodiging om te bellen of een offerte te vragen.
+  Dezelfde pagina als pdf op `/brochure/<token>/pdf`
+  ([`lib/brochurePdf.tsx`](src/lib/brochurePdf.tsx), `?download=1` als bestand).
   Een concept is al te bekijken (sales ziet hem vooraf), maar een bezoek telt
   pas als hij verstuurd is; een collega met een sessie telt nooit
   ([`lib/isCollega.ts`](src/lib/isCollega.ts), gedeeld met de offertepagina).
@@ -1324,9 +1294,8 @@ is niet goed alleen wel de opbouw"), met de opmerkingen van Susanne verwerkt.
   laatste activiteit weg (`opruimen-brochures`).
 - **Tests**: [`e2e/brochure.cjs`](e2e/brochure.cjs) (aanmaken, collega telt niet,
   versturen, prospect opent, melding aan sales, pdf, telefoon, offerte vanuit
-  de brochure, intrekken, onbekende link, de acht hoofdstukken en de prijslijst),
-  `lib/brochures.test.ts`, `lib/brochurePrijslijst.test.ts`, `lib/brochureVerhaal.test.ts`
-  en `lib/brochurePdf.test.tsx`.
+  de brochure, intrekken, onbekende link, de prijslijst op de pagina),
+  `lib/brochures.test.ts`, `lib/brochurePrijslijst.test.ts` en `lib/brochurePdf.test.tsx`.
 
 ## Contracten
 
