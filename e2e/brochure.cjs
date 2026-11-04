@@ -69,13 +69,13 @@ const LABELS = ["Recover", "Resist", "Restart", "Reflex", "Ready", "Reward"];
   await collega.waitForSelector("h1");
   check(await collega.locator("text=Je bekijkt deze brochure als collega").count(), "melding voor de collega");
   check(await collega.locator("h1:has-text('Grip op verzuim')").count(), "belofte van de brochure in de kop");
-  check((await collega.locator("#inhoud ol > li").count()) === 8, "inhoud met acht hoofdstukken");
+  check((await Promise.all(["hoe-het-gaat", "voorwoord", "werkwijze", "kosten", "diensten", "jouw-rol", "tarieven", "overstappen"].map((id) => collega.locator(`#inhoud a[href="#${id}"]`).count()))).every((n) => n > 0), "inhoud als reis langs acht hoofdstukken");
   for (const id of ["hoe-het-gaat", "voorwoord", "werkwijze", "kosten", "diensten", "jouw-rol", "tarieven", "overstappen"]) {
     check(await collega.locator(`section#${id}`).count(), `hoofdstuk ${id}`);
   }
   check(await collega.locator("#hoe-het-gaat >> text=Maandagochtend, 08:12").count(), "01: de maandagochtend");
   check(await collega.locator("#kosten >> text=€94.500").count(), "04: de rekensom");
-  check(await collega.locator("#kosten >> text=Eén voorkomen sanctie betaalt 4,5 jaar dienstverlening.").count(), "04: Compleet uit de prijslijst");
+  check(await collega.locator("#kosten >> text=Casemanagement Compleet voor 50 werknemers kost €6.975 per jaar").count(), "04: Compleet uit de prijslijst");
   check(await collega.locator("#jouw-rol >> text=Of hij onder een vangnetregeling van de Ziektewet valt (niet welke)").count(), "06: vangnetregeling mag je vragen");
   check(await collega.locator("#overstappen >> text=instemmingsrecht").count(), "08: de OR");
   check(await collega.locator('#overstappen a[href="https://flexhero.com"]').count(), "08: de zusterlabels");
@@ -91,7 +91,7 @@ const LABELS = ["Recover", "Resist", "Restart", "Reflex", "Ready", "Reward"];
   check(await collega.locator('#diensten a[href="#tarieven-recover"]').count(), "een dienst linkt naar zijn tarieven");
   check(await collega.locator("#tarieven >> text=Maatwerk en specialisten").count(), "maatwerk en specialisten");
   await collega.locator("#tarieven").screenshot({ path: path.join(SHOTS, "03b-tarieven.png") });
-  check(await collega.locator("#voorwoord h3:has-text('Waarom we React2u zijn begonnen')").count(), "02: het verhaal van Cindy en Susanne");
+  check(await collega.locator("#voorwoord >> text=Waarom we React2u zijn begonnen").count(), "02: het verhaal van Cindy en Susanne");
   check(await collega.locator("a:has-text('Plan een kennismaking')").count(), "knop om kennis te maken");
   check(sql(`select aantal_bekeken from public.brochures where id = '${id}'`) === "0", "bezoek van een collega telt niet");
   await shot(collega, "03-brochure-collega");

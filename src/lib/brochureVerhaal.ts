@@ -50,6 +50,22 @@ export const HOOFDSTUKKEN: Hoofdstuk[] = [
 
 export const hoofdstuk = (id: string): Hoofdstuk => HOOFDSTUKKEN.find((h) => h.id === id)!;
 
+/**
+ * Het beeld bij de opening en bij elk hoofdstuk: de eigen fotoreeks van de
+ * site, met een stempel die de klok van hoofdstuk 01 volgt. Wat het kost (04)
+ * toont het bedrag in plaats van een foto.
+ */
+export const BEELDEN: Record<string, { src: string; alt: string; stempel: string }> = {
+  opening: { src: "/beeld/home/kring-gesprek.webp", alt: "Vier mensen in een ontspannen gesprek aan een ronde tafel", stempel: "Brochure voor werkgevers" },
+  "hoe-het-gaat": { src: "/beeld/home/even-bellen.webp", alt: "Een vrouw belt in haar keuken", stempel: "Maandag 08:12" },
+  voorwoord: { src: "/beeld/kantoor/overleg.webp", alt: "Overleg aan een lange houten tafel op kantoor", stempel: "Sinds 2023, Eindhoven" },
+  werkwijze: { src: "/beeld/werkgevers/persoonlijk-gesprek.webp", alt: "Twee vrouwen in een persoonlijk gesprek", stempel: "Vanaf dag 1" },
+  diensten: { src: "/beeld/werkgevers/op-de-werkvloer.webp", alt: "Twee collega's op de werkvloer", stempel: "Van preventie tot re-integratie" },
+  "jouw-rol": { src: "/beeld/home/samen-buiten.webp", alt: "Een leidinggevende en een medewerker wandelen samen", stempel: "Dag 1 tot week 104" },
+  tarieven: { src: "/beeld/home/kring-samen-scherm.webp", alt: "Twee collega's kijken samen naar een scherm", stempel: "Tarieven, vooraf bekend" },
+  overstappen: { src: "/beeld/werkgevers/werkplezier.webp", alt: "Drie collega's lachen samen aan tafel", stempel: "Week 1" },
+};
+
 /* ---------- Opening ---------- */
 
 export const OPENING = {

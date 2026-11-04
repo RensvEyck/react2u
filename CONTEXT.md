@@ -1222,8 +1222,21 @@ is niet goed alleen wel de opbouw"), met de opmerkingen van Susanne verwerkt.
   Compleet en spoor 2 uit de prijslijst), 05 Onze diensten (eigen teksten en
   vinkjes per label, kleuren uit het CMS), 06 Jouw rol (wat je mag vragen, en wat
   je per termijn doet), dan klanten aan het woord, 07 Tarieven en 08 Overstappen
-  met de zusterlabels. Elk hoofdstuk opent met dezelfde kop: een indigo lijn met
-  nummer, naam en "01 / 08"; dat is de lijn. De marktvergelijking uit het
+  met de zusterlabels.
+- **Beeldtaal: die van de homepage** (sinds 4 nov 2026; Rens over eerdere
+  versies: "visueel niet een samenhangend verhaal", "ziet er standaard uit",
+  "het verhaal komt niet over"). De stippentaal van "Home S-tier" (koppen in de
+  kleuren van het logo, de constellatie van ronde foto's, de stippenreis) staat
+  als rekenwerk in [`lib/stippenSpoor.ts`](src/lib/stippenSpoor.ts) en als
+  bouwstenen in [`Stippen.tsx`](src/components/brochure/Stippen.tsx); de pdf
+  tekent dezelfde reis met react-pdf-Views. De reis is de lijn: de inhoud is
+  een reis langs acht stations, 01 dezelfde reis zonder regie (grijs,
+  onderbroken), 06 met React2u (in kleur), 03 en 08 stations zoals op de
+  homepage. Elk hoofdstuk krijgt de reiskleur van zijn station
+  (`hoofdstukKleur`). Ronde foto's voor de pdf staan als png in
+  `public/beeld/brochure` (react-pdf leest geen webp en knipt niet rond). De
+  vaste voet van de pdf heeft een vaste hoogte: zonder groeide die per pagina
+  tot react-pdf vastliep ("unsupported number"). De marktvergelijking uit het
   voorbeeld staat er bewust niet in. De vinkjes per dienst wijken af van de
   labelpagina's op de site (Susanne's correcties); die staan alleen in de brochure.
 
