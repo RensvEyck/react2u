@@ -895,6 +895,27 @@ De **resellerovereenkomst** met een partner stel je op en stuur je vanuit het
 partnerscherm; hij wordt online getekend zoals het basiscontract (zie
 *Contracten, De resellerovereenkomst*).
 
+**Bestanden bij een partner** (migratie [0034](supabase/migrations/0034_partnerbestanden.sql),
+4 november 2026, Rens: "er is een losse resell overeenkomst verstuurd zorg dat je
+ook een upload vak hebt van bestanden"). Onder de resellerovereenkomst op
+`/admin/partners/<id>` staat een uploadvak (`PartnerBestanden`): slepen of
+kiezen, meerdere tegelijk, als *getekende resellerovereenkomst* (met de datum van
+ondertekening) of als *ander bestand*. Een los getekende overeenkomst telt als
+getekend: de kop zegt "Los getekend op …", de knop wordt *Getekende
+overeenkomst*, en de partnerlijst toont "Overeenkomst getekend".
+- De bestanden staan in de **privébucket** `partnerbestanden` (tot 20 MB, alleen
+  pdf, Word en afbeeldingen; [`lib/partnerBestanden.ts`](src/lib/partnerBestanden.ts)
+  controleert hetzelfde vooraf), onder `<partner_id>/<tijdstempel>-<naam>`. De
+  tabel `partner_bestanden` legt naam, soort, datum en wie uploadde vast; een
+  check eist dat het pad onder de partner valt.
+- **Uploaden** gaat vanuit de browser met de sessie van de collega rechtstreeks de
+  bucket in (geen limiet van een server action), daarna legt
+  `registreerPartnerBestand` het vast (en haalt het bestand weg als dat mislukt).
+- **Downloaden** via `/admin/partnerbestand/<id>`: het bestand zelf, als download
+  met de originele naam en nosniff, zoals de cv-route; nooit een deelbare link.
+- Alles achter het salesrecht (`bellijst`). Een partner verwijderen haalt ook zijn
+  bestanden uit de bucket.
+
 Een partner met klanten kan niet weg (on delete restrict); zet hem op inactief,
 dan koppelt zijn link geen nieuwe aanvragen meer. Zonder migratie 0022 werkt de
 site gewoon: de code staat dan alleen in de tekst van het bericht en het

@@ -4,19 +4,22 @@ import { requirePerm } from "@/lib/admin";
 import { deletePartner, deletePartnerKlant, savePartner, savePartnerKlant, setPartnerActief } from "@/app/admin/actions";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import KopieerLink from "@/components/admin/KopieerLink";
+import PartnerBestanden from "@/components/admin/PartnerBestanden";
 import Uitklap from "@/components/admin/Uitklap";
 import VerzendKnop from "@/components/admin/VerzendKnop";
 import { siteUrl } from "@/lib/invite";
 import { CONTRACT_WEERGAVE, contractWeergave, type Contract } from "@/lib/contracten";
-import { momentLang } from "@/lib/offertes";
+import { datumLang, momentLang } from "@/lib/offertes";
+import type { PartnerBestand } from "@/lib/partnerBestanden";
 import {
   aanmeldlink, euroCent, kwartaalLabel, kwartaalOverzicht, kwartaalVan, laatsteKwartalen,
 } from "@/lib/partners";
 import type { Partner, PartnerKlant } from "@/lib/types";
-import { LuArrowLeft, LuMail, LuPlus, LuTrash2, LuInbox, LuPower, LuSignature, LuFileDown, LuChevronRight } from "react-icons/lu";
+import { LuArrowLeft, LuMail, LuPlus, LuTrash2, LuInbox, LuPower, LuSignature, LuFileDown, LuChevronRight, LuDatabase } from "react-icons/lu";
 
 /**
- * Eén partner: de aanmeldlink om door te sturen, de resellerovereenkomst (0033),
+ * Eén partner: de aanmeldlink om door te sturen, de resellerovereenkomst (0033)
+ * met de bestanden erbij (0034, ook voor een overeenkomst die los is getekend),
  * de vergoeding per kwartaal (de laatste vier), de klanten die via dit kantoor
  * kwamen, de aanvragen via de link en de gegevens. Rekenregels in lib/partners.ts.
  */
@@ -59,12 +62,13 @@ function KlantVelden({ k }: { k?: PartnerKlant }) {
 export default async function PartnerAdmin({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { sb } = await requirePerm("bellijst");
-  const [partnerRes, klantenRes, berichtenRes, overeenkomstenRes] = await Promise.all([
+  const [partnerRes, klantenRes, berichtenRes, overeenkomstenRes, bestandenRes] = await Promise.all([
     sb.from("partners").select("*").eq("id", id).maybeSingle(),
     sb.from("partner_klanten").select("*").eq("partner_id", id).order("start", { ascending: false }),
     sb.from("contact_messages").select("id, name, subject, created_at").eq("partner_id", id).order("created_at", { ascending: false }).limit(50),
     // Zonder migratie 0033 bestaat de kolom niet: dan gewoon geen overeenkomsten.
     sb.from("contracten").select("id, nummer, status, bekeken_at, verstuurd_at, getekend_at, getekend_naam, created_at").eq("partner_id", id).order("created_at", { ascending: false }).limit(20),
+    sb.from("partner_bestanden").select("*").eq("partner_id", id).order("created_at", { ascending: false }).limit(100),
   ]);
   const p = partnerRes.data as Partner | null;
   if (!p) notFound();
@@ -72,6 +76,10 @@ export default async function PartnerAdmin({ params }: { params: Promise<{ id: s
   const klanten = (klantenRes.data as PartnerKlant[]) || [];
   const overeenkomsten = (overeenkomstenRes.data as OvereenkomstRij[] | null) || [];
   const getekend = overeenkomsten.find((o) => o.status === "getekend");
+  const bestanden = (bestandenRes.data as PartnerBestand[] | null) || [];
+  const bestandenAan = !bestandenRes.error || (bestandenRes.error.code !== "PGRST205" && bestandenRes.error.code !== "42P01");
+  // Een overeenkomst die buiten de online route om is getekend en hier is geüpload.
+  const los = bestanden.find((b) => b.soort === "overeenkomst");
   const berichten = (berichtenRes.data as { id: string; name: string; subject: string | null; created_at: string }[]) || [];
   const pct = { jaarEen: Number(p.pct_jaar_een), vervolg: Number(p.pct_vervolg) };
   const kwartalen = laatsteKwartalen(4, kwartaalVan(new Date())).map((k) => ({ k, ...kwartaalOverzicht(klanten, pct, k) }));
@@ -127,11 +135,15 @@ export default async function PartnerAdmin({ params }: { params: Promise<{ id: s
             <p className="text-[13px] text-black/45">
               {getekend
                 ? `Getekend op ${momentLang(getekend.getekend_at)}${getekend.getekend_naam ? ` door ${getekend.getekend_naam}` : ""}. Loopt voor onbepaalde tijd.`
-                : `Stuur ${p.kantoor} de overeenkomst als link; de partner leest hem, vult de gegevens van het kantoor in en tekent online. Met ${pct.jaarEen}% en ${pct.vervolg}% in artikel 3.1.`}
+                : los
+                  ? `Los getekend${los.getekend_op ? ` op ${datumLang(los.getekend_op)}` : ""}, buiten de online route om; de getekende versie staat hieronder.`
+                  : `Stuur ${p.kantoor} de overeenkomst als link; de partner leest hem, vult de gegevens van het kantoor in en tekent online. Met ${pct.jaarEen}% en ${pct.vervolg}% in artikel 3.1. Los verstuurd en getekend? Upload hem dan hieronder.`}
             </p>
           </div>
           {getekend ? (
             <a href={`/admin/contractvoorbeeld/${getekend.id}/pdf?download=1`} className="abtn-ghost !py-1.5 text-[13px]"><LuFileDown /> Getekende pdf</a>
+          ) : los ? (
+            <a href={`/admin/partnerbestand/${los.id}`} className="abtn-ghost !py-1.5 text-[13px]"><LuFileDown /> Getekende overeenkomst</a>
           ) : (
             <Link href={`/admin/contracten/nieuw?partner=${p.id}`} className="abtn !py-1.5 text-[13px]"><LuSignature /> Resellerovereenkomst opstellen</Link>
           )}
@@ -157,6 +169,20 @@ export default async function PartnerAdmin({ params }: { params: Promise<{ id: s
             })}
           </ul>
         )}
+        <div className="border-t border-black/[0.06] px-6 py-5">
+          <h3 className="font-heading text-[14.5px] font-bold text-[#312e82]">Bestanden</h3>
+          <p className="mb-4 text-[13px] text-black/45">
+            Een overeenkomst die los is verstuurd en getekend (pdf of scan), of een ander stuk van {p.kantoor}.
+          </p>
+          {bestandenAan ? (
+            <PartnerBestanden partnerId={p.id} kantoor={p.kantoor} bestanden={bestanden} />
+          ) : (
+            <p className="flex items-start gap-2 text-[13.5px] text-black/55">
+              <LuDatabase className="mt-0.5 shrink-0 text-[#312e82]" /> Bestanden staan nog niet aan: voer{" "}
+              <code className="rounded bg-black/[0.05] px-1.5 py-0.5 font-mono text-[12.5px]">supabase/migrations/0034_partnerbestanden.sql</code> eerst uit in Supabase.
+            </p>
+          )}
+        </div>
       </section>
 
       {/* Kwartaaloverzicht */}

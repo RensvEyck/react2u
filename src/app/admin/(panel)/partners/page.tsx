@@ -15,12 +15,14 @@ import { LuPlus, LuDatabase, LuHandshake, LuChevronRight } from "react-icons/lu"
  */
 export default async function PartnersAdmin() {
   const { sb } = await requirePerm("bellijst");
-  const [partnersRes, klantenRes, berichtenRes, overeenkomstRes] = await Promise.all([
+  const [partnersRes, klantenRes, berichtenRes, overeenkomstRes, losRes] = await Promise.all([
     sb.from("partners").select("*").order("kantoor"),
     sb.from("partner_klanten").select("id, partner_id, bedrijf, medewerkers, tarief, start, eind"),
     sb.from("contact_messages").select("partner_id").not("partner_id", "is", null),
     // De getekende resellerovereenkomsten (0033); zonder die migratie gewoon leeg.
     sb.from("contracten").select("partner_id").eq("status", "getekend").not("partner_id", "is", null),
+    // En die los zijn getekend en als bestand geüpload (0034).
+    sb.from("partner_bestanden").select("partner_id").eq("soort", "overeenkomst"),
   ]);
   if (isMissingTable(partnersRes.error)) return <SetupNeeded />;
 
@@ -30,7 +32,9 @@ export default async function PartnersAdmin() {
   for (const r of (berichtenRes.data as { partner_id: string }[]) || []) {
     aanvragen.set(r.partner_id, (aanvragen.get(r.partner_id) || 0) + 1);
   }
-  const getekend = new Set(((overeenkomstRes.data as { partner_id: string }[] | null) || []).map((r) => r.partner_id));
+  const getekend = new Set(
+    [...((overeenkomstRes.data as { partner_id: string }[] | null) || []), ...((losRes.data as { partner_id: string }[] | null) || [])].map((r) => r.partner_id),
+  );
   const [nu, vorig] = laatsteKwartalen(2, kwartaalVan(new Date()));
   const vandaag = new Date().toISOString().slice(0, 10);
 

@@ -1264,8 +1264,12 @@ export async function setPartnerActief(id: string, actief: boolean) {
 /** Alleen zonder klanten; anders weigert de database (on delete restrict) en blijft hij staan. */
 export async function deletePartner(id: string) {
   const { sb } = await requirePerm("bellijst");
+  // De bestanden (0034) gaan mee: de rijen via on delete cascade, de bestanden zelf hierna uit de bucket.
+  const { data: bestanden } = await sb.from("partner_bestanden").select("pad").eq("partner_id", id);
   const { error } = await sb.from("partners").delete().eq("id", id);
   if (error) redirect(`/admin/partners/${id}?fout=${error.code === "23503" ? "partner-klanten" : "opslaan"}`);
+  const paden = ((bestanden as { pad: string }[] | null) || []).map((b) => b.pad);
+  if (paden.length) await sb.storage.from("partnerbestanden").remove(paden);
   revalidatePath("/admin/partners");
   redirect("/admin/partners?opgeslagen=definitief-weg");
 }

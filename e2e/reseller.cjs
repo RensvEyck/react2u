@@ -261,6 +261,59 @@ async function stil(page, sel) {
   check((await page.locator("a:has-text('Resellerovereenkomst opstellen')").count()) === 0, "partnerpagina: geen tweede overeenkomst opstellen");
   await shot(page, "12-partner-getekend");
 
+  stap("Los getekende overeenkomst uploaden (0034)");
+  const losId = sql(`insert into public.partners (code, kantoor, naam, email) values ('PLUSTEST', 'Bedrijf Plus', 'Piet Plus', 'piet@plus.test') returning id`).split("\n")[0].trim();
+  // Een kleine pdf, een scan en een bestand dat niet mag.
+  const pdfPad = path.join(SHOTS, "Resellerovereenkomst Bedrijf Plus (getekend).pdf");
+  fs.writeFileSync(pdfPad, "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n");
+  const pngPad = path.join(SHOTS, "kvk-uittreksel.png");
+  fs.writeFileSync(pngPad, Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64"));
+  const txtPad = path.join(SHOTS, "notities.txt");
+  fs.writeFileSync(txtPad, "niet toegestaan");
+  await page.goto(`${BASIS}/admin/partners/${losId}`);
+  await page.waitForSelector("text=Los verstuurd en getekend? Upload hem dan hieronder.");
+  check(await page.locator("text=Sleep bestanden hierheen").count(), "uploadvak op de partnerpagina");
+  check(await page.locator('input[name="pb-soort"]').first().isChecked(), "standaard: getekende resellerovereenkomst");
+  await page.fill("#pb-getekend", "2026-11-02");
+  await page.setInputFiles("#pb-bestand", pdfPad);
+  await page.waitForSelector("text=Bestand geüpload.", { timeout: 20000 });
+  await page.waitForSelector("a:has-text('Resellerovereenkomst Bedrijf Plus (getekend).pdf')");
+  check(await page.locator("text=Getekende resellerovereenkomst, getekend op 2 november 2026").count(), "in de lijst als getekende overeenkomst, met datum");
+  check(await page.locator("text=Los getekend op 2 november 2026").count(), "kop: los getekend, buiten de online route om");
+  check((await page.locator("a:has-text('Resellerovereenkomst opstellen')").count()) === 0 && (await page.locator("a:has-text('Getekende overeenkomst')").count()), "knop naar de getekende overeenkomst in plaats van opstellen");
+  const rijLos = sql(`select id || '|' || soort || '|' || coalesce(getekend_op::text, '') || '|' || pad || '|' || type from public.partner_bestanden where partner_id = '${losId}'`).trim().split("|");
+  check(rijLos[1] === "overeenkomst" && rijLos[2] === "2026-11-02" && rijLos[3].startsWith(`${losId}/`) && rijLos[4] === "application/pdf", `in de database: ${rijLos.slice(1).join(" | ")}`);
+  check(sql(`select count(*) from storage.objects where bucket_id = 'partnerbestanden' and name = '${rijLos[3]}'`).trim() === "1", "het bestand staat in de privébucket");
+  const dlLos = await page.request.get(`${BASIS}/admin/partnerbestand/${rijLos[0]}`);
+  const dlBody = await dlLos.body();
+  check(dlLos.status() === 200 && dlBody.subarray(0, 5).toString() === "%PDF-", `download: ${dlLos.status()}`);
+  check(/attachment; filename=".*Bedrijf Plus \(getekend\)\.pdf"/.test(dlLos.headers()["content-disposition"] || "") && dlLos.headers()["x-content-type-options"] === "nosniff", `als download met de originele naam: ${dlLos.headers()["content-disposition"]}`);
+  const vreemd = await browser.newContext();
+  const anoniem = await vreemd.request.get(`${BASIS}/admin/partnerbestand/${rijLos[0]}`, { maxRedirects: 0 });
+  check(anoniem.status() !== 200 || (await anoniem.body()).subarray(0, 5).toString() !== "%PDF-", `zonder sessie geen bestand (${anoniem.status()})`);
+  await vreemd.close();
+  // Een ander bestand, en een dat niet mag.
+  await page.check('input[name="pb-soort"] >> nth=1');
+  await page.setInputFiles("#pb-bestand", [pngPad, txtPad]);
+  await page.waitForSelector("a:has-text('kvk-uittreksel.png')", { timeout: 20000 });
+  // Niet zomaar [role=alert]: Next heeft er zelf ook een (de route-aankondiger).
+  check(await page.locator("[role=alert]", { hasText: "notities.txt: alleen pdf, Word" }).count(), "een .txt wordt geweigerd, de rest gaat door");
+  await shot(page, "13-partner-bestanden");
+  await page.goto(`${BASIS}/admin/partners`);
+  check(await page.locator("tr:has-text('Bedrijf Plus') >> text=Overeenkomst getekend").count(), "partnerlijst: los getekend telt ook");
+  await page.goto(`${BASIS}/admin/partners/${losId}`);
+  const pngRij = sql(`select pad from public.partner_bestanden where partner_id = '${losId}' and naam = 'kvk-uittreksel.png'`).trim();
+  await page.click("button[aria-label='Verwijder kvk-uittreksel.png']");
+  await page.waitForFunction(() => !document.body.innerText.includes("kvk-uittreksel.png"), null, { timeout: 15000 });
+  check(sql(`select count(*) from storage.objects where bucket_id = 'partnerbestanden' and name = '${pngRij}'`).trim() === "0", "verwijderd: ook uit de bucket");
+  let buitenMap = "";
+  try {
+    sql(`insert into public.partner_bestanden (partner_id, pad, naam) values ('${losId}', 'iemand-anders/x.pdf', 'x.pdf')`);
+  } catch (e) {
+    buitenMap = String(e.stderr || e.message);
+  }
+  check(/partner_bestanden_pad/.test(buitenMap), "een pad buiten de map van de partner wordt geweigerd");
+
   stap("Mails renderen");
   const mp = await ctx.newPage();
   await mp.setViewportSize({ width: 680, height: 900 });
