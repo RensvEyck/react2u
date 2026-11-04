@@ -5,7 +5,10 @@ import { headers } from "next/headers";
 import { supabasePublic } from "@/lib/supabase/public";
 import { withinLimit } from "@/lib/rateLimit";
 import { clientIp } from "@/lib/analytics";
-import { CONTRACT_EMAIL, CONTRACT_FOUT, looptijdTekst, normaliseerOpdrachtgever, opdrachtgeverFout, type ContractPubliek, type Opdrachtgever } from "@/lib/contracten";
+import {
+  CONTRACT_EMAIL, CONTRACT_FOUT, CONTRACT_SOORT, looptijdTekst, looptijdZin, normaliseerOpdrachtgever, opdrachtgeverFout, soortVan, type ContractPubliek,
+  type Opdrachtgever,
+} from "@/lib/contracten";
 import { datumLang, momentLang } from "@/lib/offertes";
 import { bevestigContractGetekend, contractAdminUrl, contractUrl, notifyContractGetekend, sendContractCode } from "@/lib/mail";
 import { getekendContractPdf } from "@/lib/contractGetekend";
@@ -56,6 +59,7 @@ export async function vraagContractCode(token: string, email: string): Promise<C
   const [c, { contact }] = await Promise.all([lees(token), offerteHuisstijl()]);
   const verzonden = await sendContractCode({
     to: adres,
+    soort: soortVan(c),
     code,
     nummer: c?.nummer || "",
     bedrijf: c?.bedrijf || "",
@@ -72,6 +76,7 @@ export async function ondertekenContract(
 ): Promise<ContractState> {
   if (!TOKEN.test(token)) return fout("onbekend");
   if (!invoer.akkoord) return fout("akkoord");
+  // De velden die elke soort heeft; wat alleen de reseller invult (mail, telefoon), controleert de database.
   const og = normaliseerOpdrachtgever(invoer.opdrachtgever);
   const of = opdrachtgeverFout(og);
   if (of) return fout(of);
@@ -109,13 +114,18 @@ export async function ondertekenContract(
       return null;
     });
     const og2 = inhoud.opdrachtgever || {};
-    const looptijd = `${looptijdTekst(inhoud.ingangsdatum, inhoud.einddatum)}, van ${datumLang(inhoud.ingangsdatum)} tot en met ${datumLang(inhoud.einddatum)}`;
-    const organisatie = [og2.naam || inhoud.bedrijf, og2.adres || "", [og2.postcode, og2.plaats].filter(Boolean).join(" "), og2.kvk ? `KvK ${og2.kvk}` : ""].filter(Boolean);
+    const soort = soortVan(inhoud);
+    const reseller = soort === "reseller";
+    const looptijd = looptijdZin(inhoud);
+    const organisatie = [
+      og2.naam || inhoud.bedrijf, og2.adres || "", [og2.postcode, og2.plaats].filter(Boolean).join(" "), og2.kvk ? `KvK ${og2.kvk}` : "", og2.email || "", og2.telefoon || "",
+    ].filter(Boolean);
     const afzender = { naam: c.afzender_naam, functie: c.afzender_functie, email: c.afzender_email || CONTRACT_EMAIL, telefoon: c.afzender_telefoon };
     const { contact } = await offerteHuisstijl();
     await Promise.all([
       bevestigContractGetekend({
         to: inhoud.getekend_email,
+        soort,
         naam: inhoud.getekend_naam,
         bedrijf: og2.naam || inhoud.bedrijf,
         nummer: inhoud.nummer,
@@ -123,10 +133,12 @@ export async function ondertekenContract(
         hash: c.getekend_hash || "",
         moment: momentLang(inhoud.getekend_at),
         regels: [
-          { label: "Opdrachtgever", waarde: `${og2.naam || inhoud.bedrijf}${og2.kvk ? `, KvK ${og2.kvk}` : ""}` },
+          { label: CONTRACT_SOORT[soort].rollen[1], waarde: `${og2.naam || inhoud.bedrijf}${og2.kvk ? `, KvK ${og2.kvk}` : ""}` },
           { label: "Getekend door", waarde: `${inhoud.getekend_naam}, ${inhoud.getekend_functie}` },
           { label: "Ingangsdatum", waarde: datumLang(inhoud.ingangsdatum) },
-          { label: "Looptijd", waarde: `${looptijdTekst(inhoud.ingangsdatum, inhoud.einddatum)}, daarna stilzwijgend verlengd` },
+          reseller || !inhoud.einddatum
+            ? { label: "Looptijd", waarde: "Onbepaalde tijd, opzegtermijn één maand" }
+            : { label: "Looptijd", waarde: `${looptijdTekst(inhoud.ingangsdatum, inhoud.einddatum)}, daarna stilzwijgend verlengd` },
           ...(inhoud.offerte_kenmerk ? [{ label: "Offerte", waarde: inhoud.offerte_kenmerk }] : []),
         ],
         afzender,
@@ -134,6 +146,7 @@ export async function ondertekenContract(
         contact,
       }),
       notifyContractGetekend({
+        soort,
         nummer: inhoud.nummer,
         bedrijf: inhoud.bedrijf,
         naam: inhoud.getekend_naam,

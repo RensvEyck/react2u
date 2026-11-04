@@ -133,6 +133,183 @@ Een bedrijfsarts die bekend is met het uitvoeren van Second Opinion en werkzaam 
 /** De zin boven de handtekeningen, zoals in het Word-bestand. */
 export const CONTRACT_SLOT = "Aldus overeengekomen en ondertekend op de data en plaatsen zoals hierna vermeld.";
 
+/*
+ * De Resellerovereenkomst arbodienstverlening (migratie 0033), uit het
+ * Word-bestand "Resellerovereenkomst React2u - model" van november 2026, in
+ * dezelfde opmaak. De leden van een artikel ("artikel 8 lid 3") heten hier 8.3;
+ * de onderdelen a en b van 3.1 zijn alinea's van die bepaling. Vet zijn alleen
+ * de begrippen in artikel 1.
+ *
+ * Niet in de tekst, net als bij het basiscontract: de partijen (die maakt de
+ * code, lib/contracten.ts), "hierna gezamenlijk: Partijen", "Partijen komen het
+ * volgende overeen:" en de ondertekening (CONTRACT_SOORT in lib/contracten.ts).
+ *
+ * De percentages in 3.1 zijn die van het Word-bestand; een overeenkomst voor
+ * een partner krijgt bij het aanmaken de percentages van die partner
+ * (resellerTekst()). Invulvelden zijn er niet: de overeenkomst gaat in op de
+ * dag van ondertekening en loopt voor onbepaalde tijd.
+ */
+
+export const RESELLER_VERSIE = "november 2026";
+
+export const RESELLER_TITEL = "Resellerovereenkomst arbodienstverlening";
+
+export const RESELLER_STANDAARD = `# Overwegingen
+
+A. React2u is een gecertificeerde arbodienst die werkgevers ondersteunt bij verzuimbegeleiding, re-integratie en preventie.
+
+B. Reseller heeft in het kader van haar eigen dienstverlening contact met werkgevers die behoefte hebben aan arbodienstverlening.
+
+C. Reseller wil werkgevers aanbrengen bij React2u, en React2u wil Reseller daarvoor een vergoeding betalen.
+
+D. Partijen kiezen bewust voor een vrije vorm van samenwerking, zonder exclusiviteit en zonder afname- of aanbrengverplichting.
+
+E. Partijen willen de voorwaarden van deze samenwerking schriftelijk vastleggen in deze resellerovereenkomst (de Overeenkomst).
+
+## 1. Definities
+
+1.1. **Klant:** een werkgever die door Reseller is aangebracht en die binnen de looptijd van deze Overeenkomst een overeenkomst voor arbodienstverlening sluit met React2u.
+
+1.2. **Klantovereenkomst:** de overeenkomst voor arbodienstverlening tussen React2u en een Klant.
+
+1.3. **Aansluittarief:** het vaste tarief per werknemer per jaar dat de Klant aan React2u betaalt voor de aansluiting op de arbodienstverlening, in de tarievenlijst ook Verrichtingenbasis genoemd (op de datum van deze Overeenkomst € 38,50 per werknemer per jaar), exclusief btw. Niet onder het Aansluittarief vallen losse diensten en uurwerk van specialisten, zoals spreekuren, consulten, interventies, re-integratietrajecten en keuringen.
+
+1.4. **Contractjaar:** een periode van twaalf maanden, te rekenen vanaf de ingangsdatum van de Klantovereenkomst.
+
+1.5. **Aanmelding:** de schriftelijke melding van een potentiële Klant door Reseller aan React2u, conform artikel 2.
+
+## 2. Vrije samenwerking en aanbrengen van Klanten
+
+2.1. De samenwerking is vrijblijvend. Reseller bepaalt zelf of, wanneer en hoeveel potentiële Klanten hij aanbrengt. Er geldt geen minimum en geen targets.
+
+2.2. De samenwerking is niet exclusief. Beide Partijen zijn vrij om ook met andere partijen samen te werken, ook op het gebied van arbodienstverlening.
+
+2.3. Reseller brengt potentiële Klanten in contact met React2u voor arbodienstverlening.
+
+2.4. Reseller meldt een potentiële Klant aan per e-mail via sales@react2u.nl, met de naam van de klant, het aantal werknemers en het vraagstuk, of laat de klant zich aanmelden via de persoonlijke partnercode of aanmeldlink van Reseller. Alleen zo aangemelde Klanten tellen mee voor de vergoeding.
+
+2.5. React2u stuurt de potentiële Klant binnen twee werkdagen een offerte op basis van de geldende tarievenlijst. Reseller ontvangt een kopie en kan aansluiten bij het eerste gesprek.
+
+2.6. Een potentiële Klant geldt als aangebracht door Reseller als React2u de Aanmelding heeft bevestigd en de Klantovereenkomst binnen zes maanden na die bevestiging tot stand komt.
+
+2.7. React2u kan een Aanmelding binnen vijf werkdagen weigeren als de potentiële Klant al klant is van React2u, al in contact is met React2u of al door een andere partij is aangemeld. React2u laat dit Reseller dan schriftelijk weten.
+
+2.8. React2u beslist zelfstandig of zij een Klantovereenkomst sluit en onder welke voorwaarden. Reseller kan geen tarieven, kortingen of toezeggingen namens React2u doen, tenzij React2u daarvoor vooraf schriftelijk toestemming geeft.
+
+## 3. Vergoeding
+
+3.1. Voor iedere Klant ontvangt Reseller een vergoeding op basis van het Aansluittarief dat React2u aan die Klant factureert:
+a. eerste Contractjaar: 50% van het Aansluittarief;
+b. ieder volgend Contractjaar: 25% van het Aansluittarief.
+
+3.2. De vergoeding loopt door zolang de Klantovereenkomst van kracht is, ook na beëindiging van deze Overeenkomst, behalve in het geval genoemd in artikel 8 lid 3.
+
+3.3. De vergoeding is alleen verschuldigd over Aansluittarieven die de Klant daadwerkelijk aan React2u heeft betaald. Over onbetaalde, gecrediteerde of terugbetaalde bedragen is geen vergoeding verschuldigd. Het incassorisico ligt bij React2u. Een al betaalde vergoeding over zulke bedragen mag React2u verrekenen met volgende vergoedingen.
+
+3.4. Kiest een Klant voor Casemanagement Compleet of een Reflex flextarief, dan spreken Partijen de vergoeding voor die Klant vooraf af. Een bevestiging per e-mail volstaat.
+
+3.5. Wijzigt het Aansluittarief, bijvoorbeeld door een tariefwijziging of een ander aantal medewerkers, dan wordt de vergoeding berekend over het gewijzigde Aansluittarief.
+
+3.6. Alle bedragen in deze Overeenkomst zijn exclusief btw.
+
+3.7. Naast deze vergoeding heeft Reseller geen recht op enige andere vergoeding, onkostenvergoeding of bonus, tenzij Partijen dat schriftelijk afspreken.
+
+## 4. Facturatie en betaling
+
+4.1. React2u sluit de Klantovereenkomst rechtstreeks met de Klant en factureert de Klant zelf. Reseller heeft geen contract met de Klant en is tegenover de Klant niet aansprakelijk voor de arbodienstverlening.
+
+4.2. React2u stuurt Reseller na afloop van ieder kwartaal een specificatie per Klant met de betaalde Aansluittarieven en de daarover verschuldigde vergoeding.
+
+4.3. Reseller factureert de vergoeding op basis van deze specificatie aan React2u. React2u betaalt de factuur binnen 30 dagen na ontvangst.
+
+4.4. Reseller kan binnen 30 dagen na ontvangst van een specificatie schriftelijk bezwaar maken. Daarna geldt de specificatie als juist.
+
+## 5. Uitgangspunten voor Reseller
+
+5.1. Reseller presenteert de diensten van React2u juist en volledig.
+
+5.2. Reseller handelt als zelfstandig ondernemer. Er is geen sprake van een arbeidsovereenkomst, agentuurovereenkomst of vertegenwoordiging. Reseller is niet bevoegd om React2u te binden.
+
+5.3. Reseller is zelf verantwoordelijk voor de afdracht van belastingen en premies over de ontvangen vergoeding.
+
+## 6. Uitgangspunten voor React2u
+
+6.1. React2u voert de arbodienstverlening voor Klanten zelfstandig uit, onder haar eigen voorwaarden en certificering.
+
+6.2. De klantrelatie blijft bij Reseller. React2u neemt alleen de arbodienstverlening over en biedt Klanten andere diensten, zoals salarisadministratie of HR-advies, alleen aan met toestemming van Reseller.
+
+6.3. React2u verstrekt Reseller op verzoek informatie over haar diensten en tarieven en informeert Reseller over de status van een Aanmelding.
+
+## 7. Naam, merk en privacy
+
+7.1. Reseller mag de naam en het logo van React2u gebruiken om de diensten van React2u onder de aandacht te brengen. Na beëindiging van deze Overeenkomst stopt dit gebruiksrecht.
+
+7.2. Reseller deelt met React2u alleen de zakelijke contactgegevens die nodig zijn voor de Aanmelding. Reseller deelt geen gezondheids- of verzuimgegevens van medewerkers van (potentiële) Klanten.
+
+7.3. Partijen houden zich ieder zelfstandig aan de Algemene verordening gegevensbescherming (AVG).
+
+## 8. Duur en beëindiging
+
+8.1. Deze Overeenkomst gaat in op de datum van ondertekening en geldt voor onbepaalde tijd.
+
+8.2. Iedere Partij kan deze Overeenkomst op ieder moment per e-mail opzeggen met een opzegtermijn van één maand.
+
+8.3. Na beëindiging behoudt Reseller het recht op de vergoeding over Klanten die vóór de einddatum zijn aangebracht, zolang hun Klantovereenkomst loopt, tenzij Reseller deze Klanten actief beweegt om over te stappen naar een andere arbodienst.
+
+## 9. Geheimhouding
+
+9.1. Partijen houden vertrouwelijke informatie van de andere Partij geheim, zoals tarieven en klantgegevens. Dit geldt ook na beëindiging van deze Overeenkomst.
+
+## 10. Aansprakelijkheid
+
+10.1. React2u is tegenover Reseller niet aansprakelijk voor de uitvoering van de arbodienstverlening aan Klanten. Klachten van Klanten over de dienstverlening handelt React2u zelf af.
+
+10.2. Partijen zijn niet aansprakelijk voor elkaars indirecte schade, waaronder gederfde winst, behalve bij opzet of bewuste roekeloosheid.
+
+## 11. Slotbepalingen
+
+11.1. Wijzigingen van deze Overeenkomst zijn alleen geldig als Partijen ze schriftelijk overeenkomen.
+
+11.2. Mededelingen op grond van deze Overeenkomst, zoals Aanmeldingen, specificaties en opzeggingen, gaan per e-mail naar de e-mailadressen die bij Partijen zijn vermeld. Een Partij geeft een wijziging van haar e-mailadres schriftelijk door.
+
+11.3. Deze Overeenkomst vervangt alle eerdere afspraken tussen Partijen over het aanbrengen van klanten.
+
+11.4. Reseller kan de rechten en plichten uit deze Overeenkomst niet overdragen zonder voorafgaande schriftelijke toestemming van React2u.
+
+11.5. Op deze Overeenkomst is Nederlands recht van toepassing. Geschillen worden voorgelegd aan de bevoegde rechter van de rechtbank Oost-Brabant.`;
+
+/** De zin boven de handtekeningen van de resellerovereenkomst, zoals in het Word-bestand. */
+export const RESELLER_SLOT = "Aldus overeengekomen en in tweevoud ondertekend.";
+
+/* ---------- de vergoeding in artikel 3.1 ---------- */
+
+const VERGOEDING = /eerste Contractjaar: (\d{1,3}(?:,\d{1,2})?)% van het Aansluittarief;\s*b\. ieder volgend Contractjaar: (\d{1,3}(?:,\d{1,2})?)% van het Aansluittarief\./;
+
+/** 37.5 → "37,5"; 50 → "50". */
+export const procent = (n: number) => String(Math.round(n * 100) / 100).replace(".", ",");
+
+/** De percentages uit artikel 3.1 ("50" en "25"), of null als die zin niet (meer) in de tekst staat. */
+export function resellerVergoeding(tekst: string | null | undefined): { jaarEen: string; vervolg: string } | null {
+  const m = (tekst || "").match(VERGOEDING);
+  return m ? { jaarEen: m[1], vervolg: m[2] } : null;
+}
+
+type Pct = { jaarEen: number | string; vervolg: number | string };
+
+/** Een tekst met andere percentages in artikel 3.1; zonder die zin (weggehaald) blijft hij zoals hij is. */
+export function metVergoeding(tekst: string, pct: Pct): string {
+  const v = (x: number | string) => (typeof x === "number" ? procent(x) : x);
+  return tekst.replace(
+    VERGOEDING,
+    () => `eerste Contractjaar: ${v(pct.jaarEen)}% van het Aansluittarief;\nb. ieder volgend Contractjaar: ${v(pct.vervolg)}% van het Aansluittarief.`,
+  );
+}
+
+/** De standaardtekst met de percentages van één partner in artikel 3.1. */
+export function resellerTekst(pct?: Pct | null): string {
+  return pct ? metVergoeding(RESELLER_STANDAARD, pct) : RESELLER_STANDAARD;
+}
+
 /* ---------- structuur ---------- */
 
 export type Overweging = { letter: string; alineas: string[] };
@@ -214,8 +391,25 @@ export function vulContractIn(tekst: string, v: ContractVelden): string {
     .replace(/\{offerte\}/g, v.offerte);
 }
 
-/** Of de tekst van een contract afwijkt van de standaard (witruimte telt niet mee). */
-export function wijktAf(tekst: string | null | undefined): boolean {
+export type ContractSoort = "basiscontract" | "reseller";
+
+/** De standaardtekst van een soort contract. */
+export function standaardTekst(soort: ContractSoort = "basiscontract"): string {
+  return soort === "reseller" ? RESELLER_STANDAARD : CONTRACT_STANDAARD;
+}
+
+/** De versie van de standaardtekst van een soort contract. */
+export function standaardVersie(soort: ContractSoort = "basiscontract"): string {
+  return soort === "reseller" ? RESELLER_VERSIE : CONTRACT_VERSIE;
+}
+
+/**
+ * Of de tekst van een contract afwijkt van de standaard (witruimte telt niet
+ * mee). Bij een resellerovereenkomst tellen de percentages in 3.1 niet als
+ * afwijking: die horen bij de partner.
+ */
+export function wijktAf(tekst: string | null | undefined, soort: ContractSoort = "basiscontract"): boolean {
   const schoon = (t: string) => t.replace(/\s+/g, " ").trim();
-  return schoon(tekst || "") !== schoon(CONTRACT_STANDAARD);
+  const standaard = soort === "reseller" ? resellerTekst(resellerVergoeding(tekst)) : CONTRACT_STANDAARD;
+  return schoon(tekst || "") !== schoon(standaard);
 }

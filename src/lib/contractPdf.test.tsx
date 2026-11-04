@@ -4,7 +4,7 @@ vi.mock("server-only", () => ({}));
 
 const { contractPdf } = await import("./contractPdf");
 const { CONTACT_FALLBACK } = await import("./content");
-const { CONTRACT_STANDAARD, CONTRACT_VERSIE } = await import("./contractTekst");
+const { CONTRACT_STANDAARD, CONTRACT_VERSIE, RESELLER_VERSIE, resellerTekst } = await import("./contractTekst");
 const { opdrachtnemerUit } = await import("./contracten");
 const { contractMailHtml, contractCodeHtml, contractGetekendHtml } = await import("./contractMail");
 import type { ContractCertificaat, GetekendContract } from "./contracten";
@@ -43,6 +43,24 @@ describe("contractPdf", () => {
   }, 60_000);
 });
 
+describe("resellerovereenkomst als pdf", () => {
+  it("met de partijen, de vergoeding en het certificaat; concept zonder ingangsdatum", async () => {
+    const reseller: GetekendContract = {
+      ...inhoud, nummer: "C2026-0004", soort: "reseller", bedrijf: "Jouw HR Partner", offerte_kenmerk: null, ingangsdatum: "2026-11-04", einddatum: null,
+      opdrachtgever: { naam: "Jouw HR Partner B.V.", adres: "Kerkstraat 1", postcode: "5611 AA", plaats: "Eindhoven", kvk: "12345678", email: "info@jouwhr.test", telefoon: "040 123 45 67" },
+      tekst: resellerTekst({ jaarEen: 50, vervolg: 50 }), tekst_versie: RESELLER_VERSIE, aanvullend: null,
+    };
+    const pdf = await contractPdf({ inhoud: reseller, hash: "b".repeat(64), handtekening: null, certificaat, contact: CONTACT_FALLBACK, link: "https://react2u.nl/contract/abc" });
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+    expect(pdf.toString("latin1")).toContain("resellerovereenkomst, partner, arbodienstverlening, getekend");
+    const concept = await contractPdf({
+      inhoud: { ...reseller, ingangsdatum: "", opdrachtgever: {}, getekend_naam: "", getekend_functie: "", getekend_email: "", getekend_plaats: "", getekend_at: "", bevestiging: undefined },
+      hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, link: "https://react2u.nl/contract/abc", concept: true,
+    });
+    expect(concept.toString("latin1")).toContain("resellerovereenkomst, partner, arbodienstverlening, concept");
+  }, 60_000);
+});
+
 describe("contractmails", () => {
   const afzender = { naam: "Rens van Eyck", functie: null, email: "sales@react2u.nl", telefoon: "085 620 58 00" };
 
@@ -60,10 +78,31 @@ describe("contractmails", () => {
     expect(html).toContain("Arbowet");
   });
 
+  it("de resellerovereenkomst in zijn eigen woorden", () => {
+    const html = contractMailHtml({
+      basis: "https://react2u.nl", soort: "reseller", aanhef: "Sanne", bedrijf: "Jouw HR Partner", nummer: "C2026-0004", link: "https://react2u.nl/contract/abc",
+      bericht: null, afzender, feiten: [{ label: "Vergoeding", waarde: "50% en 25%" }], kort: ["Vrijblijvend en niet exclusief"],
+    });
+    expect(html).toContain("Bekijk en onderteken de overeenkomst");
+    expect(html).toContain(">Reseller<");
+    expect(html).toContain("Overeenkomst arbodienstverlening.");
+    expect(html).not.toContain("Arbowet");
+    const code = contractCodeHtml({ basis: "https://react2u.nl", soort: "reseller", code: "123456", nummer: "C2026-0004", bedrijf: "Jouw HR Partner", afzender });
+    expect(code).toContain("om de resellerovereenkomst voor Jouw HR Partner te ondertekenen.");
+    const klaar = contractGetekendHtml({
+      basis: "https://react2u.nl", soort: "reseller", naam: "Sanne de Vries", bedrijf: "Jouw HR Partner", nummer: "C2026-0004", link: "https://react2u.nl/contract/abc",
+      hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [], afzender, pdf: true,
+    });
+    expect(klaar).toContain("Welkom als partner.");
+    expect(klaar).toContain("de resellerovereenkomst voor Jouw HR Partner");
+  });
+
   it("de code en de bevestiging", () => {
     const code = contractCodeHtml({ basis: "https://react2u.nl", code: "123456", nummer: "C2026-0001", bedrijf: "Jansen", afzender });
     expect(code).toContain("123456");
     expect(code).toContain("Een kwartier geldig");
+    // Geen punt achter de naam midden in de zin.
+    expect(code).toContain("om het basiscontract voor Jansen te ondertekenen.");
     const klaar = contractGetekendHtml({
       basis: "https://react2u.nl", naam: "Marieke Jansen", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc",
       hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [{ label: "Looptijd", waarde: "1 jaar" }], afzender, pdf: true,

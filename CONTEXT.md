@@ -891,6 +891,10 @@ In het beheer staat **Partners** (`/admin/partners`, recht `bellijst`):
   Dat is een indicatie op de contractgegevens; de overeenkomst rekent met wat de
   klant werkelijk betaalde.
 
+De **resellerovereenkomst** met een partner stel je op en stuur je vanuit het
+partnerscherm; hij wordt online getekend zoals het basiscontract (zie
+*Contracten, De resellerovereenkomst*).
+
 Een partner met klanten kan niet weg (on delete restrict); zet hem op inactief,
 dan koppelt zijn link geen nieuwe aanvragen meer. Zonder migratie 0022 werkt de
 site gewoon: de code staat dan alleen in de tekst van het bericht en het
@@ -1346,6 +1350,72 @@ organisatie in en tekent online met een code per mail.
 - `next.config.ts` neemt voor `/contract/**` en `/admin/contractvoorbeeld/**` de
   lettertypen, keurmerken en de handtekening van de bestuurder mee naar Vercel;
   dat laatste nu ook voor `/offerte/**` (de offerte-pdf tekent hem sinds 3 nov).
+
+### De resellerovereenkomst
+
+Sinds migratie [0033](supabase/migrations/0033_resellerovereenkomst.sql) (4 november
+2026) is er een tweede soort contract: de **Resellerovereenkomst arbodienstverlening**
+met een partner (Rens: "zorg dat we deze ook via de route digitaal kunnen laten
+ondertekenen"). Dezelfde route, tabel, functies en bewijs als het basiscontract;
+`contracten.soort` is `basiscontract` of `reseller` en ligt vast bij het aanmaken.
+Wat per soort verschilt (titel, woordmerk, rollen, kopjes, slotzin) staat in
+`CONTRACT_SOORT` in [`lib/contracten.ts`](src/lib/contracten.ts).
+
+- **De tekst** (`RESELLER_STANDAARD` in [`lib/contractTekst.ts`](src/lib/contractTekst.ts))
+  komt letterlijk uit het Word-bestand "Resellerovereenkomst React2u - model":
+  overwegingen A tot en met E, artikelen 1 tot en met 11. De leden heten 8.3 in
+  plaats van "artikel 8 lid 3"; a en b van 3.1 zijn alinea's van die bepaling
+  (ingesprongen op de pagina en in de pdf). Vet zijn alleen de begrippen in
+  artikel 1. "hierna gezamenlijk: Partijen", "Partijen komen het volgende
+  overeen:" en "Aldus overeengekomen en in tweevoud ondertekend." staan niet in de
+  tekst maar in `CONTRACT_SOORT`, net als bij het basiscontract.
+- **De vergoeding** in 3.1 hoort bij de partner: vanuit een partner krijgt de
+  tekst diens `pct_jaar_een` en `pct_vervolg` (`resellerTekst()`; Spine Services
+  heeft live 50% en 50%). Andere percentages tellen niet als aangepaste tekst
+  (`wijktAf(tekst, "reseller")`), en "In het kort" en de kerngegevens lezen ze uit
+  de tekst (`resellerVergoeding()`). In het beheer zijn ze als twee vakken te
+  wijzigen; wijkt het af van de partner, dan staat dat erbij.
+- **De partijen** in de bewoording van het Word-bestand (`comparitieReact2u()`,
+  `comparitieReseller()`): "React2u II B.V., handelend onder de naam React2u",
+  met sales@react2u.nl en het telefoonnummer uit Instellingen (`REACT2U_STATUTAIR`,
+  `opdrachtnemerUit()`); bij de handtekening "React2u II B.V. h.o.d.n. React2u". De
+  reseller vult naast naam, adres en KvK ook het **e-mailadres en telefoonnummer**
+  van het kantoor in: daar gaan aanmeldingen, specificaties en opzeggingen heen
+  (artikel 11.2). `contract_ondertekenen` controleert die (foutcodes
+  `organisatie-email`, `organisatie-telefoon`: 8 tot 15 cijfers).
+- **Looptijd**: geen einddatum (de check `contracten_looptijd` eist dat), en de
+  ingangsdatum zet `contract_ondertekenen` op de dag van ondertekening, Nederlandse
+  tijd (artikel 8.1). Opzeggen per e-mail met een maand. Het register telt hem
+  daarom niet mee bij "Opzegtermijn loopt af".
+- **Partner**: `contracten.partner_id` (on delete set null). Interne
+  administratie, geen deel van wat getekend is, dus ook na het tekenen vrij
+  (`contract_bewaken` kent hem als vrij veld, zodat een partner met een getekende
+  overeenkomst nog weg kan). Op `/admin/partners/<id>` staat het blok
+  *Resellerovereenkomst*: opstellen (`/admin/contracten/nieuw?partner=<id>`: kantoor,
+  contactpersoon, mail, telefoon en de percentages staan klaar), de status, en na
+  het tekenen de pdf.
+- **Beheer**: `/admin/contracten` met de filters Alle, Basiscontracten en
+  Resellerovereenkomsten (`?soort=`), en de knop *Nieuwe resellerovereenkomst*
+  (`?soort=reseller`). Geen offerte, geen looptijdvakken; wel de partner en de
+  vergoeding.
+- **Pagina, pdf en mails**: hetzelfde scherm in de lila tint, met "React2u /
+  Reseller. / Overeenkomst arbodienstverlening." (het hele woord past niet groot
+  op een telefoon), geen documenten van het basiscontract, de link naar
+  `/partners` in de voet, "Welkom als partner." na het tekenen. Onderwerpen:
+  "Resellerovereenkomst C2026-… voor …", "Ondertekend: resellerovereenkomst …".
+- **Tests**: [`e2e/reseller.cjs`](e2e/reseller.cjs) (vanuit de partner met 50% en
+  50%, versturen, de partner leest, telefoon, tekenen met mail en telefoon,
+  ingangsdatum vandaag, mails, pdf, getekend is vast maar de partner vrij, geen
+  einddatum, register en partnerpagina) en de resellertests in
+  `lib/contracten.test.ts` (o.a. dat er geen woord uit het Word-bestand verloren
+  gaat) en `lib/contractPdf.test.tsx`. `E2E_ALLEEN` neemt nu ook een lijst met
+  komma's (`E2E_ALLEEN=contract,reseller`).
+- **Pdf-afbreking** (geldt voor beide soorten): de artikelen staan los op de pagina,
+  niet in één omhullend blok. Daarin brak react-pdf (4.9) een artikel dat onderaan
+  een pagina begon niet af en schreef het over de voet heen (ook op master, als de
+  paginagrens net bij artikel 1 viel). Elke bepaling is onbreekbaar (`wrap={false}`),
+  zodat het nummer niet alleen onderaan staat; zet nooit een `wrap={false}` om een
+  kop en een bepaling samen, ook dat tekende over elkaar heen.
 
 ## Van Postvak IN naar bellijst
 

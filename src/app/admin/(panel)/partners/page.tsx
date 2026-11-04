@@ -15,10 +15,12 @@ import { LuPlus, LuDatabase, LuHandshake, LuChevronRight } from "react-icons/lu"
  */
 export default async function PartnersAdmin() {
   const { sb } = await requirePerm("bellijst");
-  const [partnersRes, klantenRes, berichtenRes] = await Promise.all([
+  const [partnersRes, klantenRes, berichtenRes, overeenkomstRes] = await Promise.all([
     sb.from("partners").select("*").order("kantoor"),
     sb.from("partner_klanten").select("id, partner_id, bedrijf, medewerkers, tarief, start, eind"),
     sb.from("contact_messages").select("partner_id").not("partner_id", "is", null),
+    // De getekende resellerovereenkomsten (0033); zonder die migratie gewoon leeg.
+    sb.from("contracten").select("partner_id").eq("status", "getekend").not("partner_id", "is", null),
   ]);
   if (isMissingTable(partnersRes.error)) return <SetupNeeded />;
 
@@ -28,6 +30,7 @@ export default async function PartnersAdmin() {
   for (const r of (berichtenRes.data as { partner_id: string }[]) || []) {
     aanvragen.set(r.partner_id, (aanvragen.get(r.partner_id) || 0) + 1);
   }
+  const getekend = new Set(((overeenkomstRes.data as { partner_id: string }[] | null) || []).map((r) => r.partner_id));
   const [nu, vorig] = laatsteKwartalen(2, kwartaalVan(new Date()));
   const vandaag = new Date().toISOString().slice(0, 10);
 
@@ -136,6 +139,7 @@ export default async function PartnersAdmin() {
                     <td className="px-6 py-3.5">
                       <Link href={`/admin/partners/${p.id}`} className="font-semibold text-[#1c1a4e] hover:underline">{p.kantoor}</Link>
                       {!p.actief && <span className="apill ml-2 bg-black/[0.05] !text-[11.5px] text-black/50">Inactief</span>}
+                      {getekend.has(p.id) && <span className="apill ml-2 bg-[#e3f6ed] !text-[11.5px] text-[#0a7a4b]">Overeenkomst getekend</span>}
                       {p.naam && <span className="block text-[12.5px] text-black/45">{p.naam}</span>}
                     </td>
                     <td className="px-3 py-3.5 font-mono text-[13px] text-black/60">{p.code}</td>

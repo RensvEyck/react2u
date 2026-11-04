@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { CONTRACT_STANDAARD, contractStructuur, metAanvullend, wijktAf } from "./contractTekst";
 import {
-  comparitieOpdrachtgever, comparitieOpdrachtnemer, contractInhoud, looptijdMaanden, looptijdNu, looptijdTekst, normaliseerOpdrachtgever,
-  offerteKenmerk, opdrachtgeverFout, opdrachtnemerUit, plusMaanden, postcodePlaats, standaardEinde, standaardIngang,
+  CONTRACT_STANDAARD, RESELLER_STANDAARD, contractStructuur, metAanvullend, metVergoeding, resellerTekst, resellerVergoeding, wijktAf,
+} from "./contractTekst";
+import {
+  comparitieOpdrachtgever, comparitieOpdrachtnemer, comparities, contractFeiten, contractInhoud, contractKort, contractPdfNaam, controleerContract,
+  looptijdMaanden, looptijdNu, looptijdTekst, looptijdZin, normaliseerOpdrachtgever, offerteKenmerk, opdrachtgeverFout, opdrachtnemerUit, plusMaanden,
+  postcodePlaats, react2uPartij, soortVan, standaardEinde, standaardIngang,
 } from "./contracten";
 
 describe("de standaardtekst", () => {
@@ -89,8 +92,11 @@ describe("de tekst van één contract", () => {
 
 describe("partijen", () => {
   it("React2u uit Instellingen, getekend door de bestuurder", () => {
-    const o = opdrachtnemerUit({ addressLine1: "Stratumsedijk 29", addressLine2: "5611 NB Eindhoven", kvk: "95076824" });
-    expect(o).toEqual({ naam: "React2u", adres: "Stratumsedijk 29", postcode: "5611 NB", plaats: "Eindhoven", kvk: "95076824", vertegenwoordiger: "de heer R. van Eyck", functie: "bestuurder" });
+    const o = opdrachtnemerUit({ addressLine1: "Stratumsedijk 29", addressLine2: "5611 NB Eindhoven", kvk: "95076824", phoneDisplay: "085 - 620 58 00" });
+    expect(o).toEqual({
+      naam: "React2u", adres: "Stratumsedijk 29", postcode: "5611 NB", plaats: "Eindhoven", kvk: "95076824", vertegenwoordiger: "de heer R. van Eyck", functie: "bestuurder",
+      statutair: "React2u II B.V.", email: "sales@react2u.nl", telefoon: "085 620 58 00",
+    });
     expect(comparitieOpdrachtnemer(o)).toBe(
       "React2u, gevestigd en kantoorhoudend te Eindhoven aan de Stratumsedijk 29, 5611 NB Eindhoven, ingeschreven in het handelsregister onder KvK-nummer 95076824, te dezer zake rechtsgeldig vertegenwoordigd door de heer R. van Eyck in de hoedanigheid van bestuurder, hierna te noemen “Opdrachtnemer”;",
     );
@@ -146,5 +152,124 @@ describe("looptijd", () => {
     expect(looptijdNu("2026-12-01", "2027-11-30", "2027-06-01")).toEqual({ begonnen: true, periodeEinde: "2027-11-30", verlengd: 0, opzeggenUiterlijk: "2027-08-30" });
     expect(looptijdNu("2026-12-01", "2027-11-30", "2027-12-05")).toEqual({ begonnen: true, periodeEinde: "2028-11-30", verlengd: 1, opzeggenUiterlijk: "2028-08-30" });
     expect(looptijdNu("2026-12-01", "2027-11-30", "2026-11-20").begonnen).toBe(false);
+  });
+});
+
+describe("de resellerovereenkomst", () => {
+  const s = contractStructuur(RESELLER_STANDAARD);
+  const on = opdrachtnemerUit({ addressLine1: "Stratumsedijk 29", addressLine2: "5611 NB Eindhoven", kvk: "95076824", phoneDisplay: "085 - 620 58 00" });
+
+  it("heeft de overwegingen A tot en met E en de elf artikelen van het Word-bestand", () => {
+    expect(s.overwegingenKop).toBe("Overwegingen");
+    expect(s.overwegingen.map((o) => o.letter)).toEqual(["A", "B", "C", "D", "E"]);
+    expect(s.artikelen.map((a) => `${a.nr} ${a.titel}`)).toEqual([
+      "1 Definities",
+      "2 Vrije samenwerking en aanbrengen van Klanten",
+      "3 Vergoeding",
+      "4 Facturatie en betaling",
+      "5 Uitgangspunten voor Reseller",
+      "6 Uitgangspunten voor React2u",
+      "7 Naam, merk en privacy",
+      "8 Duur en beëindiging",
+      "9 Geheimhouding",
+      "10 Aansprakelijkheid",
+      "11 Slotbepalingen",
+    ]);
+    expect(s.artikelen[1].bepalingen.map((b) => b.nr)).toEqual(["2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8"]);
+  });
+
+  it("houdt a en b bij 3.1", () => {
+    const b = s.artikelen[2].bepalingen[0];
+    expect(b.nr).toBe("3.1");
+    expect(b.alineas).toEqual([
+      "Voor iedere Klant ontvangt Reseller een vergoeding op basis van het Aansluittarief dat React2u aan die Klant factureert:",
+      "a. eerste Contractjaar: 50% van het Aansluittarief;",
+      "b. ieder volgend Contractjaar: 25% van het Aansluittarief.",
+    ]);
+  });
+
+  it("verliest geen woord: alle tekst staat in de structuur", () => {
+    const woorden = (t: string) => t.replace(/\*\*/g, "").replace(/^#+\s*/gm, "").replace(/\s+/g, " ").trim();
+    const terug = [
+      s.overwegingenKop,
+      ...s.overwegingen.map((o) => `${o.letter}. ${o.alineas.join(" ")}`),
+      ...s.artikelen.flatMap((a) => [`${a.nr}. ${a.titel}`, ...a.bepalingen.map((b) => `${b.nr}. ${b.alineas.join(" ")}`)]),
+    ].join(" ");
+    expect(woorden(terug)).toBe(woorden(RESELLER_STANDAARD));
+  });
+
+  it("de percentages in 3.1 horen bij de partner en tellen niet als afwijking", () => {
+    expect(resellerVergoeding(RESELLER_STANDAARD)).toEqual({ jaarEen: "50", vervolg: "25" });
+    const spine = resellerTekst({ jaarEen: 50, vervolg: 50 });
+    expect(resellerVergoeding(spine)).toEqual({ jaarEen: "50", vervolg: "50" });
+    expect(spine).toContain("b. ieder volgend Contractjaar: 50% van het Aansluittarief.");
+    expect(resellerVergoeding(resellerTekst({ jaarEen: 37.5, vervolg: 20 }))).toEqual({ jaarEen: "37,5", vervolg: "20" });
+    expect(wijktAf(spine, "reseller")).toBe(false);
+    expect(wijktAf(RESELLER_STANDAARD, "reseller")).toBe(false);
+    expect(wijktAf(RESELLER_STANDAARD.replace("één maand", "twee maanden"), "reseller")).toBe(true);
+    // De andere soort is wel een afwijking.
+    expect(wijktAf(RESELLER_STANDAARD)).toBe(true);
+    expect(wijktAf(CONTRACT_STANDAARD, "reseller")).toBe(true);
+  });
+
+  it("andere percentages in een aangepaste tekst", () => {
+    const aangepast = `${RESELLER_STANDAARD}\n\n## 12. Extra\n\n12.1. Iets anders.`;
+    expect(resellerVergoeding(metVergoeding(aangepast, { jaarEen: 40, vervolg: "22,5" }))).toEqual({ jaarEen: "40", vervolg: "22,5" });
+    expect(metVergoeding("Geen artikel 3.1", { jaarEen: 40, vervolg: 20 })).toBe("Geen artikel 3.1");
+  });
+
+  it("de partijen in de bewoording van het Word-bestand", () => {
+    const [react2u, reseller] = comparities(
+      "reseller", on,
+      { naam: "Jouw HR Partner B.V.", adres: "Kerkstraat 1", postcode: "5611 AA", plaats: "Eindhoven", kvk: "12345678", email: "info@jouwhr.test", telefoon: "040 123 45 67" },
+      { naam: "Sanne de Vries", functie: "eigenaar" },
+    );
+    expect(react2u).toBe(
+      "React2u II B.V., handelend onder de naam React2u, gevestigd aan de Stratumsedijk 29, 5611 NB Eindhoven, ingeschreven bij de Kamer van Koophandel onder nummer 95076824, rechtsgeldig vertegenwoordigd door de heer R. van Eyck, e-mail sales@react2u.nl, telefoon 085 620 58 00, hierna: React2u;",
+    );
+    expect(reseller).toBe(
+      "Jouw HR Partner B.V., gevestigd aan Kerkstraat 1, 5611 AA Eindhoven, ingeschreven bij de Kamer van Koophandel onder nummer 12345678, rechtsgeldig vertegenwoordigd door Sanne de Vries, e-mail info@jouwhr.test, telefoon 040 123 45 67, hierna: Reseller;",
+    );
+    expect(comparities("reseller", on, { naam: "Jouw HR Partner" }, {})[1]).toMatch(/^Jouw HR Partner, gevestigd aan \[ \], \[ \], .*door \[ \], e-mail \[ \], telefoon \[ \], hierna: Reseller;$/);
+    expect(react2uPartij("reseller", on)).toBe("React2u II B.V. h.o.d.n. React2u");
+    expect(react2uPartij("basiscontract", on)).toBe("React2u");
+  });
+
+  it("vraagt van de reseller ook mail en telefoon, zoals de database", () => {
+    const og = normaliseerOpdrachtgever({ naam: "Jouw HR Partner B.V.", adres: "Kerkstraat 1", postcode: "5611 AA", plaats: "Eindhoven", kvk: "12345678", email: " Info@JouwHR.test ", telefoon: "040 123 45 67" });
+    expect(og.email).toBe("info@jouwhr.test");
+    expect(opdrachtgeverFout(og, "reseller")).toBeNull();
+    expect(opdrachtgeverFout({ ...og, email: "" }, "reseller")).toBe("organisatie-email");
+    expect(opdrachtgeverFout({ ...og, telefoon: "040 12" }, "reseller")).toBe("organisatie-telefoon");
+    // Voor een basiscontract tellen mail en telefoon niet.
+    expect(opdrachtgeverFout({ ...og, email: "", telefoon: "" })).toBeNull();
+  });
+
+  it("in het kort en de kerngegevens: de vergoeding van de partner, onbepaalde tijd", () => {
+    const c = { soort: "reseller" as const, ingangsdatum: null, einddatum: null, tekst: resellerTekst({ jaarEen: 50, vervolg: 50 }) };
+    const kort = contractKort(c);
+    expect(kort[0]).toBe("Per aangebrachte klant 50% van het aansluittarief in het eerste contractjaar en 50% in elk jaar daarna");
+    expect(kort).toHaveLength(5);
+    expect(contractFeiten(c).map((f) => [f.label, f.waarde])).toEqual([["Vergoeding", "50% en 50%"], ["Looptijd", "Onbepaalde tijd"], ["Opzegtermijn", "1 maand"]]);
+    expect(contractFeiten({ ...c, ingangsdatum: "2026-11-04" })[1]).toEqual({ label: "Ingangsdatum", waarde: "4 november 2026", sub: "voor onbepaalde tijd" });
+    expect(contractKort({ ...c, tekst: `${c.tekst}\n\n## 12. Extra\n\n12.1. Iets anders.` })).toHaveLength(1);
+    expect(looptijdZin({ ...c, ingangsdatum: "2026-11-04" })).toBe("onbepaalde tijd, vanaf 4 november 2026");
+  });
+
+  it("geen looptijd nodig om te versturen, wel voor een basiscontract", () => {
+    const basis = { bedrijf: "Jouw HR Partner", email: null, tekst: RESELLER_STANDAARD, opdrachtnemer: on, ingangsdatum: null, einddatum: null };
+    expect(controleerContract({ ...basis, soort: "reseller" })).toEqual([]);
+    expect(controleerContract(basis)).toContain("De einddatum moet na de ingangsdatum liggen.");
+  });
+
+  it("soort, inhoud en bestandsnaam", () => {
+    expect(soortVan({ soort: "reseller" })).toBe("reseller");
+    expect(soortVan({})).toBe("basiscontract");
+    expect(soortVan(null)).toBe("basiscontract");
+    expect(contractInhoud({ soort: "reseller", tekst: null, ingangsdatum: null, einddatum: null, bedrijf: "X" }).artikelen).toHaveLength(11);
+    expect(contractInhoud({ soort: "reseller", tekst: RESELLER_STANDAARD, aanvullend: "Iets extra.", ingangsdatum: null, einddatum: null, bedrijf: "X" }).artikelen[11])
+      .toMatchObject({ nr: "12", titel: "Aanvullende afspraken" });
+    expect(contractPdfNaam({ nummer: "C2026-0004", bedrijf: "Jouw HR Partner", soort: "reseller" })).toBe("Resellerovereenkomst C2026-0004 Jouw HR Partner (getekend).pdf");
+    expect(contractPdfNaam({ nummer: "C2026-0001", bedrijf: "Jansen" }, "concept")).toBe("Basiscontract C2026-0001 Jansen (concept).pdf");
   });
 });
