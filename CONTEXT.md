@@ -1503,8 +1503,10 @@ opgevolgd moet worden, belangrijkste eerst. De regels staan in
 - **Brochure**: bekeken in de laatste 14 dagen en nog geen offerte voor die
   klant (ook geen concept), of na 5 dagen niet geopend.
 - **Contract** (verstuurd): net bekeken, bekeken, daarna stil of niet geopend,
-  net als een offerte. Getekend: de laatste opzegdag valt binnen 60 dagen, tijd
-  voor een evaluatiegesprek.
+  net als een offerte; dat geldt ook voor een resellerovereenkomst. Getekend
+  basiscontract: de laatste opzegdag valt binnen 60 dagen, tijd voor een
+  evaluatiegesprek. Een resellerovereenkomst loopt voor onbepaalde tijd en telt
+  niet als basiscontract, ook niet in het cijfer erboven.
 
 Een herinnering of nieuwe verzending (gebeurtenis `verstuurd` of `herinnering`)
 zet *Niet geopend* en *Daarna stil* drie dagen stil: `verstuurd_at` blijft op

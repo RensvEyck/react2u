@@ -13,7 +13,7 @@
 
 import type { Brochure } from "./brochures";
 import { normalizeName, isProviderDomain, registrableDomain } from "./companies";
-import { looptijdNu, type Contract } from "./contracten";
+import { CONTRACT_SOORT, looptijdNu, soortVan, type Contract } from "./contracten";
 import { waited } from "./dashboard";
 import { datumLang, datumOver, euro, VORMEN, waardeVan, weergaveVan, type Offerte, type Totalen } from "./offertes";
 
@@ -34,7 +34,7 @@ export type BrochureRij = Pick<
 
 export type ContractRij = Pick<
   Contract,
-  | "id" | "nummer" | "status" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "offerte_id"
+  | "id" | "nummer" | "status" | "soort" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "offerte_id"
   | "ingangsdatum" | "einddatum" | "created_at" | "verstuurd_at" | "bekeken_at" | "laatst_bekeken_at"
   | "aantal_bekeken" | "getekend_at"
 >;
@@ -313,7 +313,10 @@ function zonderContractSignaal(o: OfferteRij, contracten: ContractRij[], nu: Dat
   if (!MET_BASISCONTRACT.has(VORMEN[o.vorm]?.groep ?? "Verzuim")) return null;
   if (dagenSinds(o.getekend_at, nu) > DREMPELS.zonderContract) return null;
   const sleutels = new Set(klantSleutels(o));
-  const bijKlant = contracten.filter((c) => c.offerte_id === o.id || zelfde(klantSleutels(c), sleutels));
+  // Alleen basiscontracten: een resellerovereenkomst (0033) is een afspraak met een partner, niet met deze klant.
+  const bijKlant = contracten.filter(
+    (c) => soortVan(c) === "basiscontract" && (c.offerte_id === o.id || zelfde(klantSleutels(c), sleutels))
+  );
   // Een verstuurd of getekend contract volstaat: één basiscontract dekt alle offertes van die klant.
   if (bijKlant.some((c) => c.status === "verstuurd" || c.status === "getekend")) return null;
   const concept = bijKlant.find((c) => c.status === "concept");
@@ -367,9 +370,11 @@ function contractSignaal(c: ContractRij, i: Invoer, nu: Date, vandaag: string): 
     contactpersoon: c.contactpersoon, telefoon: c.telefoon, href: `/admin/contracten/${c.id}`,
     termijn: null, opSite: null,
   };
-  const kop = `Contract ${c.nummer}`;
+  const kop = `${CONTRACT_SOORT[soortVan(c)].naam} ${c.nummer}`;
 
   if (c.status === "getekend") {
+    // Alleen een basiscontract heeft een einddatum; een resellerovereenkomst loopt voor onbepaalde tijd.
+    if (soortVan(c) !== "basiscontract" || !c.ingangsdatum || !c.einddatum) return null;
     const n = looptijdNu(c.ingangsdatum, c.einddatum, vandaag);
     const tot = dagenTot(vandaag, n.opzeggenUiterlijk);
     if (tot < 0 || tot > DREMPELS.opzeggenBinnen) return null;
@@ -471,13 +476,14 @@ export function verkoopcijfers(offertes: OfferteRij[], contracten: ContractRij[]
   const sinds30 = datumOver(-30, nu);
   const getekend30 = alle.filter(({ o, w }) => w === "getekend" && o.getekend_at && o.getekend_at.slice(0, 10) >= sinds30);
   const h = hitrate(alle, datumOver(-90, nu));
+  const basis = contracten.filter((c) => soortVan(c) === "basiscontract");
   return {
     open: { aantal: open.length, bekeken: open.filter(({ w }) => w === "bekeken").length, perMaand: som(open, "perMaand"), eenmalig: som(open, "eenmalig") },
     getekend30: { aantal: getekend30.length, perMaand: som(getekend30, "perMaand"), eenmalig: som(getekend30, "eenmalig") },
     hitrate: { procent: h.procent, getekend: h.getekend.length, afgerond: h.afgerond.length },
     contracten: {
-      getekend: contracten.filter((c) => c.status === "getekend").length,
-      wacht: contracten.filter((c) => c.status === "verstuurd").length,
+      getekend: basis.filter((c) => c.status === "getekend").length,
+      wacht: basis.filter((c) => c.status === "verstuurd").length,
     },
   };
 }

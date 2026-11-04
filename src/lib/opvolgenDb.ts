@@ -1,4 +1,5 @@
 import type { supabaseServer } from "./supabase/server";
+import { soortVan } from "./contracten";
 import { opvolgen, verkoopcijfers, type Bezoeker, type BrochureRij, type ContractRij, type Invoer, type OfferteRij } from "./opvolgen";
 
 type Sb = Awaited<ReturnType<typeof supabaseServer>>;
@@ -10,8 +11,13 @@ const BROCHURE =
 // Zonder `tekst`: die is tot 60.000 tekens per contract en hier niet nodig.
 const CONTRACT =
   "id, nummer, status, bedrijf, contactpersoon, email, telefoon, offerte_id, ingangsdatum, einddatum, created_at, verstuurd_at, bekeken_at, laatst_bekeken_at, aantal_bekeken, getekend_at";
+/** `soort` bestaat pas sinds 0033; daarvoor is elk contract een basiscontract. */
+const CONTRACT_SOORT_KOLOM = `${CONTRACT}, soort`;
 
 const DAG = 86_400_000;
+
+const leesContracten = (sb: Sb, kolommen: string) =>
+  sb.from("contracten").select(kolommen).neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000);
 
 /**
  * Wat het Verkoopblok op het dashboard nodig heeft, in zes query's naast
@@ -34,7 +40,9 @@ export async function haalVerkoop(sb: Sb, nu = new Date()): Promise<Omit<Invoer,
       .order("created_at", { ascending: false }).limit(1000),
     sb.from("brochures").select(BROCHURE).eq("status", "verstuurd").gte("verstuurd_at", iso(45))
       .order("verstuurd_at", { ascending: false }).limit(500),
-    sb.from("contracten").select(CONTRACT).neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
+    leesContracten(sb, CONTRACT_SOORT_KOLOM).then((r) =>
+      r.error && (r.error.code === "42703" || r.error.code === "PGRST204") ? leesContracten(sb, CONTRACT) : r
+    ),
     sb.from("offerte_gebeurtenissen").select("offerte_id, at").in("soort", gemaildSoorten).gte("at", iso(60))
       .order("at", { ascending: false }).limit(1000),
     sb.from("brochure_gebeurtenissen").select("brochure_id, at").in("soort", gemaildSoorten).gte("at", iso(60))
@@ -54,7 +62,7 @@ export async function haalVerkoop(sb: Sb, nu = new Date()): Promise<Omit<Invoer,
 
   const offertes = ((o.data as unknown as OfferteRij[] | null) || []).map((x) => ({ ...x, vorm: x.vorm || "verzuimbegeleiding" }));
   const brochures = (b.data as unknown as BrochureRij[] | null) || [];
-  const contracten = (c.data as unknown as ContractRij[] | null) || [];
+  const contracten = ((c.data as unknown as ContractRij[] | null) || []).map((x) => ({ ...x, soort: soortVan(x) }));
   return { offertes, brochures, contracten, gemaild };
 }
 

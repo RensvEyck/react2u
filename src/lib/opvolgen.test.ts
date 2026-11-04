@@ -30,7 +30,7 @@ function brochure(over: Partial<BrochureRij> = {}): BrochureRij {
 
 function contract(over: Partial<ContractRij> = {}): ContractRij {
   return {
-    id: "c1", nummer: "C2026-0001", status: "verstuurd", bedrijf: "Smit Installatie", contactpersoon: "Anna",
+    id: "c1", nummer: "C2026-0001", status: "verstuurd", soort: "basiscontract", bedrijf: "Smit Installatie", contactpersoon: "Anna",
     email: "anna@smit.nl", telefoon: null, offerte_id: null, ingangsdatum: "2026-12-01", einddatum: "2027-11-30",
     created_at: dagenGeleden(4), verstuurd_at: dagenGeleden(4), bekeken_at: null, laatst_bekeken_at: null,
     aantal_bekeken: 0, getekend_at: null, ...over,
@@ -148,6 +148,20 @@ describe("contracten opvolgen", () => {
   it("meldt een bekeken contract dat nog niet getekend is", () => {
     const c = contract({ bekeken_at: urenGeleden(3), laatst_bekeken_at: urenGeleden(3), aantal_bekeken: 2 });
     expect(opvolgen({ ...leeg, contracten: [c] }, NU)[0]).toMatchObject({ soort: "contract", label: "Net bekeken", toon: "warm" });
+    expect(opvolgen({ ...leeg, contracten: [c] }, NU)[0].details[0]).toBe("Basiscontract C2026-0001");
+  });
+
+  it("volgt een verstuurde resellerovereenkomst op, maar zonder looptijd en zonder dat hij als basiscontract telt", () => {
+    const r = contract({ id: "r1", soort: "reseller", nummer: "C2026-0009", ingangsdatum: null, einddatum: null });
+    expect(opvolgen({ ...leeg, contracten: [r] }, NU)[0].details[0]).toBe("Resellerovereenkomst C2026-0009");
+
+    const getekend = { ...r, status: "getekend" as const, ingangsdatum: "2026-10-01", getekend_at: dagenGeleden(30) };
+    expect(opvolgen({ ...leeg, contracten: [getekend] }, NU)).toEqual([]);
+
+    // Een getekende offerte bij een bedrijf met alleen een resellerovereenkomst vraagt nog steeds om het basiscontract.
+    const o = offerte({ status: "getekend", getekend_at: dagenGeleden(2), bedrijf: "Smit Installatie", email: "anna@smit.nl" });
+    expect(opvolgen({ ...leeg, offertes: [o], contracten: [getekend] }, NU)[0].reden).toBe("zonder-contract");
+    expect(verkoopcijfers([], [getekend, contract({ id: "c2", status: "getekend" })], NU).contracten).toEqual({ getekend: 1, wacht: 0 });
   });
 
   it("waarschuwt als de laatste opzegdag van een getekend contract nadert", () => {
