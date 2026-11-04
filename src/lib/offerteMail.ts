@@ -409,7 +409,7 @@ ${opties ? `<p style="margin:12px 0 0;font-family:${FONT};font-size:14px;line-he
     `Beste ${esc(o.aanhef?.trim() || "relatie")},`,
     ...alineasUit(o.bericht),
     o.herinnering
-      ? `Je offerte voor ${esc(metPunt(o.bedrijf))} staat nog voor je klaar.${o.geldigTot ? ` Hij is geldig tot en met ${esc(o.geldigTot)}.` : ""}`
+      ? `Je offerte voor ${esc(o.bedrijf.trim())} staat nog voor je klaar.${o.geldigTot ? ` Hij is geldig tot en met ${esc(o.geldigTot)}.` : ""}`
       : `In de offerte zie je precies wat we voor ${bedrijf} doen en wat het kost.${o.kiezen ? " Waar dat kan, kies je zelf je onderdelen." : ""} Akkoord? Dan onderteken je online.${
           o.geldigTot ? ` De offerte is geldig tot en met ${esc(o.geldigTot)}.` : ""
         }`,

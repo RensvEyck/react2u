@@ -3,7 +3,7 @@ import { supabasePublic } from "./supabase/public";
 import { contractUrl, type Bijlage } from "./mail";
 import { offerteHuisstijl } from "./offerteHuisstijl";
 import { contractPdf } from "./contractPdf";
-import { contractPdfNaam, normaliseerOpdrachtgever, type Contract, type ContractCertificaat, type ContractPubliek, type GetekendContract } from "./contracten";
+import { contractPdfNaam, normaliseerOpdrachtgever, soortVan, type Contract, type ContractCertificaat, type ContractPubliek, type GetekendContract } from "./contracten";
 
 /**
  * Het getekende contract als pdf-bijlage, of null als het (nog) niet getekend
@@ -33,15 +33,16 @@ export async function getekendContractPdf(token: string, bekend?: ContractPublie
  * voor een contract dat (nog) niet getekend is.
  */
 export async function conceptContractPdf(
-  c: Pick<Contract, "nummer" | "status" | "bedrijf" | "contactpersoon" | "opdrachtnemer" | "opdrachtgever" | "offerte_kenmerk" | "ingangsdatum" | "einddatum" | "tekst" | "tekst_versie" | "aanvullend" | "afzender_naam" | "afzender_functie" | "afzender_email" | "verstuurd_at">,
+  c: Pick<Contract, "nummer" | "status" | "soort" | "bedrijf" | "contactpersoon" | "opdrachtnemer" | "opdrachtgever" | "offerte_kenmerk" | "ingangsdatum" | "einddatum" | "tekst" | "tekst_versie" | "aanvullend" | "afzender_naam" | "afzender_functie" | "afzender_email" | "verstuurd_at">,
   link: string,
 ): Promise<Bijlage | null> {
   if (c.status === "getekend" || c.status === "ingetrokken") return null;
   const huis = await offerteHuisstijl();
   const inhoud: GetekendContract = {
-    nummer: c.nummer, bedrijf: c.bedrijf, contactpersoon: c.contactpersoon,
+    nummer: c.nummer, soort: soortVan(c), bedrijf: c.bedrijf, contactpersoon: c.contactpersoon,
     opdrachtnemer: c.opdrachtnemer, opdrachtgever: normaliseerOpdrachtgever(c.opdrachtgever),
-    offerte_kenmerk: c.offerte_kenmerk, ingangsdatum: c.ingangsdatum, einddatum: c.einddatum,
+    // Een resellerovereenkomst gaat pas in bij ondertekening; het concept noemt dan geen datum.
+    offerte_kenmerk: c.offerte_kenmerk, ingangsdatum: c.ingangsdatum ?? "", einddatum: c.einddatum,
     tekst: c.tekst, tekst_versie: c.tekst_versie, aanvullend: c.aanvullend,
     afzender_naam: c.afzender_naam, afzender_functie: c.afzender_functie, afzender_email: c.afzender_email, verstuurd_at: c.verstuurd_at,
     // Een concept is niet getekend; het document toont deze velden dan niet.

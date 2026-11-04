@@ -23,17 +23,17 @@ export default function OfferteVersturen({
   zelfVersturen?: () => Promise<void>;
   /** Een andere verzendactie dan die van offertes (brochures 0030, contracten 0031). */
   actie?: (prev: VersturenState, fd: FormData) => Promise<VersturenState>;
-  /** Wat er verstuurd wordt, voor de teksten. */
-  woord?: "offerte" | "brochure" | "contract";
+  /** Wat er verstuurd wordt, voor de teksten; "overeenkomst" is de resellerovereenkomst (0033). */
+  woord?: "offerte" | "brochure" | "contract" | "overeenkomst";
 }) {
-  // "de offerte", "de brochure", maar "het basiscontract".
-  const het = woord === "contract" ? "het basiscontract" : `de ${woord}`;
-  const ons = woord === "contract" ? "het basiscontract" : `onze ${woord}`;
+  // "de offerte", "de brochure", maar "het basiscontract" en "de resellerovereenkomst".
+  const het = woord === "contract" ? "het basiscontract" : woord === "overeenkomst" ? "de resellerovereenkomst" : `de ${woord}`;
+  const ons = woord === "contract" || woord === "overeenkomst" ? het : `onze ${woord}`;
   const [state, action, bezig] = useActionState<VersturenState, FormData>(actie ?? verstuurOfferte.bind(null, id), null);
   const [toonLink, setToonLink] = useState(verstuurd);
   const standaard = verstuurd
     ? `Ik wilde even checken of je ${het} voor ${bedrijf} hebt kunnen bekijken. Heb je nog vragen, of wil je iets anders zien? Laat het gerust weten${woord === "offerte" ? ", dan pas ik hem aan" : ""}.`
-    : `${woord === "contract" ? "Fijn dat we gaan samenwerken!" : "Bedankt voor het prettige gesprek."} Zoals besproken stuur ik je hierbij ${ons} voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
+    : `${woord === "contract" || woord === "overeenkomst" ? "Fijn dat we gaan samenwerken!" : "Bedankt voor het prettige gesprek."} Zoals besproken stuur ik je hierbij ${ons} voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
   const [bericht, setBericht] = useState(standaard);
   // Na een geslaagde verzending een nieuwe standaardtekst (van "hierbij de offerte" naar een herinnering).
   const [gezien, setGezien] = useState(state);

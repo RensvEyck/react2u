@@ -6,8 +6,11 @@ import { LuCheck } from "react-icons/lu";
 import Logo from "@/components/site/Logo";
 import { BODY, BREED, Eyebrow, kop, LAV, LINE, NAVY, PINK, Pijl, SOFT } from "@/components/blocks/Gedeeld";
 import Handtekening from "@/components/offerte/Handtekening";
-import { CONTRACT_EMAIL, CONTRACT_FOUT, comparitieOpdrachtgever, comparitieOpdrachtnemer, contractFeiten, contractInhoud, contractKort, looptijdNu, normaliseerOpdrachtgever, opdrachtgeverFout, plaatsUit, versieTekst, type ContractPubliek, type Opdrachtgever } from "@/lib/contracten";
-import { CONTRACT_SLOT, CONTRACT_TITEL, type ContractStructuur } from "@/lib/contractTekst";
+import {
+  CONTRACT_EMAIL, CONTRACT_FOUT, CONTRACT_SOORT, comparities, contractFeiten, contractInhoud, contractKort, looptijdNu, normaliseerOpdrachtgever,
+  opdrachtgeverFout, plaatsUit, react2uPartij, soortVan, versieTekst, type ContractPubliek, type ContractSoort, type Opdrachtgever,
+} from "@/lib/contracten";
+import type { ContractStructuur } from "@/lib/contractTekst";
 import type { ContactInfo } from "@/lib/content";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { inlineDelen } from "@/lib/mdInline";
@@ -32,6 +35,10 @@ import { ondertekenContract, vraagContractCode } from "@/app/(offerte)/contract/
  *
  * Modus: klant (de echte link), collega (een beheerder opent de link: niets
  * telt, tekenen niet), voorbeeld (vanuit het beheer, ook voor een concept).
+ *
+ * De resellerovereenkomst met een partner (0033) gebruikt hetzelfde scherm,
+ * met zijn eigen kopjes en rollen (CONTRACT_SOORT): React2u en Reseller, het
+ * kantoor met mailadres en telefoon, en geen looptijd maar "onbepaalde tijd".
  */
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-outfit", display: "swap" });
@@ -287,14 +294,15 @@ function Kopbalk({ contract, actie, onderdelen = [] }: { contract: ContractPubli
   );
 }
 
-function Melding({ modus }: { modus: Modus }) {
+function Melding({ modus, soort }: { modus: Modus; soort: ContractSoort }) {
   if (modus === "klant") return null;
+  const wie = CONTRACT_SOORT[soort].wederpartij;
   return (
     <div className="geen-print bg-[#FFF4E5] text-[14px] text-[#7A4A06]">
       <p className={`${BREED} m-0 py-2.5`}>
         {modus === "voorbeeld"
-          ? "Voorbeeld: zo ziet de klant het contract. Tekenen kan hier niet."
-          : "Je bekijkt dit contract als collega. Dit bezoek telt niet mee en ondertekenen kan alleen de klant."}
+          ? `Voorbeeld: zo ziet de ${wie} het contract. Tekenen kan hier niet.`
+          : `Je bekijkt dit contract als collega. Dit bezoek telt niet mee en ondertekenen kan alleen de ${wie}.`}
       </p>
     </div>
   );
@@ -328,9 +336,13 @@ function Voet({ contract, huis, pdf }: { contract: ContractPubliek; huis: Huis; 
             <p className={kolomkop} style={{ color: NAVY }}>Dit contract</p>
             <p className="m-0 text-[15px] leading-[1.75]" style={{ color: BODY }}>
               Contract {contract.nummer}<br />
-              Tekst {versieTekst((contract.getekend_inhoud ?? contract).tekst_versie)}<br />
+              Tekst {versieTekst((contract.getekend_inhoud ?? contract).tekst_versie, soortVan(contract))}<br />
               {pdf && <><a href={`${pdf}?download=1`} className="font-bold hover:underline" style={{ color: NAVY }}>Download als pdf</a><br /></>}
-              <a href={DOCUMENTEN.algemeneVoorwaarden} target="_blank" rel="noopener" className="font-bold hover:underline" style={{ color: NAVY }}>Algemene voorwaarden</a>
+              {soortVan(contract) === "reseller" ? (
+                <a href="/partners" target="_blank" rel="noopener" className="font-bold hover:underline" style={{ color: NAVY }}>Het partnerprogramma</a>
+              ) : (
+                <a href={DOCUMENTEN.algemeneVoorwaarden} target="_blank" rel="noopener" className="font-bold hover:underline" style={{ color: NAVY }}>Algemene voorwaarden</a>
+              )}
             </p>
           </div>
         </div>
@@ -364,9 +376,9 @@ function Opening({ contract, zin, tekst, feiten, knoppen, kaart }: {
             <h1 className={`${kop} m-0 text-[24px] leading-[1.05] tracking-[-0.4px] md:text-[32px]`} style={{ color: NAVY }}>
               React2u
               <span className="mt-1 block text-[50px] leading-[1.02] tracking-[-1.6px] md:text-[76px] md:tracking-[-2.2px]">
-                Basiscontract<span style={{ color: PINK }}>.</span>
+                {CONTRACT_SOORT[soortVan(contract)].woordmerk}<span style={{ color: PINK }}>.</span>
               </span>
-              <span className="hv-dienst mt-4 block text-[18px] font-bold leading-[1.5] tracking-normal md:text-[21px]">Arbodienstverlening.</span>
+              <span className="hv-dienst mt-4 block text-[18px] font-bold leading-[1.5] tracking-normal md:text-[21px]">{CONTRACT_SOORT[soortVan(contract)].ondertitel}</span>
             </h1>
             <p className="m-0 text-[18px] leading-[1.5] md:text-[21px]" style={{ color: NAVY }}><em>Tussen React2u en {contract.bedrijf}</em></p>
           </div>
@@ -436,7 +448,8 @@ const artikelId = (nr: string) => `artikel-${nr}`;
  * met links een inhoudsopgave die meeloopt. `partijen` zijn de twee zinnen uit
  * de kop, met open plekken zolang de klant iets nog niet heeft ingevuld.
  */
-function Tekst({ s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: {
+function Tekst({ soort, s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: {
+  soort: ContractSoort;
   s: ContractStructuur;
   partijen: [string, string];
   titel: string;
@@ -444,8 +457,10 @@ function Tekst({ s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: 
   tekst?: React.ReactNode;
   metOndertekenen?: boolean;
 }) {
+  const sd = CONTRACT_SOORT[soort];
+  const dp = sd.dubbelepunt ? ":" : "";
   const inhoud: Onderdeel[] = [
-    { id: "partijen", label: "De ondergetekenden" },
+    { id: "partijen", label: sd.partijenKop },
     { id: "overwegingen", label: "Overwegingen" },
     ...s.artikelen.map((a) => ({ id: artikelId(a.nr), label: `${a.nr}. ${a.titel}` })),
     ...(metOndertekenen ? [{ id: "ondertekenen", label: "Ondertekenen" }] : []),
@@ -480,7 +495,7 @@ function Tekst({ s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: 
           <article className="min-w-0 rounded-[28px] border bg-white px-6 py-9 shadow-[0_24px_48px_-40px_rgba(50,46,131,0.35)] md:px-12 md:py-14 xl:px-16" style={{ borderColor: LINE }}>
             <header className="flex flex-col gap-2 border-b pb-7" style={{ borderColor: LINE }}>
               <Label>Contract</Label>
-              <h3 className={`${kop} m-0 text-[28px] leading-[1.15] tracking-[-0.6px] md:text-[34px]`} style={{ color: NAVY }}>{CONTRACT_TITEL}</h3>
+              <h3 className={`${kop} m-0 text-[28px] leading-[1.15] tracking-[-0.6px] md:text-[34px]`} style={{ color: NAVY }}>{sd.titel}</h3>
             </header>
 
             <details className="geen-print mt-6 rounded-[14px] p-4 lg:hidden" style={{ background: SOFT }}>
@@ -491,7 +506,7 @@ function Tekst({ s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: 
             </details>
 
             <div id="partijen" className="scroll-mt-[112px] pt-8">
-              <p className="m-0 text-[17px] font-bold" style={{ color: NAVY }}>De ondergetekenden:</p>
+              <p className="m-0 text-[17px] font-bold" style={{ color: NAVY }}>{sd.partijenKop}{dp}</p>
               <ol className="m-0 mt-4 flex list-none flex-col gap-4 p-0">
                 {partijen.map((t, i) => (
                   <li key={i} className="grid grid-cols-[32px_minmax(0,1fr)] text-[16px] leading-[1.75] md:text-[16.5px]" style={{ color: BODY }}>
@@ -500,10 +515,11 @@ function Tekst({ s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: 
                   </li>
                 ))}
               </ol>
+              {sd.partijenSlot && <p className="m-0 mt-4 text-[16px] leading-[1.75] md:text-[16.5px]" style={{ color: BODY }}>{sd.partijenSlot}</p>}
             </div>
 
             <div id="overwegingen" className="scroll-mt-[112px] pt-10">
-              <p className="m-0 text-[17px] font-bold" style={{ color: NAVY }}>{s.overwegingenKop}:</p>
+              <p className="m-0 text-[17px] font-bold" style={{ color: NAVY }}>{s.overwegingenKop}{dp}</p>
               <ol className="m-0 mt-4 flex list-none flex-col gap-4 p-0">
                 {s.overwegingen.map((o, i) => (
                   <li key={i} className="grid grid-cols-[32px_minmax(0,1fr)] gap-y-2 text-[16px] leading-[1.75] md:text-[16.5px]" style={{ color: BODY }}>
@@ -512,6 +528,7 @@ function Tekst({ s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: 
                   </li>
                 ))}
               </ol>
+              {sd.artikelenKop && <p className="m-0 mt-8 text-[17px] font-bold" style={{ color: NAVY }}>{sd.artikelenKop}</p>}
             </div>
 
             {s.artikelen.map((a) => (
@@ -526,19 +543,31 @@ function Tekst({ s, partijen, titel, eyebrow, tekst, metOndertekenen = false }: 
                       style={{ color: BODY }}
                     >
                       <span className="pt-px text-[14.5px] font-bold tabular-nums" style={{ color: NAVY }}>{b.nr}</span>
-                      <span className="flex flex-col gap-2.5">{b.alineas.map((t, j) => <span key={j}><Inline tekst={t} /></span>)}</span>
+                      <span className="flex flex-col gap-2.5">{b.alineas.map((t, j) => <Alinea key={j} tekst={t} />)}</span>
                     </div>
                   ))}
                 </div>
               </section>
             ))}
 
-            <p className="m-0 mt-10 border-t pt-8 text-[16.5px] font-bold" style={{ borderColor: LINE, color: NAVY }}>{CONTRACT_SLOT}</p>
-            <Documenten />
+            <p className="m-0 mt-10 border-t pt-8 text-[16.5px] font-bold" style={{ borderColor: LINE, color: NAVY }}>{sd.slot}</p>
+            {soort === "basiscontract" && <Documenten />}
           </article>
         </div>
       </div>
     </section>
+  );
+}
+
+/** Een alinea van een bepaling; "a. eerste Contractjaar ..." (3.1 van de resellerovereenkomst) als ingesprongen onderdeel. */
+function Alinea({ tekst }: { tekst: string }) {
+  const m = tekst.match(/^([a-z])\.\s+(.+)$/);
+  if (!m) return <span><Inline tekst={tekst} /></span>;
+  return (
+    <span className="grid grid-cols-[26px_minmax(0,1fr)]">
+      <span className="font-bold" style={{ color: NAVY }}>{m[1]}.</span>
+      <span><Inline tekst={m[2]} /></span>
+    </span>
   );
 }
 
@@ -574,9 +603,13 @@ function Documenten() {
 type OrgVeld = keyof Opdrachtgever;
 
 function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubliek; token?: string; modus: Modus; huis: Huis }) {
+  const soort = soortVan(contract);
+  const reseller = soort === "reseller";
   const vooraf = normaliseerOpdrachtgever(contract.opdrachtgever);
   const [og, setOg] = useState<Record<OrgVeld, string>>({
     naam: vooraf.naam || contract.bedrijf, adres: vooraf.adres || "", postcode: vooraf.postcode || "", plaats: vooraf.plaats || "", kvk: vooraf.kvk || "",
+    // Alleen bij de reseller: waar de mededelingen heen gaan (artikel 11.2).
+    email: reseller ? vooraf.email || contract.email || "" : "", telefoon: reseller ? vooraf.telefoon || "" : "",
   });
   const [naam, setNaam] = useState(contract.contactpersoon || "");
   const [functie, setFunctie] = useState("");
@@ -586,12 +619,9 @@ function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubl
   const bijTekenen = useInBeeld("ondertekenen");
 
   const s = useMemo(() => contractInhoud({ ...contract, opdrachtgever: normaliseerOpdrachtgever(og) }), [contract, og]);
-  const partijen: [string, string] = [
-    comparitieOpdrachtnemer(contract.opdrachtnemer),
-    comparitieOpdrachtgever(normaliseerOpdrachtgever(og), { naam, functie }),
-  ];
+  const partijen = comparities(soort, contract.opdrachtnemer, normaliseerOpdrachtgever(og), { naam, functie });
   const onderdelen = [
-    { id: "contract", label: "Het contract" },
+    { id: "contract", label: reseller ? "De overeenkomst" : "Het contract" },
     { id: "ondertekenen", label: "Ondertekenen" },
   ];
 
@@ -602,22 +632,33 @@ function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubl
         onderdelen={onderdelen}
         actie={open ? <button type="button" onClick={() => scrollNaar("ondertekenen")} className={`${knop.roze} !h-[48px] px-5`}>Ondertekenen<Pijl size={14} /></button> : null}
       />
-      <Melding modus={modus} />
+      <Melding modus={modus} soort={soortVan(contract)} />
       <main>
         <Opening
           contract={contract}
-          zin={<>Beste {voornaam(contract.contactpersoon) || "relatie"}, dit is het contract bij je arbodienst.</>}
+          zin={
+            reseller
+              ? <>Beste {voornaam(contract.contactpersoon) || "partner"}, dit is onze overeenkomst als partners.</>
+              : <>Beste {voornaam(contract.contactpersoon) || "relatie"}, dit is het contract bij je arbodienst.</>
+          }
           tekst={
-            <p className="m-0">
-              Sinds 1 juli 2017 vraagt de Arbowet dat elke werkgever een basiscontract heeft met zijn arbodienst. Hierin staat wat je van ons kunt
-              verwachten: de begeleiding bij verzuim, het open spreekuur bij de bedrijfsarts, de second opinion en hoe we met de gegevens van je mensen
-              omgaan. Lees het rustig door; akkoord? Dan teken je onderaan, online.
-            </p>
+            reseller ? (
+              <p className="m-0">
+                Hierin leggen we vast hoe we samenwerken: hoe je een werkgever bij ons aanmeldt, wat je daarvoor krijgt en dat jouw klant jouw klant
+                blijft. Vrijblijvend en niet exclusief. Lees hem rustig door; akkoord? Dan teken je onderaan, online.
+              </p>
+            ) : (
+              <p className="m-0">
+                Sinds 1 juli 2017 vraagt de Arbowet dat elke werkgever een basiscontract heeft met zijn arbodienst. Hierin staat wat je van ons kunt
+                verwachten: de begeleiding bij verzuim, het open spreekuur bij de bedrijfsarts, de second opinion en hoe we met de gegevens van je mensen
+                omgaan. Lees het rustig door; akkoord? Dan teken je onderaan, online.
+              </p>
+            )
           }
           feiten={contractFeiten(contract)}
           knoppen={
             <>
-              <button type="button" onClick={() => scrollNaar("contract")} className={knop.roze}>Lees het contract <Icoon d={OMLAAG} /></button>
+              <button type="button" onClick={() => scrollNaar("contract")} className={knop.roze}>{reseller ? "Lees de overeenkomst" : "Lees het contract"} <Icoon d={OMLAAG} /></button>
               <a href={concept} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Download als pdf</a>
             </>
           }
@@ -626,11 +667,12 @@ function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubl
         <div className="h-10 md:h-16" />
 
         <Tekst
+          soort={soort}
           s={s}
           partijen={partijen}
-          eyebrow="Het contract"
+          eyebrow={reseller ? "De overeenkomst" : "Het contract"}
           titel="Wat we met elkaar afspreken"
-          tekst="De tekst van het Basiscontract Arbodienstverlening. De kop vult zich met de gegevens die je onderaan invult."
+          tekst={`De tekst van ${reseller ? "de Resellerovereenkomst arbodienstverlening" : "het Basiscontract Arbodienstverlening"}. De kop vult zich met de gegevens die je onderaan invult.`}
           metOndertekenen
         />
 
@@ -641,7 +683,7 @@ function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubl
               <SectieKop
                 eyebrow="Ondertekenen"
                 titel="Teken voor akkoord."
-                tekst={<>Je tekent namens <strong style={{ color: NAVY }}>{contract.bedrijf}</strong>. Daarna krijg je het getekende contract als pdf, met het ondertekeningscertificaat.</>}
+                tekst={<>Je tekent namens <strong style={{ color: NAVY }}>{contract.bedrijf}</strong>. Daarna krijg je {reseller ? "de getekende overeenkomst" : "het getekende contract"} als pdf, met het ondertekeningscertificaat.</>}
               />
               <div className="rounded-[24px] bg-white p-5 shadow-[0_30px_70px_-40px_rgba(50,46,131,0.45)] md:p-10">
                 <Formulier
@@ -710,6 +752,9 @@ function Formulier({
   const tekenPlaats = plaats ?? og.plaats;
   const veldOg = (k: OrgVeld) => (e: React.ChangeEvent<HTMLInputElement>) => setOg((o) => ({ ...o, [k]: e.target.value }));
   const statutair = og.naam.trim() || contract.bedrijf;
+  const soort = soortVan(contract);
+  const reseller = soort === "reseller";
+  const sd = CONTRACT_SOORT[soort];
 
   useEffect(() => {
     if (wacht <= 0) return;
@@ -722,7 +767,7 @@ function Formulier({
     if (!isNaam(naam)) return CONTRACT_FOUT.naam;
     if (functie.trim().length < 2) return CONTRACT_FOUT.functie;
     if (!EMAIL.test(email.trim())) return "Vul een geldig e-mailadres in; daar sturen we de code heen.";
-    const of = opdrachtgeverFout(normaliseerOpdrachtgever(og));
+    const of = opdrachtgeverFout(normaliseerOpdrachtgever(og), soort);
     if (of) return CONTRACT_FOUT[of];
     if (tekenPlaats.trim().length < 2) return CONTRACT_FOUT.plaats;
     if (!akkoord) return CONTRACT_FOUT.akkoord;
@@ -763,7 +808,7 @@ function Formulier({
     e.preventDefault();
     setFout(null);
     if (!kanTekenen || !token) {
-      setFout(modus === "klant" ? "Dit contract kan niet meer worden ondertekend." : "In het voorbeeld en als collega kan er niet worden getekend.");
+      setFout(modus === "klant" ? `${reseller ? "Deze overeenkomst" : "Dit contract"} kan niet meer worden ondertekend.` : "In het voorbeeld en als collega kan er niet worden getekend.");
       return;
     }
     const f = controleer();
@@ -774,10 +819,10 @@ function Formulier({
   }
 
   const gegevensKlaar =
-    isNaam(naam) && functie.trim().length >= 2 && EMAIL.test(email.trim()) && !opdrachtgeverFout(normaliseerOpdrachtgever(og)) && tekenPlaats.trim().length >= 2 && akkoord;
+    isNaam(naam) && functie.trim().length >= 2 && EMAIL.test(email.trim()) && !opdrachtgeverFout(normaliseerOpdrachtgever(og), soort) && tekenPlaats.trim().length >= 2 && akkoord;
   const stappen = [
     { label: "Handtekening", klaar: Boolean(png) },
-    { label: "Jij en je organisatie", klaar: gegevensKlaar },
+    { label: reseller ? "Jij en je kantoor" : "Jij en je organisatie", klaar: gegevensKlaar },
     { label: "Code uit je mail", klaar: false },
   ];
   const huidig = stap === "code" ? 2 : !png ? 0 : !gegevensKlaar ? 1 : 2;
@@ -813,9 +858,9 @@ function Formulier({
         {/* De twee handtekeningen, zoals onderaan het Word-contract */}
         <div className="grid gap-8 md:grid-cols-2 md:gap-6">
           <div>
-            <Label>Opdrachtnemer</Label>
+            <Label>{sd.rollen[0]}</Label>
             <p className="m-0 mt-2 text-[14px]" style={{ color: MUTE }}>Te {plaatsUit(opdrachtnemer)}, {datumLang(contract.verstuurd_at || contract.created_at)}</p>
-            <p className={`${kop} m-0 text-[20px]`} style={{ color: NAVY }}>React2u</p>
+            <p className={`${kop} m-0 text-[20px]`} style={{ color: NAVY }}>{react2uPartij(soort, opdrachtnemer)}</p>
             <div className="mt-3 flex h-[44px] items-center">
               <span className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-bold" style={{ background: LAV, color: NAVY }}>
                 <Vink size={12} /> Getekend door React2u
@@ -830,7 +875,7 @@ function Formulier({
             <p className="m-0 mt-2.5 text-[14px]" style={{ color: MUTE }}>Ondergetekende: {ONDERTEKENAAR.naam}, {ONDERTEKENAAR.functie}</p>
           </div>
           <div>
-            <Label>Opdrachtgever</Label>
+            <Label>{sd.rollen[1]}</Label>
             <p className="m-0 mt-2 text-[14px]" style={{ color: MUTE }}>Te {tekenPlaats.trim() || "…"}, {vandaag ? datumLang(vandaag) : "…"}</p>
             <p className={`${kop} m-0 text-[20px]`} style={{ color: NAVY }}>{statutair}</p>
             <div className="mt-3">
@@ -868,11 +913,11 @@ function Formulier({
 
         {/* De organisatie, zoals in de kop van het contract */}
         <fieldset className="m-0 mt-7 min-w-0 rounded-[22px] border-0 p-5 md:p-7" style={{ background: SOFT }} disabled={vast}>
-          <legend className="sr-only">Je organisatie</legend>
+          <legend className="sr-only">{reseller ? "Je kantoor" : "Je organisatie"}</legend>
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <p className={`${kop} m-0 text-[19px]`} style={{ color: NAVY }}>Je organisatie, zoals in het handelsregister</p>
+            <p className={`${kop} m-0 text-[19px]`} style={{ color: NAVY }}>{reseller ? "Je kantoor" : "Je organisatie"}, zoals in het handelsregister</p>
             <p className="m-0 text-[13.5px]" style={{ color: MUTE }}>
-              {alIngevuld(contract) ? `Al ingevuld door ${voornaam(contract.afzender_naam) || "React2u"}; klopt het?` : "Deze gegevens komen in de kop van het contract."}
+              {alIngevuld(contract) ? `Al ingevuld door ${voornaam(contract.afzender_naam) || "React2u"}; klopt het?` : `Deze gegevens komen in de kop van ${reseller ? "de overeenkomst" : "het contract"}.`}
             </p>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-6">
@@ -896,27 +941,46 @@ function Formulier({
               <span className={veldLabel} style={{ color: NAVY }}>Vestigingsplaats</span>
               <input id="ct-plaats" className={veld} value={og.plaats} onChange={veldOg("plaats")} autoComplete="address-level2" />
             </label>
-            <label className="flex flex-col gap-1.5 md:col-span-2">
+            {reseller && (
+              <>
+                <label className="flex flex-col gap-1.5 md:col-span-3">
+                  <span className={veldLabel} style={{ color: NAVY }}>E-mail voor mededelingen</span>
+                  <input id="ct-oemail" className={veld} type="email" value={og.email} onChange={veldOg("email")} autoComplete="email" aria-describedby="ct-oemail-uitleg" />
+                  <span id="ct-oemail-uitleg" className="text-[13.5px]" style={{ color: MUTE }}>Hier sturen we aanmeldingen, specificaties en opzeggingen heen (artikel 11.2).</span>
+                </label>
+                <label className="flex flex-col gap-1.5 md:col-span-3">
+                  <span className={veldLabel} style={{ color: NAVY }}>Telefoon</span>
+                  <input id="ct-otel" className={veld} type="tel" value={og.telefoon} onChange={veldOg("telefoon")} autoComplete="tel" />
+                </label>
+              </>
+            )}
+            <label className={`flex flex-col gap-1.5 ${reseller ? "md:col-span-3" : "md:col-span-2"}`}>
               <span className={veldLabel} style={{ color: NAVY }}>Getekend te</span>
               <input id="ct-tekenplaats" className={veld} value={tekenPlaats} onChange={(e) => setPlaats(e.target.value)} placeholder="Plaats" />
             </label>
           </div>
           {/* Zo komt het in het contract: dezelfde zin als in de kop en de pdf. */}
           <div className="mt-5 rounded-[16px] border-l-[3px] bg-white px-4 py-3.5 md:px-5" style={{ borderColor: PINK }} aria-live="polite">
-            <Label>Zo staat het in het contract</Label>
+            <Label>Zo staat het in {reseller ? "de overeenkomst" : "het contract"}</Label>
             <p className="m-0 mt-1.5 text-[15px] leading-[1.65]" style={{ color: BODY }}>
-              <MetOpenPlekken tekst={comparitieOpdrachtgever(normaliseerOpdrachtgever(og), { naam, functie })} />
+              <MetOpenPlekken tekst={comparities(soort, opdrachtnemer, normaliseerOpdrachtgever(og), { naam, functie })[1]} />
             </p>
           </div>
         </fieldset>
 
         <label className={`mt-5 flex items-start gap-3 rounded-[16px] border-[1.5px] p-4 text-[15px] leading-[1.55] transition-colors md:px-5 ${uit ? "opacity-60" : "cursor-pointer"} ${akkoord ? "border-[#322E83] bg-[#F6F5FB]" : "border-[#E6E5EF]"}`} style={{ color: BODY }}>
           <input type="checkbox" checked={akkoord} onChange={(e) => setAkkoord(e.target.checked)} disabled={vast} className="mt-0.5 h-5 w-5 shrink-0 accent-[#322E83]" />
-          <span>
-            Ik ga akkoord met dit basiscontract en de{" "}
-            <a href={DOCUMENTEN.algemeneVoorwaarden} target="_blank" rel="noopener" className="font-bold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a>{" "}
-            van React2u, en ik ben bevoegd om <strong style={{ color: NAVY }}>{statutair}</strong> te vertegenwoordigen.
-          </span>
+          {reseller ? (
+            <span>
+              Ik ga akkoord met deze resellerovereenkomst, en ik ben bevoegd om <strong style={{ color: NAVY }}>{statutair}</strong> te vertegenwoordigen.
+            </span>
+          ) : (
+            <span>
+              Ik ga akkoord met dit basiscontract en de{" "}
+              <a href={DOCUMENTEN.algemeneVoorwaarden} target="_blank" rel="noopener" className="font-bold underline underline-offset-4" style={{ color: NAVY }}>algemene voorwaarden</a>{" "}
+              van React2u, en ik ben bevoegd om <strong style={{ color: NAVY }}>{statutair}</strong> te vertegenwoordigen.
+            </span>
+          )}
         </label>
 
         {fout && <p role="alert" className="m-0 mt-4 rounded-[14px] bg-[#FDECEA] px-4 py-3 text-[15px] text-[#8A1C12]">{fout}</p>}
@@ -967,10 +1031,10 @@ function Formulier({
           <div className="mt-7 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <p className="m-0 flex max-w-[520px] items-start gap-2 text-[13px] leading-[1.5] md:order-1" style={{ color: MUTE }}>
               <span className="mt-0.5"><Icoon d={SLOT} size={14} /></span>
-              Je krijgt eerst een code per mail. Als bewijs leggen we je naam, functie, je bevestigde e-mailadres, het tijdstip, je IP-adres en de getekende versie vast; het getekende contract krijg je als pdf.
+              Je krijgt eerst een code per mail. Als bewijs leggen we je naam, functie, je bevestigde e-mailadres, het tijdstip, je IP-adres en de getekende versie vast; {reseller ? "de getekende overeenkomst" : "het getekende contract"} krijg je als pdf.
             </p>
             <button type="submit" disabled={bezig} className={`${knop.roze} !h-[56px] w-full !text-[16px] md:order-2 md:w-auto`}>
-              {bezig ? "Code versturen…" : <>Onderteken het contract<Pijl /></>}
+              {bezig ? "Code versturen…" : <>{reseller ? "Onderteken de overeenkomst" : "Onderteken het contract"}<Pijl /></>}
             </button>
           </div>
         ) : (
@@ -978,7 +1042,7 @@ function Formulier({
         )}
         <p className="geen-print m-0 mt-5 text-[14px]" style={{ color: MUTE }}>
           Eerst intern bespreken?{" "}
-          <a href={concept} className="font-bold underline underline-offset-4" style={{ color: NAVY }}>Download het contract als pdf</a>
+          <a href={concept} className="font-bold underline underline-offset-4" style={{ color: NAVY }}>Download {reseller ? "de overeenkomst" : "het contract"} als pdf</a>
           {huis.contact.phoneDisplay ? <>, of bel ons op <a href={`tel:${huis.contact.phone}`} className="font-bold" style={{ color: NAVY }}>{huis.contact.phoneDisplay.replace(/\s*-\s*/, " ")}</a></> : null}.
         </p>
       </form>
@@ -1023,34 +1087,42 @@ function Feest() {
 function Getekend({ contract, token, modus, vers, huis }: { contract: ContractPubliek; token?: string; modus: Modus; vers: boolean; huis: Huis }) {
   const inhoud = contract.getekend_inhoud!;
   const og = inhoud.opdrachtgever || {};
+  const soort = soortVan(inhoud);
+  const reseller = soort === "reseller";
+  const sd = CONTRACT_SOORT[soort];
   const pdf = token ? `/contract/${token}/pdf` : `/admin/contractvoorbeeld/${contract.id}/pdf`;
   const s = contractInhoud(inhoud);
-  const nu = looptijdNu(inhoud.ingangsdatum, inhoud.einddatum);
-  const partijen: [string, string] = [
-    comparitieOpdrachtnemer(inhoud.opdrachtnemer),
-    comparitieOpdrachtgever(og, { naam: inhoud.getekend_naam, functie: inhoud.getekend_functie }),
-  ];
+  const nu = !reseller && inhoud.einddatum ? looptijdNu(inhoud.ingangsdatum, inhoud.einddatum) : null;
+  const partijen = comparities(soort, inhoud.opdrachtnemer, og, { naam: inhoud.getekend_naam, functie: inhoud.getekend_functie });
   return (
     <>
       <Kopbalk contract={contract} actie={<a href={`${pdf}?download=1`} className={`${knop.rand} !h-[48px] md:!h-[52px]`}><Icoon d={DOWNLOAD} size={15} /> Pdf</a>} />
-      <Melding modus={modus} />
+      <Melding modus={modus} soort={soortVan(contract)} />
       <main>
         <Opening
           contract={{ ...contract, bedrijf: og.naam || contract.bedrijf }}
-          zin={vers ? <>Gelukt, {voornaam(inhoud.getekend_naam)}! Het contract is rond.</> : <>Ondertekend door {inhoud.getekend_naam}</>}
+          zin={
+            vers
+              ? <>Gelukt, {voornaam(inhoud.getekend_naam)}! {reseller ? "Welkom als partner." : "Het contract is rond."}</>
+              : <>Ondertekend door {inhoud.getekend_naam}</>
+          }
           tekst={
             <p className="m-0">
-              Het basiscontract arbodienstverlening tussen React2u en {og.naam || inhoud.bedrijf}, ondertekend op {momentLang(inhoud.getekend_at)} te {inhoud.getekend_plaats}.
-              {vers ? ` Het getekende contract staat als pdf in je mail op ${inhoud.getekend_email}.` : ""}
+              {reseller ? "De resellerovereenkomst" : "Het basiscontract arbodienstverlening"} tussen React2u en {og.naam || inhoud.bedrijf}, ondertekend op {momentLang(inhoud.getekend_at)} te {inhoud.getekend_plaats}.
+              {vers ? ` ${reseller ? "De getekende overeenkomst" : "Het getekende contract"} staat als pdf in je mail op ${inhoud.getekend_email}.` : ""}
             </p>
           }
-          feiten={[
-            ...contractFeiten(inhoud).slice(0, 2),
-            { label: nu.verlengd ? "Verlengd tot" : "Loopt tot", waarde: datumLang(nu.periodeEinde), sub: `opzeggen uiterlijk ${datumLang(nu.opzeggenUiterlijk)}` },
-          ]}
+          feiten={
+            nu
+              ? [
+                  ...contractFeiten(inhoud).slice(0, 2),
+                  { label: nu.verlengd ? "Verlengd tot" : "Loopt tot", waarde: datumLang(nu.periodeEinde), sub: `opzeggen uiterlijk ${datumLang(nu.opzeggenUiterlijk)}` },
+                ]
+              : contractFeiten(inhoud)
+          }
           knoppen={
             <>
-              <a href={`${pdf}?download=1`} className={knop.roze}><Icoon d={DOWNLOAD} size={15} /> Download het getekende contract</a>
+              <a href={`${pdf}?download=1`} className={knop.roze}><Icoon d={DOWNLOAD} size={15} /> Download {reseller ? "de getekende overeenkomst" : "het getekende contract"}</a>
               <a href={pdf} target="_blank" rel="noopener" className={knop.rand}>Bekijk de pdf<Pijl /></a>
             </>
           }
@@ -1083,14 +1155,14 @@ function Getekend({ contract, token, modus, vers, huis }: { contract: ContractPu
             <SectieKop eyebrow="Ondertekening" titel="Aldus overeengekomen" tekst="Beide handtekeningen, met plaats en datum. De getekende versie staat vast en kan niet meer worden gewijzigd." />
             <div className="grid gap-5 md:grid-cols-2">
               <Handtekeningvak
-                rol="Opdrachtnemer"
+                rol={sd.rollen[0]}
                 plaats={`Te ${plaatsUit(inhoud.opdrachtnemer)}, ${datumLang(inhoud.verstuurd_at || inhoud.getekend_at)}`}
-                partij="React2u"
+                partij={react2uPartij(soort, inhoud.opdrachtnemer)}
                 beeld={ONDERTEKENAAR.handtekening}
                 wie={`${ONDERTEKENAAR.naam}, ${ONDERTEKENAAR.functie}`}
               />
               <Handtekeningvak
-                rol="Opdrachtgever"
+                rol={sd.rollen[1]}
                 plaats={`Te ${inhoud.getekend_plaats}, ${datumLang(inhoud.getekend_at)}`}
                 partij={og.naam || inhoud.bedrijf}
                 beeld={contract.handtekening}
@@ -1106,7 +1178,7 @@ function Getekend({ contract, token, modus, vers, huis }: { contract: ContractPu
           </div>
         </section>
 
-        <Tekst s={s} partijen={partijen} eyebrow="Het contract" titel="Wat we hebben afgesproken" tekst="De tekst zoals hij is getekend, met beide partijen in de kop." />
+        <Tekst soort={soort} s={s} partijen={partijen} eyebrow={reseller ? "De overeenkomst" : "Het contract"} titel="Wat we hebben afgesproken" tekst="De tekst zoals hij is getekend, met beide partijen in de kop." />
       </main>
       <Voet contract={contract} huis={huis} pdf={pdf} />
     </>

@@ -10,8 +10,8 @@
 //   E2E_HOUDEN=1       stack na afloop laten draaien (om rond te kijken)
 //   E2E_GEEN_BUILD=1   bestaande .next gebruiken (alleen als die met deze
 //                      instellingen is gebouwd)
-//   E2E_ALLEEN=offerte alleen één test (offerte, vormen, brochure, contract, partner
-//                      of dashboard)
+//   E2E_ALLEEN=offerte alleen deze test(s), met komma's (offerte, vormen, brochure,
+//                      contract, reseller, partner of dashboard)
 //   E2E_POORT=3024     de site op een andere poort dan 3014 (en E2E_RESEND_POORT
 //                      voor de nep-Resend), als een vorige run nog draait
 //   E2E_STACK=2        een tweede Supabase-stack naast een lopende (een andere
@@ -192,7 +192,15 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
 
   if (!process.env.E2E_GEEN_BUILD) {
     stap("Site bouwen");
-    draai(process.execPath, [NEXT, "build"], { cwd: ROOT, env });
+    try {
+      draai(process.execPath, [NEXT, "build"], { cwd: ROOT, env });
+    } catch {
+      // In CI hapert soms de download van next/font/google (Outfit), en die fout blijft in .next hangen.
+      // Daarom één keer opnieuw, met een schone .next; een echte bouwfout faalt dan alsnog.
+      stap("Bouwen mislukt, nog één keer met een schone .next");
+      fs.rmSync(path.join(ROOT, ".next"), { recursive: true, force: true });
+      draai(process.execPath, [NEXT, "build"], { cwd: ROOT, env });
+    }
   }
   stap("Site starten");
   // Rechtstreeks node met next, niet via npx: dan stopt SIGTERM ook echt de server.
@@ -201,7 +209,7 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
 
   const testEnv = { ...env, E2E_BASIS: BASIS, E2E_UIT: UIT, E2E_DB_CONTAINER: DB };
   // dashboard als laatste: die maakt de verkooptabellen leeg voor zijn eigen vaste set.
-  const tests = process.env.E2E_ALLEEN ? [process.env.E2E_ALLEEN] : ["offerte", "vormen", "brochure", "contract", "partner", "dashboard"];
+  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "reseller", "partner", "dashboard"];
   const mislukt = [];
   for (const t of tests) {
     stap(`Test: ${t}`);

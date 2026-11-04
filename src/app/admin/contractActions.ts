@@ -4,16 +4,17 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  CONTRACT_EMAIL, contractFeiten, contractKort, controleerContract, normaliseerOpdrachtgever, offerteKenmerk, opdrachtnemerUit,
-  type Contract, type ContractStatus,
+  CONTRACT_EMAIL, contractFeiten, contractKort, controleerContract, normaliseerOpdrachtgever, offerteKenmerk, opdrachtnemerUit, soortVan,
+  type Contract, type ContractSoort, type ContractStatus,
 } from "@/lib/contracten";
-import { CONTRACT_STANDAARD, CONTRACT_VERSIE, contractStructuur, wijktAf } from "@/lib/contractTekst";
+import { contractStructuur, standaardTekst, standaardVersie, wijktAf } from "@/lib/contractTekst";
 import { contractUrl, sendContract } from "@/lib/mail";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 import type { VersturenState } from "./offerteActions";
 
 /*
- * Contracten in het beheer (migratie 0031): aanmaken, versturen, intrekken.
+ * Contracten in het beheer (migratie 0031, de resellerovereenkomst sinds 0033):
+ * aanmaken, versturen, intrekken.
  * Alles achter het salesrecht (`bellijst`), net als offertes. Wat de klant doet
  * (bekijken, tekenen) staat in app/(offerte)/contract/actions.ts; de database
  * laat het beheer die velden ook niet schrijven.
@@ -32,6 +33,7 @@ function foutUit(error: { code?: string; hint?: string; message?: string } | nul
   if (!error) return "Opslaan mislukt.";
   if (error.hint === "contract-getekend") return "Dit contract is getekend en kan niet meer worden gewijzigd.";
   if (error.code === "PGRST205" || error.code === "42P01") return "Contracten staan nog niet aan: migratie 0031 moet eerst in Supabase worden uitgevoerd.";
+  if (error.code === "PGRST204" || error.code === "42703") return "De resellerovereenkomst staat nog niet aan: migratie 0033 moet eerst in Supabase worden uitgevoerd.";
   if (error.code === "23514") return "Een van de velden klopt niet (bijvoorbeeld het e-mailadres, of een einddatum vóór de ingangsdatum).";
   return "Opslaan mislukt.";
 }
@@ -40,9 +42,10 @@ async function log(sb: Sb, contractId: string, soort: string, door: string, deta
   await sb.from("contract_gebeurtenissen").insert({ contract_id: contractId, soort, door, details: details ?? null });
 }
 
-function ververs(id?: string) {
+function ververs(id?: string, partnerId?: string | null) {
   revalidatePath("/admin/contracten");
   if (id) revalidatePath(`/admin/contracten/${id}`);
+  if (partnerId) revalidatePath(`/admin/partners/${partnerId}`);
 }
 
 async function laad(sb: Sb, id: string): Promise<Contract | null> {
@@ -59,17 +62,26 @@ async function opdrachtnemer() {
 /**
  * Nieuw contract of wijzigen. Bij een fout komt de melding terug en blijft
  * alles staan; bij succes naar het contract zelf. De tekst komt uit het
- * formulier (daar begint hij als de standaard); leeg wordt de standaard.
+ * formulier (daar begint hij als de standaard); leeg wordt de standaard. De
+ * soort ligt vast bij het aanmaken; een resellerovereenkomst heeft geen
+ * looptijd en geen offerte, wel een partner.
  */
 export async function saveContract(_prev: ContractFormState, fd: FormData): Promise<ContractFormState> {
   const { sb, user, admin } = await requirePerm("bellijst");
   const id = String(fd.get("id") || "");
-  const ingangsdatum = String(fd.get("ingangsdatum") || "");
-  const einddatum = String(fd.get("einddatum") || "");
-  const offerteId = String(fd.get("offerte_id") || "");
+  const oud = id ? await laad(sb, id) : null;
+  if (id && !oud) return { fout: "Dit contract bestaat niet meer." };
+  if (oud?.status === "getekend") return { fout: "Dit contract is getekend en kan niet meer worden gewijzigd." };
+  const soort: ContractSoort = oud ? soortVan(oud) : fd.get("soort") === "reseller" ? "reseller" : "basiscontract";
+  const reseller = soort === "reseller";
+  const ingangsdatum = reseller ? null : String(fd.get("ingangsdatum") || "");
+  const einddatum = reseller ? null : String(fd.get("einddatum") || "");
+  const offerteId = reseller ? "" : String(fd.get("offerte_id") || "");
+  const partnerId = reseller ? String(fd.get("partner_id") || "") : "";
   const tekstIn = String(fd.get("tekst") ?? "").replace(/\r\n?/g, "\n").trim().slice(0, 60000);
   const og = normaliseerOpdrachtgever({
     naam: fd.get("og_naam"), adres: fd.get("og_adres"), postcode: fd.get("og_postcode"), plaats: fd.get("og_plaats"), kvk: fd.get("og_kvk"),
+    ...(reseller ? { email: fd.get("og_email"), telefoon: fd.get("og_telefoon") } : {}),
   });
 
   const rij = {
@@ -80,10 +92,12 @@ export async function saveContract(_prev: ContractFormState, fd: FormData): Prom
     opdrachtgever: Object.keys(og).length ? og : null,
     opdrachtnemer: await opdrachtnemer(),
     offerte_id: UUID.test(offerteId) ? offerteId : null,
-    offerte_kenmerk: tekst(fd, "offerte_kenmerk"),
+    offerte_kenmerk: reseller ? null : tekst(fd, "offerte_kenmerk"),
+    // Alleen bij de reseller: zo blijft een basiscontract ook op te slaan zonder migratie 0033.
+    ...(reseller ? { partner_id: UUID.test(partnerId) ? partnerId : null } : {}),
     ingangsdatum,
     einddatum,
-    tekst: tekstIn || CONTRACT_STANDAARD,
+    tekst: tekstIn || standaardTekst(soort),
     aanvullend: tekst(fd, "aanvullend", 5000),
     afzender_naam: tekst(fd, "afzender_naam"),
     afzender_functie: tekst(fd, "afzender_functie"),
@@ -91,14 +105,18 @@ export async function saveContract(_prev: ContractFormState, fd: FormData): Prom
     afzender_telefoon: tekst(fd, "afzender_telefoon", 40),
   };
   // De versie hoort bij de standaardtekst; een aangepaste tekst noemt zijn versie niet.
-  const tekst_versie = wijktAf(rij.tekst) ? null : CONTRACT_VERSIE;
+  const tekst_versie = wijktAf(rij.tekst, soort) ? null : standaardVersie(soort);
+  const wie = reseller ? "de reseller" : "de klant";
 
-  if (!rij.bedrijf) return { fout: "Vul de naam van het bedrijf in." };
-  if (rij.email && !EMAIL.test(rij.email)) return { fout: "Het e-mailadres van de klant klopt niet." };
+  if (!rij.bedrijf) return { fout: reseller ? "Vul de naam van het kantoor in." : "Vul de naam van het bedrijf in." };
+  if (rij.email && !EMAIL.test(rij.email)) return { fout: `Het e-mailadres van ${wie} klopt niet.` };
   if (rij.afzender_email && !EMAIL.test(rij.afzender_email)) return { fout: "Het e-mailadres van de afzender klopt niet." };
-  if (!DATUM.test(ingangsdatum) || !DATUM.test(einddatum)) return { fout: "Vul de ingangsdatum en de einddatum in." };
-  if (einddatum <= ingangsdatum) return { fout: "De einddatum moet na de ingangsdatum liggen." };
+  if (!reseller) {
+    if (!ingangsdatum || !einddatum || !DATUM.test(ingangsdatum) || !DATUM.test(einddatum)) return { fout: "Vul de ingangsdatum en de einddatum in." };
+    if (einddatum <= ingangsdatum) return { fout: "De einddatum moet na de ingangsdatum liggen." };
+  }
   if (og.kvk && !/^\d{8}$/.test(og.kvk)) return { fout: "Een KvK-nummer heeft 8 cijfers." };
+  if (og.email && !EMAIL.test(og.email)) return { fout: "Het e-mailadres van het kantoor klopt niet." };
   if (!contractStructuur(rij.tekst).artikelen.length) return { fout: "De contracttekst heeft geen artikelen (een artikel begint met ## 1. Titel)." };
 
   // Gekoppeld aan een offerte zonder eigen kenmerk: het nummer en de datum van die offerte.
@@ -107,22 +125,19 @@ export async function saveContract(_prev: ContractFormState, fd: FormData): Prom
     if (data) rij.offerte_kenmerk = offerteKenmerk(data as { nummer: string; getekend_at: string | null; verstuurd_at: string | null });
   }
 
-  if (id) {
-    const oud = await laad(sb, id);
-    if (!oud) return { fout: "Dit contract bestaat niet meer." };
-    if (oud.status === "getekend") return { fout: "Dit contract is getekend en kan niet meer worden gewijzigd." };
+  if (oud) {
     const { error } = await sb.from("contracten").update({ ...rij, tekst_versie }).eq("id", id);
     if (error) return { fout: foutUit(error) };
     if (oud.status !== "concept") await log(sb, id, "gewijzigd", admin.email);
-    ververs(id);
+    ververs(id, ("partner_id" in rij ? rij.partner_id : null) || oud.partner_id);
     redirect(`/admin/contracten/${id}?opgeslagen=contract`);
   }
 
-  const { data, error } = await sb.from("contracten").insert({ ...rij, tekst_versie, created_by: user.id }).select("id").single();
+  const { data, error } = await sb.from("contracten").insert({ ...rij, ...(reseller ? { soort } : {}), tekst_versie, created_by: user.id }).select("id").single();
   if (error || !data) return { fout: foutUit(error) };
   const nieuw = (data as { id: string }).id;
-  await log(sb, nieuw, "aangemaakt", admin.email, rij.offerte_id ? { offerte: rij.offerte_kenmerk } : undefined);
-  ververs();
+  await log(sb, nieuw, "aangemaakt", admin.email, rij.offerte_id ? { offerte: rij.offerte_kenmerk } : reseller && rij.bedrijf ? { partner: rij.bedrijf } : undefined);
+  ververs(undefined, "partner_id" in rij ? rij.partner_id : null);
   redirect(`/admin/contracten/${nieuw}?opgeslagen=contract-nieuw`);
 }
 
@@ -147,6 +162,7 @@ export async function verstuurContract(id: string, _prev: VersturenState, fd: Fo
   const { contact } = await offerteHuisstijl();
   const res = await sendContract({
     to: aan,
+    soort: soortVan(c),
     aanhef: tekst(fd, "aanhef", 120) ?? c.contactpersoon?.split(" ")[0] ?? null,
     bedrijf: c.bedrijf,
     nummer: c.nummer,
@@ -172,7 +188,7 @@ export async function verstuurContract(id: string, _prev: VersturenState, fd: Fo
     .eq("id", id);
   if (error) return { fout: foutUit(error) };
   await log(sb, id, herinnering ? "herinnering" : "verstuurd", admin.email, { aan });
-  ververs(id);
+  ververs(id, c.partner_id);
   return { ok: true };
 }
 

@@ -26,6 +26,7 @@ import {
 } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
 import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
+import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
 
 // RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
 // zou worden); in productie staat hij niet en is dit gewoon Resend.
@@ -629,50 +630,53 @@ export function brochureUrl(token: string) {
   return `${siteBasis()}/brochure/${token}`;
 }
 
-/* ---------- contracten (migratie 0031) ---------- */
+/* ---------- contracten (migratie 0031, de resellerovereenkomst sinds 0033) ---------- */
 
 /**
- * Het basiscontract naar de klant: een persoonlijke mail met één knop naar de
- * contractpagina (lib/contractMail.ts). Antwoorden gaat naar de afzender.
+ * Het contract naar de klant of de partner: een persoonlijke mail met één knop
+ * naar de contractpagina (lib/contractMail.ts). Antwoorden gaat naar de afzender.
  */
 export async function sendContract(c: Omit<ContractMail, "basis"> & { to: string }): Promise<Verzonden> {
   const { to, ...rest } = c;
   const html = contractMailHtml({ basis: siteBasis(), ...rest });
-  const onderwerp = `${c.herinnering ? "Herinnering: b" : "B"}asiscontract ${c.nummer} voor ${c.bedrijf}`;
+  const naam = CONTRACT_SOORT[soortVan(c)].naam;
+  const onderwerp = `${c.herinnering ? `Herinnering: ${naam.toLowerCase()}` : naam} ${c.nummer} voor ${c.bedrijf}`;
   return verstuur([to], onderwerp, html, c.afzender.email || undefined);
 }
 
 /** De code waarmee wie tekent zijn e-mailadres bevestigt; vooraan in het onderwerp, net als bij offertes. */
-export async function sendContractCode(c: { to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender; contact?: ContactInfo }): Promise<Verzonden> {
-  const html = contractCodeHtml({ basis: siteBasis(), code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact });
+export async function sendContractCode(c: { to: string; soort?: ContractSoort; code: string; nummer: string; bedrijf: string; afzender: Afzender; contact?: ContactInfo }): Promise<Verzonden> {
+  const html = contractCodeHtml({ basis: siteBasis(), soort: c.soort, code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact });
   return verstuur([c.to], `${c.code} is je code voor contract ${c.nummer}`, html, c.afzender.email || undefined);
 }
 
 /** Bevestiging aan wie tekende, met het getekende contract als pdf (met het ondertekeningscertificaat). */
 export async function bevestigContractGetekend(b: {
-  to: string; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
+  to: string; soort?: ContractSoort; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
   regels: { label: string; waarde: string }[]; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo;
 }): Promise<Verzonden> {
   const html = contractGetekendHtml({
-    basis: siteBasis(), naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash, moment: b.moment,
+    basis: siteBasis(), soort: b.soort, naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash, moment: b.moment,
     regels: b.regels, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact,
   });
-  return verstuur([b.to], `Ondertekend: basiscontract ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
+  return verstuur([b.to], `Ondertekend: ${CONTRACT_SOORT[soortVan(b)].zin.replace(/^(het|de) /, "")} ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
 }
 
 export async function notifyContractGetekend(n: {
-  nummer: string; bedrijf: string; naam: string; functie: string; email: string; organisatie: string[]; looptijd: string;
+  soort?: ContractSoort; nummer: string; bedrijf: string; naam: string; functie: string; email: string; organisatie: string[]; looptijd: string;
   adminLink: string; afzenderEmail: string | null; pdf?: Bijlage | null;
 }) {
+  const sd = CONTRACT_SOORT[soortVan(n)];
+  const woord = sd.zin.replace(/^(het|de) /, "");
   await post(
     offerteOntvangers(n.afzenderEmail),
-    `Getekend: basiscontract ${n.nummer} voor ${n.bedrijf}`,
+    `Getekend: ${woord} ${n.nummer} voor ${n.bedrijf}`,
     persoonlijk(
-      `${n.bedrijf} heeft het basiscontract getekend`,
+      `${n.bedrijf} heeft ${sd.zin} getekend`,
       [
-        `${esc(n.naam)} (${esc(n.functie)}) heeft basiscontract ${esc(n.nummer)} zojuist online ondertekend.`,
+        `${esc(n.naam)} (${esc(n.functie)}) heeft ${woord} ${esc(n.nummer)} zojuist online ondertekend.`,
         `<strong>Looptijd</strong><br>${esc(n.looptijd)}`,
-        `<strong>Opdrachtgever</strong><br>${n.organisatie.map(esc).join("<br>")}`,
+        `<strong>${sd.rollen[1]}</strong><br>${n.organisatie.map(esc).join("<br>")}`,
         `E-mailadres ${esc(n.email)} bevestigd met een code; de bevestiging met de pdf is daarheen gestuurd.${n.pdf ? " Het getekende contract zit ook bij deze mail." : ""}`,
       ],
       { tekst: "Open het contract", link: n.adminLink }
@@ -683,12 +687,13 @@ export async function notifyContractGetekend(n: {
 }
 
 /** De eerste keer dat de klant het contract opent: alleen naar de collega die het stuurde. */
-export async function notifyContractBekeken(n: { to: string; nummer: string; bedrijf: string; adminLink: string }) {
+export async function notifyContractBekeken(n: { to: string; soort?: ContractSoort; nummer: string; bedrijf: string; adminLink: string }) {
+  const zin = CONTRACT_SOORT[soortVan(n)].zin;
   await post(
     [n.to],
-    `${n.bedrijf} bekijkt het basiscontract`,
+    `${n.bedrijf} bekijkt ${zin}`,
     persoonlijk(
-      `${n.bedrijf} heeft het basiscontract geopend`,
+      `${n.bedrijf} heeft ${zin} geopend`,
       [`Contract ${esc(n.nummer)} is zojuist voor het eerst geopend. Een goed moment om even te bellen.`],
       { tekst: "Open het contract", link: n.adminLink }
     )
