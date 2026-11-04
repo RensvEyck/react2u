@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
 import { datumOver, euro, isVorm, waardeVan, weergaveVan, WEERGAVE, VORMEN, VORM_KEYS, type Offerte, type Weergave } from "@/lib/offertes";
+import { hitrate } from "@/lib/opvolgen";
 import { LuPlus, LuDatabase, LuFilePenLine, LuChevronRight, LuEye, LuSettings2 } from "react-icons/lu";
 
 /**
@@ -58,11 +59,8 @@ export default async function OffertesAdmin({ searchParams }: { searchParams: Pr
   // De pijplijn: wat er openstaat, wat de klant al bekeek, en wat er de laatste 90 dagen getekend is.
   const open = alle.filter(({ w }) => w === "verstuurd" || w === "bekeken");
   const bekeken = open.filter(({ w }) => w === "bekeken");
-  const sinds = datumOver(-90);
-  const recent = alle.filter(({ o }) => o.verstuurd_at && o.verstuurd_at.slice(0, 10) >= sinds);
-  const getekend = recent.filter(({ w }) => w === "getekend");
-  const afgerond = recent.filter(({ w }) => w === "getekend" || w === "afgewezen" || w === "verlopen");
-  const conversie = afgerond.length ? Math.round((getekend.length / afgerond.length) * 100) : null;
+  // Dezelfde berekening als het Verkoopblok op het dashboard.
+  const { getekend, afgerond, procent: conversie } = hitrate(alle, datumOver(-90));
   const som = (l: typeof alle) => Math.round(l.reduce((s, r) => s + r.waarde.perMaand, 0) * 100) / 100;
   const tel = (f: (typeof FILTERS)[number]) => alle.filter(({ w }) => f.past(w)).length;
 

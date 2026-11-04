@@ -19,6 +19,8 @@ import { BLOCK_TEMPLATES } from "@/lib/blockTemplates";
 import {
   daysBetween, firstName, greeting, longDate, systemChecks, trend, waited,
 } from "@/lib/dashboard";
+import { haalVerkoop, verkoopOverzicht } from "@/lib/opvolgenDb";
+import VerkoopBlok from "@/components/admin/VerkoopBlok";
 
 type InboxRow = { kind: "bericht" | "sollicitatie"; id: string; name: string; about: string; at: string };
 type Draft = { key: string; kind: string; title: string; href: string; at: string };
@@ -36,6 +38,8 @@ export default async function AdminDashboard() {
   // Alleen ophalen wat deze gebruiker mag zien. RLS zou de rest leeg
   // teruggeven, maar dan staat er een tegel met 0 die niet klopt.
   const contentPerms = can("paginas") || can("blog") || can("vacatures") || can("instellingen") || can("seo");
+  // Offertes, brochures en contracten: eigen zes query's, tegelijk met de rest gestart.
+  const verkoopRes = can("bellijst") ? haalVerkoop(sb, now) : Promise.resolve(null);
   const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, profilesRes] = await Promise.all([
     can("postvak")
       ? sb.from("contact_messages").select("id, name, subject, created_at", { count: "exact" })
@@ -100,6 +104,13 @@ export default async function AdminDashboard() {
   ).filter((c) => !c.ignored);
   const companies = followed.slice(0, 5);
 
+  /* ---------- verkoop ---------- */
+  // Na het bezoek: een klant met een open offerte die nu op de site is, is het warmst.
+  const verkoopData = await verkoopRes;
+  const verkoop = verkoopData
+    ? verkoopOverzicht(verkoopData, followed.map((c) => ({ naam: c.name, domein: c.domain, laatst: c.lastSeen, paginas: c.views })), now)
+    : null;
+
   /* ---------- inhoud ---------- */
   const pages = (pagesRes.data as Page[]) || [];
   const posts = (postsRes.data as Post[]) || [];
@@ -148,7 +159,7 @@ export default async function AdminDashboard() {
 
   const attention =
     (unhandled > 0 ? 1 : 0) + (toCall.length > 0 ? 1 : 0) + (seoIssues > 0 ? 1 : 0) +
-    (expiring.length > 0 ? 1 : 0);
+    (expiring.length > 0 ? 1 : 0) + (verkoop?.signalen.some((s) => s.toon !== "info") ? 1 : 0);
 
   const name = firstName(admin.email);
 
@@ -303,6 +314,8 @@ export default async function AdminDashboard() {
           )}
         </div>
       )}
+
+      {verkoop && <VerkoopBlok {...verkoop} />}
 
       {can("bezoek") && (
         <div className="acard overflow-hidden">
