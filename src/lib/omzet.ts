@@ -18,7 +18,8 @@ import { normalizeName } from "./companies";
 import { berekenTotalen, DIENSTLABEL, herstelKeuze, isVorm, normaliseerRegels, VORMEN, type Offerte } from "./offertes";
 import { maandVanWeek, type Medewerker, type UrenRij } from "./uren";
 
-export type GetekendeOfferte = Pick<Offerte, "id" | "nummer" | "bedrijf" | "vorm" | "regels" | "keuze" | "medewerkers" | "status" | "getekend_at">;
+/** `bron: "los"` voor een los opgevoerde klant of opdracht (lib/losseOpdrachten.ts). */
+export type GetekendeOfferte = Pick<Offerte, "id" | "nummer" | "bedrijf" | "vorm" | "regels" | "keuze" | "medewerkers" | "status" | "getekend_at"> & { bron?: "los" };
 export type Gestopt = { offerte_id: string; vanaf: string; reden?: string | null };
 
 const TZ = "Europe/Amsterdam";

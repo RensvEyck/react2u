@@ -79,7 +79,7 @@ export default function VerkoopBlok({ signalen, cijfers, leeg }: { signalen: Sig
               label="Getekend, 30 dagen"
               waarde={euro(getekend30.perMaand)}
               achter="per maand"
-              sub={getekend30.aantal === 0 ? "nog niets deze periode" : `${getekend30.aantal} offerte${getekend30.aantal === 1 ? "" : "s"}${getekend30.eenmalig ? ` · ${euro(getekend30.eenmalig)} eenmalig` : ""}`}
+              sub={getekend30.aantal === 0 ? "nog niets deze periode" : `${getekend30.aantal} getekend${getekend30.eenmalig ? ` · ${euro(getekend30.eenmalig)} eenmalig` : ""}`}
               goed={getekend30.aantal > 0}
             />
             <Cijfer

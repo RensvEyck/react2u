@@ -10,6 +10,7 @@ import { kern, periodeVan, PERIODES, perMaand, perVerkoper, perVorm, pijplijn, t
 import { Kerncijfer, MigratieNodig } from "@/components/admin/Kerncijfer";
 import { KLEUR, Staven } from "@/components/admin/Grafiek";
 import { OpvolgRij } from "@/components/admin/VerkoopBlok";
+import { alsOfferte, type LosseOpdracht } from "@/lib/losseOpdrachten";
 
 /**
  * Het salesdashboard: hoe de verkoop loopt over een periode (30 dagen, 90
@@ -29,13 +30,15 @@ export default async function Verkoop({ searchParams }: { searchParams: Promise<
   const periode = periodeVan((await searchParams).periode);
   const nu = new Date();
   const jaar = new Date(nu.getTime() - 400 * 86_400_000).toISOString();
-  const [o, b, opvolg] = await Promise.all([
+  const [o, b, opvolg, l] = await Promise.all([
     // Twaalf maanden en wat nu openstaat; de regels per offerte zijn nodig voor de waarde.
     sb.from("offertes").select(OFFERTE)
       .or(`status.eq.verstuurd,verstuurd_at.gte.${jaar},created_at.gte.${jaar},getekend_at.gte.${jaar}`)
       .order("created_at", { ascending: false }).limit(1000),
     sb.from("brochures").select(BROCHURE).neq("status", "concept").gte("verstuurd_at", jaar).limit(1000),
     haalVerkoop(sb, nu),
+    // Los opgevoerde klanten en opdrachten (0036): tellen als getekend, zonder hitrate of trechter.
+    sb.from("losse_opdrachten").select("*").gte("datum", jaar.slice(0, 10)).limit(2000),
   ]);
   if (isMissingTable(o.error)) {
     return (
@@ -46,7 +49,8 @@ export default async function Verkoop({ searchParams }: { searchParams: Promise<
     );
   }
 
-  const offertes = ((o.data as unknown as VerkoopOfferte[] | null) || []).map((x) => ({ ...x, vorm: x.vorm || "verzuimbegeleiding" }));
+  const losse = ((l.data as LosseOpdracht[] | null) || []).map((x) => alsOfferte({ ...x, bedrag: Number(x.bedrag) }));
+  const offertes = [...((o.data as unknown as VerkoopOfferte[] | null) || []).map((x) => ({ ...x, vorm: x.vorm || "verzuimbegeleiding" })), ...losse];
   const brochures = (b.data as unknown as BrochureRij[] | null) || [];
   const sinds = datumOver(-periode.dagen, nu);
   const k = kern(offertes, sinds, nu);
@@ -57,6 +61,7 @@ export default async function Verkoop({ searchParams }: { searchParams: Promise<
   const verkopers = perVerkoper(offertes, sinds, nu);
   const { signalen } = verkoopOverzicht(opvolg, [], nu);
   const pijplijnTotaal = fasen.reduce((s, f) => s + f.perMaand, 0);
+  const losInPeriode = losse.filter((x) => (x.getekend_at || "").slice(0, 10) >= sinds).length;
 
   return (
     <div className="space-y-6">
@@ -67,7 +72,11 @@ export default async function Verkoop({ searchParams }: { searchParams: Promise<
           label={`Getekend, ${periode.label}`}
           waarde={euro(k.getekend.perMaand)}
           achter="per maand"
-          sub={`${k.getekend.aantal} offerte${k.getekend.aantal === 1 ? "" : "s"}${k.getekend.eenmalig ? ` · ${euro(k.getekend.eenmalig)} eenmalig` : ""}`}
+          sub={[
+            `${k.getekend.aantal} getekend`,
+            losInPeriode ? `waarvan ${losInPeriode} los opgevoerd` : "",
+            k.getekend.eenmalig ? `${euro(k.getekend.eenmalig)} eenmalig` : "",
+          ].filter(Boolean).join(" · ")}
           href="/admin/offertes?filter=getekend"
           accent={k.getekend.aantal > 0}
         />
@@ -187,6 +196,7 @@ function Kop({ periode }: { periode: string }) {
             </Link>
           ))}
         </nav>
+        <Link href="/admin/verkoop/los#nieuw" className="abtn-ghost"><LuPlus className="text-[14px]" /> Klant of opdracht</Link>
         <Link href="/admin/offertes/nieuw" className="abtn"><LuPlus /> Nieuwe offerte</Link>
       </div>
     </div>

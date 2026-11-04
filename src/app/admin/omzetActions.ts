@@ -94,6 +94,14 @@ export async function abonnementStoppen(formData: FormData) {
   const offerteId = String(formData.get("offerte_id") || "");
   const maand = String(formData.get("vanaf") || "");
   if (!UUID.test(offerteId) || !/^\d{4}-\d{2}$/.test(maand)) redirect("/admin/omzet?fout=stoppen#klanten");
+  // Een los opgevoerde klant (0036) stopt in zijn eigen rij, niet bij de offertes.
+  if (formData.get("bron") === "los") {
+    const { error } = await sb.from("losse_opdrachten").update({ stop: `${maand}-01` }).eq("id", offerteId);
+    if (error) redirect("/admin/omzet?fout=stoppen#klanten");
+    revalidatePath("/admin/omzet");
+    revalidatePath("/admin/verkoop", "layout");
+    redirect("/admin/omzet?opgeslagen=gestopt#klanten");
+  }
   const { error } = await sb.from("abonnementen_gestopt").upsert({
     offerte_id: offerteId,
     vanaf: `${maand}-01`,
@@ -105,10 +113,12 @@ export async function abonnementStoppen(formData: FormData) {
   redirect("/admin/omzet?opgeslagen=gestopt#klanten");
 }
 
-export async function abonnementHervatten(offerteId: string) {
+/** `bron` is "los" voor een los opgevoerde klant (0036), anders een offerte; via bind, vóór de FormData. */
+export async function abonnementHervatten(offerteId: string, bron: "los" | "offerte") {
   const { sb } = await requirePerm("omzet");
   if (!UUID.test(offerteId)) return;
-  await sb.from("abonnementen_gestopt").delete().eq("offerte_id", offerteId);
+  if (bron === "los") await sb.from("losse_opdrachten").update({ stop: null }).eq("id", offerteId);
+  else await sb.from("abonnementen_gestopt").delete().eq("offerte_id", offerteId);
   revalidatePath("/admin/omzet");
   redirect("/admin/omzet?opgeslagen=hervat#gestopt");
 }

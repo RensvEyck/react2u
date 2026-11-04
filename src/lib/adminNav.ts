@@ -37,6 +37,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
   { label: "Contracten", href: "/admin/contracten", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening arbowet overeenkomst ondertekenen tekenen looptijd opzeggen verlengen sales" },
   { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales" },
+  { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
   { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
   { label: "Uren", href: "/admin/omzet/uren", icon: LuClock, keywords: "declarabele uren medewerkers werknemers urenregistratie declarabiliteit norm week invullen", paletteOnly: true },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
@@ -86,6 +87,6 @@ export const CRUMBS: Record<string, string> = {
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",
-  offertes: "Offertes", contracten: "Contracten", verkoop: "Verkoop", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
+  offertes: "Offertes", contracten: "Contracten", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

@@ -1,5 +1,6 @@
 import type { supabaseServer } from "./supabase/server";
 import { soortVan } from "./contracten";
+import { alsOfferte, type LosseOpdracht } from "./losseOpdrachten";
 import { opvolgen, verkoopcijfers, type Bezoeker, type BrochureRij, type ContractRij, type Invoer, type OfferteRij } from "./opvolgen";
 
 type Sb = Awaited<ReturnType<typeof supabaseServer>>;
@@ -31,10 +32,13 @@ const leesContracten = (sb: Sb, kolommen: string) =>
  * laatste 90 dagen verstuurd of 45 dagen aangemaakt is (voor de hitrate en om
  * een brochure aan een latere offerte te koppelen).
  */
-export async function haalVerkoop(sb: Sb, nu = new Date()): Promise<Omit<Invoer, "bezoek">> {
+/** Wat het Verkoopblok leest; `losse` zijn de los opgevoerde klanten en opdrachten (0036), alleen voor de cijfers. */
+export type VerkoopData = Omit<Invoer, "bezoek"> & { losse: OfferteRij[] };
+
+export async function haalVerkoop(sb: Sb, nu = new Date()): Promise<VerkoopData> {
   const iso = (dagen: number) => new Date(nu.getTime() - dagen * DAG).toISOString();
   const gemaildSoorten = ["verstuurd", "herinnering"];
-  const [o, b, c, go, gb, gc] = await Promise.all([
+  const [o, b, c, go, gb, gc, l] = await Promise.all([
     sb.from("offertes").select(OFFERTE)
       .or(`status.eq.verstuurd,verstuurd_at.gte.${iso(90)},created_at.gte.${iso(45)},getekend_at.gte.${iso(60)}`)
       .order("created_at", { ascending: false }).limit(1000),
@@ -49,6 +53,7 @@ export async function haalVerkoop(sb: Sb, nu = new Date()): Promise<Omit<Invoer,
       .order("at", { ascending: false }).limit(1000),
     sb.from("contract_gebeurtenissen").select("contract_id, at").in("soort", gemaildSoorten).gte("at", iso(60))
       .order("at", { ascending: false }).limit(1000),
+    sb.from("losse_opdrachten").select("*").gte("datum", iso(60).slice(0, 10)).limit(1000),
   ]);
 
   // Nieuwste eerst opgehaald: de eerste per id is de laatste keer gemaild.
@@ -63,15 +68,17 @@ export async function haalVerkoop(sb: Sb, nu = new Date()): Promise<Omit<Invoer,
   const offertes = ((o.data as unknown as OfferteRij[] | null) || []).map((x) => ({ ...x, vorm: x.vorm || "verzuimbegeleiding" }));
   const brochures = (b.data as unknown as BrochureRij[] | null) || [];
   const contracten = ((c.data as unknown as ContractRij[] | null) || []).map((x) => ({ ...x, soort: soortVan(x) }));
-  return { offertes, brochures, contracten, gemaild };
+  const losse = ((l.data as LosseOpdracht[] | null) || []).map((x) => alsOfferte({ ...x, bedrag: Number(x.bedrag) }));
+  return { offertes, brochures, contracten, gemaild, losse };
 }
 
 /** De signalen en de cijfers voor het Verkoopblok. */
-export function verkoopOverzicht(data: Omit<Invoer, "bezoek">, bezoek: Bezoeker[], nu = new Date()) {
+export function verkoopOverzicht(data: VerkoopData, bezoek: Bezoeker[], nu = new Date()) {
   return {
-    signalen: opvolgen({ ...data, bezoek }, nu),
-    cijfers: verkoopcijfers(data.offertes, data.contracten, nu),
+    // Een los opgevoerde klant is geen offerte om op te volgen; in de cijfers telt hij wel mee.
+    signalen: opvolgen({ offertes: data.offertes, brochures: data.brochures, contracten: data.contracten, gemaild: data.gemaild, bezoek }, nu),
+    cijfers: verkoopcijfers([...data.offertes, ...data.losse], data.contracten, nu),
     // Niets lopend (of nog nooit iets verstuurd): dan een begin in plaats van vier nullen.
-    leeg: data.offertes.length === 0 && data.brochures.length === 0 && data.contracten.length === 0,
+    leeg: data.offertes.length === 0 && data.brochures.length === 0 && data.contracten.length === 0 && data.losse.length === 0,
   };
 }

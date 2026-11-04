@@ -57,6 +57,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Abonnement** | Een getekende offerte als bron van omzet: vanaf de maand van tekenen het jaarbedrag gedeeld door twaalf, tot hij is beëindigd (`abonnementen_gestopt`, migratie 0035). Zie *Omzet en uren*. |
 | **Medewerker** (`medewerkers`) | Iemand van React2u die declarabele uren schrijft, met contracturen per week, een norm en een uurtarief. Heeft geen login: de super admin vult de uren in. Niet te verwarren met *medewerkers* op een offerte (het aantal werknemers van de klant). |
 | **Declarabiliteit** | Declarabele uren gedeeld door de beschikbare uren (contracturen min afwezig), in procenten, tegenover de norm van de medewerker. |
+| **Los opgevoerd** (`losse_opdrachten`) | Een klant met een abonnement of een losse opdracht die buiten de offertes om is afgesproken (migratie 0036, `/admin/verkoop/los`). Telt mee als getekend in verkoop en omzet. |
 
 ## Architectuur
 
@@ -1514,6 +1515,22 @@ vullen met werknemers met het aantal declarable uren"; zien en invullen:
   (niet ingevuld is iets anders dan nul uur). Daaronder de medewerkers:
   contracturen, norm, uurtarief (leeg: de uren tellen niet in de omzet) en
   actief. Regels in [`lib/uren.ts`](src/lib/uren.ts).
+
+- **`/admin/verkoop/los`** (salesrecht of recht omzet, migratie
+  [0036](supabase/migrations/0036_losse_opdrachten.sql)): **losse klanten en
+  opdrachten**, wat buiten de offertes om is afgesproken (Rens: "we hebben al
+  veel klanten en soms heb je losse klanten met enkele opdracht"). Eén voor
+  één: een klant met een abonnement (bedrag per maand, sinds, en eventueel
+  *gestopt vanaf*) of een losse opdracht (totaal op een datum), met dienst,
+  verkoper en notitie. [`lib/losseOpdrachten.ts`](src/lib/losseOpdrachten.ts)
+  maakt er een getekende offerte met één regel van (`alsOfferte`, `bron:
+  "los"`), zodat verkoop en omzet er zonder uitzondering mee rekenen: getekend,
+  per maand, per soort ("Overig" zonder dienst), per verkoper, de labels, de
+  klanten (samen met hun offertes op naam) en beëindigen (op de eigen rij, niet
+  in `abonnementen_gestopt`). Zonder `verstuurd_at` telt hij niet in de
+  hitrate, de doorlooptijd, de trechter of de pijplijn, en niet in de
+  opvolglijst. Het Verkoopblok op het dashboard telt hem mee in *Getekend, 30
+  dagen*.
 
 Het is **omzet uit afspraken, geen boekhouding**: wat niet betaald wordt of
 niet in een offerte staat, zit er niet in. Een getekende offerte telt door tot

@@ -12,7 +12,7 @@
  */
 
 import { hitrate, klantSleutels, type BrochureRij, type OfferteRij } from "./opvolgen";
-import { datumOver, isVorm, VORMEN, waardeVan, weergaveVan, type Offerte, type Totalen, type Vorm } from "./offertes";
+import { datumOver, isVorm, VORMEN, waardeVan, weergaveVan, type Offerte, type Totalen } from "./offertes";
 import { maandVan } from "./omzet";
 
 export type VerkoopOfferte = OfferteRij & Pick<Offerte, "afzender_naam" | "afgewezen_at">;
@@ -29,10 +29,10 @@ export function periodeVan(key: string | undefined) {
   return PERIODES.find((p) => p.key === key) ?? PERIODES[1];
 }
 
-type Rij = { o: VerkoopOfferte; w: ReturnType<typeof weergaveVan>; t: Totalen; vorm: Vorm };
+type Rij = { o: VerkoopOfferte; w: ReturnType<typeof weergaveVan>; t: Totalen };
 
 function rijen(offertes: VerkoopOfferte[], vandaag: string): Rij[] {
-  return offertes.map((o) => ({ o, w: weergaveVan(o, vandaag), t: waardeVan(o), vorm: isVorm(o.vorm) ? o.vorm : "verzuimbegeleiding" }));
+  return offertes.map((o) => ({ o, w: weergaveVan(o, vandaag), t: waardeVan(o) }));
 }
 
 const rond = (n: number) => Math.round(n * 100) / 100;
@@ -181,8 +181,11 @@ function groepeer(offertes: VerkoopOfferte[], sinds: string, nu: Date, sleutel: 
   return uit.sort((a, b) => b.perMaand + b.eenmalig / 12 - (a.perMaand + a.eenmalig / 12) || b.verstuurd - a.verstuurd);
 }
 
+/** Per soort offerte; een losse opdracht zonder dienst (lib/losseOpdrachten.ts) is "Overig". */
 export function perVorm(offertes: VerkoopOfferte[], sinds: string, nu = new Date()): Groep[] {
-  return groepeer(offertes, sinds, nu, ({ vorm }) => ({ sleutel: vorm, label: VORMEN[vorm].kort, kleur: VORMEN[vorm].kleur }));
+  return groepeer(offertes, sinds, nu, ({ o }) =>
+    isVorm(o.vorm) ? { sleutel: o.vorm, label: VORMEN[o.vorm].kort, kleur: VORMEN[o.vorm].kleur } : { sleutel: "overig", label: "Overig", kleur: "#6b6a85" }
+  );
 }
 
 /** Per verkoper: de afzender op de offerte. */

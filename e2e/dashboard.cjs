@@ -103,7 +103,7 @@ insert into public.page_views (path, is_company, company, company_domain, compan
   stap("Cijfers");
   // De labels staan in hoofdletters (text-transform), en innerText neemt dat over: vandaar /i.
   check(/Open offertes\s*€550\s*per maand\s*4 open · 2 bekeken/i.test(tekst), "open: €550 per maand, 4 open, 2 bekeken");
-  check(/Getekend, 30 dagen\s*€100\s*per maand\s*2 offertes · €1\.450 eenmalig/i.test(tekst), "getekend: €100 per maand en €1.450 eenmalig");
+  check(/Getekend, 30 dagen\s*€100\s*per maand\s*2 getekend · €1\.450 eenmalig/i.test(tekst), "getekend: €100 per maand en €1.450 eenmalig");
   check(/Hitrate, 90 dagen\s*50%\s*2 van 4 afgerond/i.test(tekst), "hitrate 50%, 2 van 4");
   check(/Basiscontracten\s*1\s*getekend\s*1 wacht op handtekening/i.test(tekst), "contracten: 1 getekend, 1 wacht");
   await blok.screenshot({ path: path.join(SHOTS, "01-verkoop-1440.png") });

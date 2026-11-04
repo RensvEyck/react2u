@@ -43,7 +43,7 @@ const INTAKE = `{"id":"c","sectie":"Start","naam":"Intake","prijs":250,"eenheid"
 
 function vulDatabase() {
   sql(`set session_replication_role = replica;
-truncate public.offertes, public.brochures, public.contracten, public.medewerkers, public.abonnementen_gestopt cascade;
+truncate public.offertes, public.brochures, public.contracten, public.medewerkers, public.abonnementen_gestopt, public.losse_opdrachten cascade;
 insert into public.offertes (vorm, bedrijf, email, medewerkers, regels, keuze, status, created_at, verstuurd_at, bekeken_at, keuze_at, getekend_at, afzender_naam) values
  ('verzuimbegeleiding', 'Jansen Bouw B.V.', 'kees@jansenbouw.test', 25, '[${RECOVER},${RESIST},${INTAKE}]', '["a","b","c"]', 'getekend', now() - interval '2 months 10 days', now() - interval '2 months 10 days', now() - interval '2 months 9 days', now() - interval '2 months 5 days', now() - interval '2 months', 'Susanne Linders'),
  ('verzuimbegeleiding', 'Smit Installatie', 'anna@smit.test', 10, '[${RECOVER}]', '["a"]', 'getekend', now() - interval '6 days', now() - interval '6 days', now() - interval '5 days', now() - interval '1 hour', now() - interval '5 minutes', 'Cindy Faro'),
@@ -174,23 +174,94 @@ insert into public.offertes (vorm, bedrijf, email, medewerkers, regels, keuze, s
   check(sql("select count(*) from public.abonnementen_gestopt") === "0", "hervat: weer zonder einde");
   check(/Abonnementen\s*€675/i.test(await body()), "weer €675 per maand");
 
+  stap("Losse klanten en opdrachten opvoeren");
+  await page.goto(`${BASIS}/admin/verkoop/los`);
+  await page.waitForSelector("h1:has-text('Losse klanten en opdrachten')");
+  check((await body()).includes("Nog niets opgevoerd"), "leeg: zegt waar je begint");
+  // Abonnement van een bestaande klant, al sinds maart 2025.
+  await page.fill("#los-bedrijf-nieuw", "Van Dijk Bouw");
+  await page.fill("#los-omschrijving-nieuw", "Verzuimbegeleiding, 40 medewerkers");
+  await page.selectOption("#los-vorm-nieuw", "verzuimbegeleiding");
+  await page.fill("#los-bedrag-nieuw", "450");
+  await page.fill("#los-datum-nieuw", "2025-03-01");
+  await page.fill("#los-verkoper-nieuw", "Susanne Linders");
+  await page.click("#nieuw button:has-text('Opvoeren')");
+  await page.waitForURL(/opgeslagen=los-nieuw/, { timeout: 20000 });
+  check(sql("select soort || ' ' || bedrag || ' ' || datum || ' ' || coalesce(vorm, '-') from public.losse_opdrachten where bedrijf = 'Van Dijk Bouw'") === "abonnement 450.00 2025-03-01 verzuimbegeleiding", "Van Dijk: abonnement €450 sinds maart 2025");
+  // Losse opdracht: de tekst bij het bedrag wisselt en "gestopt vanaf" verdwijnt.
+  await page.check("#los-soort-eenmalig-nieuw");
+  check(await page.locator("#nieuw >> text=Totaalbedrag (€)").isVisible(), "bij een opdracht heet het bedrag Totaalbedrag");
+  check(!(await page.locator("#los-stop-nieuw").isVisible()), "en is er geen gestopt vanaf");
+  await page.fill("#los-bedrijf-nieuw", "Drukkerij Peeters");
+  await page.fill("#los-omschrijving-nieuw", "RI&E vestiging Eindhoven");
+  await page.selectOption("#los-vorm-nieuw", "rie");
+  await page.fill("#los-bedrag-nieuw", "1.450");
+  await page.fill("#los-datum-nieuw", vandaag);
+  await page.click("#nieuw button:has-text('Opvoeren')");
+  await page.waitForURL(/opgeslagen=los-nieuw/, { timeout: 20000 });
+  check(sql("select soort || ' ' || bedrag from public.losse_opdrachten where bedrijf = 'Drukkerij Peeters'") === "eenmalig 1450.00", "Drukkerij: eenmalig €1.450");
+  // Een fout bedrag geeft een melding en slaat niets op.
+  await page.fill("#los-bedrijf-nieuw", "Onzin BV");
+  await page.fill("#los-bedrag-nieuw", "veel");
+  await page.click("#nieuw button:has-text('Opvoeren')");
+  await page.waitForURL(/fout=los-bedrag/, { timeout: 20000 });
+  check(sql("select count(*) from public.losse_opdrachten where bedrijf = 'Onzin BV'") === "0", "onzin-bedrag: niets opgeslagen");
+  tekst = await body();
+  check(/Lopende abonnementen\s*€450\s*per maand\s*1 klant/i.test(tekst), "kerncijfer: €450 per maand, 1 klant");
+  await page.screenshot({ path: path.join(SHOTS, "05-los-1440.png"), fullPage: true });
+
+  stap("Los in de omzet");
+  await page.goto(`${BASIS}/admin/omzet`);
+  tekst = await body();
+  check(/Abonnementen\s*€1\.125\s*per maand/i.test(tekst), "abonnementen: €675 + Van Dijk €450 = €1.125");
+  const vanDijk = page.locator("#klanten li", { hasText: "Van Dijk Bouw" });
+  check((await vanDijk.locator("a:has-text('los opgevoerd')").getAttribute("href"))?.startsWith("/admin/verkoop/los#los-"), "Van Dijk linkt naar zijn rij bij Los");
+  check(/Omzet nov|Omzet [a-z]{3}/i.test(tekst) && tekst.includes("eenmalig €1.450"), "de opdracht telt eenmalig in deze maand");
+  await vanDijk.locator("summary").click();
+  await vanDijk.locator("select[name=vanaf]").selectOption(vandaag.slice(0, 7));
+  await vanDijk.locator("button:has-text('Beëindigen')").click();
+  await page.waitForURL(/opgeslagen=gestopt/, { timeout: 20000 });
+  check(sql("select stop from public.losse_opdrachten where bedrijf = 'Van Dijk Bouw'") === `${vandaag.slice(0, 7)}-01`, "beëindigd: stop op de losse rij, niet bij de offertes");
+  check(sql("select count(*) from public.abonnementen_gestopt") === "0", "abonnementen_gestopt blijft leeg");
+  check(/Abonnementen\s*€675/i.test(await body()), "weer €675 zonder Van Dijk");
+  await page.locator("#gestopt li", { hasText: "Van Dijk Bouw" }).locator("button:has-text('Hervatten')").click();
+  await page.waitForURL(/opgeslagen=hervat/, { timeout: 20000 });
+  check(sql("select coalesce(stop::text, 'leeg') from public.losse_opdrachten where bedrijf = 'Van Dijk Bouw'") === "leeg", "hervat: stop weer leeg");
+
   stap("Salesdashboard");
   await page.goto(`${BASIS}/admin/verkoop`);
   await page.waitForSelector("h1:has-text('Verkoop')");
   tekst = await body();
-  check(/Getekend, 90 dagen\s*€475\s*per maand\s*2 offertes · €250 eenmalig/i.test(tekst), "90 dagen: Jansen en Smit, €475 per maand en €250 eenmalig");
+  check(/Getekend, 90 dagen\s*€475\s*per maand\s*3 getekend · waarvan 1 los opgevoerd · €1\.700 eenmalig/i.test(tekst), "90 dagen: Jansen, Smit en de losse opdracht; €475 per maand en €1.700 eenmalig");
+  check(/Per soort offerte[\s\S]*RI&E/.test(tekst), "de losse RI&E staat bij per soort");
   check(tekst.includes("Open pijplijn") && /Bekeken\s*1 · €100/.test(tekst), "pijplijn: Peters bekeken, €100");
   check(/Per verkoper/.test(tekst) && tekst.includes("Cindy Faro"), "per verkoper");
   check(tekst.includes("Opvolgen") && tekst.includes("Peters Metaal"), "Peters staat bij opvolgen");
   await page.click("nav[aria-label=Periode] a:has-text('12 maanden')");
   await page.waitForURL(/periode=365/);
-  check(/Getekend, 12 maanden\s*€675\s*per maand\s*3 offertes/i.test(await body()), "12 maanden: €675 per maand, 3 offertes");
+  check(/Getekend, 12 maanden\s*€675\s*per maand\s*4 getekend/i.test(await body()), "12 maanden: €675 per maand, 4 getekend (Van Dijk is ouder)");
   await page.click("nav[aria-label=Periode] a:has-text('30 dagen')");
   await page.waitForURL(/periode=30/);
-  check(/Getekend, 30 dagen\s*€100\s*per maand\s*1 offerte\b/i.test(await body()), "30 dagen: alleen Smit, €100 per maand");
+  check(/Getekend, 30 dagen\s*€100\s*per maand\s*2 getekend · waarvan 1 los opgevoerd · €1\.450 eenmalig/i.test(await body()), "30 dagen: Smit en de losse opdracht");
+  check(await page.locator('a[href="/admin/verkoop/los#nieuw"]').count(), "knop Klant of opdracht");
+
+  stap("Los wijzigen en verwijderen");
+  await page.goto(`${BASIS}/admin/verkoop/los`);
+  const rij = page.locator("li[id^=los-]", { hasText: "Van Dijk Bouw" });
+  await rij.locator("summary").click();
+  const losId = (await rij.getAttribute("id")).replace("los-", "");
+  await page.fill(`#los-bedrag-${losId}`, "500");
+  await rij.locator("button:has-text('Opslaan')").click();
+  await page.waitForURL(/opgeslagen=los/, { timeout: 20000 });
+  check(sql(`select bedrag from public.losse_opdrachten where id = '${losId}'`) === "500.00", "bedrag gewijzigd naar €500");
+  const druk = page.locator("li[id^=los-]", { hasText: "Drukkerij Peeters" });
+  await druk.locator("summary").click();
+  await druk.locator("button:has-text('Verwijderen')").click();
+  await page.waitForURL(/opgeslagen=los-weg/, { timeout: 20000 });
+  check(sql("select count(*) from public.losse_opdrachten where bedrijf = 'Drukkerij Peeters'") === "0", "opdracht verwijderd");
   await page.screenshot({ path: path.join(SHOTS, "03-verkoop-1440.png"), fullPage: true });
 
-  for (const [url, naam] of [["/admin/verkoop", "verkoop"], ["/admin/omzet", "omzet"], ["/admin/omzet/uren", "uren"]]) {
+  for (const [url, naam] of [["/admin/verkoop", "verkoop"], ["/admin/omzet", "omzet"], ["/admin/omzet/uren", "uren"], ["/admin/verkoop/los", "los"]]) {
     stap(`Telefoon: ${naam}`);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${BASIS}${url}`);
