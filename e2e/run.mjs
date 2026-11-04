@@ -182,7 +182,15 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
 
   if (!process.env.E2E_GEEN_BUILD) {
     stap("Site bouwen");
-    draai(process.execPath, [NEXT, "build"], { cwd: ROOT, env });
+    try {
+      draai(process.execPath, [NEXT, "build"], { cwd: ROOT, env });
+    } catch {
+      // In CI hapert soms de download van next/font/google (Outfit), en die fout blijft in .next hangen.
+      // Daarom één keer opnieuw, met een schone .next; een echte bouwfout faalt dan alsnog.
+      stap("Bouwen mislukt, nog één keer met een schone .next");
+      fs.rmSync(path.join(ROOT, ".next"), { recursive: true, force: true });
+      draai(process.execPath, [NEXT, "build"], { cwd: ROOT, env });
+    }
   }
   stap("Site starten");
   // Rechtstreeks node met next, niet via npx: dan stopt SIGTERM ook echt de server.
