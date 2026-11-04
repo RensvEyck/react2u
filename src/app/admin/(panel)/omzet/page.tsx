@@ -8,6 +8,7 @@ import {
   type Gestopt, type GetekendeOfferte,
 } from "@/lib/omzet";
 import { cel, maandVanWeek, oordeel, optellen, urenIndex, urenTekst, wekenTot, type Medewerker, type UrenRij } from "@/lib/uren";
+import { alsOfferte, gestoptVan, type LosseOpdracht } from "@/lib/losseOpdrachten";
 import { abonnementHervatten, abonnementStoppen } from "@/app/admin/omzetActions";
 import { Kerncijfer, MigratieNodig, verandering } from "@/components/admin/Kerncijfer";
 import { KLEUR, Staven } from "@/components/admin/Grafiek";
@@ -29,11 +30,13 @@ export default async function Omzet() {
   const nu = new Date();
   const maand = maandVan(nu);
   const sinds = `${plusMaanden(maand, -24)}-01`;
-  const [o, g, m, u] = await Promise.all([
+  const [o, g, m, u, l] = await Promise.all([
     sb.from("offertes").select("id, nummer, bedrijf, vorm, regels, keuze, medewerkers, status, getekend_at").eq("status", "getekend").limit(2000),
     sb.from("abonnementen_gestopt").select("offerte_id, vanaf, reden"),
     sb.from("medewerkers").select("*").order("sort"),
     sb.from("uren").select("medewerker_id, week, declarabel, afwezig").gte("week", sinds).limit(10000),
+    // Los opgevoerde klanten en opdrachten (0036); zonder die migratie gewoon geen.
+    sb.from("losse_opdrachten").select("*").limit(5000),
   ]);
   if (isMissingTable(g.error) || isMissingTable(m.error) || isMissingTable(u.error)) {
     return (
@@ -47,7 +50,11 @@ export default async function Omzet() {
   const gestopt = (g.data as Gestopt[] | null) || [];
   const medewerkers = ((m.data as Medewerker[] | null) || []).map((x) => ({ ...x, contracturen: Number(x.contracturen), uurtarief: x.uurtarief === null ? null : Number(x.uurtarief) }));
   const uren = ((u.data as UrenRij[] | null) || []).map((r) => ({ ...r, declarabel: Number(r.declarabel), afwezig: Number(r.afwezig) }));
-  const abos = abonnementen((o.data as unknown as GetekendeOfferte[] | null) || [], gestopt);
+  const losse = ((l.data as LosseOpdracht[] | null) || []).map((x) => ({ ...x, bedrag: Number(x.bedrag) }));
+  const abos = abonnementen(
+    [...((o.data as unknown as GetekendeOfferte[] | null) || []), ...losse.map(alsOfferte)],
+    [...gestopt, ...losse.map(gestoptVan).filter((x) => x !== null)]
+  );
 
   const reeks = omzetPerMaand(abos, medewerkers, uren, maandenTot(maand, 25));
   const laatste12 = reeks.slice(-12);
@@ -205,7 +212,11 @@ export default async function Omzet() {
                       {k.abonnementen.map((a, i) => (
                         <span key={a.offerte.id}>
                           {i > 0 && ", "}
-                          <Link href={`/admin/offertes/${a.offerte.id}`} className="hover:text-[#e75387] hover:underline">{a.offerte.nummer}</Link>
+                          {a.offerte.bron === "los" ? (
+                            <Link href={`/admin/verkoop/los#los-${a.offerte.id}`} className="hover:text-[#e75387] hover:underline">los opgevoerd</Link>
+                          ) : (
+                            <Link href={`/admin/offertes/${a.offerte.id}`} className="hover:text-[#e75387] hover:underline">{a.offerte.nummer}</Link>
+                          )}
                         </span>
                       ))}
                     </p>
@@ -222,7 +233,10 @@ export default async function Omzet() {
                     {k.abonnementen.map((a) => (
                       <form key={a.offerte.id} action={abonnementStoppen} className="flex flex-wrap items-end gap-2 rounded-xl bg-[#fafafd] p-3">
                         <input type="hidden" name="offerte_id" value={a.offerte.id} />
-                        <p className="w-full text-[12.5px] text-black/55">Offerte {a.offerte.nummer}: {euro(a.perMaand)} per maand</p>
+                        {a.offerte.bron === "los" && <input type="hidden" name="bron" value="los" />}
+                        <p className="w-full text-[12.5px] text-black/55">
+                          {a.offerte.bron === "los" ? "Los opgevoerd" : `Offerte ${a.offerte.nummer}`}: {euro(a.perMaand)} per maand
+                        </p>
                         <label className="text-[12.5px] text-black/55">
                           <span className="mb-1 block">Laatste maand met omzet</span>
                           <select name="vanaf" defaultValue={plusMaanden(maand, 1)} className="ainput !w-auto !py-1.5 text-[13px]">
@@ -256,7 +270,7 @@ export default async function Omzet() {
                     {loopt(a, maand) ? " (loopt nog)" : ""}
                     {reden.get(a.offerte.id) ? ` · ${reden.get(a.offerte.id)}` : ""}
                   </span>
-                  <form action={abonnementHervatten.bind(null, a.offerte.id)} className="ml-auto">
+                  <form action={abonnementHervatten.bind(null, a.offerte.id, a.offerte.bron === "los" ? "los" : "offerte")} className="ml-auto">
                     <button className="flex items-center gap-1 text-[12.5px] font-semibold text-black/40 hover:text-[#312e82]"><LuRotateCcw className="text-[12px]" /> Hervatten</button>
                   </form>
                 </li>
