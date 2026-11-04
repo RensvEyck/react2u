@@ -11,9 +11,12 @@
 //   E2E_GEEN_BUILD=1   bestaande .next gebruiken (alleen als die met deze
 //                      instellingen is gebouwd)
 //   E2E_ALLEEN=offerte alleen deze test(s), met komma's (offerte, vormen, brochure,
-//                      contract, reseller of partner)
+//                      contract, reseller, partner of dashboard)
 //   E2E_POORT=3024     de site op een andere poort dan 3014 (en E2E_RESEND_POORT
 //                      voor de nep-Resend), als een vorige run nog draait
+//   E2E_STACK=2        een tweede Supabase-stack naast een lopende (een andere
+//                      sessie die ook test): eigen naam react2u-e2e-2 en poorten
+//                      573xx in plaats van 563xx
 import { execFileSync, spawn } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import fs from "node:fs";
@@ -28,7 +31,8 @@ const UIT = path.join(WERK, "uitvoer");
 const POORT = Number(process.env.E2E_POORT) || 3014;
 const RESEND_POORT = Number(process.env.E2E_RESEND_POORT) || 56399;
 const BASIS = `http://localhost:${POORT}`;
-const PROJECT = "react2u-e2e";
+const STACKNR = process.env.E2E_STACK && process.env.E2E_STACK !== "1" ? process.env.E2E_STACK : null;
+const PROJECT = STACKNR ? `react2u-e2e-${STACKNR}` : "react2u-e2e";
 const DB = `supabase_db_${PROJECT}`;
 // Diensten die de tests niet gebruiken: sneller opstarten, minder images in CI.
 const ZONDER = "studio,imgproxy,mailpit,realtime,vector,logflare,edge-runtime,postgres-meta";
@@ -50,7 +54,13 @@ function bereidStackVoor() {
   fs.rmSync(STACK, { recursive: true, force: true });
   const map = path.join(STACK, "supabase", "migrations");
   fs.mkdirSync(map, { recursive: true });
-  fs.copyFileSync(path.join(ROOT, "e2e", "supabase", "config.toml"), path.join(STACK, "supabase", "config.toml"));
+  let config = fs.readFileSync(path.join(ROOT, "e2e", "supabase", "config.toml"), "utf8");
+  if (STACKNR) {
+    config = config
+      .replace('project_id = "react2u-e2e"', `project_id = "${PROJECT}"`)
+      .replace(/\b563(\d\d)\b/g, `${563 + 10 * Number(STACKNR) - 10}$1`);
+  }
+  fs.writeFileSync(path.join(STACK, "supabase", "config.toml"), config);
   const extra = (naam) => fs.readFileSync(path.join(ROOT, "e2e", "supabase", "extra", naam), "utf8");
   const bestanden = fs.readdirSync(path.join(ROOT, "supabase", "migrations")).filter((f) => f.endsWith(".sql")).sort();
   let nr = 0;
@@ -198,7 +208,8 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
   await wachtOp(BASIS, 90);
 
   const testEnv = { ...env, E2E_BASIS: BASIS, E2E_UIT: UIT, E2E_DB_CONTAINER: DB };
-  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "reseller", "partner"];
+  // dashboard als laatste: die maakt de verkooptabellen leeg voor zijn eigen vaste set.
+  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "reseller", "partner", "dashboard"];
   const mislukt = [];
   for (const t of tests) {
     stap(`Test: ${t}`);

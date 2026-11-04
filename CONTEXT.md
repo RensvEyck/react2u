@@ -1507,13 +1507,49 @@ Beide slaan onderdelen over waar de gebruiker geen recht op heeft; RLS zou ze
 anders toch leeg teruggeven.
 
 **Het dashboard** toont per rol wat vandaag aandacht vraagt: te behandelen
-inzendingen (oudste eerst), wie vandaag gebeld moet worden, bezoek deze week
-tegenover vorige week, SEO-problemen en 404's, concepten, vacatures die aflopen,
-de laatste wijzigingen, en voor wie instellingen beheert welke koppelingen uit
-staan (mail, bezoekregistratie, bedrijfsherkenning, uitnodigen — alleen óf ze
-gezet zijn, nooit de waarde). Wie geen tweestapsverificatie heeft, krijgt
-bovenaan een oproep. Tijden en de begroeting rekenen in Europe/Amsterdam; de
-server draait in UTC.
+inzendingen (oudste eerst), wie vandaag gebeld moet worden, de verkoop (zie
+hieronder), bezoek deze week tegenover vorige week, SEO-problemen en 404's,
+concepten, vacatures die aflopen, de laatste wijzigingen, en voor wie
+instellingen beheert welke koppelingen uit staan (mail, bezoekregistratie,
+bedrijfsherkenning, uitnodigen — alleen óf ze gezet zijn, nooit de waarde). Wie
+geen tweestapsverificatie heeft, krijgt bovenaan een oproep. Tijden en de
+begroeting rekenen in Europe/Amsterdam; de server draait in UTC.
+
+**Het Verkoopblok** (salesrecht `bellijst`) zet offertes, brochures en
+contracten bij elkaar: vier cijfers (open offertes per maand, getekend de
+laatste 30 dagen, de hitrate over 90 dagen — dezelfde berekening als op
+/admin/offertes — en de getekende basiscontracten) en daaronder wat er
+opgevolgd moet worden, belangrijkste eerst. De regels staan in
+[`lib/opvolgen.ts`](src/lib/opvolgen.ts), met de grenzen in `DREMPELS`:
+
+- **Offerte** (verstuurd): *Koos onderdelen* (de klant klikte zelf iets aan en
+  keek deze week), *Net bekeken* (laatste 48 uur) of *Bekeken* (deze week),
+  *Daarna stil* (bekeken, al een week niets), *Niet geopend* (na 3 dagen),
+  *Verlopen* (een maand lang). Loopt de geldigheid binnen 5 dagen af, dan staat
+  dat erbij en gaat hij omhoog.
+- **Getekend zonder basiscontract**: alleen bij verzuimbegeleiding en Reflex
+  (een RI&E of traject is een losse opdracht), 60 dagen lang. Eén verstuurd of
+  getekend contract voor die klant is genoeg; staat er een concept klaar, dan
+  gaat de rij daarheen, anders naar een nieuw contract bij deze offerte.
+- **Brochure**: bekeken in de laatste 14 dagen en nog geen offerte voor die
+  klant (ook geen concept), of na 5 dagen niet geopend.
+- **Contract** (verstuurd): net bekeken, bekeken, daarna stil of niet geopend,
+  net als een offerte; dat geldt ook voor een resellerovereenkomst. Getekend
+  basiscontract: de laatste opzegdag valt binnen 60 dagen, tijd voor een
+  evaluatiegesprek. Een resellerovereenkomst loopt voor onbepaalde tijd en telt
+  niet als basiscontract, ook niet in het cijfer erboven.
+
+Een herinnering of nieuwe verzending (gebeurtenis `verstuurd` of `herinnering`)
+zet *Niet geopend* en *Daarna stil* drie dagen stil: `verstuurd_at` blijft op
+de eerste keer staan, dus daar is de tijdlijn voor nodig. **Dezelfde klant**
+herkent het blok aan de bedrijfsnaam zonder rechtsvorm, het e-mailadres of het
+maildomein (niet bij Gmail, Hotmail en dergelijke): een brochure weet niet
+welke offerte eruit volgde, en een klant met twee offertes heeft maar één
+basiscontract nodig. Met het recht op Bezoek komt erbij of het bedrijf de
+laatste dagen op de site was (*Op de site 40 min geleden, 3 pagina's*); dat
+duwt de rij omhoog. Er is geen knop "afgehandeld": een signaal verdwijnt als de
+reden weg is (getekend, afgewezen, gemaild of te lang stil om nog warm te zijn).
+Browsertest: `e2e/dashboard.cjs`.
 
 ## Doorverwijzingen en 404's
 
@@ -1989,7 +2025,12 @@ testbeheerder, lege versies van twee productiefuncties en pg_cron uit
 authenticator in voor de testbeheerder en ruimt alles weer op. Nodig: Docker en de
 Supabase CLI. Uitvoer (screenshots, mails, de pdf's) in `.e2e/uitvoer`.
 `E2E_HOUDEN=1` laat de stack staan, `E2E_GEEN_BUILD=1` slaat de build over,
-`E2E_ALLEEN=offerte` draait één test.
+`E2E_ALLEEN=offerte` draait één test. Test een andere sessie tegelijk, geef dan
+`E2E_STACK=2` (eigen stack `react2u-e2e-2` op poorten 573xx) met een eigen
+`E2E_POORT` en `E2E_RESEND_POORT`: de stacks heten anders allebei
+`react2u-e2e`, en de ene `supabase stop` legt dan de andere plat.
+`e2e/dashboard.cjs` draait als laatste, want hij maakt de verkooptabellen leeg
+voor zijn eigen vaste set.
 
 **GitHub Actions** (`.github/workflows/tests.yml`) draait bij elke pull request en
 push naar master twee jobs: lint, typecheck en Vitest, en de browsertests (zo'n
