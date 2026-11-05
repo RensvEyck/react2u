@@ -1173,10 +1173,13 @@ prijslijst. Daarom:
   sjabloon kan een eigen termijn hebben.
 - **Prijzen**: spoor 2, arbeidsdeskundig onderzoek en de aansluitingen komen uit
   de prijslijst (lopen mee met de tarievenpagina, zolang het sjabloon niet is
-  aangepast: een bewaard sjabloon heeft vaste prijzen). RI&E (€ 2.825), PAGO (€ 42,50
-  per medewerker), training (€ 595) en werkfit (€ 2.500, verlenging € 1.500) staan
-  vast in het sjabloon. Spoor 2 stond in de Word-offerte op € 3.250; het sjabloon
-  volgt de prijslijst 2027 (€ 3.365).
+  aangepast: een bewaard sjabloon heeft vaste prijzen). De verzuimtraining rekent
+  met het uurtarief van *Training Verzuim en Preventie* maal 2,5 uur (eenheid per
+  uur, aantal 2,5; in 2027 € 466,25), sinds 5 nov 2026 in plaats van de € 595 uit
+  de Word-offerte. RI&E (€ 2.825), PAGO (€ 42,50 per medewerker) en werkfit
+  (€ 2.500, verlenging € 1.500) staan vast in het sjabloon; dat zijn nog de bedragen
+  uit de Word-offertes van 2026. Spoor 2 stond in de Word-offerte op € 3.250; het
+  sjabloon volgt de prijslijst 2027 (€ 3.365).
 - **Eenheid "per medewerker, eenmalig"** (PAGO, vragenlijsten) rekent met het
   aantal medewerkers; een bedrag van € 0 heet "Inbegrepen"; een regel zonder
   bedrag kan een *prijs als tekst* hebben ("€ 89 p.p. en € 0,42 per km").
