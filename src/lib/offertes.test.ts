@@ -235,7 +235,12 @@ describe("offertevormen (0025)", () => {
     const s = Object.fromEntries(alleSjablonen(catalogusStandaard()).map((x) => [x.sleutel, x]));
     expect(berekenTotalen(s.rie.regels, standaardKeuze(s.rie.regels), null).eenmalig).toBe(2825);
     expect(berekenTotalen(s.pago.regels, [], 5).eenmalig).toBe(212.5);
-    expect(berekenTotalen(s.verzuimtraining.regels, standaardKeuze(s.verzuimtraining.regels), null).eenmalig).toBe(595);
+    // Training op uurtarief (Rens, 5 nov 2026): 2,5 uur × €186,50 voor Training Verzuim en Preventie.
+    const training = s.verzuimtraining.regels.find((r) => r.naam === "Verzuimtraining, incompany")!;
+    expect(training).toMatchObject({ soort: "vast", prijs: 186.5, eenheid: "uur", aantal: 2.5 });
+    expect(berekenTotalen(s.verzuimtraining.regels, standaardKeuze(s.verzuimtraining.regels), null).eenmalig).toBe(466.25);
+    // Het uurtarief staat niet nog eens als module.
+    expect(s.verzuimtraining.regels.some((r) => r.module && r.naam === "Training Verzuim en Preventie")).toBe(false);
     expect(berekenTotalen(s.werkfit.regels, standaardKeuze(s.werkfit.regels), null).eenmalig).toBe(2500);
     // De eigen optie van het sjabloon (de verlenging), niet de aanbevolen extra's.
     const werkfitMet = s.werkfit.regels.filter((r) => r.soort === "optie" && !r.aanbevolen && !r.module).map((r) => r.id);

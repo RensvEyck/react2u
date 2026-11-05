@@ -1037,7 +1037,10 @@ function bedragZin(r: Regel, medewerkers: number | null) {
   const { bedrag, per } = regelbedrag(b);
   const n = aantalVoor(r, medewerkers);
   const perMedewerker = r.eenheid === "medewerker_jaar" || r.eenheid === "medewerker";
-  const voor = perMedewerker && n > 1 ? ` voor ${n.toLocaleString("nl-NL")} medewerkers` : r.aantal && r.aantal > 1 ? ` (${r.aantal.toLocaleString("nl-NL")}×)` : "";
+  const voor =
+    perMedewerker && n > 1 ? ` voor ${n.toLocaleString("nl-NL")} medewerkers`
+    : r.aantal && r.aantal > 1 ? ` (${r.aantal.toLocaleString("nl-NL")}${r.eenheid === "uur" ? " uur" : "×"})`
+    : "";
   return `${euro(bedrag!)} ${per === "maand" ? "per maand" : "eenmalig"}${voor}`;
 }
 

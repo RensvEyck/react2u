@@ -10,8 +10,9 @@
  * standaard; "Terug naar standaard" haalt de aanpassing weer weg.
  *
  * Prijzen die op de prijslijst staan (spoor 2, arbeidsdeskundig onderzoek, de
- * aansluitingen) komen uit de catalogus en lopen dus mee met een nieuwe
- * prijslijst. De rest (RI&E, PAGO, training, werkfit) staat hier vast.
+ * aansluitingen, het uurtarief van de verzuimtraining) komen uit de catalogus
+ * en lopen dus mee met een nieuwe prijslijst. De rest (RI&E, PAGO, werkfit)
+ * staat hier vast.
  *
  * In de teksten kun je {bedrijf}, {contactpersoon}, {voornaam} en {betreft}
  * gebruiken; zie vulIn() in lib/offertes.ts.
@@ -136,6 +137,24 @@ Met de aanvullende vragen uit de vragenlijst zie je welke energiebronnen je kunt
 - Groepsrapportage met adviezen voor de organisatie`;
 
 /* ---------- verzuimtraining ---------- */
+
+/** Hoe lang de incompany training duurt; per offerte aan te passen met het aantal in de editor. */
+const TRAINING_UREN = 2.5;
+
+/**
+ * De training tegen het uurtarief van "Training Verzuim en Preventie" op de
+ * prijslijst (Rens, 5 nov 2026: "training op uurtarief"), maal 2,5 uur. Stond
+ * tot dan vast op €595 uit de Word-offerte van 2026. Zo loopt de prijs mee
+ * met een nieuwe prijslijst.
+ */
+function verzuimtraining(c: CatalogusGroep[]): Regel {
+  const naam = "Verzuimtraining, incompany";
+  const omschrijving = "Interactieve training bij jullie op locatie, tegen ons uurtarief voor trainingen.";
+  const tarief = uitCatalogus(c, "Training Verzuim en Preventie");
+  return tarief && tarief.prijs !== null && tarief.eenheid === "uur"
+    ? alsRegel(tarief, { sectie: "Investering", naam, omschrijving, label: undefined, kleur: undefined, soort: "vast", aantal: TRAINING_UREN })
+    : r({ sectie: "Investering", naam, omschrijving, prijs: null, eenheid: "uur", aantal: TRAINING_UREN, soort: "vast" });
+}
 
 const TRAINING_INHOUD = `Verzuim heeft impact op je organisatie en op je medewerkers: in de teams, in de bezetting en in de kosten. Effectief verzuimbeleid gaat verder dan het volgen van procedures. Het vraagt om leiderschap, gesprekstechniek, kennis van wetgeving en het vermogen om preventief te handelen.
 
@@ -370,8 +389,8 @@ export const STANDAARD_SJABLONEN: Standaard[] = [
       { kop: "De training", tekst: "Een interactieve training van ongeveer 2,5 uur bij jullie op locatie." },
     ],
     geldigDagen: GELDIG_DAGEN,
-    regels: () => [
-      r({ sectie: "Investering", naam: "Verzuimtraining, 2,5 uur, incompany", prijs: 595, eenheid: "eenmalig", soort: "vast" }),
+    regels: (c) => [
+      verzuimtraining(c),
       r({ sectie: "Investering", naam: "Voorbereiding en maatwerk", prijs: 0, eenheid: "eenmalig", soort: "vast" }),
       r({ sectie: "Investering", naam: "Trainingsmateriaal", prijs: 0, eenheid: "eenmalig", soort: "vast" }),
       r({ sectie: "Investering", naam: "Vervolgtraining of verdieping in motiverende gespreksvoering", omschrijving: "Zet hem aan als je interesse hebt; we sturen je een voorstel.", prijs: null, eenheid: "op_aanvraag", soort: "optie" }),
