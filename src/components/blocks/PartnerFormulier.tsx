@@ -6,6 +6,7 @@ import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
 import { NAVY, PINK, BODY, kop, Pijl } from "./Gedeeld";
+import { LOKVELD, PRIVACYVINKJE, WEBMCP } from "@/lib/webmcp";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -47,7 +48,7 @@ export default function PartnerFormulier({ f }: { f: any }) {
     );
   }
   return (
-    <form action={action} className="flex flex-col gap-[18px]">
+    <form action={action} {...WEBMCP.partner} className="flex flex-col gap-[18px]">
       <input type="hidden" name="taal" value={taal} />
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex min-w-0 flex-col gap-1.5"><Label>{f.naam}</Label>
@@ -64,14 +65,14 @@ export default function PartnerFormulier({ f }: { f: any }) {
       <label className="flex flex-col gap-1.5"><Label>{f.omvang}</Label>
         <Keuze name="omvang" opties={PARTNER_OMVANG} leeg={f.omvangLeeg} /></label>
       <label className="flex items-start gap-2.5 text-[15px] leading-[1.5]" style={{ color: BODY }}>
-        <input type="checkbox" name="privacy" value="ja" required className="mt-[3px] h-[18px] w-[18px] shrink-0 accent-[#322E83]" />
+        <input type="checkbox" name="privacy" value="ja" required className="mt-[3px] h-[18px] w-[18px] shrink-0 accent-[#322E83]" {...PRIVACYVINKJE} />
         <span>
           {f.privacyVoor}{" "}
           <a href={DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="font-bold underline underline-offset-2" style={{ color: NAVY }}>{f.privacyLink}</a>
           {f.privacyNa}
         </span>
       </label>
-      <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...LOKVELD} />
       <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="m-0 text-[15px] font-medium" style={{ color: PINK }}>{state.error}</p>}
       <button disabled={pending}
