@@ -1862,6 +1862,19 @@ anders ziet een crawler die noindex nooit) en de 404-pagina's (eigen
 "index, follow" uit de layout in staat). De hoofdkop van een labelpagina
 (`DienstLabel`) noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
 
+**Voor AI-agents.** [`/llms.txt`](src/app/llms.txt/route.ts) is een
+Markdown-overzicht van de site (llmstxt.org): kopjes met links naar de
+pagina's, artikelen en vacatures, met de SEO-omschrijving uit de database.
+Welke pagina onder welk kopje staat, staat in [`src/lib/llms.ts`](src/lib/llms.ts);
+een nieuwe gepubliceerde pagina komt vanzelf onder "Meer pagina's". Het
+bestand ververst elk uur, net als de sitemap, en heeft een
+`X-Robots-Tag: noindex` (voor agents, niet als zoekresultaat). De drie
+aanvraagformulieren (contact, kennismaken, partners) zijn WebMCP-tools via
+`toolname`/`tooldescription` ([`src/lib/webmcp.ts`](src/lib/webmcp.ts)),
+zonder `toolautosubmit`: een agent vult in, de bezoeker verstuurt. Een
+`ai-catalog.json` is er bewust niet: de site heeft geen API of MCP-server om
+in zo'n catalogus te zetten.
+
 **Databasefouten zijn geen 404.** De helpers in
 [`src/lib/content.ts`](src/lib/content.ts) gooien een `DatabaseFout` als
 Supabase een fout geeft, in plaats van `null` of een lege lijst terug te

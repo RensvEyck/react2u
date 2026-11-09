@@ -5,6 +5,7 @@ import { outfit } from "./HomeVerhaal";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
+import { LOKVELD, WEBMCP } from "@/lib/webmcp";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -37,7 +38,8 @@ function Label({ children, optioneel, optioneelTekst }: { children: React.ReactN
   return (
     <span className="flex items-baseline justify-between text-[14px] font-semibold" style={{ color: NAVY }}>
       {children}
-      {optioneel && <span className="text-[13px] font-normal" style={{ color: MUTE }}>{optioneelTekst}</span>}
+      {/* De spatie is onzichtbaar in de flexrij, maar maakt van de labeltekst "Organisatie optioneel" (schermlezer, WebMCP) in plaats van "Organisatieoptioneel". */}
+      {optioneel && <>{" "}<span className="text-[13px] font-normal" style={{ color: MUTE }}>{optioneelTekst}</span></>}
     </span>
   );
 }
@@ -56,7 +58,7 @@ function Formulier({ heading, note }: { heading?: string; note?: string }) {
     );
   }
   return (
-    <form action={action} className="flex flex-col gap-[22px]">
+    <form action={action} {...WEBMCP.contact} className="flex flex-col gap-[22px]">
       <h2 className="hv-kop m-0 text-[26px] leading-[1.2] tracking-[-0.4px] md:text-[28px]" style={{ color: NAVY }}>{heading || f.contact.kop}</h2>
       <input type="hidden" name="taal" value={taal} />
       <div className="grid gap-x-4 gap-y-[18px] sm:grid-cols-2">
@@ -71,7 +73,7 @@ function Formulier({ heading, note }: { heading?: string; note?: string }) {
         <label className="flex flex-col gap-2 sm:col-span-2"><Label>{f.bericht}</Label>
           <textarea className={`${veld} h-[160px] resize-none py-3.5 leading-[1.6]`} name="message" required maxLength={4000} placeholder={f.berichtPlaceholder} /></label>
       </div>
-      <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...LOKVELD} />
       <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="m-0 text-[15px] font-medium" style={{ color: PINK }}>{state.error}</p>}
       <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">

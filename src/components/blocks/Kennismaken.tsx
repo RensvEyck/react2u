@@ -8,6 +8,7 @@ import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
 import { pad, telefoonInTaal } from "@/lib/taal";
 import { usePartnercode } from "@/lib/partnercode";
+import { LOKVELD, WEBMCP } from "@/lib/webmcp";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -63,7 +64,7 @@ function Formulier({ d }: { d: any }) {
     );
   }
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <form action={action} {...WEBMCP.kennismaken} className="flex flex-col gap-5">
       <div className="flex flex-col gap-1.5">
         <h2 className={`${kop} m-0 text-[26px] leading-[1.2] md:text-[28px]`} style={{ color: NAVY }}>{d.formKop || k.formKop}</h2>
         <span className="text-[14px]" style={{ color: MUTE }}>{f.verplichteVelden}</span>
@@ -96,7 +97,7 @@ function Formulier({ d }: { d: any }) {
         <label className="flex flex-col gap-2 sm:col-span-2"><Label>{k.toelichting}</Label>
           <textarea className={`${veld} h-[120px] resize-none py-3.5 leading-[1.6]`} name="toelichting" maxLength={3000} placeholder={k.toelichtingPlaceholder} /></label>
       </div>
-      <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...LOKVELD} />
       <TurnstileField resetKey={state?.error} />
       {state?.error && <p role="alert" className="m-0 text-[15px] font-medium" style={{ color: PINK }}>{state.error}</p>}
       <button disabled={pending}
