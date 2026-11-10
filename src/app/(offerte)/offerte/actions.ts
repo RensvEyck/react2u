@@ -6,11 +6,11 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { withinLimit } from "@/lib/rateLimit";
 import { clientIp } from "@/lib/analytics";
 import {
-  bedragTekst, berekenTotalen, euro, factuurFout, momentLang, naamVoorSales, normaliseerFactuur, normaliseerRegels, normaliseerVervolg,
+  bedragTekst, berekenTotalen, euro, factuurFout, momentLang, naamVoorSales, nieuweVoorstellen, normaliseerFactuur, normaliseerRegels, normaliseerVervolg,
   OFFERTE_EMAIL, ONDERTEKEN_FOUT, VERVOLG_STANDAARD, type Factuur, type OffertePubliek,
 } from "@/lib/offertes";
 import {
-  bevestigOfferteGetekend, notifyOfferteAfgewezen, notifyOfferteGetekend, offerteAdminUrl, offerteUrl, sendOfferteCode,
+  bevestigOfferteGetekend, notifyOfferteAfgewezen, notifyOfferteGetekend, notifyOfferteVoorstelGevraagd, offerteAdminUrl, offerteUrl, sendOfferteCode,
 } from "@/lib/mail";
 import { getekendePdf } from "@/lib/offerteGetekend";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
@@ -33,10 +33,36 @@ export type CodeState = { ok: boolean; fout?: string };
 
 const TOKEN = /^[a-f0-9]{48,}$/;
 
-/** De tussenstand van de klant, zodat sales ziet wat er is aangeklikt. Faalt stil: het is een extra. */
+/**
+ * De tussenstand van de klant, zodat sales ziet wat er is aangeklikt. Zet de
+ * klant een onderdeel op aanvraag aan, dan krijgt sales daar meteen een mail
+ * over (alleen voor wat er nieuw bij komt). Faalt stil: het is een extra.
+ */
 export async function bewaarKeuze(token: string, keuze: string[]): Promise<void> {
   if (!TOKEN.test(token) || !Array.isArray(keuze) || keuze.length > 200) return;
-  await supabasePublic().rpc("offerte_keuze_bewaren", { p_token: token, p_keuze: keuze.map(String) });
+  const voor = await lees(token);
+  const { data } = await supabasePublic().rpc("offerte_keuze_bewaren", { p_token: token, p_keuze: keuze.map(String) });
+  if (data !== true || !voor) return;
+
+  after(async () => {
+    const na = await lees(token);
+    if (!na || !Array.isArray(na.keuze)) return;
+    const regels = normaliseerRegels(na.regels);
+    const nieuw = nieuweVoorstellen(regels, voor.keuze, na.keuze, na.medewerkers);
+    if (!nieuw.length) return;
+    // Aan en uit blijven klikken mag geen stroom mails geven.
+    if (!(await withinLimit("offerte-voorstel", { limit: 10, windowSeconds: 60 * 60 }))) return;
+    await notifyOfferteVoorstelGevraagd({
+      nummer: na.nummer,
+      bedrijf: na.bedrijf,
+      contactpersoon: na.contactpersoon,
+      email: na.email,
+      onderdelen: nieuw.map((r) => r.naam),
+      gekozen: berekenTotalen(regels, na.keuze, na.medewerkers).regels.map(naamVoorSales),
+      adminLink: offerteAdminUrl(na.id),
+      afzenderEmail: na.afzender_email,
+    }).catch((e) => console.error("[offerte] melding voorstel gevraagd mislukt:", e));
+  });
 }
 
 async function lees(token: string): Promise<OffertePubliek | null> {

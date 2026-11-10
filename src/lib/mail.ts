@@ -570,6 +570,34 @@ export async function notifyOfferteAfgewezen(n: {
   );
 }
 
+/**
+ * De klant zette in de offerte een onderdeel op aanvraag aan: hij vraagt om
+ * een voorstel. Naar sales en de collega die de offerte stuurde, ook als er
+ * (nog) niet getekend wordt.
+ */
+export async function notifyOfferteVoorstelGevraagd(n: {
+  nummer: string; bedrijf: string; contactpersoon: string | null; email: string | null;
+  onderdelen: string[]; gekozen: string[]; adminLink: string; afzenderEmail: string | null;
+}) {
+  const wat = n.onderdelen.length === 1 ? n.onderdelen[0] : `${n.onderdelen.length} onderdelen`;
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `Voorstel gevraagd: ${n.bedrijf} (${wat}), offerte ${n.nummer}`,
+    persoonlijk(
+      `${n.bedrijf} vraagt om een voorstel`,
+      [
+        `In offerte ${esc(n.nummer)} heeft de klant aangeklikt dat hij een voorstel wil voor: <strong>${n.onderdelen.map(esc).join(", ")}</strong>.`,
+        `Er is nog niet getekend. Op dit moment staat aan: ${n.gekozen.map(esc).join(", ")}.`,
+        n.contactpersoon || n.email
+          ? `Contact: ${[n.contactpersoon, n.email].filter(Boolean).map((x) => esc(String(x))).join(", ")}.`
+          : "",
+        "Maak het voorstel en zet de prijs in de offerte; de klant ziet de wijziging direct via zijn link.",
+      ].filter(Boolean),
+      { tekst: "Open de offerte", link: n.adminLink }
+    )
+  );
+}
+
 /** De eerste keer dat de klant de offerte opent: alleen naar de collega die hem stuurde. */
 export async function notifyOfferteBekeken(n: { to: string; nummer: string; bedrijf: string; adminLink: string }) {
   await post(

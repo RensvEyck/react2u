@@ -545,6 +545,22 @@ export function naamVoorSales(b: { regel: Regel; bedrag: number | null }): strin
   return b.regel.naam;
 }
 
+/** Of de klant met aanzetten om een voorstel vraagt: een optie zonder bedrag die niet bij gebruik wordt afgerekend. */
+export function isVoorstel(b: { regel: Regel; bedrag: number | null }): boolean {
+  return b.bedrag === null && b.regel.soort === "optie" && !b.regel.bijGebruik;
+}
+
+/**
+ * De onderdelen waar de klant zojuist een voorstel voor vraagt: aan in de
+ * nieuwe keuze, niet in de vorige. Zo krijgt sales één melding per aanvraag
+ * en niet bij elke klik daarna.
+ */
+export function nieuweVoorstellen(regels: Regel[], vorige: unknown, nieuwe: readonly string[], medewerkers: number | null | undefined): Regel[] {
+  // Nog niets bewaard: dan geldt wat sales standaard aanzette, en dat vroeg de klant niet zelf.
+  const al = new Set(herstelKeuze(regels, vorige));
+  return berekenTotalen(regels, nieuwe, medewerkers).regels.filter((b) => isVoorstel(b) && !al.has(b.regel.id)).map((b) => b.regel);
+}
+
 /** Het bedrag van een regel in de keuze: per maand als het doorloopt, anders eenmalig. */
 export function regelbedrag(b: { bedrag: number | null; periode: "jaar" | "eenmalig" | null }): { bedrag: number | null; per: "maand" | "eenmalig" | null } {
   if (b.bedrag === null || b.periode === null) return { bedrag: b.bedrag, per: null };
