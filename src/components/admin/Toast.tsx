@@ -77,6 +77,7 @@ const FOUT_TEKST: Record<string, string> = {
   "migratie-0025": "Sjablonen staan nog niet aan: migratie 0025 moet eerst in Supabase worden uitgevoerd.",
   // Brochures
   "brochure-onvolledig": "Vul de naam van het bedrijf in voordat je de brochure openzet.",
+  "onboarding-onvolledig": "Vul de naam van het bedrijf in en kies minstens één document voordat je de onboarding openzet.",
   "migratie-0030": "Brochures staan nog niet aan: migratie 0030 moet eerst in Supabase worden uitgevoerd.",
   // Contracten
   "contract-onvolledig": "Het contract is nog niet compleet: kijk bij Versturen wat er ontbreekt.",
@@ -109,6 +110,14 @@ const OK_TEKST: Record<string, string> = {
   "brochure-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
   "brochure-heropend": "De brochure staat weer open.",
   "brochure-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
+  onboarding: "Onboarding opgeslagen.",
+  "onboarding-nieuw": "Onboarding aangemaakt. Bekijk het voorbeeld en verstuur hem.",
+  "onboarding-open": "De link staat open voor de klant. Stuur hem door.",
+  "onboarding-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  "onboarding-heropend": "De onboarding staat weer open.",
+  "onboarding-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
+  "taak-klaar": "Afgevinkt.",
+  "taak-open": "Weer opengezet.",
   "offerte-heropend": "Heropend: de klant kan weer kiezen en tekenen.",
   "offerte-kopie": "Kopie gemaakt als nieuw concept, met een eigen nummer en link.",
   "offerte-link": "Nieuwe link gemaakt. De oude werkt niet meer.",

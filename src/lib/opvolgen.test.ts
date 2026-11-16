@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { klantSleutels, opvolgen, verkoopcijfers, waardeTekst, type BrochureRij, type ContractRij, type OfferteRij } from "./opvolgen";
+import { klantSleutels, opvolgen, verkoopcijfers, waardeTekst, type BrochureRij, type ContractRij, type OfferteRij, type OnboardingRij } from "./opvolgen";
 import type { Regel } from "./offertes";
 
 // Woensdag 4 november 2026, 11:00 in Amsterdam.
@@ -34,6 +34,16 @@ function contract(over: Partial<ContractRij> = {}): ContractRij {
     email: "anna@smit.nl", telefoon: null, offerte_id: null, ingangsdatum: "2026-12-01", einddatum: "2027-11-30",
     created_at: dagenGeleden(4), verstuurd_at: dagenGeleden(4), bekeken_at: null, laatst_bekeken_at: null,
     aantal_bekeken: 0, getekend_at: null, ...over,
+  };
+}
+
+function onboarding(over: Partial<OnboardingRij> = {}): OnboardingRij {
+  return {
+    id: "ob1", nummer: "O2026-0001", status: "verstuurd", bedrijf: "Bakkerij De Korenaar", contactpersoon: "Fatima",
+    email: "fatima@korenaar.nl", telefoon: "040 1234567", documenten: ["welkom", "inrichting", "werknemers", "verzuimprotocol"],
+    invullen: ["inrichting", "werknemers"], antwoorden: {}, gelezen: {}, taken: {},
+    created_at: dagenGeleden(6), verstuurd_at: dagenGeleden(6), afgerond_at: null, bekeken_at: null, laatst_bekeken_at: null,
+    aantal_bekeken: 0, ...over,
   };
 }
 
@@ -172,6 +182,46 @@ describe("contracten opvolgen", () => {
 
     // Ruim voor de opzegtermijn: niets.
     expect(opvolgen({ ...leeg, contracten: [{ ...c, einddatum: "2027-08-31" }] }, NU)).toEqual([]);
+  });
+});
+
+describe("onboarding opvolgen", () => {
+  it("zet React2u aan zet zodra de klant alles heeft aangeleverd, en zwijgt als alles is ingericht", () => {
+    const klaar = onboarding({
+      status: "afgerond", afgerond_at: urenGeleden(5), bekeken_at: dagenGeleden(5), laatst_bekeken_at: urenGeleden(5), aantal_bekeken: 4,
+      antwoorden: { inrichting: { data: {}, at: dagenGeleden(1), door: null }, werknemers: { data: {}, at: urenGeleden(5), door: null } },
+      gelezen: { welkom: dagenGeleden(5), verzuimprotocol: dagenGeleden(5) },
+      taken: { xpertsuite: { at: urenGeleden(1), door: "rens@react2u.nl" } },
+    });
+    const [s] = opvolgen({ ...leeg, onboardings: [klaar] }, NU);
+    expect(s).toMatchObject({ soort: "onboarding", reden: "inrichten", label: "Klant klaar", toon: "goed", href: "/admin/onboarding/ob1#inrichten" });
+    // Vier taken bij deze documenten (geen machtiging, dus geen dossiers): werkgever, import, debiteur, casemanager, instructie = 5, 1 gedaan.
+    expect(s.details).toEqual(["Onboarding O2026-0001", "alles aangeleverd 5 uur geleden", "nog 4 taken om in te richten"]);
+
+    const ingericht = { ...klaar, taken: Object.fromEntries(["xpertsuite", "werknemers_import", "facturatie", "casemanager", "instructie"].map((t) => [t, { at: urenGeleden(1), door: null }])) };
+    expect(opvolgen({ ...leeg, onboardings: [ingericht] }, NU)).toEqual([]);
+  });
+
+  it("laat een klant die bezig is met rust, maar meldt het als het daarna tien dagen stil is", () => {
+    const bezig = onboarding({ bekeken_at: dagenGeleden(3), laatst_bekeken_at: dagenGeleden(2), aantal_bekeken: 2, gelezen: { welkom: dagenGeleden(2) } });
+    expect(opvolgen({ ...leeg, onboardings: [bezig] }, NU)).toEqual([]);
+
+    const stil = onboarding({ created_at: dagenGeleden(20), verstuurd_at: dagenGeleden(20), bekeken_at: dagenGeleden(18), laatst_bekeken_at: dagenGeleden(12), aantal_bekeken: 2, gelezen: { welkom: dagenGeleden(12) } });
+    const [s] = opvolgen({ ...leeg, onboardings: [stil] }, NU);
+    expect(s).toMatchObject({ reden: "stil", label: "Daarna stil", toon: "let-op" });
+    expect(s.details).toEqual(["Onboarding O2026-0001", "2× bekeken, laatst 12 dagen geleden", "1 van 4 stappen klaar", "vraag wat er nog nodig is"]);
+  });
+
+  it("vraagt na vijf dagen om een herinnering als de onboarding niet geopend is, en niet net na een herinnering", () => {
+    const [s] = opvolgen({ ...leeg, onboardings: [onboarding()] }, NU);
+    expect(s).toMatchObject({ reden: "niet-geopend", label: "Niet geopend", toon: "info" });
+    expect(s.details).toEqual(["Onboarding O2026-0001", "verstuurd 6 dagen geleden", "stuur een herinnering"]);
+    expect(opvolgen({ ...leeg, onboardings: [onboarding({ verstuurd_at: dagenGeleden(2), created_at: dagenGeleden(2) })] }, NU)).toEqual([]);
+    expect(opvolgen({ ...leeg, onboardings: [onboarding()], gemaild: new Map([["ob1", dagenGeleden(1)]]) }, NU)).toEqual([]);
+  });
+
+  it("negeert concepten en ingetrokken onboardings", () => {
+    expect(opvolgen({ ...leeg, onboardings: [onboarding({ status: "concept" }), onboarding({ id: "ob2", status: "ingetrokken" })] }, NU)).toEqual([]);
   });
 });
 

@@ -1447,6 +1447,117 @@ Wat per soort verschilt (titel, woordmerk, rollen, kopjes, slotzin) staat in
   zodat het nummer niet alleen onderaan staat; zet nooit een `wrap={false}` om een
   kop en een bepaling samen, ook dat tekende over elkaar heen.
 
+## Onboarding
+
+Sinds november 2026 (migratie [0037](supabase/migrations/0037_onboarding.sql)):
+een nieuwe klant krijgt **één persoonlijke link met alles om te starten**, en
+het beheer volgt het hele traject tot de klant live is (Rens, 16 nov 2026: "zorg
+dat de bestanden via de admin verstuurd kunnen worden in als kop onboarding en
+dat je selecteert welke bestanden verstuurd worden en ingevuld kunnen worden",
+daarna "gebruik de stijl hoe we daar offertes etc gemaakt hebben" en "onboarding
+traject uitbouwen in de admin"). Dezelfde opzet als brochures en contracten:
+token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
+
+- **De documenten** staan in de code, niet in de database
+  ([`lib/onboarding.ts`](src/lib/onboarding.ts), `DOCUMENTEN`): *Welkom bij
+  React2u* (werkwijze en de tijdlijn van ziekmelding tot WIA), *Inrichting nieuwe
+  klant* (bedrijfs- en factuurgegevens), *Werknemersbestand* (de 37 kolommen van
+  de lege import van XpertSuite), *Verzuimprotocol* (R-E-A-C-T-2U, voor de
+  medewerkers), *Wat je wél mag vragen bij ziekteverzuim* (met belscript) en
+  *Machtiging overdracht verzuimdossier* (alleen bij een overstap, standaard uit).
+  De inhoud komt uit de vijf bronbestanden en de afbeelding van het protocol die
+  Rens aanleverde; de originelen zijn niet meer nodig. De tijdlijnweken staan
+  letterlijk uit het Welkom-document (probleemanalyse week 6 tot 12, plan van
+  aanpak week 8 tot 13), terwijl de Wet Poortwachter uiterlijk week 6 en 8 zegt:
+  nog aan Rens voor te leggen.
+- **Per document twee keuzes** in het beheer: `documenten` (gaat mee) en
+  `invullen` (de klant vult het online in; alleen inrichting, werknemers en
+  machtiging kunnen dat, `invullen <@ documenten`). Wat niet online gaat, krijgt
+  op de pagina een download (pdf, of het lege Excelbestand) en een afvinkknop.
+- **Beheer**: `/admin/onboarding` (register met filters *Bij de klant*,
+  *Inrichten*, *Ingericht*, *Concept*, *Ingetrokken*, zoeken, en twee
+  voortgangsbalken: de klant en React2u), `/admin/onboarding/nieuw` (ook vanuit
+  een getekend basiscontract met `?contract=<id>`: de knop *Start onboarding* op
+  het contract) en `/admin/onboarding/<id>`: versturen of herinneren
+  (`OfferteVersturen` met `woord="onboarding"`), *Wat de klant doet* (per
+  document ingevuld of afgevinkt, met de pdf), **Inrichten bij React2u** (zie
+  hieronder), wat de klant invulde (inrichting met het blok *In te vullen door
+  React2u*: contractsoort en debiteurnummer; het werknemersbestand met
+  gemaskeerde BSN's, als Excel voor XpertSuite op
+  `/admin/onboarding/<id>/werknemers`, en *Wissen na import*; de machtiging),
+  de tijdlijn, het formulier en een notitie. `/admin/onboardingvoorbeeld/<id>`
+  (+ `/pdf/<document>`, `/excel`) toont de pagina zoals de klant hem ziet, ook
+  als concept; invullen kan daar niet.
+- **Inrichten bij React2u** (`taken`, `TAKEN` in `lib/onboarding.ts`): de
+  checklist van wat wij zelf regelen voordat de klant live is: werkgever
+  aangemaakt in XpertSuite, werknemers geïmporteerd (alleen met het
+  werknemersbestand), debiteur aangemaakt, vaste casemanager gekoppeld, dossiers
+  opgevraagd bij de vorige arbodienst (alleen met de machtiging), instructie
+  XpertSuite gegeven. Per taak staat wie hem wanneer afvinkte; een taak die op
+  een document van de klant wacht zegt dat zolang die er niet is. De weergave
+  in het beheer: *Concept*, *Verstuurd*, *Klant bezig* (bekeken), **Klant
+  klaar** (status `afgerond`: alles ingevuld of afgevinkt, React2u aan zet) en
+  **Ingericht** (ook alle taken af, de klant is live; `onboardingWeergave()`).
+  De klant ziet de checklist niet.
+- **Klantpagina** `/onboarding/<token>`
+  ([`OnboardingPagina.tsx`](src/components/onboarding/OnboardingPagina.tsx)) in
+  de vormgeving van de offerte- en contractpagina: de kopbalk met de stappen als
+  genummerde rondjes die meelopen, de voortgang en bellen; de opening in de lila
+  tint met het persoonlijke woord (`bericht`, met `{bedrijf}` en `{voornaam}`),
+  de feiten en rechts de kaart met de voortgangsring, de stappen en het
+  aanspreekpunt; elk document als een stap op een wit vel (lezen en afvinken, of
+  online invullen met controles: KvK 8 cijfers, IBAN mod 97, BSN elfproef,
+  postcode); de felicitatie met de stippen als alles net klaar is; op de
+  telefoon onderaan de knop naar de volgende open stap. Modus klant, collega
+  (telt niet, invullen mag: samen aan de telefoon) en voorbeeld (niets opslaan).
+  De klant schrijft alleen via `onboarding_opslaan` en `onboarding_gelezen`
+  (security definer, het token als sleutel); Next controleert de vorm van de
+  invoer, de database of het mag en hoe groot het is. Is alles gedaan, dan zet
+  `onboarding_afronden` de status op `afgerond`.
+- **Privacy**: het werknemersbestand bevat burgerservicenummers. Daarom alleen
+  achter `bellijst`, BSN's gemaskeerd in het beheer, de knop *Wissen na import*
+  (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar
+  na de laatste activiteit weg (`opruimen-onboardings`). Er is geen upload: geen
+  extra service role nodig (zie de regel in `lib/supabase/admin.ts`). De
+  machtiging houdt de werknemer buiten de database: de werkgever vult alleen
+  zijn vorige arbodienst in, de pdf komt vooringevuld en de werknemer tekent op
+  papier.
+- **Pdf** ([`lib/onboardingPdf.tsx`](src/lib/onboardingPdf.tsx), één per
+  document, `/onboarding/<token>/pdf/<document>`): Outfit, de lila band, de
+  kleuren van de stippen in het logo; een ingevuld formulier komt ingevuld mee,
+  anders met lege vakken. Voet en paginanummer zoals de offerte-pdf (het
+  paginanummer los van de vaste voet, zie daar). Het werknemersbestand is Excel
+  ([`lib/xlsx.ts`](src/lib/xlsx.ts), zonder dependency; `/excel` het lege
+  bestand voor de klant).
+- **Mail** ([`lib/onboardingMail.ts`](src/lib/onboardingMail.ts), op de
+  bouwstenen van `offerteMail.ts`): welkom met de knop, het persoonlijke woord
+  en de documenten als checklist (bij een herinnering met wat al klaar is).
+  Meldingen aan de afzender: geopend, een document ingevuld (de eerste keer),
+  afgerond. Op het dashboard staat een onboarding in het Verkoopblok (zie
+  *Commandopalet en dashboard*).
+- **Database**: `onboardings` (nummer `O2026-0001`, `documenten`, `invullen`,
+  `antwoorden` per document `{ data, at, door }`, `gelezen`, `taken`, de velden
+  van React2u) en `onboarding_gebeurtenissen` (ook `taak`);
+  `onboarding_bekijken(token, tel)` als publieke ingang; trigger
+  `onboarding_bewaken` houdt bezoek, antwoorden en taken bij de API vandaan.
+  Middleware en `next.config.ts` behandelen `/onboarding/*` als `/offerte/*`.
+  Lijsten en het dashboard halen `antwoorden` niet op (daar kan het hele
+  werknemersbestand in staan) maar alleen de momenten (`ANTWOORD_MOMENTEN`,
+  `metAntwoordMomenten()`). **Bezoek telt per half uur**: de pagina rendert ook
+  na elke keer opslaan (in het verzoek van de server action en bij
+  `router.refresh`), en de interne headers daarvan (`rsc`, `next-action`) haalt
+  Next weg voordat `headers()` ze ziet. Daarom telt `onboarding_bekijken` een
+  bezoek pas opnieuw na een half uur zonder activiteit, zoals de gebeurtenis
+  *bekeken* al deed; anders stond er na zes stappen "8× bekeken".
+- **Tests**: [`e2e/onboarding.cjs`](e2e/onboarding.cjs) (aanmaken met de
+  documentkeuze, voorbeeld, pdf's en Excel uit het beheer, versturen, de klant
+  opent en vinkt af, inrichting met een fout KvK-nummer, werknemers met een fout
+  BSN, machtiging, compleet, het dashboard, de checklist van React2u tot
+  ingericht, wissen na import, register, collega, intrekken, onbekende link),
+  `lib/onboarding.test.ts`, `lib/onboardingPdf.test.tsx` (met
+  `ONBOARDING_PDF_MAP=<map>` schrijft hij de pdf's weg) en de onboardingregels in
+  `lib/opvolgen.test.ts`.
+
 ## Omzet en uren
 
 Sinds migratie [0035](supabase/migrations/0035_omzet_uren.sql) (Rens, 4 nov 2026:
@@ -1580,6 +1691,10 @@ opgevolgd moet worden, belangrijkste eerst. De regels staan in
   basiscontract: de laatste opzegdag valt binnen 60 dagen, tijd voor een
   evaluatiegesprek. Een resellerovereenkomst loopt voor onbepaalde tijd en telt
   niet als basiscontract, ook niet in het cijfer erboven.
+- **Onboarding** (0037): *Klant klaar* zodra de klant alles heeft aangeleverd en
+  er nog taken van React2u openstaan (60 dagen lang, naar de checklist); een
+  klant die bezig is hoeft niemand te bellen, maar *Daarna stil* na 10 dagen
+  zonder bezoek, en *Niet geopend* na 5 dagen. Ingericht: weg van het dashboard.
 
 Een herinnering of nieuwe verzending (gebeurtenis `verstuurd` of `herinnering`)
 zet *Niet geopend* en *Daarna stil* drie dagen stil: `verstuurd_at` blijft op
@@ -2072,7 +2187,8 @@ bedrijfsherkenning, offertes, de offerte-pdf). Die bevatten de
 regels waar het op aankomt; de schermen eromheen zijn dun.
 
 **Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
-eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`). `e2e/run.mjs`
+eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`), en sindsdien per
+module een test (brochure, contract, onboarding, reseller, partner, dashboard, omzet). `e2e/run.mjs`
 bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
 testbeheerder, lege versies van twee productiefuncties en pg_cron uit
 `e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen

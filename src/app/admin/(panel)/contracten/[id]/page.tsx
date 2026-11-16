@@ -16,7 +16,7 @@ import { resellerVergoeding, wijktAf } from "@/lib/contractTekst";
 import { apparaatUit, datumLang, datumOver, momentLang } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil, LuSignature, LuMailCheck,
-  LuStickyNote, LuFileDown, LuShieldCheck, LuTriangleAlert, LuFilePenLine, LuCalendarClock, LuHandshake,
+  LuStickyNote, LuFileDown, LuShieldCheck, LuTriangleAlert, LuFilePenLine, LuCalendarClock, LuHandshake, LuClipboardCheck,
 } from "react-icons/lu";
 
 /**
@@ -89,6 +89,11 @@ export default async function ContractAdmin({ params }: { params: Promise<{ id: 
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href={`/admin/contractvoorbeeld/${c.id}`} target="_blank" className="abtn-ghost !py-1.5 text-[13px]"><LuEye /> Voorbeeld</Link>
+            {getekend && !reseller && (
+              <Link href={`/admin/onboarding/nieuw?contract=${c.id}`} className="abtn-ghost !py-1.5 text-[13px]" title="Stuur de nieuwe klant zijn onboarding, met de gegevens al ingevuld">
+                <LuClipboardCheck /> Start onboarding
+              </Link>
+            )}
             {!getekend && (
               <a href={`/admin/contractvoorbeeld/${c.id}/concept?download=1`} className="abtn-ghost !py-1.5 text-[13px]" title="Het contract als pdf met het stempel CONCEPT, om mee te sturen of te printen">
                 <LuFileDown /> Concept-pdf

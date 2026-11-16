@@ -23,7 +23,7 @@ function vulDatabase() {
   // Triggers uit (replica): die bewaken de statusovergangen van het beheer, en hier zetten we
   // de eindstand in één keer neer, inclusief tijden in het verleden.
   sql(`set session_replication_role = replica;
-truncate public.offertes, public.brochures, public.contracten cascade;
+truncate public.offertes, public.brochures, public.contracten, public.onboardings cascade;
 insert into public.offertes (vorm, bedrijf, contactpersoon, email, telefoon, medewerkers, regels, status, geldig_tot, created_at, verstuurd_at, bekeken_at, laatst_bekeken_at, aantal_bekeken, keuze, keuze_at, getekend_at, afgewezen_at) values
  ('verzuimbegeleiding', 'Jansen Bouw B.V.', 'Kees Jansen', 'kees@jansenbouw.test', '06 1234 5678', 25, ${VAST}, 'verstuurd', current_date + 20, now() - interval '3 days', now() - interval '3 days', now() - interval '2 days', now() - interval '1 hour', 3, '["a"]', now() - interval '1 hour', null, null),
  ('verzuimbegeleiding', 'Bakkerij De Korenschoof', 'Mieke de Wit', 'mieke@korenschoof.test', '040 222 33 44', 10, ${VAST}, 'verstuurd', current_date + 2, now() - interval '6 days', now() - interval '6 days', null, null, 0, null, null, null, null),
@@ -138,7 +138,7 @@ insert into public.page_views (path, is_company, company, company_domain, compan
   }
 
   stap("Leeg");
-  sql("set session_replication_role = replica; truncate public.offertes, public.brochures, public.contracten cascade;");
+  sql("set session_replication_role = replica; truncate public.offertes, public.brochures, public.contracten, public.onboardings cascade;");
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${BASIS}/admin`);
   await blok.waitFor();
