@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  LuArrowRight, LuBookOpen, LuChevronDown, LuChevronRight, LuCircleCheck, LuFilePenLine, LuGlobe,
+  LuArrowRight, LuBookOpen, LuChevronDown, LuChevronRight, LuCircleCheck, LuClipboardCheck, LuFilePenLine, LuGlobe,
   LuPhoneCall, LuPlus, LuScrollText, LuTrendingUp,
 } from "react-icons/lu";
 import { euro } from "@/lib/offertes";
@@ -23,6 +23,7 @@ const TOON: Record<Toon, string> = {
 
 function Icoon({ s }: { s: Signaal }) {
   if (s.reden === "zonder-contract" || s.soort === "contract") return <LuScrollText />;
+  if (s.soort === "onboarding") return <LuClipboardCheck />;
   return s.soort === "brochure" ? <LuBookOpen /> : <LuFilePenLine />;
 }
 
@@ -46,6 +47,7 @@ export default function VerkoopBlok({ signalen, cijfers, leeg }: { signalen: Sig
         <div className="flex items-center gap-4">
           <Link href="/admin/brochures" className="hidden text-[13px] font-semibold text-black/45 hover:text-[#312e82] sm:inline">Brochures</Link>
           <Link href="/admin/contracten" className="hidden text-[13px] font-semibold text-black/45 hover:text-[#312e82] sm:inline">Contracten</Link>
+          <Link href="/admin/onboarding" className="hidden text-[13px] font-semibold text-black/45 hover:text-[#312e82] sm:inline">Onboarding</Link>
           <Link href="/admin/offertes" className="hidden text-[13px] font-semibold text-black/45 hover:text-[#312e82] sm:inline">Offertes</Link>
           <Link href="/admin/verkoop" className="flex items-center gap-1 text-[13px] font-semibold text-[#e75387] hover:underline">
             Salesdashboard <LuArrowRight className="text-[13px]" />
@@ -102,7 +104,7 @@ export default function VerkoopBlok({ signalen, cijfers, leeg }: { signalen: Sig
           {signalen.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-6 py-9 text-center">
               <LuCircleCheck className="text-[26px] text-[#0e9f8a]/70" />
-              <p className="text-[14px] text-black/45">Niets op te volgen: elke offerte, brochure en contract is bij.</p>
+              <p className="text-[14px] text-black/45">Niets op te volgen: elke offerte, brochure, contract en onboarding is bij.</p>
             </div>
           ) : (
             <>

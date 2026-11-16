@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  controleerOnboarding, documentKlaar, gekozen, keuzeUit, ONBOARDING_EMAIL, vultIn, type Onboarding, type OnboardingStatus,
+  controleerOnboarding, documentKlaar, gekozen, isTaak, keuzeUit, ONBOARDING_EMAIL, vultIn, type Onboarding, type OnboardingStatus,
 } from "@/lib/onboarding";
 import { onboardingUrl, sendOnboarding } from "@/lib/mail";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
@@ -201,6 +201,25 @@ export async function saveOnboardingNotitie(id: string, fd: FormData) {
   await sb.from("onboardings").update({ notitie: tekst(fd, "notitie", 5000) }).eq("id", id);
   ververs(id);
   redirect(`/admin/onboarding/${id}?opgeslagen=notitie`);
+}
+
+/**
+ * Een taak van React2u afvinken of weer openzetten (lib/onboarding.ts, TAKEN):
+ * wat er na de documenten van de klant nog moet gebeuren voordat hij live is.
+ */
+export async function wisselTaak(id: string, taak: string) {
+  const { sb, admin } = await requirePerm("bellijst");
+  const o = await laad(sb, id);
+  if (!o || !isTaak(taak)) redirect(`/admin/onboarding/${id}`);
+  const wasKlaar = Boolean(o.taken?.[taak]);
+  const taken = { ...(o.taken || {}) };
+  if (wasKlaar) delete taken[taak];
+  else taken[taak] = { at: new Date().toISOString(), door: admin.email };
+  const { error } = await sb.from("onboardings").update({ taken }).eq("id", id);
+  if (error) redirect(`/admin/onboarding/${id}?fout=opslaan`);
+  await log(sb, id, "taak", admin.email, { taak, klaar: !wasKlaar });
+  ververs(id);
+  redirect(`/admin/onboarding/${id}?opgeslagen=${wasKlaar ? "taak-open" : "taak-klaar"}#inrichten`);
 }
 
 /** Het blok "in te vullen door React2u": contractsoort en debiteurnummer. */

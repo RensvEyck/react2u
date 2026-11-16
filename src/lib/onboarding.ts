@@ -31,6 +31,7 @@ export type Onboarding = {
   gelezen: Partial<Record<DocumentSleutel, string>>;
   contractsoort: string | null;
   debiteurnummer: string | null;
+  taken: Partial<Record<TaakSleutel, Taak>>;
   afzender_naam: string | null;
   afzender_functie: string | null;
   afzender_email: string | null;
@@ -56,7 +57,7 @@ export type OnboardingPubliek = Pick<
 export type OnboardingGebeurtenis = {
   id: number;
   onboarding_id: string;
-  soort: "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "ingevuld" | "gelezen" | "afgerond" | "ingetrokken" | "heropend" | "gewist";
+  soort: "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "ingevuld" | "gelezen" | "afgerond" | "ingetrokken" | "heropend" | "gewist" | "taak";
   door: string | null;
   details: Record<string, string | number | boolean> | null;
   at: string;
@@ -182,6 +183,26 @@ export function documentKlaar(o: Pick<Onboarding, "invullen" | "antwoorden" | "g
   return vultIn(o, s) ? Boolean(o.antwoorden?.[s]) : Boolean(o.gelezen?.[s]);
 }
 
+/**
+ * Voor lijsten: alleen het moment per ingevuld document, zonder de inhoud.
+ * `antwoorden` kan het hele werknemersbestand bevatten (tot 500 medewerkers),
+ * en een lijst of het dashboard heeft alleen nodig óf het is ingevuld.
+ * Gebruik in een select, en zet de rij daarna om met `metAntwoordMomenten`.
+ */
+export const ANTWOORD_MOMENTEN = "inrichting_at:antwoorden->inrichting->>at, werknemers_at:antwoorden->werknemers->>at, machtiging_at:antwoorden->machtiging->>at";
+
+export type AntwoordMomenten = { inrichting_at?: string | null; werknemers_at?: string | null; machtiging_at?: string | null };
+
+/** Bouwt uit de momenten een `antwoorden` dat voor `voortgang` en `documentKlaar` volstaat. */
+export function metAntwoordMomenten<T extends AntwoordMomenten>(rij: T): T & { antwoorden: Onboarding["antwoorden"] } {
+  const antwoorden: Onboarding["antwoorden"] = {};
+  for (const d of ["inrichting", "werknemers", "machtiging"] as const) {
+    const at = rij[`${d}_at`];
+    if (at) antwoorden[d] = { data: {}, at, door: null };
+  }
+  return { ...rij, antwoorden };
+}
+
 /** Hoeveel van de gekozen documenten af zijn. */
 export function voortgang(o: Pick<Onboarding, "documenten" | "invullen" | "antwoorden" | "gelezen">): { klaar: number; totaal: number } {
   const docs = gekozen(o);
@@ -195,19 +216,91 @@ export function keuzeUit(mee: string[], invul: string[]): { documenten: Document
   return { documenten, invullen };
 }
 
+/* ---------- wat React2u zelf regelt ---------- */
+
+export type TaakSleutel = "xpertsuite" | "werknemers_import" | "facturatie" | "casemanager" | "dossiers" | "instructie";
+
+/** Eén afgevinkte taak: wanneer en door wie. */
+export type Taak = { at: string; door: string | null };
+
+export type TaakInfo = {
+  sleutel: TaakSleutel;
+  titel: string;
+  kort: string;
+  /** Alleen als dit document meegaat. */
+  bij?: DocumentSleutel;
+  /** Kan pas als de klant dit document heeft ingevuld of afgevinkt. */
+  na?: DocumentSleutel;
+};
+
+/**
+ * De checklist van React2u: wat er na (en naast) de documenten van de klant
+ * moet gebeuren voordat hij live is. Samen met de documenten is dit het hele
+ * traject; het beheer vinkt af, de klant ziet dit niet.
+ */
+export const TAKEN: TaakInfo[] = [
+  { sleutel: "xpertsuite", titel: "Werkgever aangemaakt in XpertSuite", kort: "Bedrijf, afdelingen en contactpersoon, uit het inrichtingsformulier.", na: "inrichting" },
+  { sleutel: "werknemers_import", titel: "Werknemers geïmporteerd", kort: "Het Excelbestand ingelezen in XpertSuite. Wis het bestand hier daarna.", bij: "werknemers", na: "werknemers" },
+  { sleutel: "facturatie", titel: "Debiteur aangemaakt", kort: "Factuuradres en mailadres voor facturen in de boekhouding; vul hier het debiteurnummer in.", na: "inrichting" },
+  { sleutel: "casemanager", titel: "Vaste casemanager gekoppeld", kort: "Wie het aanspreekpunt wordt voor dit bedrijf, ook in XpertSuite." },
+  { sleutel: "dossiers", titel: "Dossiers opgevraagd bij de vorige arbodienst", kort: "Met de getekende machtigingen, bij de arbodienst die de klant opgaf.", bij: "machtiging", na: "machtiging" },
+  { sleutel: "instructie", titel: "Instructie XpertSuite gegeven", kort: "De klant wegwijs gemaakt in de beveiligde omgeving, op kantoor of online." },
+];
+
+export const TAAK_SLEUTELS = TAKEN.map((t) => t.sleutel);
+
+export function isTaak(s: unknown): s is TaakSleutel {
+  return typeof s === "string" && (TAAK_SLEUTELS as string[]).includes(s);
+}
+
+export function taakInfo(s: TaakSleutel): TaakInfo {
+  return TAKEN.find((t) => t.sleutel === s)!;
+}
+
+/** De taken die bij deze onboarding horen: alleen die bij een gekozen document, plus de algemene. */
+export function takenVoor(o: Pick<Onboarding, "documenten">): TaakInfo[] {
+  return TAKEN.filter((t) => !t.bij || o.documenten.includes(t.bij));
+}
+
+export function taakKlaar(o: Pick<Onboarding, "taken">, s: TaakSleutel): boolean {
+  return Boolean(o.taken?.[s]);
+}
+
+/** Hoeveel van de taken van React2u af zijn. */
+export function takenVoortgang(o: Pick<Onboarding, "documenten" | "taken">): { klaar: number; totaal: number } {
+  const taken = takenVoor(o);
+  return { klaar: taken.filter((t) => taakKlaar(o, t.sleutel)).length, totaal: taken.length };
+}
+
+/** Of een taak al kan: de klant heeft het document gedaan waar hij op wacht (of er is geen wachten). */
+export function taakKan(o: Pick<Onboarding, "invullen" | "antwoorden" | "gelezen" | "documenten">, t: TaakInfo): boolean {
+  return !t.na || !o.documenten.includes(t.na) || documentKlaar(o, t.na);
+}
+
 /* ---------- status ---------- */
 
-export type OnboardingWeergave = OnboardingStatus | "bekeken";
+/**
+ * Wat het beheer ziet: de status, verfijnd met wat de klant deed (bekeken) en
+ * met wat React2u nog moet doen (afgerond = klant klaar; ingericht = ook onze
+ * taken af, de klant is live).
+ */
+export type OnboardingWeergave = OnboardingStatus | "bekeken" | "ingericht";
 
-export function onboardingWeergave(o: Pick<Onboarding, "status" | "bekeken_at">): OnboardingWeergave {
-  return o.status === "verstuurd" && o.bekeken_at ? "bekeken" : o.status;
+export function onboardingWeergave(o: Pick<Onboarding, "status" | "bekeken_at" | "documenten" | "taken">): OnboardingWeergave {
+  if (o.status === "verstuurd" && o.bekeken_at) return "bekeken";
+  if (o.status === "afgerond") {
+    const t = takenVoortgang(o);
+    if (t.klaar === t.totaal) return "ingericht";
+  }
+  return o.status;
 }
 
 export const ONBOARDING_WEERGAVE: Record<OnboardingWeergave, { label: string; kleur: string; achter: string }> = {
   concept: { label: "Concept", kleur: "#6b6a85", achter: "rgba(13,13,40,0.05)" },
   verstuurd: { label: "Verstuurd", kleur: "#312e82", achter: "#eef0ff" },
-  bekeken: { label: "Bezig", kleur: "#0b6bcb", achter: "#e6f2ff" },
-  afgerond: { label: "Compleet", kleur: "#0a7a4b", achter: "#e3f6ed" },
+  bekeken: { label: "Klant bezig", kleur: "#0b6bcb", achter: "#e6f2ff" },
+  afgerond: { label: "Klant klaar", kleur: "#b86e00", achter: "#fff4e5" },
+  ingericht: { label: "Ingericht", kleur: "#0a7a4b", achter: "#e3f6ed" },
   ingetrokken: { label: "Ingetrokken", kleur: "#6b6a85", achter: "rgba(13,13,40,0.05)" },
 };
 

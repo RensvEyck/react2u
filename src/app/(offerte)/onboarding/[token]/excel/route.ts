@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
-import { NextResponse } from "next/server";
 import { supabasePublic } from "@/lib/supabase/public";
-import { XPERT_KOLOMMEN, type OnboardingPubliek } from "@/lib/onboarding";
-import { xlsx } from "@/lib/xlsx";
+import { leegWerknemersbestand } from "@/lib/onboardingBestanden";
+import type { OnboardingPubliek } from "@/lib/onboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +15,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
   const { data } = await supabasePublic().rpc("onboarding_bekijken", { p_token: token, p_tel: false });
   const o = data as OnboardingPubliek | null;
   if (!o || o.status === "ingetrokken" || !o.documenten.includes("werknemers")) notFound();
-  const naam = `Werknemersbestand React2u ${o.bedrijf}`.replace(/[^\p{L}\p{N} ._-]/gu, "").trim().slice(0, 90);
-  return new NextResponse(new Uint8Array(xlsx([[...XPERT_KOLOMMEN]])), {
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${naam}.xlsx"`,
-      "Cache-Control": "private, no-store",
-    },
-  });
+  return leegWerknemersbestand(o.bedrijf);
 }

@@ -108,8 +108,9 @@ const nextConfig: NextConfig = {
     // De handtekening van de bestuurder (lib/offerteOndertekenaar.ts) staat sinds 3 nov 2026 ook in de pdf.
     "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     "/brochure/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
-    // Onboarding (0037): de pdf's per document.
+    // Onboarding (0037): de pdf's per document, ook vanuit het voorbeeld in het beheer.
     "/onboarding/**": ["./src/lib/pdf/fonts/*.woff"],
+    "/admin/onboardingvoorbeeld/**": ["./src/lib/pdf/fonts/*.woff"],
     "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     // Contracten (0031): dezelfde bestanden.
     "/contract/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],

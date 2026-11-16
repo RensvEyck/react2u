@@ -11,14 +11,20 @@ import { WERKNEMER_KOLOMMEN, type VeldGroep, type Werknemer } from "@/lib/onboar
  */
 
 const NAVY = "#322E83";
-const KNOP = "inline-flex h-[50px] items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold disabled:opacity-60";
+// Dezelfde knop- en veldstijl als de contractpagina (ContractPagina.tsx).
+const KNOP = "inline-flex h-[52px] items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold disabled:opacity-60";
 const knoppen = { roze: `hv-btn hv-btn-roze ${KNOP}`, rand: `hv-btn hv-btn-rand ${KNOP}` };
 const veld =
-  "h-[50px] w-full rounded-[14px] border bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-[#A9A7BC] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)] disabled:bg-[#F6F5FB]";
+  "h-[52px] w-full rounded-[14px] border bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-[#A9A7BC] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)] disabled:bg-[#F6F5FB] disabled:text-[#A9A7BC]";
 const rand = (fout?: string) => (fout ? "border-[#D92D20] bg-[#FFF8F7]" : "border-[#DCDAE8]");
-const veldLabel = "text-[14px] font-semibold";
+const veldLabel = "text-[14.5px] font-bold";
 
-export type Modus = "klant" | "collega" | "concept";
+/**
+ * klant: de echte link; collega: een beheerder opent de link (het bezoek telt
+ * niet, invullen mag wel, bijvoorbeeld samen aan de telefoon); voorbeeld: vanuit
+ * het beheer of een concept, dan kan er niets worden opgeslagen.
+ */
+export type Modus = "klant" | "collega" | "voorbeeld";
 
 function Vink() {
   return (
@@ -37,7 +43,7 @@ function Melding({ state, klaar }: { state: OnboardingState | null; klaar: strin
   );
 }
 
-const CONCEPT = "Dit is een voorbeeld. De klant kan hier invullen zodra de onboarding verstuurd is.";
+const CONCEPT = "Dit is een voorbeeld. De klant vult dit in via zijn eigen link, zodra de onboarding verstuurd is.";
 
 /** Afvinken: gelezen, of gedownload en geregeld. */
 export function AfvinkKnop({ token, document, klaar, tekst, modus }: { token: string; document: string; klaar: boolean; tekst: string; modus: Modus }) {
@@ -46,7 +52,7 @@ export function AfvinkKnop({ token, document, klaar, tekst, modus }: { token: st
   const router = useRouter();
   if (klaar) {
     return (
-      <span className="inline-flex h-[50px] items-center gap-2 rounded-full bg-[#E3F6ED] px-5 text-[15px] font-bold text-[#0A7A4B]">
+      <span className="inline-flex h-[52px] items-center gap-2 rounded-full bg-[#E3F6ED] px-5 text-[15px] font-bold text-[#0A7A4B]">
         <Vink /> Afgevinkt
       </span>
     );
@@ -56,8 +62,8 @@ export function AfvinkKnop({ token, document, klaar, tekst, modus }: { token: st
       <button
         type="button"
         className={knoppen.roze}
-        disabled={bezig || modus === "concept"}
-        title={modus === "concept" ? CONCEPT : undefined}
+        disabled={bezig || modus === "voorbeeld"}
+        title={modus === "voorbeeld" ? CONCEPT : undefined}
         onClick={() =>
           start(async () => {
             const r = await vinkOnboardingAf(token, document);
@@ -91,6 +97,8 @@ export function VeldenFormulier({
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
+        // Ook met Enter in een veld: in het voorbeeld wordt niets opgeslagen.
+        if (modus === "voorbeeld") return setState({ ok: false, fout: CONCEPT });
         start(async () => {
           const r = await slaOnboardingOp(token, document, waarden, waarden.contact_naam);
           setState(r);
@@ -146,10 +154,10 @@ export function VeldenFormulier({
       <div className="flex flex-col gap-3">
         <Melding state={state} klaar="Opgeslagen. Dank je wel!" />
         <div className="flex flex-wrap items-center gap-4">
-          <button className={knoppen.roze} disabled={bezig || modus === "concept"} title={modus === "concept" ? CONCEPT : undefined}>
+          <button className={knoppen.roze} disabled={bezig || modus === "voorbeeld"} title={modus === "voorbeeld" ? CONCEPT : undefined}>
             <Vink /> {bezig ? "Opslaan…" : ingevuld ? "Wijzigingen opslaan" : knopTekst}
           </button>
-          {modus === "concept" && <span className="text-[14px] text-[#77758F]">{CONCEPT}</span>}
+          {modus === "voorbeeld" && <span className="text-[14px] text-[#77758F]">{CONCEPT}</span>}
         </div>
       </div>
     </form>
@@ -176,6 +184,7 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref }
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
+        if (modus === "voorbeeld") return setState({ ok: false, fout: CONCEPT });
         start(async () => {
           const r = await slaOnboardingOp(token, "werknemers", { rijen });
           setState(r);
@@ -273,10 +282,10 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref }
       </p>
       <Melding state={state} klaar={`Opgeslagen: ${rijen.length} ${rijen.length === 1 ? "medewerker" : "medewerkers"}. Dank je wel!`} />
       <div className="flex flex-wrap items-center gap-4">
-        <button className={knoppen.roze} disabled={bezig || modus === "concept"} title={modus === "concept" ? CONCEPT : undefined}>
+        <button className={knoppen.roze} disabled={bezig || modus === "voorbeeld"} title={modus === "voorbeeld" ? CONCEPT : undefined}>
           <Vink /> {bezig ? "Opslaan…" : ingevuld ? "Wijzigingen opslaan" : `${rijen.length} ${rijen.length === 1 ? "medewerker" : "medewerkers"} opslaan`}
         </button>
-        {modus === "concept" && <span className="text-[14px] text-[#77758F]">{CONCEPT}</span>}
+        {modus === "voorbeeld" && <span className="text-[14px] text-[#77758F]">{CONCEPT}</span>}
       </div>
     </form>
   );

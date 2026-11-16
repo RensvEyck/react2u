@@ -16,6 +16,7 @@ import { normalizeName, isProviderDomain, registrableDomain } from "./companies"
 import { CONTRACT_SOORT, looptijdNu, soortVan, type Contract } from "./contracten";
 import { waited } from "./dashboard";
 import { datumLang, datumOver, euro, VORMEN, waardeVan, weergaveVan, type Offerte, type Totalen } from "./offertes";
+import { takenVoortgang, voortgang, type Onboarding } from "./onboarding";
 
 /* ---------- invoer ---------- */
 
@@ -39,6 +40,13 @@ export type ContractRij = Pick<
   | "aantal_bekeken" | "getekend_at"
 >;
 
+/** Een onboarding (0037); `antwoorden` hoeft alleen te zeggen óf een document is ingevuld (zie ANTWOORD_MOMENTEN). */
+export type OnboardingRij = Pick<
+  Onboarding,
+  | "id" | "nummer" | "status" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "documenten" | "invullen" | "antwoorden"
+  | "gelezen" | "taken" | "created_at" | "verstuurd_at" | "afgerond_at" | "bekeken_at" | "laatst_bekeken_at" | "aantal_bekeken"
+>;
+
 /** Een bedrijf dat de laatste dagen op de site was (Bezoek → Bedrijven). */
 export type Bezoeker = { naam: string; domein: string | null; laatst: string; paginas: number };
 
@@ -46,6 +54,8 @@ export type Invoer = {
   offertes: OfferteRij[];
   brochures: BrochureRij[];
   contracten: ContractRij[];
+  /** Sinds 0037; leeg als de tabel er nog niet is. */
+  onboardings?: OnboardingRij[];
   /**
    * Wanneer elk stuk voor het laatst gemaild is, per id: de nieuwste
    * gebeurtenis "verstuurd" of "herinnering". `verstuurd_at` blijft op de
@@ -62,11 +72,11 @@ export type Toon = "warm" | "let-op" | "info" | "goed";
 
 export type Reden =
   | "gekozen" | "bekeken" | "stil" | "niet-geopend" | "verloopt" | "verlopen"
-  | "zonder-contract" | "brochure-bekeken" | "opzeggen";
+  | "zonder-contract" | "brochure-bekeken" | "opzeggen" | "inrichten";
 
 export type Signaal = {
   key: string;
-  soort: "offerte" | "brochure" | "contract";
+  soort: "offerte" | "brochure" | "contract" | "onboarding";
   id: string;
   bedrijf: string;
   contactpersoon: string | null;
@@ -117,6 +127,10 @@ export const DREMPELS = {
   opzeggenDringend: 21,
   /** Wie zo recent op de site was, krijgt een duwtje omhoog. */
   opSiteUren: 48,
+  /** Onboarding: na zoveel dagen zonder openen een herinnering; zo lang na "klant klaar" blijft inrichten staan. */
+  onboardingNietGeopend: 5,
+  onboardingStil: 10,
+  onboardingInrichten: 60,
 } as const;
 
 /**
@@ -410,6 +424,55 @@ function contractSignaal(c: ContractRij, i: Invoer, nu: Date, vandaag: string): 
   };
 }
 
+/**
+ * Een onboarding (0037): is de klant klaar, dan is React2u aan zet (inrichten:
+ * het sterkste signaal na een warme offerte, want de klant wacht om live te
+ * gaan). Loopt hij nog, dan alleen als er iets hapert: na tien dagen stil, of
+ * na vijf dagen niet geopend. Een klant die bezig is, hoeft niemand te bellen.
+ */
+function onboardingSignaal(o: OnboardingRij, i: Invoer, nu: Date): Signaal | null {
+  const basis = {
+    key: `onboarding-${o.id}`, soort: "onboarding" as const, id: o.id, bedrijf: o.bedrijf,
+    contactpersoon: o.contactpersoon, telefoon: o.telefoon, href: `/admin/onboarding/${o.id}`,
+    termijn: null, opSite: null,
+  };
+  const kop = `Onboarding ${o.nummer}`;
+
+  if (o.status === "afgerond") {
+    const t = takenVoortgang(o);
+    const klaar = o.afgerond_at ?? o.verstuurd_at ?? o.created_at;
+    if (t.klaar >= t.totaal || dagenSinds(klaar, nu) > DREMPELS.onboardingInrichten) return null;
+    const open = t.totaal - t.klaar;
+    return {
+      ...basis, href: `/admin/onboarding/${o.id}#inrichten`, reden: "inrichten", label: "Klant klaar", toon: "goed", gewicht: 82,
+      details: [kop, `alles aangeleverd ${geleden(klaar, nu)}`, `nog ${open} ${open === 1 ? "taak" : "taken"} om in te richten`],
+      at: klaar,
+    };
+  }
+  if (o.status !== "verstuurd") return null;
+
+  const r = betrokkenheid(
+    o,
+    { bekeken: DREMPELS.onboardingStil, nietGeopend: DREMPELS.onboardingNietGeopend, houdbaar: DREMPELS.houdbaar, stil: true },
+    i.gemaild,
+    nu
+  );
+  if (!r || r.reden === "bekeken") return null;
+  const v = voortgang(o);
+  const stappen = `${v.klaar} van ${v.totaal} stappen klaar`;
+  if (r.reden === "stil") {
+    return {
+      ...basis, reden: "stil", label: "Daarna stil", toon: "let-op", gewicht: 55,
+      details: [kop, r.tekst, stappen, "vraag wat er nog nodig is"], at: r.at,
+    };
+  }
+  return {
+    ...basis, reden: "niet-geopend", label: "Niet geopend", toon: "info",
+    gewicht: 38 + Math.min(10, Math.floor(dagenSinds(r.at, nu))),
+    details: [kop, r.tekst, "stuur een herinnering"], at: r.at,
+  };
+}
+
 /** Wie er recent op de site was, als "Op de site 2 uur geleden", met een duwtje in gewicht. */
 function metBezoek(s: Signaal, sleutels: string[], bezoek: Bezoeker[] | undefined, nu: Date): Signaal {
   if (!bezoek?.length || s.reden === "zonder-contract") return s;
@@ -443,6 +506,7 @@ export function opvolgen(i: Invoer, nu = new Date()): Signaal[] {
   }
   for (const b of i.brochures) voeg(brochureSignaal(b, i.offertes, i, nu), b);
   for (const c of i.contracten) voeg(contractSignaal(c, i, nu, vandaag), c);
+  for (const o of i.onboardings || []) voeg(onboardingSignaal(o, i, nu), o);
   return uit.sort((a, b) => b.gewicht - a.gewicht || b.at.localeCompare(a.at));
 }
 

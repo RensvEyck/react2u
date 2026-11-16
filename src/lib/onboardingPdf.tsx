@@ -2,7 +2,7 @@ import "server-only";
 import { Circle, Document, Page, StyleSheet, Svg, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { Logo, registreer } from "./offertePdf";
 import type { ContactInfo } from "./content";
-import { datumLang, momentLang } from "./offertes";
+import { momentLang } from "./offertes";
 import {
   documentInfo, INRICHTING, MACHTIGING_TEKST, REACT2U, VERZUIMPROTOCOL, VRAGEN, WELKOM, type Antwoord, type DocumentSleutel,
   type TijdlijnStap, type VeldGroep,
@@ -25,14 +25,18 @@ const ROZE = "#E61674";
 const BODY = "#55536F";
 const MUTE = "#7A7893";
 const LIJN = "#E6E5EF";
+// De voet in de kleur van de offerte- en brochure-pdf (lib/offertePdf.tsx), zodat de documenten één set zijn.
+const VOETLIJN = "#ECE7DE";
 const LAV = "#ECEBF5";
 const SOFT = "#F6F5FB";
 const GROEN = "#0A7A4B";
 const ROOD = "#B42318";
 
 const s = StyleSheet.create({
-  pagina: { fontFamily: "Outfit", fontSize: 9.5, color: BODY, paddingTop: 36, paddingBottom: 62, paddingHorizontal: 44, lineHeight: 1.5 },
-  voet: { position: "absolute", bottom: 24, left: 44, right: 44, flexDirection: "row", justifyContent: "space-between", fontSize: 7.5, color: MUTE, borderTopWidth: 0.6, borderTopColor: LIJN, paddingTop: 8 },
+  pagina: { fontFamily: "Outfit", fontSize: 9.5, color: BODY, paddingTop: 36, paddingBottom: 64, paddingHorizontal: 44, lineHeight: 1.5 },
+  voet: { position: "absolute", bottom: 26, left: 44, right: 44, fontSize: 7.5, color: MUTE, borderTopWidth: 0.6, borderTopColor: VOETLIJN, paddingTop: 8, lineHeight: 1.3 },
+  // Met `top`: een Text met `render` binnen een vaste View laat react-pdf (4.9) de hele View weg (zie offertePdf.tsx). 806 = A4 (842) − 26 − de regel.
+  paginanummer: { position: "absolute", top: 806, left: 44, right: 44, textAlign: "right", fontSize: 7.5, color: MUTE, lineHeight: 1.3 },
   label: { fontSize: 8, fontWeight: 600, color: MUTE, letterSpacing: 0.8, textTransform: "uppercase" },
   h2: { fontSize: 13.5, fontWeight: 600, color: INKT, letterSpacing: -0.2, lineHeight: 1.25, marginBottom: 6 },
   p: { marginBottom: 6, fontSize: 10, lineHeight: 1.6 },
@@ -75,12 +79,18 @@ function Kop({ document, titel, intro, bedrijf, kleur, compact = false }: { docu
   );
 }
 
+/**
+ * De voet op elke pagina, zoals de offerte-pdf: de bedrijfsgegevens links, het
+ * paginanummer los ernaast rechts (kort, anders lopen ze op een A4 in elkaar).
+ */
 function Voet({ contact, nummer }: { contact: ContactInfo; nummer: string }) {
   return (
-    <View style={s.voet} fixed>
-      <Text>React2u · {contact.addressLine1}, {contact.addressLine2} · {contact.phoneDisplay} · {contact.email}</Text>
-      <Text render={({ pageNumber, totalPages }) => `${nummer} · ${pageNumber}/${totalPages}`} />
-    </View>
+    <>
+      <View style={s.voet} fixed>
+        <Text>React2u, {contact.addressLine1}, {contact.addressLine2}, {contact.phoneDisplay}</Text>
+      </View>
+      <Text style={s.paginanummer} fixed render={({ pageNumber, totalPages }) => `Onboarding ${nummer}, pagina ${pageNumber} van ${totalPages}`} />
+    </>
   );
 }
 
@@ -341,7 +351,7 @@ function Machtiging({ i }: { i: PdfInvoer }) {
         <Text style={{ fontSize: 10.5, fontWeight: 600, color: INKT }}>{titel}</Text>
       </View>
       {rijen.map(([label, waarde]) => (
-        <View key={label} style={{ flexDirection: "row", borderTopWidth: 0.6, borderTopColor: LIJN, minHeight: 21, alignItems: "center", paddingHorizontal: 12 }}>
+        <View key={label} style={{ flexDirection: "row", borderTopWidth: 0.6, borderTopColor: LIJN, minHeight: 19.5, alignItems: "center", paddingHorizontal: 12 }}>
           <Text style={{ width: 150, fontSize: 9.5, color: MUTE }}>{label}</Text>
           <Text style={{ flex: 1, fontSize: 10, color: INKT }}>{waarde || ""}</Text>
         </View>
@@ -358,19 +368,22 @@ function Machtiging({ i }: { i: PdfInvoer }) {
         ["Naam", REACT2U.bedrijfsarts.naam], ["BIG-registratienummer", REACT2U.bedrijfsarts.big], ["Arbodienst", "React2u"], ["Bezoekadres", REACT2U.adres], ["E-mailadres", REACT2U.medisch],
       ])}
       {blok("Gegevens werknemer", ROZE, MACHTIGING_TEKST.werknemer.map((l) => [l, undefined]))}
-      <View wrap={false} style={{ flexDirection: "row", marginTop: 4 }}>
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <Text style={{ fontSize: 8.5, fontWeight: 600, color: MUTE, marginBottom: 3 }}>Datum en plaats</Text>
-          <View style={{ height: 56, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3" }} />
+      {/* De handtekening en de slotregel samen, zodat de slotregel nooit alleen op een tweede pagina komt. */}
+      <View wrap={false}>
+        <View style={{ flexDirection: "row", marginTop: 2 }}>
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <Text style={{ fontSize: 8.5, fontWeight: 600, color: MUTE, marginBottom: 3 }}>Datum en plaats</Text>
+            <View style={{ height: 52, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3" }} />
+          </View>
+          <View style={{ flex: 1.4, marginLeft: 8 }}>
+            <Text style={{ fontSize: 8.5, fontWeight: 600, color: MUTE, marginBottom: 3 }}>Handtekening werknemer, voor akkoord</Text>
+            <View style={{ height: 52, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3" }} />
+          </View>
         </View>
-        <View style={{ flex: 1.4, marginLeft: 8 }}>
-          <Text style={{ fontSize: 8.5, fontWeight: 600, color: MUTE, marginBottom: 3 }}>Handtekening werknemer, voor akkoord</Text>
-          <View style={{ height: 56, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3" }} />
-        </View>
+        <Text style={{ fontSize: 8.5, color: MUTE, marginTop: 8 }}>
+          Stuur de getekende machtiging naar {REACT2U.medisch}. {MACHTIGING_TEKST.facturen}
+        </Text>
       </View>
-      <Text style={{ fontSize: 8.5, color: MUTE, marginTop: 12 }}>
-        Stuur de getekende machtiging naar {REACT2U.medisch}. {MACHTIGING_TEKST.facturen}
-      </Text>
     </>
   );
 }
@@ -392,7 +405,7 @@ export async function onboardingPdf(i: PdfInvoer): Promise<Buffer> {
     <Document title={`${info.titel} · ${i.bedrijf}`} author="React2u" subject={`Onboarding ${i.nummer}`} creationDate={new Date()}>
       <Page size="A4" style={s.pagina}>
         {inhoud}
-        <Voet contact={i.contact} nummer={`${i.nummer} · ${datumLang(new Date().toISOString())}`} />
+        <Voet contact={i.contact} nummer={i.nummer} />
       </Page>
     </Document>
   );

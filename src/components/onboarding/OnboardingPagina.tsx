@@ -1,41 +1,107 @@
 import { Outfit } from "next/font/google";
 import Logo from "@/components/site/Logo";
-import { BODY, BREED, Eyebrow, kop, LAV, LINE, MUTE, NAVY, PINK, Pijl, SOFT, Vink } from "@/components/blocks/Gedeeld";
+import { BODY, BREED, Eyebrow, kop, LAV, LINE, NAVY, PINK, Pijl, SOFT, Vink } from "@/components/blocks/Gedeeld";
 import type { ContactInfo } from "@/lib/content";
+import { DOCUMENTEN as SITE_DOCUMENTEN } from "@/lib/documenten";
 import { datumLang, momentLang, vulIn } from "@/lib/offertes";
 import {
   BERICHT_STANDAARD, documentKlaar, gekozen, INRICHTING, MACHTIGING, ONBOARDING_EMAIL, VERZUIMPROTOCOL, voortgang, VRAGEN, vultIn, WELKOM,
   type DocumentInfo, type OnboardingPubliek, type TijdlijnStap, type Werknemer,
 } from "@/lib/onboarding";
 import { AfvinkKnop, VeldenFormulier, WerknemersFormulier, type Modus } from "./OnboardingActies";
+import OnboardingKopbalk, { VolgendeBalk } from "./OnboardingKopbalk";
 
 /*
- * De onboardingpagina (/onboarding/<token>, migratie 0037): alles wat een
- * nieuwe klant nodig heeft om te starten, in de vormgeving van de site. Boven
- * het welkom met de voortgang, daaronder elk gekozen document als een stap:
- * om te lezen en af te vinken, of om direct online in te vullen. Elk document
- * is ook als pdf te downloaden, zodat de klant precies kan doorsturen wat
- * nodig is (het verzuimprotocol voor de medewerkers, de machtiging voor wie
- * moet tekenen).
+ * De onboardingpagina (/onboarding/<token>, migratie 0037), en hetzelfde
+ * scherm als voorbeeld in het beheer (/admin/onboardingvoorbeeld/<id>). Alles
+ * wat een nieuwe klant nodig heeft om te starten, in de vormgeving van de
+ * offerte- en contractpagina:
+ *
+ *  - de kopbalk met de stappen als genummerde rondjes, de voortgang en bellen;
+ *  - de opening in de lila tint met het persoonlijke woord, de feiten en rechts
+ *    de kaart met de voortgangsring, de stappen en het aanspreekpunt;
+ *  - elk gekozen document als een stap op een wit vel: om te lezen en af te
+ *    vinken, of om direct online in te vullen; elk ook als pdf, zodat de klant
+ *    precies kan doorsturen wat nodig is (het verzuimprotocol voor de
+ *    medewerkers, de machtiging voor wie moet tekenen);
+ *  - de uitnodiging om te bellen, en de voet van de site.
+ *
+ * Modus: klant (de echte link), collega (een beheerder opent de link: het
+ * bezoek telt niet), voorbeeld (vanuit het beheer, of een concept: niets kan
+ * worden opgeslagen). `basis` is waar de pdf's en het Excelbestand vandaan
+ * komen: de klantlink of het voorbeeld in het beheer.
  */
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-outfit", display: "swap" });
 
-const KNOP = "inline-flex h-[50px] items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold";
+// Grijs van de site, net iets donkerder voor contrast (zoals de offerte- en contractpagina).
+const MUTE = "#6B6985";
+const IVOOR = "#F8F5F1";
+const GROEN = "#0A7A4B";
+
+const KNOP = "inline-flex h-[52px] items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold";
 const knop = { roze: `hv-btn hv-btn-roze ${KNOP}`, rand: `hv-btn hv-btn-rand ${KNOP}` };
+
+// De vlakken met een decoratieve cirkel gebruiken overflow-clip, geen overflow-hidden: een verborgen
+// overloop is nog steeds te scrollen, en dan schuift een formulier opzij als de browser een veld in
+// beeld scrolt (gezien in de browsertest van het contract).
+const PAGINA_CSS = `
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-doc *, .onboarding-doc *::before, .onboarding-doc *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+.onboarding-stip { transform: translate(-50%, -50%) scale(0); opacity: 0; animation: onboarding-stip 1000ms cubic-bezier(.2,.8,.2,1) forwards; }
+@keyframes onboarding-stip { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1); opacity: 0; } }
+.onboarding-vink { animation: onboarding-vink 520ms cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes onboarding-vink { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .onboarding-stip, .onboarding-vink { animation: none; } }
+@media print { .onboarding-doc header, .onboarding-doc .geen-print { display: none !important; } }
+`;
 
 const telLink = (t: string | null) => (t ? `tel:${t.replace(/[^\d+]/g, "")}` : null);
 const voornaam = (n: string | null | undefined) => (n || "").trim().split(/\s+/)[0] || "";
-const initialen = (naam: string | null) => {
-  const d = (naam || "React2u").trim().split(/\s+/);
-  return ((d[0]?.[0] || "R") + (d.length > 1 ? d[d.length - 1][0] : "")).toUpperCase();
-};
+const initialen = (naam: string | null) =>
+  (naam || "React2u").split(/\s+/).filter(Boolean).map((w) => w[0]).filter((c) => /[A-Za-zÀ-ÿ]/.test(c)).slice(0, 2).join("").toUpperCase() || "R";
 
-function Download({ size = 15 }: { size?: number }) {
+/* ---------- kleine bouwstenen ---------- */
+
+function Icoon({ d, size = 16 }: { d: string; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
     </svg>
+  );
+}
+const TELEFOON = "M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z";
+const DOWNLOAD = "M12 3v12m0 0-4-4m4 4 4-4M5 21h14";
+
+function Label({ children, kleur = MUTE }: { children: React.ReactNode; kleur?: string }) {
+  return <span className="block text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: kleur }}>{children}</span>;
+}
+
+/** De stippen die uit het vinkje spatten als alles klaar is (zoals na het tekenen van een contract). */
+function Feest() {
+  const kleuren = [PINK, NAVY, PINK, "#ffffff"];
+  return (
+    <span className="pointer-events-none absolute inset-0 motion-reduce:hidden" aria-hidden="true">
+      {Array.from({ length: 16 }, (_, i) => {
+        const hoek = (i / 16) * Math.PI * 2;
+        const afstand = 58 + (i % 3) * 16;
+        const maat = 7 + (i % 3) * 3;
+        return (
+          <span
+            key={i}
+            className="onboarding-stip absolute left-1/2 top-1/2 rounded-full"
+            style={{
+              width: maat, height: maat, background: kleuren[i % kleuren.length],
+              boxShadow: kleuren[i % kleuren.length] === "#ffffff" ? `0 0 0 1px ${PINK}` : undefined,
+              ["--x" as string]: `${Math.cos(hoek) * afstand}px`,
+              ["--y" as string]: `${Math.sin(hoek) * afstand}px`,
+              animationDelay: `${150 + (i % 4) * 40}ms`,
+            }}
+          />
+        );
+      })}
+    </span>
   );
 }
 
@@ -155,9 +221,9 @@ function VragenInhoud() {
           </span>
           <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full text-[20px] transition-transform group-open:rotate-45" style={{ background: LAV, color: NAVY }}>+</span>
         </summary>
-        <ol className="m-0 flex list-none flex-col gap-5 border-t px-6 py-6 p-0" style={{ borderColor: LINE }}>
+        <ol className="m-0 flex list-none flex-col gap-5 border-t px-6 py-6" style={{ borderColor: LINE }}>
           {VRAGEN.script.map((st, n) => (
-            <li key={st.kop} className="flex gap-4 px-6">
+            <li key={st.kop} className="flex gap-4">
               <span className={`${kop} grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px]`} style={{ background: "#FEF3E2", color: "#B86E00" }}>{n + 1}</span>
               <span className="flex flex-col gap-1">
                 <span className="text-[15.5px] font-bold" style={{ color: NAVY }}>{st.kop}</span>
@@ -174,12 +240,12 @@ function VragenInhoud() {
 
 /* ---------- een stap ---------- */
 
-function Stap({ d, n, o, token, modus }: { d: DocumentInfo; n: number; o: OnboardingPubliek; token: string; modus: Modus }) {
+function Stap({ d, n, o, token, basis, modus }: { d: DocumentInfo; n: number; o: OnboardingPubliek; token: string; basis: string; modus: Modus }) {
   const invul = vultIn(o, d.sleutel);
   const klaar = documentKlaar(o, d.sleutel);
   const antwoord = o.antwoorden?.[d.sleutel];
-  const pdf = `/onboarding/${token}/pdf/${d.sleutel}`;
-  const excel = `/onboarding/${token}/excel`;
+  const pdf = `${basis}/pdf/${d.sleutel}`;
+  const excel = `${basis}/excel`;
   const soort = invul ? "Online invullen" : d.invullen ? (d.excel ? "Excel invullen" : "Formulier") : "Lezen";
   const wanneer = invul ? antwoord?.at : o.gelezen?.[d.sleutel];
 
@@ -200,7 +266,7 @@ function Stap({ d, n, o, token, modus }: { d: DocumentInfo; n: number; o: Onboar
         <VeldenFormulier token={token} document="machtiging" groepen={MACHTIGING} begin={(antwoord?.data as Record<string, string>) || {}} ingevuld={Boolean(antwoord)} modus={modus} knopTekst="Opslaan en machtiging maken" />
       </div>
     );
-    if (antwoord) acties = <a href={`${pdf}?download=1`} className={knop.rand} style={{ background: "transparent" }}><Download /> Download de ingevulde machtiging</a>;
+    if (antwoord) acties = <a href={`${pdf}?download=1`} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Download de ingevulde machtiging</a>;
   } else if (invul && d.sleutel === "werknemers") {
     inhoud = (
       <div className="flex flex-col gap-6">
@@ -227,9 +293,9 @@ function Stap({ d, n, o, token, modus }: { d: DocumentInfo; n: number; o: Onboar
     acties = (
       <>
         {d.sleutel === "werknemers" ? (
-          <a href={excel} className={knop.rand} style={{ background: "transparent" }}><Download /> Download het Excelbestand</a>
+          <a href={excel} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Download het Excelbestand</a>
         ) : (
-          <a href={`${pdf}?download=1`} className={knop.rand} style={{ background: "transparent" }}><Download /> Download als pdf</a>
+          <a href={`${pdf}?download=1`} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Download als pdf</a>
         )}
         <AfvinkKnop
           token={token}
@@ -241,114 +307,185 @@ function Stap({ d, n, o, token, modus }: { d: DocumentInfo; n: number; o: Onboar
       </>
     );
   } else if (d.sleutel === "inrichting" && antwoord) {
-    acties = <a href={`${pdf}?download=1`} className="text-[14.5px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>Download je gegevens als pdf</a>;
+    acties = <a href={`${pdf}?download=1`} className="inline-flex items-center gap-2 text-[14.5px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}><Icoon d={DOWNLOAD} size={15} /> Download je gegevens als pdf</a>;
   }
 
   return (
     <section id={`stap-${d.sleutel}`} aria-labelledby={`kop-${d.sleutel}`} className="scroll-mt-[104px] px-[6px] md:px-6 xl:px-10">
-      <div className="relative mx-auto flex max-w-[1360px] flex-col gap-8 overflow-clip rounded-[28px] border bg-white px-6 py-8 md:rounded-[36px] md:p-12 lg:p-14" style={{ borderColor: LINE }}>
+      <div className="relative mx-auto flex max-w-[1360px] flex-col gap-8 overflow-clip rounded-[28px] border bg-white px-6 py-8 shadow-[0_24px_48px_-40px_rgba(50,46,131,0.35)] md:rounded-[36px] md:p-12 lg:p-14" style={{ borderColor: LINE }}>
         <span aria-hidden className="absolute right-[-90px] top-[-90px] h-[220px] w-[220px] rounded-full" style={{ background: d.kleur, opacity: 0.07 }} />
         <header className="relative flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div className="flex items-start gap-4 md:gap-5">
-            <span className={`${kop} grid h-12 w-12 shrink-0 place-items-center rounded-full text-[18px] md:h-14 md:w-14 md:text-[20px]`} style={{ background: klaar ? "#0A7A4B" : d.tint, color: klaar ? "#fff" : d.kleur }}>
+            <span className={`${kop} grid h-12 w-12 shrink-0 place-items-center rounded-full text-[18px] md:h-14 md:w-14 md:text-[20px] ${klaar ? "onboarding-vink" : ""}`} style={{ background: klaar ? GROEN : d.tint, color: klaar ? "#fff" : d.kleur }}>
               {klaar ? <Vink size={20} /> : n}
             </span>
             <div className="flex flex-col gap-2">
-              <span className="text-[12.5px] font-bold uppercase tracking-[1.3px]" style={{ color: d.kleur }}>{soort}</span>
+              <Label kleur={d.kleur}>Stap {n} · {soort}</Label>
               <h3 id={`kop-${d.sleutel}`} className={`${kop} m-0 text-[26px] leading-[1.12] tracking-[-0.6px] md:text-[34px]`} style={{ color: NAVY }}>{d.titel}</h3>
               <p className="m-0 max-w-[640px] text-[15.5px] leading-[1.6]" style={{ color: MUTE }}>{d.kort}</p>
             </div>
           </div>
-          <span className={`inline-flex shrink-0 items-center gap-2 self-start rounded-full px-4 py-2 text-[13.5px] font-bold ${klaar ? "bg-[#E3F6ED] text-[#0A7A4B]" : ""}`} style={klaar ? undefined : { background: SOFT, color: MUTE }}>
+          <span className="inline-flex shrink-0 items-center gap-2 self-start rounded-full px-4 py-2 text-[13.5px] font-bold" style={klaar ? { background: "#E3F6ED", color: GROEN } : { background: SOFT, color: MUTE }}>
             {klaar ? <><Vink size={13} /> Klaar{wanneer ? ` · ${datumLang(wanneer)}` : ""}</> : "Nog te doen"}
           </span>
         </header>
         {inhoud && <div className="relative">{inhoud}</div>}
-        {acties && <div className="relative flex flex-wrap items-start gap-3 border-t pt-6" style={{ borderColor: LINE }}>{acties}</div>}
+        {acties && <div className="geen-print relative flex flex-wrap items-center gap-3 border-t pt-6" style={{ borderColor: LINE }}>{acties}</div>}
       </div>
     </section>
   );
 }
 
+/* ---------- de voet ---------- */
+
+function Voet({ o, contact, mail, tel, telTekst }: { o: OnboardingPubliek; contact: ContactInfo; mail: string; tel: string; telTekst: string }) {
+  const kolomkop = "m-0 text-[15px] font-bold";
+  return (
+    <footer className="pb-32 pt-12 md:pt-16 lg:pb-16" style={{ background: IVOOR }}>
+      <div className={`${BREED} flex flex-col gap-8`}>
+        <div className="grid gap-8 rounded-[22px] bg-white px-6 py-9 sm:grid-cols-2 md:px-10 lg:grid-cols-[1.1fr_1fr_1fr_1fr] lg:gap-10">
+          <div className="flex flex-col gap-3">
+            <Logo className="h-12 w-auto self-start" />
+            <p className="m-0 text-[15px]" style={{ color: BODY }}>Jouw mensen, <span className="font-bold" style={{ color: NAVY }}>onze aandacht.</span></p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className={kolomkop} style={{ color: NAVY }}>Bezoekadres</p>
+            <p className="m-0 text-[15px] leading-[1.75]" style={{ color: BODY }}>React2u<br />{contact.addressLine1}<br />{contact.addressLine2}</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className={kolomkop} style={{ color: NAVY }}>Je aanspreekpunt</p>
+            <p className="m-0 text-[15px] leading-[1.75]" style={{ color: BODY }}>
+              {o.afzender_naam || "Team React2u"}<br />
+              <a href={tel} className="font-bold hover:underline" style={{ color: NAVY }}>{telTekst}</a><br />
+              <a href={`mailto:${mail}`} className="font-bold hover:underline" style={{ color: NAVY }}>{mail}</a>
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className={kolomkop} style={{ color: NAVY }}>Deze onboarding</p>
+            <p className="m-0 text-[15px] leading-[1.75]" style={{ color: BODY }}>
+              Onboarding {o.nummer}<br />
+              {o.verstuurd_at ? <>Verstuurd op {datumLang(o.verstuurd_at)}<br /></> : null}
+              <a href={SITE_DOCUMENTEN.algemeneVoorwaarden} target="_blank" rel="noopener" className="font-bold hover:underline" style={{ color: NAVY }}>Algemene voorwaarden</a><br />
+              <a href={SITE_DOCUMENTEN.privacyverklaring} target="_blank" rel="noopener" className="font-bold hover:underline" style={{ color: NAVY }}>Privacyverklaring</a>
+            </p>
+          </div>
+        </div>
+        <p className="m-0 text-[13.5px]" style={{ color: MUTE }}>© {new Date().getFullYear()} React2u. KvK {contact.kvk}, btw {contact.btw}.</p>
+      </div>
+    </footer>
+  );
+}
+
 /* ---------- de pagina ---------- */
 
-export default function OnboardingPagina({ o, token, contact, modus }: { o: OnboardingPubliek; token: string; contact: ContactInfo; modus: Modus }) {
+export default function OnboardingPagina({
+  o, token, basis, contact, modus, vers = false,
+}: {
+  o: OnboardingPubliek;
+  token: string;
+  basis: string;
+  contact: ContactInfo;
+  modus: Modus;
+  /** Net klaar (minder dan een kwartier geleden): dan de felicitatie met de stippen. */
+  vers?: boolean;
+}) {
   const docs = gekozen(o);
   const v = voortgang(o);
   const procent = v.totaal ? Math.round((v.klaar / v.totaal) * 100) : 0;
   const compleet = v.totaal > 0 && v.klaar === v.totaal;
   const tel = telLink(o.afzender_telefoon) || `tel:${contact.phone}`;
-  const telTekst = o.afzender_telefoon || contact.phoneDisplay;
+  const telTekst = o.afzender_telefoon || contact.phoneDisplay.replace(/\s*-\s*/, " ");
   const mail = o.afzender_email || ONBOARDING_EMAIL;
   const bericht = vulIn(o.bericht || BERICHT_STANDAARD, { bedrijf: o.bedrijf, contactpersoon: o.contactpersoon })
     .split(/\n\s*\n/).map((a) => a.trim()).filter(Boolean);
   const omtrek = 2 * Math.PI * 52;
+  const volgende = docs.find((d) => !documentKlaar(o, d.sleutel));
+  const volgendeNr = volgende ? docs.indexOf(volgende) + 1 : 0;
+  const feiten = [
+    { label: "Onboarding", waarde: o.nummer },
+    ...(o.verstuurd_at ? [{ label: "Verstuurd op", waarde: datumLang(o.verstuurd_at) }] : []),
+    { label: "Stappen", waarde: `${v.klaar} van ${v.totaal} klaar` },
+    { label: "Je aanspreekpunt", waarde: o.afzender_naam || "Team React2u" },
+  ];
 
   return (
-    <div className={`hv ${outfit.variable} min-h-screen`} style={{ background: SOFT }}>
+    <div className={`hv ${outfit.variable} onboarding-doc min-h-screen`} style={{ background: SOFT }}>
+      <style>{PAGINA_CSS}</style>
+      <OnboardingKopbalk
+        nummer={o.nummer}
+        stappen={docs.map((d, i) => ({ id: `stap-${d.sleutel}`, nr: i + 1, titel: d.titel, klaar: documentKlaar(o, d.sleutel) }))}
+        klaar={v.klaar}
+        totaal={v.totaal}
+        tel={tel}
+        telNaam={voornaam(o.afzender_naam) || "ons"}
+      />
       {modus !== "klant" && (
-        <div className="bg-[#FFF4E5] text-[14px] text-[#7A4A06]">
+        <div className="geen-print bg-[#FFF4E5] text-[14px] text-[#7A4A06]">
           <p className={`${BREED} m-0 py-2.5`}>
-            {modus === "concept" ? "Voorbeeld van een concept: de klant ziet dit pas als je de onboarding verstuurt. Invullen kan nog niet." : "Je bekijkt deze onboarding als collega. Dit bezoek telt niet mee."}
+            {modus === "voorbeeld"
+              ? o.status === "concept"
+                ? "Voorbeeld van een concept: de klant ziet dit pas als je de onboarding verstuurt. Invullen kan hier niet."
+                : "Voorbeeld: zo ziet de klant de onboarding. Invullen en afvinken doet hij via zijn eigen link."
+              : "Je bekijkt deze onboarding als collega. Dit bezoek telt niet mee; wat je invult, staat op naam van de klant."}
           </p>
         </div>
       )}
 
-      <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur-md" style={{ borderColor: LINE }}>
-        <div className={`${BREED} flex h-[72px] items-center justify-between gap-4 md:h-[84px]`}>
-          <div className="flex min-w-0 items-center gap-4">
-            <Logo className="h-9 w-auto shrink-0 md:h-11" />
-            <span className="hidden h-8 w-px sm:block" style={{ background: LINE }} aria-hidden="true" />
-            <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>Onboarding voor {o.bedrijf}</span>
-          </div>
-          <div className="flex shrink-0 items-center gap-5">
-            <span className="hidden items-center gap-3 md:flex" aria-label={`${v.klaar} van ${v.totaal} stappen klaar`}>
-              <span className="h-2 w-28 overflow-hidden rounded-full" style={{ background: LAV }}>
-                <span className="block h-full rounded-full" style={{ width: `${procent}%`, background: compleet ? "#0A7A4B" : PINK }} />
-              </span>
-              <span className="text-[14px] font-bold" style={{ color: NAVY }}>{v.klaar}/{v.totaal}</span>
-            </span>
-            <a href={tel} className={`${knop.roze} !h-11 px-5 text-[14.5px]`}>Bel {voornaam(o.afzender_naam) || "ons"}</a>
-          </div>
-        </div>
-      </header>
-
-      <main className="flex flex-col gap-4 pb-16 pt-2 md:gap-6 md:pb-24 md:pt-6">
-        <section className="px-[6px] md:px-6 xl:px-10">
-          <div className="relative mx-auto grid max-w-[1360px] gap-10 overflow-clip rounded-[28px] px-6 pb-8 pt-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-14 lg:p-16" style={{ background: LAV }}>
+      <main className="flex flex-col gap-4 pb-4 md:gap-6 md:pb-8">
+        <section className="px-[6px] pt-2 md:px-6 md:pt-6 xl:px-10">
+          <div className="relative mx-auto grid max-w-[1360px] gap-10 overflow-clip rounded-[28px] px-6 pb-8 pt-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start lg:gap-14 lg:p-16 xl:p-[72px]" style={{ background: LAV }}>
             <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[560px] md:w-[560px]" style={{ background: NAVY, opacity: 0.1 }} />
             <span aria-hidden className="absolute bottom-[-120px] left-[38%] hidden h-[220px] w-[220px] rounded-full lg:block" style={{ background: PINK, opacity: 0.08 }} />
             <div className="relative flex flex-col gap-6">
-              <p className="m-0 flex flex-wrap items-center gap-2.5 text-[14px] font-semibold" style={{ color: MUTE }}>
-                <span>Onboarding {o.nummer}</span><span aria-hidden>/</span><span style={{ color: NAVY }}>{o.bedrijf}</span>
+              <p className="m-0 flex flex-col gap-0.5 text-[14px] font-semibold sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5" style={{ color: MUTE }}>
+                <span>Onboarding {o.nummer}</span><span aria-hidden className="hidden sm:inline">/</span><span style={{ color: NAVY }}>{o.bedrijf}</span>
               </p>
-              <h1 className={`${kop} m-0 text-[44px] leading-[1.02] tracking-[-1.4px] md:text-[64px] md:tracking-[-2px]`} style={{ color: NAVY }}>
-                Welkom bij React2u.<br /><span style={{ color: PINK }}>Samen goed van start.</span>
-              </h1>
+              <div>
+                {/* Kleur inline: de algemene kopstijl van de site wint anders van de Tailwind-klasse. */}
+                <h1 className={`${kop} m-0 text-[24px] leading-[1.05] tracking-[-0.4px] md:text-[32px]`} style={{ color: NAVY }}>
+                  React2u
+                  <span className="mt-1 block text-[50px] leading-[1.02] tracking-[-1.6px] md:text-[76px] md:tracking-[-2.2px]">
+                    Welkom<span style={{ color: PINK }}>.</span>
+                  </span>
+                  <span className="hv-dienst mt-4 block text-[18px] font-bold leading-[1.5] tracking-normal md:text-[21px]">Alles om goed te starten met jullie arbodienst, op één plek.</span>
+                </h1>
+              </div>
               <div className="flex max-w-[620px] flex-col gap-3 border-t pt-6" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
                 <p className={`${kop} m-0 text-[24px] leading-[1.25] tracking-[-0.4px] md:text-[28px]`} style={{ color: NAVY }}>Beste {voornaam(o.contactpersoon) || "relatie"},</p>
                 <div className="flex flex-col gap-3 text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>
                   {bericht.map((a, i) => <p key={i} className="m-0">{a}</p>)}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <a href={`#stap-${docs.find((d) => !documentKlaar(o, d.sleutel))?.sleutel || docs[0]?.sleutel}`} className={knop.roze}>
+              <dl className="m-0 flex flex-wrap gap-x-10 gap-y-4">
+                {feiten.map((f) => (
+                  <div key={f.label} className="min-w-0">
+                    <dt className="text-[13px]" style={{ color: MUTE }}>{f.label}</dt>
+                    <dd className="m-0 mt-0.5 text-[16px] font-bold" style={{ color: NAVY }}>{f.waarde}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="geen-print flex flex-wrap gap-3 pt-1">
+                <a href={`#stap-${(volgende || docs[0])?.sleutel}`} className={knop.roze}>
                   {compleet ? "Bekijk je documenten" : v.klaar ? "Ga verder waar je was" : "Begin met stap 1"} <Pijl size={14} />
                 </a>
+                <a href={tel} className={knop.rand}><Icoon d={TELEFOON} size={15} /> Bel {voornaam(o.afzender_naam) || "ons"}</a>
               </div>
             </div>
 
-            <aside className="relative flex flex-col gap-6 rounded-[24px] bg-white p-6 shadow-[0_24px_48px_-36px_rgba(50,46,131,0.45)] md:p-8">
+            <aside className="relative flex flex-col gap-6 rounded-[24px] bg-white p-6 shadow-[0_30px_70px_-40px_rgba(50,46,131,0.45)] md:p-8">
               <div className="flex items-center gap-5">
-                <svg width="120" height="120" viewBox="0 0 120 120" className="shrink-0" role="img" aria-label={`${procent}% klaar`}>
-                  <circle cx="60" cy="60" r="52" fill="none" stroke={LAV} strokeWidth="10" />
-                  <circle cx="60" cy="60" r="52" fill="none" stroke={compleet ? "#0A7A4B" : PINK} strokeWidth="10" strokeLinecap="round"
-                    strokeDasharray={`${(omtrek * procent) / 100} ${omtrek}`} transform="rotate(-90 60 60)" />
-                  <text x="60" y="58" textAnchor="middle" className="hv-kop" style={{ fontSize: 28, fontWeight: 700, fill: NAVY }}>{procent}%</text>
-                  <text x="60" y="78" textAnchor="middle" style={{ fontSize: 12, fill: MUTE }}>{v.klaar} van {v.totaal}</text>
-                </svg>
+                <span className="relative shrink-0">
+                  {compleet && vers && <Feest />}
+                  <svg width="120" height="120" viewBox="0 0 120 120" className={`relative ${compleet ? "onboarding-vink" : ""}`} role="img" aria-label={`${procent}% klaar`}>
+                    <circle cx="60" cy="60" r="52" fill="none" stroke={LAV} strokeWidth="10" />
+                    <circle cx="60" cy="60" r="52" fill="none" stroke={compleet ? GROEN : PINK} strokeWidth="10" strokeLinecap="round"
+                      strokeDasharray={`${(omtrek * procent) / 100} ${omtrek}`} transform="rotate(-90 60 60)" />
+                    <text x="60" y="58" textAnchor="middle" className="hv-kop" style={{ fontSize: 28, fontWeight: 700, fill: NAVY }}>{procent}%</text>
+                    <text x="60" y="78" textAnchor="middle" style={{ fontSize: 12, fill: MUTE }}>{v.klaar} van {v.totaal}</text>
+                  </svg>
+                </span>
                 <div className="flex flex-col gap-1">
-                  <p className="m-0 text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: MUTE }}>Jullie voortgang</p>
+                  <Label>Jullie voortgang</Label>
                   <p className={`${kop} m-0 text-[21px] leading-[1.25]`} style={{ color: NAVY }}>
                     {compleet ? "Alles klaar, dank je wel!" : `Nog ${v.totaal - v.klaar} ${v.totaal - v.klaar === 1 ? "stap" : "stappen"} te gaan`}
                   </p>
@@ -360,7 +497,7 @@ export default function OnboardingPagina({ o, token, contact, modus }: { o: Onbo
                   return (
                     <li key={d.sleutel}>
                       <a href={`#stap-${d.sleutel}`} className="flex items-center gap-3 rounded-[14px] px-2 py-2 transition-colors hover:bg-[#F6F5FB]">
-                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[13px] font-bold" style={{ background: klaar ? "#0A7A4B" : d.tint, color: klaar ? "#fff" : d.kleur }}>
+                        <span className={`${kop} grid h-7 w-7 shrink-0 place-items-center rounded-full text-[13px]`} style={{ background: klaar ? GROEN : d.tint, color: klaar ? "#fff" : d.kleur }}>
                           {klaar ? <Vink size={12} /> : i + 1}
                         </span>
                         <span className={`flex-1 text-[15px] font-semibold ${klaar ? "line-through decoration-[1.5px] opacity-60" : ""}`} style={{ color: NAVY }}>{d.titel}</span>
@@ -370,35 +507,39 @@ export default function OnboardingPagina({ o, token, contact, modus }: { o: Onbo
                   );
                 })}
               </ol>
-              <div className="flex items-center gap-4 border-t pt-5" style={{ borderColor: LINE }}>
-                <span className={`${kop} grid h-12 w-12 shrink-0 place-items-center rounded-full text-[16px]`} style={{ background: LAV, color: NAVY }}>{initialen(o.afzender_naam)}</span>
-                <span className="flex min-w-0 flex-col">
-                  <span className="text-[16px] font-bold" style={{ color: NAVY }}>{o.afzender_naam || "Team React2u"}</span>
-                  <span className="truncate text-[14px]" style={{ color: MUTE }}>{o.afzender_functie ? `${o.afzender_functie}, React2u` : "Je aanspreekpunt bij React2u"}</span>
-                  <a href={`mailto:${mail}`} className="truncate text-[14px] font-bold hover:underline" style={{ color: NAVY }}>{mail}</a>
+              <div className="flex items-center gap-3 border-t pt-5" style={{ borderColor: LINE }}>
+                <span className={`${kop} flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-[15px] text-white`} style={{ background: NAVY }} aria-hidden="true">{initialen(o.afzender_naam)}</span>
+                <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                  <span className="text-[15px] font-bold" style={{ color: NAVY }}>{o.afzender_naam || "Team React2u"}</span>
+                  <span className="truncate text-[13.5px]" style={{ color: MUTE }}>{o.afzender_functie ? `${o.afzender_functie}, React2u` : "Je aanspreekpunt bij React2u"}</span>
+                  <a href={`mailto:${mail}`} className="truncate text-[13.5px] font-bold hover:underline" style={{ color: NAVY }}>{mail}</a>
                 </span>
+                <a href={tel} aria-label={`Bel ${o.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                  <Icoon d={TELEFOON} size={16} />
+                </a>
               </div>
             </aside>
           </div>
         </section>
 
         {compleet && (
-          <section className="px-[6px] md:px-6 xl:px-10">
-            <div className="mx-auto flex max-w-[1360px] flex-col gap-3 rounded-[28px] px-6 py-8 md:flex-row md:items-center md:justify-between md:rounded-[36px] md:px-14" style={{ background: NAVY }}>
-              <div className="flex items-center gap-4">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#0A7A4B] text-white"><Vink size={20} /></span>
+          <section className="px-[6px] md:px-6 xl:px-10" aria-label="Jullie onboarding is compleet">
+            <div className="relative mx-auto flex max-w-[1360px] flex-col gap-3 overflow-clip rounded-[28px] px-6 py-8 md:flex-row md:items-center md:justify-between md:rounded-[36px] md:px-14" style={{ background: NAVY }}>
+              <span aria-hidden className="absolute right-[-120px] top-[-140px] h-[300px] w-[300px] rounded-full bg-white opacity-[0.06]" />
+              <div className="relative flex items-center gap-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-white" style={{ background: GROEN }}><Vink size={20} /></span>
                 <span className="flex flex-col">
                   <span className={`${kop} text-[22px] text-white`}>Jullie onboarding is compleet</span>
-                  <span className="text-[15px] text-white/75">{o.afgerond_at ? `Afgerond op ${momentLang(o.afgerond_at)}. ` : ""}We richten alles in en nemen contact op als we nog iets nodig hebben.</span>
+                  <span className="text-[15px] text-white/75">{o.afgerond_at ? `Afgerond ${momentLang(o.afgerond_at)}. ` : ""}We richten alles in en nemen contact op als we nog iets nodig hebben.</span>
                 </span>
               </div>
             </div>
           </section>
         )}
 
-        {docs.map((d, i) => <Stap key={d.sleutel} d={d} n={i + 1} o={o} token={token} modus={modus} />)}
+        {docs.map((d, i) => <Stap key={d.sleutel} d={d} n={i + 1} o={o} token={token} basis={basis} modus={modus} />)}
 
-        <section className="px-[6px] md:px-6 xl:px-10">
+        <section className="px-[6px] pb-6 md:px-6 md:pb-10 xl:px-10">
           <div className="relative mx-auto grid max-w-[1360px] gap-6 overflow-clip rounded-[28px] px-6 py-10 md:grid-cols-[1fr_auto] md:items-center md:rounded-[36px] md:p-14" style={{ background: NAVY }}>
             <span aria-hidden className="absolute right-[-120px] top-[-140px] h-[360px] w-[360px] rounded-full bg-white opacity-[0.06]" />
             <div className="relative flex flex-col gap-3">
@@ -406,18 +547,17 @@ export default function OnboardingPagina({ o, token, contact, modus }: { o: Onbo
               <h2 className={`${kop} m-0 text-[30px] leading-[1.12] tracking-[-0.8px] text-white md:text-[40px]`}>We helpen je graag op weg.</h2>
               <p className="m-0 max-w-[560px] text-[16px] leading-[1.7] text-white/75">Wil je wegwijs worden in het verzuimsysteem? Plan een afspraak op kantoor of online, dan lopen we het samen door.</p>
             </div>
-            <div className="relative flex flex-wrap gap-3">
-              <a href={tel} className={`hv-btn ${KNOP} border-[1.5px] border-white bg-white text-[#322E83]`}>Bel {telTekst} <Pijl size={14} /></a>
-              <a href={`mailto:${mail}?subject=${encodeURIComponent(`Onboarding ${o.bedrijf}`)}`} className={`hv-btn ${KNOP} border-[1.5px] border-white/40 text-white`}>Mail ons</a>
+            <div className="geen-print relative flex flex-wrap gap-3">
+              <a href={tel} className={`hv-btn ${KNOP} border-[1.5px] border-white bg-white text-[#322E83]`}><Icoon d={TELEFOON} size={15} /> Bel {telTekst}</a>
+              <a href={`mailto:${mail}?subject=${encodeURIComponent(`Onboarding ${o.bedrijf}`)}`} className={`hv-btn ${KNOP} border-[1.5px] border-white/40 text-white`}>Mail {voornaam(o.afzender_naam) || "ons"} <Pijl size={14} /></a>
             </div>
           </div>
         </section>
-
-        <footer className={`${BREED} flex flex-col gap-2 pt-4 text-[13.5px] md:flex-row md:justify-between`} style={{ color: MUTE }}>
-          <span>React2u II B.V. h.o.d.n. React2u · {contact.addressLine1}, {contact.addressLine2} · KvK {contact.kvk}</span>
-          <span>{contact.phoneDisplay} · {contact.email}</span>
-        </footer>
       </main>
+
+      <Voet o={o} contact={contact} mail={mail} tel={tel} telTekst={telTekst} />
+
+      {volgende && modus !== "voorbeeld" && <VolgendeBalk id={`stap-${volgende.sleutel}`} titel={volgende.titel} nr={volgendeNr} />}
     </div>
   );
 }

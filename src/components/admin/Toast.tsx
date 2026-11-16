@@ -116,6 +116,8 @@ const OK_TEKST: Record<string, string> = {
   "onboarding-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
   "onboarding-heropend": "De onboarding staat weer open.",
   "onboarding-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
+  "taak-klaar": "Afgevinkt.",
+  "taak-open": "Weer opengezet.",
   "offerte-heropend": "Heropend: de klant kan weer kiezen en tekenen.",
   "offerte-kopie": "Kopie gemaakt als nieuw concept, met een eigen nummer en link.",
   "offerte-link": "Nieuwe link gemaakt. De oude werkt niet meer.",

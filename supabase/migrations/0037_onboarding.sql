@@ -13,6 +13,11 @@
 -- - antwoorden: per document { data, at, door }, alleen te schrijven via
 --   onboarding_opslaan. gelezen: per document het moment dat de klant het
 --   afvinkte, via onboarding_gelezen.
+-- - taken: wat React2u zelf regelt na de documenten van de klant (werkgever
+--   in XpertSuite, werknemers importeren, debiteur, casemanager, dossiers
+--   opvragen, instructie), per taak { at, door }. De lijst staat in de code
+--   (lib/onboarding.ts, TAKEN); samen met de documenten is dat het hele
+--   traject tot de klant live is.
 -- - onboarding_gebeurtenissen: de tijdlijn.
 --
 -- Privacy: de werknemerslijst (import XpertSuite) bevat burgerservicenummers.
@@ -56,6 +61,9 @@ create table public.onboardings (
   contractsoort text check (length(contractsoort) <= 200),
   debiteurnummer text check (length(debiteurnummer) <= 60),
 
+  -- Wat React2u zelf regelde: per taak uit lib/onboarding.ts { at, door }.
+  taken jsonb not null default '{}'::jsonb check (jsonb_typeof(taken) = 'object'),
+
   afzender_naam text check (length(afzender_naam) <= 200),
   afzender_functie text check (length(afzender_functie) <= 200),
   afzender_email text check (length(afzender_email) <= 254),
@@ -78,7 +86,7 @@ create table public.onboarding_gebeurtenissen (
   id bigint generated always as identity primary key,
   onboarding_id uuid not null references public.onboardings(id) on delete cascade,
   soort text not null check (soort in (
-    'aangemaakt', 'gewijzigd', 'verstuurd', 'herinnering', 'bekeken', 'ingevuld', 'gelezen', 'afgerond', 'ingetrokken', 'heropend', 'gewist'
+    'aangemaakt', 'gewijzigd', 'verstuurd', 'herinnering', 'bekeken', 'ingevuld', 'gelezen', 'afgerond', 'ingetrokken', 'heropend', 'gewist', 'taak'
   )),
   door text,
   details jsonb,
@@ -101,7 +109,7 @@ create policy "bellijst leest onboardingtijdlijn" on public.onboarding_gebeurten
   for select to authenticated using (public.has_perm('bellijst'));
 create policy "bellijst schrijft onboardingtijdlijn" on public.onboarding_gebeurtenissen
   for insert to authenticated with check (
-    public.has_perm('bellijst') and soort in ('aangemaakt', 'gewijzigd', 'verstuurd', 'herinnering', 'afgerond', 'ingetrokken', 'heropend', 'gewist')
+    public.has_perm('bellijst') and soort in ('aangemaakt', 'gewijzigd', 'verstuurd', 'herinnering', 'afgerond', 'ingetrokken', 'heropend', 'gewist', 'taak')
   );
 
 -- Het bezoek, het nummer en de aanmaakgegevens schrijft alleen de database zelf.
@@ -112,7 +120,7 @@ begin
   if current_user in ('authenticated', 'anon') then
     if tg_op = 'INSERT' then
       new.bekeken_at := null; new.laatst_bekeken_at := null; new.aantal_bekeken := 0;
-      new.antwoorden := '{}'::jsonb; new.gelezen := '{}'::jsonb;
+      new.antwoorden := '{}'::jsonb; new.gelezen := '{}'::jsonb; new.taken := '{}'::jsonb;
     else
       new.bekeken_at := old.bekeken_at; new.laatst_bekeken_at := old.laatst_bekeken_at; new.aantal_bekeken := old.aantal_bekeken;
       new.nummer := old.nummer; new.created_by := old.created_by; new.created_at := old.created_at;
@@ -157,10 +165,17 @@ begin
     );
   end if;
 
+  -- Elke render van de pagina komt hier langs, ook na opslaan: Next rendert de
+  -- pagina opnieuw in het verzoek van de server action en bij router.refresh
+  -- (de interne headers daarvan ziet de pagina niet). Daarom telt een bezoek
+  -- pas opnieuw na een half uur zonder activiteit, net als de gebeurtenis.
   if p_tel and o.status in ('verstuurd', 'afgerond') then
     update public.onboardings set bekeken_at = now() where id = o.id and bekeken_at is null returning true into eerste;
     eerste := coalesce(eerste, false);
-    update public.onboardings set laatst_bekeken_at = now(), aantal_bekeken = aantal_bekeken + 1 where id = o.id;
+    update public.onboardings
+      set aantal_bekeken = aantal_bekeken + (case when laatst_bekeken_at is null or laatst_bekeken_at < now() - interval '30 minutes' then 1 else 0 end),
+          laatst_bekeken_at = now()
+      where id = o.id;
     if not exists (
       select 1 from public.onboarding_gebeurtenissen
       where onboarding_id = o.id and soort = 'bekeken' and at > now() - interval '30 minutes'
