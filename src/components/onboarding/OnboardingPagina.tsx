@@ -1,12 +1,13 @@
 import { Outfit } from "next/font/google";
+import Beeld from "@/components/site/Beeld";
 import Logo from "@/components/site/Logo";
-import { BODY, BREED, Eyebrow, kop, LAV, LINE, NAVY, PINK, Pijl, SOFT, Vink } from "@/components/blocks/Gedeeld";
+import { BODY, BREED, Eyebrow, KEURMERKEN, kop, LAV, LINE, NAVY, PINK, Pijl, SOFT, Vink } from "@/components/blocks/Gedeeld";
 import type { ContactInfo } from "@/lib/content";
 import { DOCUMENTEN as SITE_DOCUMENTEN } from "@/lib/documenten";
 import { datumLang, momentLang, vulIn } from "@/lib/offertes";
 import {
-  BERICHT_STANDAARD, documentKlaar, gekozen, hoofdstukkenVoor, INRICHTING, MACHTIGING, ONBOARDING_EMAIL, takenVoor, VERZUIMPROTOCOL, voortgang, VRAGEN,
-  vultIn, WELKOM, type DocumentInfo, type OnboardingPubliek, type TijdlijnStap, type Werknemer,
+  benodigdheden, BERICHT_STANDAARD, documentKlaar, gekozen, hoofdstukkenVoor, INRICHTING, MACHTIGING, ONBOARDING_EMAIL, takenVoor, totaleMinuten,
+  VERZUIMPROTOCOL, voortgang, VRAGEN, vultIn, WELKOM, type DocumentInfo, type OnboardingPubliek, type TijdlijnStap, type Werknemer,
 } from "@/lib/onboarding";
 import { AfvinkKnop, VeldenFormulier, WerknemersFormulier, type Modus } from "./OnboardingActies";
 import OnboardingKopbalk, { VolgendeBalk } from "./OnboardingKopbalk";
@@ -149,32 +150,73 @@ const FASE: Record<TijdlijnStap["fase"], { kleur: string; tint: string; naam: st
   spoed: { kleur: "#F19001", tint: "#FEF3E2", naam: "Altijd" },
 };
 
+/**
+ * De tijdlijn van ziekmelding tot WIA als één reis: een doorlopende lijn met
+ * stippen in de kleur van de fase, links de eerste dagen en de begeleiding,
+ * rechts het eerste en tweede ziektejaar. Bij elke stap van React2u of de
+ * bedrijfsarts staat "Wij bewaken dit": dat is de belofte van de brief.
+ */
+function Reis({ tint }: { tint: boolean }) {
+  const kolommen = [
+    WELKOM.tijdlijn.filter((t) => t.fase === "start" || t.fase === "begeleiding"),
+    WELKOM.tijdlijn.filter((t) => t.fase === "uwv"),
+  ];
+  const spoed = WELKOM.tijdlijn.find((t) => t.fase === "spoed");
+  const masker = tint ? LAV : "#ffffff";
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-x-12 gap-y-6 lg:grid-cols-2">
+        {kolommen.map((lijst, k) => (
+          <ol key={k} className="relative m-0 flex list-none flex-col p-0">
+            <span aria-hidden className="absolute bottom-6 left-[11px] top-8 w-[2px] rounded-full" style={{ background: "rgba(50,46,131,0.14)" }} />
+            {lijst.map((t, i) => {
+              const f = FASE[t.fase];
+              const nieuweFase = i === 0 || lijst[i - 1].fase !== t.fase;
+              const wij = /React2u|Bedrijfsarts/.test(t.wie);
+              return (
+                <li key={i} className={`relative grid grid-cols-[24px_minmax(0,1fr)] gap-x-4 ${nieuweFase && i > 0 ? "mt-3" : ""}`} data-reveal style={{ ["--ri" as string]: i % 4 }}>
+                  {nieuweFase && (
+                    <span className="col-start-2 mb-2.5 flex items-center gap-2 text-[12.5px] font-bold uppercase tracking-[1.3px]" style={{ color: f.kleur }}>
+                      <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: f.kleur }} />{f.naam}
+                    </span>
+                  )}
+                  <span className="relative z-[1] mt-[3px] grid h-6 w-6 place-items-center rounded-full" style={{ background: masker }}>
+                    <span className="h-3.5 w-3.5 rounded-full" style={{ background: f.kleur, boxShadow: `0 0 0 4px ${f.tint}` }} />
+                  </span>
+                  <div className="flex flex-col gap-0.5 pb-5">
+                    <span className="text-[13.5px] font-bold" style={{ color: f.kleur }}>{t.moment}</span>
+                    <span className="text-[16px] font-semibold leading-[1.4]" style={{ color: NAVY }}>{t.wat}</span>
+                    <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13.5px]" style={{ color: MUTE }}>
+                      {t.wie}
+                      {wij && <span className="rounded-full px-2 py-0.5 text-[11.5px] font-bold" style={{ background: LAV, color: NAVY }}>Wij bewaken dit</span>}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        ))}
+      </div>
+      {spoed && (
+        <div className="flex items-start gap-4 rounded-[22px] p-5 md:items-center md:p-6" style={{ background: FASE.spoed.tint }} data-reveal>
+          <span className={`${kop} grid h-11 w-11 shrink-0 place-items-center rounded-full text-[20px] text-white`} style={{ background: FASE.spoed.kleur }}>!</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[12.5px] font-bold uppercase tracking-[1.3px]" style={{ color: FASE.spoed.kleur }}>{FASE.spoed.naam} · {spoed.moment}</span>
+            <span className="text-[16px] font-semibold leading-[1.45]" style={{ color: NAVY }}>{spoed.wat}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WelkomInhoud({ tint }: { tint: boolean }) {
   return (
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-3 text-[16.5px] leading-[1.75] md:text-[18px]" style={{ color: BODY }}>
         {WELKOM.intro.map((a) => <p key={a} className="m-0">{a}</p>)}
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {(["start", "begeleiding", "uwv", "spoed"] as const).map((f, i) => (
-          <div key={f} className={`rounded-[22px] p-5 md:p-6 ${f === "uwv" ? "md:row-span-2" : ""}`} style={{ background: f === "uwv" && tint ? "#ffffff" : FASE[f].tint, ["--ri" as string]: i }} data-reveal>
-            <p className="m-0 mb-3 flex items-center gap-2 text-[12.5px] font-bold uppercase tracking-[1.3px]" style={{ color: FASE[f].kleur }}>
-              <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ background: FASE[f].kleur }} />{FASE[f].naam}
-            </p>
-            <ol className="m-0 flex list-none flex-col p-0">
-              {WELKOM.tijdlijn.filter((t) => t.fase === f).map((t, n) => (
-                <li key={n} className="grid grid-cols-[104px_1fr] gap-3 border-t py-3 first:border-t-0 first:pt-0 last:pb-0" style={{ borderColor: "rgba(50,46,131,0.1)" }}>
-                  <span className="text-[14.5px] font-bold" style={{ color: FASE[f].kleur }}>{t.moment}</span>
-                  <span className="flex flex-col">
-                    <span className="text-[15px] font-semibold leading-[1.45]" style={{ color: NAVY }}>{t.wat}</span>
-                    <span className="text-[13.5px]" style={{ color: MUTE }}>{t.wie}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        ))}
-      </div>
+      <Reis tint={tint} />
       <figure className="m-0 flex flex-col gap-3" data-reveal>
         <span aria-hidden className={`${kop} text-[64px] leading-[0.6]`} style={{ color: PINK }}>“</span>
         <blockquote className="m-0">
@@ -193,16 +235,31 @@ function WelkomInhoud({ tint }: { tint: boolean }) {
   );
 }
 
+/**
+ * Het verzuimprotocol zoals de poster: de letters R-E-A-C-T-2U in witte rondjes
+ * op de indigo lijn die slingert, met een stippellijn naar het kaartje in de
+ * kleur van de stap en een schaduw die iets verschoven staat.
+ */
 function ProtocolInhoud({ tint }: { tint: boolean }) {
+  const ring = tint ? LAV : "#ffffff";
   return (
     <div className="flex flex-col gap-6">
       <p className="m-0 text-[16.5px] leading-[1.75] md:text-[18px]" style={{ color: BODY }}>{VERZUIMPROTOCOL.intro} Deel het met je medewerkers, of hang de pdf op een plek waar iedereen hem ziet.</p>
-      <ol className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2">
+      <ol className="relative m-0 flex list-none flex-col gap-3 p-0 md:gap-4">
+        <span aria-hidden className="absolute bottom-8 left-[29px] top-8 w-[6px] rounded-full md:left-[41px]" style={{ background: NAVY, opacity: 0.92 }} />
         {VERZUIMPROTOCOL.stappen.map((st, i) => (
-          <li key={st.letter} className="flex flex-col gap-3 rounded-[22px] p-5 md:p-6" style={{ background: tint ? "#ffffff" : SOFT, ["--ri" as string]: i }} data-reveal>
-            <span className={`${kop} grid h-14 w-14 place-items-center rounded-full text-white ${st.letter.length > 1 ? "text-[20px]" : "text-[26px]"}`} style={{ background: st.kleur }}>{st.letter}</span>
-            <span className={`${kop} text-[19px] tracking-[-0.2px]`} style={{ color: st.kleur }}>{st.kop}</span>
-            <span className="text-[15px] leading-[1.65]" style={{ color: BODY }}>{st.tekst}</span>
+          <li key={st.letter} className="relative grid grid-cols-[64px_minmax(0,1fr)] items-center gap-x-4 md:grid-cols-[88px_minmax(0,1fr)] md:gap-x-5" data-reveal style={{ ["--ri" as string]: i % 3 }}>
+            <span
+              className={`${kop} relative z-[1] grid h-[64px] w-[64px] place-items-center rounded-full bg-white md:h-[76px] md:w-[76px] ${st.letter.length > 1 ? "text-[22px] md:text-[26px]" : "text-[30px] md:text-[36px]"} ${i % 2 ? "md:translate-x-3" : ""}`}
+              style={{ color: st.kleur, boxShadow: `0 0 0 5px ${ring}, 0 14px 28px -18px rgba(50,46,131,0.5)` }}
+            >
+              {st.letter}
+            </span>
+            <span aria-hidden className={`absolute top-1/2 hidden w-5 border-t-2 border-dotted md:block ${i % 2 ? "left-[100px]" : "left-[88px]"}`} style={{ borderColor: NAVY }} />
+            <div className="rounded-[18px] border-[2px] bg-white p-5 md:ml-6 md:p-6" style={{ borderColor: st.kleur, boxShadow: `6px 6px 0 0 ${NAVY}` }}>
+              <span className={`${kop} block text-[17px] uppercase tracking-[1.2px] md:text-[18px]`} style={{ color: st.kleur }}>{st.kop}</span>
+              <span className="mt-1.5 block text-[15px] leading-[1.65]" style={{ color: BODY }}>{st.tekst}</span>
+            </div>
           </li>
         ))}
       </ol>
@@ -320,6 +377,34 @@ function VragenInhoud({ tint }: { tint: boolean }) {
   );
 }
 
+/* ---------- zekerheid bij jullie gegevens ---------- */
+
+/** Bij het aanleveren van gegevens: de keurmerken die daarover gaan, met wat ze voor de klant betekenen. */
+function Zekerheid({ tint }: { tint: boolean }) {
+  const items = [
+    { naam: "ISO 27001", kop: "Beveiligd", tekst: "Wat je hier invult gaat over een beveiligde verbinding naar een omgeving die jaarlijks wordt getoetst op informatiebeveiliging." },
+    { naam: "ISO 27701", kop: "Privacy", tekst: "Burgerservicenummers gebruiken we alleen om je medewerkers in XpertSuite te zetten. Daarna wissen we ze hier." },
+    { naam: "SBCA", kop: "Gecertificeerde arbodienst", tekst: "Onafhankelijke instellingen toetsen elk jaar hoe we werken en hoe we met gegevens omgaan." },
+  ].map((i) => ({ ...i, k: KEURMERKEN.find((k) => k.naam === i.naam) }));
+  return (
+    <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3 md:gap-4" aria-label="Jullie gegevens in goede handen" data-reveal>
+      {items.map((i) => (
+        <li key={i.naam} className="flex items-start gap-4 rounded-[20px] p-5" style={tint ? { background: "#ffffff" } : { background: SOFT, border: `1px solid ${LINE}` }}>
+          {i.k && (
+            <span className="flex h-12 w-14 shrink-0 items-center justify-center">
+              <Beeld src={i.k.src} alt={i.k.alt} sizes="56px" className="max-h-12 w-auto max-w-[56px] object-contain" />
+            </span>
+          )}
+          <span className="flex flex-col gap-1">
+            <span className="text-[15px] font-bold" style={{ color: NAVY }}>{i.kop} <span className="font-semibold" style={{ color: MUTE }}>· {i.naam}</span></span>
+            <span className="text-[14px] leading-[1.55]" style={{ color: BODY }}>{i.tekst}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /* ---------- een stap ---------- */
 
 /**
@@ -427,8 +512,11 @@ function Stap({ d, n, o, token, basis, modus, tint, eerste }: {
             <h3 id={`kop-${d.sleutel}`} className={`${kop} m-0 text-[28px] leading-[1.1] tracking-[-0.7px] md:text-[34px]`} style={{ color: NAVY }}>{d.titel}</h3>
             <p className="m-0 text-[15.5px] leading-[1.6]" style={{ color: MUTE }}>{d.kort}</p>
           </div>
-          <span className="inline-flex items-center gap-2 self-start rounded-full px-4 py-2 text-[13.5px] font-bold" style={klaar ? { background: "#E3F6ED", color: GROEN } : { background: tint ? "#ffffff" : SOFT, color: MUTE }}>
-            {klaar ? <><Vink size={13} /> Klaar{wanneer ? ` · ${datumLang(wanneer)}` : ""}</> : "Nog te doen"}
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13.5px] font-bold" style={klaar ? { background: "#E3F6ED", color: GROEN } : { background: tint ? "#ffffff" : SOFT, color: MUTE }}>
+              {klaar ? <><Vink size={13} /> Klaar{wanneer ? ` · ${datumLang(wanneer)}` : ""}</> : "Nog te doen"}
+            </span>
+            {!klaar && <span className="text-[13.5px] font-semibold tabular-nums" style={{ color: MUTE }}>± {d.invullen && !invul ? 2 : d.minuten} min</span>}
           </span>
         </div>
         {acties && <div className="geen-print order-3 flex flex-wrap gap-3 lg:order-2">{acties}</div>}
@@ -550,10 +638,13 @@ export default function OnboardingPagina({
   const omtrek = 2 * Math.PI * 52;
   const volgende = docs.find((d) => !documentKlaar(o, d.sleutel));
   const nummerVan = (d: DocumentInfo) => docs.indexOf(d) + 1;
+  const nodig = benodigdheden(o);
+  const minuten = totaleMinuten(o);
   const feiten = [
     { label: "Onboarding", waarde: o.nummer },
     ...(o.verstuurd_at ? [{ label: "Verstuurd op", waarde: datumLang(o.verstuurd_at) }] : []),
     { label: "Stappen", waarde: `${v.klaar} van ${v.totaal} klaar` },
+    ...(compleet ? [] : [{ label: "Samen ongeveer", waarde: `${minuten} minuten` }]),
     { label: "Je aanspreekpunt", waarde: o.afzender_naam || "Team React2u" },
   ];
   const onderdelen = [...hoofdstukken.map((h) => ({ id: `hoofdstuk-${h.id}`, label: h.label })), { id: "verder", label: "Verder" }];
@@ -580,6 +671,11 @@ export default function OnboardingPagina({
           <div className="relative mx-auto grid max-w-[1360px] gap-10 overflow-clip rounded-[28px] px-6 pb-8 pt-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start lg:gap-14 lg:p-16 xl:p-[72px]" style={{ background: LAV }}>
             <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[560px] md:w-[560px]" style={{ background: NAVY, opacity: 0.1 }} />
             <span aria-hidden className="absolute bottom-[-120px] left-[38%] hidden h-[220px] w-[220px] rounded-full lg:block" style={{ background: PINK, opacity: 0.08 }} />
+            {/* De stippen van het logo, zachtjes zwevend tussen de brief en de kaart. */}
+            <span aria-hidden className="hv-f1 absolute left-[57%] top-[14%] hidden h-4 w-4 rounded-full lg:block" style={{ background: "#00A098", opacity: 0.6 }} />
+            <span aria-hidden className="hv-f2 absolute left-[61%] top-[34%] hidden h-3 w-3 rounded-full lg:block" style={{ background: "#F19001", opacity: 0.65 }} />
+            <span aria-hidden className="hv-f3 absolute left-[55%] top-[46%] hidden h-2.5 w-2.5 rounded-full lg:block" style={{ background: PINK, opacity: 0.55 }} />
+            <span aria-hidden className="hv-f2 absolute left-[63%] top-[62%] hidden h-2 w-2 rounded-full lg:block" style={{ background: "#3AA5DD", opacity: 0.6 }} />
             <div className="relative flex flex-col gap-6">
               <p className="m-0 flex flex-col gap-0.5 text-[14px] font-semibold sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5" style={{ color: MUTE }}>
                 <span>Onboarding {o.nummer}</span><span aria-hidden className="hidden sm:inline">/</span><span style={{ color: NAVY }}>{o.bedrijf}</span>
@@ -608,6 +704,18 @@ export default function OnboardingPagina({
                   </div>
                 ))}
               </dl>
+              {nodig.length > 0 && !compleet && (
+                <div className="flex flex-col gap-3 rounded-[18px] border px-5 py-4" style={{ borderColor: "rgba(50,46,131,0.14)", background: "rgba(255,255,255,0.55)" }}>
+                  <Label>Handig om bij de hand te hebben</Label>
+                  <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+                    {nodig.map((n) => (
+                      <li key={n} className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[13.5px] font-semibold" style={{ color: NAVY }}>
+                        <span aria-hidden className="h-1.5 w-1.5 rounded-full" style={{ background: PINK }} />{n}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className="geen-print flex flex-wrap gap-3 pt-1">
                 <a href={`#stap-${(volgende || docs[0])?.sleutel}`} className={knop.roze}>
                   {compleet ? "Bekijk je documenten" : v.klaar ? "Ga verder waar je was" : "Begin met stap 1"} <Pijl size={14} />
@@ -649,6 +757,7 @@ export default function OnboardingPagina({
                                 {klaar ? <Vink size={12} /> : nummerVan(d)}
                               </span>
                               <span className={`flex-1 text-[15px] font-semibold ${klaar ? "line-through decoration-[1.5px] opacity-60" : ""}`} style={{ color: NAVY }}>{d.titel}</span>
+                              {!klaar && <span className="text-[12px] font-semibold tabular-nums" style={{ color: MUTE }}>{d.invullen && !vultIn(o, d.sleutel) ? 2 : d.minuten} min</span>}
                               {vultIn(o, d.sleutel) && !klaar && <span className="rounded-full px-2.5 py-1 text-[11.5px] font-bold" style={{ background: "#FDECF4", color: PINK }}>Invullen</span>}
                             </a>
                           </li>
@@ -696,6 +805,7 @@ export default function OnboardingPagina({
           return (
             <Band key={h.id} id={`hoofdstuk-${h.id}`} tint={tint} label={h.eyebrow}>
               <SectieKop eyebrow={`Hoofdstuk ${hi + 1} van ${hoofdstukken.length} · ${h.eyebrow}`} titel={h.titel} tekst={h.tekst} />
+              {h.id === "gegevens" && <Zekerheid tint={tint} />}
               {h.docs.map((d, di) => <Stap key={d.sleutel} d={d} n={nummerVan(d)} o={o} token={token} basis={basis} modus={modus} tint={tint} eerste={di === 0} />)}
             </Band>
           );

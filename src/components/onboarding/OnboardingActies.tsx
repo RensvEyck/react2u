@@ -90,6 +90,9 @@ export function VeldenFormulier({
   const [bezig, start] = useTransition();
   const router = useRouter();
   const fouten = state?.velden || {};
+  // Hoe ver je bent met de verplichte velden: zo zie je meteen wat er nog moet.
+  const verplicht = groepen.flatMap((g) => g.velden).filter((v) => v.verplicht);
+  const verplichtKlaar = verplicht.filter((v) => (waarden[v.naam] || "").trim()).length;
 
   return (
     <form
@@ -106,6 +109,14 @@ export function VeldenFormulier({
         });
       }}
     >
+      {verplicht.length > 0 && (
+        <p className="m-0 flex items-center gap-3 text-[13.5px] font-semibold" style={{ color: "#6B6985" }} aria-live="polite">
+          <span className="h-1.5 w-28 overflow-hidden rounded-full bg-[#ECEBF5]">
+            <span className="block h-full rounded-full bg-[#322E83] transition-[width]" style={{ width: `${Math.round((verplichtKlaar / verplicht.length) * 100)}%` }} />
+          </span>
+          Verplichte velden: {verplichtKlaar} van {verplicht.length}
+        </p>
+      )}
       {groepen.map((g) => (
         <fieldset key={g.titel} className="m-0 flex flex-col gap-4 border-0 p-0">
           <legend className="mb-1 p-0">

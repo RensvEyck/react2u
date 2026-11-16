@@ -98,6 +98,10 @@ export type DocumentInfo = {
   standaard: { mee: boolean; invullen: boolean };
   /** Er is een Excelbestand in plaats van (of naast) een pdf. */
   excel?: boolean;
+  /** Hoe lang de stap ongeveer duurt (lezen, of online invullen), voor de klant. */
+  minuten: number;
+  /** Wat de klant bij de hand moet hebben als hij dit online invult. */
+  nodig?: string[];
 };
 
 /**
@@ -115,6 +119,7 @@ export const DOCUMENTEN: DocumentInfo[] = [
     invullen: null,
     kleur: "#322E83", tint: "#ECEBF5",
     standaard: { mee: true, invullen: false },
+    minuten: 5,
   },
   {
     sleutel: "verzuimprotocol",
@@ -124,6 +129,7 @@ export const DOCUMENTEN: DocumentInfo[] = [
     invullen: null,
     kleur: "#3AA5DD", tint: "#E8F4FB",
     standaard: { mee: true, invullen: false },
+    minuten: 3,
   },
   {
     sleutel: "vragen",
@@ -133,6 +139,7 @@ export const DOCUMENTEN: DocumentInfo[] = [
     invullen: null,
     kleur: "#F19001", tint: "#FEF3E2",
     standaard: { mee: true, invullen: false },
+    minuten: 5,
   },
   {
     sleutel: "inrichting",
@@ -142,6 +149,8 @@ export const DOCUMENTEN: DocumentInfo[] = [
     invullen: "Vul jullie bedrijfsgegevens in",
     kleur: "#E61674", tint: "#FDECF4",
     standaard: { mee: true, invullen: true },
+    minuten: 10,
+    nodig: ["KvK-nummer", "factuuradres en e-mailadres voor facturen", "IBAN, als je via automatische incasso betaalt"],
   },
   {
     sleutel: "werknemers",
@@ -152,6 +161,8 @@ export const DOCUMENTEN: DocumentInfo[] = [
     kleur: "#00A098", tint: "#E5F6F4",
     standaard: { mee: true, invullen: true },
     excel: true,
+    minuten: 15,
+    nodig: ["van elke medewerker: naam, geboortedatum, BSN, adres, functie en datum in dienst"],
   },
   {
     sleutel: "machtiging",
@@ -161,6 +172,8 @@ export const DOCUMENTEN: DocumentInfo[] = [
     invullen: "Vul de gegevens van je vorige arbodienst in",
     kleur: "#CA152A", tint: "#FBEAEC",
     standaard: { mee: false, invullen: true },
+    minuten: 5,
+    nodig: ["naam en vestigingsplaats van je vorige arbodienst"],
   },
 ];
 
@@ -248,6 +261,17 @@ export function metAntwoordMomenten<T extends AntwoordMomenten>(rij: T): T & { a
     if (at) antwoorden[d] = { data: {}, at, door: null };
   }
   return { ...rij, antwoorden };
+}
+
+/** Wat de klant bij de hand moet hebben voor de documenten die hij online invult. */
+export function benodigdheden(o: Pick<Onboarding, "documenten" | "invullen">): string[] {
+  return gekozen(o).filter((d) => vultIn(o, d.sleutel)).flatMap((d) => d.nodig || []);
+}
+
+/** Hoe lang de hele onboarding ongeveer duurt, afgerond op vijf minuten; een formulier dat alleen gedownload wordt telt kort. */
+export function totaleMinuten(o: Pick<Onboarding, "documenten" | "invullen">): number {
+  const som = gekozen(o).reduce((s, d) => s + (d.invullen && !vultIn(o, d.sleutel) ? 2 : d.minuten), 0);
+  return Math.max(5, Math.round(som / 5) * 5);
 }
 
 /** Hoeveel van de gekozen documenten af zijn. */

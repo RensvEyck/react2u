@@ -1516,9 +1516,21 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   de voortgangsring, de stappen per hoofdstuk en het aanspreekpunt; de
   hoofdstukken als banden van rand tot rand, om en om wit en lila, elk met een
   sectiekop; per stap links een kolom die op een groot scherm blijft staan
-  (nummer, titel, status, de acties: pdf, afvinken) en rechts de inhoud of het
-  formulier op een kaart (op de telefoon komen de acties onder de inhoud);
-  controles bij invullen (KvK 8 cijfers, IBAN mod 97, BSN elfproef, postcode);
+  (nummer, titel, status met de tijd die het kost, de acties: pdf, afvinken)
+  en rechts de inhoud of het formulier op een kaart (op de telefoon komen de
+  acties onder de inhoud). Op het niveau van de beste onboardings (Rens, 16 nov
+  2026: "hoog niveau echt top of de arbodienst"): in de opening *Handig om bij
+  de hand te hebben* (`nodig` per document, `benodigdheden()`) en hoe lang alles
+  samen duurt (`minuten`, `totaleMinuten()`), de stippen van het logo die zacht
+  zweven; de tijdlijn van het Welkom-document als één reis met een doorlopende
+  lijn, stippen in de kleur van de fase en "Wij bewaken dit" bij elke stap van
+  React2u of de bedrijfsarts (`Reis`); het verzuimprotocol als de poster, de
+  letters R-E-A-C-T-2U in witte rondjes op de slingerende indigo lijn met een
+  stippellijn naar het kaartje in de kleur van de stap (`ProtocolInhoud`); bij
+  *Jullie gegevens* drie kaarten met de keurmerken die daarover gaan (ISO 27001,
+  ISO 27701, SBCA; `Zekerheid`); in elk formulier een balkje "Verplichte velden:
+  3 van 7". Controles bij invullen (KvK 8 cijfers, IBAN mod 97, BSN elfproef,
+  postcode);
   de indigo band *Zo gaat het verder* met wat React2u daarna doet (`TAKEN`,
   `klantKop` en `klant`) en bellen; de felicitatie met de stippen als alles net
   klaar is; op de telefoon onderaan de knop naar de volgende open stap. Alles
