@@ -100,6 +100,12 @@ export type DocumentInfo = {
   excel?: boolean;
 };
 
+/**
+ * De catalogus, in de volgorde van het verhaal op de klantpagina: eerst hoe we
+ * samenwerken, dan wat de medewerkers moeten weten, dan wat we van de klant
+ * nodig hebben (HOOFDSTUKKEN hieronder). Het beheer, de mail en de stapnummers
+ * volgen dezelfde volgorde.
+ */
 export const DOCUMENTEN: DocumentInfo[] = [
   {
     sleutel: "welkom",
@@ -108,6 +114,24 @@ export const DOCUMENTEN: DocumentInfo[] = [
     lezen: "Lees hoe we samenwerken",
     invullen: null,
     kleur: "#322E83", tint: "#ECEBF5",
+    standaard: { mee: true, invullen: false },
+  },
+  {
+    sleutel: "verzuimprotocol",
+    titel: "Verzuimprotocol",
+    kort: "Wat je medewerkers doen bij ziekte, in zes stappen. Om te delen of op te hangen.",
+    lezen: "Deel het met je medewerkers",
+    invullen: null,
+    kleur: "#3AA5DD", tint: "#E8F4FB",
+    standaard: { mee: true, invullen: false },
+  },
+  {
+    sleutel: "vragen",
+    titel: "Wat je wél mag vragen bij ziekteverzuim",
+    kort: "Wat een werkgever mag vragen en noteren, met een belscript voor de ziekmelding.",
+    lezen: "Lees het en houd het bij de hand",
+    invullen: null,
+    kleur: "#F19001", tint: "#FEF3E2",
     standaard: { mee: true, invullen: false },
   },
   {
@@ -130,24 +154,6 @@ export const DOCUMENTEN: DocumentInfo[] = [
     excel: true,
   },
   {
-    sleutel: "verzuimprotocol",
-    titel: "Verzuimprotocol",
-    kort: "Wat je medewerkers doen bij ziekte, in zes stappen. Om te delen of op te hangen.",
-    lezen: "Deel het met je medewerkers",
-    invullen: null,
-    kleur: "#3AA5DD", tint: "#E8F4FB",
-    standaard: { mee: true, invullen: false },
-  },
-  {
-    sleutel: "vragen",
-    titel: "Wat je wél mag vragen bij ziekteverzuim",
-    kort: "Wat een werkgever mag vragen en noteren, met een belscript voor de ziekmelding.",
-    lezen: "Lees het en houd het bij de hand",
-    invullen: null,
-    kleur: "#F19001", tint: "#FEF3E2",
-    standaard: { mee: true, invullen: false },
-  },
-  {
     sleutel: "machtiging",
     titel: "Machtiging overdracht verzuimdossier",
     kort: "Alleen bij een overstap van een andere arbodienst: toestemming van de werknemer om een lopend dossier over te dragen.",
@@ -159,6 +165,47 @@ export const DOCUMENTEN: DocumentInfo[] = [
 ];
 
 export const DOCUMENT_SLEUTELS = DOCUMENTEN.map((d) => d.sleutel);
+
+/** Een hoofdstuk van het verhaal op de klantpagina: welke documenten erin staan en hoe het begint. */
+export type Hoofdstuk = { id: string; label: string; eyebrow: string; titel: string; tekst: string; documenten: DocumentSleutel[] };
+
+/**
+ * De verhaallijn van de onboarding, in drie hoofdstukken (de pagina slaat een
+ * hoofdstuk over als geen van zijn documenten meegaat): kennismaken, je
+ * medewerkers voorbereiden, en jullie gegevens. Daarna vertelt de pagina wat
+ * React2u vervolgens doet.
+ */
+export const HOOFDSTUKKEN: Hoofdstuk[] = [
+  {
+    id: "samenwerken",
+    label: "Zo werken we",
+    eyebrow: "Zo werken we samen",
+    titel: "Eerst: hoe een ziekmelding bij ons loopt.",
+    tekst: "Wie wat doet, van de eerste dag tot het einde van de wachttijd, en waar je ons voor kunt bellen. Lees het rustig door; wij bewaken de termijnen.",
+    documenten: ["welkom"],
+  },
+  {
+    id: "medewerkers",
+    label: "Je medewerkers",
+    eyebrow: "Je medewerkers voorbereiden",
+    titel: "Wat je mensen moeten weten, en wat jij mag vragen.",
+    tekst: "Twee documenten om te delen en bij de hand te houden: het verzuimprotocol voor je medewerkers, en voor leidinggevenden wat je wél en niet vraagt bij een ziekmelding.",
+    documenten: ["verzuimprotocol", "vragen"],
+  },
+  {
+    id: "gegevens",
+    label: "Jullie gegevens",
+    eyebrow: "Wat we van jullie nodig hebben",
+    titel: "Jullie gegevens, dan richten wij alles in.",
+    tekst: "Met deze gegevens zetten we jullie omgeving, de facturatie en het verzuimsysteem klaar. Je kunt tussendoor stoppen en later verder; wat je opslaat, blijft bewaard.",
+    documenten: ["inrichting", "werknemers", "machtiging"],
+  },
+];
+
+/** De hoofdstukken die voor deze onboarding gelden, elk met de gekozen documenten erin. */
+export function hoofdstukkenVoor(o: Pick<Onboarding, "documenten">): (Hoofdstuk & { docs: DocumentInfo[] })[] {
+  return HOOFDSTUKKEN.map((h) => ({ ...h, docs: h.documenten.filter((s) => o.documenten.includes(s)).map(documentInfo) })).filter((h) => h.docs.length > 0);
+}
 
 export function isDocument(s: unknown): s is DocumentSleutel {
   return typeof s === "string" && (DOCUMENT_SLEUTELS as string[]).includes(s);
@@ -231,6 +278,9 @@ export type TaakInfo = {
   bij?: DocumentSleutel;
   /** Kan pas als de klant dit document heeft ingevuld of afgevinkt. */
   na?: DocumentSleutel;
+  /** Hoe de klantpagina het vertelt, onder "Zo gaat het verder": een kopje en een zin. */
+  klantKop: string;
+  klant: string;
 };
 
 /**
@@ -239,12 +289,12 @@ export type TaakInfo = {
  * traject; het beheer vinkt af, de klant ziet dit niet.
  */
 export const TAKEN: TaakInfo[] = [
-  { sleutel: "xpertsuite", titel: "Werkgever aangemaakt in XpertSuite", kort: "Bedrijf, afdelingen en contactpersoon, uit het inrichtingsformulier.", na: "inrichting" },
-  { sleutel: "werknemers_import", titel: "Werknemers geïmporteerd", kort: "Het Excelbestand ingelezen in XpertSuite. Wis het bestand hier daarna.", bij: "werknemers", na: "werknemers" },
-  { sleutel: "facturatie", titel: "Debiteur aangemaakt", kort: "Factuuradres en mailadres voor facturen in de boekhouding; vul hier het debiteurnummer in.", na: "inrichting" },
-  { sleutel: "casemanager", titel: "Vaste casemanager gekoppeld", kort: "Wie het aanspreekpunt wordt voor dit bedrijf, ook in XpertSuite." },
-  { sleutel: "dossiers", titel: "Dossiers opgevraagd bij de vorige arbodienst", kort: "Met de getekende machtigingen, bij de arbodienst die de klant opgaf.", bij: "machtiging", na: "machtiging" },
-  { sleutel: "instructie", titel: "Instructie XpertSuite gegeven", kort: "De klant wegwijs gemaakt in de beveiligde omgeving, op kantoor of online." },
+  { sleutel: "xpertsuite", klantKop: "Jullie omgeving", titel: "Werkgever aangemaakt in XpertSuite", kort: "Bedrijf, afdelingen en contactpersoon, uit het inrichtingsformulier.", na: "inrichting", klant: "We zetten jullie bedrijf, afdelingen en contactpersoon in ons verzuimsysteem XpertSuite." },
+  { sleutel: "werknemers_import", klantKop: "Je medewerkers", titel: "Werknemers geïmporteerd", kort: "Het Excelbestand ingelezen in XpertSuite. Wis het bestand hier daarna.", bij: "werknemers", na: "werknemers", klant: "We lezen jullie medewerkers in, zodat een ziekmelding meteen goed binnenkomt." },
+  { sleutel: "facturatie", klantKop: "De facturatie", titel: "Debiteur aangemaakt", kort: "Factuuradres en mailadres voor facturen in de boekhouding; vul hier het debiteurnummer in.", na: "inrichting", klant: "We richten de facturatie in op het adres dat je opgaf." },
+  { sleutel: "casemanager", klantKop: "Een vaste casemanager", titel: "Vaste casemanager gekoppeld", kort: "Wie het aanspreekpunt wordt voor dit bedrijf, ook in XpertSuite.", klant: "Je krijgt een vaste casemanager: één aanspreekpunt dat jullie organisatie kent." },
+  { sleutel: "dossiers", klantKop: "Lopende dossiers", titel: "Dossiers opgevraagd bij de vorige arbodienst", kort: "Met de getekende machtigingen, bij de arbodienst die de klant opgaf.", bij: "machtiging", na: "machtiging", klant: "Met de getekende machtigingen vragen we lopende dossiers op bij je vorige arbodienst." },
+  { sleutel: "instructie", klantKop: "Wegwijs in het systeem", titel: "Instructie XpertSuite gegeven", kort: "De klant wegwijs gemaakt in de beveiligde omgeving, op kantoor of online.", klant: "We maken je wegwijs in de beveiligde omgeving, op kantoor of online." },
 ];
 
 export const TAAK_SLEUTELS = TAKEN.map((t) => t.sleutel);

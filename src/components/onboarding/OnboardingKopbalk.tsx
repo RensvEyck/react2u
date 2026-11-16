@@ -1,26 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import Logo from "@/components/site/Logo";
-import { BREED, kop, LAV, LINE, NAVY, PINK, Pijl, SOFT } from "@/components/blocks/Gedeeld";
+import { BREED, LAV, LINE, NAVY, PINK, Pijl } from "@/components/blocks/Gedeeld";
 
 /*
  * De vaste kopbalk van de onboardingpagina en de balk onderaan op de telefoon,
- * zoals op de contractpagina: logo, het nummer, de stappen als genummerde
- * rondjes die meelopen met waar je bent, de voortgang, de belknop en een
- * dunne lijn eronder die vult terwijl je scrolt.
+ * zoals op de offerte- en contractpagina: logo, het nummer, de hoofdstukken van
+ * het verhaal met een streep onder het hoofdstuk waar je bent, de voortgang
+ * van de stappen, de belknop en een dunne lijn eronder die vult terwijl je
+ * scrolt.
  */
 
-const MUTE = "#6B6985";
-
-export type KopStap = { id: string; nr: number; titel: string; klaar: boolean };
-
-function Vink({ size = 12 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m5 12 5 5L20 7" />
-    </svg>
-  );
-}
+export type Onderdeel = { id: string; label: string };
 
 /** Hoe ver je bent (0 tot 1), voor de lijn onder de kopbalk. */
 function useVoortgang() {
@@ -41,7 +32,7 @@ function useVoortgang() {
   return v;
 }
 
-/** Welke stap nu bovenaan staat: de laatste waarvan de bovenkant voorbij de kopbalk is. */
+/** Welk hoofdstuk nu bovenaan staat: het laatste waarvan de bovenkant voorbij de kopbalk is. */
 function useActief(ids: string[]) {
   const [actief, setActief] = useState("");
   const sleutel = ids.join(",");
@@ -84,17 +75,17 @@ export function scrollNaar(id: string) {
 }
 
 export default function OnboardingKopbalk({
-  nummer, stappen, klaar, totaal, tel, telNaam,
+  nummer, onderdelen, klaar, totaal, tel, telNaam,
 }: {
   nummer: string;
-  stappen: KopStap[];
+  onderdelen: Onderdeel[];
   klaar: number;
   totaal: number;
   tel: string;
   telNaam: string;
 }) {
   const voortgang = useVoortgang();
-  const actief = useActief(stappen.map((s) => s.id));
+  const actief = useActief(onderdelen.map((o) => o.id));
   const compleet = totaal > 0 && klaar === totaal;
   return (
     <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur-md" style={{ borderColor: LINE }}>
@@ -104,26 +95,14 @@ export default function OnboardingKopbalk({
           <span className="hidden h-8 w-px sm:block" style={{ background: LINE }} aria-hidden="true" />
           <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>Onboarding {nummer}</span>
         </div>
-        {stappen.length > 0 && (
-          <nav aria-label="Stappen van de onboarding" className="hidden items-center gap-2 xl:flex">
-            {stappen.map((s) => {
-              const hier = s.id === actief;
+        {onderdelen.length > 0 && (
+          <nav aria-label="Hoofdstukken van de onboarding" className="hidden items-center gap-7 xl:flex">
+            {onderdelen.map((o) => {
+              const hier = o.id === actief;
               return (
-                <a
-                  key={s.id}
-                  href={`#${s.id}`}
-                  aria-current={hier ? "step" : undefined}
-                  aria-label={`Stap ${s.nr}: ${s.titel}${s.klaar ? ", klaar" : ""}`}
-                  title={s.titel}
-                  className="group flex items-center gap-2"
-                >
-                  <span
-                    className={`${kop} grid h-8 w-8 shrink-0 place-items-center rounded-full text-[13px] transition-colors`}
-                    style={s.klaar ? { background: NAVY, color: "#fff" } : hier ? { background: "#fff", color: PINK, boxShadow: `inset 0 0 0 2px ${PINK}` } : { background: SOFT, color: MUTE }}
-                  >
-                    {s.klaar ? <Vink /> : s.nr}
-                  </span>
-                  {hier && <span className="max-w-[220px] truncate text-[14px] font-bold" style={{ color: NAVY }}>{s.titel}</span>}
+                <a key={o.id} href={`#${o.id}`} aria-current={hier ? "true" : undefined} className="relative py-2 text-[15px] font-bold transition-colors" style={{ color: hier ? PINK : NAVY }}>
+                  {o.label}
+                  <span aria-hidden className="absolute inset-x-0 -bottom-0.5 h-[2px] rounded-full transition-opacity" style={{ background: PINK, opacity: hier ? 1 : 0 }} />
                 </a>
               );
             })}
