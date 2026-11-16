@@ -147,6 +147,8 @@ export default function Klantenbord({
 
   /* ---------- weergave ---------- */
 
+  // De scrollende rijen (kolommen, cijfers) zijn `relative`: alles wat erin absoluut gepositioneerd is blijft dan
+  // binnen de rij en maakt de pagina op een telefoon niet breder dan het scherm.
   const kolommen = KLANT_STATUS.filter((s) => s.key !== "inactief");
   const inactief = KLANT_STATUS[KLANT_STATUS.length - 1];
   const inactiefOpen = toonInactief || Boolean(sleept) || filter === "actie" || Boolean(q.trim());
@@ -255,7 +257,7 @@ export default function Klantenbord({
         </div>
       </div>
 
-      <div className="kb-kpis -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-5">
+      <div className="kb-kpis relative -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-5">
         <Kpi label="Te doen" waarde={String(tel.teLaat + tel.vandaag)} sub={tel.teLaat ? `${tel.teLaat} te laat · ${tel.vandaag} vandaag` : tel.vandaag ? `${tel.vandaag} vandaag` : "niets te laat"} accent={tel.teLaat ? "roze" : tel.vandaag ? "oranje" : undefined} onClick={() => setFilter(filter === "actie" ? "alles" : "actie")} actief={filter === "actie"} />
         <Kpi label="Leads en gesprekken" waarde={String(tel.lead + tel.gesprek)} sub={`${tel.lead} lead · ${tel.gesprek} in gesprek`} />
         <Kpi label="Offertes" waarde={String(tel.offerte + tel.akkoord)} sub={`${tel.offerte} uit · ${tel.akkoord} akkoord`} />
@@ -298,7 +300,7 @@ export default function Klantenbord({
         ) : klanten.length === 0 ? (
           <Leeg klanten={0} actiefFilter={false} onNieuw={() => setOpen("nieuw")} onImport={() => setImportOpen(true)} />
         ) : (
-          <div className="kb-bord flex gap-3 overflow-x-auto px-3 py-3 sm:px-4 sm:py-4" onDragEnd={() => { setSleept(null); setOver(null); }}>
+          <div className="kb-bord relative flex gap-3 overflow-x-auto px-3 py-3 sm:px-4 sm:py-4" onDragEnd={() => { setSleept(null); setOver(null); }}>
             {kolommen.map((s) => kolom(s))}
             {inactiefOpen ? kolom(inactief) : kolom(inactief, true)}
           </div>

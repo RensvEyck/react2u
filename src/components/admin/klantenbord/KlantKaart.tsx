@@ -66,8 +66,8 @@ export default function KlantKaart({
                 </a>
               )}
               {k.email && (
-                <a href={`mailto:${k.email}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[#e75387] hover:underline" title={k.email}>
-                  <LuMail className="text-[13px]" /><span className="sr-only">{k.email}</span>
+                <a href={`mailto:${k.email}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[#e75387] hover:underline" title={k.email} aria-label={`Mail ${k.email}`}>
+                  <LuMail className="text-[13px]" />
                 </a>
               )}
             </span>
@@ -130,9 +130,10 @@ export default function KlantKaart({
         </button>
       )}
 
-      <label className="sr-only" htmlFor={`status-${k.id}`}>Status van {k.bedrijf}</label>
+      {/* Geen sr-only label: die is absoluut gepositioneerd en ontsnapt aan de scrollende rij, waardoor de pagina op een telefoon breder werd dan het scherm. */}
       <select
         id={`status-${k.id}`}
+        aria-label={`Status van ${k.bedrijf}`}
         value={k.status}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
