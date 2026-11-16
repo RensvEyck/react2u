@@ -63,7 +63,7 @@ function zin(g: OnboardingGebeurtenis): string {
         case "verwijderd": return `Uitnodiging voor de machtiging van ${d.naam} weggehaald`;
         case "bekeken": return `${d.naam} opende de machtiging`;
         case "getekend": return `${d.naam} tekende de machtiging online`;
-        case "overdracht": return `Opdracht tot overdracht met ${d.aantal} ${d.aantal === 1 ? "machtiging" : "machtigingen"} naar ${d.email}, door de klant`;
+        case "overdracht": return `Opdracht tot overdracht met ${d.aantal} ${d.aantal === 1 ? "machtiging" : "machtigingen"} naar ${d.email}, namens de werkgever`;
         default: return "Machtiging";
       }
     case "doorgestuurd": return `${docNaam(d.stap)} doorgestuurd naar ${d.naam} (${d.email})${door}`;
