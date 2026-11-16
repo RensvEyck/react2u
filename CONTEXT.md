@@ -1612,6 +1612,18 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   dagen uit elkaar en niet vlak na een herinnering van een collega. Dezelfde
   mail als de herinnering uit het beheer; in de tijdlijn als `herinnering` met
   `details.automatisch`.
+- **Beheer: splitsing klant en werknemers** (Rens, 16 nov 2026: "maak in de
+  admin een splitsing onboarding klant en werknemer van klant";
+  [`OnboardingTabs.tsx`](src/components/admin/OnboardingTabs.tsx)). Boven het
+  register en boven één onboarding twee tabbladen: *Onboarding klant* (wat de
+  klant aanlevert, wat React2u inricht, tijdlijn, notitie) en *Werknemers van
+  klant* (`?tab=werknemers`: het werknemersbestand voor XpertSuite en de
+  machtigingen die de werknemers tekenen, met een eigen tijdlijn). Het
+  register van werknemers
+  ([`/admin/onboarding/werknemers`](src/app/admin/(panel)/onboarding/werknemers/page.tsx),
+  ook in het menu) toont over alle klanten heen wie moet tekenen, wie tekende
+  en welke opdrachten naar de arbodienst gingen, en per klant de stand van het
+  werknemersbestand (aangeleverd, klaar om te importeren, geïmporteerd).
 - **Een stap doorsturen** naar een collega (`StapDoorsturen` onder elke stap):
   naam, e-mail, eigen naam, bericht; `onboarding_doorsturen` legt het vast
   (hooguit twintig per dag), Next mailt de link naar die stap.

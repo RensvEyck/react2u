@@ -271,5 +271,5 @@ export async function wisWerknemers(id: string) {
   if (error) redirect(`/admin/onboarding/${id}?fout=opslaan`);
   await log(sb, id, "gewist", admin.email, { document: "werknemers", aantal });
   ververs(id);
-  redirect(`/admin/onboarding/${id}?opgeslagen=onboarding`);
+  redirect(`/admin/onboarding/${id}?tab=werknemers&opgeslagen=onboarding`);
 }
