@@ -652,7 +652,7 @@ export const VERZUIMPROTOCOL: { titel: string; intro: string; stappen: ProtocolS
   titel: "Verzuimprotocol",
   intro: "Ziek? Zo pak je het aan. Zes stappen, van je eerste telefoontje tot je terugkeer op het werk.",
   stappen: [
-    { letter: "R", kop: "Rechten en plichten", kleur: "#E61674", tekst: "Ben je ziek en kun je niet werken? Dan heb je rechten en plichten. Je hebt recht op loon tijdens ziekte en op goede zorg. Je bent verplicht bereikbaar te zijn en samen te zoeken naar mogelijkheden om te werken." },
+    { letter: "R", kop: "Rechten en plichten", kleur: "#E61674", tekst: "Ben je ziek en kun je niet werken? Dan heb je rechten en plichten. Je hebt recht op ziektegeld en goede zorg. Je bent verplicht bereikbaar te zijn en samen te zoeken naar mogelijkheden om te werken." },
     { letter: "E", kop: "Even je werk bellen", kleur: "#00A098", tekst: "Bel je werk zodra je weet dat je niet kunt werken. Werk je via een uitzendbureau? Bel dan je juridisch werkgever, het uitzendbureau én de inlener waar je op dat moment werkt. Licht iedereen telefonisch in." },
     { letter: "A", kop: "Altijd aangeven", kleur: "#3AA5DD", tekst: "Geef door hoe lang je verwacht ziek te zijn, op welk adres en nummer je bereikbaar bent, en welk werk je nog wél kunt doen. Je werkgever vraagt ook of er sprake is van een vangnetsituatie of regres (een ongeval)." },
     { letter: "C", kop: "Contact met React2u", kleur: "#F19001", tekst: "Na je ziekmelding neemt arbodienst React2u contact met je op. Wij zijn de verbindende factor en helpen je samen met je werkgever op een goede manier terug naar het werk." },

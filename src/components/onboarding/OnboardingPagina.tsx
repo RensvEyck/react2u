@@ -257,11 +257,38 @@ function VragenInhoud({ tint }: { tint: boolean }) {
           </div>
         </div>
       </div>
+      {/* De samenvatting in tabelvorm, zoals in het document en de pdf. */}
+      <div className="overflow-hidden rounded-[22px] border" style={{ borderColor: tint ? "rgba(50,46,131,0.16)" : LINE, background: tint ? "#ffffff" : "transparent" }} data-reveal>
+        <p className={`${kop} m-0 px-6 pt-5 text-[19px]`} style={{ color: NAVY }}>In één oogopslag</p>
+        <table className="mt-3 w-full border-collapse text-[15px]">
+          <thead>
+            <tr className="text-left text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: MUTE, background: tint ? SOFT : "rgba(50,46,131,0.04)" }}>
+              <th className="px-6 py-3 font-bold">Onderwerp</th>
+              <th className="px-3 py-3 font-bold">Mag je vragen?</th>
+              <th className="hidden px-6 py-3 font-bold sm:table-cell">Opmerking</th>
+            </tr>
+          </thead>
+          <tbody>
+            {VRAGEN.tabel.map((r) => (
+              <tr key={r.onderwerp} className="border-t" style={{ borderColor: LINE }}>
+                <td className="px-6 py-3 font-semibold" style={{ color: NAVY }}>
+                  {r.onderwerp}
+                  <span className="mt-0.5 block text-[13.5px] font-normal sm:hidden" style={{ color: MUTE }}>{r.opmerking}</span>
+                </td>
+                <td className="px-3 py-3">
+                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={r.mag ? { background: "#E3F6ED", color: GROEN } : { background: "#FDECEA", color: "#B42318" }}>{r.mag ? "Ja" : "Nee"}</span>
+                </td>
+                <td className="hidden px-6 py-3 sm:table-cell" style={{ color: BODY }}>{r.opmerking}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <details className="group rounded-[22px] border" style={{ borderColor: tint ? "rgba(50,46,131,0.16)" : LINE, background: tint ? "#ffffff" : "transparent" }} data-reveal>
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 [&::-webkit-details-marker]:hidden">
           <span className="flex flex-col">
             <span className={`${kop} text-[19px]`} style={{ color: NAVY }}>Belscript bij een ziekmelding</span>
-            <span className="text-[14.5px]" style={{ color: MUTE }}>Zeven stappen, letterlijk uit te spreken</span>
+            <span className="text-[14.5px]" style={{ color: MUTE }}>Zeven stappen, letterlijk uit te spreken, en wat je daarna noteert</span>
           </span>
           <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[20px] transition-transform group-open:rotate-45" style={{ background: LAV, color: NAVY }}>+</span>
         </summary>
@@ -277,6 +304,17 @@ function VragenInhoud({ tint }: { tint: boolean }) {
             </li>
           ))}
         </ol>
+        {/* De toelichting voor de eigen HR-documentatie, uit hetzelfde document. */}
+        <div className="mx-6 mb-6 rounded-[16px] p-5" style={{ background: tint ? SOFT : LAV }}>
+          <p className="m-0 mb-2 text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: NAVY }}>Voor je eigen dossier</p>
+          <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+            {VRAGEN.intern.map((p) => (
+              <li key={p} className="flex gap-2.5 text-[15px] leading-[1.55]" style={{ color: BODY }}>
+                <span aria-hidden className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: NAVY }} />{p}
+              </li>
+            ))}
+          </ul>
+        </div>
       </details>
     </div>
   );
