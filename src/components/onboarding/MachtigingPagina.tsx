@@ -117,7 +117,7 @@ export default function MachtigingPagina({ m, token, contact, collega = false }:
           <section className={`${BREED} py-12 md:py-16`} aria-label="Zo gaat het verder">
             <div className="grid gap-6 md:grid-cols-3">
               {[
-                { kop: "Je werkgever stuurt de machtiging door", tekst: `Met de opdracht tot overdracht naar ${a.arbodienst || "je vorige arbodienst"}. Je hoeft zelf niets te doen.` },
+                { kop: "Wij sturen de machtiging door", tekst: `Namens je werkgever, met de opdracht tot overdracht naar ${a.arbodienst || "je vorige arbodienst"}. Je hoeft zelf niets te doen.` },
                 { kop: "Je dossier gaat naar onze bedrijfsarts", tekst: `${REACT2U.bedrijfsarts.naam} neemt je begeleiding over. Je werkgever ziet geen medische gegevens; dat is wettelijk zo geregeld.` },
                 { kop: "React2u neemt contact met je op", tekst: "Zodra je dossier binnen is, bellen we je om kennis te maken en de vervolgstappen door te nemen." },
               ].map((x, i) => (

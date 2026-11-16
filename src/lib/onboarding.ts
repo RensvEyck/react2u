@@ -34,6 +34,8 @@ export type Onboarding = {
   taken: Partial<Record<TaakSleutel, Taak>>;
   /** De vaste casemanager die React2u koppelt (0038); op de klantpagina en in de mail "jullie zijn live". */
   casemanager: string | null;
+  /** De vorige arbodienst van de klant, ingevuld door React2u (0039): de bron voor de machtigingen van de werknemers. */
+  vorige_arbodienst: Record<string, string> | null;
   afzender_naam: string | null;
   afzender_functie: string | null;
   afzender_email: string | null;
@@ -75,6 +77,7 @@ export type OnboardingPubliek = Pick<
   eerste_keer?: boolean;
   taken?: Partial<Record<TaakSleutel, { at: string }>>;
   casemanager?: string | null;
+  vorige_arbodienst?: Record<string, string> | null;
   machtigingen?: MachtigingStand[];
 };
 
@@ -163,6 +166,12 @@ export type DocumentInfo = {
   minuten: number;
   /** Wat de klant bij de hand moet hebben als hij dit online invult. */
   nodig?: string[];
+  /**
+   * Niet in de onboarding van de werkgever (Rens, 16 nov 2026: "werkgever moet de gehele onboarding zijn zonder doc
+   * van arbo naar arbo"): de machtiging loopt via het deel Werknemer in het beheer. De sleutel blijft bestaan voor de
+   * pdf, de teksten en onboardings van vóór 0039.
+   */
+  verborgen?: boolean;
 };
 
 /**
@@ -212,9 +221,9 @@ export const DOCUMENTEN: DocumentInfo[] = [
     lezen: "Laat zieke medewerkers met een lopend dossier tekenen",
     invullen: "Vul de gegevens van je vorige arbodienst in",
     kleur: "#CA152A", tint: "#FBEAEC",
-    standaard: { mee: false, invullen: true },
+    standaard: { mee: false, invullen: false },
     minuten: 5,
-    nodig: ["naam en vestigingsplaats van je vorige arbodienst"],
+    verborgen: true,
   },
   {
     sleutel: "verzuimprotocol",
@@ -240,6 +249,9 @@ export const DOCUMENTEN: DocumentInfo[] = [
 
 export const DOCUMENT_SLEUTELS = DOCUMENTEN.map((d) => d.sleutel);
 
+/** De documenten die de werkgever kan krijgen: zonder de verborgen (de machtiging loopt via Werknemer). */
+export const WERKGEVER_DOCUMENTEN = DOCUMENTEN.filter((d) => !d.verborgen);
+
 /** Een hoofdstuk van het verhaal op de klantpagina: welke documenten erin staan en hoe het begint. */
 export type Hoofdstuk = { id: string; label: string; eyebrow: string; titel: string; tekst: string; documenten: DocumentSleutel[] };
 
@@ -264,7 +276,7 @@ export const HOOFDSTUKKEN: Hoofdstuk[] = [
     eyebrow: "Wat we van jullie nodig hebben",
     titel: "Jullie gegevens, dan richten wij alles in.",
     tekst: "Met deze gegevens zetten we jullie omgeving, de facturatie en het verzuimsysteem klaar. Je kunt tussendoor stoppen en later verder; wat je opslaat, blijft bewaard.",
-    documenten: ["inrichting", "werknemers", "machtiging"],
+    documenten: ["inrichting", "werknemers"],
   },
   {
     id: "team",
@@ -289,9 +301,9 @@ export function documentInfo(s: DocumentSleutel): DocumentInfo {
   return DOCUMENTEN.find((d) => d.sleutel === s)!;
 }
 
-/** De gekozen documenten in de vaste volgorde van de catalogus, onbekende eruit. */
+/** De gekozen documenten in de vaste volgorde van de catalogus, onbekende en verborgen eruit. */
 export function gekozen(o: Pick<Onboarding, "documenten">): DocumentInfo[] {
-  return DOCUMENTEN.filter((d) => o.documenten.includes(d.sleutel));
+  return WERKGEVER_DOCUMENTEN.filter((d) => o.documenten.includes(d.sleutel));
 }
 
 /** Of de klant dit document online invult (alleen als het kan en sales het aanvinkte). */
@@ -362,7 +374,7 @@ export function voortgang(o: Pick<Onboarding, "documenten" | "invullen" | "antwo
 
 /** Uit het formulier van het beheer: wat er meegaat, en wat daarvan online in te vullen is. */
 export function keuzeUit(mee: string[], invul: string[]): { documenten: DocumentSleutel[]; invullen: DocumentSleutel[] } {
-  const documenten = DOCUMENT_SLEUTELS.filter((s) => mee.includes(s));
+  const documenten = WERKGEVER_DOCUMENTEN.map((d) => d.sleutel).filter((s) => mee.includes(s));
   const invullen = documenten.filter((s) => invul.includes(s) && documentInfo(s).invullen !== null);
   return { documenten, invullen };
 }
@@ -382,6 +394,8 @@ export type TaakInfo = {
   bij?: DocumentSleutel;
   /** Kan pas als de klant dit document heeft ingevuld of afgevinkt. */
   na?: DocumentSleutel;
+  /** Alleen als React2u een vorige arbodienst invulde (0039): dan lopen er machtigingen. */
+  bijArbodienst?: boolean;
   /** Hoe de klantpagina het vertelt, onder "Zo gaat het verder": een kopje en een zin. */
   klantKop: string;
   klant: string;
@@ -399,7 +413,7 @@ export const TAKEN: TaakInfo[] = [
   { sleutel: "casemanager", klantKop: "Een vaste casemanager", titel: "Vaste casemanager gekoppeld", kort: "Wie het aanspreekpunt wordt voor dit bedrijf, ook in XpertSuite.", klant: "Je krijgt een vaste casemanager: één aanspreekpunt dat jullie organisatie kent." },
   // Het proces (Rens, spraakbericht 16 nov 2026): de werkgever stuurt de getekende machtigingen met de opdracht tot
   // overdracht naar de latende arbodienst; die stuurt React2u een lijst van de dossiers die wij kunnen verwachten.
-  { sleutel: "dossiers", klantKop: "Lopende dossiers", titel: "Dossiers ontvangen van de vorige arbodienst", kort: "De klant stuurt de getekende machtigingen met de opdracht naar zijn vorige arbodienst; die stuurt ons de lijst en de dossiers. Vink af als ze binnen zijn.", bij: "machtiging", na: "machtiging", klant: "Je vorige arbodienst draagt de lopende dossiers over aan onze bedrijfsarts, met de getekende machtigingen die je hen stuurt. We laten weten zodra ze binnen zijn." },
+  { sleutel: "dossiers", klantKop: "Lopende dossiers", titel: "Dossiers ontvangen van de vorige arbodienst", kort: "Wij sturen namens de klant de getekende machtigingen met de opdracht naar zijn vorige arbodienst (tabblad Werknemer); die stuurt ons de lijst en de dossiers. Vink af als ze binnen zijn.", bijArbodienst: true, klant: "Je vorige arbodienst draagt de lopende dossiers over aan onze bedrijfsarts, met de machtigingen die je medewerkers tekenen. We laten weten zodra ze binnen zijn." },
   { sleutel: "instructie", klantKop: "Wegwijs in het systeem", titel: "Instructie XpertSuite gegeven", kort: "De klant wegwijs gemaakt in de beveiligde omgeving, op kantoor of online.", klant: "We maken je wegwijs in de beveiligde omgeving, op kantoor of online." },
 ];
 
@@ -413,9 +427,9 @@ export function taakInfo(s: TaakSleutel): TaakInfo {
   return TAKEN.find((t) => t.sleutel === s)!;
 }
 
-/** De taken die bij deze onboarding horen: alleen die bij een gekozen document, plus de algemene. */
-export function takenVoor(o: Pick<Onboarding, "documenten">): TaakInfo[] {
-  return TAKEN.filter((t) => !t.bij || o.documenten.includes(t.bij));
+/** De taken die bij deze onboarding horen: alleen die bij een gekozen document of een vorige arbodienst, plus de algemene. */
+export function takenVoor(o: Pick<Onboarding, "documenten"> & { vorige_arbodienst?: unknown }): TaakInfo[] {
+  return TAKEN.filter((t) => (!t.bij || o.documenten.includes(t.bij)) && (!t.bijArbodienst || Boolean(o.vorige_arbodienst)));
 }
 
 export function taakKlaar(o: Pick<Onboarding, "taken">, s: TaakSleutel): boolean {
@@ -423,7 +437,7 @@ export function taakKlaar(o: Pick<Onboarding, "taken">, s: TaakSleutel): boolean
 }
 
 /** Hoeveel van de taken van React2u af zijn. */
-export function takenVoortgang(o: Pick<Onboarding, "documenten" | "taken">): { klaar: number; totaal: number } {
+export function takenVoortgang(o: Pick<Onboarding, "documenten" | "taken"> & { vorige_arbodienst?: unknown }): { klaar: number; totaal: number } {
   const taken = takenVoor(o);
   return { klaar: taken.filter((t) => taakKlaar(o, t.sleutel)).length, totaal: taken.length };
 }
@@ -442,7 +456,7 @@ export function taakKan(o: Pick<Onboarding, "invullen" | "antwoorden" | "gelezen
  */
 export type OnboardingWeergave = OnboardingStatus | "bekeken" | "ingericht";
 
-export function onboardingWeergave(o: Pick<Onboarding, "status" | "bekeken_at" | "documenten" | "taken">): OnboardingWeergave {
+export function onboardingWeergave(o: Pick<Onboarding, "status" | "bekeken_at" | "documenten" | "taken"> & { vorige_arbodienst?: unknown }): OnboardingWeergave {
   if (o.status === "verstuurd" && o.bekeken_at) return "bekeken";
   if (o.status === "afgerond") {
     const t = takenVoortgang(o);
@@ -947,7 +961,7 @@ export const MACHTIGING_TEKST = {
   werknemer: ["Naam", "Adres", "Postcode en woonplaats", "Geboortedatum", "BSN", "Telefoonnummer"],
   facturen: `Facturen voor de overdracht kunnen naar ${REACT2U.facturatie}.`,
   /** Wat er met de getekende machtiging gebeurt (Rens, 16 nov 2026): via de werkgever naar de vorige arbodienst. */
-  daarna: "Geef de getekende machtiging aan je werkgever. Die stuurt hem, met de opdracht tot overdracht, naar je vorige arbodienst.",
+  daarna: "React2u stuurt de getekende machtiging, namens je werkgever, met de opdracht tot overdracht naar je vorige arbodienst.",
 };
 
 /** De opdrachtbrief aan de vorige arbodienst: de werkgever verstuurt hem met de getekende machtigingen (0038). */

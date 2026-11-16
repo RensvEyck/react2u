@@ -3,15 +3,12 @@ import { after } from "next/server";
 import { supabasePublic } from "@/lib/supabase/public";
 import { withinLimit } from "@/lib/rateLimit";
 import {
-  controleerVelden, controleerWerknemers, documentInfo, INRICHTING, isDocument, MACHTIGING, MACHTIGING_FOUT, ONBOARDING_EMAIL, ONBOARDING_FOUT, OVERDRACHT_BRIEF,
-  schoneWerknemers, schoonVelden, takenVoor, type MachtigingenGetekend, type OnboardingPubliek,
+  controleerVelden, controleerWerknemers, documentInfo, INRICHTING, isDocument, MACHTIGING, ONBOARDING_EMAIL, ONBOARDING_FOUT, schoneWerknemers, schoonVelden,
+  takenVoor, type OnboardingPubliek,
 } from "@/lib/onboarding";
-import { datumNl } from "@/lib/onboarding";
 import { momentLang } from "@/lib/offertes";
-import {
-  machtigingUrl, notifyOnboarding, onboardingAdminUrl, onboardingUrl, sendMachtiging, sendOnboardingDoorgestuurd, sendOnboardingKlant, sendOverdracht,
-} from "@/lib/mail";
-import { onboardingPdf, overdrachtPdf } from "@/lib/onboardingPdf";
+import { notifyOnboarding, onboardingAdminUrl, onboardingUrl, sendOnboardingDoorgestuurd, sendOnboardingKlant } from "@/lib/mail";
+import { onboardingPdf } from "@/lib/onboardingPdf";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 /*
@@ -123,102 +120,9 @@ export async function vinkOnboardingAf(token: string, document: string): Promise
   return { ok: true };
 }
 
-/* ---------- 0038: de machtiging online tekenen, de opdracht tot overdracht, een stap doorsturen ---------- */
+/* ---------- 0038: een stap doorsturen ---------- */
 
-const mfout = (code: string | undefined): OnboardingState => ({ ok: false, fout: MACHTIGING_FOUT[code || ""] || MACHTIGING_FOUT.storing });
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-
-/**
- * De werkgever nodigt een medewerker met een lopend dossier uit om de
- * machtiging online te tekenen: de database maakt de persoonlijke link, Next
- * mailt hem. Lukt de mail niet bij een nieuwe uitnodiging, dan gaat de
- * uitnodiging weer weg; de werkgever ziet dan één melding, geen spookrij.
- */
-export async function nodigMachtigingUit(token: string, invoer: { naam: string; email: string }): Promise<OnboardingState> {
-  if (!TOKEN.test(token)) return mfout("onbekend");
-  const naam = String(invoer?.naam || "").trim().slice(0, 120);
-  const email = String(invoer?.email || "").trim().toLowerCase().slice(0, 254);
-  if (naam.length < 2) return mfout("naam");
-  if (!EMAIL.test(email)) return mfout("email");
-  if (!(await withinLimit("machtiging-uitnodigen", { limit: 40, windowSeconds: 60 * 60 }))) return mfout("limiet");
-
-  const sb = supabasePublic();
-  const { data, error } = await sb.rpc("onboarding_machtiging_uitnodigen", { p_token: token, p_naam: naam, p_email: email });
-  const uitkomst = data as { ok: boolean; fout?: string; id?: string; mtoken?: string; opnieuw?: boolean } | null;
-  if (error || !uitkomst) {
-    console.error("[onboarding] machtiging uitnodigen mislukt:", error?.message);
-    return mfout("storing");
-  }
-  if (!uitkomst.ok) return mfout(uitkomst.fout);
-
-  const [o, { contact }] = await Promise.all([lees(token), offerteHuisstijl()]);
-  if (!o) return mfout("onbekend");
-  const verzonden = await sendMachtiging({
-    to: email, naam, bedrijf: o.bedrijf, arbodienst: (o.antwoorden?.machtiging?.data as Record<string, string> | undefined)?.arbodienst || null,
-    link: machtigingUrl(uitkomst.mtoken!), afzender: afzenderVan(o), opnieuw: Boolean(uitkomst.opnieuw), contact,
-  });
-  if (!verzonden.ok) {
-    if (!uitkomst.opnieuw && uitkomst.id) await sb.rpc("onboarding_machtiging_verwijderen", { p_token: token, p_id: uitkomst.id });
-    return mfout("mail");
-  }
-  return { ok: true };
-}
-
-/** Een uitnodiging weghalen, zolang er niet getekend is. */
-export async function verwijderMachtiging(token: string, id: string): Promise<OnboardingState> {
-  if (!TOKEN.test(token) || !/^[0-9a-f-]{36}$/.test(id)) return mfout("onbekend");
-  if (!(await withinLimit("machtiging-verwijderen", { limit: 60, windowSeconds: 60 * 60 }))) return mfout("limiet");
-  const { data, error } = await supabasePublic().rpc("onboarding_machtiging_verwijderen", { p_token: token, p_id: id });
-  const uitkomst = data as { ok: boolean; fout?: string } | null;
-  if (error || !uitkomst) return mfout("storing");
-  return uitkomst.ok ? { ok: true } : mfout(uitkomst.fout);
-}
-
-/**
- * De opdracht tot overdracht naar de vorige arbodienst (Rens, 16 nov 2026: de
- * werkgever stuurt de getekende machtigingen zelf, met de opdracht; de
- * arbodienst stuurt React2u daarna de lijst). Eén knop: de brief en alle
- * getekende machtigingen als één pdf, naar het mailadres van de arbodienst,
- * met de werkgever en medisch@react2u.nl erbij.
- */
-export async function verstuurOverdracht(token: string, aan?: string): Promise<OnboardingState> {
-  if (!TOKEN.test(token)) return mfout("onbekend");
-  if (!(await withinLimit("machtiging-overdracht", { limit: 10, windowSeconds: 60 * 60 }))) return mfout("limiet");
-  const sb = supabasePublic();
-  const o = await lees(token);
-  if (!o) return mfout("onbekend");
-  const arbodienst = (o.antwoorden?.machtiging?.data as Record<string, string> | undefined) || {};
-  const email = String(aan || arbodienst.email || "").trim().toLowerCase().slice(0, 254);
-  if (!EMAIL.test(email)) return { ok: false, fout: "Vul het e-mailadres van je vorige arbodienst in; daar gaat de opdracht heen." };
-
-  const { data: g } = await sb.rpc("onboarding_machtigingen_getekend", { p_token: token });
-  const getekend = g as MachtigingenGetekend | null;
-  if (!getekend?.machtigingen.length) return mfout("geen-getekend");
-
-  const { data, error } = await sb.rpc("onboarding_overdracht_versturen", { p_token: token, p_aan: email });
-  const uitkomst = data as { ok: boolean; fout?: string; aantal?: number } | null;
-  if (error || !uitkomst) {
-    console.error("[onboarding] overdracht vastleggen mislukt:", error?.message);
-    return mfout("storing");
-  }
-  if (!uitkomst.ok) return mfout(uitkomst.fout);
-
-  const { contact } = await offerteHuisstijl();
-  const pdf = await overdrachtPdf(getekend, contact).catch((e) => { console.error("[onboarding] opdracht-pdf mislukt:", e); return null; });
-  if (!pdf) return mfout("storing");
-  const verzonden = await sendOverdracht({
-    to: email, werkgeverEmail: getekend.email ?? null, bedrijf: o.bedrijf, contactpersoon: getekend.contactpersoon ?? o.contactpersoon ?? null,
-    aantal: getekend.machtigingen.length, namen: getekend.machtigingen.map((m) => ({ naam: m.gegevens.naam, geboortedatum: datumNl(m.gegevens.geboortedatum) })),
-    arbodienst: arbodienst.arbodienst || null, alineas: OVERDRACHT_BRIEF.alineas(o.bedrijf, getekend.machtigingen.length),
-    pdf: { filename: `${OVERDRACHT_BRIEF.onderwerp(o.bedrijf)}.pdf`, content: pdf }, contact,
-  });
-  if (!verzonden.ok) return { ok: false, fout: "De mail aan je arbodienst kon niet worden verstuurd. Download de opdracht hieronder en stuur hem zelf." };
-  if (o.afzender_email) {
-    const { afzender_email, nummer, bedrijf, id } = o;
-    after(() => notifyOnboarding({ to: afzender_email, nummer, bedrijf, adminLink: onboardingAdminUrl(id), soort: "overdracht", aantal: getekend.machtigingen.length }));
-  }
-  return { ok: true };
-}
 
 /** Een stap doorsturen naar een collega van de klant: de database legt het vast, Next mailt de link naar die stap. */
 export async function stuurStapDoor(token: string, stap: string, invoer: { naam: string; email: string; van: string; bericht?: string }): Promise<OnboardingState> {

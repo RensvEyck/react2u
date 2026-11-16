@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  heropenOnboarding, markeerOnboardingVerstuurd, nieuweOnboardingLink, saveOnboardingIntern, saveOnboardingNotitie, trekOnboardingIn, verstuurOnboarding,
-  verwijderOnboarding, wisselTaak, wisWerknemers, zetOnboardingOpen,
+  heropenOnboarding, markeerOnboardingVerstuurd, nieuweOnboardingLink, saveOnboardingIntern, saveOnboardingNotitie, saveVorigeArbodienst, trekOnboardingIn,
+  verstuurOnboarding, verwijderOnboarding, wisselTaak, wisWerknemers, zetOnboardingOpen,
 } from "@/app/admin/onboardingActions";
 import OnboardingForm from "@/components/admin/OnboardingForm";
 import OnboardingTabs from "@/components/admin/OnboardingTabs";
+import MachtigingBeheer from "@/components/admin/MachtigingBeheer";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import OfferteVersturen from "@/components/admin/OfferteVersturen";
 import { onboardingUrl } from "@/lib/mail";
@@ -19,7 +20,7 @@ import { momentLang } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil, LuStickyNote, LuFileDown, LuCircleCheck,
   LuCircle, LuPencilLine, LuBookOpenCheck, LuFlag, LuEraser, LuFileSpreadsheet, LuBuilding2, LuSquareCheckBig, LuPartyPopper, LuClock, LuSignature,
-  LuForward, LuRocket, LuMailCheck, LuUsers,
+  LuForward, LuRocket,
 } from "react-icons/lu";
 
 /**
@@ -105,19 +106,18 @@ export default async function OnboardingAdmin({ params, searchParams }: { params
   const { id } = await params;
   // De splitsing (Rens, 16 nov 2026): "klant" is de onboarding van de klant zelf, "werknemers" zijn de mensen van de klant
   // (het werknemersbestand voor XpertSuite en de machtigingen die zij tekenen).
-  const tab = (await searchParams).tab === "werknemers" ? "werknemers" : "klant";
+  const tab = (await searchParams).tab === "werknemer" ? "werknemer" : "werkgever";
   const { sb } = await requirePerm("bellijst");
   const [res, tijdlijnRes, machtigingenRes] = await Promise.all([
     sb.from("onboardings").select("*").eq("id", id).maybeSingle(),
     sb.from("onboarding_gebeurtenissen").select("*").eq("onboarding_id", id).order("at", { ascending: false }).limit(200),
-    sb.from("onboarding_machtigingen").select("id, naam, email, status, uitgenodigd_at, herinnerd_at, bekeken_at, getekend_at, overdracht_at, aantal_bekeken").eq("onboarding_id", id).order("created_at"),
+    sb.from("onboarding_machtigingen").select("id, naam, email, status, uitgenodigd_at, herinnerd_at, bekeken_at, getekend_at, overdracht_at, aantal_bekeken, getekend_ip").eq("onboarding_id", id).order("created_at"),
   ]);
   if (!res.data) notFound();
   const o = res.data as Onboarding;
   const tijdlijn = (tijdlijnRes.data as OnboardingGebeurtenis[]) || [];
   // Vóór migratie 0038 bestaat de tabel niet; dan gewoon geen lijst.
-  const machtigingen = (machtigingenRes.data as Pick<Machtiging, "id" | "naam" | "email" | "status" | "uitgenodigd_at" | "herinnerd_at" | "bekeken_at" | "getekend_at" | "overdracht_at" | "aantal_bekeken">[] | null) || [];
-  const overdracht = machtigingen.map((m) => m.overdracht_at).filter(Boolean).sort().pop() ?? null;
+  const machtigingen = (machtigingenRes.data as Pick<Machtiging, "id" | "naam" | "email" | "status" | "uitgenodigd_at" | "herinnerd_at" | "bekeken_at" | "getekend_at" | "overdracht_at" | "aantal_bekeken" | "getekend_ip">[] | null) || [];
   const w = onboardingWeergave(o);
   const s = ONBOARDING_WEERGAVE[w];
   const link = onboardingUrl(o.token);
@@ -128,13 +128,17 @@ export default async function OnboardingAdmin({ params, searchParams }: { params
   const docs = gekozen(o);
   const taken = takenVoor(o);
   const inrichting = o.antwoorden.inrichting?.data as Record<string, string> | undefined;
-  const machtiging = o.antwoorden.machtiging?.data as Record<string, string> | undefined;
   const werknemers = ((o.antwoorden.werknemers?.data as { rijen?: Werknemer[] } | undefined)?.rijen) || [];
   const ingevuld = Object.keys(o.antwoorden).filter(isDocument) as DocumentSleutel[];
   const laatsteTaak = Object.values(o.taken || {}).map((x) => x.at).sort().pop();
   const getekend = machtigingen.filter((m) => m.status === "getekend").length;
   const basisLink = `/admin/onboarding/${o.id}`;
-  const telling = [werknemers.length ? `${werknemers.length} in het bestand` : null, machtigingen.length ? `${getekend}/${machtigingen.length} getekend` : null].filter(Boolean).join(" · ");
+  const telling = machtigingen.length ? `${getekend}/${machtigingen.length} getekend` : "";
+  // De vorige arbodienst vult React2u in (0039); een onboarding van vóór die migratie heeft hem nog van de klant.
+  const arbodienst = o.vorige_arbodienst ?? (o.antwoorden.machtiging?.data as Record<string, string> | undefined) ?? null;
+  const kandidaten = werknemers
+    .map((r) => ({ naam: [r.roepnaam || r.voorletters, r.tussenvoegsels, r.achternaam].filter(Boolean).join(" "), email: r.email_werk || r.email_thuis || "" }))
+    .filter((k) => k.email && k.naam);
 
   return (
     <div className="space-y-6">
@@ -201,9 +205,9 @@ export default async function OnboardingAdmin({ params, searchParams }: { params
         </div>
       )}
 
-      <OnboardingTabs actief={tab} klant={basisLink} werknemers={`${basisLink}?tab=werknemers`} telling={telling || undefined} />
+      <OnboardingTabs actief={tab} werkgever={basisLink} werknemer={`${basisLink}?tab=werknemer`} telling={telling || undefined} />
 
-      {tab === "klant" && (<>
+      {tab === "werkgever" && (<>
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="acard p-6">
           <h2 className="font-heading text-[16px] font-bold text-[#312e82]">
@@ -357,23 +361,6 @@ export default async function OnboardingAdmin({ params, searchParams }: { params
         </section>
       )}
 
-      </>)}
-
-      {tab === "werknemers" && (<>
-      <section className="acard flex flex-wrap items-center justify-between gap-4 p-6">
-        <div className="flex items-start gap-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef0ff] text-[18px] text-[#312e82]"><LuUsers /></span>
-          <div>
-            <h2 className="font-heading text-[16px] font-bold text-[#312e82]">De werknemers van {o.bedrijf}</h2>
-            <p className="mt-1 max-w-[720px] text-[13.5px] leading-[1.55] text-black/55">
-              Twee dingen: het werknemersbestand dat de klant aanlevert voor XpertSuite, en de machtigingen die zieke medewerkers met een lopend dossier zelf tekenen.
-              De klant stuurt de getekende machtigingen met de opdracht naar zijn vorige arbodienst; wij ontvangen de dossiers.
-            </p>
-          </div>
-        </div>
-        <Link href="/admin/onboarding/werknemers" className="abtn-ghost !py-1.5 text-[13px]"><LuUsers /> Alle werknemers van klanten</Link>
-      </section>
-
       {docs.some((d) => d.sleutel === "werknemers") && (
         <section className="acard p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -433,56 +420,43 @@ export default async function OnboardingAdmin({ params, searchParams }: { params
         </section>
       )}
 
-      {(machtiging || machtigingen.length > 0) && (
-        <section className="acard p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]"><LuSignature /> Machtigingen overdracht verzuimdossier</h2>
-            {machtiging && <a href={`${basis}/pdf/machtiging`} target="_blank" rel="noopener" className="abtn-ghost !py-1.5 text-[13px]"><LuFileDown /> Lege machtiging als pdf</a>}
-          </div>
-          <div className="mt-4 grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+      </>)}
+
+      {tab === "werknemer" && (<>
+      <section className="acard p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef0ff] text-[18px] text-[#312e82]"><LuSignature /></span>
             <div>
-              <p className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45">Vorige arbodienst</p>
-              {machtiging ? <div className="mt-2"><Velden groepen={MACHTIGING} data={machtiging} /></div> : <p className="mt-2 text-[14px] text-black/50">Nog niet ingevuld door de klant.</p>}
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45">Werknemers die online tekenen</p>
-                <span className="text-[13px] font-semibold text-black/55">{machtigingen.filter((m) => m.status === "getekend").length} van {machtigingen.length} getekend</span>
-              </div>
-              {machtigingen.length === 0 ? (
-                <p className="mt-2 text-[14px] text-black/50">De klant heeft nog niemand uitgenodigd. Hij nodigt zieke medewerkers met een lopend dossier uit op zijn machtigingstap; zij tekenen op hun telefoon.</p>
-              ) : (
-                <ul className="mt-2 divide-y divide-black/[0.05]">
-                  {machtigingen.map((m) => (
-                    <li key={m.id} className="flex items-center gap-3 py-2.5">
-                      {m.status === "getekend" ? <LuCircleCheck className="shrink-0 text-[18px] text-[#0a7a4b]" /> : <LuCircle className="shrink-0 text-[18px] text-black/20" />}
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[14px] font-semibold text-[#1c1a4e]">{m.naam} <span className="font-normal text-black/45">· {m.email}</span></span>
-                        <span className="block text-[12.5px] text-black/45">
-                          {m.status === "getekend"
-                            ? `Getekend ${momentLang(m.getekend_at)}${m.overdracht_at ? ` · met de opdracht naar de arbodienst ${momentLang(m.overdracht_at)}` : " · nog niet naar de arbodienst"}`
-                            : `Uitgenodigd ${momentLang(m.uitgenodigd_at)}${m.herinnerd_at ? `, herinnerd ${momentLang(m.herinnerd_at)}` : ""}${m.bekeken_at ? `, geopend ${momentLang(m.bekeken_at)}` : ", nog niet geopend"}`}
-                        </span>
-                      </span>
-                      {m.status === "getekend" && (
-                        <a href={`/admin/onboarding/${o.id}/machtiging/${m.id}`} target="_blank" rel="noopener" className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuFileDown /> Pdf</a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className="mt-3 flex items-start gap-2 rounded-[12px] bg-[#f6f5fb] px-4 py-3 text-[13px] leading-[1.55] text-black/60">
-                <LuMailCheck className="mt-0.5 shrink-0 text-[15px] text-[#312e82]" />
-                <span>
-                  {overdracht
-                    ? `De klant stuurde de opdracht tot overdracht met de getekende machtigingen naar zijn vorige arbodienst (${momentLang(overdracht)}); medisch@react2u.nl kreeg een kopie. Die arbodienst stuurt ons een lijst van de dossiers. Zijn ze binnen, vink dan de taak af.`
-                    : "De klant stuurt de getekende machtigingen zelf, met de opdracht tot overdracht, naar zijn vorige arbodienst (één knop op zijn pagina). Die stuurt ons daarna een lijst van de dossiers die we kunnen verwachten."}
-                </span>
+              <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Machtiging overdracht verzuimdossier: de werknemers van {o.bedrijf}</h2>
+              <p className="mt-1 max-w-[760px] text-[13.5px] leading-[1.55] text-black/55">
+                Alleen bij een overstap van een andere arbodienst. Jij vult de vorige arbodienst in en nodigt de zieke medewerkers met een lopend dossier uit; zij tekenen online op hun telefoon, met IP-registratie. Daarna verstuur je namens {o.bedrijf} de opdracht tot overdracht. De werkgever ziet hier niets van op zijn onboardingpagina.
               </p>
             </div>
           </div>
-        </section>
-      )}
+          <Link href="/admin/onboarding/werknemers" className="abtn-ghost !py-1.5 text-[13px]"><LuSignature /> Alle werknemers</Link>
+        </div>
+      </section>
+
+      <section className="acard p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Vorige arbodienst en bedrijfsarts</h2>
+          {arbodienst && <a href={`${basis}/pdf/machtiging`} target="_blank" rel="noopener" className="abtn-ghost !py-1.5 text-[13px]"><LuFileDown /> Lege machtiging als pdf</a>}
+        </div>
+        <p className="mt-1 text-[13.5px] text-black/50">{MACHTIGING[0].tekst} Weet je het e-mailadres van de arbodienst? Daar gaat straks de opdracht heen.</p>
+        <form action={saveVorigeArbodienst.bind(null, o.id)} className="mt-4 grid gap-4 sm:grid-cols-2">
+          {MACHTIGING[0].velden.map((v) => (
+            <div key={v.naam} className={v.half ? "" : "sm:col-span-2"}>
+              <label className="alabel" htmlFor={`va-${v.naam}`}>{v.label}{v.verplicht ? " *" : ""}</label>
+              <input id={`va-${v.naam}`} className="ainput" name={v.naam} type={v.type || "text"} defaultValue={arbodienst?.[v.naam] || ""} maxLength={v.max ?? 200} required={v.verplicht} />
+              {v.hint && <p className="mt-1 text-[12px] text-black/45">{v.hint}</p>}
+            </div>
+          ))}
+          <div className="sm:col-span-2"><button className="abtn-ghost !py-1.5 text-[13px]">{arbodienst ? "Opslaan" : "Vorige arbodienst opslaan"}</button></div>
+        </form>
+      </section>
+
+      <MachtigingBeheer id={o.id} bedrijf={o.bedrijf} arbodienst={arbodienst} kandidaten={kandidaten} lijst={machtigingen} open={o.status !== "concept" && o.status !== "ingetrokken"} />
 
       {(() => {
         const wTijdlijn = tijdlijn.filter((g) => g.soort === "machtiging" || g.soort === "gewist" || (g.soort === "ingevuld" && g.details?.document === "werknemers"));
@@ -508,7 +482,7 @@ export default async function OnboardingAdmin({ params, searchParams }: { params
       })()}
       </>)}
 
-      {tab === "klant" && (<>
+      {tab === "werkgever" && (<>
       <section className="acard p-6">
         <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Wat er gebeurde</h2>
         {tijdlijn.length === 0 ? (

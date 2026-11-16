@@ -651,7 +651,7 @@ export async function notifyOnboarding(n: {
     n.soort === "afgerond" ? `${n.bedrijf} heeft de onboarding afgerond`
       : n.soort === "ingevuld" ? `${n.bedrijf} vulde ${n.document || "een document"} in`
         : n.soort === "getekend" ? `${n.naam || "Een werknemer"} van ${n.bedrijf} tekende de machtiging`
-          : n.soort === "overdracht" ? `${n.bedrijf} stuurde de opdracht tot overdracht naar de vorige arbodienst`
+          : n.soort === "overdracht" ? `Opdracht tot overdracht voor ${n.bedrijf} naar de vorige arbodienst`
             : `${n.bedrijf} heeft de onboarding geopend`;
   const tekst =
     n.soort === "afgerond"
@@ -659,9 +659,9 @@ export async function notifyOnboarding(n: {
       : n.soort === "ingevuld"
         ? `In onboarding ${esc(n.nummer)} is ${esc(n.document || "een document")} ingevuld. Je ziet de gegevens in het beheer.`
         : n.soort === "getekend"
-          ? `In onboarding ${esc(n.nummer)} heeft ${esc(n.naam || "een werknemer")} de machtiging voor de overdracht van het verzuimdossier online getekend. De werkgever stuurt de getekende machtigingen met de opdracht naar de vorige arbodienst; de getekende pdf staat in het beheer.`
+          ? `In onboarding ${esc(n.nummer)} heeft ${esc(n.naam || "een werknemer")} de machtiging voor de overdracht van het verzuimdossier online getekend, met IP-registratie. De getekende pdf staat in het beheer onder Werknemer; stuur daar de opdracht tot overdracht naar de vorige arbodienst.`
           : n.soort === "overdracht"
-            ? `In onboarding ${esc(n.nummer)} ging de opdracht tot overdracht met ${n.aantal ?? ""} getekende ${n.aantal === 1 ? "machtiging" : "machtigingen"} naar de vorige arbodienst; ${REACT2U_MEDISCH} kreeg een kopie. Verwacht een lijst van de dossiers; vink daarna de taak af.`
+            ? `In onboarding ${esc(n.nummer)} ging namens de werkgever de opdracht tot overdracht met ${n.aantal ?? ""} getekende ${n.aantal === 1 ? "machtiging" : "machtigingen"} naar de vorige arbodienst; ${REACT2U_MEDISCH} en de werkgever kregen een kopie. Verwacht een lijst van de dossiers; vink daarna de taak af.`
             : `Onboarding ${esc(n.nummer)} is zojuist voor het eerst geopend.`;
   await post([n.to], kop, persoonlijk(kop, [tekst], { tekst: "Open de onboarding", link: n.adminLink }));
 }

@@ -35,7 +35,8 @@ const STACKNR = process.env.E2E_STACK && process.env.E2E_STACK !== "1" ? process
 const PROJECT = STACKNR ? `react2u-e2e-${STACKNR}` : "react2u-e2e";
 const DB = `supabase_db_${PROJECT}`;
 // Diensten die de tests niet gebruiken: sneller opstarten, minder images in CI.
-const ZONDER = "studio,imgproxy,mailpit,realtime,vector,logflare,edge-runtime,postgres-meta";
+// E2E_ZONDER_EXTRA=storage-api laat ook storage weg (niet nodig voor de onboardingtest; scheelt als Docker het druk heeft).
+const ZONDER = ["studio,imgproxy,mailpit,realtime,vector,logflare,edge-runtime,postgres-meta", process.env.E2E_ZONDER_EXTRA].filter(Boolean).join(",");
 
 const NEXT = path.join(ROOT, "node_modules", "next", "dist", "bin", "next");
 

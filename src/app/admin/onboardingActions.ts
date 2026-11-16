@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  controleerOnboarding, documentKlaar, gekozen, isTaak, keuzeUit, ONBOARDING_EMAIL, takenVoortgang, vultIn, type Onboarding, type OnboardingStatus,
+  controleerOnboarding, controleerVelden, datumNl, documentKlaar, gekozen, isTaak, keuzeUit, MACHTIGING, MACHTIGING_FOUT, ONBOARDING_EMAIL, OVERDRACHT_BRIEF,
+  schoonVelden, takenVoortgang, vultIn, type MachtigingenGetekend, type Onboarding, type OnboardingStatus,
 } from "@/lib/onboarding";
-import { onboardingUrl, sendOnboarding, sendOnboardingKlant } from "@/lib/mail";
+import { machtigingUrl, notifyOnboarding, onboardingAdminUrl, onboardingUrl, sendMachtiging, sendOnboarding, sendOnboardingKlant, sendOverdracht } from "@/lib/mail";
+import { overdrachtPdf } from "@/lib/onboardingPdf";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 import type { VersturenState } from "./offerteActions";
 
@@ -271,5 +273,115 @@ export async function wisWerknemers(id: string) {
   if (error) redirect(`/admin/onboarding/${id}?fout=opslaan`);
   await log(sb, id, "gewist", admin.email, { document: "werknemers", aantal });
   ververs(id);
-  redirect(`/admin/onboarding/${id}?tab=werknemers&opgeslagen=onboarding`);
+  redirect(`/admin/onboarding/${id}?opgeslagen=onboarding`);
+}
+
+/* ---------- 0039: het deel Werknemer, de machtiging vanuit het beheer ---------- */
+
+export type BeheerState = { ok: boolean; fout?: string; melding?: string };
+const mfout = (code: string | undefined): BeheerState => ({ ok: false, fout: MACHTIGING_FOUT[code || ""] || MACHTIGING_FOUT.storing });
+const afzenderVan = (o: Onboarding) => ({ naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || ONBOARDING_EMAIL, telefoon: o.afzender_telefoon });
+
+/** De vorige arbodienst van de klant: React2u vult hem in, hij komt op elke machtiging en in de opdracht. */
+export async function saveVorigeArbodienst(id: string, fd: FormData) {
+  const { sb, admin } = await requirePerm("bellijst");
+  const velden = schoonVelden(MACHTIGING, Object.fromEntries(fd.entries()) as Record<string, unknown>);
+  const fouten = controleerVelden(MACHTIGING, velden);
+  if (Object.keys(fouten).length) redirect(`/admin/onboarding/${id}?tab=werknemer&fout=arbodienst`);
+  const { error } = await sb.from("onboardings").update({ vorige_arbodienst: velden }).eq("id", id);
+  if (error) redirect(`/admin/onboarding/${id}?tab=werknemer&fout=opslaan`);
+  await log(sb, id, "gewijzigd", admin.email, { vorige_arbodienst: velden.arbodienst });
+  ververs(id);
+  redirect(`/admin/onboarding/${id}?tab=werknemer&opgeslagen=arbodienst`);
+}
+
+/**
+ * Een werknemer uitnodigen om de machtiging online te tekenen (met IP-registratie):
+ * de database maakt de persoonlijke link via dezelfde functie als voorheen de
+ * klant, Next mailt hem. Dezelfde naam en e-mail nog eens is een herinnering.
+ */
+export async function nodigMachtigingUitBeheer(id: string, invoer: { naam: string; email: string }): Promise<BeheerState> {
+  const { sb } = await requirePerm("bellijst");
+  const o = await laad(sb, id);
+  if (!o) return { ok: false, fout: "Deze onboarding bestaat niet meer." };
+  if (o.status === "concept") return { ok: false, fout: "Verstuur de onboarding eerst; daarna kunnen werknemers tekenen." };
+  if (!o.vorige_arbodienst) return mfout("arbodienst");
+  const naam = String(invoer?.naam || "").trim().slice(0, 120);
+  const email = String(invoer?.email || "").trim().toLowerCase().slice(0, 254);
+  if (naam.length < 2) return mfout("naam");
+  if (!EMAIL.test(email)) return mfout("email");
+
+  const { data, error } = await sb.rpc("onboarding_machtiging_uitnodigen", { p_token: o.token, p_naam: naam, p_email: email });
+  const uitkomst = data as { ok: boolean; fout?: string; id?: string; mtoken?: string; opnieuw?: boolean } | null;
+  if (error || !uitkomst) {
+    console.error("[onboarding] machtiging uitnodigen mislukt:", error?.message);
+    return mfout("storing");
+  }
+  if (!uitkomst.ok) return mfout(uitkomst.fout);
+  const { contact } = await offerteHuisstijl();
+  const verzonden = await sendMachtiging({
+    to: email, naam, bedrijf: o.bedrijf, arbodienst: o.vorige_arbodienst.arbodienst || null, link: machtigingUrl(uitkomst.mtoken!),
+    afzender: afzenderVan(o), opnieuw: Boolean(uitkomst.opnieuw), contact,
+  });
+  if (!verzonden.ok) {
+    if (!uitkomst.opnieuw && uitkomst.id) await sb.rpc("onboarding_machtiging_verwijderen", { p_token: o.token, p_id: uitkomst.id });
+    return mfout("mail");
+  }
+  ververs(id);
+  return { ok: true, melding: uitkomst.opnieuw ? `Herinnering gestuurd naar ${email}.` : `Uitnodiging gestuurd naar ${email}.` };
+}
+
+/** Een uitnodiging weghalen, zolang er niet getekend is. */
+export async function verwijderMachtigingBeheer(id: string, mid: string): Promise<BeheerState> {
+  const { sb } = await requirePerm("bellijst");
+  const o = await laad(sb, id);
+  if (!o) return { ok: false, fout: "Deze onboarding bestaat niet meer." };
+  const { data, error } = await sb.rpc("onboarding_machtiging_verwijderen", { p_token: o.token, p_id: mid });
+  const uitkomst = data as { ok: boolean; fout?: string } | null;
+  if (error || !uitkomst) return mfout("storing");
+  if (!uitkomst.ok) return mfout(uitkomst.fout);
+  ververs(id);
+  return { ok: true, melding: "Uitnodiging weggehaald." };
+}
+
+/**
+ * De opdracht tot overdracht, namens de werkgever, naar de vorige arbodienst
+ * (Rens, 16 nov 2026: de werknemer tekent, React2u regelt de rest): de brief
+ * met alle getekende machtigingen als één pdf, naar het mailadres van de
+ * arbodienst, met de werkgever en medisch@react2u.nl erbij.
+ */
+export async function verstuurOverdrachtBeheer(id: string, aan?: string): Promise<BeheerState> {
+  const { sb, admin } = await requirePerm("bellijst");
+  const o = await laad(sb, id);
+  if (!o) return { ok: false, fout: "Deze onboarding bestaat niet meer." };
+  if (!o.vorige_arbodienst) return mfout("arbodienst");
+  const email = String(aan || o.vorige_arbodienst.email || "").trim().toLowerCase().slice(0, 254);
+  if (!EMAIL.test(email)) return { ok: false, fout: "Vul het e-mailadres van de vorige arbodienst in; daar gaat de opdracht heen." };
+
+  const { data: g } = await sb.rpc("onboarding_machtigingen_getekend", { p_token: o.token });
+  const getekend = g as MachtigingenGetekend | null;
+  if (!getekend?.machtigingen.length) return mfout("geen-getekend");
+  const { data, error } = await sb.rpc("onboarding_overdracht_versturen", { p_token: o.token, p_aan: email });
+  const uitkomst = data as { ok: boolean; fout?: string } | null;
+  if (error || !uitkomst) {
+    console.error("[onboarding] overdracht vastleggen mislukt:", error?.message);
+    return mfout("storing");
+  }
+  if (!uitkomst.ok) return mfout(uitkomst.fout);
+
+  const { contact } = await offerteHuisstijl();
+  const pdf = await overdrachtPdf(getekend, contact).catch((e) => { console.error("[onboarding] opdracht-pdf mislukt:", e); return null; });
+  if (!pdf) return mfout("storing");
+  const verzonden = await sendOverdracht({
+    to: email, werkgeverEmail: o.email, bedrijf: o.bedrijf, contactpersoon: o.contactpersoon,
+    aantal: getekend.machtigingen.length, namen: getekend.machtigingen.map((m) => ({ naam: m.gegevens.naam, geboortedatum: datumNl(m.gegevens.geboortedatum) })),
+    arbodienst: o.vorige_arbodienst.arbodienst || null, alineas: OVERDRACHT_BRIEF.alineas(o.bedrijf, getekend.machtigingen.length),
+    pdf: { filename: `${OVERDRACHT_BRIEF.onderwerp(o.bedrijf)}.pdf`, content: pdf }, contact,
+  });
+  if (!verzonden.ok) return { ok: false, fout: "De mail aan de arbodienst kon niet worden verstuurd. Download de opdracht en stuur hem zelf." };
+  if (o.afzender_email && o.afzender_email !== admin.email) {
+    await notifyOnboarding({ to: o.afzender_email, nummer: o.nummer, bedrijf: o.bedrijf, adminLink: onboardingAdminUrl(o.id), soort: "overdracht", aantal: getekend.machtigingen.length });
+  }
+  ververs(id);
+  return { ok: true, melding: `Opdracht verstuurd naar ${email}, met ${getekend.machtigingen.length} getekende ${getekend.machtigingen.length === 1 ? "machtiging" : "machtigingen"}; de werkgever en medisch@react2u.nl kregen een kopie.` };
 }

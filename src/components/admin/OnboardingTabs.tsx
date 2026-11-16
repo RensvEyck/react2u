@@ -2,14 +2,15 @@ import Link from "next/link";
 import { LuBuilding2, LuUsers } from "react-icons/lu";
 
 /**
- * De splitsing in het beheer (Rens, 16 nov 2026: "maak in de admin een
- * splitsing onboarding klant en werknemer van klant"): links de onboarding van
- * de klant zelf (wat de klant aanlevert, wat React2u inricht), rechts de
- * werknemers van die klant (het werknemersbestand voor XpertSuite en de
- * machtigingen die zij tekenen). Dezelfde tabs boven het register en boven
+ * De splitsing in het beheer (Rens, 16 nov 2026): één feature Onboarding in
+ * de zijbalk, met twee delen. Werkgever is de hele onboarding van de klant
+ * (documenten, werknemersbestand, inrichten), zonder de machtiging van arbo
+ * naar arbo. Werknemer is die machtiging: React2u vult de vorige arbodienst
+ * in, de werknemers tekenen online met IP-registratie, en React2u verstuurt
+ * namens de werkgever de opdracht. Dezelfde tabs boven het register en boven
  * één onboarding.
  */
-export default function OnboardingTabs({ actief, klant, werknemers, telling }: { actief: "klant" | "werknemers"; klant: string; werknemers: string; telling?: string }) {
+export default function OnboardingTabs({ actief, werkgever, werknemer, telling }: { actief: "werkgever" | "werknemer"; werkgever: string; werknemer: string; telling?: string }) {
   const tab = (href: string, aan: boolean, icoon: React.ReactNode, label: string, sub?: string) => (
     <Link
       href={href}
@@ -22,9 +23,9 @@ export default function OnboardingTabs({ actief, klant, werknemers, telling }: {
     </Link>
   );
   return (
-    <nav aria-label="Onboarding: klant of werknemers" className="inline-flex flex-wrap gap-1 rounded-[14px] bg-black/[0.04] p-1">
-      {tab(klant, actief === "klant", <LuBuilding2 />, "Onboarding klant")}
-      {tab(werknemers, actief === "werknemers", <LuUsers />, "Werknemers van klant", telling)}
+    <nav aria-label="Onboarding: werkgever of werknemer" className="inline-flex flex-wrap gap-1 rounded-[14px] bg-black/[0.04] p-1">
+      {tab(werkgever, actief === "werkgever", <LuBuilding2 />, "Werkgever")}
+      {tab(werknemer, actief === "werknemer", <LuUsers />, "Werknemer", telling)}
     </nav>
   );
 }
