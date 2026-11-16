@@ -1,6 +1,7 @@
 "use client";
 import { LuCalendarClock, LuMail, LuMessageSquare, LuPhone, LuUserRound } from "react-icons/lu";
 import { actieStand, KLANT_STATUS, relatief, relatiefMoment, type Bezoek, type Klant, type KlantStatus, type Koppeling } from "@/lib/klanten";
+import { noteerBel } from "@/lib/belAfloop";
 import { Checklist, Eigenaar, KoppelChip, SiteIcoon } from "./bits";
 
 /**
@@ -63,7 +64,7 @@ export default function KlantKaart({
           {(k.telefoon || k.email) && (
             <span className="inline-flex items-center gap-2.5">
               {k.telefoon && (
-                <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#e75387] hover:underline">
+                <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} onClick={(e) => { e.stopPropagation(); noteerBel({ id: k.id, bedrijf: k.bedrijf, naam: k.contactpersoon }); }} className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#e75387] hover:underline">
                   <LuPhone className="text-[12px]" />{k.telefoon}
                 </a>
               )}

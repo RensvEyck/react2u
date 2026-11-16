@@ -4,11 +4,13 @@
 // zelf naar Akkoord, de tijdlijn vult zich), de import van een Excelbestand in de vorm van de klantlijst
 // (controlerapport, dan importeren, dan nog eens zonder dubbelen), zoeken, de lijstweergave, het bord op een
 // telefoon, een kaart van het bord halen, en kaarten die vanzelf ontstaan uit een brochure, contract,
-// onboarding en losse opdracht, met het sitebezoek erbij. Draaien via e2e/run.mjs (E2E_ALLEEN=klantenbord).
+// onboarding en losse opdracht, met het sitebezoek erbij. Dan de werkdag: de werkrij Vandaag met het toetsenbord,
+// het telefoontje dat zichzelf vastlegt, mailen vanuit de kaart en de ochtendmail via de cron.
+// Draaien via e2e/run.mjs (E2E_ALLEEN=klantenbord).
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
-const { BASIS, UIT, BEHEERDER, totp, geheim, sql, maakXlsx } = require("./hulp.cjs");
+const { BASIS, UIT, MAILS, BEHEERDER, mails, totp, geheim, sql, maakXlsx } = require("./hulp.cjs");
 
 const SHOTS = path.join(UIT, "klantenbord");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -32,6 +34,7 @@ const BEDRIJF = "Bakkerij De Korenaar";
 const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
 
 (async () => {
+  if (fs.existsSync(MAILS)) fs.unlinkSync(MAILS);
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "nl-NL" });
   const page = await ctx.newPage();
@@ -302,6 +305,115 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await shot(page, "11-bord-automatisch", { fullPage: false });
   await page.keyboard.press("Escape");
   await page.waitForSelector("aside[role=dialog]", { state: "detached" });
+
+  stap("De werkrij Vandaag, met het toetsenbord");
+  const morgen = sql("select ((now() at time zone 'Europe/Amsterdam')::date + 1)::text");
+  sql(`update public.klanten set volgende_actie = 'Offerte nabellen', volgende_actie_op = (now() at time zone 'Europe/Amsterdam')::date - 3 where id = '${id}'`);
+  sql(`update public.klanten set volgende_actie = 'Bellen over de brochure', volgende_actie_op = (now() at time zone 'Europe/Amsterdam')::date where id = '${kapsalon[0]}'`);
+  await page.goto(`${BASIS}/admin/klantenbord`);
+  await page.waitForSelector("h1:has-text('Klantenbord')");
+  check(await page.locator('a[href="/admin/klantenbord/vandaag"] span:has-text("2")').count() || (await page.locator('a[href="/admin/klantenbord/vandaag"] span').count()), "de knop Vandaag telt de rij");
+  await page.click('a[href="/admin/klantenbord/vandaag"]');
+  await page.waitForSelector("h1:has-text('Vandaag')");
+  const rijenVoor = await page.locator("ol[aria-label='Werkrij'] > li").count();
+  check(rijenVoor >= 2, `minstens twee rijen (${rijenVoor})`);
+  check(await page.locator("ol[aria-label='Werkrij'] >> text=Te laat: Offerte nabellen").count(), "te laat staat erin met de actie");
+  check(await page.locator("ol[aria-label='Werkrij'] >> text=3 dagen te laat").count(), "hoe lang te laat");
+  check(await page.locator("ol[aria-label='Werkrij'] >> text=Vandaag: Bellen over de brochure").count(), "wat vandaag moet staat erin");
+  check(await page.locator("ol[aria-label='Werkrij'] li:has-text('Bakkerij De Korenaar') >> text=Op de site").count(), "het sitebezoek als reden");
+  await shot(page, "12-vandaag", { fullPage: false });
+  // Met het toetsenbord: naar de rij van de bakkerij, N = niet bereikt.
+  const eersteKorenaar = (await page.locator("ol[aria-label='Werkrij'] > li").first().innerText()).includes("Bakkerij De Korenaar");
+  if (!eersteKorenaar) await page.keyboard.press("j");
+  await page.keyboard.press("n");
+  check((await tot(`select count(*) from public.klant_gesprekken where klant_id = '${id}' and tekst = 'Niet bereikt'`, "1")) === "1", "N: niet bereikt vastgelegd");
+  check(sql(`select volgende_actie || ' ' || volgende_actie_op from public.klanten where id = '${id}'`) === `Offerte nabellen ${morgen}`, "en morgen opnieuw, met dezelfde actie");
+  await page.waitForSelector("text=niet bereikt, morgen opnieuw.");
+  check((await page.locator("ol[aria-label='Werkrij'] li:has-text('Bakkerij De Korenaar')").count()) === 0, "de rij is weg");
+  // Enter = gesproken, met de volgende stap en een nieuwe kolom.
+  const kapsalonRij = page.locator("ol[aria-label='Werkrij'] li:has-text('Kapsalon Knip')");
+  await kapsalonRij.click();
+  await page.keyboard.press("Enter");
+  await page.waitForSelector("ol[aria-label='Werkrij'] textarea");
+  await page.fill("ol[aria-label='Werkrij'] textarea", "Sanne wil een offerte voor 8 medewerkers.");
+  await page.fill("ol[aria-label='Werkrij'] input[aria-label='Volgende stap']", "Offerte maken");
+  await page.selectOption("ol[aria-label='Werkrij'] select[aria-label='Kaart verplaatsen naar']", "gesprek");
+  await page.click("ol[aria-label='Werkrij'] button:has-text('Vastleggen')");
+  check((await tot(`select status from public.klanten where id = '${kapsalon[0]}'`, "gesprek")) === "gesprek", "gesproken: kaart naar In gesprek");
+  check(sql(`select volgende_actie || ' | ' || laatste_contact from public.klanten where id = '${kapsalon[0]}'`) === "Offerte maken | Sanne wil een offerte voor 8 medewerkers.", "volgende stap en laatste contact gezet");
+  // De rest: D = klaar, tot de rij leeg is.
+  for (let i = 0; i < 12 && (await page.locator("ol[aria-label='Werkrij'] > li").count()) > 0; i++) {
+    await page.keyboard.press("d");
+    await wacht(400);
+  }
+  await page.waitForSelector("text=De rij is leeg. Mooi werk.", { timeout: 15000 });
+  check(true, "de rij is leeg");
+  await shot(page, "13-vandaag-leeg", { fullPage: false });
+
+  stap("Het telefoontje legt zichzelf vast");
+  await page.goto(`${BASIS}/admin/klantenbord`);
+  await page.waitForSelector(`#klant-${id}`);
+  check((await page.locator(".kb-bel").count()) === 0, "zonder telefoontje geen vraag");
+  await page.evaluate(({ id, naam, bedrijf }) => localStorage.setItem("kb-bel", JSON.stringify({ id, bedrijf, naam, at: Date.now() - 20000 })), { id, naam: "Fatima El Amrani", bedrijf: BEDRIJF });
+  await page.reload();
+  await page.waitForSelector(".kb-bel");
+  check(await page.locator(".kb-bel >> text=Je belde net Fatima El Amrani (Bakkerij De Korenaar)").count(), "na terugkomen: je belde net Fatima");
+  await shot(page, "14-bel-afloop", { fullPage: false });
+  await page.click(".kb-bel button:has-text('Gesproken')");
+  await page.fill(".kb-bel textarea", "Fatima tekent volgende week het contract.");
+  await page.fill(".kb-bel input[aria-label='Volgende stap']", "Contract versturen");
+  await page.click(".kb-bel button:has-text('Vastleggen')");
+  await page.waitForSelector(".kb-bel", { state: "detached" });
+  check((await tot(`select laatste_contact from public.klanten where id = '${id}'`, "Fatima tekent volgende week het contract.")) === "Fatima tekent volgende week het contract.", "gesprek vastgelegd vanuit de vraag");
+  check(sql(`select volgende_actie || ' ' || volgende_actie_op from public.klanten where id = '${id}'`) === `Contract versturen ${morgen}`, "volgende stap morgen");
+  check((await page.evaluate(() => localStorage.getItem("kb-bel"))) === null, "de vraag komt niet nog eens");
+  // Een misklik op het nummer (korter dan acht seconden geleden) vraagt niets.
+  await page.evaluate(({ id }) => localStorage.setItem("kb-bel", JSON.stringify({ id, bedrijf: "X", naam: null, at: Date.now() - 2000 })), { id });
+  await page.reload();
+  await page.waitForSelector(`#klant-${id}`);
+  await wacht(500);
+  check((await page.locator(".kb-bel").count()) === 0, "een misklik op het nummer vraagt niets");
+  await page.evaluate(() => localStorage.removeItem("kb-bel"));
+
+  stap("Mailen vanuit de kaart");
+  await page.click(`#klant-${id} h3`);
+  await page.waitForSelector(`aside[role=dialog] h2:has-text('${BEDRIJF}')`);
+  await page.click("aside[role=dialog] button:has-text('Schrijf een mail')");
+  await page.waitForSelector("#kb-mail-onderwerp");
+  await page.click("aside[role=dialog] button[role=radio]:has-text('Offerte nabellen')");
+  check((await page.inputValue("#kb-mail-onderwerp")) === "Je offerte van React2u", "sjabloon: onderwerp");
+  check((await page.inputValue("#kb-mail-tekst")).startsWith("Beste Fatima,\n\nEen tijdje geleden stuurde ik je onze offerte voor Bakkerij De Korenaar."), "sjabloon: voornaam en bedrijf ingevuld");
+  check((await page.inputValue("#kb-mail-aan")) === "fatima@korenaar.test", "aan: het adres van de kaart");
+  check((await page.inputValue("#kb-mail-van")) === "Rens", "afzender uit het e-mailadres");
+  await shot(page, "15-mail");
+  await page.click("aside[role=dialog] button:has-text('Verstuur mail')");
+  await page.waitForSelector("text=Mail verstuurd naar fatima@korenaar.test.", { timeout: 20000 });
+  const mail = mails().find((m) => m.subject === "Je offerte van React2u");
+  check(Boolean(mail) && mail.to.includes("fatima@korenaar.test") && mail.reply_to === BEHEERDER.email, `mail via Resend, antwoorden bij de collega (${mail?.reply_to})`);
+  check(Boolean(mail) && mail.html.includes("Beste Fatima,") && mail.html.includes("Met vriendelijke groet,") && mail.html.includes(">Rens<"), "huisstijl met aanhef, groet en naam");
+  fs.writeFileSync(path.join(SHOTS, "mail-klant.html"), mail?.html || "");
+  check(sql(`select tekst || ' | ' || contact::text from public.klant_gesprekken where klant_id = '${id}' and soort = 'mail'`) === "Gemaild: Je offerte van React2u · Een tijdje geleden stuurde ik je onze offerte voor Bakkerij De Korenaar. | true", "in de tijdlijn als gemaild, en een echt contact");
+  check(sql(`select volgende_actie || ' ' || (volgende_actie_op - (now() at time zone 'Europe/Amsterdam')::date) from public.klanten where id = '${id}'`) === "Offerte nabellen 3", "de volgende stap van het sjabloon: offerte nabellen over drie dagen");
+  check(await page.locator("aside[role=dialog] >> text=Gemaild: Je offerte van React2u").count(), "de mail staat in de tijdlijn van het paneel");
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("aside[role=dialog]", { state: "detached" });
+
+  stap("De ochtendmail (api/cron/klantenbord)");
+  sql(`update public.klanten set eigenaar = 'Rens van Eyck', volgende_actie_op = (now() at time zone 'Europe/Amsterdam')::date - 2 where id = '${id}'`);
+  sql(`update public.klanten set eigenaar = 'Cindy', volgende_actie = 'Kennismaking', volgende_actie_op = (now() at time zone 'Europe/Amsterdam')::date where id = '${kapsalon[0]}'`);
+  const cron = (q = "") => page.request.get(`${BASIS}/api/cron/klantenbord${q}`, { headers: { authorization: "Bearer e2e-cron-geheim" } });
+  check((await page.request.get(`${BASIS}/api/cron/klantenbord`)).status() === 401, "zonder geheim: 401");
+  let cr = await (await cron("?dry=1&weekend=1")).json();
+  check(cr.ok && cr.plannen.some((p) => p.aan === BEHEERDER.email && /^Vandaag \d+ acties?, 1 te laat/.test(p.onderwerp)), `droog: een plan voor de beheerder (${JSON.stringify(cr.plannen)})`);
+  check(cr.verstuurd === 0, "droog: niets verstuurd");
+  cr = await (await cron("?weekend=1")).json();
+  check(cr.verstuurd === 1, `verstuurd aan ${cr.ontvangers} ontvanger(s): ${cr.verstuurd}`);
+  const ochtend = mails().find((m) => /^Vandaag /.test(m.subject || "") && m.to.includes(BEHEERDER.email));
+  check(Boolean(ochtend), `ochtendmail: ${ochtend?.subject}`);
+  check(Boolean(ochtend) && ochtend.html.includes("Voor jou") && ochtend.html.includes("Offerte nabellen") && ochtend.html.includes("Rest van het team") && ochtend.html.includes("Kennismaking"), "voor jou (de bakkerij van Rens) en de rest van het team (de kapsalon van Cindy)");
+  check(Boolean(ochtend) && ochtend.html.includes("Gisteren bij klanten") && ochtend.html.includes("tekende de offerte"), "gisteren bij klanten: de getekende offerte");
+  check(Boolean(ochtend) && ochtend.html.includes("/admin/klantenbord/vandaag"), "knop naar de werkrij");
+  fs.writeFileSync(path.join(SHOTS, "mail-ochtend.html"), ochtend?.html || "");
 
   check(paginafouten.length === 0, `geen fouten in de browser${paginafouten.length ? `: ${paginafouten.join(" | ")}` : ""}`);
 

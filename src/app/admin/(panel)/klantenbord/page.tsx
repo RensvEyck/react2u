@@ -6,6 +6,9 @@ import { fetchPageViews } from "@/lib/analyticsDb";
 import { summarize, type CompanyProfile } from "@/lib/companies";
 import type { PageView } from "@/lib/types";
 import Klantenbord from "@/components/admin/klantenbord/Klantenbord";
+import { mailReady } from "@/lib/mail";
+import { haalVerkoop, verkoopOverzicht } from "@/lib/opvolgenDb";
+import { werkrij } from "@/lib/werkrij";
 import { LuDatabase } from "react-icons/lu";
 
 /**
@@ -30,7 +33,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
   const metBezoek = admin.permissions.includes("bezoek");
   const sinds = new Date(nu.getTime() - 14 * 86_400_000).toISOString();
 
-  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes, pvRes, prRes] = await Promise.all([
+  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes, pvRes, prRes, verkoop] = await Promise.all([
     sb.from("klanten").select("*").order("updated_at", { ascending: false }).limit(2000),
     sb.from("klant_gesprekken").select("*").order("op", { ascending: false }).order("created_at", { ascending: false }).limit(5000),
     sb.from("offertes").select("id, nummer, status, bedrijf, verstuurd_at, getekend_at, created_at").neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
@@ -41,6 +44,8 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
     sb.from("leads").select("id, name, company, status, follow_up_on").limit(2000),
     metBezoek ? fetchPageViews(sb, sinds, "path, referrer_host, visitor_hash, created_at, company, company_domain, company_source, is_company", { onlyCompanies: true }).catch(() => [] as PageView[]) : Promise.resolve([] as PageView[]),
     metBezoek ? sb.from("company_profiles").select("key, name, domain, ignored, lead_id") : Promise.resolve({ data: null }),
+    // Voor de teller op de knop Vandaag: dezelfde signalen als de werkrij.
+    haalVerkoop(sb, nu).catch(() => null),
   ]);
 
   const tabel = !kRes.error || !isMissingTable(kRes.error);
@@ -64,6 +69,8 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
     ? summarize((pvRes as PageView[]).filter((v) => v.is_company), ((prRes as { data: CompanyProfile[] | null }).data) || [], [], nu).filter((c) => !c.ignored)
     : [];
   const bezoek: Record<string, Bezoek> = bezoekPerKlant(klanten, bedrijvenOpSite);
+  const signalen = verkoop ? verkoopOverzicht(verkoop, bedrijvenOpSite.map((c) => ({ naam: c.name, domein: c.domain, laatst: c.lastSeen, paginas: c.views })), nu).signalen : [];
+  const teDoen = werkrij(klanten, signalen, bezoek, vandaag, nu).length;
 
   return (
     <>
@@ -75,7 +82,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
           </p>
         </div>
       )}
-      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} bezoek={bezoek} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} />
+      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} bezoek={bezoek} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} mailAan={mailReady()} ik={admin.email} teDoen={teDoen} />
     </>
   );
 }

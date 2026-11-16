@@ -21,9 +21,7 @@ import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
 import type { ContactInfo } from "./content";
 import type { Vorm } from "./offertes";
 import { merkVoorVorm } from "./offerteMerk";
-import {
-  FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail,
-} from "./offerteMail";
+import { FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail, eyebrow, knop } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
 import { doorgestuurdHtml, machtigingGetekendHtml, machtigingMailHtml, onboardingKlantHtml, onboardingMailHtml, overdrachtMailHtml, type MachtigingMail, type MailDocument, type OnboardingKlantMail } from "./onboardingMail";
 import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
@@ -66,7 +64,7 @@ function render(title: string, intro: string, fields: Field[], body?: string | n
 </div>`;
 }
 
-function siteBasis() {
+export function siteBasis() {
   const base =
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "") ||
@@ -249,6 +247,32 @@ export async function sendBrief(b: {
 }): Promise<Verzonden> {
   const html = brief({ alineas: b.alineas, groet: b.groet, onderwerp: b.subject, taal: b.taal, contact: b.contact });
   return verstuur([b.to], b.subject, html, b.replyTo);
+}
+
+/**
+ * De ochtendmail van het klantenbord (api/cron/klantenbord, inhoud uit
+ * lib/ochtendmail.ts): per deel een kop en regels met een link naar de kaart.
+ */
+export async function sendOchtendmail(m: { to: string; onderwerp: string; aanhef: string; delen: { kop: string; regels: { bedrijf: string; tekst: string; sub: string | null; href: string }[] }[]; link: string; contact?: ContactInfo }): Promise<Verzonden> {
+  const regel = (r: { bedrijf: string; tekst: string; sub: string | null; href: string }) =>
+    `<tr><td style="padding:9px 0;border-top:1px solid ${KLEUR.lijn}">
+      <a href="${esc(r.href)}" style="font-family:${FONT_KOP};font-size:15px;line-height:1.4;font-weight:700;color:${KLEUR.inkt};text-decoration:none">${esc(r.bedrijf)}</a>
+      <div style="font-family:${FONT};font-size:14.5px;line-height:1.5;color:${KLEUR.tekst}">${esc(r.tekst)}</div>
+      ${r.sub ? `<div style="font-family:${FONT};font-size:13px;line-height:1.5;color:${KLEUR.grijs}">${esc(r.sub)}</div>` : ""}
+    </td></tr>`;
+  const delen = m.delen
+    .map(
+      (d) => `${eyebrow(d.kop, KLEUR.indigo)}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">${d.regels.map(regel).join("")}</table>`
+    )
+    .join("");
+  const kaart = vak(`${p(esc(m.aanhef), `color:${KLEUR.inkt}`)}
+${p(esc("Dit staat vandaag op het klantenbord. Klik op een bedrijf om naar de kaart te gaan."))}
+<div style="height:18px"></div>
+${delen}
+${knop("Open de werkrij van vandaag", m.link)}`);
+  const html = omhulsel({ basis: siteBasis(), titel: m.onderwerp, preheader: m.onderwerp, kaart, contact: m.contact });
+  return verstuur([m.to], m.onderwerp, html);
 }
 
 /** Testmail vanuit Instellingen: werkt de koppeling, en komt het aan? */
