@@ -24,7 +24,7 @@ export default function OfferteVersturen({
   /** Een andere verzendactie dan die van offertes (brochures 0030, contracten 0031). */
   actie?: (prev: VersturenState, fd: FormData) => Promise<VersturenState>;
   /** Wat er verstuurd wordt, voor de teksten; "overeenkomst" is de resellerovereenkomst (0033). */
-  woord?: "offerte" | "brochure" | "contract" | "overeenkomst";
+  woord?: "offerte" | "brochure" | "contract" | "overeenkomst" | "onboarding";
 }) {
   // "de offerte", "de brochure", maar "het basiscontract" en "de resellerovereenkomst".
   const het = woord === "contract" ? "het basiscontract" : woord === "overeenkomst" ? "de resellerovereenkomst" : `de ${woord}`;
@@ -33,7 +33,9 @@ export default function OfferteVersturen({
   const [toonLink, setToonLink] = useState(verstuurd);
   const standaard = verstuurd
     ? `Ik wilde even checken of je ${het} voor ${bedrijf} hebt kunnen bekijken. Heb je nog vragen, of wil je iets anders zien? Laat het gerust weten${woord === "offerte" ? ", dan pas ik hem aan" : ""}.`
-    : `${woord === "contract" || woord === "overeenkomst" ? "Fijn dat we gaan samenwerken!" : "Bedankt voor het prettige gesprek."} Zoals besproken stuur ik je hierbij ${ons} voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
+    : woord === "onboarding"
+      ? `Fijn dat we gaan samenwerken! Hierbij de onboarding voor ${bedrijf}: alles om goed te starten op één plek. Vul in wat je online kunt invullen, de rest staat klaar om te downloaden.`
+      : `${woord === "contract" || woord === "overeenkomst" ? "Fijn dat we gaan samenwerken!" : "Bedankt voor het prettige gesprek."} Zoals besproken stuur ik je hierbij ${ons} voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
   const [bericht, setBericht] = useState(standaard);
   // Na een geslaagde verzending een nieuwe standaardtekst (van "hierbij de offerte" naar een herinnering).
   const [gezien, setGezien] = useState(state);

@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock,
+  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck,
 } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
@@ -36,6 +36,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding sales" },
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
   { label: "Contracten", href: "/admin/contracten", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening arbowet overeenkomst ondertekenen tekenen looptijd opzeggen verlengen sales" },
+  { label: "Onboarding", href: "/admin/onboarding", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom inrichting werknemersbestand xpertsuite import machtiging verzuimprotocol documenten versturen invullen" },
   { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales" },
   { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
   { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
@@ -69,6 +70,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "Nieuwe pagina", href: "/admin/paginas#nieuw", icon: LuPlus, keywords: "pagina toevoegen aanmaken" },
   { label: "Nieuwe offerte", href: "/admin/offertes/nieuw", icon: LuFilePenLine, keywords: "offerte maken opstellen voorstel prijsopgave versturen" },
   { label: "Nieuw contract", href: "/admin/contracten/nieuw", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening maken versturen ondertekenen" },
+  { label: "Nieuwe onboarding", href: "/admin/onboarding/nieuw", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom documenten versturen invullen" },
   { label: "Nieuwe brochure", href: "/admin/brochures/nieuw", icon: LuBookOpen, keywords: "brochure maken versturen prospect kennismaking" },
   { label: "Lead toevoegen", href: "/admin/bellijst#nieuw", icon: LuUserPlus, keywords: "lead nieuw bellijst" },
   { label: "Partner toevoegen", href: "/admin/partners#nieuw", icon: LuHandshake, keywords: "partner nieuw accountant aanmeldlink code" },
@@ -87,6 +89,6 @@ export const CRUMBS: Record<string, string> = {
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",
-  offertes: "Offertes", contracten: "Contracten", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
+  offertes: "Offertes", contracten: "Contracten", onboarding: "Onboarding", werknemers: "Werknemers", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

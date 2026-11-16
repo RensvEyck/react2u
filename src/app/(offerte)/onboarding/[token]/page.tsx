@@ -1,0 +1,47 @@
+import type { Metadata } from "next";
+import { after } from "next/server";
+import { notFound } from "next/navigation";
+import OnboardingPagina from "@/components/onboarding/OnboardingPagina";
+import OfferteMelding from "@/components/offerte/OfferteMelding";
+import { supabasePublic } from "@/lib/supabase/public";
+import { isCollega } from "@/lib/isCollega";
+import { notifyOnboarding, onboardingAdminUrl } from "@/lib/mail";
+import { ONBOARDING_EMAIL, type OnboardingPubliek } from "@/lib/onboarding";
+import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
+
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Je onboarding bij React2u" };
+
+/**
+ * De onboarding voor één klant (/onboarding/<token>, migratie 0037). Dezelfde
+ * regels als een brochure: het token is de sleutel, een collega met een sessie
+ * telt niet als bezoek, en de eerste keer dat de klant hem opent krijgt de
+ * afzender een seintje.
+ */
+export default async function OnboardingRoute({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  if (!/^[a-f0-9]{48,}$/.test(token)) notFound();
+  const collega = await isCollega();
+  const [{ data }, { contact }] = await Promise.all([
+    supabasePublic().rpc("onboarding_bekijken", { p_token: token, p_tel: !collega }),
+    offerteHuisstijl(),
+  ]);
+  const o = data as OnboardingPubliek | null;
+  if (!o) notFound();
+  if (o.status === "ingetrokken") {
+    return (
+      <OfferteMelding soort="Onboarding" titel="Deze onboarding is niet meer beschikbaar" telefoon={o.afzender_telefoon} email={o.afzender_email || ONBOARDING_EMAIL}>
+        De onboarding voor {o.bedrijf} is ingetrokken, bijvoorbeeld omdat er een nieuwe versie is.
+        {o.afzender_naam ? ` Neem contact op met ${o.afzender_naam}.` : " Neem contact met ons op."}
+      </OfferteMelding>
+    );
+  }
+
+  if (o.eerste_keer && o.afzender_email) {
+    const { afzender_email, nummer, bedrijf, id } = o;
+    after(() => notifyOnboarding({ to: afzender_email, nummer, bedrijf, adminLink: onboardingAdminUrl(id), soort: "bekeken" }));
+  }
+
+  return <OnboardingPagina o={o} token={token} contact={contact} modus={o.status === "concept" ? "concept" : collega ? "collega" : "klant"} />;
+}

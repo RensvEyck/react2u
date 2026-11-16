@@ -25,6 +25,7 @@ import {
   FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail,
 } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
+import { onboardingMailHtml, type MailDocument } from "./onboardingMail";
 import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
 import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
 
@@ -628,6 +629,39 @@ export function brochureAdminUrl(id: string) {
 
 export function brochureUrl(token: string) {
   return `${siteBasis()}/brochure/${token}`;
+}
+
+/* ---------- onboarding (migratie 0037) ---------- */
+
+export async function sendOnboarding(o: {
+  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; bericht: string | null;
+  afzender: Afzender; herinnering?: boolean; documenten: MailDocument[]; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const { to, ...rest } = o;
+  const html = onboardingMailHtml({ basis: siteBasis(), ...rest });
+  const onderwerp = o.herinnering ? `Herinnering: je onboarding bij React2u voor ${o.bedrijf}` : `Welkom bij React2u: je onboarding voor ${o.bedrijf}`;
+  return verstuur([to], onderwerp, html, o.afzender.email || undefined);
+}
+
+/** Aan de afzender: de klant opende de onboarding, vulde iets in, of is klaar. */
+export async function notifyOnboarding(n: { to: string; nummer: string; bedrijf: string; adminLink: string; soort: "bekeken" | "ingevuld" | "afgerond"; document?: string }) {
+  const kop =
+    n.soort === "afgerond" ? `${n.bedrijf} heeft de onboarding afgerond` : n.soort === "ingevuld" ? `${n.bedrijf} vulde ${n.document || "een document"} in` : `${n.bedrijf} heeft de onboarding geopend`;
+  const tekst =
+    n.soort === "afgerond"
+      ? `Onboarding ${esc(n.nummer)} is compleet: alle documenten zijn ingevuld of afgevinkt. Tijd om de klant in te richten.`
+      : n.soort === "ingevuld"
+        ? `In onboarding ${esc(n.nummer)} is ${esc(n.document || "een document")} ingevuld. Je ziet de gegevens in het beheer.`
+        : `Onboarding ${esc(n.nummer)} is zojuist voor het eerst geopend.`;
+  await post([n.to], kop, persoonlijk(kop, [tekst], { tekst: "Open de onboarding", link: n.adminLink }));
+}
+
+export function onboardingAdminUrl(id: string) {
+  return `${siteBasis()}/admin/onboarding/${id}`;
+}
+
+export function onboardingUrl(token: string) {
+  return `${siteBasis()}/onboarding/${token}`;
 }
 
 /* ---------- contracten (migratie 0031, de resellerovereenkomst sinds 0033) ---------- */

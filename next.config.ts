@@ -108,6 +108,8 @@ const nextConfig: NextConfig = {
     // De handtekening van de bestuurder (lib/offerteOndertekenaar.ts) staat sinds 3 nov 2026 ook in de pdf.
     "/offerte/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     "/brochure/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*"],
+    // Onboarding (0037): de pdf's per document.
+    "/onboarding/**": ["./src/lib/pdf/fonts/*.woff"],
     "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     // Contracten (0031): dezelfde bestanden.
     "/contract/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
@@ -172,6 +174,11 @@ const nextConfig: NextConfig = {
       // Contracten (0031): dezelfde regels als offertes.
       {
         source: "/contract/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
+      // Onboarding (0037): dezelfde regels als offertes.
+      {
+        source: "/onboarding/:path*",
         headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
       },
     ];
