@@ -102,7 +102,10 @@ export type Klant = {
   updated_at: string;
 };
 
-export type GesprekSoort = "gesprek" | "mail" | "bezoek" | "notitie" | "status" | "import";
+export type GesprekSoort = "gesprek" | "mail" | "bezoek" | "notitie" | "status" | "import" | "systeem";
+
+/** Uit welke module een systeemregel komt (0041); `opdracht` is een los opgevoerde klant of opdracht. */
+export type Bron = "offerte" | "brochure" | "contract" | "onboarding" | "opdracht";
 
 export type Gesprek = {
   id: string;
@@ -112,6 +115,11 @@ export type Gesprek = {
   op: string;
   tekst: string;
   door: string | null;
+  /** Een echt contact (gesproken, verstuurd, bekeken, getekend) of alleen administratie (aangemaakt, verplaatst, import). */
+  contact: boolean;
+  bron: Bron | null;
+  bron_id: string | null;
+  bron_gebeurtenis: number | null;
   created_at: string;
 };
 
@@ -126,7 +134,19 @@ export const GESPREK_SOORTEN: { key: GesprekSoort; label: string }[] = [
 export const CONTACT_SOORTEN: GesprekSoort[] = ["gesprek", "mail", "bezoek", "notitie"];
 
 export function isGesprekSoort(s: unknown): s is GesprekSoort {
-  return typeof s === "string" && ["gesprek", "mail", "bezoek", "notitie", "status", "import"].includes(s);
+  return typeof s === "string" && ["gesprek", "mail", "bezoek", "notitie", "status", "import", "systeem"].includes(s);
+}
+
+/** Waar een systeemregel naartoe klikt. */
+export function bronHref(bron: Bron | null, id: string | null): string | null {
+  if (!bron || !id) return null;
+  switch (bron) {
+    case "offerte": return `/admin/offertes/${id}`;
+    case "brochure": return `/admin/brochures/${id}`;
+    case "contract": return `/admin/contracten/${id}`;
+    case "onboarding": return `/admin/onboarding/${id}`;
+    case "opdracht": return "/admin/verkoop/los";
+  }
 }
 
 /* ---------- sleutel ---------- */
@@ -175,6 +195,19 @@ export function relatief(datum: string | null | undefined, vandaag: string): str
   if (d >= 7 && d < 28) return `${Math.floor(d / 7)} ${Math.floor(d / 7) === 1 ? "week" : "weken"} geleden`;
   if (d < -1 && d > -7) return `over ${-d} dagen`;
   return datumLang(datum);
+}
+
+/** "zojuist", "20 min geleden", "3 uur geleden", "gisteren", "4 dagen geleden": voor een tijdstip, zoals een sitebezoek. */
+export function relatiefMoment(iso: string | null | undefined, nu = new Date()): string {
+  if (!iso) return "";
+  const ms = nu.getTime() - new Date(iso).getTime();
+  if (!Number.isFinite(ms)) return "";
+  const min = Math.round(ms / 60_000);
+  if (min < 2) return "zojuist";
+  if (min < 60) return `${min} min geleden`;
+  const uur = Math.round(min / 60);
+  if (uur < 24 && vandaagNL(nu) === new Date(iso).toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" })) return `${uur} uur geleden`;
+  return relatief(new Date(iso).toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" }), vandaagNL(nu));
 }
 
 export type ActieStand = "te_laat" | "vandaag" | "gepland" | "zonder_datum" | "geen";
@@ -347,24 +380,42 @@ export function koppelingenVoor(bedrijf: string, bronnen: Bronnen): Koppeling[] 
   return koppelIndex(bronnen).get(s) || [];
 }
 
+/* ---------- sitebezoek ---------- */
+
+/** Wat het bord van een bedrijf op de site weet (bedrijfsherkenning, recht `bezoek`). */
+export type Bezoek = {
+  /** Het laatste bezoek, als tijdstip. */
+  laatst: string;
+  /** Paginaweergaven in de periode. */
+  paginas: number;
+  /** De sessies, nieuwste eerst: wanneer en welke pagina's. */
+  sessies: { start: string; paginas: string[] }[];
+};
+
+type BedrijfOpSite = { name: string; lastSeen: string; views: number; sessions: { start: string; pages: { path: string }[] }[] };
+
 /**
- * Wat de andere modules over de status zeggen: een getekend contract hoort bij
- * Inrichten, een getekende offerte bij Akkoord, een verstuurde offerte bij
- * Offerte uit, een ingerichte onboarding bij Klant. Alleen een stap vooruit;
- * het bord verplaatst de kaart niet zelf, maar laat het zien.
+ * Het sitebezoek per kaart: de bedrijven uit de herkenning (summarize in
+ * lib/companies.ts) op dezelfde sleutel als de kaarten. Hooguit vijf sessies,
+ * nieuwste eerst, voor de tijdlijn.
  */
-export function statusHint(k: Pick<Klant, "status">, koppelingen: Koppeling[]): KlantStatus | null {
-  let hint: KlantStatus | null = null;
-  const stel = (s: KlantStatus) => {
-    if (statusVerder(s, k.status) && (!hint || statusVerder(s, hint))) hint = s;
-  };
-  for (const x of koppelingen) {
-    if (x.soort === "onboarding" && x.stand === "ingericht") stel("klant");
-    if (x.soort === "contract" && x.stand === "getekend") stel("inrichten");
-    if (x.soort === "offerte" && x.stand === "getekend") stel("akkoord");
-    if (x.soort === "offerte" && (x.stand === "verstuurd" || x.stand === "bekeken")) stel("offerte");
+export function bezoekPerKlant<T extends Pick<Klant, "id" | "bedrijf" | "sleutel">>(klanten: T[], bedrijven: BedrijfOpSite[]): Record<string, Bezoek> {
+  const perSleutel = new Map<string, BedrijfOpSite>();
+  for (const b of bedrijven) {
+    const s = bedrijfSleutel(b.name);
+    if (s && !perSleutel.has(s)) perSleutel.set(s, b);
   }
-  return hint;
+  const uit: Record<string, Bezoek> = {};
+  for (const k of klanten) {
+    const b = perSleutel.get(k.sleutel || bedrijfSleutel(k.bedrijf));
+    if (!b) continue;
+    uit[k.id] = {
+      laatst: b.lastSeen,
+      paginas: b.views,
+      sessies: [...b.sessions].sort((x, y) => y.start.localeCompare(x.start)).slice(0, 5).map((x) => ({ start: x.start, paginas: [...new Set(x.pages.map((p) => p.path))] })),
+    };
+  }
+  return uit;
 }
 
 /* ---------- import van de klantlijst ---------- */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  actieStand, bedrijfSleutel, herkenKolommen, importVoorstel, koppelingenVoor, leesDatum, leesJaNee, relatief, rijenUitKlantlijst, rijNaarVelden,
-  sorteerKaarten, statusHint, statusUitRij, statusVerder, telling, zoekKlanten, type Bronnen, type ImportRij, type Klant,
+  actieStand, bedrijfSleutel, bezoekPerKlant, bronHref, herkenKolommen, importVoorstel, koppelingenVoor, leesDatum, leesJaNee, relatief, relatiefMoment,
+  rijenUitKlantlijst, rijNaarVelden, sorteerKaarten, statusUitRij, statusVerder, telling, zoekKlanten, type Bronnen, type ImportRij, type Klant,
 } from "./klanten";
 
 const VANDAAG = "2026-11-16";
@@ -58,15 +58,11 @@ describe("statussen", () => {
     expect(statusUitRij(rij({}))).toBe("lead");
   });
 
-  it("wijst de hint uit de andere modules alleen vooruit", () => {
-    const k = klant("Bakkerij De Korenaar", { status: "gesprek" });
-    const kop = (soort: "offerte" | "contract" | "onboarding", stand: string) => ({ soort, id: "x", nummer: "N", stand, kleur: "", achter: "", href: "", at: null });
-    expect(statusHint(k, [kop("offerte", "verstuurd")])).toBe("offerte");
-    expect(statusHint(k, [kop("offerte", "getekend"), kop("offerte", "verstuurd")])).toBe("akkoord");
-    expect(statusHint(k, [kop("contract", "getekend")])).toBe("inrichten");
-    expect(statusHint(k, [kop("onboarding", "ingericht")])).toBe("klant");
-    expect(statusHint({ status: "klant" }, [kop("offerte", "verstuurd")])).toBeNull();
-    expect(statusHint({ status: "inactief" }, [kop("contract", "getekend")])).toBeNull();
+  it("weet waar een systeemregel naartoe klikt", () => {
+    expect(bronHref("offerte", "o1")).toBe("/admin/offertes/o1");
+    expect(bronHref("onboarding", "ob1")).toBe("/admin/onboarding/ob1");
+    expect(bronHref("opdracht", "x")).toBe("/admin/verkoop/los");
+    expect(bronHref(null, "x")).toBeNull();
   });
 });
 
@@ -80,6 +76,16 @@ describe("datums en acties", () => {
     expect(relatief("2026-11-20", VANDAAG)).toBe("over 4 dagen");
     expect(relatief("2026-12-24", VANDAAG)).toBe("24 december 2026");
     expect(relatief(null, VANDAAG)).toBe("");
+  });
+
+  it("zegt hoe lang geleden een tijdstip was", () => {
+    const nu = new Date("2026-11-16T14:00:00+01:00");
+    expect(relatiefMoment("2026-11-16T13:59:30+01:00", nu)).toBe("zojuist");
+    expect(relatiefMoment("2026-11-16T13:20:00+01:00", nu)).toBe("40 min geleden");
+    expect(relatiefMoment("2026-11-16T09:00:00+01:00", nu)).toBe("5 uur geleden");
+    expect(relatiefMoment("2026-11-15T23:30:00+01:00", nu)).toBe("gisteren");
+    expect(relatiefMoment("2026-11-12T10:00:00+01:00", nu)).toBe("4 dagen geleden");
+    expect(relatiefMoment(null, nu)).toBe("");
   });
 
   it("weet of een actie te laat is", () => {
@@ -160,6 +166,24 @@ describe("koppelingen", () => {
     ]);
     expect(koppelingenVoor("Ander Bedrijf", bronnen).map((x) => x.nummer)).toEqual(["2026-0013"]);
     expect(koppelingenVoor("", bronnen)).toEqual([]);
+  });
+});
+
+describe("sitebezoek", () => {
+  it("koppelt het bezoek van een bedrijf aan de kaart met dezelfde naam, nieuwste sessie eerst", () => {
+    const b = bezoekPerKlant(
+      [klant("Bakkerij De Korenaar"), klant("Zorggroep Oost")],
+      [
+        { name: "Bakkerij de Korenaar B.V.", lastSeen: "2026-11-16T12:40:00Z", views: 5, sessions: [
+          { start: "2026-11-10T09:00:00Z", pages: [{ path: "/" }] },
+          { start: "2026-11-16T12:30:00Z", pages: [{ path: "/verzuimbegeleiding" }, { path: "/tarieven" }, { path: "/tarieven" }] },
+        ] },
+        { name: "Onbekend Bedrijf", lastSeen: "2026-11-16T12:40:00Z", views: 1, sessions: [] },
+      ],
+    );
+    expect(Object.keys(b)).toEqual(["id-Bakkerij De Korenaar"]);
+    expect(b["id-Bakkerij De Korenaar"].paginas).toBe(5);
+    expect(b["id-Bakkerij De Korenaar"].sessies.map((s) => s.paginas)).toEqual([["/verzuimbegeleiding", "/tarieven"], ["/"]]);
   });
 });
 

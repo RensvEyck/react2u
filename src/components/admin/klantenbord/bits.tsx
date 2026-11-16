@@ -2,9 +2,9 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
-  LuBookOpen, LuClipboardCheck, LuFilePenLine, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload,
+  LuBookOpen, LuClipboardCheck, LuEuro, LuFilePenLine, LuGlobe, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload, LuZap,
 } from "react-icons/lu";
-import { CHECKLIST, initialen, statusInfo, type GesprekSoort, type Klant, type KlantStatus, type Koppeling, type KoppelSoort } from "@/lib/klanten";
+import { CHECKLIST, initialen, statusInfo, type Bron, type GesprekSoort, type Klant, type KlantStatus, type Koppeling, type KoppelSoort } from "@/lib/klanten";
 
 /** Kleine bouwstenen die het bord, de lijst en het zijpaneel delen. */
 
@@ -50,6 +50,7 @@ export const SOORT_ICOON: Record<GesprekSoort, ComponentType<{ className?: strin
   notitie: LuStickyNote,
   status: LuArrowRight,
   import: LuUpload,
+  systeem: LuZap,
 };
 
 export const SOORT_LABEL: Record<GesprekSoort, string> = {
@@ -59,7 +60,27 @@ export const SOORT_LABEL: Record<GesprekSoort, string> = {
   notitie: "Notitie",
   status: "Verplaatst",
   import: "Import",
+  systeem: "Vanuit de modules",
 };
+
+/** Het icoon en de naam van de module waar een systeemregel vandaan komt (0041). */
+export const BRON_ICOON: Record<Bron, ComponentType<{ className?: string }>> = {
+  offerte: LuFilePenLine,
+  brochure: LuBookOpen,
+  contract: LuScrollText,
+  onboarding: LuClipboardCheck,
+  opdracht: LuEuro,
+};
+
+export const BRON_LABEL: Record<Bron, string> = {
+  offerte: "Offerte",
+  brochure: "Brochure",
+  contract: "Contract",
+  onboarding: "Onboarding",
+  opdracht: "Losse klant of opdracht",
+};
+
+export const SiteIcoon = LuGlobe;
 
 export const KOPPEL_ICOON: Record<KoppelSoort, ComponentType<{ className?: string }>> = {
   offerte: LuFilePenLine,

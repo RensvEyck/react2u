@@ -1815,6 +1815,43 @@ met de laatste stand en soms een contactpersoon.
   alleen vooruit; een inactieve kaart blijft inactief; de naam op het bord
   blijft zoals hij er stond. Elke import schrijft een regel *import* in de
   tijdlijn met wat er veranderde.
+- **Kaarten ontstaan en bewegen zelf** (migratie
+  [0041](supabase/migrations/0041_klantenbord_automatisch.sql), Rens, 17 nov
+  2026, uit het S-tier-voorstel). Een nieuwe offerte, brochure, contract (geen
+  resellerovereenkomst), onboarding of los opgevoerde klant maakt een kaart aan
+  als die er nog niet is (trigger per tabel, `klant_zeker`: dezelfde sleutel is
+  dezelfde kaart; lege contactgegevens worden aangevuld, wat er stond blijft).
+  Elke rij in `offerte_gebeurtenissen`, `brochure_gebeurtenissen`,
+  `contract_gebeurtenissen` en `onboarding_gebeurtenissen` gaat door
+  `klant_gebeurtenis`: één functie die de tekst, of het een contact was en de
+  verplaatsing bepaalt. Verplaatsen: offerte verstuurd of herinnerd naar
+  *Offerte uit*, offerte getekend naar *Akkoord*, contract verstuurd naar
+  *Akkoord*, contract getekend naar *Inrichten*, onboarding verstuurd of klant
+  klaar naar *Inrichten*, *live* naar *Klant*, een losse klant naar *Klant*.
+  Alleen vooruit (`klant_vooruit`, `klant_status_rang`); inactief telt als het
+  begin, dus nieuwe activiteit haalt een geparkeerde kaart terug. Wie een kaart
+  bewust terugzet, houdt dat tot de volgende stap in de modules. Een
+  afgewezen offerte verplaatst niet: de kaart blijft op *Offerte uit* met de
+  afwijzing in de tijdlijn, parkeren doe je zelf. De keuze van de klant
+  (`offertes.keuze_at`) heeft geen gebeurtenis en krijgt een eigen trigger.
+  Alles security definer: een klant die een offerte bekijkt schrijft via
+  `offerte_bekijken` (anon) en moet toch op het bord kunnen.
+  `klantenbord_inlezen()` zet wat er al in de modules stond op het bord (in de
+  migratie gedraaid; kan vaker, `bron_gebeurtenis` voorkomt dubbelen).
+- **De tijdlijn toont alles.** Naast wat je zelf vastlegt staan er regels
+  `systeem` met `bron` (offerte, brochure, contract, onboarding, opdracht) en
+  `bron_id` om door te klikken: aangemaakt, verstuurd (naar wie), herinnering,
+  bekeken, code aangevraagd, koos zelf onderdelen, getekend (door wie),
+  afgewezen, ingetrokken, heropend, een document ingevuld of afgevinkt, klant
+  klaar, live, een werknemer die de machtiging tekende. `door` is het
+  e-mailadres van de collega, `klant` of `automatisch`. `contact` zegt of een
+  regel een echt contact was: het laatste contact op de kaart kijkt alleen
+  daarnaar, dus een verplaatsing, een import of "aangemaakt" telt niet, een
+  bekeken offerte wel. Met het recht `bezoek` komt het sitebezoek erbij
+  (bedrijfsherkenning, dezelfde `summarize` als Bezoek → Bedrijven, laatste
+  twee weken, `bezoekPerKlant`): op de kaart *Op de site 40 min geleden ·
+  3 pagina's*, in de tijdlijn per sessie welke pagina's. Dat staat niet in de
+  database maar wordt bij het laden gekoppeld op bedrijfsnaam.
 - **Database**: `klanten` en `klant_gesprekken`, RLS op `has_perm('bellijst')`,
   trigger `klant_laatste_contact` voor het laatste contact op de kaart. Geen
   automatische opschoning: een klant blijft staan tot iemand hem van het bord
@@ -1826,8 +1863,11 @@ met de laatste stand en soms een contactpersoon.
   kolomherkenning met en zonder kop, het voorstel, datums, zoeken, sorteren,
   koppelingen, csv) en [`e2e/klantenbord.cjs`](e2e/klantenbord.cjs) (het lege
   bord, een nieuwe lead, gesprek met volgende stap en verplaatsing, vinkjes,
-  slepen, de koppelingen en de hint, import met controlerapport en een tweede
-  keer zonder dubbelen, zoeken, de lijst, de telefoon, verwijderen, en
+  slepen, de koppelingen en de kaart die zelf naar Akkoord gaat als de offerte
+  getekend wordt, import met controlerapport en een tweede keer zonder
+  dubbelen, zoeken, de lijst, de telefoon, verwijderen, kaarten die uit een
+  brochure, contract, onboarding en losse opdracht ontstaan en meebewegen,
+  het sitebezoek op de kaart, `klantenbord_inlezen()` zonder dubbelen, en
   `bedrijf_sleutel` tegenover `bedrijfSleutel`).
 
 ## Van Postvak IN naar bellijst

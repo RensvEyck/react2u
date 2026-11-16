@@ -1,12 +1,14 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { LuCalendarClock, LuCheck, LuMail, LuPhone, LuPlus, LuSparkles, LuTrash2, LuX } from "react-icons/lu";
+import { LuCalendarClock, LuCheck, LuExternalLink, LuMail, LuPhone, LuPlus, LuTrash2, LuX } from "react-icons/lu";
 import {
-  actieStand, CHECKLIST, GESPREK_SOORTEN, KLANT_STATUS, relatief, statusHint, statusInfo, type Gesprek, type GesprekSoort, type Klant, type KlantStatus, type Koppeling,
+  actieStand, bronHref, CHECKLIST, GESPREK_SOORTEN, KLANT_STATUS, relatief, relatiefMoment, statusInfo, type Bezoek, type Gesprek, type GesprekSoort, type Klant,
+  type KlantStatus, type Koppeling,
 } from "@/lib/klanten";
-import { datumLang } from "@/lib/offertes";
+import { datumLang, momentLang } from "@/lib/offertes";
 import { maakKlant, verwijderGesprek, verwijderKlant, voegGesprekToe, wijzigKlant, zetKlantStatus, type KlantInvoer } from "@/app/admin/klantenActions";
-import { Checklist, Eigenaar, GesprekIcoon, KoppelChip, SOORT_LABEL } from "./bits";
+import { BRON_ICOON, BRON_LABEL, Checklist, Eigenaar, GesprekIcoon, KoppelChip, SiteIcoon, SOORT_LABEL } from "./bits";
 
 /**
  * Het zijpaneel bij een kaart: de status, de volgende stap, een gesprek
@@ -20,6 +22,7 @@ type Props = {
   klant: Klant | null;
   gesprekken: Gesprek[];
   koppelingen: Koppeling[];
+  bezoek: Bezoek | null;
   vandaag: string;
   eigenaren: string[];
   onClose: () => void;
@@ -179,11 +182,20 @@ function StatusKeuze({ huidig, onKies, bezig }: { huidig: KlantStatus; onKies: (
   );
 }
 
-function Bestaand({ klant: k, gesprekken, koppelingen, vandaag, eigenaren, onClose, onKlant, onGesprekWeg, onVerwijderd, meld }: Props & { klant: Klant }) {
+/** De tijdlijn: de regels uit de database en de sitebezoeken door elkaar, nieuwste eerst. */
+type Regel = { key: string; moment: string; gesprek: Gesprek | null; sessie: Bezoek["sessies"][number] | null };
+
+function tijdlijn(gesprekken: Gesprek[], bezoek: Bezoek | null): Regel[] {
+  const regels: Regel[] = gesprekken.map((g) => ({ key: g.id, moment: g.created_at, gesprek: g, sessie: null }));
+  for (const sessie of bezoek?.sessies || []) regels.push({ key: `site-${sessie.start}`, moment: sessie.start, gesprek: null, sessie });
+  return regels.sort((a, b) => b.moment.localeCompare(a.moment));
+}
+
+function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenaren, onClose, onKlant, onGesprekWeg, onVerwijderd, meld }: Props & { klant: Klant }) {
   const [bezig, start] = useTransition();
   const [fout, setFout] = useState<string | null>(null);
-  const hint = statusHint(k, koppelingen);
   const actie = actieStand(k, vandaag);
+  const regels = tijdlijn(gesprekken, bezoek);
 
   // De volgende stap.
   const [actieTekst, setActieTekst] = useState(k.volgende_actie || "");
@@ -320,10 +332,10 @@ function Bestaand({ klant: k, gesprekken, koppelingen, vandaag, eigenaren, onClo
         <div className="mt-3">
           <StatusKeuze huidig={k.status} onKies={zetStatus} bezig={bezig} />
         </div>
-        {hint && (
-          <button type="button" onClick={() => zetStatus(hint)} className="mt-3 inline-flex items-center gap-1.5 rounded-[10px] bg-[#f7f7fc] px-3 py-1.5 text-[12.5px] font-semibold text-[#312e82] hover:bg-[#eef0ff]">
-            <LuSparkles className="text-[13px] text-[#e75387]" /> De offertes en contracten zeggen: {statusInfo(hint).label.toLowerCase()}. Zet de kaart daarheen?
-          </button>
+        {bezoek && (
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-[10px] bg-[#e6f2ff] px-3 py-1.5 text-[12.5px] font-semibold text-[#0b6bcb]">
+            <SiteIcoon className="text-[13px]" /> Op de site {relatiefMoment(bezoek.laatst)} · {bezoek.paginas} {bezoek.paginas === 1 ? "pagina" : "pagina's"} in twee weken
+          </p>
         )}
         {(k.telefoon || k.email) && (
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13.5px]">
@@ -423,24 +435,48 @@ function Bestaand({ klant: k, gesprekken, koppelingen, vandaag, eigenaren, onClo
         {/* Tijdlijn */}
         <section aria-labelledby="kb-tijdlijn">
           <h3 id="kb-tijdlijn" className={`${kop} mb-2 px-1`}>Tijdlijn</h3>
-          {gesprekken.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-black/10 px-4 py-5 text-center text-[13px] text-black/45">Nog niets vastgelegd. Het eerste gesprek komt hierboven.</p>
+          {regels.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-black/10 px-4 py-5 text-center text-[13px] text-black/45">Nog niets vastgelegd. Het eerste gesprek komt hierboven; wat er in offertes, contracten en onboardings gebeurt verschijnt hier vanzelf.</p>
           ) : (
             <ol className="space-y-1.5">
-              {gesprekken.map((x) => {
-                const systeem = x.soort === "status" || x.soort === "import";
+              {regels.map((r) => {
+                if (r.sessie) {
+                  return (
+                    <li key={r.key} className="flex items-start gap-3 rounded-xl bg-[#f3f8ff] px-3 py-2.5">
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#e6f2ff] text-[13px] text-[#0b6bcb]"><SiteIcoon /></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[12px] text-black/45"><span className="font-semibold text-[#0b6bcb]">Op de site</span> · {momentLang(r.sessie.start)}</p>
+                        <p className="text-[13.5px] text-[#1c1a4e]">{r.sessie.paginas.length} {r.sessie.paginas.length === 1 ? "pagina" : "pagina's"}: {r.sessie.paginas.slice(0, 4).map((p) => (p === "/" ? "home" : p.replace(/^\//, ""))).join(", ")}{r.sessie.paginas.length > 4 ? ", …" : ""}</p>
+                      </div>
+                    </li>
+                  );
+                }
+                const x = r.gesprek!;
+                const systeem = x.soort === "status" || x.soort === "import" || x.soort === "systeem";
+                const stil = !x.contact;
+                const Bron = x.bron ? BRON_ICOON[x.bron] : null;
+                const href = bronHref(x.bron, x.bron_id);
+                const door = !x.door ? null : x.door === "klant" ? "de klant" : x.door === "automatisch" ? "automatisch" : x.door.split("@")[0];
                 return (
-                  <li key={x.id} className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 ${systeem ? "text-black/50" : "bg-white shadow-[0_1px_2px_rgba(18,16,60,0.05)]"}`}>
-                    <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] ${systeem ? "bg-black/[0.04] text-black/40" : "bg-[#eef0ff] text-[#312e82]"}`}>
-                      <GesprekIcoon soort={x.soort} />
+                  <li key={r.key} className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 ${stil ? "text-black/50" : "bg-white shadow-[0_1px_2px_rgba(18,16,60,0.05)]"}`}>
+                    <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] ${stil ? "bg-black/[0.04] text-black/40" : x.soort === "systeem" ? "bg-[#e6f2ff] text-[#0b6bcb]" : "bg-[#eef0ff] text-[#312e82]"}`}>
+                      {Bron ? <Bron /> : <GesprekIcoon soort={x.soort} />}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[12px] text-black/45">
-                        <span className="font-semibold text-black/55">{SOORT_LABEL[x.soort]}</span> · {datumLang(x.op)}{x.door ? ` · ${x.door.split("@")[0]}` : ""}
+                        <span className="font-semibold text-black/55">{x.bron ? BRON_LABEL[x.bron] : SOORT_LABEL[x.soort]}</span> · {datumLang(x.op)}{door ? ` · ${door}` : ""}
+                        {href && (
+                          <>
+                            {" · "}
+                            <Link href={href} className="inline-flex items-center gap-0.5 font-semibold text-[#312e82] hover:underline">open <LuExternalLink className="text-[11px]" /></Link>
+                          </>
+                        )}
                       </p>
-                      <p className={`whitespace-pre-wrap text-[13.5px] ${systeem ? "" : "text-[#1c1a4e]"}`}>{x.tekst}</p>
+                      <p className={`whitespace-pre-wrap text-[13.5px] ${stil ? "" : "text-[#1c1a4e]"}`}>{x.tekst}</p>
                     </div>
-                    <button type="button" onClick={() => verwijderRegel(x.id)} disabled={bezig} className="rounded-md p-1 text-black/25 opacity-0 transition hover:bg-[#fdeef4] hover:text-[#e0356b] focus:opacity-100 group-hover:opacity-100" aria-label="Deze regel verwijderen"><LuTrash2 className="text-[13px]" /></button>
+                    {!systeem && (
+                      <button type="button" onClick={() => verwijderRegel(x.id)} disabled={bezig} className="rounded-md p-1 text-black/25 opacity-0 transition hover:bg-[#fdeef4] hover:text-[#e0356b] focus:opacity-100 group-hover:opacity-100" aria-label="Deze regel verwijderen"><LuTrash2 className="text-[13px]" /></button>
+                    )}
                   </li>
                 );
               })}
