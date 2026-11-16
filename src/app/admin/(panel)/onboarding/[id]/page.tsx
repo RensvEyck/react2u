@@ -228,11 +228,14 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
                       {wanneer ? ` · ${invul ? "ingevuld" : "afgevinkt"} ${momentLang(wanneer)}` : ""}
                     </span>
                   </span>
-                  {d.sleutel === "werknemers" && !invul ? (
-                    <a href={`${basis}/excel`} className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuFileSpreadsheet /> Excel</a>
-                  ) : d.sleutel === "werknemers" ? null : (
-                    <a href={`${basis}/pdf/${d.sleutel}`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuFileDown /> Pdf</a>
-                  )}
+                  <span className="flex shrink-0 items-center gap-3">
+                    <Link href={`${basis}/${d.sleutel}`} target="_blank" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuEye /> Bekijk</Link>
+                    {d.sleutel === "werknemers" && !invul ? (
+                      <a href={`${basis}/excel`} className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuFileSpreadsheet /> Excel</a>
+                    ) : d.sleutel === "werknemers" ? null : (
+                      <a href={`${basis}/pdf/${d.sleutel}`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuFileDown /> Pdf</a>
+                    )}
+                  </span>
                 </li>
               );
             })}

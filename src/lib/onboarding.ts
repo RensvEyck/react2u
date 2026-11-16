@@ -106,9 +106,9 @@ export type DocumentInfo = {
 
 /**
  * De catalogus, in de volgorde van het verhaal op de klantpagina: eerst hoe we
- * samenwerken, dan wat de medewerkers moeten weten, dan wat we van de klant
- * nodig hebben (HOOFDSTUKKEN hieronder). Het beheer, de mail en de stapnummers
- * volgen dezelfde volgorde.
+ * samenwerken, dan wat we van de klant nodig hebben (dat is wat hij voor ons
+ * doet), dan het materiaal om door te geven aan zijn team (HOOFDSTUKKEN
+ * hieronder). Het beheer, de mail en de stapnummers volgen dezelfde volgorde.
  */
 export const DOCUMENTEN: DocumentInfo[] = [
   {
@@ -118,26 +118,6 @@ export const DOCUMENTEN: DocumentInfo[] = [
     lezen: "Lees hoe we samenwerken",
     invullen: null,
     kleur: "#322E83", tint: "#ECEBF5",
-    standaard: { mee: true, invullen: false },
-    minuten: 5,
-  },
-  {
-    sleutel: "verzuimprotocol",
-    titel: "Verzuimprotocol",
-    kort: "Wat je medewerkers doen bij ziekte, in zes stappen. Om te delen of op te hangen.",
-    lezen: "Deel het met je medewerkers",
-    invullen: null,
-    kleur: "#3AA5DD", tint: "#E8F4FB",
-    standaard: { mee: true, invullen: false },
-    minuten: 3,
-  },
-  {
-    sleutel: "vragen",
-    titel: "Wat je wél mag vragen bij ziekteverzuim",
-    kort: "Wat een werkgever mag vragen en noteren, met een belscript voor de ziekmelding.",
-    lezen: "Lees het en houd het bij de hand",
-    invullen: null,
-    kleur: "#F19001", tint: "#FEF3E2",
     standaard: { mee: true, invullen: false },
     minuten: 5,
   },
@@ -175,6 +155,26 @@ export const DOCUMENTEN: DocumentInfo[] = [
     minuten: 5,
     nodig: ["naam en vestigingsplaats van je vorige arbodienst"],
   },
+  {
+    sleutel: "verzuimprotocol",
+    titel: "Verzuimprotocol",
+    kort: "Wat je medewerkers doen bij ziekte, in zes stappen. Om te delen of op te hangen.",
+    lezen: "Deel het met je medewerkers",
+    invullen: null,
+    kleur: "#3AA5DD", tint: "#E8F4FB",
+    standaard: { mee: true, invullen: false },
+    minuten: 3,
+  },
+  {
+    sleutel: "vragen",
+    titel: "Wat je wél mag vragen bij ziekteverzuim",
+    kort: "Wat een werkgever mag vragen en noteren, met een belscript voor de ziekmelding.",
+    lezen: "Lees het en houd het bij de hand",
+    invullen: null,
+    kleur: "#F19001", tint: "#FEF3E2",
+    standaard: { mee: true, invullen: false },
+    minuten: 5,
+  },
 ];
 
 export const DOCUMENT_SLEUTELS = DOCUMENTEN.map((d) => d.sleutel);
@@ -184,9 +184,9 @@ export type Hoofdstuk = { id: string; label: string; eyebrow: string; titel: str
 
 /**
  * De verhaallijn van de onboarding, in drie hoofdstukken (de pagina slaat een
- * hoofdstuk over als geen van zijn documenten meegaat): kennismaken, je
- * medewerkers voorbereiden, en jullie gegevens. Daarna vertelt de pagina wat
- * React2u vervolgens doet.
+ * hoofdstuk over als geen van zijn documenten meegaat): kennismaken, jullie
+ * gegevens, en wat je deelt met je team. Daarna vertelt de pagina wat React2u
+ * vervolgens doet.
  */
 export const HOOFDSTUKKEN: Hoofdstuk[] = [
   {
@@ -194,16 +194,8 @@ export const HOOFDSTUKKEN: Hoofdstuk[] = [
     label: "Zo werken we",
     eyebrow: "Zo werken we samen",
     titel: "Eerst: hoe een ziekmelding bij ons loopt.",
-    tekst: "Wie wat doet, van de eerste dag tot het einde van de wachttijd, en waar je ons voor kunt bellen. Lees het rustig door; wij bewaken de termijnen.",
+    tekst: "Wie wat doet, van de eerste dag tot het einde van de wachttijd, en waar je ons voor kunt bellen. Vijf minuten lezen; wij bewaken de termijnen.",
     documenten: ["welkom"],
-  },
-  {
-    id: "medewerkers",
-    label: "Je medewerkers",
-    eyebrow: "Je medewerkers voorbereiden",
-    titel: "Wat je mensen moeten weten, en wat jij mag vragen.",
-    tekst: "Twee documenten om te delen en bij de hand te houden: het verzuimprotocol voor je medewerkers, en voor leidinggevenden wat je wél en niet vraagt bij een ziekmelding.",
-    documenten: ["verzuimprotocol", "vragen"],
   },
   {
     id: "gegevens",
@@ -212,6 +204,14 @@ export const HOOFDSTUKKEN: Hoofdstuk[] = [
     titel: "Jullie gegevens, dan richten wij alles in.",
     tekst: "Met deze gegevens zetten we jullie omgeving, de facturatie en het verzuimsysteem klaar. Je kunt tussendoor stoppen en later verder; wat je opslaat, blijft bewaard.",
     documenten: ["inrichting", "werknemers", "machtiging"],
+  },
+  {
+    id: "team",
+    label: "Je team",
+    eyebrow: "Delen met je team",
+    titel: "Wat je medewerkers en leidinggevenden moeten weten.",
+    tekst: "Twee documenten om te downloaden en door te geven: het verzuimprotocol voor je medewerkers, en voor leidinggevenden wat je wél en niet vraagt bij een ziekmelding.",
+    documenten: ["verzuimprotocol", "vragen"],
   },
 ];
 
@@ -272,6 +272,25 @@ export function benodigdheden(o: Pick<Onboarding, "documenten" | "invullen">): s
 export function totaleMinuten(o: Pick<Onboarding, "documenten" | "invullen">): number {
   const som = gekozen(o).reduce((s, d) => s + (d.invullen && !vultIn(o, d.sleutel) ? 2 : d.minuten), 0);
   return Math.max(5, Math.round(som / 5) * 5);
+}
+
+/** De eerste stap die nog open staat, of null als alles klaar is. */
+export function volgendeStap(o: Pick<Onboarding, "documenten" | "invullen" | "antwoorden" | "gelezen">): DocumentInfo | null {
+  return gekozen(o).find((d) => !documentKlaar(o, d.sleutel)) ?? null;
+}
+
+/** De stap na deze (in de volgorde van het verhaal), of null bij de laatste. */
+export function stapNa(o: Pick<Onboarding, "documenten">, s: DocumentSleutel): DocumentInfo | null {
+  const docs = gekozen(o);
+  const i = docs.findIndex((d) => d.sleutel === s);
+  return i >= 0 && i < docs.length - 1 ? docs[i + 1] : null;
+}
+
+/** De stap vóór deze, of null bij de eerste. */
+export function stapVoor(o: Pick<Onboarding, "documenten">, s: DocumentSleutel): DocumentInfo | null {
+  const docs = gekozen(o);
+  const i = docs.findIndex((d) => d.sleutel === s);
+  return i > 0 ? docs[i - 1] : null;
 }
 
 /** Hoeveel van de gekozen documenten af zijn. */
@@ -598,6 +617,55 @@ export function naarXpertRijen(rijen: Werknemer[], codeWerkgever?: string | null
     }
     return XPERT_KOLOMMEN.map((x) => rij[x] || "");
   });
+}
+
+/* ---------- plakken uit Excel ---------- */
+
+const sleutelVan = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** Van elke kolomnaam van XpertSuite, elk label van ons en elke veldnaam naar onze veldnaam. */
+const KOLOM_ALIASSEN: Record<string, string> = (() => {
+  const uit: Record<string, string> = {};
+  for (const k of WERKNEMER_KOLOMMEN) {
+    uit[sleutelVan(k.naam)] = k.naam;
+    uit[sleutelVan(k.label)] = k.naam;
+    for (const x of k.xpert) uit[sleutelVan(x)] = k.naam;
+  }
+  return uit;
+})();
+
+/**
+ * Rijen die de klant uit Excel plakt (tabs; of puntkomma's of komma's uit een
+ * csv). Met een kopregel (de kolomnamen van het importbestand, of onze labels)
+ * gaat elke kolom naar het juiste veld; zonder kopregel geldt de volgorde van
+ * het importbestand (37 kolommen) of anders die van onze velden. Lege cellen
+ * overschrijven niets, zodat `start_overeenkomst` en `startdatum_dienstverband`
+ * elkaar aanvullen. De uitkomst is al schoongemaakt (schoneWerknemers).
+ */
+export function rijenUitPlak(tekst: string): { rijen: Werknemer[]; kopregel: boolean } {
+  const regels = tekst.split(/\r?\n/).map((r) => r.replace(/\s+$/, "")).filter((r) => r.trim());
+  if (!regels.length) return { rijen: [], kopregel: false };
+  const scheiding = regels[0].includes("\t") ? "\t" : regels[0].includes(";") ? ";" : ",";
+  const cellen = regels.map((r) => r.split(scheiding).map((c) => c.trim().replace(/^"(.*)"$/, "$1")));
+  const herkend = cellen[0].map((c) => KOLOM_ALIASSEN[sleutelVan(c)] ?? null);
+  const kopregel = herkend.filter(Boolean).length >= 3;
+  const mapping: (string | null)[] = kopregel
+    ? herkend
+    : cellen[0].length >= XPERT_KOLOMMEN.length
+      ? XPERT_KOLOMMEN.map((x) => KOLOM_ALIASSEN[sleutelVan(x)] ?? null)
+      : WERKNEMER_KOLOMMEN.map((k) => k.naam);
+  const data = kopregel ? cellen.slice(1) : cellen;
+  const rijen = schoneWerknemers(
+    data.map((cel) => {
+      const rij: Record<string, string> = {};
+      mapping.forEach((naam, i) => {
+        const w = (cel[i] ?? "").trim();
+        if (naam && w) rij[naam] = w;
+      });
+      return rij;
+    })
+  );
+  return { rijen, kopregel };
 }
 
 /* ---------- de inhoud van de leesdocumenten ---------- */

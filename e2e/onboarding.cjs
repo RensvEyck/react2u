@@ -1,7 +1,8 @@
-// Onboarding (0037) van begin tot eind: aanmaken in het beheer met de documentkeuze, het voorbeeld, versturen,
-// de klant opent de link (melding aan sales), vinkt af en vult online in (inrichting, werknemers met BSN,
-// machtiging), de pdf's en het Excelbestand, alles compleet (melding), het beheer vinkt zijn eigen taken af tot
-// de klant is ingericht, het register, intrekken en een onbekende link. Draaien via e2e/run.mjs (E2E_ALLEEN=onboarding).
+// Onboarding (0037) van begin tot eind: aanmaken in het beheer met de documentkeuze, het voorbeeld (hub en een
+// stap), versturen, de klant opent de hub (melding aan sales) en gaat per stap naar zijn eigen pagina: afvinken,
+// online invullen (inrichting, werknemers met BSN en plakken uit Excel, machtiging), de pdf's en het Excelbestand,
+// alles compleet (melding), het beheer vinkt zijn eigen taken af tot de klant is ingericht, het register, intrekken
+// en een onbekende link. Draaien via e2e/run.mjs (E2E_ALLEEN=onboarding).
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
@@ -26,18 +27,6 @@ async function mailMet(re) {
     await wacht(500);
   }
   return null;
-}
-
-/** Wacht tot een element stilstaat (vloeiend scrollen) en geeft zijn plek. */
-async function stil(page, sel) {
-  let doos = await page.locator(sel).boundingBox();
-  for (let i = 0; i < 30; i++) {
-    await page.waitForTimeout(150);
-    const nu = await page.locator(sel).boundingBox();
-    if (nu && doos && Math.abs(nu.y - doos.y) < 0.5) return nu;
-    doos = nu;
-  }
-  return doos;
 }
 
 const isPdf = (r, body) => r.status() === 200 && r.headers()["content-type"] === "application/pdf" && body.subarray(0, 5).toString() === "%PDF-";
@@ -97,11 +86,11 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(await page.locator("text=0 van 6 klaar").count(), "voortgang: 0 van 6");
   const vbLink = await page.getAttribute("a:has-text('Voorbeeld')", "href");
   check(vbLink === `/admin/onboardingvoorbeeld/${id}`, `voorbeeld in het beheer (${vbLink})`);
-  check(sql(`select array_to_string(documenten, ',') from public.onboardings where id = '${id}'`) === "welkom,verzuimprotocol,vragen,inrichting,werknemers,machtiging", "documenten in de volgorde van het verhaal");
+  check(sql(`select array_to_string(documenten, ',') from public.onboardings where id = '${id}'`) === "welkom,inrichting,werknemers,machtiging,verzuimprotocol,vragen", "documenten in de volgorde van het verhaal");
   check(sql(`select array_to_string(invullen, ',') from public.onboardings where id = '${id}'`) === "inrichting,werknemers,machtiging", "drie documenten online in te vullen");
   await shot(page, "03-beheer-concept");
 
-  stap("Voorbeeld, pdf en Excel vanuit het beheer");
+  stap("Voorbeeld (hub en een stap), pdf en Excel vanuit het beheer");
   const vb = await ctx.newPage();
   vb.on("pageerror", (e) => paginafouten.push(String(e)));
   await vb.goto(`${BASIS}${vbLink}`);
@@ -110,13 +99,22 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(await vb.locator("h1:has-text('Welkom')").count(), "de kop");
   check(await vb.locator("text=Beste Fatima,").count(), "aanhef met de voornaam");
   check(await vb.locator(`text=Fijn dat we voor ${BEDRIJF} aan de slag gaan`).count(), "{bedrijf} ingevuld in het persoonlijke woord");
-  check((await vb.locator("section[id^=stap-]").count()) === 6, "zes stappen");
+  check((await vb.locator("section[id^=hoofdstuk-]").count()) === 3, "drie hoofdstukken op de hub");
+  check((await vb.locator("section[id^=hoofdstuk-] ol > li > a").count()) === 6, "zes stappen als kaarten, elk naar een eigen pagina");
   check((await vb.locator('nav[aria-label="Hoofdstukken van de onboarding"] a').count()) === 4, "drie hoofdstukken en het vervolg in de kopbalk");
-  check((await vb.locator("section[id^=hoofdstuk-]").count()) === 3, "drie hoofdstukken op de pagina");
   check(await vb.locator("#verder >> text=Zo gaat het verder").count(), "het vervolg: wat React2u daarna doet");
-  check(await vb.locator("#stap-inrichting button:has-text('Gegevens opslaan')[disabled]").count(), "in het voorbeeld kan niets worden opgeslagen");
+  check(await vb.locator("text=Handig om bij de hand te hebben").count() && (await vb.locator("text=KvK-nummer").count()), "wat je bij de hand moet hebben");
+  check((await vb.locator("text=IBAN").count()) === 0, "geen IBAN meer: React2u incasseert niet");
   check((await vb.locator("div.fixed:has-text('Stap 1')").count()) === 0, "geen balk naar de volgende stap in het voorbeeld");
-  await shot(vb, "04-voorbeeld");
+  await shot(vb, "04-voorbeeld-hub");
+  await vb.goto(`${BASIS}${vbLink}/inrichting`);
+  await vb.waitForSelector("#stap-inrichting");
+  check(await vb.locator("header a:has-text('Overzicht')").count(), "stappagina: terug naar het overzicht in de kopbalk");
+  check(await vb.locator("text=Hoofdstuk 2 van 3").count() && (await vb.locator("text=Stap 2 van 6").count()), "stappagina: waar je bent in het verhaal");
+  check(await vb.locator("#stap-inrichting button:has-text('Gegevens opslaan')[disabled]").count(), "in het voorbeeld kan niets worden opgeslagen");
+  check((await vb.locator("#ob-inrichting-iban").count()) === 0, "geen IBAN-veld");
+  check(await vb.locator("a:has-text('Volgende stap: Werknemersbestand')").count(), "volgende stap onderaan");
+  await shot(vb, "04b-voorbeeld-stap");
   await vb.close();
   for (const d of ["welkom", "verzuimprotocol", "vragen", "inrichting", "machtiging"]) {
     const r = await page.request.get(`${BASIS}/admin/onboardingvoorbeeld/${id}/pdf/${d}?download=1`);
@@ -128,6 +126,8 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(isXlsx(xl, await xl.body()), `leeg werknemersbestand uit het beheer: ${xl.status()}`);
   const geenPdf = await page.request.get(`${BASIS}/admin/onboardingvoorbeeld/${id}/pdf/werknemers`);
   check(geenPdf.status() === 404, "het werknemersbestand is geen pdf (404)");
+  const geenStap = await page.request.get(`${BASIS}/admin/onboardingvoorbeeld/${id}/onzin`);
+  check(geenStap.status() === 404, "een onbekende stap: 404");
 
   stap("Versturen");
   await page.goto(adminUrl);
@@ -165,12 +165,13 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(await klant.locator("text=Beste Fatima,").count(), "aanhef");
   check(await klant.locator("text=Nog 6 stappen te gaan").count(), "voortgang: nog zes stappen");
   check(await klant.locator("text=Rens van Eyck").count(), "het aanspreekpunt");
+  check(await klant.locator("a.hv-btn-roze:has-text('Begin met stap 1')").count(), "knop naar stap 1");
   check(sql(`select aantal_bekeken from public.onboardings where id = '${id}'`) === "1", "bezoek geteld");
   check(sql(`select bekeken_at is not null from public.onboardings where id = '${id}'`) === "t", "bekeken_at gezet");
   const geopend = await mailMet(/heeft de onboarding geopend/);
   check(geopend?.to?.includes("sales@react2u.nl"), `seintje aan de afzender: ${geopend?.subject}`);
   await shot(klant, "06-klant-boven", { fullPage: false });
-  await shot(klant, "07-klant-heel");
+  await shot(klant, "07-klant-hub");
 
   stap("Telefoon, een half uur later");
   // Een bezoek telt pas opnieuw na een half uur zonder activiteit (de pagina rendert ook na elke keer opslaan).
@@ -186,25 +187,35 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(breed <= 390, `geen horizontale scroll op 390 px (${breed})`);
   check(sql(`select aantal_bekeken from public.onboardings where id = '${id}'`) === "2", "na een half uur stilte telt het bezoek opnieuw");
   await shot(tp, "08-telefoon-boven", { fullPage: false });
-  await tp.click("div.fixed button:has-text('Stap 1')");
-  const naarStap = await stil(tp, "#stap-welkom");
-  check(naarStap.y < 200, `knop onderaan brengt je naar stap 1 (${Math.round(naarStap.y)})`);
+  await tp.click("div.fixed a:has-text('Stap 1')");
+  await tp.waitForURL(/\/onboarding\/[a-f0-9]{48,}\/welkom$/, { timeout: 20000 });
+  await tp.waitForSelector("#stap-welkom");
+  check((await tp.evaluate(() => document.documentElement.scrollWidth)) <= 390, "stappagina op de telefoon: geen horizontale scroll");
+  check(sql(`select aantal_bekeken from public.onboardings where id = '${id}'`) === "2", "doorklikken naar een stap telt niet als nieuw bezoek");
   await shot(tp, "09-telefoon-stap", { fullPage: false });
   await tel.close();
 
-  stap("Lezen en afvinken");
+  stap("Lezen en afvinken op de stappagina");
+  await klant.goto(`${link}/welkom`);
+  await klant.waitForSelector("#stap-welkom");
+  check(await klant.locator("#stap-welkom >> text=Wij bewaken dit").count(), "de reis met wat React2u bewaakt");
+  check(await klant.locator("#stap-welkom button:has-text('Gelezen')").count(), "afvinkknop");
   await klant.locator("#stap-welkom button:has-text('Gelezen')").click();
   await klant.waitForSelector("#stap-welkom >> text=Afgevinkt", { timeout: 20000 });
   check(sql(`select gelezen ? 'welkom' from public.onboardings where id = '${id}'`) === "t", "welkom afgevinkt in de database");
-  await klant.waitForSelector("text=Nog 5 stappen te gaan", { timeout: 20000 });
+  await klant.waitForSelector("#stap-welkom >> text=Verder met inrichting nieuwe klant", { timeout: 20000 });
   check(await klant.locator("header >> text=1/6").count(), "voortgang in de kopbalk: 1/6");
   const welkomPdf = await klant.request.get(`${link}/pdf/welkom`);
   check(isPdf(welkomPdf, await welkomPdf.body()), "welkom als pdf voor de klant");
   check(sql(`select aantal_bekeken from public.onboardings where id = '${id}'`) === "2", "een pdf ophalen telt niet als bezoek");
+  await shot(klant, "10-klant-welkom");
 
   stap("Inrichting invullen, eerst met een fout");
+  await klant.goto(`${link}/inrichting`);
+  await klant.waitForSelector("#stap-inrichting");
   const inr = (n) => `#ob-inrichting-${n}`;
   check((await klant.inputValue(inr("bedrijfsnaam"))) === BEDRIJF, "bedrijfsnaam vooringevuld");
+  check(await klant.locator("text=Verplichte velden: 1 van 8").count(), "voortgang van de verplichte velden");
   await klant.fill(inr("kvk"), "1234");
   await klant.fill(inr("factuur_straat"), "Korenstraat 8");
   await klant.fill(inr("factuur_postcode"), "5611 KL");
@@ -212,6 +223,7 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   await klant.fill(inr("factuur_email"), "facturen@korenaar.test");
   await klant.fill(inr("contact_naam"), "Fatima El Amrani");
   await klant.fill(inr("contact_email"), "fatima@korenaar.test");
+  check(await klant.locator("text=Verplichte velden: 8 van 8").count(), "alle verplichte velden gevuld");
   await klant.click("#stap-inrichting button:has-text('Gegevens opslaan')");
   await klant.waitForSelector("#stap-inrichting >> text=Een KvK-nummer heeft 8 cijfers.", { timeout: 20000 });
   ok("fout bij een KvK-nummer van vier cijfers");
@@ -224,8 +236,11 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   const ingevuld = await mailMet(/vulde inrichting nieuwe klant in/);
   check(Boolean(ingevuld), `seintje aan de afzender: ${ingevuld?.subject}`);
   await klant.waitForSelector("#stap-inrichting >> text=Wijzigingen opslaan", { timeout: 20000 });
+  await shot(klant, "11-klant-inrichting");
 
-  stap("Werknemers invoeren, met een fout BSN");
+  stap("Werknemers invoeren, met een fout BSN en plakken uit Excel");
+  await klant.goto(`${link}/werknemers`);
+  await klant.waitForSelector("#stap-werknemers");
   const wn = (i, n) => `#wn-${i}-${n}`;
   const vul = async (i, w) => { for (const [k, v] of Object.entries(w)) await klant.fill(wn(i, k), v); };
   await vul(0, { voorletters: "J.", roepnaam: "Jan", achternaam: "Jansen", geboortedatum: "1980-05-12", bsn: "123456782", adres: "Kerkstraat", huisnummer: "4", postcode: "5611ab", plaats: "Eindhoven", startdatum: "2024-01-01", functie: "Bakker", uren: "38" });
@@ -236,13 +251,22 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   await klant.waitForSelector("#stap-werknemers >> text=Dit BSN klopt niet", { timeout: 20000 });
   ok("fout bij een BSN die de elfproef niet haalt");
   await klant.fill(wn(1, "bsn"), "111222333");
-  await klant.click("#stap-werknemers button:has-text('2 medewerkers opslaan')");
-  await klant.waitForSelector("#stap-werknemers >> text=Opgeslagen: 2 medewerkers", { timeout: 20000 });
-  check(sql(`select jsonb_array_length(antwoorden->'werknemers'->'data'->'rijen') from public.onboardings where id = '${id}'`) === "2", "twee medewerkers opgeslagen");
+  // Twee medewerkers erbij uit Excel, met de kopregel van het importbestand.
+  await klant.click("#stap-werknemers summary:has-text('Plak ze uit Excel')");
+  await klant.fill("#wn-plak", "Burgerservicenummer\troepnaam\tvoorletters\tEigen_achternaam\tgeboortedatum\tadres\thuisnummer\tpostcode\tplaatsnaam\tstartdatum_dienstverband\n100000009\tPiet\tP.\tPeters\t15-02-1975\tMolenweg\t3\t5613 CD\tEindhoven\t01-06-2020\n200000007\tLeila\tL.\tAzzouzi\t28-09-1998\tHeistraat\t21\t5614 EF\tEindhoven\t15-08-2023\n");
+  await klant.click("#stap-werknemers button:has-text('Rijen toevoegen')");
+  await klant.waitForSelector("#stap-werknemers >> text=2 medewerkers toegevoegd", { timeout: 20000 });
+  check(await klant.locator("#stap-werknemers >> text=Peters").count() && (await klant.locator("#stap-werknemers >> text=Azzouzi").count()), "de geplakte medewerkers staan erbij");
+  await klant.click("#stap-werknemers button:has-text('4 medewerkers opslaan')");
+  await klant.waitForSelector("#stap-werknemers >> text=Opgeslagen: 4 medewerkers", { timeout: 20000 });
+  check(sql(`select jsonb_array_length(antwoorden->'werknemers'->'data'->'rijen') from public.onboardings where id = '${id}'`) === "4", "vier medewerkers opgeslagen");
   check(sql(`select antwoorden->'werknemers'->'data'->'rijen'->0->>'postcode' from public.onboardings where id = '${id}'`) === "5611AB", "postcode in hoofdletters");
-  await shot(klant, "10-klant-werknemers", { fullPage: false });
+  check(sql(`select antwoorden->'werknemers'->'data'->'rijen'->2->>'geboortedatum' from public.onboardings where id = '${id}'`) === "1975-02-15", "datum uit Excel omgezet");
+  await shot(klant, "12-klant-werknemers", { fullPage: false });
 
   stap("Machtiging: de vorige arbodienst");
+  await klant.goto(`${link}/machtiging`);
+  await klant.waitForSelector("#stap-machtiging");
   await klant.fill("#ob-machtiging-arbodienst", "ArboNed");
   await klant.fill("#ob-machtiging-plaats", "Utrecht");
   await klant.fill("#ob-machtiging-bedrijfsarts", "P. de Vries");
@@ -252,21 +276,29 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   const mBody = await mPdf.body();
   check(isPdf(mPdf, mBody), `de ingevulde machtiging als pdf: ${mPdf.status()}`);
   fs.writeFileSync(path.join(SHOTS, "machtiging-ingevuld.pdf"), mBody);
-  check(await klant.locator("text=Nog 2 stappen te gaan").count(), "nog twee stappen");
+  check(await klant.locator("header >> text=4/6").count(), "kopbalk: 4/6");
 
-  stap("De laatste stappen afvinken: compleet");
+  stap("Delen met je team: de laatste stappen afvinken, compleet");
+  await klant.goto(`${link}/verzuimprotocol`);
+  await klant.waitForSelector("#stap-verzuimprotocol");
+  check((await klant.locator("#stap-verzuimprotocol >> text=ziektegeld").count()) > 0, "protocol: ziektegeld, zoals op de poster");
   await klant.locator("#stap-verzuimprotocol button:has-text('Gedeeld met mijn medewerkers')").click();
   await klant.waitForSelector("#stap-verzuimprotocol >> text=Afgevinkt", { timeout: 20000 });
   check(sql(`select status from public.onboardings where id = '${id}'`) === "verstuurd", "nog niet compleet na vijf van zes");
+  await klant.goto(`${link}/vragen`);
+  await klant.waitForSelector("#stap-vragen");
+  check(await klant.locator("#stap-vragen >> text=In één oogopslag").count(), "de samenvattingstabel");
   await klant.locator("#stap-vragen button:has-text('Gelezen')").click();
-  await klant.waitForSelector("text=Jullie onboarding is compleet", { timeout: 20000 });
+  await klant.waitForSelector("#stap-vragen >> text=Afgevinkt", { timeout: 20000 });
   check(sql(`select status from public.onboardings where id = '${id}'`) === "afgerond", "status afgerond zodra alles af is");
-  check(await klant.locator("text=Alles klaar, dank je wel!").count(), "de felicitatie");
+  await klant.goto(link);
+  await klant.waitForSelector("text=Jullie onboarding is compleet", { timeout: 20000 });
+  check(await klant.locator("text=Alles klaar, dank je wel!").count(), "de felicitatie op de hub");
   check(await klant.locator("header >> text=6/6").count(), "kopbalk: 6/6");
   check((await klant.locator("div.fixed:has-text('Stap')").count()) === 0, "geen balk naar een volgende stap meer");
   const afgerond = await mailMet(/heeft de onboarding afgerond/);
   check(Boolean(afgerond), `seintje aan de afzender: ${afgerond?.subject}`);
-  await shot(klant, "11-klant-compleet", { fullPage: false });
+  await shot(klant, "13-klant-compleet", { fullPage: false });
 
   stap("Beheer: de klant is klaar, React2u aan zet");
   await page.goto(adminUrl);
@@ -277,8 +309,9 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check((await page.locator("#inrichten >> text=Kan zodra de klant").count()) === 0, "geen taak wacht nog op de klant");
   check(await page.locator("dd:has-text('12345678')").count(), "inrichting: KvK zichtbaar");
   check(await page.locator("td:has-text('•••••6782')").count(), "werknemers: BSN gemaskeerd");
-  check(await page.locator("td:has-text('Jan Jansen')").count() && (await page.locator("td:has-text('Sanne de Vries')").count()), "beide medewerkers in de tabel");
+  check(await page.locator("td:has-text('Jan Jansen')").count() && (await page.locator("td:has-text('Leila Azzouzi')").count()), "alle medewerkers in de tabel, ook de geplakte");
   check(await page.locator("dd:has-text('ArboNed')").count(), "machtiging: de vorige arbodienst");
+  check((await page.locator(`a[href="/admin/onboardingvoorbeeld/${id}/welkom"]`).count()) === 1, "per stap een link naar het voorbeeld van die stap");
   await page.fill("#ob-deb", "D-1001");
   await page.click("form:has(#ob-deb) button:has-text('Opslaan')");
   await page.waitForSelector("text=Onboarding opgeslagen.", { timeout: 20000 });
@@ -286,14 +319,14 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   const impBody = await imp.body();
   check(isXlsx(imp, impBody) && /Import XpertSuite/.test(imp.headers()["content-disposition"] || ""), `Excel voor XpertSuite: ${imp.status()}, ${impBody.length} bytes`);
   fs.writeFileSync(path.join(SHOTS, "import-xpertsuite.xlsx"), impBody);
-  await shot(page, "12-beheer-klant-klaar");
+  await shot(page, "14-beheer-klant-klaar");
 
   stap("Dashboard: inrichten als signaal");
   await page.goto(`${BASIS}/admin`);
   await page.waitForSelector("#verkoop");
   check(await page.locator(`#verkoop >> text=${BEDRIJF}`).count() && (await page.locator("#verkoop >> text=Klant klaar").count()), "het Verkoopblok zet de onboarding klaar om in te richten");
   check(await page.locator("#verkoop >> text=nog 6 taken om in te richten").count(), "met het aantal taken");
-  await page.locator("#verkoop").screenshot({ path: path.join(SHOTS, "13-dashboard.png") });
+  await page.locator("#verkoop").screenshot({ path: path.join(SHOTS, "15-dashboard.png") });
 
   stap("De checklist van React2u afvinken");
   await page.goto(adminUrl);
@@ -310,7 +343,7 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(await page.locator("span:has-text('Klant klaar')").count(), "een taak terug open: weer klant klaar");
   await page.locator("#inrichten [role=checkbox][aria-checked=false]").first().click();
   await page.waitForSelector("text=6 van 6 gedaan", { timeout: 20000 });
-  await shot(page, "14-beheer-ingericht");
+  await shot(page, "16-beheer-ingericht");
 
   stap("Werknemersbestand wissen na de import");
   await page.click("button:has-text('Wissen na import')");
@@ -329,7 +362,7 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(await page.locator("text=Geen onboardings in deze selectie").count(), "filter: niets meer bij de klant");
   await page.goto(`${BASIS}/admin/onboarding?filter=ingericht&q=korenaar`);
   check(await page.locator(`td a:has-text('${BEDRIJF}')`).count(), "filter en zoeken");
-  await shot(page, "15-overzicht", { fullPage: false });
+  await shot(page, "17-overzicht", { fullPage: false });
 
   stap("Collega opent de link");
   await page.goto(link);
@@ -342,13 +375,17 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   await page.waitForSelector("span:has-text('Ingetrokken')", { timeout: 20000 });
   await klant.goto(link);
   check(await klant.locator("text=niet meer beschikbaar").count(), "de klant ziet dat de onboarding is ingetrokken");
-  await shot(klant, "16-ingetrokken", { fullPage: false });
+  await klant.goto(`${link}/welkom`);
+  check(await klant.locator("text=niet meer beschikbaar").count(), "ook op een stappagina");
+  await shot(klant, "18-ingetrokken", { fullPage: false });
   const pdfWeg = await klant.request.get(`${link}/pdf/welkom`);
   check(pdfWeg.status() === 404, "pdf van een ingetrokken onboarding: 404");
 
   stap("Onbekende link");
   const onbekend = await klant.goto(`${BASIS}/onboarding/${"c".repeat(64)}`);
   check(onbekend.status() === 404 && (await klant.locator("text=Deze link werkt niet").count()), `nette 404 (${onbekend.status()})`);
+  const onbekendeStap = await klant.goto(`${BASIS}/onboarding/${"c".repeat(64)}/welkom`);
+  check(onbekendeStap.status() === 404, "onbekende link naar een stap: 404");
   await kctx.close();
 
   stap("Mail renderen");

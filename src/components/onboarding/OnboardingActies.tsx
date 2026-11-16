@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { slaOnboardingOp, vinkOnboardingAf, type OnboardingState } from "@/app/(offerte)/onboarding/actions";
-import { WERKNEMER_KOLOMMEN, type VeldGroep, type Werknemer } from "@/lib/onboarding";
+import { rijenUitPlak, WERKNEMER_KOLOMMEN, type VeldGroep, type Werknemer } from "@/lib/onboarding";
 
 /*
  * Wat de klant op zijn onboardingpagina doet: een document afvinken, een
@@ -186,6 +186,22 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref }
   const [bezig, start] = useTransition();
   const router = useRouter();
   const fouten = state?.rijen || {};
+  // Plakken uit Excel: de rijen komen onder de bestaande, een lege eerste kaart valt weg.
+  const [plak, setPlak] = useState("");
+  const [plakMelding, setPlakMelding] = useState<string | null>(null);
+  const leegIs = (r: Werknemer) => Object.values(r).every((w) => !w);
+  function voegPlakToe() {
+    const { rijen: nieuw, kopregel } = rijenUitPlak(plak);
+    if (!nieuw.length) {
+      setPlakMelding("Daar kon ik geen medewerkers uit halen. Kopieer de rijen uit Excel, het liefst met de kopregel erbij.");
+      return;
+    }
+    setRijen([...rijen.filter((r) => !leegIs(r)), ...nieuw]);
+    setOpen(-1);
+    setState(null);
+    setPlak("");
+    setPlakMelding(`${nieuw.length} ${nieuw.length === 1 ? "medewerker" : "medewerkers"} toegevoegd${kopregel ? "" : ", in de volgorde van onze velden"}. Kijk ze na en sla op.`);
+  }
 
   const zet = (i: number, k: string, w: string) => setRijen(rijen.map((r, n) => (n === i ? { ...r, [k]: w } : r)));
 
@@ -288,6 +304,30 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref }
         </button>
         <a href={excelHref} className="text-[14.5px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>Liever in Excel? Download het lege bestand</a>
       </div>
+      <details className="group rounded-[18px] border border-[#E6E5EF] bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 [&::-webkit-details-marker]:hidden">
+          <span className="flex flex-col">
+            <span className="text-[16px] font-bold" style={{ color: NAVY }}>Veel medewerkers? Plak ze uit Excel</span>
+            <span className="text-[13.5px] text-[#77758F]">Kopieer de rijen uit het importbestand of je eigen lijst, met de kopregel erbij, en plak ze hier.</span>
+          </span>
+          <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#ECEBF5] text-[20px] transition-transform group-open:rotate-45" style={{ color: NAVY }}>+</span>
+        </summary>
+        <div className="flex flex-col gap-3 border-t border-[#E6E5EF] px-5 py-4">
+          <label htmlFor="wn-plak" className="sr-only">Geplakte rijen uit Excel</label>
+          <textarea
+            id="wn-plak"
+            className={`${veld} ${rand()} h-auto min-h-[120px] py-3 font-mono text-[13.5px]`}
+            value={plak}
+            onChange={(e) => setPlak(e.target.value)}
+            placeholder={"Burgerservicenummer\troepnaam\tEigen_achternaam\t…\n123456782\tJan\tJansen\t…"}
+            spellCheck={false}
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" className={knoppen.rand} style={{ background: "transparent" }} disabled={!plak.trim()} onClick={voegPlakToe}>Rijen toevoegen</button>
+            {plakMelding && <span className="text-[14px] font-semibold" style={{ color: NAVY }} role="status">{plakMelding}</span>}
+          </div>
+        </div>
+      </details>
       <p className="m-0 text-[13.5px] leading-[1.6] text-[#77758F]">
         Deze gegevens, ook het burgerservicenummer, gebruiken we alleen om jullie medewerkers in ons beveiligde verzuimsysteem te zetten. Daarna wissen we ze hier.
       </p>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  bsnGeldig, controleerOnboarding, controleerVelden, controleerWerknemers, datumNaarIso, documentKlaar, INRICHTING, keuzeUit,
+  bsnGeldig, controleerOnboarding, controleerVelden, controleerWerknemers, datumNaarIso, documentKlaar, INRICHTING, rijenUitPlak, keuzeUit,
   naarXpertRijen, schoneWerknemers, schoonVelden, voortgang, XPERT_KOLOMMEN,
 } from "./onboarding";
 import { crc32, kolom, xlsx } from "./xlsx";
@@ -92,5 +92,32 @@ describe("xlsx", () => {
     const tekst = new TextDecoder().decode(b);
     expect(tekst).toContain("xl/worksheets/sheet1.xml");
     expect(tekst).toContain("1 &amp; 2");
+  });
+});
+
+
+describe("plakken uit Excel", () => {
+  it("leest rijen met de kopregel van het importbestand, in willekeurige kolomvolgorde", () => {
+    const tekst = "Eigen_achternaam\tgeboortedatum\tBurgerservicenummer\troepnaam\tstartdatum_dienstverband\tpostcode\n" +
+      "Jansen\t12-05-1980\t123456782\tJan\t01-01-2024\t5611ab\n" +
+      "de Vries\t03-11-1992\t111222333\tSanne\t01-03-2025\t5612 AB\n";
+    const { rijen, kopregel } = rijenUitPlak(tekst);
+    expect(kopregel).toBe(true);
+    expect(rijen).toEqual([
+      { achternaam: "Jansen", geboortedatum: "1980-05-12", bsn: "123456782", roepnaam: "Jan", startdatum: "2024-01-01", postcode: "5611AB" },
+      { achternaam: "de Vries", geboortedatum: "1992-11-03", bsn: "111222333", roepnaam: "Sanne", startdatum: "2025-03-01", postcode: "5612 AB" },
+    ]);
+  });
+
+  it("herkent onze eigen labels en puntkomma's, en laat lege regels weg", () => {
+    const { rijen, kopregel } = rijenUitPlak("Voorletters;Roepnaam;Achternaam;BSN\nJ.;Jan;Jansen;123456782\n\n;;;\n");
+    expect(kopregel).toBe(true);
+    expect(rijen).toEqual([{ voorletters: "J.", roepnaam: "Jan", achternaam: "Jansen", bsn: "123456782" }]);
+  });
+
+  it("zonder kopregel: de volgorde van onze velden", () => {
+    const { rijen, kopregel } = rijenUitPlak("J.\tJan\t\tJansen\tM\t1980-05-12\t123456782");
+    expect(kopregel).toBe(false);
+    expect(rijen[0]).toMatchObject({ voorletters: "J.", roepnaam: "Jan", achternaam: "Jansen", geslacht: "M", geboortedatum: "1980-05-12", bsn: "123456782" });
   });
 });

@@ -11,7 +11,7 @@ import { BREED, LAV, LINE, NAVY, PINK, Pijl } from "@/components/blocks/Gedeeld"
  * scrolt.
  */
 
-export type Onderdeel = { id: string; label: string };
+export type Onderdeel = { id: string; label: string; href?: string };
 
 /** Hoe ver je bent (0 tot 1), voor de lijn onder de kopbalk. */
 function useVoortgang() {
@@ -56,26 +56,8 @@ function useActief(ids: string[]) {
   return actief;
 }
 
-/** Of een onderdeel in beeld is: dan hoeft de knop ernaartoe niet meer. */
-function useInBeeld(id: string) {
-  const [inBeeld, setInBeeld] = useState(false);
-  useEffect(() => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => setInBeeld(e.isIntersecting), { rootMargin: "-20% 0px -40% 0px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [id]);
-  return inBeeld;
-}
-
-export function scrollNaar(id: string) {
-  const rustig = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document.getElementById(id)?.scrollIntoView({ behavior: rustig ? "auto" : "smooth", block: "start" });
-}
-
 export default function OnboardingKopbalk({
-  nummer, onderdelen, klaar, totaal, tel, telNaam,
+  nummer, onderdelen, klaar, totaal, tel, telNaam, terug,
 }: {
   nummer: string;
   onderdelen: Onderdeel[];
@@ -83,6 +65,8 @@ export default function OnboardingKopbalk({
   totaal: number;
   tel: string;
   telNaam: string;
+  /** Op een stappagina: terug naar het overzicht. */
+  terug?: { href: string; label: string };
 }) {
   const voortgang = useVoortgang();
   const actief = useActief(onderdelen.map((o) => o.id));
@@ -94,13 +78,19 @@ export default function OnboardingKopbalk({
           <Logo className="h-9 w-auto shrink-0 md:h-11" />
           <span className="hidden h-8 w-px sm:block" style={{ background: LINE }} aria-hidden="true" />
           <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>Onboarding {nummer}</span>
+          {terug && (
+            <a href={terug.href} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[14px] font-bold transition-colors hover:bg-[#F6F5FB]" style={{ color: NAVY }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
+              {terug.label}
+            </a>
+          )}
         </div>
         {onderdelen.length > 0 && (
           <nav aria-label="Hoofdstukken van de onboarding" className="hidden items-center gap-7 xl:flex">
             {onderdelen.map((o) => {
               const hier = o.id === actief;
               return (
-                <a key={o.id} href={`#${o.id}`} aria-current={hier ? "true" : undefined} className="relative py-2 text-[15px] font-bold transition-colors" style={{ color: hier ? PINK : NAVY }}>
+                <a key={o.id} href={o.href ?? `#${o.id}`} aria-current={hier ? "true" : undefined} className="relative py-2 text-[15px] font-bold transition-colors" style={{ color: hier ? PINK : NAVY }}>
                   {o.label}
                   <span aria-hidden className="absolute inset-x-0 -bottom-0.5 h-[2px] rounded-full transition-opacity" style={{ background: PINK, opacity: hier ? 1 : 0 }} />
                 </a>
@@ -125,14 +115,13 @@ export default function OnboardingKopbalk({
   );
 }
 
-/** Op de telefoon: onderaan de knop naar de volgende open stap, tot je erbij bent. */
-export function VolgendeBalk({ id, titel, nr }: { id: string; titel: string; nr: number }) {
-  const inBeeld = useInBeeld(id);
+/** Op de telefoon, op de hub: onderaan de knop naar de volgende open stap. */
+export function VolgendeBalk({ href, titel, nr }: { href: string; titel: string; nr: number }) {
   return (
-    <div className={`geen-print fixed inset-x-0 bottom-0 z-40 border-t bg-white/95 px-4 py-3 backdrop-blur-md transition-transform sm:hidden ${inBeeld ? "translate-y-full" : ""}`} style={{ borderColor: LINE }}>
-      <button type="button" onClick={() => scrollNaar(id)} className="hv-btn hv-btn-roze flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-bold">
+    <div className="geen-print fixed inset-x-0 bottom-0 z-40 border-t bg-white/95 px-4 py-3 backdrop-blur-md sm:hidden" style={{ borderColor: LINE }}>
+      <a href={href} className="hv-btn hv-btn-roze flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-bold">
         <span className="truncate">Stap {nr}: {titel}</span><Pijl size={14} />
-      </button>
+      </a>
     </div>
   );
 }
