@@ -97,7 +97,7 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(await page.locator("text=0 van 6 klaar").count(), "voortgang: 0 van 6");
   const vbLink = await page.getAttribute("a:has-text('Voorbeeld')", "href");
   check(vbLink === `/admin/onboardingvoorbeeld/${id}`, `voorbeeld in het beheer (${vbLink})`);
-  check(sql(`select array_to_string(documenten, ',') from public.onboardings where id = '${id}'`) === "welkom,inrichting,werknemers,verzuimprotocol,vragen,machtiging", "documenten in de vaste volgorde");
+  check(sql(`select array_to_string(documenten, ',') from public.onboardings where id = '${id}'`) === "welkom,verzuimprotocol,vragen,inrichting,werknemers,machtiging", "documenten in de volgorde van het verhaal");
   check(sql(`select array_to_string(invullen, ',') from public.onboardings where id = '${id}'`) === "inrichting,werknemers,machtiging", "drie documenten online in te vullen");
   await shot(page, "03-beheer-concept");
 
@@ -111,7 +111,9 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   check(await vb.locator("text=Beste Fatima,").count(), "aanhef met de voornaam");
   check(await vb.locator(`text=Fijn dat we voor ${BEDRIJF} aan de slag gaan`).count(), "{bedrijf} ingevuld in het persoonlijke woord");
   check((await vb.locator("section[id^=stap-]").count()) === 6, "zes stappen");
-  check((await vb.locator('nav[aria-label="Stappen van de onboarding"] a').count()) === 6, "zes rondjes in de kopbalk");
+  check((await vb.locator('nav[aria-label="Hoofdstukken van de onboarding"] a').count()) === 4, "drie hoofdstukken en het vervolg in de kopbalk");
+  check((await vb.locator("section[id^=hoofdstuk-]").count()) === 3, "drie hoofdstukken op de pagina");
+  check(await vb.locator("#verder >> text=Zo gaat het verder").count(), "het vervolg: wat React2u daarna doet");
   check(await vb.locator("#stap-inrichting button:has-text('Gegevens opslaan')[disabled]").count(), "in het voorbeeld kan niets worden opgeslagen");
   check((await vb.locator("div.fixed:has-text('Stap 1')").count()) === 0, "geen balk naar de volgende stap in het voorbeeld");
   await shot(vb, "04-voorbeeld");

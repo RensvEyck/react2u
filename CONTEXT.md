@@ -1468,8 +1468,9 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   De inhoud komt uit de vijf bronbestanden en de afbeelding van het protocol die
   Rens aanleverde; de originelen zijn niet meer nodig. De tijdlijnweken staan
   letterlijk uit het Welkom-document (probleemanalyse week 6 tot 12, plan van
-  aanpak week 8 tot 13), terwijl de Wet Poortwachter uiterlijk week 6 en 8 zegt:
-  nog aan Rens voor te leggen.
+  aanpak week 8 tot 13), terwijl de Wet Poortwachter uiterlijk week 6 en 8 zegt;
+  Rens besloot op 16 november 2026 ze zo te laten ("Zo laten"). Niet aanpassen
+  zonder nieuwe opdracht.
 - **Per document twee keuzes** in het beheer: `documenten` (gaat mee) en
   `invullen` (de klant vult het online in; alleen inrichting, werknemers en
   machtiging kunnen dat, `invullen <@ documenten`). Wat niet online gaat, krijgt
@@ -1500,20 +1501,35 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   **Ingericht** (ook alle taken af, de klant is live; `onboardingWeergave()`).
   De klant ziet de checklist niet.
 - **Klantpagina** `/onboarding/<token>`
-  ([`OnboardingPagina.tsx`](src/components/onboarding/OnboardingPagina.tsx)) in
-  de vormgeving van de offerte- en contractpagina: de kopbalk met de stappen als
-  genummerde rondjes die meelopen, de voortgang en bellen; de opening in de lila
-  tint met het persoonlijke woord (`bericht`, met `{bedrijf}` en `{voornaam}`),
-  de feiten en rechts de kaart met de voortgangsring, de stappen en het
-  aanspreekpunt; elk document als een stap op een wit vel (lezen en afvinken, of
-  online invullen met controles: KvK 8 cijfers, IBAN mod 97, BSN elfproef,
-  postcode); de felicitatie met de stippen als alles net klaar is; op de
-  telefoon onderaan de knop naar de volgende open stap. Modus klant, collega
-  (telt niet, invullen mag: samen aan de telefoon) en voorbeeld (niets opslaan).
-  De klant schrijft alleen via `onboarding_opslaan` en `onboarding_gelezen`
-  (security definer, het token als sleutel); Next controleert de vorm van de
-  invoer, de database of het mag en hoe groot het is. Is alles gedaan, dan zet
-  `onboarding_afronden` de status op `afgerond`.
+  ([`OnboardingPagina.tsx`](src/components/onboarding/OnboardingPagina.tsx)): één
+  doorlopend verhaal in de vormgeving van de offertepagina (Rens, 16 nov 2026:
+  "S tier zoals de offerte module, een duidelijke, soepele overgang in de
+  verhaallijnen en professioneel"). De documenten staan in de volgorde van het
+  verhaal (`DOCUMENTEN`, `HOOFDSTUKKEN` in `lib/onboarding.ts`): hoofdstuk 1
+  *Zo werken we samen* (Welkom), 2 *Je medewerkers voorbereiden*
+  (verzuimprotocol, wat je mag vragen), 3 *Wat we van jullie nodig hebben*
+  (inrichting, werknemers, machtiging); een hoofdstuk zonder gekozen documenten
+  valt weg, en het beheer, de mail en de stapnummers volgen dezelfde volgorde.
+  De opbouw: de kopbalk met de hoofdstukken (streep onder waar je bent), de
+  voortgang en bellen; de opening in de lila tint met het persoonlijke woord
+  (`bericht`, met `{bedrijf}` en `{voornaam}`), de feiten en rechts de kaart met
+  de voortgangsring, de stappen per hoofdstuk en het aanspreekpunt; de
+  hoofdstukken als banden van rand tot rand, om en om wit en lila, elk met een
+  sectiekop; per stap links een kolom die op een groot scherm blijft staan
+  (nummer, titel, status, de acties: pdf, afvinken) en rechts de inhoud of het
+  formulier op een kaart (op de telefoon komen de acties onder de inhoud);
+  controles bij invullen (KvK 8 cijfers, IBAN mod 97, BSN elfproef, postcode);
+  de indigo band *Zo gaat het verder* met wat React2u daarna doet (`TAKEN`,
+  `klantKop` en `klant`) en bellen; de felicitatie met de stippen als alles net
+  klaar is; op de telefoon onderaan de knop naar de volgende open stap. Alles
+  komt zacht in beeld tijdens het scrollen (`OnboardingReveal.tsx`, zoals
+  `Reveal.tsx` op de site, met `data-in` buiten React zodat het na opslaan
+  blijft staan). Modus klant, collega (telt niet, invullen mag: samen aan de
+  telefoon) en voorbeeld (niets opslaan). De klant schrijft alleen via
+  `onboarding_opslaan` en `onboarding_gelezen` (security definer, het token als
+  sleutel); Next controleert de vorm van de invoer, de database of het mag en
+  hoe groot het is. Is alles gedaan, dan zet `onboarding_afronden` de status op
+  `afgerond`.
 - **Privacy**: het werknemersbestand bevat burgerservicenummers. Daarom alleen
   achter `bellijst`, BSN's gemaskeerd in het beheer, de knop *Wissen na import*
   (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar
