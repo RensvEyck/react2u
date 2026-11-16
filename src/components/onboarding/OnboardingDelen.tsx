@@ -443,7 +443,7 @@ export function Stap({ d, n, o, token, basis, modus, tint, eerste, volgende }: {
         <p className="m-0 text-[16px] leading-[1.7]" style={{ color: BODY }}>
           Met deze gegevens zetten we jullie medewerkers in ons verzuimsysteem, zodat een ziekmelding meteen goed binnenkomt. Je kunt tussendoor opslaan en later verder.
         </p>
-        <WerknemersFormulier token={token} begin={((antwoord?.data as { rijen?: Werknemer[] } | undefined)?.rijen) || []} ingevuld={Boolean(antwoord)} modus={modus} excelHref={excel} />
+        <WerknemersFormulier token={token} begin={((antwoord?.data as { rijen?: Werknemer[] } | undefined)?.rijen) || []} ingevuld={Boolean(antwoord)} modus={modus} excelHref={excel} mail={o.afzender_email || ONBOARDING_EMAIL} />
       </div>
     );
   } else if (!invul && d.invullen) {

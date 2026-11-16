@@ -241,6 +241,9 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   stap("Werknemers invoeren, met een fout BSN en plakken uit Excel");
   await klant.goto(`${link}/werknemers`);
   await klant.waitForSelector("#stap-werknemers");
+  check((await klant.locator("#stap-werknemers [role=radio]").count()) === 2 && (await klant.locator("#wn-0-voorletters").count()) === 0, "eerst kiezen: handmatig of via Excel, nog geen kaart");
+  await klant.click("#stap-werknemers [role=radio]:has-text('Handmatig invullen')");
+  await klant.waitForSelector("#wn-0-voorletters");
   const wn = (i, n) => `#wn-${i}-${n}`;
   const vul = async (i, w) => { for (const [k, v] of Object.entries(w)) await klant.fill(wn(i, k), v); };
   await vul(0, { voorletters: "J.", roepnaam: "Jan", achternaam: "Jansen", geboortedatum: "1980-05-12", bsn: "123456782", adres: "Kerkstraat", huisnummer: "4", postcode: "5611ab", plaats: "Eindhoven", startdatum: "2024-01-01", functie: "Bakker", uren: "38" });
@@ -251,12 +254,15 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   await klant.waitForSelector("#stap-werknemers >> text=Dit BSN klopt niet", { timeout: 20000 });
   ok("fout bij een BSN die de elfproef niet haalt");
   await klant.fill(wn(1, "bsn"), "111222333");
-  // Twee medewerkers erbij uit Excel, met de kopregel van het importbestand.
-  await klant.click("#stap-werknemers summary:has-text('Plak ze uit Excel')");
+  // Twee medewerkers erbij via Excel, met de kopregel van het importbestand.
+  await klant.click("#stap-werknemers [role=radio]:has-text('Via Excel')");
+  await klant.waitForSelector("#wn-plak");
+  check(await klant.locator("#stap-werknemers a:has-text('Download het bestand')").count(), "via Excel: eerst het lege bestand downloaden");
   await klant.fill("#wn-plak", "Burgerservicenummer\troepnaam\tvoorletters\tEigen_achternaam\tgeboortedatum\tadres\thuisnummer\tpostcode\tplaatsnaam\tstartdatum_dienstverband\n100000009\tPiet\tP.\tPeters\t15-02-1975\tMolenweg\t3\t5613 CD\tEindhoven\t01-06-2020\n200000007\tLeila\tL.\tAzzouzi\t28-09-1998\tHeistraat\t21\t5614 EF\tEindhoven\t15-08-2023\n");
   await klant.click("#stap-werknemers button:has-text('Rijen toevoegen')");
   await klant.waitForSelector("#stap-werknemers >> text=2 medewerkers toegevoegd", { timeout: 20000 });
   check(await klant.locator("#stap-werknemers >> text=Peters").count() && (await klant.locator("#stap-werknemers >> text=Azzouzi").count()), "de geplakte medewerkers staan erbij");
+  check(await klant.locator("#stap-werknemers >> text=4 medewerkers om na te kijken").count(), "om na te kijken, ook de twee handmatige");
   await klant.click("#stap-werknemers button:has-text('4 medewerkers opslaan')");
   await klant.waitForSelector("#stap-werknemers >> text=Opgeslagen: 4 medewerkers", { timeout: 20000 });
   check(sql(`select jsonb_array_length(antwoorden->'werknemers'->'data'->'rijen') from public.onboardings where id = '${id}'`) === "4", "vier medewerkers opgeslagen");

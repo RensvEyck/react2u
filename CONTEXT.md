@@ -1537,11 +1537,15 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   hoofdstuk zonder gekozen documenten valt weg; het beheer, de mail en de
   stapnummers volgen dezelfde volgorde. Formulieren: een balkje "Verplichte
   velden: 3 van 8", controles bij invullen (KvK 8 cijfers, BSN elfproef,
-  postcode), en bij het werknemersbestand **plakken uit Excel**
-  (`rijenUitPlak()`: tabs of puntkomma's, met de kopregel van het importbestand
-  of onze labels gaat elke kolom naar het juiste veld, zonder kopregel geldt de
-  volgorde van het importbestand of van onze velden; datums en postcodes worden
-  omgezet). Geen IBAN en accounthouder: die stonden kaal op het Word-formulier,
+  postcode). Het werknemersbestand begint met een **keuze** (Rens, 16 nov
+  2026): *Handmatig invullen* (per medewerker een kaart, handig tot zo'n tien)
+  of *Via Excel* (drie stappen: het lege bestand downloaden, invullen, de rijen
+  plakken; `rijenUitPlak()`: tabs of puntkomma's, met de kopregel van het
+  importbestand of onze labels gaat elke kolom naar het juiste veld, zonder
+  kopregel geldt de volgorde van het importbestand of van onze velden; datums
+  en postcodes worden omgezet). Pas na de keuze verschijnt het bijbehorende
+  deel; geplakte rijen staan als kaarten om na te kijken, en bij eerder
+  opgeslagen rijen staat de keuze op handmatig. Geen IBAN en accounthouder: die stonden kaal op het Word-formulier,
   maar React2u incasseert niet (Rens, 16 nov 2026), de klant betaalt per
   factuur binnen dertig dagen (basiscontract 7.4). Alles komt zacht in beeld
   tijdens het scrollen (`OnboardingReveal.tsx`, zoals `Reveal.tsx` op de site,
