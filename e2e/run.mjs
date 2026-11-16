@@ -11,7 +11,8 @@
 //   E2E_GEEN_BUILD=1   bestaande .next gebruiken (alleen als die met deze
 //                      instellingen is gebouwd)
 //   E2E_ALLEEN=offerte alleen deze test(s), met komma's (offerte, vormen, brochure,
-//                      contract, onboarding, reseller, partner, dashboard of omzet)
+//                      contract, onboarding, klantenbord, reseller, partner, dashboard
+//                      of omzet)
 //   E2E_POORT=3024     de site op een andere poort dan 3014 (en E2E_RESEND_POORT
 //                      voor de nep-Resend), als een vorige run nog draait
 //   E2E_STACK=2        een tweede Supabase-stack naast een lopende (een andere
@@ -159,7 +160,22 @@ async function main() {
   } catch {
     // er draaide niets
   }
-  draai("supabase", ["start", "--workdir", STACK, "-x", ZONDER]);
+  // Onder zware belasting (een tweede stack die tegelijk opbouwt, een build ernaast) haalt de
+  // storage-container de health check niet op tijd en stopt de CLI alles weer; nog een keer helpt.
+  for (let poging = 1; ; poging++) {
+    try {
+      draai("supabase", ["start", "--workdir", STACK, "-x", ZONDER]);
+      break;
+    } catch (e) {
+      if (poging >= 3) throw e;
+      stap(`Stack kwam niet op (poging ${poging}), nog een keer`);
+      try {
+        draai("supabase", ["stop", "--no-backup", "--workdir", STACK], { stdio: "ignore" });
+      } catch {
+        // al gestopt
+      }
+    }
+  }
   stackDraait = true;
   const status = JSON.parse(lees("supabase", ["status", "-o", "json", "--workdir", STACK]));
   const url = status.API_URL;
@@ -211,7 +227,7 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
 
   const testEnv = { ...env, E2E_BASIS: BASIS, E2E_UIT: UIT, E2E_DB_CONTAINER: DB };
   // dashboard en omzet als laatste: die maken de verkooptabellen leeg voor hun eigen vaste set.
-  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "reseller", "partner", "dashboard", "omzet"];
+  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "klantenbord", "reseller", "partner", "dashboard", "omzet"];
   const mislukt = [];
   for (const t of tests) {
     stap(`Test: ${t}`);

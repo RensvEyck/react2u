@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -31,6 +31,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LuLayoutDashboard, keywords: "home start overzicht vandaag" },
   { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox", keywords: "inbox berichten sollicitaties inzendingen" },
   { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads", keywords: "leads bellen crm terugbellen" },
+  { label: "Klantenbord", href: "/admin/klantenbord", icon: LuLayoutGrid, keywords: "whiteboard klanten leads bord kanban status laatste gesprek volgende stap pijplijn klantlijst importeren crm" },
   { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen" },
   { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding sales" },
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
@@ -72,6 +73,8 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "Nieuwe onboarding", href: "/admin/onboarding/nieuw", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom documenten versturen invullen" },
   { label: "Nieuwe brochure", href: "/admin/brochures/nieuw", icon: LuBookOpen, keywords: "brochure maken versturen prospect kennismaking" },
   { label: "Lead toevoegen", href: "/admin/bellijst#nieuw", icon: LuUserPlus, keywords: "lead nieuw bellijst" },
+  { label: "Lead of klant op het bord", href: "/admin/klantenbord#nieuw", icon: LuLayoutGrid, keywords: "klantenbord nieuw klant lead kaart toevoegen" },
+  { label: "Klantlijst importeren", href: "/admin/klantenbord#import", icon: LuUpload, keywords: "klantenbord excel klantlijst xlsx importeren upload" },
   { label: "Partner toevoegen", href: "/admin/partners#nieuw", icon: LuHandshake, keywords: "partner nieuw accountant aanmeldlink code" },
   { label: "Bestand uploaden", href: "/admin/media", icon: LuUpload, keywords: "media afbeelding pdf" },
   { label: "Doorverwijzing toevoegen", href: "/admin/seo/doorverwijzingen#nieuw", icon: LuSignpost, keywords: "redirect oude url doorsturen 404" },
@@ -84,7 +87,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
 ];
 
 export const CRUMBS: Record<string, string> = {
-  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", brochures: "Brochures", paginas: "Pagina's", blog: "Blog",
+  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", klantenbord: "Klantenbord", brochures: "Brochures", paginas: "Pagina's", blog: "Blog",
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",

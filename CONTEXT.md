@@ -1742,6 +1742,94 @@ as, 2px tussen stapeldelen, een legenda vanaf twee reeksen, een tip bij
 aanwijzen en de cijfers als tabel; violet, aqua en geel zijn getoetst op
 kleurenblindheid. Browsertest: `e2e/omzet.cjs`.
 
+## Klantenbord
+
+Sinds migratie [0040](supabase/migrations/0040_klantenbord.sql) (Rens, 16 nov
+2026: "maak ook een whiteboard met onze leads en klanten zodat we een scherm
+hebben met overzicht van de status, laatste gesprekken etc"), achter het
+salesrecht `bellijst`: [`/admin/klantenbord`](src/app/admin/(panel)/klantenbord/page.tsx).
+Eén scherm met alle leads en klanten als kaarten in kolommen per status, per
+kaart het laatste gesprek en de volgende stap, een lijstweergave en de import
+van de klantlijst uit Excel. Het datamodel volgt Rens' `klantlijst.xlsx`:
+startdatum, klant, de vinkjes *offerte retour*, *contract retour*,
+*koppeling*, *formulieren retour* en *naar Exact/facturatie*, een vrije kolom
+met de laatste stand en soms een contactpersoon.
+
+- **Statussen** (de kolommen, [`lib/klanten.ts`](src/lib/klanten.ts),
+  `KLANT_STATUS`): *Lead* (nog geen gesprek), *In gesprek*, *Offerte uit*
+  (wacht op de klant), *Akkoord* (offerte retour, contract onderweg),
+  *Inrichten* (contract retour, React2u richt in), *Klant* (ingericht en live)
+  en apart *Inactief* (verloren, gestopt of geparkeerd; op het bord ingeklapt
+  tot je hem opent of een kaart erheen sleept). Verplaatsen: slepen, de
+  statusknoppen in het zijpaneel, het menu op de kaart (op een telefoon), of
+  in één keer bij het vastleggen van een gesprek. Elke verplaatsing komt als
+  regel *status* in de tijdlijn.
+- **De kaart**: bedrijf, eigenaar (initialen van wie bij React2u de klant
+  heeft), contactpersoon, telefoon en mail, het laatste contact (datum en
+  tekst, via een trigger uit de tijdlijn in `laatste_contact_op` en
+  `laatste_contact`), de volgende actie met datum (te laat is roze met een
+  rode rand, vandaag oranje), de vijf vinkjes als stippen, en wat er in de
+  andere modules van deze klant staat (`koppelingenVoor`: offertes,
+  brochures, contracten, onboardings en de bellijstlead met dezelfde
+  bedrijfsnaam zonder rechtsvorm, zoals het Verkoopblok). Zegt een module
+  meer dan de kolom (offerte getekend, contract getekend, onboarding
+  ingericht), dan staat er een hint *Zet op Akkoord?* (`statusHint`); het bord
+  verplaatst niet zelf. Binnen een kolom staat wat te laat is bovenaan, dan
+  vandaag, dan gepland, dan zonder datum, dan op laatste wijziging
+  (`sorteerKaarten`).
+- **Het zijpaneel** ([`KlantPaneel.tsx`](src/components/admin/klantenbord/KlantPaneel.tsx)):
+  de volgende stap (met *Vandaag*, *Morgen*, *Over een week*, *Over een
+  maand* en *Gedaan*), een gesprek vastleggen (gesproken, gemaild, bezoek of
+  notitie, met datum; Cmd+Enter) met in dezelfde handeling de volgende stap en
+  een nieuwe kolom, de tijdlijn (`klant_gesprekken`; *status* en *import* zijn
+  systeemregels en tellen niet als contact), het instaptraject (de vijf
+  vinkjes), de koppelingen en de gegevens. Zonder kaart is het het formulier
+  voor een nieuwe lead of klant (`#nieuw`, ook uit het commandopalet).
+- **Zoeken en filteren** gebeuren in de browser: elk woord moet ergens
+  voorkomen (bedrijf, contactpersoon, mail, eigenaar, stand, volgende actie,
+  laatste contact, bron; een telefoonnummer zonder spaties), filter op
+  eigenaar, *Actie vandaag of te laat* (ook via de KPI *Te doen*) en *Zonder
+  volgende stap*. De lijst (`?weergave=lijst`) is dezelfde set als tabel,
+  sorteerbaar per kolom.
+- **Import van de klantlijst** ([`KlantImport.tsx`](src/components/admin/klantenbord/KlantImport.tsx),
+  `#import`): het Excelbestand wordt in de browser gelezen
+  (`lib/xlsxLezen.ts`), of een csv, of geplakte rijen. `herkenKolommen` kijkt
+  eerst naar de kopregel en daarna naar de inhoud van kolommen zonder (of met
+  een onbekende) kop: datums, ja/nee, namen van mensen, en anders vrije tekst
+  als laatste stand. Zo overleeft de import de klantlijst van november 2026,
+  waar de kop *naar excact/facturatie verzonden* boven een lege kolom staat en
+  de standtekst in de kolom ernaast zonder kop. `statusUitRij` leidt de kolom
+  af: precies "ingericht" is klant, contract retour is inrichten, "offerte
+  verstuurd" is offerte uit, offerte retour (of "akkoord", "getekend") is
+  akkoord, een gesprek of bezoek is in gesprek, anders lead. Eerst het
+  **controlerapport** (`importVoorstel`): per kolom wat hij is, per rij nieuw,
+  bijwerken, ongewijzigd of overslaan, wat er verandert, en opmerkingen (geen
+  bedrijfsnaam, dubbel in het bestand, een vinkje dat geen ja of nee is, en een
+  startdatum in het verleden bij wie nog geen klant is: in de lijst stond "1-1"
+  voor januari en Excel maakte er het lopende jaar van). Pas daarna
+  `importeerKlanten` (server action), die alles opnieuw tegen de database van
+  nu doet. **Zonder dubbelen**: `klanten.sleutel` is de bedrijfsnaam zonder
+  rechtsvorm, hoofdletters, accenten en leestekens (`bedrijf_sleutel()` in
+  SQL, `bedrijfSleutel()` in TypeScript, dezelfde regel als `normalizeName`),
+  uniek. Een gevulde cel wint, een lege laat staan wat er stond; de status gaat
+  alleen vooruit; een inactieve kaart blijft inactief; de naam op het bord
+  blijft zoals hij er stond. Elke import schrijft een regel *import* in de
+  tijdlijn met wat er veranderde.
+- **Database**: `klanten` en `klant_gesprekken`, RLS op `has_perm('bellijst')`,
+  trigger `klant_laatste_contact` voor het laatste contact op de kaart. Geen
+  automatische opschoning: een klant blijft staan tot iemand hem van het bord
+  haalt (cascade naar zijn gesprekken). De server actions
+  ([`klantenActions.ts`](src/app/admin/klantenActions.ts)) geven een resultaat
+  terug in plaats van een redirect: het bord werkt zichzelf bij zonder te
+  herladen.
+- **Tests**: `lib/klanten.test.ts` (statussen, afleiding uit de klantlijst,
+  kolomherkenning met en zonder kop, het voorstel, datums, zoeken, sorteren,
+  koppelingen, csv) en [`e2e/klantenbord.cjs`](e2e/klantenbord.cjs) (het lege
+  bord, een nieuwe lead, gesprek met volgende stap en verplaatsing, vinkjes,
+  slepen, de koppelingen en de hint, import met controlerapport en een tweede
+  keer zonder dubbelen, zoeken, de lijst, de telefoon, verwijderen, en
+  `bedrijf_sleutel` tegenover `bedrijfSleutel`).
+
 ## Van Postvak IN naar bellijst
 
 Elke kaart in het Postvak IN heeft een knop **Op bellijst**. Die maakt een lead
@@ -2308,7 +2396,7 @@ regels waar het op aankomt; de schermen eromheen zijn dun.
 
 **Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
 eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`), en sindsdien per
-module een test (brochure, contract, onboarding, reseller, partner, dashboard, omzet). `e2e/run.mjs`
+module een test (brochure, contract, onboarding, klantenbord, reseller, partner, dashboard, omzet). `e2e/run.mjs`
 bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
 testbeheerder, lege versies van twee productiefuncties en pg_cron uit
 `e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen
