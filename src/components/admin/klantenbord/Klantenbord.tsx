@@ -189,7 +189,7 @@ export default function Klantenbord({
           setSleept(null);
           if (id) verplaats(id, s.key);
         }}
-        className={`flex w-[82vw] shrink-0 snap-start flex-col rounded-[16px] border transition-colors sm:w-[290px] ${isOver ? "border-[#312e82] bg-[#eef0ff]/60" : "border-transparent bg-black/[0.035]"}`}
+        className={`flex w-[82vw] shrink-0 flex-col rounded-[16px] border transition-colors sm:w-[290px] ${isOver ? "border-[#312e82] bg-[#eef0ff]/60" : "border-transparent bg-black/[0.035]"}`}
       >
         <header className="flex items-start justify-between gap-2 px-3.5 pb-2 pt-3.5">
           <div className="min-w-0">
@@ -255,7 +255,7 @@ export default function Klantenbord({
         </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 xl:grid-cols-5">
+      <div className="kb-kpis -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-5">
         <Kpi label="Te doen" waarde={String(tel.teLaat + tel.vandaag)} sub={tel.teLaat ? `${tel.teLaat} te laat · ${tel.vandaag} vandaag` : tel.vandaag ? `${tel.vandaag} vandaag` : "niets te laat"} accent={tel.teLaat ? "roze" : tel.vandaag ? "oranje" : undefined} onClick={() => setFilter(filter === "actie" ? "alles" : "actie")} actief={filter === "actie"} />
         <Kpi label="Leads en gesprekken" waarde={String(tel.lead + tel.gesprek)} sub={`${tel.lead} lead · ${tel.gesprek} in gesprek`} />
         <Kpi label="Offertes" waarde={String(tel.offerte + tel.akkoord)} sub={`${tel.offerte} uit · ${tel.akkoord} akkoord`} />
@@ -298,7 +298,7 @@ export default function Klantenbord({
         ) : klanten.length === 0 ? (
           <Leeg klanten={0} actiefFilter={false} onNieuw={() => setOpen("nieuw")} onImport={() => setImportOpen(true)} />
         ) : (
-          <div className="kb-bord flex snap-x gap-3 overflow-x-auto px-3 py-3 sm:px-4 sm:py-4" onDragEnd={() => { setSleept(null); setOver(null); }}>
+          <div className="kb-bord flex gap-3 overflow-x-auto px-3 py-3 sm:px-4 sm:py-4" onDragEnd={() => { setSleept(null); setOver(null); }}>
             {kolommen.map((s) => kolom(s))}
             {inactiefOpen ? kolom(inactief) : kolom(inactief, true)}
           </div>
@@ -351,19 +351,20 @@ function Kpi({ label, waarde, sub, accent, onClick, actief }: { label: string; w
   const kleur = accent === "groen" ? "text-[#0a7a4b]" : accent === "oranje" ? "text-[#b86e00]" : accent === "roze" ? "text-[#e0356b]" : "text-[#1c1a4e]";
   const inhoud = (
     <>
-      <p className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45">{label}</p>
-      <p className={`mt-2 font-heading text-[28px] font-bold leading-none ${kleur}`}>{waarde}</p>
-      <p className="mt-2 text-[12.5px] text-black/45">{sub}</p>
+      <p className="whitespace-nowrap text-[11px] font-bold uppercase tracking-[0.08em] text-black/45 sm:text-[11.5px]">{label}</p>
+      <p className={`mt-1.5 font-heading text-[24px] font-bold leading-none sm:mt-2 sm:text-[28px] ${kleur}`}>{waarde}</p>
+      <p className="mt-1.5 whitespace-nowrap text-[12px] text-black/45 sm:mt-2 sm:whitespace-normal sm:text-[12.5px]">{sub}</p>
     </>
   );
+  const vorm = "acard min-w-[160px] shrink-0 p-4 text-left sm:min-w-0 sm:p-5";
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} aria-pressed={actief} className={`acard p-5 text-left transition hover:border-[#312e82]/40 ${actief ? "!border-[#312e82] ring-1 ring-[#312e82]" : ""}`}>
+      <button type="button" onClick={onClick} aria-pressed={actief} className={`${vorm} transition hover:border-[#312e82]/40 ${actief ? "!border-[#312e82] ring-1 ring-[#312e82]" : ""}`}>
         {inhoud}
       </button>
     );
   }
-  return <div className="acard p-5">{inhoud}</div>;
+  return <div className={vorm}>{inhoud}</div>;
 }
 
 function Leeg({ klanten, actiefFilter, onNieuw, onImport }: { klanten: number; actiefFilter: boolean; onNieuw: () => void; onImport: () => void }) {

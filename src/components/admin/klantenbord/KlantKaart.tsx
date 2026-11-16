@@ -58,15 +58,19 @@ export default function KlantKaart({
       {(k.contactpersoon || k.telefoon || k.email) && (
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-black/55">
           {k.contactpersoon && <span className="inline-flex items-center gap-1 truncate"><LuUserRound className="shrink-0 text-[12px] text-black/35" />{k.contactpersoon}</span>}
-          {k.telefoon && (
-            <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 font-semibold text-[#e75387] hover:underline">
-              <LuPhone className="text-[12px]" />{k.telefoon}
-            </a>
-          )}
-          {k.email && (
-            <a href={`mailto:${k.email}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[#e75387] hover:underline" title={k.email}>
-              <LuMail className="text-[12px]" /><span className="sr-only">{k.email}</span>
-            </a>
+          {(k.telefoon || k.email) && (
+            <span className="inline-flex items-center gap-2.5">
+              {k.telefoon && (
+                <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#e75387] hover:underline">
+                  <LuPhone className="text-[12px]" />{k.telefoon}
+                </a>
+              )}
+              {k.email && (
+                <a href={`mailto:${k.email}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 text-[#e75387] hover:underline" title={k.email}>
+                  <LuMail className="text-[13px]" /><span className="sr-only">{k.email}</span>
+                </a>
+              )}
+            </span>
           )}
         </div>
       )}

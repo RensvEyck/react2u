@@ -644,9 +644,9 @@ const TEKSTVELDEN: { veld: "startdatum" | "stand" | "contactpersoon" | "email" |
  * verandert. Een gevulde cel wint, een lege laat staan wat er stond; de status
  * gaat alleen vooruit en een inactieve kaart blijft inactief. Een rij zonder
  * bedrijfsnaam of een tweede rij met dezelfde naam wordt overgeslagen. Een
- * startdatum in het verleden bij wie nog geen klant is, krijgt een opmerking:
- * in de klantlijst van november 2026 stond "1-1" voor januari, en Excel maakte
- * daar het lopende jaar van.
+ * startdatum van meer dan een maand terug bij wie nog geen klant is, krijgt
+ * een opmerking: in de klantlijst van november 2026 stond "1-1" voor januari,
+ * en Excel maakte daar het lopende jaar van.
  */
 export function importVoorstel(rijen: ImportRij[], bestaande: Bestaand[], vandaag: string): Voorstel {
   const perSleutel = new Map(bestaande.map((b) => [b.sleutel || bedrijfSleutel(b.bedrijf), b]));
@@ -666,7 +666,8 @@ export function importVoorstel(rijen: ImportRij[], bestaande: Bestaand[], vandaa
     gezien.add(sleutel);
     const b = perSleutel.get(sleutel) || null;
     const status = b ? (statusVerder(afgeleid, b.status) ? afgeleid : b.status) : afgeleid;
-    if (rij.startdatum && rij.startdatum < vandaag && status !== "klant" && status !== "inrichten" && status !== "inactief") {
+    // Meer dan een maand terug bij wie nog geen klant is: in de klantlijst stond "1-1" voor januari, en Excel maakte er het lopende jaar van.
+    if (rij.startdatum && dagenTussen(rij.startdatum, vandaag) > 31 && status !== "klant" && status !== "inrichten" && status !== "inactief") {
       waarschuwingen.push(`Startdatum ${datumLang(rij.startdatum)} ligt in het verleden; bedoel je ${Number(rij.startdatum.slice(0, 4)) + 1}?`);
     }
     if (!b) return { rij, actie: "nieuw", bestaand: null, status, wijzigingen: [], waarschuwingen };

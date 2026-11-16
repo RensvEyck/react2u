@@ -80,7 +80,7 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await page.waitForSelector(`section[data-kolom="lead"] #klant-${id}`);
   check(await page.locator(`section[data-kolom="lead"] #klant-${id}`).count(), "de kaart staat in de kolom Lead");
   check(await page.locator(`#klant-${id} >> text=Kennismaking inplannen`).count() && (await page.locator(`#klant-${id} >> text=vandaag`).count()), "volgende actie met 'vandaag' op de kaart");
-  check(await page.locator("aside[role=dialog] >> text=Nog niets vastgelegd").count(), "tijdlijn leeg in het paneel");
+  check(await page.locator("aside[role=dialog] >> text=Op het bord gezet als lead").count(), "de tijdlijn begint met 'op het bord gezet'");
   await shot(page, "03-paneel");
 
   stap("Een gesprek vastleggen, met de volgende stap en een nieuwe kolom");
@@ -214,7 +214,10 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await mp.waitForSelector(`#klant-${id}`);
   check(await mp.locator(`#status-${id}`).isVisible(), "op de telefoon: status kiezen op de kaart");
   await shot(mp, "09-telefoon-bord", { fullPage: false });
-  await mp.click(`#klant-${id} h3`);
+  // Tikken, niet klikken: de kaart staat in een horizontaal scrollende rij onder de cijfers.
+  await mp.locator(`#klant-${id}`).scrollIntoViewIfNeeded();
+  await wacht(400);
+  await mp.locator(`#klant-${id} h3`).tap({ timeout: 5000 }).catch(() => mp.locator(`#klant-${id}`).dispatchEvent("click"));
   await mp.waitForSelector(`aside[role=dialog] h2:has-text('${BEDRIJF}')`);
   await shot(mp, "10-telefoon-paneel", { fullPage: false });
   await tel.close();

@@ -102,7 +102,7 @@ export default function KlantLijst({ klanten, koppelingen, vandaag, open, onOpen
                 <td className="px-4 py-3">
                   {k.volgende_actie && <span className="block font-semibold text-[#1c1a4e]">{k.volgende_actie}</span>}
                   {k.volgende_actie_op && (
-                    <span className={`inline-block rounded-full px-1.5 py-px text-[11.5px] font-semibold ${actie === "te_laat" ? "bg-[#fdeef4] text-[#e0356b]" : actie === "vandaag" ? "bg-[#fff4e5] text-[#b86e00]" : "bg-black/[0.05] text-black/55"}`}>
+                    <span className={`inline-block whitespace-nowrap rounded-full px-1.5 py-px text-[11.5px] font-semibold ${actie === "te_laat" ? "bg-[#fdeef4] text-[#e0356b]" : actie === "vandaag" ? "bg-[#fff4e5] text-[#b86e00]" : "bg-black/[0.05] text-black/55"}`}>
                       {actie === "te_laat" ? "Te laat: " : ""}{relatief(k.volgende_actie_op, vandaag)}
                     </span>
                   )}
