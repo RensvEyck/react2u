@@ -1,0 +1,542 @@
+"use client";
+import { useEffect, useState, useTransition } from "react";
+import { LuCalendarClock, LuCheck, LuMail, LuPhone, LuPlus, LuSparkles, LuTrash2, LuX } from "react-icons/lu";
+import {
+  actieStand, CHECKLIST, GESPREK_SOORTEN, KLANT_STATUS, relatief, statusHint, statusInfo, type Gesprek, type GesprekSoort, type Klant, type KlantStatus, type Koppeling,
+} from "@/lib/klanten";
+import { datumLang } from "@/lib/offertes";
+import { maakKlant, verwijderGesprek, verwijderKlant, voegGesprekToe, wijzigKlant, zetKlantStatus, type KlantInvoer } from "@/app/admin/klantenActions";
+import { Checklist, Eigenaar, GesprekIcoon, KoppelChip, SOORT_LABEL } from "./bits";
+
+/**
+ * Het zijpaneel bij een kaart: de status, de volgende stap, een gesprek
+ * vastleggen (met in één keer de volgende stap en een nieuwe kolom), de
+ * tijdlijn, de gegevens, de vinkjes uit de klantlijst en alles van deze klant
+ * in de andere modules. Zonder kaart (`klant` is null) is het het formulier
+ * voor een nieuwe lead of klant.
+ */
+
+type Props = {
+  klant: Klant | null;
+  gesprekken: Gesprek[];
+  koppelingen: Koppeling[];
+  vandaag: string;
+  eigenaren: string[];
+  onClose: () => void;
+  onKlant: (k: Klant, gesprek?: Gesprek | null) => void;
+  onGesprekWeg: (klant: Klant, gesprekId: string) => void;
+  onVerwijderd: (id: string) => void;
+  meld: (ok: boolean, tekst: string) => void;
+};
+
+const veld = "ainput !py-2 !text-[14px]";
+const kop = "text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45";
+
+function plusDagen(vandaag: string, n: number): string {
+  const d = new Date(`${vandaag}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+export default function KlantPaneel(p: Props) {
+  useEffect(() => {
+    const toets = (e: KeyboardEvent) => {
+      if (e.key === "Escape") p.onClose();
+    };
+    window.addEventListener("keydown", toets);
+    return () => window.removeEventListener("keydown", toets);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-[#1c1a4e]/25 backdrop-blur-[1px]" onClick={p.onClose} aria-hidden="true" />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={p.klant ? p.klant.bedrijf : "Nieuwe lead of klant"}
+        className="kb-paneel fixed inset-y-0 right-0 z-50 flex w-full max-w-[580px] flex-col bg-[#fafafd] shadow-[-24px_0_60px_-30px_rgba(18,16,60,0.5)]"
+      >
+        {p.klant ? <Bestaand {...p} klant={p.klant} /> : <Nieuw {...p} />}
+      </aside>
+    </>
+  );
+}
+
+/* ---------- een nieuwe kaart ---------- */
+
+function Nieuw({ vandaag, eigenaren, onClose, onKlant, meld }: Props) {
+  const [bezig, start] = useTransition();
+  const [fout, setFout] = useState<string | null>(null);
+  const [v, setV] = useState<KlantInvoer>({ bedrijf: "", status: "lead", contactpersoon: "", telefoon: "", email: "", eigenaar: "", bron: "", startdatum: "", stand: "", volgende_actie: "", volgende_actie_op: "" });
+  const zet = (k: keyof KlantInvoer, w: string) => setV((x) => ({ ...x, [k]: w }));
+
+  return (
+    <form
+      className="flex h-full flex-col"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setFout(null);
+        start(async () => {
+          const r = await maakKlant(v);
+          if (!r.ok) return setFout(r.fout);
+          meld(true, `${r.klant.bedrijf} staat op het bord.`);
+          onKlant(r.klant);
+        });
+      }}
+    >
+      <header className="flex items-start justify-between gap-4 border-b border-black/[0.06] bg-white px-6 py-5">
+        <div>
+          <h2 className="font-heading text-[20px] font-bold text-[#312e82]">Nieuwe lead of klant</h2>
+          <p className="text-[13.5px] text-black/50">Alleen de bedrijfsnaam is verplicht. De rest vul je aan terwijl je belt.</p>
+        </div>
+        <button type="button" onClick={onClose} className="rounded-lg p-2 text-black/40 hover:bg-black/[0.05] hover:text-[#1c1a4e]" aria-label="Sluiten"><LuX /></button>
+      </header>
+      <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+        <div>
+          <label className="alabel" htmlFor="kb-bedrijf">Bedrijf *</label>
+          <input id="kb-bedrijf" className={veld} value={v.bedrijf || ""} onChange={(e) => zet("bedrijf", e.target.value)} required autoFocus placeholder="Bijvoorbeeld Bakkerij De Korenaar" />
+        </div>
+        <div>
+          <span className="alabel">Status</span>
+          <StatusKeuze huidig={(v.status as KlantStatus) || "lead"} onKies={(s) => zet("status", s)} />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="alabel" htmlFor="kb-cp">Contactpersoon</label>
+            <input id="kb-cp" className={veld} value={v.contactpersoon || ""} onChange={(e) => zet("contactpersoon", e.target.value)} />
+          </div>
+          <div>
+            <label className="alabel" htmlFor="kb-eigenaar">Eigenaar bij React2u</label>
+            <input id="kb-eigenaar" className={veld} list="kb-eigenaren" value={v.eigenaar || ""} onChange={(e) => zet("eigenaar", e.target.value)} placeholder="Wie heeft deze klant?" />
+            <datalist id="kb-eigenaren">{eigenaren.map((e) => <option key={e} value={e} />)}</datalist>
+          </div>
+          <div>
+            <label className="alabel" htmlFor="kb-tel">Telefoon</label>
+            <input id="kb-tel" className={veld} type="tel" value={v.telefoon || ""} onChange={(e) => zet("telefoon", e.target.value)} />
+          </div>
+          <div>
+            <label className="alabel" htmlFor="kb-email">E-mail</label>
+            <input id="kb-email" className={veld} type="email" value={v.email || ""} onChange={(e) => zet("email", e.target.value)} />
+          </div>
+          <div>
+            <label className="alabel" htmlFor="kb-bron">Bron</label>
+            <input id="kb-bron" className={veld} value={v.bron || ""} onChange={(e) => zet("bron", e.target.value)} placeholder="beurs, website, partner…" />
+          </div>
+          <div>
+            <label className="alabel" htmlFor="kb-start">Startdatum</label>
+            <input id="kb-start" className={veld} type="date" value={v.startdatum || ""} onChange={(e) => zet("startdatum", e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <label className="alabel" htmlFor="kb-stand">Laatste stand</label>
+          <textarea id="kb-stand" className={`${veld} font-sans`} rows={2} value={v.stand || ""} onChange={(e) => zet("stand", e.target.value)} placeholder="Waar staat het nu, in één zin?" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-[1fr_170px]">
+          <div>
+            <label className="alabel" htmlFor="kb-actie">Volgende actie</label>
+            <input id="kb-actie" className={veld} value={v.volgende_actie || ""} onChange={(e) => zet("volgende_actie", e.target.value)} placeholder="Bijvoorbeeld: offerte nabellen" />
+          </div>
+          <div>
+            <label className="alabel" htmlFor="kb-actie-op">Op</label>
+            <input id="kb-actie-op" className={veld} type="date" min={vandaag} value={v.volgende_actie_op || ""} onChange={(e) => zet("volgende_actie_op", e.target.value)} />
+          </div>
+        </div>
+        {fout && <p className="rounded-xl bg-[#fdeef4] px-4 py-2.5 text-[13.5px] font-semibold text-[#e0356b]" role="alert">{fout}</p>}
+      </div>
+      <footer className="flex items-center justify-end gap-3 border-t border-black/[0.06] bg-white px-6 py-4">
+        <button type="button" onClick={onClose} className="abtn-ghost">Annuleren</button>
+        <button className="abtn" disabled={bezig}><LuPlus /> {bezig ? "Opslaan…" : "Op het bord zetten"}</button>
+      </footer>
+    </form>
+  );
+}
+
+/* ---------- een bestaande kaart ---------- */
+
+function StatusKeuze({ huidig, onKies, bezig }: { huidig: KlantStatus; onKies: (s: KlantStatus) => void; bezig?: boolean }) {
+  return (
+    <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Status">
+      {KLANT_STATUS.map((s) => {
+        const aan = s.key === huidig;
+        return (
+          <button
+            key={s.key}
+            type="button"
+            role="radio"
+            aria-checked={aan}
+            disabled={bezig}
+            onClick={() => onKies(s.key)}
+            className={`apill !py-1.5 text-[12.5px] transition ${aan ? "ring-2 ring-offset-1" : "opacity-80 hover:opacity-100"}`}
+            style={aan ? { background: s.achter, color: s.kleur, boxShadow: `0 0 0 2px ${s.kleur}` } : { background: "rgba(13,13,40,0.04)", color: "rgba(13,13,40,0.6)" }}
+            title={s.uitleg}
+          >
+            {s.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function Bestaand({ klant: k, gesprekken, koppelingen, vandaag, eigenaren, onClose, onKlant, onGesprekWeg, onVerwijderd, meld }: Props & { klant: Klant }) {
+  const [bezig, start] = useTransition();
+  const [fout, setFout] = useState<string | null>(null);
+  const hint = statusHint(k, koppelingen);
+  const actie = actieStand(k, vandaag);
+
+  // De volgende stap.
+  const [actieTekst, setActieTekst] = useState(k.volgende_actie || "");
+  const [actieOp, setActieOp] = useState(k.volgende_actie_op || "");
+  const actieGewijzigd = actieTekst !== (k.volgende_actie || "") || actieOp !== (k.volgende_actie_op || "");
+
+  // Een gesprek vastleggen.
+  const [soort, setSoort] = useState<GesprekSoort>("gesprek");
+  const [op, setOp] = useState(vandaag);
+  const [tekst, setTekst] = useState("");
+  const [metVervolg, setMetVervolg] = useState(false);
+  const [vervolg, setVervolg] = useState("");
+  const [vervolgOp, setVervolgOp] = useState("");
+  const [naar, setNaar] = useState<KlantStatus | "">("");
+
+  // De gegevens.
+  const [g, setG] = useState<KlantInvoer>({
+    bedrijf: k.bedrijf, contactpersoon: k.contactpersoon || "", telefoon: k.telefoon || "", email: k.email || "", eigenaar: k.eigenaar || "", bron: k.bron || "",
+    startdatum: k.startdatum || "", stand: k.stand || "", notitie: k.notitie || "",
+  });
+  const zetG = (veld: keyof KlantInvoer, w: string) => setG((x) => ({ ...x, [veld]: w }));
+  const gegevensGewijzigd = (["bedrijf", "contactpersoon", "telefoon", "email", "eigenaar", "bron", "startdatum", "stand", "notitie"] as const).some(
+    (f) => (g[f] || "") !== ((k[f] as string | null) || ""),
+  );
+
+  const doe = (fn: () => Promise<{ ok: boolean; fout?: string }>, na?: () => void) => {
+    setFout(null);
+    start(async () => {
+      const r = await fn();
+      if (!r.ok) return setFout(r.fout || "Er ging iets mis.");
+      na?.();
+    });
+  };
+
+  const zetStatus = (s: KlantStatus) =>
+    doe(async () => {
+      const r = await zetKlantStatus(k.id, s);
+      if (r.ok) onKlant(r.klant, r.gesprek ?? null);
+      return r;
+    });
+
+  const bewaarActie = (tekstW: string, opW: string) =>
+    doe(
+      async () => {
+        const r = await wijzigKlant(k.id, { volgende_actie: tekstW || null, volgende_actie_op: opW || null });
+        if (r.ok) onKlant(r.klant);
+        return r;
+      },
+      () => {
+        setActieTekst(tekstW);
+        setActieOp(opW);
+      },
+    );
+
+  const bewaarGegevens = () =>
+    doe(
+      async () => {
+        const r = await wijzigKlant(k.id, g);
+        if (r.ok) onKlant(r.klant);
+        return r;
+      },
+      () => meld(true, "Gegevens opgeslagen."),
+    );
+
+  const wisselVinkje = (key: (typeof CHECKLIST)[number]["key"]) =>
+    doe(async () => {
+      const r = await wijzigKlant(k.id, { [key]: !k[key] });
+      if (r.ok) onKlant(r.klant);
+      return r;
+    });
+
+  const legVast = () =>
+    doe(
+      async () => {
+        const r = await voegGesprekToe(k.id, {
+          soort,
+          op,
+          tekst,
+          ...(metVervolg ? { volgende_actie: vervolg || null, volgende_actie_op: vervolgOp || null } : {}),
+          ...(naar ? { status: naar } : {}),
+        });
+        if (r.ok) onKlant(r.klant, r.gesprek);
+        return r;
+      },
+      () => {
+        setTekst("");
+        setOp(vandaag);
+        setMetVervolg(false);
+        setVervolg("");
+        setVervolgOp("");
+        setNaar("");
+        meld(true, "Vastgelegd.");
+      },
+    );
+
+  const verwijderRegel = (id: string) =>
+    doe(async () => {
+      const r = await verwijderGesprek(k.id, id);
+      if (r.ok) onGesprekWeg(r.klant, id);
+      return r;
+    });
+
+  const verwijder = () => {
+    if (!window.confirm(`${k.bedrijf} van het bord halen, met alle gesprekken? Dit kan niet ongedaan worden gemaakt.`)) return;
+    doe(
+      async () => {
+        const r = await verwijderKlant(k.id);
+        if (r.ok) onVerwijderd(k.id);
+        return r;
+      },
+      () => meld(true, `${k.bedrijf} is van het bord.`),
+    );
+  };
+
+  const s = statusInfo(k.status);
+
+  return (
+    <>
+      <header className="border-b border-black/[0.06] bg-white px-6 pb-4 pt-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="truncate font-heading text-[20px] font-bold text-[#1c1a4e]">{k.bedrijf}</h2>
+              <Eigenaar naam={k.eigenaar} groot />
+            </div>
+            <p className="mt-0.5 text-[13px] text-black/50">
+              {s.uitleg}
+              {k.startdatum ? ` · start ${datumLang(k.startdatum)}` : ""}
+              {k.bron ? ` · via ${k.bron}` : ""}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-black/40 hover:bg-black/[0.05] hover:text-[#1c1a4e]" aria-label="Sluiten"><LuX /></button>
+        </div>
+        <div className="mt-3">
+          <StatusKeuze huidig={k.status} onKies={zetStatus} bezig={bezig} />
+        </div>
+        {hint && (
+          <button type="button" onClick={() => zetStatus(hint)} className="mt-3 inline-flex items-center gap-1.5 rounded-[10px] bg-[#f7f7fc] px-3 py-1.5 text-[12.5px] font-semibold text-[#312e82] hover:bg-[#eef0ff]">
+            <LuSparkles className="text-[13px] text-[#e75387]" /> De offertes en contracten zeggen: {statusInfo(hint).label.toLowerCase()}. Zet de kaart daarheen?
+          </button>
+        )}
+        {(k.telefoon || k.email) && (
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13.5px]">
+            {k.contactpersoon && <span className="text-black/60">{k.contactpersoon}</span>}
+            {k.telefoon && <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 font-semibold text-[#e75387] hover:underline"><LuPhone className="text-[12px]" />{k.telefoon}</a>}
+            {k.email && <a href={`mailto:${k.email}`} className="inline-flex items-center gap-1.5 font-semibold text-[#e75387] hover:underline"><LuMail className="text-[12px]" />{k.email}</a>}
+          </div>
+        )}
+      </header>
+
+      <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+        {fout && <p className="rounded-xl bg-[#fdeef4] px-4 py-2.5 text-[13.5px] font-semibold text-[#e0356b]" role="alert">{fout}</p>}
+
+        {/* Volgende stap */}
+        <section className={`acard p-4 ${actie === "te_laat" ? "border-l-[3px] border-l-[#e75387]" : ""}`} aria-labelledby="kb-volgende">
+          <div className="flex items-center justify-between gap-3">
+            <h3 id="kb-volgende" className={`${kop} inline-flex items-center gap-1.5`}><LuCalendarClock className="text-[13px]" /> Volgende stap</h3>
+            {k.volgende_actie_op && (
+              <span className={`apill !py-0.5 text-[11.5px] ${actie === "te_laat" ? "bg-[#fdeef4] text-[#e0356b]" : actie === "vandaag" ? "bg-[#fff4e5] text-[#b86e00]" : "bg-black/[0.05] text-black/55"}`}>
+                {actie === "te_laat" ? "Te laat: " : ""}{relatief(k.volgende_actie_op, vandaag)}
+              </span>
+            )}
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_160px]">
+            <input className={veld} value={actieTekst} onChange={(e) => setActieTekst(e.target.value)} placeholder="Wat moet er gebeuren?" aria-label="Volgende actie" />
+            <input className={veld} type="date" value={actieOp} onChange={(e) => setActieOp(e.target.value)} aria-label="Datum van de volgende actie" />
+          </div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {[["Vandaag", 0], ["Morgen", 1], ["Over een week", 7], ["Over een maand", 30]].map(([l, n]) => (
+              <button key={l} type="button" onClick={() => setActieOp(plusDagen(vandaag, Number(n)))} className="rounded-full bg-black/[0.04] px-2.5 py-1 text-[12px] font-semibold text-black/60 hover:bg-black/[0.08]">{l}</button>
+            ))}
+            <span className="flex-1" />
+            {(k.volgende_actie || k.volgende_actie_op) && (
+              <button type="button" onClick={() => bewaarActie("", "")} disabled={bezig} className="inline-flex items-center gap-1 rounded-full bg-[#e3f6ed] px-2.5 py-1 text-[12px] font-semibold text-[#0a7a4b] hover:brightness-95" title="De volgende stap is gedaan: haal hem van de kaart">
+                <LuCheck className="text-[12px]" /> Gedaan
+              </button>
+            )}
+            <button type="button" onClick={() => bewaarActie(actieTekst, actieOp)} disabled={bezig || !actieGewijzigd} className="abtn !px-3 !py-1 !text-[12.5px] disabled:opacity-40">Bewaar</button>
+          </div>
+        </section>
+
+        {/* Gesprek vastleggen */}
+        <section className="acard p-4" aria-labelledby="kb-gesprek">
+          <h3 id="kb-gesprek" className={kop}>Gesprek vastleggen</h3>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label="Wat voor contact">
+            {GESPREK_SOORTEN.map((x) => (
+              <button
+                key={x.key}
+                type="button"
+                role="radio"
+                aria-checked={soort === x.key}
+                onClick={() => setSoort(x.key)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-semibold transition ${soort === x.key ? "bg-[#312e82] text-white" : "bg-black/[0.04] text-black/60 hover:bg-black/[0.08]"}`}
+              >
+                <GesprekIcoon soort={x.key} className="text-[12px]" /> {x.label}
+              </button>
+            ))}
+            <input className={`${veld} ml-auto !w-auto`} type="date" value={op} max={vandaag} onChange={(e) => setOp(e.target.value)} aria-label="Datum van het gesprek" />
+          </div>
+          <textarea
+            id="kb-tekst"
+            className={`${veld} mt-3 font-sans`}
+            rows={3}
+            value={tekst}
+            onChange={(e) => setTekst(e.target.value)}
+            placeholder="Wat is er besproken? Kort is goed."
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && tekst.trim()) legVast();
+            }}
+          />
+          <div className="mt-3 space-y-2.5">
+            <label className="flex cursor-pointer items-center gap-2 text-[13px] font-semibold text-black/65">
+              <input type="checkbox" checked={metVervolg} onChange={(e) => { setMetVervolg(e.target.checked); if (e.target.checked && !vervolgOp) setVervolgOp(plusDagen(vandaag, 7)); }} className="h-4 w-4 accent-[#e75387]" />
+              Meteen de volgende stap zetten
+            </label>
+            {metVervolg && (
+              <div className="grid gap-2 sm:grid-cols-[1fr_160px]">
+                <input className={veld} value={vervolg} onChange={(e) => setVervolg(e.target.value)} placeholder="Bijvoorbeeld: offerte nabellen" aria-label="Volgende actie na dit gesprek" />
+                <input className={veld} type="date" value={vervolgOp} onChange={(e) => setVervolgOp(e.target.value)} aria-label="Datum" />
+              </div>
+            )}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className="inline-flex items-center gap-2 text-[13px] text-black/55">
+                Kaart naar
+                <select value={naar} onChange={(e) => setNaar(e.target.value as KlantStatus | "")} className="rounded-lg border border-black/[0.1] bg-white px-2 py-1 text-[12.5px] font-semibold text-[#1c1a4e]" aria-label="Kaart verplaatsen naar">
+                  <option value="">blijft in {s.label.toLowerCase()}</option>
+                  {KLANT_STATUS.filter((x) => x.key !== k.status).map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
+                </select>
+              </label>
+              <button type="button" onClick={legVast} disabled={bezig || (!tekst.trim() && !metVervolg && !naar)} className="abtn !px-4 !py-1.5 !text-[13px] disabled:opacity-40">
+                <LuPlus /> Vastleggen
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Tijdlijn */}
+        <section aria-labelledby="kb-tijdlijn">
+          <h3 id="kb-tijdlijn" className={`${kop} mb-2 px-1`}>Tijdlijn</h3>
+          {gesprekken.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-black/10 px-4 py-5 text-center text-[13px] text-black/45">Nog niets vastgelegd. Het eerste gesprek komt hierboven.</p>
+          ) : (
+            <ol className="space-y-1.5">
+              {gesprekken.map((x) => {
+                const systeem = x.soort === "status" || x.soort === "import";
+                return (
+                  <li key={x.id} className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 ${systeem ? "text-black/50" : "bg-white shadow-[0_1px_2px_rgba(18,16,60,0.05)]"}`}>
+                    <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] ${systeem ? "bg-black/[0.04] text-black/40" : "bg-[#eef0ff] text-[#312e82]"}`}>
+                      <GesprekIcoon soort={x.soort} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] text-black/45">
+                        <span className="font-semibold text-black/55">{SOORT_LABEL[x.soort]}</span> · {datumLang(x.op)}{x.door ? ` · ${x.door.split("@")[0]}` : ""}
+                      </p>
+                      <p className={`whitespace-pre-wrap text-[13.5px] ${systeem ? "" : "text-[#1c1a4e]"}`}>{x.tekst}</p>
+                    </div>
+                    <button type="button" onClick={() => verwijderRegel(x.id)} disabled={bezig} className="rounded-md p-1 text-black/25 opacity-0 transition hover:bg-[#fdeef4] hover:text-[#e0356b] focus:opacity-100 group-hover:opacity-100" aria-label="Deze regel verwijderen"><LuTrash2 className="text-[13px]" /></button>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </section>
+
+        {/* Checklist */}
+        <section className="acard p-4" aria-labelledby="kb-checklist">
+          <div className="flex items-center justify-between">
+            <h3 id="kb-checklist" className={kop}>Instaptraject</h3>
+            <Checklist k={k} groot />
+          </div>
+          <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+            {CHECKLIST.map((c) => (
+              <li key={c.key}>
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={k[c.key]}
+                  disabled={bezig}
+                  onClick={() => wisselVinkje(c.key)}
+                  className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-[13.5px] transition ${k[c.key] ? "border-[#0a7a4b]/30 bg-[#e3f6ed] text-[#0a7a4b]" : "border-black/[0.08] bg-white text-black/60 hover:border-black/20"}`}
+                >
+                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${k[c.key] ? "border-[#0a7a4b] bg-[#0a7a4b] text-white" : "border-black/20"}`}>{k[c.key] && <LuCheck className="text-[12px]" />}</span>
+                  {c.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Koppelingen */}
+        <section className="acard p-4" aria-labelledby="kb-koppelingen">
+          <h3 id="kb-koppelingen" className={kop}>In de andere modules</h3>
+          {koppelingen.length === 0 ? (
+            <p className="mt-2 text-[13px] text-black/45">Nog geen offerte, brochure, contract, onboarding of bellijstlead met deze bedrijfsnaam.</p>
+          ) : (
+            <ul className="mt-2.5 flex flex-wrap gap-1.5">
+              {koppelingen.map((x) => <li key={`${x.soort}-${x.id}`}><KoppelChip x={x} volledig /></li>)}
+            </ul>
+          )}
+        </section>
+
+        {/* Gegevens */}
+        <section className="acard p-4" aria-labelledby="kb-gegevens">
+          <h3 id="kb-gegevens" className={kop}>Gegevens</h3>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="alabel" htmlFor="kb-g-bedrijf">Bedrijf</label>
+              <input id="kb-g-bedrijf" className={veld} value={g.bedrijf || ""} onChange={(e) => zetG("bedrijf", e.target.value)} />
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-cp">Contactpersoon</label>
+              <input id="kb-g-cp" className={veld} value={g.contactpersoon || ""} onChange={(e) => zetG("contactpersoon", e.target.value)} />
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-eigenaar">Eigenaar bij React2u</label>
+              <input id="kb-g-eigenaar" className={veld} list="kb-eigenaren-g" value={g.eigenaar || ""} onChange={(e) => zetG("eigenaar", e.target.value)} />
+              <datalist id="kb-eigenaren-g">{eigenaren.map((e) => <option key={e} value={e} />)}</datalist>
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-tel">Telefoon</label>
+              <input id="kb-g-tel" className={veld} type="tel" value={g.telefoon || ""} onChange={(e) => zetG("telefoon", e.target.value)} />
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-email">E-mail</label>
+              <input id="kb-g-email" className={veld} type="email" value={g.email || ""} onChange={(e) => zetG("email", e.target.value)} />
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-bron">Bron</label>
+              <input id="kb-g-bron" className={veld} value={g.bron || ""} onChange={(e) => zetG("bron", e.target.value)} />
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-start">Startdatum</label>
+              <input id="kb-g-start" className={veld} type="date" value={g.startdatum || ""} onChange={(e) => zetG("startdatum", e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="alabel" htmlFor="kb-g-stand">Laatste stand <span className="font-normal text-black/40">(de kolom uit de klantlijst)</span></label>
+              <textarea id="kb-g-stand" className={`${veld} font-sans`} rows={2} value={g.stand || ""} onChange={(e) => zetG("stand", e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="alabel" htmlFor="kb-g-notitie">Notitie</label>
+              <textarea id="kb-g-notitie" className={`${veld} font-sans`} rows={3} value={g.notitie || ""} onChange={(e) => zetG("notitie", e.target.value)} placeholder="Wat je verder wilt weten over deze klant" />
+            </div>
+          </div>
+          <div className="mt-3 flex justify-end">
+            <button type="button" onClick={bewaarGegevens} disabled={bezig || !gegevensGewijzigd} className="abtn !px-4 !py-1.5 !text-[13px] disabled:opacity-40">Gegevens opslaan</button>
+          </div>
+        </section>
+
+        <div className="flex items-center justify-between gap-3 px-1 pb-2 text-[12.5px] text-black/40">
+          <span>Op het bord sinds {datumLang(k.created_at)}</span>
+          <button type="button" onClick={verwijder} disabled={bezig} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold text-black/45 hover:bg-[#fdeef4] hover:text-[#e0356b]"><LuTrash2 className="text-[13px]" /> Van het bord halen</button>
+        </div>
+      </div>
+    </>
+  );
+}
