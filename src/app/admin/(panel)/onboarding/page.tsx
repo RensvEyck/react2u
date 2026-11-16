@@ -25,9 +25,9 @@ const FILTERS: { key: string; label: string; past: (w: OnboardingWeergave) => bo
 
 /** Zonder de inhoud van `antwoorden` (daar kan het hele werknemersbestand in staan): alleen de momenten, voor de voortgang. */
 const KOLOMMEN =
-  `id, nummer, status, bedrijf, contactpersoon, email, documenten, invullen, gelezen, taken, afzender_naam, created_at, verstuurd_at, afgerond_at, bekeken_at, laatst_bekeken_at, aantal_bekeken, ${ANTWOORD_MOMENTEN}`;
+  `id, nummer, status, bedrijf, contactpersoon, email, documenten, invullen, gelezen, taken, vorige_arbodienst, afzender_naam, created_at, verstuurd_at, afgerond_at, bekeken_at, laatst_bekeken_at, aantal_bekeken, ${ANTWOORD_MOMENTEN}`;
 
-type Rij = Omit<Onboarding, "antwoorden" | "token" | "telefoon" | "bericht" | "contractsoort" | "debiteurnummer" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "notitie" | "created_by" | "updated_at"> & AntwoordMomenten;
+type Rij = Omit<Onboarding, "antwoorden" | "token" | "telefoon" | "bericht" | "contractsoort" | "debiteurnummer" | "casemanager" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "notitie" | "created_by" | "updated_at"> & AntwoordMomenten;
 
 function Balk({ klaar, totaal, kleur }: { klaar: number; totaal: number; kleur: string }) {
   return (
@@ -66,7 +66,7 @@ export default async function Onboardings({ searchParams }: { searchParams: Prom
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <OnboardingTabs actief="klant" klant="/admin/onboarding" werknemers="/admin/onboarding/werknemers" />
+          <OnboardingTabs actief="werkgever" werkgever="/admin/onboarding" werknemer="/admin/onboarding/werknemers" />
           <Link href="/admin/onboarding/nieuw" className="abtn"><LuPlus /> Nieuwe onboarding</Link>
         </div>
       </div>

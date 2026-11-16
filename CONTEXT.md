@@ -1561,30 +1561,35 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar
   na de laatste activiteit weg (`opruimen-onboardings`). Er is geen upload: geen
   extra service role nodig (zie de regel in `lib/supabase/admin.ts`).
-- **De machtiging tekent de werknemer online** (migratie
-  [0038](supabase/migrations/0038_onboarding_machtigingen.sql), Rens, 16 nov
-  2026: "maak het perfect"). Het proces zoals Rens het in een spraakbericht
-  beschreef: de werkgever vult zijn vorige arbodienst in en nodigt per
-  medewerker met een lopend dossier uit (naam en e-mail,
-  `onboarding_machtiging_uitnodigen`); die krijgt een persoonlijke link
+- **De machtiging tekent de werknemer online, vanuit het beheer** (migraties
+  [0038](supabase/migrations/0038_onboarding_machtigingen.sql) en
+  [0039](supabase/migrations/0039_onboarding_werkgever_werknemer.sql); Rens, 16
+  nov 2026: "werknemer gedeelte moet de machtiging zijn en moet ondertekend
+  kunnen worden met ip registratie; werkgever moet de gehele onboarding zijn
+  zonder doc van arbo naar arbo"). De machtiging staat daarom **niet** in de
+  onboarding van de werkgever (`DocumentInfo.verborgen`, buiten `gekozen()`,
+  `keuzeUit()` en de hoofdstukken; `/onboarding/<token>/machtiging` geeft 404).
+  React2u vult op het tabblad Werknemer de vorige arbodienst in
+  (`onboardings.vorige_arbodienst`, `saveVorigeArbodienst`), nodigt per
+  medewerker uit (naam en e-mail, te kiezen uit het werknemersbestand;
+  `nodigMachtigingUitBeheer` via `onboarding_machtiging_uitnodigen` met het
+  token van de onboarding), die krijgt een persoonlijke link
   (`/machtiging/<token>`, [`MachtigingPagina.tsx`](src/components/onboarding/MachtigingPagina.tsx),
   gemaakt voor de telefoon), vult zijn gegevens in (`MACHTIGING_WERKNEMER`,
   elfproef) en tekent met het `Handtekening`-onderdeel van de offerte
-  (`onboarding_machtiging_tekenen`: momentopname met hash, IP en apparaat, zoals
-  een contract). De werknemer krijgt een bevestiging met de getekende pdf. **De
-  werkgever stuurt daarna zelf de opdracht tot overdracht** naar de vorige
-  arbodienst: één knop (`verstuurOverdracht`) maakt de brief (`OVERDRACHT_BRIEF`)
-  met alle getekende machtigingen erachter als één pdf (`overdrachtPdf`) en
-  mailt die uit naam van de werkgever naar het mailadres van de arbodienst, met
-  de werkgever en medisch@react2u.nl erbij (`onboarding_overdracht_versturen`
-  zet `overdracht_at`); de arbodienst stuurt React2u daarna een lijst van de
-  dossiers, en de taak van React2u heet daarom *Dossiers ontvangen van de
-  vorige arbodienst*. Papier blijft kunnen (de lege pdf). De werkgever ziet
-  alleen naam, e-mail en de stand (`machtigingen` in `onboarding_bekijken`),
-  nooit gegevens of handtekening; de getekende pdf's wel
-  (`onboarding_machtigingen_getekend`, want die moet hij doorsturen). Het
-  beheer leest de tabel `onboarding_machtigingen` mee (lijst, pdf per
-  machtiging, tijdlijn `machtiging` met `details.actie`).
+  (`onboarding_machtiging_tekenen`: momentopname met hash, **IP-adres** en
+  apparaat; het IP staat in het beheer en op de pdf). De werknemer krijgt een
+  bevestiging met de getekende pdf. Daarna verstuurt React2u **namens de
+  werkgever** de opdracht tot overdracht (`verstuurOverdrachtBeheer`,
+  `OVERDRACHT_BRIEF`, `overdrachtPdf`: de brief met alle getekende
+  machtigingen als één pdf) naar het mailadres van de vorige arbodienst, met
+  de werkgever en medisch@react2u.nl erbij en antwoorden naar de werkgever
+  (`onboarding_overdracht_versturen` zet `overdracht_at`); die arbodienst stuurt
+  React2u de lijst en de dossiers (taak *Dossiers ontvangen van de vorige
+  arbodienst*, alleen als er een vorige arbodienst is: `bijArbodienst`). Papier
+  blijft kunnen (de lege pdf via het voorbeeld). De werkgever ziet hier niets
+  van; de functies van 0038 lezen de arbodienst uit de nieuwe kolom met het
+  oude klantantwoord als terugval.
 - **Excelbestand uploaden** naast plakken ([`lib/xlsxLezen.ts`](src/lib/xlsxLezen.ts),
   zonder dependency: de zip ontpakt de browser met `DecompressionStream`, de XML
   lezen we met reguliere expressies; gedeelde tekst, getallen, en een getal met
@@ -1612,18 +1617,20 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   dagen uit elkaar en niet vlak na een herinnering van een collega. Dezelfde
   mail als de herinnering uit het beheer; in de tijdlijn als `herinnering` met
   `details.automatisch`.
-- **Beheer: splitsing klant en werknemers** (Rens, 16 nov 2026: "maak in de
-  admin een splitsing onboarding klant en werknemer van klant";
+- **Beheer: één feature Onboarding, met Werkgever en Werknemer** (Rens, 16 nov
+  2026: "onboarding moet 1 feature zijn in de zijbalk";
   [`OnboardingTabs.tsx`](src/components/admin/OnboardingTabs.tsx)). Boven het
-  register en boven één onboarding twee tabbladen: *Onboarding klant* (wat de
-  klant aanlevert, wat React2u inricht, tijdlijn, notitie) en *Werknemers van
-  klant* (`?tab=werknemers`: het werknemersbestand voor XpertSuite en de
-  machtigingen die de werknemers tekenen, met een eigen tijdlijn). Het
-  register van werknemers
-  ([`/admin/onboarding/werknemers`](src/app/admin/(panel)/onboarding/werknemers/page.tsx),
-  ook in het menu) toont over alle klanten heen wie moet tekenen, wie tekende
-  en welke opdrachten naar de arbodienst gingen, en per klant de stand van het
-  werknemersbestand (aangeleverd, klaar om te importeren, geïmporteerd).
+  register en boven één onboarding twee tabbladen. *Werkgever* is de hele
+  onboarding van de klant: versturen, wat de klant doet, de checklist van
+  React2u, de inrichting, het werknemersbestand voor XpertSuite, de tijdlijn en
+  de notitie. *Werknemer* (`?tab=werknemer`) is de machtiging: de vorige
+  arbodienst, uitnodigen, de stand per werknemer met het IP-adres van de
+  ondertekening, de opdracht tot overdracht
+  ([`MachtigingBeheer.tsx`](src/components/admin/MachtigingBeheer.tsx)) en een
+  eigen tijdlijn. Het register Werknemer
+  ([`/admin/onboarding/werknemers`](src/app/admin/(panel)/onboarding/werknemers/page.tsx))
+  toont over alle klanten heen wie moet tekenen, wie tekende (met IP) en welke
+  opdrachten naar de arbodienst gingen.
 - **Een stap doorsturen** naar een collega (`StapDoorsturen` onder elke stap):
   naam, e-mail, eigen naam, bericht; `onboarding_doorsturen` legt het vast
   (hooguit twintig per dag), Next mailt de link naar die stap.
@@ -1660,8 +1667,10 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   hub en gaat per stap naar zijn pagina: afvinken, inrichting met een fout
   KvK-nummer en de bevestiging met pdf, werknemers met een fout BSN, plakken
   én uploaden van een echt Excelbestand (`maakXlsx` in `e2e/hulp.cjs`) met het
-  controlerapport, machtiging: de werknemer tekent op zijn telefoon en de
-  werkgever verstuurt de opdracht, een stap doorsturen, compleet met "jullie
+  controlerapport, machtiging vanuit het beheer: React2u vult de vorige
+  arbodienst in en nodigt uit het werknemersbestand uit, de werknemer tekent op
+  zijn telefoon met IP-registratie en React2u verstuurt de opdracht, een stap
+  doorsturen, compleet met "jullie
   deel is klaar", het dashboard, de checklist van React2u tot ingericht met de
   mail "jullie zijn live", wissen na import, register, collega, intrekken,
   onbekende link), `lib/onboarding.test.ts`, `lib/xlsxLezen.test.ts`,

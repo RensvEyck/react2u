@@ -85,9 +85,9 @@ async function teken(pagina, selector) {
   await page.fill("#ob-an", "Rens van Eyck");
   await page.fill("#ob-af", "Bestuurder");
   await page.fill("#ob-at", "06 12345678");
-  // De machtiging gaat alleen mee bij een overstap: hier wel.
-  await page.click("label:has-text('Machtiging overdracht verzuimdossier')");
-  check(await page.locator("text=6 mee · 3 online invullen").count(), "machtiging erbij: zes mee, drie online");
+  // De machtiging (van arbo naar arbo) hoort niet meer bij de documenten van de werkgever: die loopt via Werknemer.
+  check((await page.locator("label:has-text('Machtiging overdracht verzuimdossier')").count()) === 0, "geen machtiging in de documentkeuze van de werkgever");
+  check(await page.locator("text=5 mee · 2 online invullen").count(), "vijf mee, twee online");
   await shot(page, "02-nieuw");
   await page.click("button:has-text('Onboarding aanmaken')");
   await page.waitForURL(/\/admin\/onboarding\/[0-9a-f-]{36}/, { timeout: 30000 });
@@ -96,11 +96,11 @@ async function teken(pagina, selector) {
   check(await page.locator("text=/O\\d{4}-\\d{4}/").count(), "nummer O<jaar>-<volgnummer>");
   check(await page.locator("span:has-text('Concept')").count(), "status concept");
   check((await page.locator("#inrichten").count()) === 0, "checklist van React2u nog niet bij een concept");
-  check(await page.locator("text=0 van 6 klaar").count(), "voortgang: 0 van 6");
+  check(await page.locator("text=0 van 5 klaar").count(), "voortgang: 0 van 5");
   const vbLink = await page.getAttribute("a:has-text('Voorbeeld')", "href");
   check(vbLink === `/admin/onboardingvoorbeeld/${id}`, `voorbeeld in het beheer (${vbLink})`);
-  check(sql(`select array_to_string(documenten, ',') from public.onboardings where id = '${id}'`) === "welkom,inrichting,werknemers,machtiging,verzuimprotocol,vragen", "documenten in de volgorde van het verhaal");
-  check(sql(`select array_to_string(invullen, ',') from public.onboardings where id = '${id}'`) === "inrichting,werknemers,machtiging", "drie documenten online in te vullen");
+  check(sql(`select array_to_string(documenten, ',') from public.onboardings where id = '${id}'`) === "welkom,inrichting,werknemers,verzuimprotocol,vragen", "documenten in de volgorde van het verhaal");
+  check(sql(`select array_to_string(invullen, ',') from public.onboardings where id = '${id}'`) === "inrichting,werknemers", "twee documenten online in te vullen");
   await shot(page, "03-beheer-concept");
 
   stap("Voorbeeld (hub en een stap), pdf en Excel vanuit het beheer");
@@ -113,7 +113,7 @@ async function teken(pagina, selector) {
   check(await vb.locator("text=Beste Fatima,").count(), "aanhef met de voornaam");
   check(await vb.locator(`text=Fijn dat we voor ${BEDRIJF} aan de slag gaan`).count(), "{bedrijf} ingevuld in het persoonlijke woord");
   check((await vb.locator("section[id^=hoofdstuk-]").count()) === 3, "drie hoofdstukken op de hub");
-  check((await vb.locator("section[id^=hoofdstuk-] ol > li > a").count()) === 6, "zes stappen als kaarten, elk naar een eigen pagina");
+  check((await vb.locator("section[id^=hoofdstuk-] ol > li > a").count()) === 5, "vijf stappen als kaarten, elk naar een eigen pagina");
   check((await vb.locator('nav[aria-label="Hoofdstukken van de onboarding"] a').count()) === 4, "drie hoofdstukken en het vervolg in de kopbalk");
   check(await vb.locator("#verder >> text=Zo gaat het verder").count(), "het vervolg: wat React2u daarna doet");
   check(await vb.locator("text=Handig om bij de hand te hebben").count() && (await vb.locator("text=KvK-nummer").count()), "wat je bij de hand moet hebben");
@@ -123,13 +123,13 @@ async function teken(pagina, selector) {
   await vb.goto(`${BASIS}${vbLink}/inrichting`);
   await vb.waitForSelector("#stap-inrichting");
   check(await vb.locator("header a:has-text('Overzicht')").count(), "stappagina: terug naar het overzicht in de kopbalk");
-  check(await vb.locator("text=Hoofdstuk 2 van 3").count() && (await vb.locator("text=Stap 2 van 6").count()), "stappagina: waar je bent in het verhaal");
+  check(await vb.locator("text=Hoofdstuk 2 van 3").count() && (await vb.locator("text=Stap 2 van 5").count()), "stappagina: waar je bent in het verhaal");
   check(await vb.locator("#stap-inrichting button:has-text('Gegevens opslaan')[disabled]").count(), "in het voorbeeld kan niets worden opgeslagen");
   check((await vb.locator("#ob-inrichting-iban").count()) === 0, "geen IBAN-veld");
   check(await vb.locator("a:has-text('Volgende stap: Werknemersbestand')").count(), "volgende stap onderaan");
   await shot(vb, "04b-voorbeeld-stap");
   await vb.close();
-  for (const d of ["welkom", "verzuimprotocol", "vragen", "inrichting", "machtiging"]) {
+  for (const d of ["welkom", "verzuimprotocol", "vragen", "inrichting"]) {
     const r = await page.request.get(`${BASIS}/admin/onboardingvoorbeeld/${id}/pdf/${d}?download=1`);
     const body = await r.body();
     check(isPdf(r, body) && /^attachment;/.test(r.headers()["content-disposition"] || ""), `pdf ${d} uit het beheer: ${r.status()}, ${body.length} bytes`);
@@ -154,7 +154,7 @@ async function teken(pagina, selector) {
   check(mail?.reply_to === "sales@react2u.nl", `antwoorden naar de salesbox (${mail?.reply_to})`);
   check(mail?.html.includes("Start je onboarding"), "knop in de mail");
   check(mail?.html.includes("Beste Fatima,"), "aanhef in de mail");
-  check(["Welkom bij React2u", "Inrichting nieuwe klant", "Werknemersbestand", "Verzuimprotocol", "Machtiging overdracht verzuimdossier"].every((t) => mail?.html.includes(t)), "de documenten als checklist in de mail");
+  check(["Welkom bij React2u", "Inrichting nieuwe klant", "Werknemersbestand", "Verzuimprotocol"].every((t) => mail?.html.includes(t)) && !mail?.html.includes("Machtiging overdracht"), "de documenten als checklist in de mail, zonder de machtiging");
   fs.writeFileSync(path.join(SHOTS, "mail-onboarding.html"), mail?.html || "");
   const link = onboardingLink(mail?.html);
   check(Boolean(link), `link in de mail: ${link}`);
@@ -162,7 +162,7 @@ async function teken(pagina, selector) {
   await page.waitForSelector("span:has-text('Verstuurd')");
   check(await page.locator("text=Verstuurd naar fatima@korenaar.test").count(), "verstuurd in de tijdlijn");
   check(await page.locator("#inrichten").count(), "checklist van React2u staat er nu");
-  check((await page.locator("#inrichten [role=checkbox]").count()) === 6, "zes taken, met de import en de dossiers erbij");
+  check((await page.locator("#inrichten [role=checkbox]").count()) === 5, "vijf taken, met de import erbij; de dossiers komen pas bij een vorige arbodienst");
   check(await page.locator("#inrichten >> text=Kan zodra de klant inrichting nieuwe klant heeft ingevuld").count(), "een taak wacht op de klant");
   await shot(page, "05-beheer-verstuurd");
 
@@ -191,7 +191,7 @@ async function teken(pagina, selector) {
   await klant.waitForSelector("h1:has-text('Welkom')");
   check((await klant.locator("text=Je bekijkt deze onboarding als collega").count()) === 0, "geen collega-melding");
   check(await klant.locator("text=Beste Fatima,").count(), "aanhef");
-  check(await klant.locator("text=Nog 6 stappen te gaan").count(), "voortgang: nog zes stappen");
+  check(await klant.locator("text=Nog 5 stappen te gaan").count(), "voortgang: nog vijf stappen");
   check(await klant.locator("text=Rens van Eyck").count(), "het aanspreekpunt");
   check(await klant.locator("a.hv-btn-roze:has-text('Begin met stap 1')").count(), "knop naar stap 1");
   check(sql(`select aantal_bekeken from public.onboardings where id = '${id}'`) === "1", "bezoek geteld");
@@ -232,7 +232,7 @@ async function teken(pagina, selector) {
   await klant.waitForSelector("#stap-welkom >> text=Afgevinkt", { timeout: 20000 });
   check(sql(`select gelezen ? 'welkom' from public.onboardings where id = '${id}'`) === "t", "welkom afgevinkt in de database");
   await klant.waitForSelector("#stap-welkom >> text=Verder met inrichting nieuwe klant", { timeout: 20000 });
-  check(await klant.locator("header >> text=1/6").count(), "voortgang in de kopbalk: 1/6");
+  check(await klant.locator("header >> text=1/5").count(), "voortgang in de kopbalk: 1/5");
   const welkomPdf = await klant.request.get(`${link}/pdf/welkom`);
   check(isPdf(welkomPdf, await welkomPdf.body()), "welkom als pdf voor de klant");
   check(sql(`select aantal_bekeken from public.onboardings where id = '${id}'`) === "2", "een pdf ophalen telt niet als bezoek");
@@ -300,10 +300,10 @@ async function teken(pagina, selector) {
   // Uploaden: een echt Excelbestand (deflate, gedeelde tekst, datums als getal), met een rij die er al staat en een onvolledige.
   const xlsxPad = path.join(SHOTS, "upload-personeel.xlsx");
   fs.writeFileSync(xlsxPad, maakXlsx([
-    ["Burgerservicenummer", "roepnaam", "voorletters", "Eigen_achternaam", "geboortedatum", "adres", "huisnummer", "postcode", "plaatsnaam", "startdatum_dienstverband", "naam_functie"],
-    ["300000005", "Karim", "K.", "Bouali", { d: "1990-03-07" }, "Lindelaan", "9", "5615 GH", "Eindhoven", { d: "2022-02-01" }, "Chauffeur"],
-    ["100000009", "Piet", "P.", "Peters", "15-02-1975", "Molenweg", "3", "5613 CD", "Eindhoven", "01-06-2020", "Hoofdbakker"],
-    ["400000003", "Eva", "E.", "Smit", "1988-12-24", "", "", "5616 IJ", "Eindhoven", "2021-05-01", ""],
+    ["Burgerservicenummer", "roepnaam", "voorletters", "Eigen_achternaam", "geboortedatum", "adres", "huisnummer", "postcode", "plaatsnaam", "startdatum_dienstverband", "naam_functie", "email_adres_werk"],
+    ["300000005", "Karim", "K.", "Bouali", { d: "1990-03-07" }, "Lindelaan", "9", "5615 GH", "Eindhoven", { d: "2022-02-01" }, "Chauffeur", "karim@korenaar.test"],
+    ["100000009", "Piet", "P.", "Peters", "15-02-1975", "Molenweg", "3", "5613 CD", "Eindhoven", "01-06-2020", "Hoofdbakker", ""],
+    ["400000003", "Eva", "E.", "Smit", "1988-12-24", "", "", "5616 IJ", "Eindhoven", "2021-05-01", "", ""],
   ]));
   await klant.setInputFiles("#wn-bestand", xlsxPad);
   await klant.waitForSelector("#stap-werknemers >> text=3 medewerkers gelezen uit upload-personeel.xlsx", { timeout: 20000 });
@@ -331,96 +331,117 @@ async function teken(pagina, selector) {
   check(wnOntvangen?.to?.includes("fatima@korenaar.test") && !wnOntvangen?.attachments, `bevestiging aan de klant, zonder bijlage (BSN's): ${wnOntvangen?.subject}`);
   await shot(klant, "12-klant-werknemers", { fullPage: false });
 
-  stap("Machtiging: de vorige arbodienst");
-  await klant.goto(`${link}/machtiging`);
-  await klant.waitForSelector("#stap-machtiging");
-  await klant.fill("#ob-machtiging-arbodienst", "ArboNed");
-  await klant.fill("#ob-machtiging-plaats", "Utrecht");
-  await klant.fill("#ob-machtiging-bedrijfsarts", "P. de Vries");
-  await klant.fill("#ob-machtiging-email", "dossiers@arboned.test");
-  await klant.click("#stap-machtiging button:has-text('Opslaan en machtiging maken')");
-  await klant.waitForSelector("#stap-machtiging >> text=Download de ingevulde machtiging", { timeout: 20000 });
-  const mPdf = await klant.request.get(`${link}/pdf/machtiging?download=1`);
+  stap("Beheer, tabblad Werknemer: de vorige arbodienst");
+  await page.goto(adminUrl);
+  await page.waitForSelector("nav[aria-label='Onboarding: werkgever of werknemer']");
+  check((await page.locator("h2:has-text('Vorige arbodienst')").count()) === 0 && (await page.locator("#machtigingen").count()) === 0, "tabblad Werkgever: geen machtiging");
+  check((await page.locator("#inrichten [role=checkbox]").count()) === 5, "nog vijf taken zolang er geen vorige arbodienst is");
+  await page.click("nav[aria-label='Onboarding: werkgever of werknemer'] a:has-text('Werknemer')");
+  await page.waitForURL(/tab=werknemer/, { timeout: 20000 });
+  await page.waitForSelector("#va-arbodienst");
+  check(await page.locator("text=Vul eerst de vorige arbodienst in").count(), "uitnodigen kan pas met een vorige arbodienst");
+  await page.fill("#va-arbodienst", "ArboNed");
+  await page.fill("#va-plaats", "Utrecht");
+  await page.fill("#va-bedrijfsarts", "P. de Vries");
+  await page.fill("#va-email", "dossiers@arboned.test");
+  await page.click("form:has(#va-arbodienst) button:has-text('Vorige arbodienst opslaan')");
+  await page.waitForSelector("text=Vorige arbodienst opgeslagen.", { timeout: 20000 });
+  check(sql(`select vorige_arbodienst->>'arbodienst' from public.onboardings where id = '${id}'`) === "ArboNed", "vorige arbodienst bij React2u opgeslagen");
+  const mPdf = await page.request.get(`${BASIS}/admin/onboardingvoorbeeld/${id}/pdf/machtiging?download=1`);
   const mBody = await mPdf.body();
-  check(isPdf(mPdf, mBody), `de ingevulde machtiging als pdf: ${mPdf.status()}`);
+  check(isPdf(mPdf, mBody), `de lege machtiging met de vorige arbodienst als pdf: ${mPdf.status()}`);
   fs.writeFileSync(path.join(SHOTS, "machtiging-ingevuld.pdf"), mBody);
-  check(await klant.locator("header >> text=4/6").count(), "kopbalk: 4/6");
+  check((await klant.request.get(`${link}/machtiging`)).status() === 404, "de klant heeft geen machtigingstap");
 
-  stap("Machtiging online laten tekenen door de werknemer");
-  await klant.waitForSelector("#machtigingen");
-  await klant.fill("#mu-naam", "Mohammed Yilmaz");
-  await klant.fill("#mu-email", "mo@korenaar.test");
-  await klant.click("#machtigingen button:has-text('Uitnodiging sturen')");
-  await klant.waitForSelector("#machtigingen >> text=Uitnodiging gestuurd naar mo@korenaar.test", { timeout: 20000 });
+  stap("Beheer: een werknemer uitnodigen om online te tekenen");
+  await page.waitForSelector("#mu-kies");
+  await page.selectOption("#mu-kies", "karim@korenaar.test");
+  check((await page.inputValue("#mu-naam")) === "Karim Bouali" && (await page.inputValue("#mu-email")) === "karim@korenaar.test", "gekozen uit het werknemersbestand: naam en e-mail ingevuld");
+  await page.click("#machtigingen button:has-text('Uitnodiging sturen')");
+  await page.waitForSelector("#machtigingen >> text=Uitnodiging gestuurd naar karim@korenaar.test", { timeout: 20000 });
   const uitn = await mailMet(/^Machtiging overdracht verzuimdossier/);
-  check(uitn?.to?.includes("mo@korenaar.test") && uitn.html.includes("Bekijk en teken de machtiging") && uitn.html.includes("ArboNed"), `uitnodiging aan de werknemer: ${uitn?.subject}`);
+  check(uitn?.to?.includes("karim@korenaar.test") && uitn.html.includes("Bekijk en teken de machtiging") && uitn.html.includes("ArboNed"), `uitnodiging aan de werknemer: ${uitn?.subject}`);
   const mLink = machtigingLink(uitn?.html);
   check(Boolean(mLink), `persoonlijke link: ${mLink}`);
-  await klant.waitForSelector("#machtigingen >> text=Mohammed Yilmaz", { timeout: 20000 });
-  check(await klant.locator("#machtigingen >> text=nog niet geopend").count(), "stand: uitgenodigd, nog niet geopend");
-  await klant.click("#machtigingen button:has-text('Opnieuw sturen')");
-  await klant.waitForSelector("#machtigingen >> text=minder dan een uur geleden", { timeout: 20000 });
-  ok("opnieuw sturen binnen een uur: nette melding");
-  const mid = sql(`select id from public.onboarding_machtigingen where email = 'mo@korenaar.test'`);
-  // De werknemer, op zijn telefoon.
+  await page.waitForSelector("#machtigingen >> text=Karim Bouali", { timeout: 20000 });
+  check(await page.locator("#machtigingen >> text=nog niet geopend").count(), "stand: uitgenodigd, nog niet geopend");
+  await page.click("#machtigingen button:has-text('Herinneren')");
+  await page.waitForSelector("#machtigingen >> text=minder dan een uur geleden", { timeout: 20000 });
+  ok("herinneren binnen een uur: nette melding");
+  const mid = sql(`select id from public.onboarding_machtigingen where email = 'karim@korenaar.test'`);
+  check((await page.locator("#inrichten").count()) === 0, "tabblad Werknemer: geen checklist van de werkgever");
+  await shot(page, "18a-beheer-werknemer");
+
+  stap("De werknemer tekent op zijn telefoon, met IP-registratie");
   const wctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "nl-NL" });
   const wn2 = await wctx.newPage();
   wn2.on("pageerror", (e) => paginafouten.push(String(e)));
   const wr = await wn2.goto(mLink);
   check(wr.status() === 200, `pagina van de werknemer 200 (${wr.status()})`);
-  await wn2.waitForSelector("h1:has-text('Hallo Mohammed')");
+  await wn2.waitForSelector("h1:has-text('Hallo Karim')");
   check(await wn2.locator("text=ArboNed").count() && (await wn2.locator("text=Stafarts B. Kamzoul").count()), "van ArboNed naar de bedrijfsarts van React2u");
   check((await wn2.evaluate(() => document.documentElement.scrollWidth)) <= 390, "geen horizontale scroll op de telefoon");
   check(sql(`select bekeken_at is not null from public.onboarding_machtigingen where id = '${mid}'`) === "t", "geopend vastgelegd");
   await shot(wn2, "18-werknemer-machtiging", { fullPage: false });
-  check((await wn2.inputValue("#mw-naam")) === "Mohammed Yilmaz", "naam vooringevuld");
-  await wn2.fill("#mw-adres", "Hoogstraat 12");
-  await wn2.fill("#mw-postcode", "5611 AB");
+  check((await wn2.inputValue("#mw-naam")) === "Karim Bouali", "naam vooringevuld");
+  await wn2.fill("#mw-adres", "Lindelaan 9");
+  await wn2.fill("#mw-postcode", "5615 GH");
   await wn2.fill("#mw-plaats", "Eindhoven");
-  await wn2.fill("#mw-geboortedatum", "1985-07-21");
-  await wn2.fill("#mw-bsn", "111222333");
+  await wn2.fill("#mw-geboortedatum", "1990-03-07");
+  await wn2.fill("#mw-bsn", "300000005");
   await wn2.check("input[type=checkbox]");
   await wn2.click("button:has-text('Machtiging ondertekenen')");
   await wn2.waitForSelector("[role=alert]:has-text('handtekening')", { timeout: 20000 });
   ok("zonder handtekening een melding");
   await teken(wn2, "#handtekening canvas");
   await wn2.click("button:has-text('Machtiging ondertekenen')");
-  await wn2.waitForSelector("h1:has-text('Dank je wel, Mohammed')", { timeout: 30000 });
-  check(sql(`select status || ',' || (getekend_hash is not null) || ',' || (gegevens->>'bsn') from public.onboarding_machtigingen where id = '${mid}'`) === "getekend,true,111222333", "getekend, met hash en gegevens");
+  await wn2.waitForSelector("h1:has-text('Dank je wel, Karim')", { timeout: 30000 });
+  check(sql(`select status || ',' || (getekend_hash is not null) || ',' || (getekend_ip is not null) || ',' || (gegevens->>'bsn') from public.onboarding_machtigingen where id = '${mid}'`) === "getekend,true,true,300000005", "getekend, met hash, IP-adres en gegevens");
   const bev = await mailMet(/^Getekend: je machtiging/);
-  check(bev?.to?.includes("mo@korenaar.test") && bijlagePdf(bev), `bevestiging aan de werknemer met de getekende pdf: ${bev?.subject}`);
+  check(bev?.to?.includes("karim@korenaar.test") && bijlagePdf(bev), `bevestiging aan de werknemer met de getekende pdf: ${bev?.subject}`);
   const wPdf = await wn2.request.get(`${mLink}/pdf?download=1`);
   const wBody = await wPdf.body();
   check(isPdf(wPdf, wBody), `de eigen getekende machtiging als pdf: ${wPdf.status()}`);
   fs.writeFileSync(path.join(SHOTS, "machtiging-getekend.pdf"), wBody);
   const seinGetekend = await mailMet(/tekende de machtiging/);
-  check(seinGetekend?.to?.includes("sales@react2u.nl"), `seintje aan de afzender: ${seinGetekend?.subject}`);
+  check(seinGetekend?.to?.includes("sales@react2u.nl") && seinGetekend.html.includes("IP-registratie"), `seintje aan de afzender: ${seinGetekend?.subject}`);
   await shot(wn2, "19-werknemer-getekend", { fullPage: false });
   await wctx.close();
-  // De werkgever ziet het, en stuurt de opdracht naar de vorige arbodienst.
-  await klant.reload();
-  await klant.waitForSelector("#machtigingen >> text=Getekend op", { timeout: 20000 });
-  const ePdf = await klant.request.get(`${link}/machtiging/${mid}?download=1`);
-  check(isPdf(ePdf, await ePdf.body()), `de getekende machtiging voor de werkgever: ${ePdf.status()}`);
-  check((await klant.inputValue("#ov-email")) === "dossiers@arboned.test", "e-mailadres van de arbodienst vooringevuld");
-  await klant.click("#overdracht button:has-text('Verstuur de opdracht')");
-  await klant.waitForSelector("#overdracht >> text=Opdracht verstuurd naar dossiers@arboned.test", { timeout: 30000 });
+
+  stap("Beheer: getekend met IP, en de opdracht namens de werkgever naar de arbodienst");
+  await page.reload();
+  await page.waitForSelector("#machtigingen >> text=Getekend", { timeout: 20000 });
+  check(await page.locator("#machtigingen >> text=IP ").count(), "het IP-adres van de ondertekening staat erbij");
+  check(await page.locator("text=1/1 getekend").count(), "telling op het tabblad");
+  const aPdf = await page.request.get(`${BASIS}/admin/onboarding/${id}/machtiging/${mid}`);
+  check(isPdf(aPdf, await aPdf.body()), `de getekende machtiging als pdf in het beheer: ${aPdf.status()}`);
+  check((await page.inputValue("#ov-email")) === "dossiers@arboned.test", "e-mailadres van de arbodienst vooringevuld");
+  await page.click("#overdracht button:has-text('Verstuur de opdracht')");
+  await page.waitForSelector("#overdracht >> text=Opdracht verstuurd naar dossiers@arboned.test", { timeout: 30000 });
   const opd = await mailMet(/^Opdracht overdracht verzuimdossiers/);
   check(opd?.to?.includes("dossiers@arboned.test") && opd.to.includes("medisch@react2u.nl") && opd.to.includes("fatima@korenaar.test"), `opdracht aan de arbodienst, met de werkgever en medisch erbij: ${opd?.to}`);
   check(opd?.reply_to === "fatima@korenaar.test", "antwoorden gaat naar de werkgever");
   check(bijlagePdf(opd) && opd.attachments[0].filename.startsWith("Opdracht overdracht"), "de brief met de machtiging als pdf in de bijlage");
   check(sql(`select overdracht_at is not null from public.onboarding_machtigingen where id = '${mid}'`) === "t", "overdracht vastgelegd");
-  const ovPdf = await klant.request.get(`${link}/overdracht?download=1`);
+  const ovPdf = await page.request.get(`${BASIS}/admin/onboarding/${id}/overdracht?download=1`);
   const ovBody = await ovPdf.body();
-  check(isPdf(ovPdf, ovBody), `de opdracht als pdf: ${ovPdf.status()}`);
+  check(isPdf(ovPdf, ovBody), `de opdracht als pdf uit het beheer: ${ovPdf.status()}`);
   fs.writeFileSync(path.join(SHOTS, "opdracht-overdracht.pdf"), ovBody);
-  check(Boolean(await mailMet(/stuurde de opdracht tot overdracht/)), "seintje aan de afzender over de opdracht");
-  await klant.reload();
-  await klant.waitForSelector("#machtigingen >> text=naar de arbodienst gestuurd op", { timeout: 20000 });
-  await shot(klant, "20-klant-machtiging-getekend");
+  await page.reload();
+  await page.waitForSelector("#machtigingen >> text=met de opdracht naar de arbodienst", { timeout: 20000 });
+  check(await page.locator("text=Opdracht tot overdracht met 1 machtiging").count() && (await page.locator("text=Karim Bouali tekende de machtiging online").count()), "eigen tijdlijn van de werknemers");
+  await shot(page, "20-beheer-werknemer-getekend");
+  await page.goto(`${BASIS}/admin/onboarding/werknemers`);
+  await page.waitForSelector("h1:has-text('Onboarding werknemer')");
+  check(await page.locator("td:has-text('Karim Bouali')").count() && (await page.locator("td a:has-text('Bakkerij De Korenaar')").count()), "register Werknemer: Karim bij de bakkerij");
+  check(await page.locator("td >> text=Naar de arbodienst").count(), "met de stand van de opdracht");
+  check((await page.locator("td.font-mono").count()) > 0, "met het IP-adres");
+  await page.goto(`${BASIS}/admin/onboarding/werknemers?filter=open`);
+  check(await page.locator("text=Geen werknemers in deze selectie").count(), "filter: niemand wacht nog op een handtekening");
+  await shot(page, "20b-beheer-werknemers-register");
   await klant.goto(link);
-  await klant.waitForSelector("text=1 van 1 medewerker getekend", { timeout: 20000 });
-  ok("hub: de stand van de machtigingen op de kaart");
+  await klant.waitForSelector("h1:has-text('Welkom')");
+  check((await klant.locator("section[id^=hoofdstuk-] a[href$='/machtiging']").count()) === 0 && (await klant.locator("text=Nog 2 stappen te gaan").count()), "klant: geen machtigingstap, nog twee stappen");
 
   stap("Delen met je team: de laatste stappen afvinken, compleet");
   await klant.goto(`${link}/verzuimprotocol`);
@@ -428,7 +449,7 @@ async function teken(pagina, selector) {
   check((await klant.locator("#stap-verzuimprotocol >> text=ziektegeld").count()) > 0, "protocol: ziektegeld, zoals op de poster");
   await klant.locator("#stap-verzuimprotocol button:has-text('Gedeeld met mijn medewerkers')").click();
   await klant.waitForSelector("#stap-verzuimprotocol >> text=Afgevinkt", { timeout: 20000 });
-  check(sql(`select status from public.onboardings where id = '${id}'`) === "verstuurd", "nog niet compleet na vijf van zes");
+  check(sql(`select status from public.onboardings where id = '${id}'`) === "verstuurd", "nog niet compleet na vier van vijf");
   await klant.goto(`${link}/vragen`);
   await klant.waitForSelector("#stap-vragen");
   check(await klant.locator("#stap-vragen >> text=In één oogopslag").count(), "de samenvattingstabel");
@@ -451,7 +472,7 @@ async function teken(pagina, selector) {
   await klant.goto(link);
   await klant.waitForSelector("text=Jullie onboarding is compleet", { timeout: 20000 });
   check(await klant.locator("text=Alles klaar, dank je wel!").count(), "de felicitatie op de hub");
-  check(await klant.locator("header >> text=6/6").count(), "kopbalk: 6/6");
+  check(await klant.locator("header >> text=5/5").count(), "kopbalk: 5/5");
   check((await klant.locator("div.fixed:has-text('Stap')").count()) === 0, "geen balk naar een volgende stap meer");
   const afgerond = await mailMet(/heeft de onboarding afgerond/);
   check(Boolean(afgerond), `seintje aan de afzender: ${afgerond?.subject}`);
@@ -464,35 +485,15 @@ async function teken(pagina, selector) {
   await page.goto(adminUrl);
   await page.waitForSelector("span:has-text('Klant klaar')");
   check(await page.locator("text=Nu is React2u aan zet").count(), "banner: React2u aan zet");
-  check(await page.locator("text=6 van 6 klaar").count(), "voortgang van de klant: 6 van 6");
-  check(await page.locator("text=0 van 6 gedaan").count(), "taken van React2u: 0 van 6");
+  check(await page.locator("text=5 van 5 klaar").count(), "voortgang van de klant: 5 van 5");
+  check(await page.locator("text=0 van 6 gedaan").count(), "taken van React2u: 0 van 6, met de dossiers erbij sinds de vorige arbodienst");
   check((await page.locator("#inrichten >> text=Kan zodra de klant").count()) === 0, "geen taak wacht nog op de klant");
   check(await page.locator("dd:has-text('12345678')").count(), "inrichting: KvK zichtbaar");
-  check((await page.locator("td:has-text('•••••6782')").count()) === 0 && (await page.locator("h2:has-text('Machtigingen overdracht verzuimdossier')").count()) === 0, "tabblad Klant: geen werknemersbestand en geen machtigingen (die staan op het tabblad Werknemers)");
-  check(await page.locator("text=tekende de machtiging online").count() && (await page.locator("text=Opdracht tot overdracht met 1 machtiging").count()), "machtiging en opdracht in de tijdlijn");
+  check(await page.locator("td:has-text('•••••6782')").count(), "werknemers: BSN gemaskeerd, op het tabblad Werkgever");
+  check(await page.locator("td:has-text('Jan Jansen')").count() && (await page.locator("td:has-text('Leila Azzouzi')").count()), "alle medewerkers in de tabel, ook de geplakte");
+  check((await page.locator("h2:has-text('Vorige arbodienst')").count()) === 0, "tabblad Werkgever: geen machtiging");
   check(await page.locator("text=doorgestuurd naar Kees Bakker").count(), "doorgestuurd in de tijdlijn");
 
-  stap("Beheer: tabblad Werknemers van klant");
-  await page.click("nav[aria-label='Onboarding: klant of werknemers'] a:has-text('Werknemers van klant')");
-  await page.waitForURL(/tab=werknemers/, { timeout: 20000 });
-  await page.waitForSelector("text=De werknemers van Bakkerij De Korenaar");
-  check(await page.locator("td:has-text('•••••6782')").count(), "werknemers: BSN gemaskeerd");
-  check(await page.locator("td:has-text('Jan Jansen')").count() && (await page.locator("td:has-text('Leila Azzouzi')").count()), "alle medewerkers in de tabel, ook de geplakte");
-  check(await page.locator("dd:has-text('ArboNed')").count(), "machtiging: de vorige arbodienst");
-  check(await page.locator("text=1 van 1 getekend").count() && (await page.locator("text=Mohammed Yilmaz").count()), "machtigingen: Mohammed heeft getekend");
-  check(await page.locator("text=met de opdracht naar de arbodienst").count(), "en de opdracht is verstuurd");
-  check(await page.locator("text=Wat er gebeurde met de werknemers").count() && (await page.locator("text=6 in het bestand · 1/1 getekend").count()), "eigen tijdlijn en telling op het tabblad");
-  const aPdf = await page.request.get(`${BASIS}/admin/onboarding/${id}/machtiging/${mid}`);
-  check(isPdf(aPdf, await aPdf.body()), `de getekende machtiging als pdf in het beheer: ${aPdf.status()}`);
-  await shot(page, "14b-beheer-werknemers");
-  await page.goto(`${BASIS}/admin/onboarding/werknemers`);
-  await page.waitForSelector("h1:has-text('Werknemers van klanten')");
-  check(await page.locator("td:has-text('Mohammed Yilmaz')").count() && (await page.locator("td a:has-text('Bakkerij De Korenaar')").count()), "overzicht van alle werknemers van klanten: Mohammed bij de bakkerij");
-  check(await page.locator("text=Naar de arbodienst 16").count() || (await page.locator("td >> text=Naar de arbodienst").count()), "met de stand van de opdracht");
-  check(await page.locator("text=Klaar om te importeren").count(), "werknemersbestand per klant: klaar om te importeren");
-  await page.goto(`${BASIS}/admin/onboarding/werknemers?filter=open`);
-  check(await page.locator("text=Geen werknemers in deze selectie").count(), "filter: niemand wacht nog op een handtekening");
-  await shot(page, "14c-beheer-werknemers-overzicht");
   await page.goto(adminUrl);
   await page.waitForSelector("#ob-cm");
   check((await page.locator(`a[href="/admin/onboardingvoorbeeld/${id}/welkom"]`).count()) === 1, "per stap een link naar het voorbeeld van die stap");
@@ -539,7 +540,7 @@ async function teken(pagina, selector) {
   await shot(page, "16-beheer-ingericht");
 
   stap("Werknemersbestand wissen na de import");
-  await page.goto(`${adminUrl}?tab=werknemers`);
+  await page.goto(adminUrl);
   await page.waitForSelector("button:has-text('Wissen na import')");
   await page.click("button:has-text('Wissen na import')");
   await page.waitForSelector("text=Gewist na de import in XpertSuite.", { timeout: 20000 });

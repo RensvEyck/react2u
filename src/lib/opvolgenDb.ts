@@ -17,7 +17,7 @@ const CONTRACT =
 const CONTRACT_SOORT_KOLOM = `${CONTRACT}, soort`;
 // Onboarding (0037): zonder de inhoud van de antwoorden (het werknemersbestand), alleen de momenten.
 const ONBOARDING =
-  `id, nummer, status, bedrijf, contactpersoon, email, telefoon, documenten, invullen, gelezen, taken, created_at, verstuurd_at, afgerond_at, bekeken_at, laatst_bekeken_at, aantal_bekeken, ${ANTWOORD_MOMENTEN}`;
+  `id, nummer, status, bedrijf, contactpersoon, email, telefoon, documenten, invullen, gelezen, taken, vorige_arbodienst, created_at, verstuurd_at, afgerond_at, bekeken_at, laatst_bekeken_at, aantal_bekeken, ${ANTWOORD_MOMENTEN}`;
 
 const DAG = 86_400_000;
 

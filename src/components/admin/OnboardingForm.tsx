@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { saveOnboarding, type OnboardingFormState } from "@/app/admin/onboardingActions";
-import { BERICHT_STANDAARD, DOCUMENTEN, type DocumentSleutel, type Onboarding } from "@/lib/onboarding";
+import { BERICHT_STANDAARD, WERKGEVER_DOCUMENTEN as DOCUMENTEN, type DocumentSleutel, type Onboarding } from "@/lib/onboarding";
 import { LuSave, LuCheck, LuPencilLine, LuFileDown, LuSheet } from "react-icons/lu";
 
 /** Waarmee het formulier begint: leeg, vooringevuld of een bestaande onboarding. */
@@ -12,6 +12,8 @@ export type OnboardingBegin = Partial<
 /**
  * De onboarding in het beheer: voor wie, welke documenten meegaan en welke
  * daarvan de klant online invult, het persoonlijke woord en de afzender.
+ * Alleen de documenten van de werkgever (0039): de machtiging loopt via het
+ * tabblad Werknemer.
  */
 export default function OnboardingForm({ begin, nieuw, ingevuld = [] }: { begin: OnboardingBegin; nieuw: boolean; ingevuld?: DocumentSleutel[] }) {
   const [state, action, bezig] = useActionState<OnboardingFormState, FormData>(saveOnboarding, null);

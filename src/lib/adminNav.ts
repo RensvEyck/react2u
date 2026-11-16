@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuUserCheck, LuLayoutGrid } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -37,8 +37,6 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
   { label: "Contracten", href: "/admin/contracten", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening arbowet overeenkomst ondertekenen tekenen looptijd opzeggen verlengen sales" },
   { label: "Onboarding", href: "/admin/onboarding", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom inrichting werknemersbestand xpertsuite import machtiging verzuimprotocol documenten versturen invullen" },
-  // De splitsing (Rens, 16 nov 2026): de klant zelf hierboven, zijn werknemers hier (machtigingen tekenen, werknemersbestand).
-  { label: "Werknemers van klanten", href: "/admin/onboarding/werknemers", icon: LuUserCheck, keywords: "werknemers van klanten machtiging tekenen overdracht verzuimdossier arbodienst werknemersbestand xpertsuite" },
   { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales" },
   { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
   { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
