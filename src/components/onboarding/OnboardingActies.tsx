@@ -1,12 +1,11 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { nodigMachtigingUit, slaOnboardingOp, stuurStapDoor, verstuurOverdracht, verwijderMachtiging, vinkOnboardingAf, type OnboardingState } from "@/app/(offerte)/onboarding/actions";
+import { slaOnboardingOp, stuurStapDoor, vinkOnboardingAf, type OnboardingState } from "@/app/(offerte)/onboarding/actions";
 import {
-  controleerWerknemers, dubbeleWerknemers, rijenUitCellen, rijenUitPlak, schoneWerknemers, WERKNEMER_KOLOMMEN, type MachtigingStand, type VeldGroep, type Werknemer,
+  controleerWerknemers, dubbeleWerknemers, rijenUitCellen, rijenUitPlak, schoneWerknemers, WERKNEMER_KOLOMMEN, type VeldGroep, type Werknemer,
 } from "@/lib/onboarding";
 import { kanXlsxLezen, lezenXlsx } from "@/lib/xlsxLezen";
-import { datumLang, momentLang } from "@/lib/offertes";
 
 /*
  * Wat de klant op zijn onboardingpagina doet: een document afvinken, een
@@ -562,176 +561,7 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
   );
 }
 
-/* ---------- 0038: de machtiging online laten tekenen, en de opdracht tot overdracht ---------- */
-
-type Lijst = MachtigingStand[];
-
-/**
- * Op de machtigingstap, zodra de vorige arbodienst is opgeslagen: wie moet
- * tekenen (naam en e-mail; die krijgt een persoonlijke link), de stand per
- * medewerker, en daarna de opdracht tot overdracht naar de vorige arbodienst
- * (Rens, 16 nov 2026: de werkgever stuurt de getekende machtigingen zelf, met
- * de opdracht; de arbodienst stuurt React2u daarna de lijst).
- */
-export function MachtigingUitnodigen({ token, lijst, modus, arbodienst, basis }: { token: string; lijst: Lijst; modus: Modus; arbodienst: Record<string, string>; basis: string }) {
-  const [naam, setNaam] = useState("");
-  const [email, setEmail] = useState("");
-  const [state, setState] = useState<OnboardingState | null>(null);
-  const [bezig, start] = useTransition();
-  const [aan, setAan] = useState(arbodienst.email || "");
-  const [ovState, setOvState] = useState<OnboardingState | null>(null);
-  const [ovBezig, startOv] = useTransition();
-  const [druk, setDruk] = useState<string | null>(null);
-  const router = useRouter();
-  const getekend = lijst.filter((m) => m.status === "getekend");
-  const nogNiet = getekend.filter((m) => !m.overdracht_at);
-  const laatsteOverdracht = getekend.map((m) => m.overdracht_at).filter((x): x is string => Boolean(x)).sort().pop() ?? null;
-  const voorbeeld = modus === "voorbeeld";
-
-  function nodigUit(n: string, e: string, id?: string) {
-    if (voorbeeld) return setState({ ok: false, fout: CONCEPT });
-    setState(null);
-    setDruk(id ?? "nieuw");
-    start(async () => {
-      const r = await nodigMachtigingUit(token, { naam: n, email: e });
-      setDruk(null);
-      if (r.ok) {
-        setNaam("");
-        setEmail("");
-        setState({ ok: true, fout: id ? `Herinnering gestuurd naar ${e}.` : `Uitnodiging gestuurd naar ${e}.` });
-        router.refresh();
-      } else setState(r);
-    });
-  }
-
-  return (
-    <div id="machtigingen" className="flex flex-col gap-6 border-t pt-8" style={{ borderColor: "#E6E5EF" }}>
-      <div className="flex flex-col gap-1.5">
-        <span className="hv-kop block text-[20px] font-semibold tracking-[-0.3px]" style={{ color: NAVY }}>Wie moet tekenen?</span>
-        <span className="text-[15px] text-[#77758F]">
-          Elke zieke medewerker met een lopend dossier bij {arbodienst.arbodienst || "je vorige arbodienst"} tekent zelf. Vul naam en e-mailadres in: die krijgt een persoonlijke link en tekent in twee minuten op zijn telefoon. Jij ziet hier wie getekend heeft.
-        </span>
-      </div>
-
-      {lijst.length > 0 && (
-        <ul className="m-0 flex list-none flex-col gap-3 p-0">
-          {lijst.map((m, i) => {
-            const klaar = m.status === "getekend";
-            return (
-              <li key={m.id} className="flex flex-col gap-3 rounded-[18px] border bg-white px-5 py-4 sm:flex-row sm:items-center" style={{ borderColor: klaar ? "#BFE3D6" : "#E6E5EF" }}>
-                <span className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px] font-semibold text-white" style={{ background: klaar ? "#0A7A4B" : "#C9C7DA" }}>{klaar ? <Vink /> : i + 1}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[16px] font-bold" style={{ color: NAVY }}>{m.naam} <span className="block font-normal text-[#77758F] sm:inline">{m.email}</span></span>
-                    <span className="block text-[13.5px]" style={{ color: klaar ? "#0A7A4B" : "#77758F" }}>
-                      {klaar
-                        ? `Getekend op ${momentLang(m.getekend_at)}${m.overdracht_at ? ` · naar de arbodienst gestuurd op ${datumLang(m.overdracht_at)}` : ""}`
-                        : `Uitgenodigd op ${datumLang(m.uitgenodigd_at)}${m.herinnerd_at ? `, herinnerd op ${datumLang(m.herinnerd_at)}` : ""}${m.bekeken_at ? ", geopend" : ", nog niet geopend"}`}
-                    </span>
-                  </span>
-                </span>
-                <span className="flex flex-wrap items-center gap-3 pl-12 text-[14px] font-bold sm:pl-0" style={{ color: NAVY }}>
-                  {klaar ? (
-                    <a href={`${basis}/machtiging/${m.id}?download=1`} className="underline-offset-4 hover:underline">Getekende pdf</a>
-                  ) : (
-                    <>
-                      <button type="button" className="underline-offset-4 hover:underline disabled:opacity-50" disabled={bezig} onClick={() => nodigUit(m.naam, m.email, m.id)}>{druk === m.id ? "Versturen…" : "Opnieuw sturen"}</button>
-                      <button
-                        type="button"
-                        className="text-[#B42318] underline-offset-4 hover:underline disabled:opacity-50"
-                        disabled={bezig}
-                        onClick={() => {
-                          if (voorbeeld) return setState({ ok: false, fout: CONCEPT });
-                          start(async () => {
-                            const r = await verwijderMachtiging(token, m.id);
-                            setState(r.ok ? { ok: true, fout: `Uitnodiging voor ${m.naam} weggehaald.` } : r);
-                            if (r.ok) router.refresh();
-                          });
-                        }}
-                      >
-                        Weghalen
-                      </button>
-                    </>
-                  )}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      <form
-        noValidate
-        className="grid gap-3 rounded-[18px] p-5" style={{ background: "#F6F5FB" }}
-        onSubmit={(e) => { e.preventDefault(); nodigUit(naam, email); }}
-      >
-        <span className="text-[14.5px] font-bold" style={{ color: NAVY }}>{lijst.length ? "Nog een medewerker uitnodigen" : "Medewerker uitnodigen"}</span>
-        <div className="grid gap-3 sm:grid-cols-[1fr_1.2fr_auto]">
-          <label className="flex flex-col gap-1.5">
-            <span className="sr-only">Naam medewerker</span>
-            <input id="mu-naam" className={`${veld} ${rand()}`} placeholder="Naam medewerker" value={naam} onChange={(e) => setNaam(e.target.value)} maxLength={120} autoComplete="off" />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="sr-only">E-mailadres medewerker</span>
-            <input id="mu-email" className={`${veld} ${rand()}`} type="email" placeholder="E-mailadres medewerker" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={254} autoComplete="off" />
-          </label>
-          <button className={knoppen.roze} disabled={bezig || !naam.trim() || !email.trim()}>{druk === "nieuw" ? "Versturen…" : "Uitnodiging sturen"}</button>
-        </div>
-        <span className="text-[13.5px] text-[#77758F]">De medewerker krijgt de mail uit naam van React2u, met jouw bedrijfsnaam erin. Liever op papier? Download hierboven de ingevulde machtiging, laat tekenen en stuur hem zelf.</span>
-        {state && (state.ok ? (
-          <p role="status" className="m-0 flex items-center gap-2 rounded-[14px] bg-[#E3F6ED] px-4 py-3 text-[15px] font-semibold text-[#0A7A4B]"><Vink /> {state.fout}</p>
-        ) : (
-          <p role="alert" className="m-0 rounded-[14px] bg-[#FDECEA] px-4 py-3 text-[15px] text-[#B42318]">{state.fout}</p>
-        ))}
-      </form>
-
-      {getekend.length > 0 && (
-        <form
-          id="overdracht"
-          noValidate
-          className="flex flex-col gap-4 rounded-[18px] border-2 p-5" style={{ borderColor: NAVY, background: "white" }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (voorbeeld) return setOvState({ ok: false, fout: CONCEPT });
-            setOvState(null);
-            startOv(async () => {
-              const r = await verstuurOverdracht(token, aan);
-              setOvState(r.ok ? { ok: true, fout: `Opdracht verstuurd naar ${aan.trim().toLowerCase()}, met ${getekend.length} getekende ${getekend.length === 1 ? "machtiging" : "machtigingen"}. Je kreeg zelf een kopie.` } : r);
-              if (r.ok) router.refresh();
-            });
-          }}
-        >
-          <div className="flex flex-col gap-1.5">
-            <span className="hv-kop block text-[20px] font-semibold tracking-[-0.3px]" style={{ color: NAVY }}>Stuur de opdracht naar {arbodienst.arbodienst || "je vorige arbodienst"}</span>
-            <span className="text-[15px] text-[#77758F]">
-              Jij geeft je vorige arbodienst de opdracht om de dossiers over te dragen aan React2u. Wij maken de brief, met de {getekend.length} getekende {getekend.length === 1 ? "machtiging" : "machtigingen"} erachter, en sturen hem uit jouw naam; jij en React2u krijgen een kopie. Je vorige arbodienst stuurt React2u daarna een lijst van de dossiers.
-            </span>
-          </div>
-          {laatsteOverdracht && (
-            <p className="m-0 flex items-center gap-2 rounded-[14px] bg-[#E3F6ED] px-4 py-3 text-[14.5px] font-semibold text-[#0A7A4B]">
-              <Vink /> Opdracht verstuurd op {momentLang(laatsteOverdracht)}.{nogNiet.length > 0 ? ` Sinds toen ${nogNiet.length === 1 ? "tekende nog 1 medewerker" : `tekenden nog ${nogNiet.length} medewerkers`}: stuur de opdracht nog een keer.` : ""}
-            </p>
-          )}
-          <div className="grid gap-3 sm:grid-cols-[1.2fr_auto]">
-            <label className="flex flex-col gap-1.5">
-              <span className={veldLabel} style={{ color: NAVY }}>E-mailadres van je vorige arbodienst</span>
-              <input id="ov-email" className={`${veld} ${rand()}`} type="email" value={aan} onChange={(e) => setAan(e.target.value)} maxLength={254} placeholder="dossiers@arbodienst.nl" />
-            </label>
-            <button className={`${knoppen.roze} sm:self-end`} disabled={ovBezig || !aan.trim()}>{ovBezig ? "Versturen…" : laatsteOverdracht ? "Opdracht opnieuw versturen" : "Verstuur de opdracht"}</button>
-          </div>
-          <span className="text-[13.5px] text-[#77758F]">
-            Liever zelf versturen? <a href={`${basis}/overdracht?download=1`} className="font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>Download de opdracht met de machtigingen (pdf)</a>.
-          </span>
-          {ovState && (ovState.ok ? (
-            <p role="status" className="m-0 flex items-center gap-2 rounded-[14px] bg-[#E3F6ED] px-4 py-3 text-[15px] font-semibold text-[#0A7A4B]"><Vink /> {ovState.fout}</p>
-          ) : (
-            <p role="alert" className="m-0 rounded-[14px] bg-[#FDECEA] px-4 py-3 text-[15px] text-[#B42318]">{ovState.fout}</p>
-          ))}
-        </form>
-      )}
-    </div>
-  );
-}
+/* ---------- 0038: een stap doorsturen ---------- */
 
 /** Onder een stap: deze stap doorsturen naar een collega die er meer van weet (HR, salarisadministratie). */
 export function StapDoorsturen({ token, stap, titel, modus, contactpersoon }: { token: string; stap: string; titel: string; modus: Modus; contactpersoon: string | null }) {

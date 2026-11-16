@@ -185,7 +185,7 @@ export function machtigingGetekendHtml(m: { basis: string; naam: string; bedrijf
 </td></tr></table>`;
   const brief = [
     m.pdf ? "In de bijlage zit je getekende machtiging als pdf. Bewaar hem gerust." : "Via de link hieronder zie je je getekende machtiging terug.",
-    `Je werkgever stuurt de machtiging, met de opdracht tot overdracht, naar ${m.arbodienst ? esc(m.arbodienst) : "je vorige arbodienst"}. Die draagt je dossier over aan de bedrijfsarts van React2u. Daarna nemen wij contact met je op om je begeleiding voort te zetten.`,
+    `Wij sturen de machtiging, namens je werkgever, met de opdracht tot overdracht naar ${m.arbodienst ? esc(m.arbodienst) : "je vorige arbodienst"}. Die draagt je dossier over aan de bedrijfsarts van React2u. Daarna nemen wij contact met je op om je begeleiding voort te zetten.`,
     "React2u gaat vertrouwelijk om met je medische gegevens: alleen de bedrijfsarts en de casemanager in taakdelegatie zien ze, je werkgever niet.",
   ].map((a) => p(a));
   const romp = vak(`${brief.join("")}

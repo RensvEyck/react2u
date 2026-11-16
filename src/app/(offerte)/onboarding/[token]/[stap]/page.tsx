@@ -40,7 +40,7 @@ export default async function OnboardingStapRoute({ params }: { params: Promise<
       </OfferteMelding>
     );
   }
-  if (!o.documenten.includes(stap)) notFound();
+  if (!o.documenten.includes(stap) || documentInfo(stap).verborgen) notFound();
 
   if (o.eerste_keer && o.afzender_email) {
     const { afzender_email, nummer, bedrijf, id } = o;

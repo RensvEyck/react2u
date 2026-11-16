@@ -12,6 +12,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { sb } = await requirePerm("bellijst");
   const { data } = await sb.from("onboardings").select("*").eq("id", id).maybeSingle();
   const o = data as Onboarding | null;
-  if (!o || !o.documenten.includes(document)) notFound();
+  if (!o) notFound();
+  // De machtiging (0039) hoort niet meer bij de documenten van de werkgever: de vorige arbodienst van React2u komt erop.
+  if (document === "machtiging") {
+    if (!o.vorige_arbodienst && !o.documenten.includes("machtiging")) notFound();
+    const met = o.vorige_arbodienst ? { ...o, antwoorden: { ...o.antwoorden, machtiging: { data: o.vorige_arbodienst, at: o.updated_at, door: null } } } : o;
+    return onboardingPdfAntwoord(met, document, new URL(req.url).searchParams.has("download"));
+  }
+  if (!o.documenten.includes(document)) notFound();
   return onboardingPdfAntwoord(o, document, new URL(req.url).searchParams.has("download"));
 }

@@ -29,6 +29,7 @@ const FOUT_TEKST: Record<string, string> = {
   "geen-rechten": "Je hebt geen toegang tot dat onderdeel.",
   "cv-verwijderen": "Het cv kon niet verwijderd worden, dus de sollicitatie staat er nog. Mogelijk ontbreekt het verwijderrecht op de opslag (migratie 0009).",
   opslaan: "Opslaan mislukt.",
+  arbodienst: "Vul minstens de naam van de vorige arbodienst in.",
   // Doorverwijzingen
   "bron-leeg": "Vul het oude adres in.",
   "bron-home": "De homepage (en de hele site met /*) kun je niet doorsturen.",
@@ -117,6 +118,7 @@ const OK_TEKST: Record<string, string> = {
   "onboarding-heropend": "De onboarding staat weer open.",
   "onboarding-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
   "taak-klaar": "Afgevinkt.",
+  arbodienst: "Vorige arbodienst opgeslagen.",
   "onboarding-live": "Alles af: de klant is live en heeft de mail \"jullie zijn live\" gekregen.",
   "taak-open": "Weer opengezet.",
   "offerte-heropend": "Heropend: de klant kan weer kiezen en tekenen.",

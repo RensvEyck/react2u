@@ -6,10 +6,10 @@ import type { ContactInfo } from "@/lib/content";
 import { DOCUMENTEN as SITE_DOCUMENTEN } from "@/lib/documenten";
 import { datumLang } from "@/lib/offertes";
 import {
-  documentInfo, documentKlaar, INRICHTING, MACHTIGING, machtigingStand, ONBOARDING_EMAIL, taakKan, takenVoor, VERZUIMPROTOCOL, VRAGEN, vultIn, WELKOM,
+  documentInfo, documentKlaar, INRICHTING, ONBOARDING_EMAIL, taakKan, takenVoor, VERZUIMPROTOCOL, VRAGEN, vultIn, WELKOM,
   type DocumentInfo, type OnboardingPubliek, type TijdlijnStap, type Werknemer,
 } from "@/lib/onboarding";
-import { AfvinkKnop, VeldenFormulier, WerknemersFormulier, type Modus, MachtigingUitnodigen } from "./OnboardingActies";
+import { AfvinkKnop, VeldenFormulier, WerknemersFormulier, type Modus } from "./OnboardingActies";
 
 /*
  * De bouwstenen van de onboarding voor de klant (migratie 0037), gedeeld door
@@ -425,18 +425,6 @@ export function Stap({ d, n, o, token, basis, modus, tint, eerste, volgende }: {
     formulier = true;
     inhoud = <VeldenFormulier token={token} document="inrichting" groepen={INRICHTING} begin={(antwoord?.data as Record<string, string>) || { bedrijfsnaam: o.bedrijf }} ingevuld={Boolean(antwoord)} modus={modus} knopTekst="Gegevens opslaan" />;
     if (antwoord) acties = <a href={`${pdf}?download=1`} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Je gegevens als pdf</a>;
-  } else if (invul && d.sleutel === "machtiging") {
-    formulier = true;
-    inhoud = (
-      <div className="flex flex-col gap-6">
-        <p className="m-0 text-[16px] leading-[1.7]" style={{ color: BODY }}>
-          Stap je over van een andere arbodienst en loopt er een verzuimdossier? Dan mag dat dossier alleen met toestemming van de werknemer naar onze bedrijfsarts. Vul hieronder je vorige arbodienst in. Daarna nodig je de medewerkers uit om online te tekenen, en stuur je de getekende machtigingen met één knop als opdracht naar je vorige arbodienst.
-        </p>
-        <VeldenFormulier token={token} document="machtiging" groepen={MACHTIGING} begin={(antwoord?.data as Record<string, string>) || {}} ingevuld={Boolean(antwoord)} modus={modus} knopTekst="Opslaan en machtiging maken" />
-        {antwoord && <MachtigingUitnodigen token={token} lijst={o.machtigingen || []} modus={modus} arbodienst={(antwoord.data as Record<string, string>) || {}} basis={basis} />}
-      </div>
-    );
-    if (antwoord) acties = <a href={`${pdf}?download=1`} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Download de ingevulde machtiging</a>;
   } else if (invul && d.sleutel === "werknemers") {
     formulier = true;
     inhoud = (
@@ -669,11 +657,6 @@ export function StapKaart({ d, n, o, basis, tint, i }: { d: DocumentInfo; n: num
           <Label kleur={d.kleur}>Stap {n} · {soort}</Label>
           <span className={`${kop} text-[22px] leading-[1.2] tracking-[-0.4px]`} style={{ color: NAVY }}>{d.titel}</span>
           <span className="text-[14.5px] leading-[1.6]" style={{ color: MUTE }}>{d.kort}</span>
-          {d.sleutel === "machtiging" && invul && (o.machtigingen?.length ?? 0) > 0 && (
-            <span className="mt-1 inline-flex items-center gap-1.5 text-[13.5px] font-bold" style={{ color: machtigingStand(o).getekend === machtigingStand(o).totaal ? GROEN : NAVY }}>
-              <Vink size={12} /> {machtigingStand(o).getekend} van {machtigingStand(o).totaal} {machtigingStand(o).totaal === 1 ? "medewerker" : "medewerkers"} getekend
-            </span>
-          )}
         </span>
         <span className="mt-auto inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: klaar ? MUTE : NAVY }}>
           {klaar ? "Bekijk of pas aan" : invul ? d.invullen : d.lezen} <Pijl size={14} />
