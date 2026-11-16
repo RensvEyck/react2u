@@ -6,6 +6,7 @@ import {
   verwijderOnboarding, wisselTaak, wisWerknemers, zetOnboardingOpen,
 } from "@/app/admin/onboardingActions";
 import OnboardingForm from "@/components/admin/OnboardingForm";
+import OnboardingTabs from "@/components/admin/OnboardingTabs";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import OfferteVersturen from "@/components/admin/OfferteVersturen";
 import { onboardingUrl } from "@/lib/mail";
@@ -18,7 +19,7 @@ import { momentLang } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil, LuStickyNote, LuFileDown, LuCircleCheck,
   LuCircle, LuPencilLine, LuBookOpenCheck, LuFlag, LuEraser, LuFileSpreadsheet, LuBuilding2, LuSquareCheckBig, LuPartyPopper, LuClock, LuSignature,
-  LuForward, LuRocket, LuMailCheck,
+  LuForward, LuRocket, LuMailCheck, LuUsers,
 } from "react-icons/lu";
 
 /**
@@ -100,8 +101,11 @@ function Balk({ klaar, totaal, kleur = "#0a7a4b" }: { klaar: number; totaal: num
   );
 }
 
-export default async function OnboardingAdmin({ params }: { params: Promise<{ id: string }> }) {
+export default async function OnboardingAdmin({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
   const { id } = await params;
+  // De splitsing (Rens, 16 nov 2026): "klant" is de onboarding van de klant zelf, "werknemers" zijn de mensen van de klant
+  // (het werknemersbestand voor XpertSuite en de machtigingen die zij tekenen).
+  const tab = (await searchParams).tab === "werknemers" ? "werknemers" : "klant";
   const { sb } = await requirePerm("bellijst");
   const [res, tijdlijnRes, machtigingenRes] = await Promise.all([
     sb.from("onboardings").select("*").eq("id", id).maybeSingle(),
@@ -128,6 +132,9 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
   const werknemers = ((o.antwoorden.werknemers?.data as { rijen?: Werknemer[] } | undefined)?.rijen) || [];
   const ingevuld = Object.keys(o.antwoorden).filter(isDocument) as DocumentSleutel[];
   const laatsteTaak = Object.values(o.taken || {}).map((x) => x.at).sort().pop();
+  const getekend = machtigingen.filter((m) => m.status === "getekend").length;
+  const basisLink = `/admin/onboarding/${o.id}`;
+  const telling = [werknemers.length ? `${werknemers.length} in het bestand` : null, machtigingen.length ? `${getekend}/${machtigingen.length} getekend` : null].filter(Boolean).join(" · ");
 
   return (
     <div className="space-y-6">
@@ -194,6 +201,9 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
         </div>
       )}
 
+      <OnboardingTabs actief={tab} klant={basisLink} werknemers={`${basisLink}?tab=werknemers`} telling={telling || undefined} />
+
+      {tab === "klant" && (<>
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="acard p-6">
           <h2 className="font-heading text-[16px] font-bold text-[#312e82]">
@@ -347,6 +357,23 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
         </section>
       )}
 
+      </>)}
+
+      {tab === "werknemers" && (<>
+      <section className="acard flex flex-wrap items-center justify-between gap-4 p-6">
+        <div className="flex items-start gap-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef0ff] text-[18px] text-[#312e82]"><LuUsers /></span>
+          <div>
+            <h2 className="font-heading text-[16px] font-bold text-[#312e82]">De werknemers van {o.bedrijf}</h2>
+            <p className="mt-1 max-w-[720px] text-[13.5px] leading-[1.55] text-black/55">
+              Twee dingen: het werknemersbestand dat de klant aanlevert voor XpertSuite, en de machtigingen die zieke medewerkers met een lopend dossier zelf tekenen.
+              De klant stuurt de getekende machtigingen met de opdracht naar zijn vorige arbodienst; wij ontvangen de dossiers.
+            </p>
+          </div>
+        </div>
+        <Link href="/admin/onboarding/werknemers" className="abtn-ghost !py-1.5 text-[13px]"><LuUsers /> Alle werknemers van klanten</Link>
+      </section>
+
       {docs.some((d) => d.sleutel === "werknemers") && (
         <section className="acard p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -457,6 +484,31 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
         </section>
       )}
 
+      {(() => {
+        const wTijdlijn = tijdlijn.filter((g) => g.soort === "machtiging" || g.soort === "gewist" || (g.soort === "ingevuld" && g.details?.document === "werknemers"));
+        return wTijdlijn.length > 0 ? (
+          <section className="acard p-6">
+            <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Wat er gebeurde met de werknemers</h2>
+            <ol className="mt-4 grid gap-3 md:grid-cols-2">
+              {wTijdlijn.map((g) => {
+                const Icoon = ICONEN[g.soort] || LuPencil;
+                return (
+                  <li key={g.id} className="flex gap-3">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f4f4f9] text-[13px] text-[#312e82]"><Icoon /></span>
+                    <span className="min-w-0">
+                      <span className="block text-[14px] text-[#1c1a4e]">{zin(g)}</span>
+                      <span className="block text-[12.5px] text-black/45">{momentLang(g.at)}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ) : null;
+      })()}
+      </>)}
+
+      {tab === "klant" && (<>
       <section className="acard p-6">
         <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Wat er gebeurde</h2>
         {tijdlijn.length === 0 ? (
@@ -489,6 +541,7 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
           <button className="abtn-ghost !py-1.5 text-[13px]">Notitie opslaan</button>
         </form>
       </section>
+      </>)}
     </div>
   );
 }

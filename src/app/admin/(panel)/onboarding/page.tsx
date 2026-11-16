@@ -6,6 +6,7 @@ import {
   type OnboardingWeergave,
 } from "@/lib/onboarding";
 import { datumLang, momentLang } from "@/lib/offertes";
+import OnboardingTabs from "@/components/admin/OnboardingTabs";
 import { LuChevronRight, LuClipboardCheck, LuDatabase, LuPlus } from "react-icons/lu";
 
 /**
@@ -64,7 +65,10 @@ export default async function Onboardings({ searchParams }: { searchParams: Prom
             Stuur een nieuwe klant één link met alles om te starten. Jij kiest welke documenten meegaan en welke de klant online invult; daarna vink je af wat wij inrichten.
           </p>
         </div>
-        <Link href="/admin/onboarding/nieuw" className="abtn"><LuPlus /> Nieuwe onboarding</Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <OnboardingTabs actief="klant" klant="/admin/onboarding" werknemers="/admin/onboarding/werknemers" />
+          <Link href="/admin/onboarding/nieuw" className="abtn"><LuPlus /> Nieuwe onboarding</Link>
+        </div>
       </div>
 
       {!tabel && (

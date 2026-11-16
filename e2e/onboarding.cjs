@@ -468,15 +468,33 @@ async function teken(pagina, selector) {
   check(await page.locator("text=0 van 6 gedaan").count(), "taken van React2u: 0 van 6");
   check((await page.locator("#inrichten >> text=Kan zodra de klant").count()) === 0, "geen taak wacht nog op de klant");
   check(await page.locator("dd:has-text('12345678')").count(), "inrichting: KvK zichtbaar");
+  check((await page.locator("td:has-text('•••••6782')").count()) === 0 && (await page.locator("h2:has-text('Machtigingen overdracht verzuimdossier')").count()) === 0, "tabblad Klant: geen werknemersbestand en geen machtigingen (die staan op het tabblad Werknemers)");
+  check(await page.locator("text=tekende de machtiging online").count() && (await page.locator("text=Opdracht tot overdracht met 1 machtiging").count()), "machtiging en opdracht in de tijdlijn");
+  check(await page.locator("text=doorgestuurd naar Kees Bakker").count(), "doorgestuurd in de tijdlijn");
+
+  stap("Beheer: tabblad Werknemers van klant");
+  await page.click("nav[aria-label='Onboarding: klant of werknemers'] a:has-text('Werknemers van klant')");
+  await page.waitForURL(/tab=werknemers/, { timeout: 20000 });
+  await page.waitForSelector("text=De werknemers van Bakkerij De Korenaar");
   check(await page.locator("td:has-text('•••••6782')").count(), "werknemers: BSN gemaskeerd");
   check(await page.locator("td:has-text('Jan Jansen')").count() && (await page.locator("td:has-text('Leila Azzouzi')").count()), "alle medewerkers in de tabel, ook de geplakte");
   check(await page.locator("dd:has-text('ArboNed')").count(), "machtiging: de vorige arbodienst");
   check(await page.locator("text=1 van 1 getekend").count() && (await page.locator("text=Mohammed Yilmaz").count()), "machtigingen: Mohammed heeft getekend");
   check(await page.locator("text=met de opdracht naar de arbodienst").count(), "en de opdracht is verstuurd");
+  check(await page.locator("text=Wat er gebeurde met de werknemers").count() && (await page.locator("text=6 in het bestand · 1/1 getekend").count()), "eigen tijdlijn en telling op het tabblad");
   const aPdf = await page.request.get(`${BASIS}/admin/onboarding/${id}/machtiging/${mid}`);
   check(isPdf(aPdf, await aPdf.body()), `de getekende machtiging als pdf in het beheer: ${aPdf.status()}`);
-  check(await page.locator("text=tekende de machtiging online").count() && (await page.locator("text=Opdracht tot overdracht met 1 machtiging").count()), "machtiging en opdracht in de tijdlijn");
-  check(await page.locator("text=doorgestuurd naar Kees Bakker").count(), "doorgestuurd in de tijdlijn");
+  await shot(page, "14b-beheer-werknemers");
+  await page.goto(`${BASIS}/admin/onboarding/werknemers`);
+  await page.waitForSelector("h1:has-text('Werknemers van klanten')");
+  check(await page.locator("td:has-text('Mohammed Yilmaz')").count() && (await page.locator("td a:has-text('Bakkerij De Korenaar')").count()), "overzicht van alle werknemers van klanten: Mohammed bij de bakkerij");
+  check(await page.locator("text=Naar de arbodienst 16").count() || (await page.locator("td >> text=Naar de arbodienst").count()), "met de stand van de opdracht");
+  check(await page.locator("text=Klaar om te importeren").count(), "werknemersbestand per klant: klaar om te importeren");
+  await page.goto(`${BASIS}/admin/onboarding/werknemers?filter=open`);
+  check(await page.locator("text=Geen werknemers in deze selectie").count(), "filter: niemand wacht nog op een handtekening");
+  await shot(page, "14c-beheer-werknemers-overzicht");
+  await page.goto(adminUrl);
+  await page.waitForSelector("#ob-cm");
   check((await page.locator(`a[href="/admin/onboardingvoorbeeld/${id}/welkom"]`).count()) === 1, "per stap een link naar het voorbeeld van die stap");
   await page.fill("#ob-cm", "Cindy Faro");
   await page.fill("#ob-deb", "D-1001");
@@ -521,6 +539,8 @@ async function teken(pagina, selector) {
   await shot(page, "16-beheer-ingericht");
 
   stap("Werknemersbestand wissen na de import");
+  await page.goto(`${adminUrl}?tab=werknemers`);
+  await page.waitForSelector("button:has-text('Wissen na import')");
   await page.click("button:has-text('Wissen na import')");
   await page.waitForSelector("text=Gewist na de import in XpertSuite.", { timeout: 20000 });
   check(sql(`select antwoorden ? 'werknemers' from public.onboardings where id = '${id}'`) === "f", "de BSN's zijn weg");
