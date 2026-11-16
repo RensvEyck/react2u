@@ -1487,8 +1487,9 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   gemaskeerde BSN's, als Excel voor XpertSuite op
   `/admin/onboarding/<id>/werknemers`, en *Wissen na import*; de machtiging),
   de tijdlijn, het formulier en een notitie. `/admin/onboardingvoorbeeld/<id>`
-  (+ `/pdf/<document>`, `/excel`) toont de pagina zoals de klant hem ziet, ook
-  als concept; invullen kan daar niet.
+  (+ `/<stap>`, `/pdf/<document>`, `/excel`) toont de hub en elke stap zoals de
+  klant ze ziet, ook als concept; invullen kan daar niet. Bij *Wat de klant
+  doet* linkt *Bekijk* naar het voorbeeld van die stap.
 - **Inrichten bij React2u** (`taken`, `TAKEN` in `lib/onboarding.ts`): de
   checklist van wat wij zelf regelen voordat de klant live is: werkgever
   aangemaakt in XpertSuite, werknemers geïmporteerd (alleen met het
@@ -1500,36 +1501,61 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   klaar** (status `afgerond`: alles ingevuld of afgevinkt, React2u aan zet) en
   **Ingericht** (ook alle taken af, de klant is live; `onboardingWeergave()`).
   De klant ziet de checklist niet.
-- **Klantpagina** `/onboarding/<token>`
-  ([`OnboardingPagina.tsx`](src/components/onboarding/OnboardingPagina.tsx)): één
-  doorlopend verhaal in de vormgeving van de offertepagina (Rens, 16 nov 2026:
-  "S tier zoals de offerte module, een duidelijke, soepele overgang in de
-  verhaallijnen en professioneel"). De documenten staan in de volgorde van het
-  verhaal (`DOCUMENTEN`, `HOOFDSTUKKEN` in `lib/onboarding.ts`): hoofdstuk 1
-  *Zo werken we samen* (Welkom), 2 *Je medewerkers voorbereiden*
-  (verzuimprotocol, wat je mag vragen), 3 *Wat we van jullie nodig hebben*
-  (inrichting, werknemers, machtiging); een hoofdstuk zonder gekozen documenten
-  valt weg, en het beheer, de mail en de stapnummers volgen dezelfde volgorde.
-  De opbouw: de kopbalk met de hoofdstukken (streep onder waar je bent), de
-  voortgang en bellen; de opening in de lila tint met het persoonlijke woord
-  (`bericht`, met `{bedrijf}` en `{voornaam}`), de feiten en rechts de kaart met
-  de voortgangsring, de stappen per hoofdstuk en het aanspreekpunt; de
-  hoofdstukken als banden van rand tot rand, om en om wit en lila, elk met een
-  sectiekop; per stap links een kolom die op een groot scherm blijft staan
-  (nummer, titel, status, de acties: pdf, afvinken) en rechts de inhoud of het
-  formulier op een kaart (op de telefoon komen de acties onder de inhoud);
-  controles bij invullen (KvK 8 cijfers, IBAN mod 97, BSN elfproef, postcode);
-  de indigo band *Zo gaat het verder* met wat React2u daarna doet (`TAKEN`,
-  `klantKop` en `klant`) en bellen; de felicitatie met de stippen als alles net
-  klaar is; op de telefoon onderaan de knop naar de volgende open stap. Alles
-  komt zacht in beeld tijdens het scrollen (`OnboardingReveal.tsx`, zoals
-  `Reveal.tsx` op de site, met `data-in` buiten React zodat het na opslaan
-  blijft staan). Modus klant, collega (telt niet, invullen mag: samen aan de
-  telefoon) en voorbeeld (niets opslaan). De klant schrijft alleen via
-  `onboarding_opslaan` en `onboarding_gelezen` (security definer, het token als
-  sleutel); Next controleert de vorm van de invoer, de database of het mag en
-  hoe groot het is. Is alles gedaan, dan zet `onboarding_afronden` de status op
-  `afgerond`.
+- **Klantpagina**: een hub met losse stappagina's (Rens, 16 nov 2026: "maak het
+  perfect naar eigen inzicht"), zoals de beste onboardings een checklist als
+  thuisbasis hebben en één taak per scherm. De **hub** `/onboarding/<token>`
+  ([`OnboardingPagina.tsx`](src/components/onboarding/OnboardingPagina.tsx)):
+  de kopbalk met de hoofdstukken, de voortgang en bellen; de opening in de lila
+  tint met het persoonlijke woord (`bericht`, met `{bedrijf}` en `{voornaam}`),
+  de feiten (ook hoe lang alles samen duurt, `totaleMinuten()`), *Handig om bij
+  de hand te hebben* (`nodig` per document, `benodigdheden()`), de zwevende
+  stippen van het logo, en rechts de kaart met de voortgangsring, de stappen per
+  hoofdstuk en het aanspreekpunt; de drie hoofdstukken als banden, om en om wit
+  en lila, elk met een sectiekop en zijn stappen als kaarten (`StapKaart`) naar
+  hun eigen pagina; bij *Jullie gegevens* drie kaarten met de keurmerken die
+  daarover gaan (ISO 27001, ISO 27701, SBCA; `Zekerheid`); de indigo band *Zo
+  gaat het verder* met wat React2u daarna doet (`TAKEN`, `klantKop` en `klant`)
+  en bellen; de felicitatie met de stippen als alles net klaar is; op de
+  telefoon onderaan de knop naar de volgende open stap. De **stappagina**
+  `/onboarding/<token>/<stap>`
+  ([`OnboardingStapPagina.tsx`](src/components/onboarding/OnboardingStapPagina.tsx)):
+  de kopbalk met *Overzicht* terug, een strook met waar je bent (hoofdstuk en
+  stap), de stap zelf (links een kolom die op een groot scherm blijft staan met
+  nummer, titel, status, de tijd en de acties, rechts de inhoud of het formulier
+  op een kaart; op de telefoon komen de acties onder de inhoud), en onderaan
+  vorige, overzicht en volgende; is de stap klaar, dan staat links *Verder met
+  …*. De bouwstenen staan in
+  [`OnboardingDelen.tsx`](src/components/onboarding/OnboardingDelen.tsx). De
+  volgorde van het verhaal (`DOCUMENTEN`, `HOOFDSTUKKEN` in
+  `lib/onboarding.ts`): hoofdstuk 1 *Zo werken we samen* (Welkom, met de
+  tijdlijn als één reis en "Wij bewaken dit" bij elke stap van React2u of de
+  bedrijfsarts), 2 *Wat we van jullie nodig hebben* (inrichting, werknemers,
+  machtiging: dat is wat de klant voor ons doet, dus direct na het welkom), 3
+  *Delen met je team* (het verzuimprotocol als de poster, de letters
+  R-E-A-C-T-2U op de slingerende indigo lijn, en *Wat je wél mag vragen* met de
+  samenvattingstabel en het belscript: materiaal om door te geven). Een
+  hoofdstuk zonder gekozen documenten valt weg; het beheer, de mail en de
+  stapnummers volgen dezelfde volgorde. Formulieren: een balkje "Verplichte
+  velden: 3 van 8", controles bij invullen (KvK 8 cijfers, BSN elfproef,
+  postcode). Het werknemersbestand begint met een **keuze** (Rens, 16 nov
+  2026): *Handmatig invullen* (per medewerker een kaart, handig tot zo'n tien)
+  of *Via Excel* (drie stappen: het lege bestand downloaden, invullen, de rijen
+  plakken; `rijenUitPlak()`: tabs of puntkomma's, met de kopregel van het
+  importbestand of onze labels gaat elke kolom naar het juiste veld, zonder
+  kopregel geldt de volgorde van het importbestand of van onze velden; datums
+  en postcodes worden omgezet). Pas na de keuze verschijnt het bijbehorende
+  deel; geplakte rijen staan als kaarten om na te kijken, en bij eerder
+  opgeslagen rijen staat de keuze op handmatig. Geen IBAN en accounthouder: die stonden kaal op het Word-formulier,
+  maar React2u incasseert niet (Rens, 16 nov 2026), de klant betaalt per
+  factuur binnen dertig dagen (basiscontract 7.4). Alles komt zacht in beeld
+  tijdens het scrollen (`OnboardingReveal.tsx`, zoals `Reveal.tsx` op de site,
+  met `data-in` buiten React zodat het na opslaan blijft staan). Modus klant,
+  collega (telt niet, invullen mag: samen aan de telefoon) en voorbeeld (niets
+  opslaan; `/admin/onboardingvoorbeeld/<id>` en `/<stap>`). De klant schrijft
+  alleen via `onboarding_opslaan` en `onboarding_gelezen` (security definer,
+  het token als sleutel); Next controleert de vorm van de invoer, de database
+  of het mag en hoe groot het is. Is alles gedaan, dan zet `onboarding_afronden`
+  de status op `afgerond`.
 - **Privacy**: het werknemersbestand bevat burgerservicenummers. Daarom alleen
   achter `bellijst`, BSN's gemaskeerd in het beheer, de knop *Wissen na import*
   (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar
@@ -1566,10 +1592,12 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   bezoek pas opnieuw na een half uur zonder activiteit, zoals de gebeurtenis
   *bekeken* al deed; anders stond er na zes stappen "8× bekeken".
 - **Tests**: [`e2e/onboarding.cjs`](e2e/onboarding.cjs) (aanmaken met de
-  documentkeuze, voorbeeld, pdf's en Excel uit het beheer, versturen, de klant
-  opent en vinkt af, inrichting met een fout KvK-nummer, werknemers met een fout
-  BSN, machtiging, compleet, het dashboard, de checklist van React2u tot
-  ingericht, wissen na import, register, collega, intrekken, onbekende link),
+  documentkeuze, voorbeeld van de hub en een stap, pdf's en Excel uit het
+  beheer, versturen, de klant opent de hub en gaat per stap naar zijn pagina:
+  afvinken, inrichting met een fout KvK-nummer, werknemers met een fout BSN en
+  plakken uit Excel, machtiging, compleet, het dashboard, de checklist van
+  React2u tot ingericht, wissen na import, register, collega, intrekken,
+  onbekende link),
   `lib/onboarding.test.ts`, `lib/onboardingPdf.test.tsx` (met
   `ONBOARDING_PDF_MAP=<map>` schrijft hij de pdf's weg) en de onboardingregels in
   `lib/opvolgen.test.ts`.

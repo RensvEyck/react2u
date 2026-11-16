@@ -57,5 +57,5 @@ export default async function OnboardingRoute({ params }: { params: Promise<{ to
   }
 
   const modus = o.status === "concept" ? "voorbeeld" : collega ? "collega" : "klant";
-  return <OnboardingPagina o={o} token={token} basis={`/onboarding/${token}`} contact={contact} modus={modus} vers={netAfgerond(o.afgerond_at)} />;
+  return <OnboardingPagina o={o} basis={`/onboarding/${token}`} contact={contact} modus={modus} vers={netAfgerond(o.afgerond_at)} />;
 }
