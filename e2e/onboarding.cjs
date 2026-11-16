@@ -217,7 +217,6 @@ const isXlsx = (r, body) => r.status() === 200 && /spreadsheetml/.test(r.headers
   ok("fout bij een KvK-nummer van vier cijfers");
   check(sql(`select antwoorden ? 'inrichting' from public.onboardings where id = '${id}'`) === "f", "niets opgeslagen bij een fout");
   await klant.fill(inr("kvk"), "12345678");
-  await klant.fill(inr("iban"), "NL91ABNA0417164300");
   await klant.click("#stap-inrichting button:has-text('Gegevens opslaan')");
   await klant.waitForSelector("#stap-inrichting >> text=Opgeslagen. Dank je wel!", { timeout: 20000 });
   check(sql(`select antwoorden->'inrichting'->'data'->>'kvk' from public.onboardings where id = '${id}'`) === "12345678", "inrichting opgeslagen");

@@ -1529,8 +1529,10 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   stippellijn naar het kaartje in de kleur van de stap (`ProtocolInhoud`); bij
   *Jullie gegevens* drie kaarten met de keurmerken die daarover gaan (ISO 27001,
   ISO 27701, SBCA; `Zekerheid`); in elk formulier een balkje "Verplichte velden:
-  3 van 7". Controles bij invullen (KvK 8 cijfers, IBAN mod 97, BSN elfproef,
-  postcode);
+  3 van 7". Controles bij invullen (KvK 8 cijfers, BSN elfproef, postcode).
+  Geen IBAN en accounthouder: die stonden kaal op het Word-formulier, maar
+  React2u incasseert niet (Rens, 16 nov 2026), de klant betaalt per factuur
+  binnen dertig dagen (basiscontract 7.4);
   de indigo band *Zo gaat het verder* met wat React2u daarna doet (`TAKEN`,
   `klantKop` en `klant`) en bellen; de felicitatie met de stippen als alles net
   klaar is; op de telefoon onderaan de knop naar de volgende open stap. Alles

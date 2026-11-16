@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  bsnGeldig, controleerOnboarding, controleerVelden, controleerWerknemers, datumNaarIso, documentKlaar, ibanGeldig, INRICHTING, keuzeUit,
+  bsnGeldig, controleerOnboarding, controleerVelden, controleerWerknemers, datumNaarIso, documentKlaar, INRICHTING, keuzeUit,
   naarXpertRijen, schoneWerknemers, schoonVelden, voortgang, XPERT_KOLOMMEN,
 } from "./onboarding";
 import { crc32, kolom, xlsx } from "./xlsx";
@@ -32,10 +32,6 @@ describe("controles", () => {
     expect(bsnGeldig("111222333")).toBe(true);
     expect(bsnGeldig("123456789")).toBe(false);
     expect(bsnGeldig("000000000")).toBe(false);
-  });
-  it("iban mod 97", () => {
-    expect(ibanGeldig("NL91 ABNA 0417 1643 00")).toBe(true);
-    expect(ibanGeldig("NL91ABNA0417164301")).toBe(false);
   });
   it("inrichting: verplichte velden en kvk", () => {
     const data = schoonVelden(INRICHTING, { bedrijfsnaam: "  Acme ", kvk: "1234", onbekend: "x" });

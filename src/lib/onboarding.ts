@@ -150,7 +150,7 @@ export const DOCUMENTEN: DocumentInfo[] = [
     kleur: "#E61674", tint: "#FDECF4",
     standaard: { mee: true, invullen: true },
     minuten: 10,
-    nodig: ["KvK-nummer", "factuuradres en e-mailadres voor facturen", "IBAN, als je via automatische incasso betaalt"],
+    nodig: ["KvK-nummer", "factuuradres en e-mailadres voor facturen"],
   },
   {
     sleutel: "werknemers",
@@ -415,9 +415,9 @@ export const INRICHTING: VeldGroep[] = [
       { naam: "factuur_straat", label: "Straat en huisnummer", verplicht: true, autocomplete: "street-address" },
       { naam: "factuur_postcode", label: "Postcode", verplicht: true, half: true, autocomplete: "postal-code", max: 10 },
       { naam: "factuur_plaats", label: "Plaats", verplicht: true, half: true, autocomplete: "address-level2" },
+      // Geen IBAN en accounthouder meer (die stonden kaal op het Word-formulier): React2u incasseert
+      // niet, de klant betaalt per factuur binnen dertig dagen (basiscontract 7.4). Rens, 16 nov 2026.
       { naam: "factuur_email", label: "E-mailadres voor facturen", verplicht: true, type: "email" },
-      { naam: "iban", label: "IBAN", half: true, hint: "Alleen bij betalen via automatische incasso." },
-      { naam: "rekeninghouder", label: "Ten name van", half: true },
     ],
   },
   {
@@ -469,21 +469,10 @@ export function controleerVelden(groepen: VeldGroep[], data: Record<string, stri
     else if (w && v.type === "email" && !EMAIL.test(w)) fouten[v.naam] = "Dit e-mailadres klopt niet.";
   }
   if (data.kvk && !/^\d{8}$/.test(data.kvk.replace(/\s/g, ""))) fouten.kvk = "Een KvK-nummer heeft 8 cijfers.";
-  if (data.iban && !ibanGeldig(data.iban)) fouten.iban = "Dit IBAN klopt niet.";
   if (data.factuur_postcode && !/^\d{4}\s?[a-z]{2}$/i.test(data.factuur_postcode) && !/^[a-z0-9 -]{3,10}$/i.test(data.factuur_postcode)) {
     fouten.factuur_postcode = "Deze postcode klopt niet.";
   }
   return fouten;
-}
-
-/** IBAN met de mod 97-controle. */
-export function ibanGeldig(iban: string): boolean {
-  const s = iban.replace(/\s/g, "").toUpperCase();
-  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(s)) return false;
-  const omgezet = (s.slice(4) + s.slice(0, 4)).replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
-  let rest = 0;
-  for (const c of omgezet) rest = (rest * 10 + Number(c)) % 97;
-  return rest === 1;
 }
 
 /* ---------- formulier 3: het werknemersbestand (import XpertSuite) ---------- */
