@@ -338,7 +338,7 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
     >
       <div role="radiogroup" aria-label="Hoe wil je de medewerkers aanleveren?" className="grid gap-3 sm:grid-cols-2">
         <KeuzeKaart aan={wijze === "handmatig"} onClick={() => kies("handmatig")} titel="Handmatig invullen" tekst="Per medewerker een kaart met de gegevens. Handig tot zo'n tien medewerkers." />
-        <KeuzeKaart aan={wijze === "excel"} onClick={() => kies("excel")} titel="Via Excel" tekst="Download het lege bestand, vul het in en plak de rijen hier. Handig bij veel medewerkers." />
+        <KeuzeKaart aan={wijze === "excel"} onClick={() => kies("excel")} titel="Via Excel" tekst="Download het bestand, vul het in Excel in en upload het weer. Handig bij veel medewerkers." />
       </div>
 
       {wijze === "excel" && (
@@ -346,7 +346,7 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
           <li className="flex items-start gap-4">
             <span className={stapKop} style={{ background: "#E5F6F4", color: "#00786F" }}>1</span>
             <span className="flex min-w-0 flex-1 flex-col gap-2">
-              <span className="text-[16px] font-bold" style={{ color: NAVY }}>Download het lege bestand</span>
+              <span className="text-[16px] font-bold" style={{ color: NAVY }}>Download het Excelbestand</span>
               <span className="text-[14px] text-[#77758F]">
                 De 37 kolommen van ons verzuimsysteem, met de kolomnamen in de eerste rij.{rijen.filter((r) => !leegIs(r)).length > 0 ? ` De ${rijen.filter((r) => !leegIs(r)).length} ${rijen.filter((r) => !leegIs(r)).length === 1 ? "medewerker die er al staat, staat" : "medewerkers die er al staan, staan"} erin: vul aan in Excel en upload het bestand weer.` : ""}
               </span>
@@ -440,7 +440,7 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
                     <span className="text-[14px] font-semibold" style={{ color: "#0A7A4B" }}>Alles ziet er goed uit.</span>
                   )}
                   <div className="flex flex-wrap items-center gap-3">
-                    <button type="button" className={knoppen.roze} onClick={voegVoorstelToe}>
+                    <button type="button" className={`${knoppen.roze} h-auto min-h-[52px] max-w-full whitespace-normal py-3 text-center`} onClick={voegVoorstelToe}>
                       {voorstel.rijen.length ? `${voorstel.rijen.length} ${voorstel.rijen.length === 1 ? "medewerker" : "medewerkers"} toevoegen` : ""}
                       {voorstel.rijen.length && voorstel.bijwerken.length ? " en " : ""}
                       {voorstel.bijwerken.length ? `${voorstel.bijwerken.length} bijwerken` : ""}
@@ -618,17 +618,19 @@ export function MachtigingUitnodigen({ token, lijst, modus, arbodienst, basis }:
           {lijst.map((m, i) => {
             const klaar = m.status === "getekend";
             return (
-              <li key={m.id} className="flex flex-wrap items-center gap-3 rounded-[18px] border bg-white px-5 py-4" style={{ borderColor: klaar ? "#BFE3D6" : "#E6E5EF" }}>
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px] font-semibold text-white" style={{ background: klaar ? "#0A7A4B" : "#C9C7DA" }}>{klaar ? <Vink /> : i + 1}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[16px] font-bold" style={{ color: NAVY }}>{m.naam} <span className="font-normal text-[#77758F]">· {m.email}</span></span>
-                  <span className="block text-[13.5px]" style={{ color: klaar ? "#0A7A4B" : "#77758F" }}>
-                    {klaar
-                      ? `Getekend op ${momentLang(m.getekend_at)}${m.overdracht_at ? ` · naar de arbodienst gestuurd op ${datumLang(m.overdracht_at)}` : ""}`
-                      : `Uitgenodigd op ${datumLang(m.uitgenodigd_at)}${m.herinnerd_at ? `, herinnerd op ${datumLang(m.herinnerd_at)}` : ""}${m.bekeken_at ? ", geopend" : ", nog niet geopend"}`}
+              <li key={m.id} className="flex flex-col gap-3 rounded-[18px] border bg-white px-5 py-4 sm:flex-row sm:items-center" style={{ borderColor: klaar ? "#BFE3D6" : "#E6E5EF" }}>
+                <span className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px] font-semibold text-white" style={{ background: klaar ? "#0A7A4B" : "#C9C7DA" }}>{klaar ? <Vink /> : i + 1}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[16px] font-bold" style={{ color: NAVY }}>{m.naam} <span className="block font-normal text-[#77758F] sm:inline">{m.email}</span></span>
+                    <span className="block text-[13.5px]" style={{ color: klaar ? "#0A7A4B" : "#77758F" }}>
+                      {klaar
+                        ? `Getekend op ${momentLang(m.getekend_at)}${m.overdracht_at ? ` · naar de arbodienst gestuurd op ${datumLang(m.overdracht_at)}` : ""}`
+                        : `Uitgenodigd op ${datumLang(m.uitgenodigd_at)}${m.herinnerd_at ? `, herinnerd op ${datumLang(m.herinnerd_at)}` : ""}${m.bekeken_at ? ", geopend" : ", nog niet geopend"}`}
+                    </span>
                   </span>
                 </span>
-                <span className="flex flex-wrap items-center gap-3 text-[14px] font-bold" style={{ color: NAVY }}>
+                <span className="flex flex-wrap items-center gap-3 pl-12 text-[14px] font-bold sm:pl-0" style={{ color: NAVY }}>
                   {klaar ? (
                     <a href={`${basis}/machtiging/${m.id}?download=1`} className="underline-offset-4 hover:underline">Getekende pdf</a>
                   ) : (
