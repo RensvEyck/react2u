@@ -1,19 +1,22 @@
 "use client";
-import { LuCalendarClock, LuMail, LuMessageSquare, LuPhone, LuSparkles, LuUserRound } from "react-icons/lu";
-import { actieStand, KLANT_STATUS, relatief, statusHint, type Klant, type KlantStatus, type Koppeling } from "@/lib/klanten";
-import { Checklist, Eigenaar, KoppelChip } from "./bits";
+import { LuCalendarClock, LuMail, LuMessageSquare, LuPhone, LuUserRound } from "react-icons/lu";
+import { actieStand, KLANT_STATUS, relatief, relatiefMoment, type Bezoek, type Klant, type KlantStatus, type Koppeling } from "@/lib/klanten";
+import { Checklist, Eigenaar, KoppelChip, SiteIcoon } from "./bits";
 
 /**
  * Eén kaart op het bord: het bedrijf, wie je daar spreekt, het laatste contact,
  * de volgende stap en onderaan de vinkjes en wat er in de andere modules van
- * deze klant staat. Slepen naar een andere kolom, of de status kiezen in het
- * menu (op een telefoon, of met het toetsenbord).
+ * deze klant staat, en of het bedrijf de laatste dagen op de site was. Slepen
+ * naar een andere kolom, of de status kiezen in het menu (op een telefoon, of
+ * met het toetsenbord). Verplaatsen op wat er in de modules gebeurt doet de
+ * database zelf (0041).
  */
 export default function KlantKaart({
-  k, koppelingen, vandaag, open, onOpen, onStatus, sleept, onSleep,
+  k, koppelingen, bezoek, vandaag, open, onOpen, onStatus, sleept, onSleep,
 }: {
   k: Klant;
   koppelingen: Koppeling[];
+  bezoek: Bezoek | null;
   vandaag: string;
   open: boolean;
   onOpen: () => void;
@@ -22,7 +25,6 @@ export default function KlantKaart({
   onSleep: (id: string | null) => void;
 }) {
   const actie = actieStand(k, vandaag);
-  const hint = statusHint(k, koppelingen);
   const actieKleur =
     actie === "te_laat" ? "bg-[#fdeef4] text-[#e0356b]" : actie === "vandaag" ? "bg-[#fff4e5] text-[#b86e00]" : "bg-black/[0.05] text-black/60";
 
@@ -92,6 +94,12 @@ export default function KlantKaart({
         ) : (
           <p className="flex items-center gap-1.5 text-black/35"><LuMessageSquare className="text-[12px]" /> Nog geen gesprek vastgelegd</p>
         )}
+        {bezoek && (
+          <p className="flex items-center gap-1.5 text-[#0b6bcb]" title={`${bezoek.paginas} ${bezoek.paginas === 1 ? "pagina" : "pagina's"} bekeken de laatste twee weken`}>
+            <SiteIcoon className="shrink-0 text-[12px]" />
+            <span className="truncate"><span className="font-semibold">Op de site</span> {relatiefMoment(bezoek.laatst)}{bezoek.sessies[0]?.paginas.length ? ` · ${bezoek.sessies[0].paginas.length} ${bezoek.sessies[0].paginas.length === 1 ? "pagina" : "pagina's"}` : ""}</span>
+          </p>
+        )}
         {(k.volgende_actie || k.volgende_actie_op) && (
           <p className="flex items-start gap-1.5">
             <LuCalendarClock className={`mt-0.5 shrink-0 text-[12px] ${actie === "te_laat" ? "text-[#e0356b]" : actie === "vandaag" ? "text-[#b86e00]" : "text-black/35"}`} />
@@ -114,21 +122,6 @@ export default function KlantKaart({
           {koppelingen.length > 3 && <span className="text-[11px] text-black/40">+{koppelingen.length - 3}</span>}
         </div>
       </div>
-
-      {hint && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onStatus(hint);
-          }}
-          className="mt-2.5 inline-flex w-full items-center gap-1.5 rounded-[10px] bg-[#f7f7fc] px-2.5 py-1.5 text-left text-[12px] font-semibold text-[#312e82] hover:bg-[#eef0ff]"
-          title="Dat zeggen de offertes en contracten van deze klant. Klik om de kaart te verplaatsen."
-        >
-          <LuSparkles className="shrink-0 text-[13px] text-[#e75387]" />
-          Zet op {KLANT_STATUS.find((s) => s.key === hint)?.label}?
-        </button>
-      )}
 
       {/* Geen sr-only label: die is absoluut gepositioneerd en ontsnapt aan de scrollende rij, waardoor de pagina op een telefoon breder werd dan het scherm. */}
       <select

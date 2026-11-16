@@ -1,9 +1,10 @@
-// Klantenbord (0040) van begin tot eind: het lege bord en het menu, een nieuwe lead via het zijpaneel, een
-// gesprek vastleggen met in één keer de volgende stap en een nieuwe kolom, de vinkjes en de gegevens, slepen
-// naar een andere kolom, de koppelingen met de bellijst en een getekende offerte (met de hint), de import van
-// een Excelbestand in de vorm van de klantlijst (controlerapport, dan importeren, dan nog eens zonder
-// dubbelen), zoeken, de lijstweergave, het bord op een telefoon, en een kaart van het bord halen.
-// Draaien via e2e/run.mjs (E2E_ALLEEN=klantenbord).
+// Klantenbord (0040, 0041) van begin tot eind: het lege bord en het menu, een nieuwe lead via het zijpaneel,
+// een gesprek vastleggen met in één keer de volgende stap en een nieuwe kolom, de vinkjes en de gegevens,
+// slepen naar een andere kolom, de koppelingen met de bellijst en een offerte die getekend wordt (de kaart gaat
+// zelf naar Akkoord, de tijdlijn vult zich), de import van een Excelbestand in de vorm van de klantlijst
+// (controlerapport, dan importeren, dan nog eens zonder dubbelen), zoeken, de lijstweergave, het bord op een
+// telefoon, een kaart van het bord halen, en kaarten die vanzelf ontstaan uit een brochure, contract,
+// onboarding en losse opdracht, met het sitebezoek erbij. Draaien via e2e/run.mjs (E2E_ALLEEN=klantenbord).
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
@@ -110,7 +111,7 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await page.click("aside[role=dialog] button:has-text('Over een week')");
   await page.click("aside[role=dialog] button:has-text('Bewaar')");
   check((await tot(`select volgende_actie from public.klanten where id = '${id}'`, "Offerte nabellen")) === "Offerte nabellen", "volgende stap bijgewerkt");
-  check(sql(`select (volgende_actie_op - current_date) from public.klanten where id = '${id}'`) === "7", "over een week");
+  check(sql(`select (volgende_actie_op - (now() at time zone 'Europe/Amsterdam')::date) from public.klanten where id = '${id}'`) === "7", "over een week");
   await shot(page, "04-paneel-gevuld");
   await page.keyboard.press("Escape");
   await page.waitForSelector("aside[role=dialog]", { state: "detached" });
@@ -122,18 +123,34 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   check(sql(`select count(*) from public.klant_gesprekken where klant_id = '${id}' and soort = 'status'`) === "3", "elke verplaatsing in de tijdlijn");
   await shot(page, "05-bord", { fullPage: false });
 
-  stap("Koppelingen met de bellijst en een getekende offerte");
+  stap("Koppelingen met de bellijst en een offerte die getekend wordt");
   sql(`insert into public.leads (name, company, status, follow_up_on) values ('Fatima El Amrani', '${BEDRIJF}', 'terugbellen', current_date + 2)`);
-  sql(`insert into public.offertes (bedrijf, contactpersoon, email, status, verstuurd_at, getekend_at, afzender_naam, afzender_email)
-    values ('Bakkerij de Korenaar B.V.', 'Fatima El Amrani', 'fatima@korenaar.test', 'getekend', now() - interval '2 days', now(), 'Rens van Eyck', 'sales@react2u.nl')`);
+  const offerte = sql(`insert into public.offertes (bedrijf, contactpersoon, email, status, verstuurd_at, afzender_naam, afzender_email)
+    values ('Bakkerij de Korenaar B.V.', 'Fatima El Amrani', 'fatima@korenaar.test', 'verstuurd', now() - interval '2 days', 'Rens van Eyck', 'sales@react2u.nl')
+    returning id || ' ' || nummer`).split("\n")[0].split(" ");
+  check(sql(`select count(*) from public.klanten`) === "1", "een offerte met een andere schrijfwijze van de naam maakt geen tweede kaart");
+  sql(`insert into public.offerte_gebeurtenissen (offerte_id, soort, at) values ('${offerte[0]}', 'bekeken', now() - interval '1 day')`);
+  sql(`update public.offertes set keuze_at = now() - interval '20 hours' where id = '${offerte[0]}'`);
+  sql(`update public.offertes set status = 'getekend', getekend_at = now() where id = '${offerte[0]}'`);
+  sql(`insert into public.offerte_gebeurtenissen (offerte_id, soort, door) values ('${offerte[0]}', 'getekend', 'Fatima El Amrani')`);
+  check((await tot(`select status from public.klanten where id = '${id}'`, "akkoord")) === "akkoord", "offerte getekend: de kaart gaat zelf naar Akkoord");
+  check(sql(`select tekst from public.klant_gesprekken where klant_id = '${id}' and soort = 'status' order by created_at desc limit 1`) === `Van offerte uit naar akkoord (offerte ${offerte[1]} getekend door Fatima El Amrani)`, "de verplaatsing staat in de tijdlijn met de reden");
+  check(sql(`select string_agg(tekst, ' | ' order by created_at) from public.klant_gesprekken where klant_id = '${id}' and soort = 'systeem'`) === `Offerte ${offerte[1]} bekeken | Koos zelf onderdelen in offerte ${offerte[1]} | Offerte ${offerte[1]} getekend door Fatima El Amrani`, "bekeken, gekozen en getekend uit de module in de tijdlijn");
+  check(sql(`select laatste_contact || ' ' || laatste_contact_op from public.klanten where id = '${id}'`) === `Offerte ${offerte[1]} getekend door Fatima El Amrani ${vandaag}`, "het laatste contact op de kaart is wat de klant deed");
+  check(sql(`select door || ' ' || contact::text from public.klant_gesprekken where klant_id = '${id}' and soort = 'systeem' and tekst like '%bekeken'`) === "klant true", "bekeken: door de klant, en een echt contact");
   await page.reload();
-  await page.waitForSelector(`#klant-${id}`);
-  check(await page.locator(`#klant-${id} a[href^="/admin/offertes/"]:has-text('getekend')`).count(), "de getekende offerte als label op de kaart (andere schrijfwijze van de naam)");
-  check(await page.locator(`#klant-${id} a[href^="/admin/bellijst"]:has-text('terugbellen')`).count(), "de bellijstlead als label op de kaart");
-  check(await page.locator(`#klant-${id} button:has-text('Zet op Akkoord?')`).count(), "hint: de offerte is getekend, zet op akkoord");
-  await page.click(`#klant-${id} button:has-text('Zet op Akkoord?')`);
-  check((await tot(`select status from public.klanten where id = '${id}'`, "akkoord")) === "akkoord", "hint gevolgd: status akkoord");
   await page.waitForSelector(`section[data-kolom="akkoord"] #klant-${id}`);
+  check(await page.locator(`#klant-${id} a[href^="/admin/offertes/"]:has-text('getekend')`).count(), "de getekende offerte als label op de kaart");
+  check(await page.locator(`#klant-${id} a[href^="/admin/bellijst"]:has-text('terugbellen')`).count(), "de bellijstlead als label op de kaart");
+  check(await page.locator(`#klant-${id} >> text=Offerte ${offerte[1]} getekend`).count(), "het laatste contact op de kaart komt uit de offerte");
+  await page.click(`#klant-${id} h3`);
+  await page.waitForSelector(`aside[role=dialog] h2:has-text('${BEDRIJF}')`);
+  check(await page.locator("aside[role=dialog] >> text=Koos zelf onderdelen").count(), "de keuze van de klant in de tijdlijn van het paneel");
+  check(await page.locator(`aside[role=dialog] a[href="/admin/offertes/${offerte[0]}"]`).count() >= 1, "doorklikken naar de offerte vanuit de tijdlijn");
+  check((await page.locator("aside[role=dialog] li:has-text('getekend door Fatima') button[aria-label='Deze regel verwijderen']").count()) === 0, "een systeemregel kun je niet verwijderen");
+  await shot(page, "05b-paneel-tijdlijn");
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("aside[role=dialog]", { state: "detached" });
 
   stap("Import van de klantlijst (controlerapport)");
   const xlsxPad = path.join(SHOTS, "klantlijst-test.xlsx");
@@ -231,6 +248,59 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await page.click("aside[role=dialog] button:has-text('Van het bord halen')");
   check((await tot("select count(*) from public.klanten", "4")) === "4", "kaart weg, met zijn gesprekken");
   check(sql(`select count(*) from public.klant_gesprekken where klant_id = '${zonnetje}'`) === "0", "gesprekken mee verwijderd (cascade)");
+  await page.waitForSelector("aside[role=dialog]", { state: "detached" });
+
+  stap("Kaarten ontstaan zelf uit een brochure, contract, onboarding en losse opdracht");
+  const brochure = sql(`insert into public.brochures (bedrijf, contactpersoon, email, status, verstuurd_at, afzender_naam, afzender_email)
+    values ('Kapsalon Knip & Co', 'Sanne de Boer', 'sanne@knip.test', 'verstuurd', now(), 'Rens van Eyck', 'sales@react2u.nl') returning id || ' ' || nummer`).split("\n")[0].split(" ");
+  const kapsalon = sql("select id || '|' || status || '|' || coalesce(contactpersoon, '-') || '|' || coalesce(bron, '-') from public.klanten where sleutel = 'kapsalon knip co'").split("|");
+  check(kapsalon[1] === "lead" && kapsalon[2] === "Sanne de Boer" && kapsalon[3] === "brochure", `brochure: kaart als lead met de contactpersoon (${kapsalon.slice(1).join(", ")})`);
+  sql(`insert into public.brochure_gebeurtenissen (brochure_id, soort, door, details) values ('${brochure[0]}', 'verstuurd', 'rens@react2u.nl', '{"aan":"sanne@knip.test"}')`);
+  sql(`insert into public.brochure_gebeurtenissen (brochure_id, soort) values ('${brochure[0]}', 'bekeken')`);
+  check(sql(`select string_agg(tekst, ' | ' order by created_at) from public.klant_gesprekken where klant_id = '${kapsalon[0]}' and soort = 'systeem'`) === `Brochure ${brochure[1]} verstuurd naar sanne@knip.test | Brochure ${brochure[1]} bekeken`, "brochure verstuurd en bekeken in de tijdlijn");
+  check(sql(`select status from public.klanten where id = '${kapsalon[0]}'`) === "lead", "een brochure verplaatst niet");
+
+  const contract = sql(`insert into public.contracten (bedrijf, contactpersoon, email, status, ingangsdatum, einddatum, tekst, verstuurd_at)
+    values ('Installatiebedrijf Pieters', 'Henk Pieters', 'henk@pieters.test', 'verstuurd', current_date, current_date + 365, repeat('x', 120), now()) returning id || ' ' || nummer`).split("\n")[0].split(" ");
+  const pieters = sql("select id || ' ' || status from public.klanten where sleutel = 'installatiebedrijf pieters'").split(" ");
+  check(pieters[1] === "akkoord", "contract verstuurd: kaart als akkoord");
+  sql(`insert into public.contract_gebeurtenissen (contract_id, soort, door) values ('${contract[0]}', 'getekend', 'Henk Pieters')`);
+  check((await tot(`select status from public.klanten where id = '${pieters[0]}'`, "inrichten")) === "inrichten", "contract getekend: naar Inrichten");
+  check(sql(`select tekst from public.klant_gesprekken where klant_id = '${pieters[0]}' and soort = 'systeem' order by created_at desc limit 1`) === `Contract ${contract[1]} getekend door Henk Pieters`, "getekend contract in de tijdlijn");
+  sql(`insert into public.contracten (bedrijf, soort, tekst) values ('Accountants Noord', 'reseller', repeat('x', 120))`);
+  check(sql("select count(*) from public.klanten where sleutel = 'accountants noord'") === "0", "een resellerovereenkomst is een partner, geen kaart");
+
+  const onboarding = sql(`insert into public.onboardings (bedrijf, contactpersoon, email, documenten, status, verstuurd_at)
+    values ('Zorg aan Huis Twente', 'Ilse Kamp', 'ilse@zorgaanhuis.test', '{welkom,inrichting}', 'verstuurd', now()) returning id || ' ' || nummer`).split("\n")[0].split(" ");
+  const zorg = sql("select id || ' ' || status from public.klanten where sleutel = 'zorg aan huis twente'").split(" ");
+  check(zorg[1] === "inrichten", "onboarding: kaart als inrichten");
+  sql(`insert into public.onboarding_gebeurtenissen (onboarding_id, soort) values ('${onboarding[0]}', 'bekeken')`);
+  sql(`insert into public.onboarding_gebeurtenissen (onboarding_id, soort, details) values ('${onboarding[0]}', 'ingevuld', '{"document":"inrichting"}')`);
+  sql(`insert into public.onboarding_gebeurtenissen (onboarding_id, soort, door, details) values ('${onboarding[0]}', 'live', 'rens@react2u.nl', '{"aan":"ilse@zorgaanhuis.test"}')`);
+  check((await tot(`select status from public.klanten where id = '${zorg[0]}'`, "klant")) === "klant", "onboarding live: naar Klant");
+  check(sql(`select string_agg(tekst, ' | ' order by created_at) from public.klant_gesprekken where klant_id = '${zorg[0]}' and soort = 'systeem'`) === `Onboarding ${onboarding[1]} geopend | Inrichting nieuwe klant ingevuld (onboarding ${onboarding[1]}) | Live: onboarding ${onboarding[1]} is ingericht`, "geopend, ingevuld en live in de tijdlijn");
+
+  sql(`insert into public.losse_opdrachten (soort, bedrijf, bedrag, datum, contactpersoon) values ('abonnement', 'Autobedrijf Van Dijk', 250, current_date - 40, 'Kees van Dijk')`);
+  const vandijk = sql("select status || ' ' || (laatste_contact is null)::text from public.klanten where sleutel = 'autobedrijf van dijk'");
+  check(vandijk === "klant true", `losse klant: kaart als klant zonder contact (${vandijk})`);
+  check(sql("select tekst from public.klant_gesprekken where klant_id = (select id from public.klanten where sleutel = 'autobedrijf van dijk') and soort = 'systeem'").startsWith("Opgevoerd als klant met een abonnement sinds "), "losse klant in de tijdlijn");
+
+  const inlezen = JSON.parse(sql("select public.klantenbord_inlezen()") || "{}");
+  check(inlezen.kaarten === 0 && inlezen.regels === 0, `inlezen nog een keer: niets dubbel (${JSON.stringify(inlezen)})`);
+
+  stap("Sitebezoek op de kaart");
+  sql(`insert into public.page_views (path, is_company, company, company_domain, company_source, visitor_hash, created_at) values
+    ('/verzuimbegeleiding', true, 'Bakkerij De Korenaar', 'korenaar.test', 'rdns', 'e2e-kb-1', now() - interval '45 minutes'),
+    ('/tarieven', true, 'Bakkerij De Korenaar', 'korenaar.test', 'rdns', 'e2e-kb-1', now() - interval '40 minutes')`);
+  await page.goto(`${BASIS}/admin/klantenbord`);
+  await page.waitForSelector(`#klant-${id}`);
+  check(await page.locator(`#klant-${id} >> text=Op de site`).count() && (await page.locator(`#klant-${id} >> text=40 min geleden`).count()) && (await page.locator(`#klant-${id} >> text=2 pagina's`).count()), "op de kaart: op de site 40 min geleden, 2 pagina's");
+  check((await page.locator("section[data-kolom='klant'] .kb-kaart").count()) === 3, "drie kaarten in Klant: uit de import, de onboarding en de losse opdracht");
+  await page.click(`#klant-${id} h3`);
+  await page.waitForSelector(`aside[role=dialog] h2:has-text('${BEDRIJF}')`);
+  check(await page.locator("aside[role=dialog] li:has-text('Op de site') >> text=2 pagina's: verzuimbegeleiding, tarieven").count(), "de sessie met de pagina's in de tijdlijn");
+  await shot(page, "11-bord-automatisch", { fullPage: false });
+  await page.keyboard.press("Escape");
   await page.waitForSelector("aside[role=dialog]", { state: "detached" });
 
   check(paginafouten.length === 0, `geen fouten in de browser${paginafouten.length ? `: ${paginafouten.join(" | ")}` : ""}`);

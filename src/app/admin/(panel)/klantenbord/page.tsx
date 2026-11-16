@@ -1,7 +1,10 @@
 import { requirePerm } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
-import { bedrijfSleutel, koppelIndex, vandaagNL, type Bronnen, type Gesprek, type Klant, type Koppeling } from "@/lib/klanten";
+import { bedrijfSleutel, bezoekPerKlant, koppelIndex, vandaagNL, type Bezoek, type Bronnen, type Gesprek, type Klant, type Koppeling } from "@/lib/klanten";
 import { onboardingWeergave, type Onboarding } from "@/lib/onboarding";
+import { fetchPageViews } from "@/lib/analyticsDb";
+import { summarize, type CompanyProfile } from "@/lib/companies";
+import type { PageView } from "@/lib/types";
 import Klantenbord from "@/components/admin/klantenbord/Klantenbord";
 import { LuDatabase } from "react-icons/lu";
 
@@ -19,11 +22,15 @@ const leesContracten = (sb: Awaited<ReturnType<typeof requirePerm>>["sb"], metSo
   sb.from("contracten").select(`id, nummer, status, bedrijf, verstuurd_at, getekend_at, created_at${metSoort ? ", soort" : ""}`).neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000);
 
 export default async function KlantenbordPagina({ searchParams }: { searchParams: Promise<{ weergave?: string }> }) {
-  const { sb } = await requirePerm("bellijst");
+  const { sb, admin } = await requirePerm("bellijst");
   const { weergave } = await searchParams;
   const vandaag = vandaagNL();
+  const nu = new Date();
+  // Wie het bezoek mag zien, ziet op de kaart ook of het bedrijf de laatste twee weken op de site was (bedrijfsherkenning, 0010).
+  const metBezoek = admin.permissions.includes("bezoek");
+  const sinds = new Date(nu.getTime() - 14 * 86_400_000).toISOString();
 
-  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes] = await Promise.all([
+  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes, pvRes, prRes] = await Promise.all([
     sb.from("klanten").select("*").order("updated_at", { ascending: false }).limit(2000),
     sb.from("klant_gesprekken").select("*").order("op", { ascending: false }).order("created_at", { ascending: false }).limit(5000),
     sb.from("offertes").select("id, nummer, status, bedrijf, verstuurd_at, getekend_at, created_at").neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
@@ -32,6 +39,8 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
     leesContracten(sb, true).then((r) => (r.error && (r.error.code === "42703" || r.error.code === "PGRST204") ? leesContracten(sb, false) : r)),
     sb.from("onboardings").select("id, nummer, status, bedrijf, documenten, taken, bekeken_at, verstuurd_at, afgerond_at, created_at").neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
     sb.from("leads").select("id, name, company, status, follow_up_on").limit(2000),
+    metBezoek ? fetchPageViews(sb, sinds, "path, referrer_host, visitor_hash, created_at, company, company_domain, company_source, is_company", { onlyCompanies: true }).catch(() => [] as PageView[]) : Promise.resolve([] as PageView[]),
+    metBezoek ? sb.from("company_profiles").select("key, name, domain, ignored, lead_id") : Promise.resolve({ data: null }),
   ]);
 
   const tabel = !kRes.error || !isMissingTable(kRes.error);
@@ -50,6 +59,11 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
     const x = index.get(k.sleutel || bedrijfSleutel(k.bedrijf));
     if (x?.length) koppelingen[k.id] = x;
   }
+  // Dezelfde herkenning en sessies als Bezoek → Bedrijven, zonder wie niet gevolgd wordt.
+  const bedrijvenOpSite = metBezoek
+    ? summarize((pvRes as PageView[]).filter((v) => v.is_company), ((prRes as { data: CompanyProfile[] | null }).data) || [], [], nu).filter((c) => !c.ignored)
+    : [];
+  const bezoek: Record<string, Bezoek> = bezoekPerKlant(klanten, bedrijvenOpSite);
 
   return (
     <>
@@ -57,11 +71,11 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
         <div className="acard mb-6 flex items-start gap-4 p-6">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eef0ff] text-[18px] text-[#312e82]"><LuDatabase /></span>
           <p className="text-[14px] text-black/55">
-            Het klantenbord staat nog niet aan: voer <code className="rounded bg-black/[0.05] px-1.5 py-0.5 font-mono text-[13px]">supabase/migrations/0040_klantenbord.sql</code> eerst uit in Supabase.
+            Het klantenbord staat nog niet aan: voer <code className="rounded bg-black/[0.05] px-1.5 py-0.5 font-mono text-[13px]">supabase/migrations/0040_klantenbord.sql</code> en <code className="rounded bg-black/[0.05] px-1.5 py-0.5 font-mono text-[13px]">0041_klantenbord_automatisch.sql</code> eerst uit in Supabase.
           </p>
         </div>
       )}
-      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} />
+      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} bezoek={bezoek} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} />
     </>
   );
 }

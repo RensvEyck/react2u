@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation";
 import { LuCircleAlert, LuCircleCheck, LuLayoutGrid, LuList, LuPlus, LuSearch, LuUpload, LuX } from "react-icons/lu";
 import {
-  KLANT_STATUS, sorteerKaarten, telling, zoekKlanten, actieStand, type Gesprek, type Klant, type KlantStatus, type Koppeling,
+  KLANT_STATUS, sorteerKaarten, telling, zoekKlanten, actieStand, type Bezoek, type Gesprek, type Klant, type KlantStatus, type Koppeling,
 } from "@/lib/klanten";
 import { zetKlantStatus, type ImportResultaat } from "@/app/admin/klantenActions";
 import KlantKaart from "./KlantKaart";
@@ -24,11 +24,13 @@ type Weergave = "bord" | "lijst";
 type Filter = "alles" | "actie" | "zonder";
 
 export default function Klantenbord({
-  klanten: begin, gesprekken: beginGesprekken, koppelingen, vandaag, weergave: beginWeergave,
+  klanten: begin, gesprekken: beginGesprekken, koppelingen, bezoek, vandaag, weergave: beginWeergave,
 }: {
   klanten: Klant[];
   gesprekken: Gesprek[];
   koppelingen: Record<string, Koppeling[]>;
+  /** Sitebezoek per kaart (recht `bezoek`); leeg zonder dat recht. */
+  bezoek: Record<string, Bezoek>;
   vandaag: string;
   weergave: Weergave;
 }) {
@@ -212,6 +214,7 @@ export default function Klantenbord({
               key={k.id}
               k={k}
               koppelingen={koppelingen[k.id] || []}
+              bezoek={bezoek[k.id] || null}
               vandaag={vandaag}
               open={open === k.id}
               onOpen={() => setOpen(k.id)}
@@ -313,6 +316,7 @@ export default function Klantenbord({
           klant={openKlant}
           gesprekken={openKlant ? perKlant.get(openKlant.id) || [] : []}
           koppelingen={openKlant ? koppelingen[openKlant.id] || [] : []}
+          bezoek={openKlant ? bezoek[openKlant.id] || null : null}
           vandaag={vandaag}
           eigenaren={eigenaren}
           onClose={() => setOpen(null)}

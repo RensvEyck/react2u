@@ -58,7 +58,7 @@ const meerregelig = (w: unknown, max: number): string | null => {
 
 function foutUit(error: { code?: string; message?: string } | null | undefined): string {
   if (!error) return "Opslaan mislukt.";
-  if (error.code === "PGRST205" || error.code === "42P01") return "Het klantenbord staat nog niet aan: migratie 0040 moet eerst in Supabase worden uitgevoerd.";
+  if (error.code === "PGRST205" || error.code === "42P01" || error.code === "42703" || error.code === "PGRST204") return "Het klantenbord staat nog niet (helemaal) aan: migraties 0040 en 0041 moeten eerst in Supabase worden uitgevoerd.";
   if (error.code === "23505") return "Dit bedrijf staat al op het bord.";
   if (error.code === "23514") return "Een van de velden klopt niet (bijvoorbeeld het e-mailadres of een te lange tekst).";
   return "Opslaan mislukt.";
@@ -104,10 +104,11 @@ async function laad(sb: Sb, id: string): Promise<Klant | null> {
   return (data as Klant | null) ?? null;
 }
 
+/** Een regel van het systeem (verplaatst, import): geen contact, dus niet "het laatste contact" op de kaart. */
 async function log(sb: Sb, klantId: string, soort: GesprekSoort, tekst: string, door: string, op?: string): Promise<Gesprek | null> {
   const { data } = await sb
     .from("klant_gesprekken")
-    .insert({ klant_id: klantId, soort, tekst: tekst.slice(0, 5000), door, ...(op ? { op } : {}) })
+    .insert({ klant_id: klantId, soort, tekst: tekst.slice(0, 5000), door, contact: false, ...(op ? { op } : {}) })
     .select("*")
     .single();
   return (data as Gesprek | null) ?? null;
@@ -177,7 +178,7 @@ export type GesprekInvoer = {
 export async function voegGesprekToe(id: string, invoer: GesprekInvoer): Promise<GesprekResultaat> {
   const { sb, admin } = await requirePerm("bellijst");
   const soort = invoer.soort;
-  if (!isGesprekSoort(soort) || soort === "status" || soort === "import") return { ok: false, fout: "Kies wat voor contact het was." };
+  if (!isGesprekSoort(soort) || soort === "status" || soort === "import" || soort === "systeem") return { ok: false, fout: "Kies wat voor contact het was." };
   const t = meerregelig(invoer.tekst, 5000);
   const heeftVervolg = invoer.volgende_actie !== undefined || invoer.volgende_actie_op !== undefined || (invoer.status && isKlantStatus(invoer.status));
   if (!t && !heeftVervolg) return { ok: false, fout: "Schrijf kort op wat er besproken is." };
