@@ -293,6 +293,8 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   sql("select public.klantenbord_inlezen()");
   const inlezen = JSON.parse(sql("select public.klantenbord_inlezen()") || "{}");
   check(inlezen.kaarten === 0 && inlezen.regels === 0, `inlezen nog een keer: niets dubbel (${JSON.stringify(inlezen)})`);
+  // De losse opdracht weer weg: e2e/dashboard.cjs verwacht later een lege verkoop, en die tabel maakt hij niet zelf leeg.
+  sql("delete from public.losse_opdrachten where bedrijf = 'Autobedrijf Van Dijk'");
 
   stap("Sitebezoek op de kaart");
   sql(`insert into public.page_views (path, is_company, company, company_domain, company_source, visitor_hash, created_at) values
