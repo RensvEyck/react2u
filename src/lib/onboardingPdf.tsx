@@ -1,11 +1,11 @@
 import "server-only";
-import { Circle, Document, Page, StyleSheet, Svg, Text, View, renderToBuffer } from "@react-pdf/renderer";
+import { Circle, Document, Image, Page, StyleSheet, Svg, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { Logo, registreer } from "./offertePdf";
 import type { ContactInfo } from "./content";
-import { momentLang } from "./offertes";
+import { datumLang, momentLang } from "./offertes";
 import {
-  documentInfo, INRICHTING, MACHTIGING_TEKST, REACT2U, VERZUIMPROTOCOL, VRAGEN, WELKOM, type Antwoord, type DocumentSleutel,
-  type TijdlijnStap, type VeldGroep,
+  datumNl, documentInfo, INRICHTING, MACHTIGING_TEKST, OVERDRACHT_BRIEF, REACT2U, VERZUIMPROTOCOL, VRAGEN, WELKOM, type Antwoord, type DocumentSleutel,
+  type MachtigingenGetekend, type MachtigingGetekend, type TijdlijnStap, type VeldGroep,
 } from "./onboarding";
 
 /*
@@ -343,15 +343,24 @@ function Inrichting({ i }: { i: PdfInvoer }) {
 }
 
 function Machtiging({ i }: { i: PdfInvoer }) {
-  const d = (i.antwoord?.data as Record<string, string>) || {};
+  return <MachtigingBlad bedrijf={i.bedrijf} arbodienst={(i.antwoord?.data as Record<string, string>) || {}} />;
+}
+
+/**
+ * Het machtigingsformulier: leeg om te printen en met de hand te tekenen, of
+ * ingevuld en online getekend (0038), dan met de handtekening en onderaan het
+ * ondertekeningscertificaat, zoals bij een contract.
+ */
+function MachtigingBlad({ bedrijf, arbodienst: d, getekend }: { bedrijf: string; arbodienst: Record<string, string>; getekend?: MachtigingGetekend }) {
+  const w = getekend?.gegevens;
   const blok = (titel: string, kleur: string, rijen: [string, string | undefined][]) => (
-    <View wrap={false} style={{ marginBottom: 9, borderRadius: 14, borderWidth: 0.8, borderColor: LIJN, overflow: "hidden" }}>
-      <View style={{ backgroundColor: kleur === NAVY ? LAV : SOFT, paddingVertical: 7, paddingHorizontal: 12, flexDirection: "row", alignItems: "center" }}>
+    <View wrap={false} style={{ marginBottom: getekend ? 6 : 9, borderRadius: 14, borderWidth: 0.8, borderColor: LIJN, overflow: "hidden" }}>
+      <View style={{ backgroundColor: kleur === NAVY ? LAV : SOFT, paddingVertical: getekend ? 5 : 7, paddingHorizontal: 12, flexDirection: "row", alignItems: "center" }}>
         <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: kleur, marginRight: 7 }} />
         <Text style={{ fontSize: 10.5, fontWeight: 600, color: INKT }}>{titel}</Text>
       </View>
       {rijen.map(([label, waarde]) => (
-        <View key={label} style={{ flexDirection: "row", borderTopWidth: 0.6, borderTopColor: LIJN, minHeight: 19.5, alignItems: "center", paddingHorizontal: 12 }}>
+        <View key={label} style={{ flexDirection: "row", borderTopWidth: 0.6, borderTopColor: LIJN, minHeight: getekend ? 17 : 19.5, alignItems: "center", paddingHorizontal: 12 }}>
           <Text style={{ width: 150, fontSize: 9.5, color: MUTE }}>{label}</Text>
           <Text style={{ flex: 1, fontSize: 10, color: INKT }}>{waarde || ""}</Text>
         </View>
@@ -360,31 +369,119 @@ function Machtiging({ i }: { i: PdfInvoer }) {
   );
   return (
     <>
-      <Kop document="Voor de werknemer" titel={MACHTIGING_TEKST.titel} intro={MACHTIGING_TEKST.alinea} bedrijf={i.bedrijf} kleur="#CA152A" compact />
+      <Kop document="Voor de werknemer" titel={MACHTIGING_TEKST.titel} intro={MACHTIGING_TEKST.alinea} bedrijf={bedrijf} kleur="#CA152A" compact />
       {blok("Vorige bedrijfsarts en arbodienst", "#CA152A", [
         ["Naam bedrijfsarts", d.bedrijfsarts], ["BIG-registratienummer", d.big], ["Arbodienst", d.arbodienst], ["Vestigingsplaats", d.plaats],
       ])}
       {blok("Nieuwe bedrijfsarts en arbodienst", NAVY, [
         ["Naam", REACT2U.bedrijfsarts.naam], ["BIG-registratienummer", REACT2U.bedrijfsarts.big], ["Arbodienst", "React2u"], ["Bezoekadres", REACT2U.adres], ["E-mailadres", REACT2U.medisch],
       ])}
-      {blok("Gegevens werknemer", ROZE, MACHTIGING_TEKST.werknemer.map((l) => [l, undefined]))}
+      {w
+        ? blok("Gegevens werknemer", ROZE, [
+            ["Naam", w.naam], ["Adres", w.adres], ["Postcode en woonplaats", `${w.postcode} ${w.plaats}`], ["Geboortedatum", datumNl(w.geboortedatum)],
+            ["BSN", w.bsn], ["Telefoonnummer", w.telefoon || ""],
+          ])
+        : blok("Gegevens werknemer", ROZE, MACHTIGING_TEKST.werknemer.map((l) => [l, undefined]))}
       {/* De handtekening en de slotregel samen, zodat de slotregel nooit alleen op een tweede pagina komt. */}
       <View wrap={false}>
         <View style={{ flexDirection: "row", marginTop: 2 }}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={{ fontSize: 8.5, fontWeight: 600, color: MUTE, marginBottom: 3 }}>Datum en plaats</Text>
-            <View style={{ height: 52, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3" }} />
+            <View style={{ height: getekend ? 44 : 52, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3", backgroundColor: getekend ? SOFT : undefined, justifyContent: "center", paddingHorizontal: 8 }}>
+              {getekend && w ? <Text style={{ fontSize: 10, color: INKT }}>{w.plaats}, {datumLang(getekend.getekend_at)}</Text> : null}
+            </View>
           </View>
           <View style={{ flex: 1.4, marginLeft: 8 }}>
             <Text style={{ fontSize: 8.5, fontWeight: 600, color: MUTE, marginBottom: 3 }}>Handtekening werknemer, voor akkoord</Text>
-            <View style={{ height: 52, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3" }} />
+            <View style={{ height: getekend ? 44 : 52, borderRadius: 10, borderWidth: 0.8, borderColor: "#CFCDE3", backgroundColor: getekend ? SOFT : undefined, alignItems: "center", justifyContent: "center" }}>
+              {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt */}
+              {getekend ? <Image src={getekend.handtekening} style={{ width: 130, height: 39 }} /> : null}
+            </View>
           </View>
         </View>
-        <Text style={{ fontSize: 8.5, color: MUTE, marginTop: 8 }}>
-          Stuur de getekende machtiging naar {REACT2U.medisch}. {MACHTIGING_TEKST.facturen}
-        </Text>
+        {getekend && w ? (
+          <View style={{ marginTop: 8, backgroundColor: LAV, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 }}>
+            <Text style={{ fontSize: 8.5, fontWeight: 600, color: NAVY, marginBottom: 1 }}>Online ondertekend</Text>
+            <Text style={{ fontSize: 7.5, color: BODY, lineHeight: 1.4 }}>
+              {w.naam} tekende op {momentLang(getekend.getekend_at)} via de persoonlijke link die op {momentLang(getekend.uitgenodigd_at)} aan {getekend.email} is gemaild
+              {getekend.getekend_ip ? `, vanaf IP-adres ${getekend.getekend_ip}` : ""}. Controlegetal (SHA-256) van de getekende inhoud: {getekend.getekend_hash}.
+            </Text>
+          </View>
+        ) : (
+          <Text style={{ fontSize: 8.5, color: MUTE, marginTop: 8 }}>
+            {MACHTIGING_TEKST.daarna} {MACHTIGING_TEKST.facturen}
+          </Text>
+        )}
       </View>
     </>
+  );
+}
+
+/** De opdrachtbrief aan de vorige arbodienst, namens de werkgever (0038). */
+function Opdrachtbrief({ g }: { g: MachtigingenGetekend }) {
+  const aantal = g.machtigingen.length;
+  return (
+    <>
+      <Kop document="Namens de werkgever" titel="Opdracht tot overdracht van verzuimdossiers" intro={`${g.bedrijf} verzoekt ${g.arbodienst.arbodienst || "de vorige arbodienst"} de lopende dossiers over te dragen aan React2u.`} bedrijf={g.bedrijf} kleur={NAVY} compact />
+      <View style={{ marginBottom: 10 }}>
+        <Text style={{ ...s.p, color: INKT }}>Aan: {g.arbodienst.arbodienst || "de vorige arbodienst"}{g.arbodienst.plaats ? `, ${g.arbodienst.plaats}` : ""}{g.arbodienst.bedrijfsarts ? `, t.a.v. ${g.arbodienst.bedrijfsarts}` : ""}</Text>
+        <Text style={{ ...s.p, color: MUTE, fontSize: 9 }}>{datumLang(new Date().toISOString())}</Text>
+      </View>
+      <Text style={s.p}>Geachte heer, mevrouw,</Text>
+      {OVERDRACHT_BRIEF.alineas(g.bedrijf, aantal).map((a) => <Text key={a} style={s.p}>{a}</Text>)}
+      <View style={{ marginTop: 6, marginBottom: 12, borderRadius: 14, borderWidth: 0.8, borderColor: LIJN, overflow: "hidden" }}>
+        <View style={{ backgroundColor: LAV, paddingVertical: 7, paddingHorizontal: 12 }}>
+          <Text style={{ fontSize: 10.5, fontWeight: 600, color: INKT }}>Werknemers met een getekende machtiging</Text>
+        </View>
+        {g.machtigingen.map((m, i) => (
+          <View key={m.id} style={{ flexDirection: "row", borderTopWidth: 0.6, borderTopColor: LIJN, minHeight: 19.5, alignItems: "center", paddingHorizontal: 12 }}>
+            <Text style={{ width: 22, fontSize: 9.5, color: MUTE }}>{i + 1}.</Text>
+            <Text style={{ flex: 1, fontSize: 10, color: INKT }}>{m.gegevens.naam}</Text>
+            <Text style={{ width: 150, fontSize: 9.5, color: BODY }}>geboren {datumNl(m.gegevens.geboortedatum)}</Text>
+            <Text style={{ width: 130, fontSize: 9.5, color: MUTE }}>getekend {datumLang(m.getekend_at)}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={s.p}>De getekende machtigingen vindt u op de volgende pagina&apos;s.</Text>
+      <View style={{ marginTop: 10 }} wrap={false}>
+        <Text style={s.p}>Met vriendelijke groet,</Text>
+        <Text style={{ ...s.p, ...s.vet, marginBottom: 0 }}>{g.contactpersoon || g.bedrijf}</Text>
+        {g.contactpersoon ? <Text style={s.p}>{g.bedrijf}</Text> : null}
+        {g.email ? <Text style={{ ...s.p, color: MUTE, fontSize: 9 }}>{g.email}</Text> : null}
+      </View>
+    </>
+  );
+}
+
+/** Eén getekende machtiging als pdf, voor de werknemer (zijn kopie) en de werkgever. */
+export async function machtigingGetekendPdf(g: MachtigingenGetekend, m: MachtigingGetekend, contact: ContactInfo): Promise<Buffer> {
+  registreer();
+  return renderToBuffer(
+    <Document title={`Machtiging overdracht verzuimdossier · ${m.gegevens.naam}`} author="React2u" subject={`Onboarding ${g.nummer}`} creationDate={new Date()}>
+      <Page size="A4" style={s.pagina}>
+        <MachtigingBlad bedrijf={g.bedrijf} arbodienst={g.arbodienst} getekend={m} />
+        <Voet contact={contact} nummer={g.nummer} />
+      </Page>
+    </Document>
+  );
+}
+
+/** De opdracht tot overdracht: de brief, met daarachter elke getekende machtiging op een eigen pagina. */
+export async function overdrachtPdf(g: MachtigingenGetekend, contact: ContactInfo): Promise<Buffer> {
+  registreer();
+  return renderToBuffer(
+    <Document title={OVERDRACHT_BRIEF.onderwerp(g.bedrijf)} author={g.bedrijf} subject={`Onboarding ${g.nummer}`} creationDate={new Date()}>
+      <Page size="A4" style={s.pagina}>
+        <Opdrachtbrief g={g} />
+        <Voet contact={contact} nummer={g.nummer} />
+      </Page>
+      {g.machtigingen.map((m) => (
+        <Page key={m.id} size="A4" style={s.pagina}>
+          <MachtigingBlad bedrijf={g.bedrijf} arbodienst={g.arbodienst} getekend={m} />
+          <Voet contact={contact} nummer={g.nummer} />
+        </Page>
+      ))}
+    </Document>
   );
 }
 

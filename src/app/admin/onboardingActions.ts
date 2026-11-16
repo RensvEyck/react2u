@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
 import {
-  controleerOnboarding, documentKlaar, gekozen, isTaak, keuzeUit, ONBOARDING_EMAIL, vultIn, type Onboarding, type OnboardingStatus,
+  controleerOnboarding, documentKlaar, gekozen, isTaak, keuzeUit, ONBOARDING_EMAIL, takenVoortgang, vultIn, type Onboarding, type OnboardingStatus,
 } from "@/lib/onboarding";
-import { onboardingUrl, sendOnboarding } from "@/lib/mail";
+import { onboardingUrl, sendOnboarding, sendOnboardingKlant } from "@/lib/mail";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 import type { VersturenState } from "./offerteActions";
 
@@ -218,14 +218,32 @@ export async function wisselTaak(id: string, taak: string) {
   const { error } = await sb.from("onboardings").update({ taken }).eq("id", id);
   if (error) redirect(`/admin/onboarding/${id}?fout=opslaan`);
   await log(sb, id, "taak", admin.email, { taak, klaar: !wasKlaar });
+  // De laatste taak afgevinkt terwijl de klant klaar is: dan is hij live, en krijgt hij dat te horen (één keer).
+  let live = false;
+  const t = takenVoortgang({ ...o, taken });
+  if (!wasKlaar && o.status === "afgerond" && t.klaar === t.totaal && o.email) {
+    const { count } = await sb.from("onboarding_gebeurtenissen").select("id", { count: "exact", head: true }).eq("onboarding_id", id).eq("soort", "live");
+    if (!count) {
+      const { contact } = await offerteHuisstijl();
+      const res = await sendOnboardingKlant({
+        to: o.email, soort: "live", aanhef: o.contactpersoon?.split(" ")[0] ?? null, bedrijf: o.bedrijf, nummer: o.nummer, link: onboardingUrl(o.token),
+        afzender: { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || ONBOARDING_EMAIL, telefoon: o.afzender_telefoon },
+        casemanager: o.casemanager, contact,
+      });
+      if (res.ok) {
+        await log(sb, id, "live", admin.email, { aan: o.email, casemanager: o.casemanager ?? "" });
+        live = true;
+      }
+    }
+  }
   ververs(id);
-  redirect(`/admin/onboarding/${id}?opgeslagen=${wasKlaar ? "taak-open" : "taak-klaar"}#inrichten`);
+  redirect(`/admin/onboarding/${id}?opgeslagen=${live ? "onboarding-live" : wasKlaar ? "taak-open" : "taak-klaar"}#inrichten`);
 }
 
 /** Het blok "in te vullen door React2u": contractsoort en debiteurnummer. */
 export async function saveOnboardingIntern(id: string, fd: FormData) {
   const { sb } = await requirePerm("bellijst");
-  const { error } = await sb.from("onboardings").update({ contractsoort: tekst(fd, "contractsoort"), debiteurnummer: tekst(fd, "debiteurnummer", 60) }).eq("id", id);
+  const { error } = await sb.from("onboardings").update({ contractsoort: tekst(fd, "contractsoort"), debiteurnummer: tekst(fd, "debiteurnummer", 60), casemanager: tekst(fd, "casemanager") }).eq("id", id);
   if (error) redirect(`/admin/onboarding/${id}?fout=opslaan`);
   ververs(id);
   redirect(`/admin/onboarding/${id}?opgeslagen=onboarding`);

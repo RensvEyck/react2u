@@ -111,6 +111,9 @@ const nextConfig: NextConfig = {
     // Onboarding (0037): de pdf's per document, ook vanuit het voorbeeld in het beheer.
     "/onboarding/**": ["./src/lib/pdf/fonts/*.woff"],
     "/admin/onboardingvoorbeeld/**": ["./src/lib/pdf/fonts/*.woff"],
+    // 0038: de getekende machtiging als pdf (de werknemer, de werkgever en het beheer) en de opdracht tot overdracht.
+    "/machtiging/**": ["./src/lib/pdf/fonts/*.woff"],
+    "/admin/onboarding/**": ["./src/lib/pdf/fonts/*.woff"],
     "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     // Contracten (0031): dezelfde bestanden.
     "/contract/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
@@ -177,9 +180,13 @@ const nextConfig: NextConfig = {
         source: "/contract/:path*",
         headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
       },
-      // Onboarding (0037): dezelfde regels als offertes.
+      // Onboarding (0037) en de machtiging van een werknemer (0038): dezelfde regels als offertes.
       {
         source: "/onboarding/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
+      {
+        source: "/machtiging/:path*",
         headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
       },
     ];

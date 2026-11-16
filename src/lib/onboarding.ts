@@ -32,6 +32,8 @@ export type Onboarding = {
   contractsoort: string | null;
   debiteurnummer: string | null;
   taken: Partial<Record<TaakSleutel, Taak>>;
+  /** De vaste casemanager die React2u koppelt (0038); op de klantpagina en in de mail "jullie zijn live". */
+  casemanager: string | null;
   afzender_naam: string | null;
   afzender_functie: string | null;
   afzender_email: string | null;
@@ -47,17 +49,76 @@ export type Onboarding = {
   aantal_bekeken: number;
 };
 
-/** Wat `onboarding_bekijken` teruggeeft: zonder notitie, interne velden en e-mail van de klant. */
+/** De stand van één machtiging zoals de werkgever hem ziet (0038): wie, en of er getekend is. Nooit de gegevens of de handtekening. */
+export type MachtigingStand = {
+  id: string;
+  naam: string;
+  email: string;
+  status: "open" | "getekend";
+  uitgenodigd_at: string;
+  herinnerd_at: string | null;
+  bekeken_at: string | null;
+  getekend_at: string | null;
+  overdracht_at: string | null;
+};
+
+/**
+ * Wat `onboarding_bekijken` teruggeeft: zonder notitie, interne velden en
+ * e-mail van de klant. Sinds 0038 ook wat React2u al regelde (per taak alleen
+ * het moment), de casemanager en de stand van de machtigingen.
+ */
 export type OnboardingPubliek = Pick<
   Onboarding,
   | "id" | "nummer" | "status" | "bedrijf" | "contactpersoon" | "bericht" | "documenten" | "invullen" | "antwoorden" | "gelezen"
   | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "verstuurd_at" | "afgerond_at" | "created_at"
-> & { eerste_keer?: boolean };
+> & {
+  eerste_keer?: boolean;
+  taken?: Partial<Record<TaakSleutel, { at: string }>>;
+  casemanager?: string | null;
+  machtigingen?: MachtigingStand[];
+};
+
+/** Eén rij uit `onboarding_machtigingen` (0038), zoals het beheer hem leest. */
+export type Machtiging = MachtigingStand & {
+  onboarding_id: string;
+  token: string;
+  gegevens: MachtigingGegevens | null;
+  handtekening: string | null;
+  getekend_ip: string | null;
+  getekend_agent: string | null;
+  getekend_hash: string | null;
+  aantal_bekeken: number;
+  created_at: string;
+};
+
+/** Wat de werknemer invult als hij tekent. */
+export type MachtigingGegevens = { naam: string; adres: string; postcode: string; plaats: string; geboortedatum: string; bsn: string; telefoon?: string };
+
+/** Wat `onboarding_machtiging_bekijken` teruggeeft: de pagina van de werknemer. */
+export type MachtigingPubliek = {
+  id: string;
+  status: "open" | "getekend" | "gesloten";
+  naam: string;
+  email: string;
+  bedrijf: string;
+  nummer: string;
+  arbodienst: Record<string, string>;
+  afzender_naam: string | null;
+  afzender_email: string | null;
+  afzender_telefoon: string | null;
+  uitgenodigd_at: string;
+  getekend_at: string | null;
+  getekend_naam: string | null;
+  getekend_plaats: string | null;
+  getekend_hash: string | null;
+};
 
 export type OnboardingGebeurtenis = {
   id: number;
   onboarding_id: string;
-  soort: "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "ingevuld" | "gelezen" | "afgerond" | "ingetrokken" | "heropend" | "gewist" | "taak";
+  soort:
+    | "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "ingevuld" | "gelezen" | "afgerond" | "ingetrokken" | "heropend" | "gewist" | "taak"
+    | "machtiging" | "doorgestuurd" | "live";
   door: string | null;
   details: Record<string, string | number | boolean> | null;
   at: string;
@@ -336,7 +397,9 @@ export const TAKEN: TaakInfo[] = [
   { sleutel: "werknemers_import", klantKop: "Je medewerkers", titel: "Werknemers geïmporteerd", kort: "Het Excelbestand ingelezen in XpertSuite. Wis het bestand hier daarna.", bij: "werknemers", na: "werknemers", klant: "We lezen jullie medewerkers in, zodat een ziekmelding meteen goed binnenkomt." },
   { sleutel: "facturatie", klantKop: "De facturatie", titel: "Debiteur aangemaakt", kort: "Factuuradres en mailadres voor facturen in de boekhouding; vul hier het debiteurnummer in.", na: "inrichting", klant: "We richten de facturatie in op het adres dat je opgaf." },
   { sleutel: "casemanager", klantKop: "Een vaste casemanager", titel: "Vaste casemanager gekoppeld", kort: "Wie het aanspreekpunt wordt voor dit bedrijf, ook in XpertSuite.", klant: "Je krijgt een vaste casemanager: één aanspreekpunt dat jullie organisatie kent." },
-  { sleutel: "dossiers", klantKop: "Lopende dossiers", titel: "Dossiers opgevraagd bij de vorige arbodienst", kort: "Met de getekende machtigingen, bij de arbodienst die de klant opgaf.", bij: "machtiging", na: "machtiging", klant: "Met de getekende machtigingen vragen we lopende dossiers op bij je vorige arbodienst." },
+  // Het proces (Rens, spraakbericht 16 nov 2026): de werkgever stuurt de getekende machtigingen met de opdracht tot
+  // overdracht naar de latende arbodienst; die stuurt React2u een lijst van de dossiers die wij kunnen verwachten.
+  { sleutel: "dossiers", klantKop: "Lopende dossiers", titel: "Dossiers ontvangen van de vorige arbodienst", kort: "De klant stuurt de getekende machtigingen met de opdracht naar zijn vorige arbodienst; die stuurt ons de lijst en de dossiers. Vink af als ze binnen zijn.", bij: "machtiging", na: "machtiging", klant: "Je vorige arbodienst draagt de lopende dossiers over aan onze bedrijfsarts, met de getekende machtigingen die je hen stuurt. We laten weten zodra ze binnen zijn." },
   { sleutel: "instructie", klantKop: "Wegwijs in het systeem", titel: "Instructie XpertSuite gegeven", kort: "De klant wegwijs gemaakt in de beveiligde omgeving, op kantoor of online.", klant: "We maken je wegwijs in de beveiligde omgeving, op kantoor of online." },
 ];
 
@@ -406,7 +469,7 @@ export type Veld = {
   naam: string;
   label: string;
   verplicht?: boolean;
-  type?: "text" | "email" | "tel";
+  type?: "text" | "email" | "tel" | "date";
   hint?: string;
   /** Halve breedte op de pagina. */
   half?: boolean;
@@ -466,6 +529,65 @@ export const MACHTIGING: VeldGroep[] = [
     ],
   },
 ];
+
+/** Wat de werknemer zelf invult als hij de machtiging online tekent (0038): dezelfde regels als op het papieren formulier. */
+export const MACHTIGING_WERKNEMER: VeldGroep[] = [
+  {
+    titel: "Je gegevens",
+    tekst: "Zo weet je vorige arbodienst om welk dossier het gaat. We gebruiken ze alleen hiervoor.",
+    velden: [
+      { naam: "naam", label: "Volledige naam", verplicht: true, autocomplete: "name", max: 120 },
+      { naam: "adres", label: "Straat en huisnummer", verplicht: true, autocomplete: "street-address" },
+      { naam: "postcode", label: "Postcode", verplicht: true, half: true, autocomplete: "postal-code", max: 12 },
+      { naam: "plaats", label: "Woonplaats", verplicht: true, half: true, autocomplete: "address-level2", max: 100 },
+      { naam: "geboortedatum", label: "Geboortedatum", verplicht: true, half: true, type: "date", autocomplete: "bday" },
+      { naam: "bsn", label: "Burgerservicenummer", verplicht: true, half: true, max: 12, hint: "Staat op je paspoort, ID-kaart of rijbewijs." },
+      { naam: "telefoon", label: "Telefoonnummer", type: "tel", half: true, autocomplete: "tel", max: 40 },
+    ],
+  },
+];
+
+/** Wat er niet klopt aan de gegevens van de werknemer; leeg = goed. */
+export function controleerMachtigingWerknemer(data: Record<string, string>): Record<string, string> {
+  const fouten = controleerVelden(MACHTIGING_WERKNEMER, data);
+  if (data.bsn && !fouten.bsn && !bsnGeldig(data.bsn)) fouten.bsn = "Dit burgerservicenummer klopt niet. Kijk het nog even na.";
+  if (data.postcode && !fouten.postcode && !/^\d{4}\s?[a-z]{2}$/i.test(data.postcode) && !/^[a-z0-9 -]{3,10}$/i.test(data.postcode)) fouten.postcode = "Deze postcode klopt niet.";
+  if (data.geboortedatum && !fouten.geboortedatum) {
+    const d = new Date(`${data.geboortedatum}T00:00:00Z`);
+    const jaren = (Date.now() - d.getTime()) / (365.25 * 24 * 3600_000);
+    if (Number.isNaN(d.getTime()) || !/^\d{4}-\d{2}-\d{2}$/.test(data.geboortedatum) || jaren < 14 || jaren > 100) fouten.geboortedatum = "Deze geboortedatum klopt niet.";
+  }
+  return fouten;
+}
+
+/** Hoeveel van de uitgenodigde werknemers al tekenden. */
+export function machtigingStand(o: Pick<OnboardingPubliek, "machtigingen">): { getekend: number; totaal: number } {
+  const lijst = o.machtigingen || [];
+  return { getekend: lijst.filter((m) => m.status === "getekend").length, totaal: lijst.length };
+}
+
+/** De fouten rond het online tekenen van de machtiging, in gewone taal (werkgever én werknemer). */
+export const MACHTIGING_FOUT: Record<string, string> = {
+  onbekend: "Deze link werkt niet (meer). Neem contact op met je werkgever of met React2u.",
+  concept: "Dit is een voorbeeld: uitnodigen kan pas als de onboarding verstuurd is.",
+  gesloten: "Deze onboarding is gesloten. Neem contact met ons op.",
+  document: "De machtiging hoort niet bij jullie onboarding.",
+  arbodienst: "Vul eerst je vorige arbodienst in en sla op; die zetten we op de machtiging.",
+  naam: "Vul de naam van de medewerker in.",
+  email: "Dit e-mailadres klopt niet.",
+  "al-getekend": "Deze machtiging is al getekend.",
+  "net-verstuurd": "De uitnodiging is minder dan een uur geleden verstuurd. Probeer het straks nog eens.",
+  "geen-getekend": "Er is nog geen machtiging getekend; de opdracht kan pas daarna.",
+  limiet: "Je hebt het kort na elkaar heel vaak geprobeerd. Wacht even en probeer het opnieuw.",
+  invoer: "Er klopt iets niet aan wat je invulde. Controleer de velden.",
+  adres: "Vul je adres, postcode en woonplaats in.",
+  geboortedatum: "Vul je geboortedatum in.",
+  bsn: "Vul je burgerservicenummer in.",
+  handtekening: "Zet je handtekening in het vak, of kies Typen.",
+  akkoord: "Vink aan dat je toestemming geeft voor de overdracht.",
+  mail: "De mail kon niet worden verstuurd. Probeer het zo opnieuw.",
+  storing: "Het lukte niet door een storing. Probeer het zo opnieuw.",
+};
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -563,7 +685,11 @@ export function schoneWerknemers(rijen: unknown): Werknemer[] {
       const uit: Werknemer = {};
       for (const k of WERKNEMER_KOLOMMEN) {
         let w = String((r as Record<string, unknown>)?.[k.naam] ?? "").trim().slice(0, 120);
-        if (k.naam === "bsn") w = w.replace(/\D/g, "");
+        if (k.naam === "bsn") {
+          // Excel laat een voorloopnul vallen: een BSN met acht cijfers is er een met negen.
+          w = w.replace(/\D/g, "");
+          if (w.length === 8) w = `0${w}`;
+        }
         if (k.naam === "postcode") w = w.toUpperCase();
         if (k.type === "geslacht" && !["M", "V", "X"].includes(w)) w = "";
         if (k.type === "date" && w && !/^\d{4}-\d{2}-\d{2}$/.test(w)) w = datumNaarIso(w) || "";
@@ -646,7 +772,13 @@ export function rijenUitPlak(tekst: string): { rijen: Werknemer[]; kopregel: boo
   const regels = tekst.split(/\r?\n/).map((r) => r.replace(/\s+$/, "")).filter((r) => r.trim());
   if (!regels.length) return { rijen: [], kopregel: false };
   const scheiding = regels[0].includes("\t") ? "\t" : regels[0].includes(";") ? ";" : ",";
-  const cellen = regels.map((r) => r.split(scheiding).map((c) => c.trim().replace(/^"(.*)"$/, "$1")));
+  return rijenUitCellen(regels.map((r) => r.split(scheiding).map((c) => c.trim().replace(/^"(.*)"$/, "$1"))));
+}
+
+/** Dezelfde regels voor cellen uit een geüpload Excelbestand (lib/xlsxLezen.ts): rijen van cellen, lege rijen vallen weg. */
+export function rijenUitCellen(alle: string[][]): { rijen: Werknemer[]; kopregel: boolean } {
+  const cellen = alle.map((r) => r.map((c) => (c ?? "").trim())).filter((r) => r.some(Boolean));
+  if (!cellen.length) return { rijen: [], kopregel: false };
   const herkend = cellen[0].map((c) => KOLOM_ALIASSEN[sleutelVan(c)] ?? null);
   const kopregel = herkend.filter(Boolean).length >= 3;
   const mapping: (string | null)[] = kopregel
@@ -666,6 +798,18 @@ export function rijenUitPlak(tekst: string): { rijen: Werknemer[]; kopregel: boo
     })
   );
   return { rijen, kopregel };
+}
+
+/** De rijen (index) waarvan het BSN al eerder in de lijst voorkomt: dubbel ingevoerd of dubbel geplakt. */
+export function dubbeleWerknemers(rijen: Werknemer[]): number[] {
+  const gezien = new Set<string>();
+  const dubbel: number[] = [];
+  rijen.forEach((r, i) => {
+    if (!r.bsn) return;
+    if (gezien.has(r.bsn)) dubbel.push(i);
+    else gezien.add(r.bsn);
+  });
+  return dubbel;
 }
 
 /* ---------- de inhoud van de leesdocumenten ---------- */
@@ -802,6 +946,42 @@ export const MACHTIGING_TEKST = {
     "Je werkgever heeft de arbodienstverlening overgedragen aan React2u. Met deze machtiging geef je toestemming om je lopende verzuimdossier over te dragen aan de opvolgende bedrijfsarts hieronder. Zo heeft de nieuwe bedrijfsarts genoeg medische informatie om je begeleiding voort te zetten, en voorkomen we dubbele onderzoeken. React2u gaat vanzelfsprekend vertrouwelijk om met je medische gegevens.",
   werknemer: ["Naam", "Adres", "Postcode en woonplaats", "Geboortedatum", "BSN", "Telefoonnummer"],
   facturen: `Facturen voor de overdracht kunnen naar ${REACT2U.facturatie}.`,
+  /** Wat er met de getekende machtiging gebeurt (Rens, 16 nov 2026): via de werkgever naar de vorige arbodienst. */
+  daarna: "Geef de getekende machtiging aan je werkgever. Die stuurt hem, met de opdracht tot overdracht, naar je vorige arbodienst.",
+};
+
+/** De opdrachtbrief aan de vorige arbodienst: de werkgever verstuurt hem met de getekende machtigingen (0038). */
+export const OVERDRACHT_BRIEF = {
+  onderwerp: (bedrijf: string) => `Opdracht overdracht verzuimdossiers ${bedrijf} naar React2u`,
+  alineas: (bedrijf: string, aantal: number) => [
+    `${bedrijf} heeft de arbodienstverlening overgedragen aan React2u. Hierbij ${aantal === 1 ? "ontvangt u de door de werknemer getekende machtiging" : `ontvangt u ${aantal} door de werknemers getekende machtigingen`} voor de overdracht van ${aantal === 1 ? "het lopende verzuimdossier" : "de lopende verzuimdossiers"}.`,
+    `Wij verzoeken u ${aantal === 1 ? "dit dossier" : "deze dossiers"} over te dragen aan de opvolgende bedrijfsarts: ${REACT2U.bedrijfsarts.naam} (BIG ${REACT2U.bedrijfsarts.big}), arbodienst React2u, ${REACT2U.adres}, ${REACT2U.medisch}.`,
+    `Wilt u React2u vooraf een overzicht sturen van de dossiers die zij kunnen verwachten? Een eventuele factuur voor de overdracht kan naar ${REACT2U.facturatie}.`,
+  ],
+};
+
+/** Eén getekende machtiging met alles erop en eraan, voor de pdf (werkgever of werknemer). */
+export type MachtigingGetekend = {
+  id: string;
+  naam: string;
+  email: string;
+  gegevens: MachtigingGegevens;
+  handtekening: string;
+  getekend_at: string;
+  getekend_hash: string;
+  getekend_ip: string | null;
+  uitgenodigd_at: string;
+  overdracht_at: string | null;
+};
+
+/** Wat `onboarding_machtigingen_getekend` (werkgever) en `onboarding_machtiging_getekend` (werknemer) teruggeven. */
+export type MachtigingenGetekend = {
+  nummer: string;
+  bedrijf: string;
+  contactpersoon?: string | null;
+  email?: string | null;
+  arbodienst: Record<string, string>;
+  machtigingen: MachtigingGetekend[];
 };
 
 /* ---------- pure hulp voor de pagina's ---------- */

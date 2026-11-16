@@ -1560,10 +1560,61 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   achter `bellijst`, BSN's gemaskeerd in het beheer, de knop *Wissen na import*
   (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar
   na de laatste activiteit weg (`opruimen-onboardings`). Er is geen upload: geen
-  extra service role nodig (zie de regel in `lib/supabase/admin.ts`). De
-  machtiging houdt de werknemer buiten de database: de werkgever vult alleen
-  zijn vorige arbodienst in, de pdf komt vooringevuld en de werknemer tekent op
-  papier.
+  extra service role nodig (zie de regel in `lib/supabase/admin.ts`).
+- **De machtiging tekent de werknemer online** (migratie
+  [0038](supabase/migrations/0038_onboarding_machtigingen.sql), Rens, 16 nov
+  2026: "maak het perfect"). Het proces zoals Rens het in een spraakbericht
+  beschreef: de werkgever vult zijn vorige arbodienst in en nodigt per
+  medewerker met een lopend dossier uit (naam en e-mail,
+  `onboarding_machtiging_uitnodigen`); die krijgt een persoonlijke link
+  (`/machtiging/<token>`, [`MachtigingPagina.tsx`](src/components/onboarding/MachtigingPagina.tsx),
+  gemaakt voor de telefoon), vult zijn gegevens in (`MACHTIGING_WERKNEMER`,
+  elfproef) en tekent met het `Handtekening`-onderdeel van de offerte
+  (`onboarding_machtiging_tekenen`: momentopname met hash, IP en apparaat, zoals
+  een contract). De werknemer krijgt een bevestiging met de getekende pdf. **De
+  werkgever stuurt daarna zelf de opdracht tot overdracht** naar de vorige
+  arbodienst: één knop (`verstuurOverdracht`) maakt de brief (`OVERDRACHT_BRIEF`)
+  met alle getekende machtigingen erachter als één pdf (`overdrachtPdf`) en
+  mailt die uit naam van de werkgever naar het mailadres van de arbodienst, met
+  de werkgever en medisch@react2u.nl erbij (`onboarding_overdracht_versturen`
+  zet `overdracht_at`); de arbodienst stuurt React2u daarna een lijst van de
+  dossiers, en de taak van React2u heet daarom *Dossiers ontvangen van de
+  vorige arbodienst*. Papier blijft kunnen (de lege pdf). De werkgever ziet
+  alleen naam, e-mail en de stand (`machtigingen` in `onboarding_bekijken`),
+  nooit gegevens of handtekening; de getekende pdf's wel
+  (`onboarding_machtigingen_getekend`, want die moet hij doorsturen). Het
+  beheer leest de tabel `onboarding_machtigingen` mee (lijst, pdf per
+  machtiging, tijdlijn `machtiging` met `details.actie`).
+- **Excelbestand uploaden** naast plakken ([`lib/xlsxLezen.ts`](src/lib/xlsxLezen.ts),
+  zonder dependency: de zip ontpakt de browser met `DecompressionStream`, de XML
+  lezen we met reguliere expressies; gedeelde tekst, getallen, en een getal met
+  een datumopmaak wordt een datum). Eerst een **controlerapport**: hoeveel
+  gelezen, wie er al stond (zelfde BSN: die wordt bijgewerkt, een gevulde cel
+  wint), wat dubbel in het bestand zat, en welke rijen aandacht vragen
+  (`controleerWerknemers`); pas daarna worden het kaarten. De download
+  (`/excel`) bevat de medewerkers die al online staan, zodat de rondgang
+  downloaden, aanvullen in Excel, uploaden werkt (Rens, 16 nov 2026). Een BSN met acht cijfers (Excel laat de voorloopnul
+  vallen) krijgt zijn nul terug (`schoneWerknemers`).
+- **De klant op de hoogte**: na de eerste keer opslaan een bevestiging met een
+  kopie als pdf (niet het werknemersbestand: BSN's horen niet in een mail), als
+  alles af is "jullie deel is klaar" met wat React2u nu doet, en als het team de
+  laatste taak afvinkt "jullie zijn live" met de vaste casemanager
+  (`onboardings.casemanager`, in te vullen in het beheer; gebeurtenis `live`,
+  één keer). `onboarding_opslaan` en `onboarding_gelezen` geven daarvoor het
+  e-mailadres van de klant terug aan de server action, de pagina krijgt het
+  niet. Op de klantpagina staat onder *Zo gaat het verder* per taak van React2u
+  de stand ("Geregeld op …", "Daar werken we nu aan", "Zodra … binnen is"):
+  `onboarding_bekijken` geeft `taken` (alleen het moment) en `casemanager` mee.
+- **Automatische herinneringen** ([`lib/onboardingHerinnering.ts`](src/lib/onboardingHerinnering.ts),
+  [`api/cron/onboarding`](src/app/api/cron/onboarding/route.ts), elke ochtend
+  via `vercel.json`, met `CRON_SECRET`): na vijf dagen niet geopend of tien
+  dagen stil (de drempels van het dashboard), hooguit twee per onboarding, zeven
+  dagen uit elkaar en niet vlak na een herinnering van een collega. Dezelfde
+  mail als de herinnering uit het beheer; in de tijdlijn als `herinnering` met
+  `details.automatisch`.
+- **Een stap doorsturen** naar een collega (`StapDoorsturen` onder elke stap):
+  naam, e-mail, eigen naam, bericht; `onboarding_doorsturen` legt het vast
+  (hooguit twintig per dag), Next mailt de link naar die stap.
 - **Pdf** ([`lib/onboardingPdf.tsx`](src/lib/onboardingPdf.tsx), één per
   document, `/onboarding/<token>/pdf/<document>`): Outfit, de lila band, de
   kleuren van de stippen in het logo; een ingevuld formulier komt ingevuld mee,
@@ -1593,14 +1644,18 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   *bekeken* al deed; anders stond er na zes stappen "8× bekeken".
 - **Tests**: [`e2e/onboarding.cjs`](e2e/onboarding.cjs) (aanmaken met de
   documentkeuze, voorbeeld van de hub en een stap, pdf's en Excel uit het
-  beheer, versturen, de klant opent de hub en gaat per stap naar zijn pagina:
-  afvinken, inrichting met een fout KvK-nummer, werknemers met een fout BSN en
-  plakken uit Excel, machtiging, compleet, het dashboard, de checklist van
-  React2u tot ingericht, wissen na import, register, collega, intrekken,
-  onbekende link),
-  `lib/onboarding.test.ts`, `lib/onboardingPdf.test.tsx` (met
-  `ONBOARDING_PDF_MAP=<map>` schrijft hij de pdf's weg) en de onboardingregels in
-  `lib/opvolgen.test.ts`.
+  beheer, versturen, de automatische herinnering via de cron, de klant opent de
+  hub en gaat per stap naar zijn pagina: afvinken, inrichting met een fout
+  KvK-nummer en de bevestiging met pdf, werknemers met een fout BSN, plakken
+  én uploaden van een echt Excelbestand (`maakXlsx` in `e2e/hulp.cjs`) met het
+  controlerapport, machtiging: de werknemer tekent op zijn telefoon en de
+  werkgever verstuurt de opdracht, een stap doorsturen, compleet met "jullie
+  deel is klaar", het dashboard, de checklist van React2u tot ingericht met de
+  mail "jullie zijn live", wissen na import, register, collega, intrekken,
+  onbekende link), `lib/onboarding.test.ts`, `lib/xlsxLezen.test.ts`,
+  `lib/onboardingHerinnering.test.ts`, `lib/onboardingPdf.test.tsx` (ook de
+  getekende machtiging en de opdracht; met `ONBOARDING_PDF_MAP=<map>` schrijft
+  hij de pdf's weg) en de onboardingregels in `lib/opvolgen.test.ts`.
 
 ## Omzet en uren
 

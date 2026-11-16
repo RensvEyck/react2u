@@ -40,10 +40,16 @@ export async function onboardingPdfAntwoord(o: OnboardingPubliek, document: Docu
   });
 }
 
-/** Het lege werknemersbestand (de 37 kolommen van de import van XpertSuite), om in Excel in te vullen. */
-export function leegWerknemersbestand(bedrijf: string): Response {
+/**
+ * Het werknemersbestand voor de klant (de 37 kolommen van de import van
+ * XpertSuite), om in Excel in te vullen en weer te uploaden. Staan er al
+ * medewerkers, dan staan die erin: downloaden, aanvullen in Excel, uploaden
+ * (Rens, 16 nov 2026: "exel download, klant vult gegevens in, en kan exel ook
+ * weer uploaden met de gegevens").
+ */
+export function leegWerknemersbestand(bedrijf: string, rijen: Werknemer[] = []): Response {
   const naam = bestandsnaam(`Werknemersbestand React2u ${bedrijf}`, 90) || "Werknemersbestand";
-  return new NextResponse(new Uint8Array(xlsx([[...XPERT_KOLOMMEN]])), {
+  return new NextResponse(new Uint8Array(xlsx([[...XPERT_KOLOMMEN], ...naarXpertRijen(rijen, null)])), {
     headers: { "Content-Type": XLSX, "Content-Disposition": `attachment; filename="${naam}.xlsx"`, "Cache-Control": "private, no-store" },
   });
 }

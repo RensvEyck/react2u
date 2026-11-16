@@ -11,13 +11,14 @@ import OfferteVersturen from "@/components/admin/OfferteVersturen";
 import { onboardingUrl } from "@/lib/mail";
 import {
   datumNl, documentInfo, documentKlaar, gekozen, INRICHTING, isDocument, isTaak, MACHTIGING, ONBOARDING_WEERGAVE, onboardingWeergave, taakInfo, taakKan,
-  taakKlaar, takenVoor, takenVoortgang, voortgang, vultIn, WERKNEMER_KOLOMMEN, type DocumentSleutel, type Onboarding, type OnboardingGebeurtenis, type VeldGroep,
-  type Werknemer,
+  taakKlaar, takenVoor, takenVoortgang, voortgang, vultIn, WERKNEMER_KOLOMMEN, type DocumentSleutel, type Machtiging, type Onboarding, type OnboardingGebeurtenis,
+  type VeldGroep, type Werknemer,
 } from "@/lib/onboarding";
 import { momentLang } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil, LuStickyNote, LuFileDown, LuCircleCheck,
-  LuCircle, LuPencilLine, LuBookOpenCheck, LuFlag, LuEraser, LuFileSpreadsheet, LuBuilding2, LuSquareCheckBig, LuPartyPopper, LuClock,
+  LuCircle, LuPencilLine, LuBookOpenCheck, LuFlag, LuEraser, LuFileSpreadsheet, LuBuilding2, LuSquareCheckBig, LuPartyPopper, LuClock, LuSignature,
+  LuForward, LuRocket, LuMailCheck,
 } from "react-icons/lu";
 
 /**
@@ -31,6 +32,7 @@ import {
 const ICONEN: Record<OnboardingGebeurtenis["soort"], React.ComponentType<{ className?: string }>> = {
   aangemaakt: LuFilePlus, gewijzigd: LuPencil, verstuurd: LuSend, herinnering: LuBellRing, bekeken: LuEye, ingevuld: LuPencilLine,
   gelezen: LuBookOpenCheck, afgerond: LuFlag, ingetrokken: LuBan, heropend: LuRotateCcw, gewist: LuEraser, taak: LuSquareCheckBig,
+  machtiging: LuSignature, doorgestuurd: LuForward, live: LuRocket,
 };
 
 const docNaam = (d: unknown) => (isDocument(d) ? documentInfo(d).titel : "een document");
@@ -43,7 +45,7 @@ function zin(g: OnboardingGebeurtenis): string {
     case "aangemaakt": return `Aangemaakt${door}`;
     case "gewijzigd": return d.link ? `Nieuwe link gemaakt${door}` : `Gewijzigd${door}`;
     case "verstuurd": return d.handmatig ? `Link opengezet${door}, zelf verstuurd` : `Verstuurd naar ${d.aan}${door}`;
-    case "herinnering": return `Herinnering naar ${d.aan}${door}`;
+    case "herinnering": return `Herinnering naar ${d.aan}${d.automatisch ? " (automatisch)" : door}`;
     case "bekeken": return "Bekeken door de klant";
     case "ingevuld": return `${docNaam(d.document)} ${d.opnieuw ? "aangepast" : "ingevuld"} door de klant`;
     case "gelezen": return `${docNaam(d.document)} afgevinkt door de klant`;
@@ -52,6 +54,19 @@ function zin(g: OnboardingGebeurtenis): string {
     case "heropend": return `Heropend${door}`;
     case "gewist": return `Werknemersbestand gewist${door}${d.aantal ? ` (${d.aantal} medewerkers)` : ""}`;
     case "taak": return `${taakNaam(d.taak)}: ${d.klaar ? "afgevinkt" : "weer opengezet"}${door}`;
+    case "machtiging":
+      switch (d.actie) {
+        case "uitgenodigd": return `${d.naam} (${d.email}) uitgenodigd om de machtiging online te tekenen`;
+        case "opnieuw": return `Herinnering voor de machtiging naar ${d.naam}`;
+        case "verwijderd": return `Uitnodiging voor de machtiging van ${d.naam} weggehaald`;
+        case "bekeken": return `${d.naam} opende de machtiging`;
+        case "getekend": return `${d.naam} tekende de machtiging online`;
+        case "overdracht": return `Opdracht tot overdracht met ${d.aantal} ${d.aantal === 1 ? "machtiging" : "machtigingen"} naar ${d.email}, door de klant`;
+        default: return "Machtiging";
+      }
+    case "doorgestuurd": return `${docNaam(d.stap)} doorgestuurd naar ${d.naam} (${d.email})${door}`;
+    case "live": return `Mail "jullie zijn live" naar ${d.aan}${door}`;
+    default: return g.soort;
   }
 }
 
@@ -88,13 +103,17 @@ function Balk({ klaar, totaal, kleur = "#0a7a4b" }: { klaar: number; totaal: num
 export default async function OnboardingAdmin({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { sb } = await requirePerm("bellijst");
-  const [res, tijdlijnRes] = await Promise.all([
+  const [res, tijdlijnRes, machtigingenRes] = await Promise.all([
     sb.from("onboardings").select("*").eq("id", id).maybeSingle(),
     sb.from("onboarding_gebeurtenissen").select("*").eq("onboarding_id", id).order("at", { ascending: false }).limit(200),
+    sb.from("onboarding_machtigingen").select("id, naam, email, status, uitgenodigd_at, herinnerd_at, bekeken_at, getekend_at, overdracht_at, aantal_bekeken").eq("onboarding_id", id).order("created_at"),
   ]);
   if (!res.data) notFound();
   const o = res.data as Onboarding;
   const tijdlijn = (tijdlijnRes.data as OnboardingGebeurtenis[]) || [];
+  // Vóór migratie 0038 bestaat de tabel niet; dan gewoon geen lijst.
+  const machtigingen = (machtigingenRes.data as Pick<Machtiging, "id" | "naam" | "email" | "status" | "uitgenodigd_at" | "herinnerd_at" | "bekeken_at" | "getekend_at" | "overdracht_at" | "aantal_bekeken">[] | null) || [];
+  const overdracht = machtigingen.map((m) => m.overdracht_at).filter(Boolean).sort().pop() ?? null;
   const w = onboardingWeergave(o);
   const s = ONBOARDING_WEERGAVE[w];
   const link = onboardingUrl(o.token);
@@ -317,6 +336,11 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
                 <input id="ob-deb" className="ainput" name="debiteurnummer" defaultValue={o.debiteurnummer || ""} maxLength={60} />
                 <p className="mt-1 text-[12px] text-black/45">Gaat als code werkgever mee in het Excelbestand voor XpertSuite.</p>
               </div>
+              <div>
+                <label className="alabel" htmlFor="ob-cm">Vaste casemanager</label>
+                <input id="ob-cm" className="ainput" name="casemanager" defaultValue={o.casemanager || ""} maxLength={200} placeholder="Voor- en achternaam" />
+                <p className="mt-1 text-[12px] text-black/45">Staat op de klantpagina en in de mail &quot;jullie zijn live&quot;.</p>
+              </div>
               <button className="abtn-ghost !py-1.5 text-[13px]">Opslaan</button>
             </form>
           </div>
@@ -382,13 +406,54 @@ export default async function OnboardingAdmin({ params }: { params: Promise<{ id
         </section>
       )}
 
-      {machtiging && (
+      {(machtiging || machtigingen.length > 0) && (
         <section className="acard p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Machtiging: vorige arbodienst</h2>
-            <a href={`${basis}/pdf/machtiging`} target="_blank" rel="noopener" className="abtn-ghost !py-1.5 text-[13px]"><LuFileDown /> Machtiging als pdf</a>
+            <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]"><LuSignature /> Machtigingen overdracht verzuimdossier</h2>
+            {machtiging && <a href={`${basis}/pdf/machtiging`} target="_blank" rel="noopener" className="abtn-ghost !py-1.5 text-[13px]"><LuFileDown /> Lege machtiging als pdf</a>}
           </div>
-          <div className="mt-4"><Velden groepen={MACHTIGING} data={machtiging} /></div>
+          <div className="mt-4 grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div>
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45">Vorige arbodienst</p>
+              {machtiging ? <div className="mt-2"><Velden groepen={MACHTIGING} data={machtiging} /></div> : <p className="mt-2 text-[14px] text-black/50">Nog niet ingevuld door de klant.</p>}
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45">Werknemers die online tekenen</p>
+                <span className="text-[13px] font-semibold text-black/55">{machtigingen.filter((m) => m.status === "getekend").length} van {machtigingen.length} getekend</span>
+              </div>
+              {machtigingen.length === 0 ? (
+                <p className="mt-2 text-[14px] text-black/50">De klant heeft nog niemand uitgenodigd. Hij nodigt zieke medewerkers met een lopend dossier uit op zijn machtigingstap; zij tekenen op hun telefoon.</p>
+              ) : (
+                <ul className="mt-2 divide-y divide-black/[0.05]">
+                  {machtigingen.map((m) => (
+                    <li key={m.id} className="flex items-center gap-3 py-2.5">
+                      {m.status === "getekend" ? <LuCircleCheck className="shrink-0 text-[18px] text-[#0a7a4b]" /> : <LuCircle className="shrink-0 text-[18px] text-black/20" />}
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[14px] font-semibold text-[#1c1a4e]">{m.naam} <span className="font-normal text-black/45">· {m.email}</span></span>
+                        <span className="block text-[12.5px] text-black/45">
+                          {m.status === "getekend"
+                            ? `Getekend ${momentLang(m.getekend_at)}${m.overdracht_at ? ` · met de opdracht naar de arbodienst ${momentLang(m.overdracht_at)}` : " · nog niet naar de arbodienst"}`
+                            : `Uitgenodigd ${momentLang(m.uitgenodigd_at)}${m.herinnerd_at ? `, herinnerd ${momentLang(m.herinnerd_at)}` : ""}${m.bekeken_at ? `, geopend ${momentLang(m.bekeken_at)}` : ", nog niet geopend"}`}
+                        </span>
+                      </span>
+                      {m.status === "getekend" && (
+                        <a href={`/admin/onboarding/${o.id}/machtiging/${m.id}`} target="_blank" rel="noopener" className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuFileDown /> Pdf</a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-3 flex items-start gap-2 rounded-[12px] bg-[#f6f5fb] px-4 py-3 text-[13px] leading-[1.55] text-black/60">
+                <LuMailCheck className="mt-0.5 shrink-0 text-[15px] text-[#312e82]" />
+                <span>
+                  {overdracht
+                    ? `De klant stuurde de opdracht tot overdracht met de getekende machtigingen naar zijn vorige arbodienst (${momentLang(overdracht)}); medisch@react2u.nl kreeg een kopie. Die arbodienst stuurt ons een lijst van de dossiers. Zijn ze binnen, vink dan de taak af.`
+                    : "De klant stuurt de getekende machtigingen zelf, met de opdracht tot overdracht, naar zijn vorige arbodienst (één knop op zijn pagina). Die stuurt ons daarna een lijst van de dossiers die we kunnen verwachten."}
+                </span>
+              </p>
+            </div>
+          </div>
         </section>
       )}
 

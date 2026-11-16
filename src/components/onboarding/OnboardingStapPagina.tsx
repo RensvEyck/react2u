@@ -1,7 +1,7 @@
 import type { ContactInfo } from "@/lib/content";
 import { kop, LAV, NAVY, Pijl } from "@/components/blocks/Gedeeld";
 import { documentInfo, gekozen, hoofdstukkenVoor, ONBOARDING_EMAIL, stapNa, stapVoor, voortgang, type DocumentSleutel, type OnboardingPubliek } from "@/lib/onboarding";
-import type { Modus } from "./OnboardingActies";
+import { StapDoorsturen, type Modus } from "./OnboardingActies";
 import { Band, Icoon, knop, Melding, MUTE, outfit, PAGINA_CSS, Stap, TELEFOON, telLink, Voet, voornaam } from "./OnboardingDelen";
 import OnboardingKopbalk from "./OnboardingKopbalk";
 import OnboardingReveal from "./OnboardingReveal";
@@ -88,6 +88,15 @@ export default function OnboardingStapPagina({
         <Band id="stap" tint={false} label={d.titel}>
           <Stap d={d} n={n} o={o} token={token} basis={basis} modus={modus} tint={false} eerste volgende={volgende} />
         </Band>
+
+        {/* Doorsturen naar een collega */}
+        {modus !== "collega" && (
+          <section className="px-[6px] pb-6 md:px-6 md:pb-8 xl:px-10" aria-label="Deze stap doorsturen">
+            <div className="mx-auto max-w-[1360px] px-6 md:px-14">
+              <StapDoorsturen token={token} stap={sleutel} titel={d.titel} modus={modus} contactpersoon={o.contactpersoon} />
+            </div>
+          </section>
+        )}
 
         {/* Vorige, overzicht, volgende */}
         <section className="px-[6px] pb-10 md:px-6 md:pb-16 xl:px-10" aria-label="Verder in de onboarding">
