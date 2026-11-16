@@ -288,6 +288,9 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   check(vandijk === "klant true", `losse klant: kaart als klant zonder contact (${vandijk})`);
   check(sql("select tekst from public.klant_gesprekken where klant_id = (select id from public.klanten where sleutel = 'autobedrijf van dijk') and soort = 'systeem'").startsWith("Opgevoerd als klant met een abonnement sinds "), "losse klant in de tijdlijn");
 
+  // In CI draaiden de andere tests eerder: hun offertes en contracten staan nog in de modules, maar hun kaarten
+  // gingen weg bij het begin van deze test. De eerste keer inlezen mag die dus terugzetten; de tweede keer niets.
+  sql("select public.klantenbord_inlezen()");
   const inlezen = JSON.parse(sql("select public.klantenbord_inlezen()") || "{}");
   check(inlezen.kaarten === 0 && inlezen.regels === 0, `inlezen nog een keer: niets dubbel (${JSON.stringify(inlezen)})`);
 
@@ -298,7 +301,12 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await page.goto(`${BASIS}/admin/klantenbord`);
   await page.waitForSelector(`#klant-${id}`);
   check(await page.locator(`#klant-${id} >> text=Op de site`).count() && (await page.locator(`#klant-${id} >> text=40 min geleden`).count()) && (await page.locator(`#klant-${id} >> text=2 pagina's`).count()), "op de kaart: op de site 40 min geleden, 2 pagina's");
-  check((await page.locator("section[data-kolom='klant'] .kb-kaart").count()) === 3, "drie kaarten in Klant: uit de import, de onboarding en de losse opdracht");
+  check(
+    (await page.locator("section[data-kolom='klant'] .kb-kaart:has-text('Hoveniersbedrijf Groen')").count()) === 1 &&
+      (await page.locator("section[data-kolom='klant'] .kb-kaart:has-text('Zorg aan Huis Twente')").count()) === 1 &&
+      (await page.locator("section[data-kolom='klant'] .kb-kaart:has-text('Autobedrijf Van Dijk')").count()) === 1,
+    "in Klant: de kaart uit de import, die uit de onboarding en die uit de losse opdracht",
+  );
   await page.click(`#klant-${id} h3`);
   await page.waitForSelector(`aside[role=dialog] h2:has-text('${BEDRIJF}')`);
   check(await page.locator("aside[role=dialog] li:has-text('Op de site') >> text=2 pagina's: verzuimbegeleiding, tarieven").count(), "de sessie met de pagina's in de tijdlijn");
