@@ -1468,8 +1468,9 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   De inhoud komt uit de vijf bronbestanden en de afbeelding van het protocol die
   Rens aanleverde; de originelen zijn niet meer nodig. De tijdlijnweken staan
   letterlijk uit het Welkom-document (probleemanalyse week 6 tot 12, plan van
-  aanpak week 8 tot 13), terwijl de Wet Poortwachter uiterlijk week 6 en 8 zegt:
-  nog aan Rens voor te leggen.
+  aanpak week 8 tot 13), terwijl de Wet Poortwachter uiterlijk week 6 en 8 zegt;
+  Rens besloot op 16 november 2026 ze zo te laten ("Zo laten"). Niet aanpassen
+  zonder nieuwe opdracht.
 - **Per document twee keuzes** in het beheer: `documenten` (gaat mee) en
   `invullen` (de klant vult het online in; alleen inrichting, werknemers en
   machtiging kunnen dat, `invullen <@ documenten`). Wat niet online gaat, krijgt
