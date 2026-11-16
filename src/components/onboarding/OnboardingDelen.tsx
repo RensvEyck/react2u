@@ -6,10 +6,10 @@ import type { ContactInfo } from "@/lib/content";
 import { DOCUMENTEN as SITE_DOCUMENTEN } from "@/lib/documenten";
 import { datumLang } from "@/lib/offertes";
 import {
-  documentKlaar, INRICHTING, MACHTIGING, ONBOARDING_EMAIL, takenVoor, VERZUIMPROTOCOL, VRAGEN, vultIn, WELKOM,
+  documentInfo, documentKlaar, INRICHTING, MACHTIGING, machtigingStand, ONBOARDING_EMAIL, taakKan, takenVoor, VERZUIMPROTOCOL, VRAGEN, vultIn, WELKOM,
   type DocumentInfo, type OnboardingPubliek, type TijdlijnStap, type Werknemer,
 } from "@/lib/onboarding";
-import { AfvinkKnop, VeldenFormulier, WerknemersFormulier, type Modus } from "./OnboardingActies";
+import { AfvinkKnop, VeldenFormulier, WerknemersFormulier, type Modus, MachtigingUitnodigen } from "./OnboardingActies";
 
 /*
  * De bouwstenen van de onboarding voor de klant (migratie 0037), gedeeld door
@@ -430,9 +430,10 @@ export function Stap({ d, n, o, token, basis, modus, tint, eerste, volgende }: {
     inhoud = (
       <div className="flex flex-col gap-6">
         <p className="m-0 text-[16px] leading-[1.7]" style={{ color: BODY }}>
-          Stap je over van een andere arbodienst en loopt er een verzuimdossier? Dan mag dat dossier alleen met toestemming van de werknemer naar onze bedrijfsarts. Vul hieronder je vorige arbodienst in; daarna download je de machtiging, al ingevuld, om de werknemer te laten tekenen.
+          Stap je over van een andere arbodienst en loopt er een verzuimdossier? Dan mag dat dossier alleen met toestemming van de werknemer naar onze bedrijfsarts. Vul hieronder je vorige arbodienst in. Daarna nodig je de medewerkers uit om online te tekenen, en stuur je de getekende machtigingen met één knop als opdracht naar je vorige arbodienst.
         </p>
         <VeldenFormulier token={token} document="machtiging" groepen={MACHTIGING} begin={(antwoord?.data as Record<string, string>) || {}} ingevuld={Boolean(antwoord)} modus={modus} knopTekst="Opslaan en machtiging maken" />
+        {antwoord && <MachtigingUitnodigen token={token} lijst={o.machtigingen || []} modus={modus} arbodienst={(antwoord.data as Record<string, string>) || {}} basis={basis} />}
       </div>
     );
     if (antwoord) acties = <a href={`${pdf}?download=1`} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Download de ingevulde machtiging</a>;
@@ -526,27 +527,47 @@ export function Stap({ d, n, o, token, basis, modus, tint, eerste, volgende }: {
 /** De indigo band van de offertepagina: wat React2u doet zodra jullie gegevens binnen zijn, en bellen. */
 export function Verder({ o, tel, telTekst, mail }: { o: OnboardingPubliek; tel: string; telTekst: string; mail: string }) {
   const taken = takenVoor(o);
+  const gedaan = taken.filter((t) => o.taken?.[t.sleutel]);
+  const live = taken.length > 0 && gedaan.length === taken.length && o.status === "afgerond";
+  const bezig = o.status === "afgerond" && !live;
+  const laatste = gedaan.map((t) => o.taken![t.sleutel]!.at).sort().pop();
   return (
-    <section id="verder" aria-label="Zo gaat het verder" className="relative scroll-mt-[88px] overflow-clip" style={{ background: NAVY }}>
-      <span aria-hidden className="absolute right-[-180px] top-[-220px] h-[540px] w-[540px] rounded-full" style={{ background: NAVY_LICHT }} />
+    <section id="verder" aria-label="Zo gaat het verder" className="relative scroll-mt-[88px] overflow-clip" style={{ background: live ? GROEN : NAVY }}>
+      <span aria-hidden className="absolute right-[-180px] top-[-220px] h-[540px] w-[540px] rounded-full" style={{ background: live ? "#0E8F58" : NAVY_LICHT }} />
       <div className={`${BREED} relative flex flex-col gap-10 py-16 md:gap-[52px] md:py-[104px]`}>
         <SectieKop
-          eyebrow="Zo gaat het verder"
-          titel="Daarna gaan wij aan de slag."
-          tekst="Zodra jullie gegevens binnen zijn, richten we alles in. Je hoort van ons als we klaar zijn, of als we nog iets nodig hebben."
+          eyebrow={live ? "Jullie zijn live" : bezig ? "Wij zijn aan zet" : "Zo gaat het verder"}
+          titel={live ? `Alles staat klaar${laatste ? `, sinds ${datumLang(laatste)}` : ""}.` : bezig ? "Jullie deel is klaar, nu richten wij alles in." : "Daarna gaan wij aan de slag."}
+          tekst={
+            live
+              ? `Jullie omgeving, de medewerkers en de facturatie zijn ingericht. Vanaf nu bewaken wij elke ziekmelding.${o.casemanager ? ` Je vaste casemanager is ${o.casemanager}.` : ""}`
+              : bezig
+                ? `Hieronder zie je per onderdeel of het al geregeld is: ${gedaan.length} van ${taken.length}. Je hoort van ons zodra jullie live zijn, of als we nog iets nodig hebben.`
+                : "Zodra jullie gegevens binnen zijn, richten we alles in. Hier zie je straks per onderdeel of het al geregeld is."
+          }
           licht
         />
         <ol className={`m-0 grid list-none gap-6 p-0 md:grid-cols-2 md:gap-8 ${taken.length >= 4 ? "lg:grid-cols-3" : ""}`}>
-          {taken.map((t, i) => (
-            <li key={t.sleutel} className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-4 gap-y-1.5 md:flex md:flex-col md:gap-3.5" style={{ ["--ri" as string]: i }} data-reveal>
-              <span className="row-span-2 flex items-start gap-3 md:row-span-1 md:items-center">
-                <span className={`${kop} grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-[19px]`} style={{ color: NAVY }}>{i + 1}</span>
-              </span>
-              <span className="text-[13px] font-bold uppercase tracking-[1.3px] md:mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>Stap {i + 1}</span>
-              <span className={`${kop} col-start-2 text-[21px] leading-[1.3] text-white`}>{t.klantKop}</span>
-              <span className="col-start-2 text-[15.5px] leading-[1.65]" style={{ color: "rgba(255,255,255,0.75)" }}>{t.klant}</span>
-            </li>
-          ))}
+          {taken.map((t, i) => {
+            const at = o.taken?.[t.sleutel]?.at;
+            const kan = taakKan(o, t);
+            const status = at ? `Geregeld op ${datumLang(at)}` : kan && o.status === "afgerond" ? "Daar werken we nu aan" : t.na && o.documenten.includes(t.na) && !documentKlaar(o, t.na) ? `Zodra ${documentInfo(t.na).titel.toLowerCase()} binnen is` : "Zodra jullie gegevens binnen zijn";
+            return (
+              <li key={t.sleutel} className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-4 gap-y-1.5 md:flex md:flex-col md:gap-3.5" style={{ ["--ri" as string]: i }} data-reveal>
+                <span className="row-span-3 flex items-start gap-3 md:row-span-1 md:items-center">
+                  <span className={`${kop} grid h-12 w-12 shrink-0 place-items-center rounded-full text-[19px] ${at ? "onboarding-vink" : ""}`} style={{ background: at ? "#ffffff" : "rgba(255,255,255,0.14)", color: at ? (live ? GROEN : NAVY) : "#ffffff" }}>
+                    {at ? <Vink size={18} /> : i + 1}
+                  </span>
+                </span>
+                <span className="text-[13px] font-bold uppercase tracking-[1.3px] md:mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>Stap {i + 1}</span>
+                <span className={`${kop} col-start-2 text-[21px] leading-[1.3] text-white`}>{t.klantKop}</span>
+                <span className="col-start-2 text-[15.5px] leading-[1.65]" style={{ color: "rgba(255,255,255,0.75)" }}>{t.sleutel === "casemanager" && o.casemanager ? `Je vaste casemanager is ${o.casemanager}: één aanspreekpunt dat jullie organisatie kent.` : t.klant}</span>
+                <span className="col-start-2 inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-[13px] font-bold" style={at ? { background: "#ffffff", color: live ? GROEN : NAVY } : { background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}>
+                  {at ? <Vink size={12} /> : null} {status}
+                </span>
+              </li>
+            );
+          })}
         </ol>
         <div className="flex flex-col gap-6 border-t pt-10 md:flex-row md:items-center md:justify-between" style={{ borderColor: "rgba(255,255,255,0.14)" }} data-reveal>
           <div className="flex flex-col gap-2">
@@ -648,6 +669,11 @@ export function StapKaart({ d, n, o, basis, tint, i }: { d: DocumentInfo; n: num
           <Label kleur={d.kleur}>Stap {n} · {soort}</Label>
           <span className={`${kop} text-[22px] leading-[1.2] tracking-[-0.4px]`} style={{ color: NAVY }}>{d.titel}</span>
           <span className="text-[14.5px] leading-[1.6]" style={{ color: MUTE }}>{d.kort}</span>
+          {d.sleutel === "machtiging" && invul && (o.machtigingen?.length ?? 0) > 0 && (
+            <span className="mt-1 inline-flex items-center gap-1.5 text-[13.5px] font-bold" style={{ color: machtigingStand(o).getekend === machtigingStand(o).totaal ? GROEN : NAVY }}>
+              <Vink size={12} /> {machtigingStand(o).getekend} van {machtigingStand(o).totaal} {machtigingStand(o).totaal === 1 ? "medewerker" : "medewerkers"} getekend
+            </span>
+          )}
         </span>
         <span className="mt-auto inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: klaar ? MUTE : NAVY }}>
           {klaar ? "Bekijk of pas aan" : invul ? d.invullen : d.lezen} <Pijl size={14} />

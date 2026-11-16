@@ -25,7 +25,7 @@ import {
   FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail,
 } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
-import { onboardingMailHtml, type MailDocument } from "./onboardingMail";
+import { doorgestuurdHtml, machtigingGetekendHtml, machtigingMailHtml, onboardingKlantHtml, onboardingMailHtml, overdrachtMailHtml, type MachtigingMail, type MailDocument, type OnboardingKlantMail } from "./onboardingMail";
 import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
 import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
 
@@ -643,17 +643,80 @@ export async function sendOnboarding(o: {
   return verstuur([to], onderwerp, html, o.afzender.email || undefined);
 }
 
-/** Aan de afzender: de klant opende de onboarding, vulde iets in, of is klaar. */
-export async function notifyOnboarding(n: { to: string; nummer: string; bedrijf: string; adminLink: string; soort: "bekeken" | "ingevuld" | "afgerond"; document?: string }) {
+/** Aan de afzender: de klant opende de onboarding, vulde iets in, is klaar, een werknemer tekende, of de opdracht ging naar de vorige arbodienst. */
+export async function notifyOnboarding(n: {
+  to: string; nummer: string; bedrijf: string; adminLink: string; soort: "bekeken" | "ingevuld" | "afgerond" | "getekend" | "overdracht"; document?: string; naam?: string; aantal?: number;
+}) {
   const kop =
-    n.soort === "afgerond" ? `${n.bedrijf} heeft de onboarding afgerond` : n.soort === "ingevuld" ? `${n.bedrijf} vulde ${n.document || "een document"} in` : `${n.bedrijf} heeft de onboarding geopend`;
+    n.soort === "afgerond" ? `${n.bedrijf} heeft de onboarding afgerond`
+      : n.soort === "ingevuld" ? `${n.bedrijf} vulde ${n.document || "een document"} in`
+        : n.soort === "getekend" ? `${n.naam || "Een werknemer"} van ${n.bedrijf} tekende de machtiging`
+          : n.soort === "overdracht" ? `${n.bedrijf} stuurde de opdracht tot overdracht naar de vorige arbodienst`
+            : `${n.bedrijf} heeft de onboarding geopend`;
   const tekst =
     n.soort === "afgerond"
       ? `Onboarding ${esc(n.nummer)} is compleet: alle documenten zijn ingevuld of afgevinkt. Tijd om de klant in te richten.`
       : n.soort === "ingevuld"
         ? `In onboarding ${esc(n.nummer)} is ${esc(n.document || "een document")} ingevuld. Je ziet de gegevens in het beheer.`
-        : `Onboarding ${esc(n.nummer)} is zojuist voor het eerst geopend.`;
+        : n.soort === "getekend"
+          ? `In onboarding ${esc(n.nummer)} heeft ${esc(n.naam || "een werknemer")} de machtiging voor de overdracht van het verzuimdossier online getekend. De werkgever stuurt de getekende machtigingen met de opdracht naar de vorige arbodienst; de getekende pdf staat in het beheer.`
+          : n.soort === "overdracht"
+            ? `In onboarding ${esc(n.nummer)} ging de opdracht tot overdracht met ${n.aantal ?? ""} getekende ${n.aantal === 1 ? "machtiging" : "machtigingen"} naar de vorige arbodienst; ${REACT2U_MEDISCH} kreeg een kopie. Verwacht een lijst van de dossiers; vink daarna de taak af.`
+            : `Onboarding ${esc(n.nummer)} is zojuist voor het eerst geopend.`;
   await post([n.to], kop, persoonlijk(kop, [tekst], { tekst: "Open de onboarding", link: n.adminLink }));
+}
+
+const REACT2U_MEDISCH = "medisch@react2u.nl";
+
+/* ---------- 0038: de machtiging online, de klant op de hoogte, een stap doorsturen ---------- */
+
+export function machtigingUrl(token: string) {
+  return `${siteBasis()}/machtiging/${token}`;
+}
+
+/** Aan de werknemer: de uitnodiging om de machtiging te tekenen (of nog eens). */
+export async function sendMachtiging(m: Omit<MachtigingMail, "basis"> & { to: string }): Promise<Verzonden> {
+  const { to, ...rest } = m;
+  const html = machtigingMailHtml({ basis: siteBasis(), ...rest });
+  return verstuur([to], `${m.opnieuw ? "Herinnering: m" : "M"}achtiging overdracht verzuimdossier, ${m.bedrijf}`, html, m.afzender.email || undefined);
+}
+
+/** Aan de werknemer na het tekenen, met de getekende machtiging als pdf. */
+export async function bevestigMachtigingGetekend(b: { to: string; naam: string; bedrijf: string; arbodienst: string | null; moment: string; link: string; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo }): Promise<Verzonden> {
+  const html = machtigingGetekendHtml({ basis: siteBasis(), naam: b.naam, bedrijf: b.bedrijf, arbodienst: b.arbodienst, moment: b.moment, link: b.link, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact });
+  return verstuur([b.to], `Getekend: je machtiging voor de overdracht van je verzuimdossier`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
+}
+
+/** Aan de klant: ontvangen (met kopie), jullie deel is klaar, jullie zijn live. */
+export async function sendOnboardingKlant(k: Omit<OnboardingKlantMail, "basis"> & { to: string; bijlage?: Bijlage | null }): Promise<Verzonden> {
+  const { to, bijlage, ...rest } = k;
+  const html = onboardingKlantHtml({ basis: siteBasis(), ...rest, pdf: Boolean(bijlage) });
+  const onderwerp =
+    k.soort === "ontvangen" ? `Ontvangen: ${k.document || "je gegevens"} voor de onboarding van ${k.bedrijf}`
+      : k.soort === "klaar" ? `Jullie deel is klaar: nu richten wij ${k.bedrijf} in`
+        : `Jullie zijn live bij React2u, ${k.bedrijf}`;
+  return verstuur([to], onderwerp, html, k.afzender.email || undefined, bijlage ? [bijlage] : undefined);
+}
+
+/** Aan een collega van de klant: een stap van de onboarding doorgestuurd. */
+export async function sendOnboardingDoorgestuurd(d: { to: string; naam: string; van: string; bedrijf: string; stap: string; actie: string; link: string; bericht: string | null; afzender: Afzender; contact?: ContactInfo }): Promise<Verzonden> {
+  const { to, ...rest } = d;
+  const html = doorgestuurdHtml({ basis: siteBasis(), ...rest });
+  return verstuur([to], `${d.van} stuurt je ${d.stap} door: onboarding ${d.bedrijf} bij React2u`, html, d.afzender.email || undefined);
+}
+
+/**
+ * Aan de vorige arbodienst, namens de werkgever: de opdracht tot overdracht
+ * met de getekende machtigingen. De werkgever en medisch@react2u.nl ontvangen
+ * hem ook; antwoorden gaat naar de werkgever.
+ */
+export async function sendOverdracht(b: {
+  to: string; werkgeverEmail: string | null; bedrijf: string; contactpersoon: string | null; aantal: number; namen: { naam: string; geboortedatum: string }[];
+  arbodienst: string | null; alineas: string[]; pdf: Bijlage; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = overdrachtMailHtml({ basis: siteBasis(), bedrijf: b.bedrijf, contactpersoon: b.contactpersoon, aantal: b.aantal, namen: b.namen, arbodienst: b.arbodienst, alineas: b.alineas, contact: b.contact });
+  const aan = [b.to, ...(b.werkgeverEmail && b.werkgeverEmail !== b.to ? [b.werkgeverEmail] : []), REACT2U_MEDISCH];
+  return verstuur([...new Set(aan)], `Opdracht overdracht verzuimdossiers ${b.bedrijf} naar React2u`, html, b.werkgeverEmail || undefined, [b.pdf]);
 }
 
 export function onboardingAdminUrl(id: string) {

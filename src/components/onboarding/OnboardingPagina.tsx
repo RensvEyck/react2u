@@ -4,8 +4,7 @@ import { BODY } from "@/components/blocks/Gedeeld";
 import { datumLang, momentLang, vulIn } from "@/lib/offertes";
 import {
   benodigdheden, BERICHT_STANDAARD, documentKlaar, gekozen, hoofdstukkenVoor, ONBOARDING_EMAIL, totaleMinuten, volgendeStap, voortgang, vultIn,
-  type DocumentInfo, type OnboardingPubliek,
-} from "@/lib/onboarding";
+  type DocumentInfo, type OnboardingPubliek, takenVoor } from "@/lib/onboarding";
 import type { Modus } from "./OnboardingActies";
 import {
   Band, Feest, GROEN, Icoon, initialen, knop, Label, Melding, MUTE, NAVY_LICHT, outfit, PAGINA_CSS, SectieKop, StapKaart, TELEFOON, telLink, Verder,
@@ -52,6 +51,8 @@ export default function OnboardingPagina({
   const v = voortgang(o);
   const procent = v.totaal ? Math.round((v.klaar / v.totaal) * 100) : 0;
   const compleet = v.totaal > 0 && v.klaar === v.totaal;
+  const takenGedaan = takenVoor(o).filter((t) => o.taken?.[t.sleutel]).length;
+  const live = compleet && takenVoor(o).length > 0 && takenGedaan === takenVoor(o).length;
   const tel = telLink(o.afzender_telefoon) || `tel:${contact.phone}`;
   const telTekst = o.afzender_telefoon || contact.phoneDisplay.replace(/\s*-\s*/, " ");
   const mail = o.afzender_email || ONBOARDING_EMAIL;
@@ -152,8 +153,13 @@ export default function OnboardingPagina({
                 <div className="flex flex-col gap-1">
                   <Label>Jullie voortgang</Label>
                   <p className={`${kop} m-0 text-[21px] leading-[1.25]`} style={{ color: NAVY }}>
-                    {compleet ? "Alles klaar, dank je wel!" : `Nog ${v.totaal - v.klaar} ${v.totaal - v.klaar === 1 ? "stap" : "stappen"} te gaan`}
+                    {live ? "Jullie zijn live!" : compleet ? "Alles klaar, dank je wel!" : `Nog ${v.totaal - v.klaar} ${v.totaal - v.klaar === 1 ? "stap" : "stappen"} te gaan`}
                   </p>
+                  {compleet && (
+                    <a href="#verder" className="text-[14px] font-bold underline-offset-4 hover:underline" style={{ color: live ? GROEN : PINK }}>
+                      {live ? "Alles is ingericht" : `React2u: ${takenGedaan} van ${takenVoor(o).length} geregeld`} <span aria-hidden>↓</span>
+                    </a>
+                  )}
                 </div>
               </div>
               <ol className="m-0 flex list-none flex-col gap-4 p-0">

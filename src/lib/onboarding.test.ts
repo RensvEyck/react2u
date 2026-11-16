@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  controleerMachtigingWerknemer, dubbeleWerknemers, machtigingStand,
   bsnGeldig, controleerOnboarding, controleerVelden, controleerWerknemers, datumNaarIso, documentKlaar, INRICHTING, rijenUitPlak, keuzeUit,
   naarXpertRijen, schoneWerknemers, schoonVelden, voortgang, XPERT_KOLOMMEN,
 } from "./onboarding";
@@ -119,5 +120,32 @@ describe("plakken uit Excel", () => {
     const { rijen, kopregel } = rijenUitPlak("J.\tJan\t\tJansen\tM\t1980-05-12\t123456782");
     expect(kopregel).toBe(false);
     expect(rijen[0]).toMatchObject({ voorletters: "J.", roepnaam: "Jan", achternaam: "Jansen", geslacht: "M", geboortedatum: "1980-05-12", bsn: "123456782" });
+  });
+});
+
+describe("dubbele medewerkers en een BSN uit Excel", () => {
+  it("vindt rijen waarvan het BSN al eerder voorkomt", () => {
+    expect(dubbeleWerknemers([{ bsn: "123456782" }, { bsn: "111222333" }, { bsn: "123456782" }, {}, { bsn: "111222333" }])).toEqual([2, 4]);
+  });
+  it("vult een BSN met acht cijfers aan met een nul: Excel laat die vallen", () => {
+    expect(schoneWerknemers([{ bsn: "12345678" }])[0].bsn).toBe("012345678");
+    expect(schoneWerknemers([{ bsn: "123456782" }])[0].bsn).toBe("123456782");
+  });
+});
+
+describe("machtiging: de gegevens van de werknemer", () => {
+  const goed = { naam: "Jan Jansen", adres: "Kerkstraat 4", postcode: "5611 AB", plaats: "Eindhoven", geboortedatum: "1980-05-12", bsn: "123456782" };
+  it("keurt goede gegevens goed, ook zonder telefoonnummer", () => {
+    expect(controleerMachtigingWerknemer(goed)).toEqual({});
+  });
+  it("wijst een fout BSN, een onmogelijke geboortedatum en een lege naam aan", () => {
+    const f = controleerMachtigingWerknemer({ ...goed, naam: "", bsn: "123456789", geboortedatum: "2020-01-01" });
+    expect(f.naam).toBeTruthy();
+    expect(f.bsn).toMatch(/klopt niet/);
+    expect(f.geboortedatum).toMatch(/klopt niet/);
+  });
+  it("telt hoeveel werknemers tekenden", () => {
+    expect(machtigingStand({ machtigingen: [] })).toEqual({ getekend: 0, totaal: 0 });
+    expect(machtigingStand({ machtigingen: [{ status: "getekend" }, { status: "open" }] as never })).toEqual({ getekend: 1, totaal: 2 });
   });
 });

@@ -187,6 +187,7 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
     NOTIFY_TO: "info@test.local",
     NOTIFY_OFFERTE_TO: "sales@test.local",
     OFFERTE_SLEUTEL: sleutel,
+    CRON_SECRET: "e2e-cron-geheim",
     NEXT_TELEMETRY_DISABLED: "1",
   };
 

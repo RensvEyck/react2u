@@ -1,8 +1,12 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { slaOnboardingOp, vinkOnboardingAf, type OnboardingState } from "@/app/(offerte)/onboarding/actions";
-import { rijenUitPlak, WERKNEMER_KOLOMMEN, type VeldGroep, type Werknemer } from "@/lib/onboarding";
+import { nodigMachtigingUit, slaOnboardingOp, stuurStapDoor, verstuurOverdracht, verwijderMachtiging, vinkOnboardingAf, type OnboardingState } from "@/app/(offerte)/onboarding/actions";
+import {
+  controleerWerknemers, dubbeleWerknemers, rijenUitCellen, rijenUitPlak, schoneWerknemers, WERKNEMER_KOLOMMEN, type MachtigingStand, type VeldGroep, type Werknemer,
+} from "@/lib/onboarding";
+import { kanXlsxLezen, lezenXlsx } from "@/lib/xlsxLezen";
+import { datumLang, momentLang } from "@/lib/offertes";
 
 /*
  * Wat de klant op zijn onboardingpagina doet: een document afvinken, een
@@ -180,6 +184,13 @@ const naamVan = (w: Werknemer) => [w.roepnaam || w.voorletters, w.tussenvoegsels
 
 type Wijze = "handmatig" | "excel";
 
+/**
+ * Wat er uit een geüpload of geplakt bestand kwam, vóór het toevoegen. `rijen`
+ * zijn de nieuwe medewerkers; `bijwerken` de rijen met een BSN dat er al staat
+ * (die werken de bestaande kaart bij: downloaden, in Excel aanvullen, uploaden).
+ */
+type Voorstel = { rijen: Werknemer[]; bijwerken: Werknemer[]; bron: string; kopregel: boolean; dubbel: number; fouten: Record<number, Record<string, string>> };
+
 /** Eén van de twee manieren om de medewerkers aan te leveren, als grote keuzekaart. */
 function KeuzeKaart({ aan, titel, tekst, onClick }: { aan: boolean; titel: string; tekst: string; onClick: () => void }) {
   return (
@@ -220,11 +231,15 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
   const fouten = state?.rijen || {};
   const [plak, setPlak] = useState("");
   const [plakMelding, setPlakMelding] = useState<string | null>(null);
+  const [voorstel, setVoorstel] = useState<Voorstel | null>(null);
+  const [leest, setLeest] = useState(false);
+  const [sleep, setSleep] = useState(false);
   const leegIs = (r: Werknemer) => Object.values(r).every((w) => !w);
 
   function kies(w: Wijze) {
     setWijze(w);
     setPlakMelding(null);
+    setVoorstel(null);
     setOpen(-1);
     if (w === "handmatig" && rijen.length === 0) {
       setRijen([leeg()]);
@@ -232,18 +247,69 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
     }
   }
 
-  // Plakken uit Excel: de rijen komen onder de bestaande, een lege kaart valt weg.
-  function voegPlakToe() {
-    const { rijen: nieuw, kopregel } = rijenUitPlak(plak);
-    if (!nieuw.length) {
-      setPlakMelding("Daar kon ik geen medewerkers uit halen. Kopieer de rijen uit Excel, het liefst met de kopregel erbij.");
+  /**
+   * Het controlerapport vóór het toevoegen: wat er gelezen is, wat er al stond
+   * (zelfde BSN, overgeslagen), wat dubbel in het bestand zit, en welke rijen
+   * aandacht vragen. Pas na "toevoegen" komen ze als kaarten in de lijst.
+   */
+  function maakVoorstel(gelezen: Werknemer[], kopregel: boolean, bron: string) {
+    setPlakMelding(null);
+    if (!gelezen.length) {
+      setVoorstel(null);
+      setPlakMelding(`Daar kon ik geen medewerkers uit halen${bron === "het plakvak" ? ". Kopieer de rijen uit Excel, het liefst met de kopregel erbij." : `. Vul het lege bestand in, met de kolomnamen in de eerste rij.`}`);
       return;
     }
-    setRijen([...rijen.filter((r) => !leegIs(r)), ...nieuw]);
+    const dubbel = new Set(dubbeleWerknemers(gelezen));
+    const uniek = gelezen.filter((_, i) => !dubbel.has(i));
+    const bestaand = new Set(rijen.map((r) => r.bsn).filter(Boolean));
+    const nieuw = uniek.filter((r) => !r.bsn || !bestaand.has(r.bsn));
+    const bijwerken = uniek.filter((r) => r.bsn && bestaand.has(r.bsn));
+    // De controle over wat het wordt: de bijgewerkte bestaande rijen, dan de nieuwe (zo staan ze straks ook),
+    // eerst schoongemaakt zoals de server dat doet (postcode in hoofdletters, BSN zonder streepjes).
+    const straks = [...samengevoegd(rijen, bijwerken), ...nieuw];
+    setVoorstel({ rijen: nieuw, bijwerken, bron, kopregel, dubbel: dubbel.size, fouten: controleerWerknemers(schoneWerknemers(straks)) });
+  }
+
+  /** Bestaande rijen met dezelfde BSN bijgewerkt: een gevulde cel uit het bestand wint, een lege laat staan wat er stond. */
+  function samengevoegd(basisRijen: Werknemer[], bijwerken: Werknemer[]): Werknemer[] {
+    if (!bijwerken.length) return basisRijen.filter((r) => !leegIs(r));
+    const perBsn = new Map(bijwerken.map((r) => [r.bsn, r]));
+    return basisRijen.filter((r) => !leegIs(r)).map((r) => (r.bsn && perBsn.has(r.bsn) ? { ...r, ...perBsn.get(r.bsn)! } : r));
+  }
+
+  async function leesBestand(bestand: File) {
+    setLeest(true);
+    try {
+      const naam = bestand.name.toLowerCase();
+      if (naam.endsWith(".csv") || naam.endsWith(".txt")) {
+        const { rijen: r, kopregel } = rijenUitPlak(await bestand.text());
+        maakVoorstel(r, kopregel, bestand.name);
+      } else if (!kanXlsxLezen()) {
+        setPlakMelding("Deze browser kan het Excelbestand niet lezen. Plak de rijen hieronder, of mail het bestand.");
+      } else {
+        const { rijen: r, kopregel } = rijenUitCellen(await lezenXlsx(await bestand.arrayBuffer()));
+        maakVoorstel(r, kopregel, bestand.name);
+      }
+    } catch {
+      setVoorstel(null);
+      setPlakMelding("Dit bestand kon ik niet lezen. Is het het Excelbestand (.xlsx) of een csv? Anders: plak de rijen hieronder, of mail het bestand.");
+    } finally {
+      setLeest(false);
+    }
+  }
+
+  function voegVoorstelToe() {
+    if (!voorstel) return;
+    setRijen([...samengevoegd(rijen, voorstel.bijwerken), ...voorstel.rijen]);
+    const fouten = voorstel.fouten;
+    const aantalFout = Object.keys(fouten).length;
+    setState(aantalFout ? { ok: false, fout: `${aantalFout} ${aantalFout === 1 ? "medewerker vraagt" : "medewerkers vragen"} nog aandacht: tik op de naam en kijk de velden met een rode rand na.`, rijen: fouten } : null);
     setOpen(-1);
-    setState(null);
     setPlak("");
-    setPlakMelding(`${nieuw.length} ${nieuw.length === 1 ? "medewerker" : "medewerkers"} toegevoegd${kopregel ? "" : ", in de volgorde van onze velden"}. Kijk ze hieronder na en sla op.`);
+    setVoorstel(null);
+    const n = voorstel.rijen.length;
+    const b = voorstel.bijwerken.length;
+    setPlakMelding(`${n ? `${n} ${n === 1 ? "medewerker" : "medewerkers"} toegevoegd` : ""}${n && b ? ", " : ""}${b ? `${b} bijgewerkt` : ""}. Kijk ze hieronder na en sla op.`);
   }
 
   const zet = (i: number, k: string, w: string) => setRijen(rijen.map((r, n) => (n === i ? { ...r, [k]: w } : r)));
@@ -281,7 +347,9 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
             <span className={stapKop} style={{ background: "#E5F6F4", color: "#00786F" }}>1</span>
             <span className="flex min-w-0 flex-1 flex-col gap-2">
               <span className="text-[16px] font-bold" style={{ color: NAVY }}>Download het lege bestand</span>
-              <span className="text-[14px] text-[#77758F]">De 37 kolommen van ons verzuimsysteem, met de kolomnamen in de eerste rij.</span>
+              <span className="text-[14px] text-[#77758F]">
+                De 37 kolommen van ons verzuimsysteem, met de kolomnamen in de eerste rij.{rijen.filter((r) => !leegIs(r)).length > 0 ? ` De ${rijen.filter((r) => !leegIs(r)).length} ${rijen.filter((r) => !leegIs(r)).length === 1 ? "medewerker die er al staat, staat" : "medewerkers die er al staan, staan"} erin: vul aan in Excel en upload het bestand weer.` : ""}
+              </span>
               <a href={excelHref} className={`${knoppen.rand} max-w-full self-start`} style={{ background: "transparent" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14" /></svg> Download het bestand</a>
             </span>
           </li>
@@ -294,23 +362,94 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
           </li>
           <li className="flex items-start gap-4">
             <span className={stapKop} style={{ background: "#E5F6F4", color: "#00786F" }}>3</span>
-            <span className="flex min-w-0 flex-1 flex-col gap-2">
-              <span className="text-[16px] font-bold" style={{ color: NAVY }}>Plak de rijen hier</span>
-              <span className="text-[14px] text-[#77758F]">Selecteer in Excel de kopregel en de rijen, kopieer, en plak ze in dit vak.</span>
-              <label htmlFor="wn-plak" className="sr-only">Geplakte rijen uit Excel</label>
-              <textarea
-                id="wn-plak"
-                className={`${veld} ${rand()} h-auto min-h-[120px] py-3 font-mono text-[13.5px]`}
-                value={plak}
-                onChange={(e) => setPlak(e.target.value)}
-                placeholder={"Burgerservicenummer\troepnaam\tEigen_achternaam\t…\n123456782\tJan\tJansen\t…"}
-                spellCheck={false}
-              />
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="button" className={knoppen.roze} disabled={!plak.trim()} onClick={voegPlakToe}>Rijen toevoegen</button>
-                {plakMelding && <span className="text-[14px] font-semibold" style={{ color: NAVY }} role="status">{plakMelding}</span>}
-              </div>
-              <span className="text-[13.5px] text-[#77758F]">Lukt plakken niet? Mail het ingevulde bestand naar <a href={`mailto:${mail}`} className="font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>{mail}</a>, dan zetten wij het erin.</span>
+            <span className="flex min-w-0 flex-1 flex-col gap-3">
+              <span className="text-[16px] font-bold" style={{ color: NAVY }}>Upload het ingevulde bestand</span>
+              <span className="text-[14px] text-[#77758F]">Sleep het bestand hierheen of kies het op je computer (.xlsx of .csv). Je ziet eerst wat we eruit lezen; daarna voeg je de medewerkers toe.</span>
+              <label
+                htmlFor="wn-bestand"
+                className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[16px] border-2 border-dashed px-5 py-7 text-center transition-colors"
+                style={{ borderColor: sleep ? NAVY : "#C9C7DA", background: sleep ? "#F6F5FB" : "white" }}
+                onDragOver={(e) => { e.preventDefault(); setSleep(true); }}
+                onDragLeave={() => setSleep(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setSleep(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) void leesBestand(f);
+                }}
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 20h16" /></svg>
+                <span className="text-[15px] font-bold" style={{ color: NAVY }}>{leest ? "Bestand lezen…" : "Sleep je bestand hierheen"}</span>
+                <span className="text-[13.5px] text-[#77758F]">of <span className="font-bold underline underline-offset-4" style={{ color: NAVY }}>kies een bestand</span></span>
+                <input
+                  id="wn-bestand"
+                  type="file"
+                  accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void leesBestand(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <details className="group">
+                <summary className="cursor-pointer list-none text-[14px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>Of plak de rijen uit Excel</summary>
+                <div className="mt-3 flex flex-col gap-2">
+                  <span className="text-[14px] text-[#77758F]">Selecteer in Excel de kopregel en de rijen, kopieer, en plak ze in dit vak.</span>
+                  <label htmlFor="wn-plak" className="sr-only">Geplakte rijen uit Excel</label>
+                  <textarea
+                    id="wn-plak"
+                    className={`${veld} ${rand()} h-auto min-h-[120px] py-3 font-mono text-[13.5px]`}
+                    value={plak}
+                    onChange={(e) => setPlak(e.target.value)}
+                    placeholder={"Burgerservicenummer\troepnaam\tEigen_achternaam\t…\n123456782\tJan\tJansen\t…"}
+                    spellCheck={false}
+                  />
+                  <button type="button" className={`${knoppen.rand} self-start`} style={{ background: "transparent" }} disabled={!plak.trim()} onClick={() => { const r = rijenUitPlak(plak); maakVoorstel(r.rijen, r.kopregel, "het plakvak"); }}>
+                    Rijen lezen
+                  </button>
+                </div>
+              </details>
+              {plakMelding && !voorstel && <span className="text-[14px] font-semibold" style={{ color: NAVY }} role="status">{plakMelding}</span>}
+              {voorstel && (
+                <div className="flex flex-col gap-3 rounded-[16px] border p-4" style={{ borderColor: Object.keys(voorstel.fouten).length ? "#F4B9B2" : "#BFE3D6", background: Object.keys(voorstel.fouten).length ? "#FFF8F7" : "#F3FBF7" }} role="status">
+                  <span className="text-[15px] font-bold" style={{ color: NAVY }}>
+                    {voorstel.rijen.length + voorstel.bijwerken.length} {voorstel.rijen.length + voorstel.bijwerken.length === 1 ? "medewerker" : "medewerkers"} gelezen uit {voorstel.bron}{voorstel.kopregel ? "" : ", zonder kopregel: in de volgorde van onze velden"}.
+                  </span>
+                  {(voorstel.bijwerken.length > 0 || voorstel.dubbel > 0) && (
+                    <span className="text-[14px] text-[#77758F]">
+                      {voorstel.bijwerken.length > 0 && `${voorstel.rijen.length} nieuw, ${voorstel.bijwerken.length} ${voorstel.bijwerken.length === 1 ? "stond er al en wordt bijgewerkt" : "stonden er al en worden bijgewerkt"} (zelfde BSN). `}
+                      {voorstel.dubbel > 0 && `${voorstel.dubbel} dubbel in het bestand, één keer meegenomen.`}
+                    </span>
+                  )}
+                  {Object.keys(voorstel.fouten).length > 0 ? (
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[14px] font-semibold text-[#B42318]">{Object.keys(voorstel.fouten).length} {Object.keys(voorstel.fouten).length === 1 ? "rij vraagt" : "rijen vragen"} aandacht; je kunt ze na het toevoegen per kaart aanvullen:</span>
+                      <ul className="m-0 flex list-none flex-col gap-1 p-0 text-[13.5px] text-[#77758F]">
+                        {Object.entries(voorstel.fouten).slice(0, 8).map(([i, f]) => (
+                          <li key={i}>
+                            <span className="font-semibold" style={{ color: NAVY }}>{naamVan([...samengevoegd(rijen, voorstel.bijwerken), ...voorstel.rijen][Number(i)] || {}) || `Rij ${Number(i) + 1}`}:</span>{" "}
+                            {Object.entries(f).map(([k, m]) => `${WERKNEMER_KOLOMMEN.find((x) => x.naam === k)?.label.toLowerCase() || k} ${m.toLowerCase()}`).join(" · ")}
+                          </li>
+                        ))}
+                        {Object.keys(voorstel.fouten).length > 8 && <li>En nog {Object.keys(voorstel.fouten).length - 8}.</li>}
+                      </ul>
+                    </div>
+                  ) : (
+                    <span className="text-[14px] font-semibold" style={{ color: "#0A7A4B" }}>Alles ziet er goed uit.</span>
+                  )}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button type="button" className={knoppen.roze} onClick={voegVoorstelToe}>
+                      {voorstel.rijen.length ? `${voorstel.rijen.length} ${voorstel.rijen.length === 1 ? "medewerker" : "medewerkers"} toevoegen` : ""}
+                      {voorstel.rijen.length && voorstel.bijwerken.length ? " en " : ""}
+                      {voorstel.bijwerken.length ? `${voorstel.bijwerken.length} bijwerken` : ""}
+                    </button>
+                    <button type="button" className="text-[14px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }} onClick={() => setVoorstel(null)}>Annuleren</button>
+                  </div>
+                </div>
+              )}
+              <span className="text-[13.5px] text-[#77758F]">Lukt het niet? Mail het ingevulde bestand naar <a href={`mailto:${mail}`} className="font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>{mail}</a>, dan zetten wij het erin.</span>
             </span>
           </li>
         </ol>
@@ -319,8 +458,8 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
       {wijze && rijen.length > 0 && (
         <>
           {wijze === "excel" && (
-            <p className="m-0 text-[14.5px] font-semibold" style={{ color: NAVY }}>
-              {rijen.length} {rijen.length === 1 ? "medewerker" : "medewerkers"} om na te kijken. Tik op een naam om de gegevens te zien of aan te passen.
+            <p className="m-0 text-[14.5px] font-semibold" style={{ color: NAVY }} role="status">
+              {plakMelding ? `${plakMelding} ` : ""}{rijen.length} {rijen.length === 1 ? "medewerker" : "medewerkers"} om na te kijken. Tik op een naam om de gegevens te zien of aan te passen.
             </p>
           )}
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
@@ -420,5 +559,230 @@ export function WerknemersFormulier({ token, begin, ingevuld, modus, excelHref, 
         </>
       )}
     </form>
+  );
+}
+
+/* ---------- 0038: de machtiging online laten tekenen, en de opdracht tot overdracht ---------- */
+
+type Lijst = MachtigingStand[];
+
+/**
+ * Op de machtigingstap, zodra de vorige arbodienst is opgeslagen: wie moet
+ * tekenen (naam en e-mail; die krijgt een persoonlijke link), de stand per
+ * medewerker, en daarna de opdracht tot overdracht naar de vorige arbodienst
+ * (Rens, 16 nov 2026: de werkgever stuurt de getekende machtigingen zelf, met
+ * de opdracht; de arbodienst stuurt React2u daarna de lijst).
+ */
+export function MachtigingUitnodigen({ token, lijst, modus, arbodienst, basis }: { token: string; lijst: Lijst; modus: Modus; arbodienst: Record<string, string>; basis: string }) {
+  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<OnboardingState | null>(null);
+  const [bezig, start] = useTransition();
+  const [aan, setAan] = useState(arbodienst.email || "");
+  const [ovState, setOvState] = useState<OnboardingState | null>(null);
+  const [ovBezig, startOv] = useTransition();
+  const [druk, setDruk] = useState<string | null>(null);
+  const router = useRouter();
+  const getekend = lijst.filter((m) => m.status === "getekend");
+  const nogNiet = getekend.filter((m) => !m.overdracht_at);
+  const laatsteOverdracht = getekend.map((m) => m.overdracht_at).filter((x): x is string => Boolean(x)).sort().pop() ?? null;
+  const voorbeeld = modus === "voorbeeld";
+
+  function nodigUit(n: string, e: string, id?: string) {
+    if (voorbeeld) return setState({ ok: false, fout: CONCEPT });
+    setState(null);
+    setDruk(id ?? "nieuw");
+    start(async () => {
+      const r = await nodigMachtigingUit(token, { naam: n, email: e });
+      setDruk(null);
+      if (r.ok) {
+        setNaam("");
+        setEmail("");
+        setState({ ok: true, fout: id ? `Herinnering gestuurd naar ${e}.` : `Uitnodiging gestuurd naar ${e}.` });
+        router.refresh();
+      } else setState(r);
+    });
+  }
+
+  return (
+    <div id="machtigingen" className="flex flex-col gap-6 border-t pt-8" style={{ borderColor: "#E6E5EF" }}>
+      <div className="flex flex-col gap-1.5">
+        <span className="hv-kop block text-[20px] font-semibold tracking-[-0.3px]" style={{ color: NAVY }}>Wie moet tekenen?</span>
+        <span className="text-[15px] text-[#77758F]">
+          Elke zieke medewerker met een lopend dossier bij {arbodienst.arbodienst || "je vorige arbodienst"} tekent zelf. Vul naam en e-mailadres in: die krijgt een persoonlijke link en tekent in twee minuten op zijn telefoon. Jij ziet hier wie getekend heeft.
+        </span>
+      </div>
+
+      {lijst.length > 0 && (
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
+          {lijst.map((m, i) => {
+            const klaar = m.status === "getekend";
+            return (
+              <li key={m.id} className="flex flex-wrap items-center gap-3 rounded-[18px] border bg-white px-5 py-4" style={{ borderColor: klaar ? "#BFE3D6" : "#E6E5EF" }}>
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px] font-semibold text-white" style={{ background: klaar ? "#0A7A4B" : "#C9C7DA" }}>{klaar ? <Vink /> : i + 1}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[16px] font-bold" style={{ color: NAVY }}>{m.naam} <span className="font-normal text-[#77758F]">· {m.email}</span></span>
+                  <span className="block text-[13.5px]" style={{ color: klaar ? "#0A7A4B" : "#77758F" }}>
+                    {klaar
+                      ? `Getekend op ${momentLang(m.getekend_at)}${m.overdracht_at ? ` · naar de arbodienst gestuurd op ${datumLang(m.overdracht_at)}` : ""}`
+                      : `Uitgenodigd op ${datumLang(m.uitgenodigd_at)}${m.herinnerd_at ? `, herinnerd op ${datumLang(m.herinnerd_at)}` : ""}${m.bekeken_at ? ", geopend" : ", nog niet geopend"}`}
+                  </span>
+                </span>
+                <span className="flex flex-wrap items-center gap-3 text-[14px] font-bold" style={{ color: NAVY }}>
+                  {klaar ? (
+                    <a href={`${basis}/machtiging/${m.id}?download=1`} className="underline-offset-4 hover:underline">Getekende pdf</a>
+                  ) : (
+                    <>
+                      <button type="button" className="underline-offset-4 hover:underline disabled:opacity-50" disabled={bezig} onClick={() => nodigUit(m.naam, m.email, m.id)}>{druk === m.id ? "Versturen…" : "Opnieuw sturen"}</button>
+                      <button
+                        type="button"
+                        className="text-[#B42318] underline-offset-4 hover:underline disabled:opacity-50"
+                        disabled={bezig}
+                        onClick={() => {
+                          if (voorbeeld) return setState({ ok: false, fout: CONCEPT });
+                          start(async () => {
+                            const r = await verwijderMachtiging(token, m.id);
+                            setState(r.ok ? { ok: true, fout: `Uitnodiging voor ${m.naam} weggehaald.` } : r);
+                            if (r.ok) router.refresh();
+                          });
+                        }}
+                      >
+                        Weghalen
+                      </button>
+                    </>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <form
+        noValidate
+        className="grid gap-3 rounded-[18px] p-5" style={{ background: "#F6F5FB" }}
+        onSubmit={(e) => { e.preventDefault(); nodigUit(naam, email); }}
+      >
+        <span className="text-[14.5px] font-bold" style={{ color: NAVY }}>{lijst.length ? "Nog een medewerker uitnodigen" : "Medewerker uitnodigen"}</span>
+        <div className="grid gap-3 sm:grid-cols-[1fr_1.2fr_auto]">
+          <label className="flex flex-col gap-1.5">
+            <span className="sr-only">Naam medewerker</span>
+            <input id="mu-naam" className={`${veld} ${rand()}`} placeholder="Naam medewerker" value={naam} onChange={(e) => setNaam(e.target.value)} maxLength={120} autoComplete="off" />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="sr-only">E-mailadres medewerker</span>
+            <input id="mu-email" className={`${veld} ${rand()}`} type="email" placeholder="E-mailadres medewerker" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={254} autoComplete="off" />
+          </label>
+          <button className={knoppen.roze} disabled={bezig || !naam.trim() || !email.trim()}>{druk === "nieuw" ? "Versturen…" : "Uitnodiging sturen"}</button>
+        </div>
+        <span className="text-[13.5px] text-[#77758F]">De medewerker krijgt de mail uit naam van React2u, met jouw bedrijfsnaam erin. Liever op papier? Download hierboven de ingevulde machtiging, laat tekenen en stuur hem zelf.</span>
+        {state && (state.ok ? (
+          <p role="status" className="m-0 flex items-center gap-2 rounded-[14px] bg-[#E3F6ED] px-4 py-3 text-[15px] font-semibold text-[#0A7A4B]"><Vink /> {state.fout}</p>
+        ) : (
+          <p role="alert" className="m-0 rounded-[14px] bg-[#FDECEA] px-4 py-3 text-[15px] text-[#B42318]">{state.fout}</p>
+        ))}
+      </form>
+
+      {getekend.length > 0 && (
+        <form
+          id="overdracht"
+          noValidate
+          className="flex flex-col gap-4 rounded-[18px] border-2 p-5" style={{ borderColor: NAVY, background: "white" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (voorbeeld) return setOvState({ ok: false, fout: CONCEPT });
+            setOvState(null);
+            startOv(async () => {
+              const r = await verstuurOverdracht(token, aan);
+              setOvState(r.ok ? { ok: true, fout: `Opdracht verstuurd naar ${aan.trim().toLowerCase()}, met ${getekend.length} getekende ${getekend.length === 1 ? "machtiging" : "machtigingen"}. Je kreeg zelf een kopie.` } : r);
+              if (r.ok) router.refresh();
+            });
+          }}
+        >
+          <div className="flex flex-col gap-1.5">
+            <span className="hv-kop block text-[20px] font-semibold tracking-[-0.3px]" style={{ color: NAVY }}>Stuur de opdracht naar {arbodienst.arbodienst || "je vorige arbodienst"}</span>
+            <span className="text-[15px] text-[#77758F]">
+              Jij geeft je vorige arbodienst de opdracht om de dossiers over te dragen aan React2u. Wij maken de brief, met de {getekend.length} getekende {getekend.length === 1 ? "machtiging" : "machtigingen"} erachter, en sturen hem uit jouw naam; jij en React2u krijgen een kopie. Je vorige arbodienst stuurt React2u daarna een lijst van de dossiers.
+            </span>
+          </div>
+          {laatsteOverdracht && (
+            <p className="m-0 flex items-center gap-2 rounded-[14px] bg-[#E3F6ED] px-4 py-3 text-[14.5px] font-semibold text-[#0A7A4B]">
+              <Vink /> Opdracht verstuurd op {momentLang(laatsteOverdracht)}.{nogNiet.length > 0 ? ` Sinds toen ${nogNiet.length === 1 ? "tekende nog 1 medewerker" : `tekenden nog ${nogNiet.length} medewerkers`}: stuur de opdracht nog een keer.` : ""}
+            </p>
+          )}
+          <div className="grid gap-3 sm:grid-cols-[1.2fr_auto]">
+            <label className="flex flex-col gap-1.5">
+              <span className={veldLabel} style={{ color: NAVY }}>E-mailadres van je vorige arbodienst</span>
+              <input id="ov-email" className={`${veld} ${rand()}`} type="email" value={aan} onChange={(e) => setAan(e.target.value)} maxLength={254} placeholder="dossiers@arbodienst.nl" />
+            </label>
+            <button className={`${knoppen.roze} sm:self-end`} disabled={ovBezig || !aan.trim()}>{ovBezig ? "Versturen…" : laatsteOverdracht ? "Opdracht opnieuw versturen" : "Verstuur de opdracht"}</button>
+          </div>
+          <span className="text-[13.5px] text-[#77758F]">
+            Liever zelf versturen? <a href={`${basis}/overdracht?download=1`} className="font-bold underline-offset-4 hover:underline" style={{ color: NAVY }}>Download de opdracht met de machtigingen (pdf)</a>.
+          </span>
+          {ovState && (ovState.ok ? (
+            <p role="status" className="m-0 flex items-center gap-2 rounded-[14px] bg-[#E3F6ED] px-4 py-3 text-[15px] font-semibold text-[#0A7A4B]"><Vink /> {ovState.fout}</p>
+          ) : (
+            <p role="alert" className="m-0 rounded-[14px] bg-[#FDECEA] px-4 py-3 text-[15px] text-[#B42318]">{ovState.fout}</p>
+          ))}
+        </form>
+      )}
+    </div>
+  );
+}
+
+/** Onder een stap: deze stap doorsturen naar een collega die er meer van weet (HR, salarisadministratie). */
+export function StapDoorsturen({ token, stap, titel, modus, contactpersoon }: { token: string; stap: string; titel: string; modus: Modus; contactpersoon: string | null }) {
+  const [open, setOpen] = useState(false);
+  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("");
+  const [van, setVan] = useState(contactpersoon || "");
+  const [bericht, setBericht] = useState("");
+  const [state, setState] = useState<OnboardingState | null>(null);
+  const [bezig, start] = useTransition();
+  return (
+    <div className="flex flex-col gap-4">
+      {!open ? (
+        <button type="button" className="inline-flex items-center gap-2 self-start text-[15px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }} onClick={() => setOpen(true)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 17h6m0 0-3-3m3 3-3 3M4 6h11a4 4 0 0 1 4 4v1" /></svg>
+          Is dit iets voor een collega? Stuur deze stap door
+        </button>
+      ) : (
+        <form
+          noValidate
+          className="flex flex-col gap-4 rounded-[22px] border bg-white p-5 md:p-6" style={{ borderColor: "#E6E5EF" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (modus === "voorbeeld") return setState({ ok: false, fout: CONCEPT });
+            setState(null);
+            start(async () => {
+              const r = await stuurStapDoor(token, stap, { naam, email, van, bericht });
+              setState(r.ok ? { ok: true, fout: `Verstuurd naar ${email.trim().toLowerCase()}. Je collega krijgt een mail met de link naar deze stap.` } : r);
+              if (r.ok) { setNaam(""); setEmail(""); setBericht(""); }
+            });
+          }}
+        >
+          <div className="flex flex-col gap-1">
+            <span className="hv-kop block text-[19px] font-semibold tracking-[-0.3px]" style={{ color: NAVY }}>Stuur &quot;{titel}&quot; door naar een collega</span>
+            <span className="text-[14.5px] text-[#77758F]">Je collega krijgt een mail met de link naar deze stap en kan meteen aan de slag. Wat je al invulde, blijft staan.</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1.5"><span className={veldLabel} style={{ color: NAVY }}>Naam collega</span><input id="ds-naam" className={`${veld} ${rand()}`} value={naam} onChange={(e) => setNaam(e.target.value)} maxLength={120} /></label>
+            <label className="flex flex-col gap-1.5"><span className={veldLabel} style={{ color: NAVY }}>E-mailadres collega</span><input id="ds-email" className={`${veld} ${rand()}`} type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={254} /></label>
+            <label className="flex flex-col gap-1.5"><span className={veldLabel} style={{ color: NAVY }}>Je eigen naam</span><input id="ds-van" className={`${veld} ${rand()}`} value={van} onChange={(e) => setVan(e.target.value)} maxLength={120} /></label>
+            <label className="flex flex-col gap-1.5 sm:col-span-2"><span className={veldLabel} style={{ color: NAVY }}>Bericht <span className="font-normal text-[#77758F]">(mag leeg)</span></span><textarea id="ds-bericht" className={`${veld} ${rand()} h-auto min-h-[80px] py-3`} value={bericht} onChange={(e) => setBericht(e.target.value)} maxLength={2000} /></label>
+          </div>
+          {state && (state.ok ? (
+            <p role="status" className="m-0 flex items-center gap-2 rounded-[14px] bg-[#E3F6ED] px-4 py-3 text-[15px] font-semibold text-[#0A7A4B]"><Vink /> {state.fout}</p>
+          ) : (
+            <p role="alert" className="m-0 rounded-[14px] bg-[#FDECEA] px-4 py-3 text-[15px] text-[#B42318]">{state.fout}</p>
+          ))}
+          <div className="flex flex-wrap items-center gap-4">
+            <button className={knoppen.roze} disabled={bezig}>{bezig ? "Versturen…" : "Doorsturen"}</button>
+            <button type="button" className="text-[14px] font-bold underline-offset-4 hover:underline" style={{ color: NAVY }} onClick={() => setOpen(false)}>Sluiten</button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 }
