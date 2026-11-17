@@ -1852,6 +1852,50 @@ met de laatste stand en soms een contactpersoon.
   twee weken, `bezoekPerKlant`): op de kaart *Op de site 40 min geleden ·
   3 pagina's*, in de tijdlijn per sessie welke pagina's. Dat staat niet in de
   database maar wordt bij het laden gekoppeld op bedrijfsnaam.
+- **De werkdag** (Rens, 17 nov 2026, fase 2 van het S-tier-voorstel):
+  - **Vandaag** ([`/admin/klantenbord/vandaag`](src/app/admin/(panel)/klantenbord/vandaag/page.tsx),
+    de knop *Vandaag* op het bord met de teller): wie bel ik nu. Eén rij per
+    klant uit de opvolgsignalen van het Verkoopblok (`haalVerkoop`,
+    `verkoopOverzicht`), wat te laat is, wat vandaag moet en wie de laatste
+    twee dagen op de site was ([`lib/werkrij.ts`](src/lib/werkrij.ts),
+    `werkrij`): signalen eerst (warm boven let-op), dan te laat (het langst
+    eerst), dan vandaag; een sitebezoek duwt omhoog. Per rij vier uitkomsten
+    (*Gesproken* met tekst, volgende stap en kolom; *Niet bereikt* legt
+    "Niet bereikt" vast en zet morgen dezelfde actie; *Morgen*; *Klaar* haalt
+    de volgende stap weg, of slaat een rij die alleen op een signaal staat
+    over) en het toetsenbord: pijltjes of J/K, Enter of G, N, M, D, S. Een
+    afgehandelde rij verdwijnt; de teller telt op tot de rij leeg is.
+  - **Bellen legt zichzelf vast** ([`lib/belAfloop.ts`](src/lib/belAfloop.ts),
+    [`BelAfloop.tsx`](src/components/admin/klantenbord/BelAfloop.tsx)): tik je
+    op een telefoonnummer op het bord, in het paneel of in de werkrij, dan
+    staat in `localStorage` (`kb-bel`) wie je belde. Kom je terug in de
+    browser (visibilitychange, focus, pageshow) na minstens acht seconden en
+    binnen een dag, dan vraagt een vak onderaan "Je belde net Fatima, wat is
+    er afgesproken?": *Niet bereikt* (morgen opnieuw bellen), *Gesproken*
+    (tekst en volgende stap), *Geen interesse* (naar inactief). Korter dan
+    acht seconden is een misklik en vraagt niets.
+  - **Mailen vanuit de kaart** ([`lib/klantMail.ts`](src/lib/klantMail.ts),
+    `mailKlant` in de actions): sjablonen *Kennismaking bevestigen*,
+    *Offerte nabellen*, *Welkom*, *Even checken* en *Zelf schrijven*, met
+    {voornaam} (uit de contactpersoon; een voorletter is geen voornaam),
+    {bedrijf} en de naam van de collega (uit het e-mailadres, aan te passen en
+    onthouden in `localStorage`). De mail gaat via `sendBrief` in de huisstijl
+    met de collega als antwoordadres; pas als hij weg is komt hij als regel
+    `mail` in de tijdlijn (`Gemaild: <onderwerp> · <eerste zin>`) en zet het
+    sjabloon zijn volgende stap (offerte nabellen over drie dagen). Zonder
+    Resend zegt het paneel dat.
+  - **Ochtendmail** ([`api/cron/klantenbord`](src/app/api/cron/klantenbord/route.ts),
+    elke werkdag om 06:00 UTC via `vercel.json`, inhoud in
+    [`lib/ochtendmail.ts`](src/lib/ochtendmail.ts)): aan elke collega met het
+    salesrecht (`admins` met `bellijst` in de rol) één mail: *Voor jou* (te
+    laat en vandaag van kaarten waarvan de eerste naam van de eigenaar in het
+    e-mailadres staat: "Cindy" in cindy.faro@), *Gisteren bij klanten*
+    (systeemregels van de laatste 30 uur waar de klant iets deed, in gewone
+    taal: "Korenaar bekeek de offerte"), *Opvolgen volgens de modules* (de
+    warme en let-op-signalen) en *Rest van het team*. Het onderwerp vat het
+    samen: "Vandaag 3 acties, 2 te laat, Korenaar bekeek de offerte". Niets te
+    melden is geen mail; `?dry=1` toont de plannen, `?weekend=1` ook in het
+    weekend. Service-role, zoals de andere crons.
 - **Database**: `klanten` en `klant_gesprekken`, RLS op `has_perm('bellijst')`,
   trigger `klant_laatste_contact` voor het laatste contact op de kaart. Geen
   automatische opschoning: een klant blijft staan tot iemand hem van het bord
@@ -1867,8 +1911,11 @@ met de laatste stand en soms een contactpersoon.
   getekend wordt, import met controlerapport en een tweede keer zonder
   dubbelen, zoeken, de lijst, de telefoon, verwijderen, kaarten die uit een
   brochure, contract, onboarding en losse opdracht ontstaan en meebewegen,
-  het sitebezoek op de kaart, `klantenbord_inlezen()` zonder dubbelen, en
-  `bedrijf_sleutel` tegenover `bedrijfSleutel`).
+  het sitebezoek op de kaart, `klantenbord_inlezen()` zonder dubbelen,
+  `bedrijf_sleutel` tegenover `bedrijfSleutel`, de werkrij met het
+  toetsenbord, het telefoontje dat zichzelf vastlegt, mailen vanuit de kaart
+  via de nep-Resend en de ochtendmail via de cron), `lib/werkrij.test.ts`,
+  `lib/klantMail.test.ts`, `lib/belAfloop.test.ts` en `lib/ochtendmail.test.ts`.
 
 ## Van Postvak IN naar bellijst
 

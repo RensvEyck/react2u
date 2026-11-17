@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LuCircleAlert, LuCircleCheck, LuLayoutGrid, LuList, LuPlus, LuSearch, LuUpload, LuX } from "react-icons/lu";
+import { LuCircleAlert, LuCircleCheck, LuLayoutGrid, LuList, LuPhoneCall, LuPlus, LuSearch, LuUpload, LuX } from "react-icons/lu";
 import {
   KLANT_STATUS, sorteerKaarten, telling, zoekKlanten, actieStand, type Bezoek, type Gesprek, type Klant, type KlantStatus, type Koppeling,
 } from "@/lib/klanten";
@@ -10,6 +11,7 @@ import KlantKaart from "./KlantKaart";
 import KlantPaneel from "./KlantPaneel";
 import KlantImport from "./KlantImport";
 import KlantLijst from "./KlantLijst";
+import BelAfloop from "./BelAfloop";
 
 /**
  * Het klantenbord: één scherm met alle leads en klanten. Kolommen per status,
@@ -24,7 +26,7 @@ type Weergave = "bord" | "lijst";
 type Filter = "alles" | "actie" | "zonder";
 
 export default function Klantenbord({
-  klanten: begin, gesprekken: beginGesprekken, koppelingen, bezoek, vandaag, weergave: beginWeergave,
+  klanten: begin, gesprekken: beginGesprekken, koppelingen, bezoek, vandaag, weergave: beginWeergave, mailAan, ik, teDoen,
 }: {
   klanten: Klant[];
   gesprekken: Gesprek[];
@@ -33,6 +35,10 @@ export default function Klantenbord({
   bezoek: Record<string, Bezoek>;
   vandaag: string;
   weergave: Weergave;
+  mailAan: boolean;
+  ik: string;
+  /** Hoeveel rijen de werkrij van vandaag heeft (signalen, te laat, vandaag), voor de knop. */
+  teDoen: number;
 }) {
   const router = useRouter();
   const [, start] = useTransition();
@@ -255,6 +261,9 @@ export default function Klantenbord({
               </button>
             ))}
           </div>
+          <Link href="/admin/klantenbord/vandaag" className={`abtn-ghost ${teDoen ? "!border-[#e75387]/40 !text-[#e0356b]" : ""}`}>
+            <LuPhoneCall /> Vandaag{teDoen ? <span className="rounded-full bg-[#e75387] px-1.5 py-px text-[11px] font-bold text-white">{teDoen}</span> : null}
+          </Link>
           <button type="button" onClick={() => setImportOpen(true)} className="abtn-ghost"><LuUpload /> Klantlijst importeren</button>
           <button type="button" onClick={() => setOpen("nieuw")} className="abtn"><LuPlus /> Nieuwe lead of klant</button>
         </div>
@@ -319,6 +328,8 @@ export default function Klantenbord({
           bezoek={openKlant ? bezoek[openKlant.id] || null : null}
           vandaag={vandaag}
           eigenaren={eigenaren}
+          mailAan={mailAan}
+          ik={ik}
           onClose={() => setOpen(null)}
           onKlant={(k, g) => {
             const nieuw = !klanten.some((x) => x.id === k.id);
@@ -340,6 +351,8 @@ export default function Klantenbord({
         />
       )}
       {importOpen && <KlantImport bestaande={klanten} vandaag={vandaag} onClose={() => setImportOpen(false)} onKlaar={naImport} />}
+
+      <BelAfloop vandaag={vandaag} onKlant={(k, g) => { zetKlant(k, g); meld(true, `${k.bedrijf}: vastgelegd.`); }} />
 
       {melding && (
         <div key={melding.n} role="status" className="pointer-events-none fixed bottom-6 right-6 z-[100] animate-[fadeIn_0.2s_ease-out]">

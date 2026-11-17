@@ -5,6 +5,9 @@ import {
   bedrijfSleutel, CHECKLIST, isDatum, isGesprekSoort, isKlantStatus, rijNaarVelden, statusInfo, statusUitRij, statusVerder, type Gesprek, type GesprekSoort,
   type ImportRij, type Klant, type KlantStatus,
 } from "@/lib/klanten";
+import { alineas, mailSamenvatting } from "@/lib/klantMail";
+import { sendBrief } from "@/lib/mail";
+import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 /*
  * Het klantenbord (migratie 0040): kaarten maken en wijzigen, verplaatsen,
@@ -210,6 +213,59 @@ export async function voegGesprekToe(id: string, invoer: GesprekInvoer): Promise
   const klant = (await laad(sb, id)) || oud;
   ververs();
   return { ok: true, gesprek, klant };
+}
+
+export type MailInvoer = {
+  aan: string;
+  onderwerp: string;
+  tekst: string;
+  /** De naam onder de mail; antwoorden komt uit bij de collega zelf. */
+  afzender: string;
+  volgende_actie?: string | null;
+  volgende_actie_op?: string | null;
+};
+
+/**
+ * Een mail aan de klant vanuit de kaart, in de huisstijl (sendBrief), met de
+ * collega als antwoordadres. Eerst de mail, dan de regel in de tijdlijn en de
+ * volgende stap: een mail die niet weg is, hoort niet in de tijdlijn.
+ */
+export async function mailKlant(id: string, invoer: MailInvoer): Promise<GesprekResultaat> {
+  const { sb, admin } = await requirePerm("bellijst");
+  const aan = tekst(invoer.aan, 254)?.toLowerCase();
+  if (!aan || !EMAIL.test(aan)) return { ok: false, fout: "Vul een geldig e-mailadres in." };
+  const onderwerp = tekst(invoer.onderwerp, 200);
+  if (!onderwerp) return { ok: false, fout: "Vul een onderwerp in." };
+  const inhoud = alineas(String(invoer.tekst || "").slice(0, 10000));
+  if (!inhoud.length) return { ok: false, fout: "Schrijf eerst de mail." };
+  const afzender = tekst(invoer.afzender, 120) || admin.email.split("@")[0];
+  const k = await laad(sb, id);
+  if (!k) return { ok: false, fout: "Deze kaart bestaat niet meer." };
+
+  const { contact } = await offerteHuisstijl();
+  const res = await sendBrief({ to: aan, subject: onderwerp, alineas: inhoud, groet: ["Met vriendelijke groet,", afzender, "React2u"], replyTo: admin.email, contact });
+  if (!res.ok) {
+    return {
+      ok: false,
+      fout: res.reden === "uit" ? "Mailen staat uit (Resend is niet ingesteld)." : `De mail is niet verstuurd${res.melding ? `: ${res.melding}` : ""}. Probeer het opnieuw.`,
+    };
+  }
+  const { data: g } = await sb
+    .from("klant_gesprekken")
+    .insert({ klant_id: id, soort: "mail", tekst: mailSamenvatting(onderwerp, invoer.tekst), door: admin.email, contact: true })
+    .select("*")
+    .single();
+  const velden: Partial<Klant> = {};
+  if (invoer.volgende_actie !== undefined) velden.volgende_actie = tekst(invoer.volgende_actie, 500);
+  if (invoer.volgende_actie_op !== undefined) {
+    const d = tekst(invoer.volgende_actie_op, 10);
+    velden.volgende_actie_op = d && isDatum(d) ? d : null;
+  }
+  if (!k.email && aan) velden.email = aan;
+  if (Object.keys(velden).length) await sb.from("klanten").update(velden).eq("id", id);
+  const klant = (await laad(sb, id)) || k;
+  ververs();
+  return { ok: true, gesprek: (g as Gesprek | null) ?? null, klant };
 }
 
 export async function verwijderGesprek(klantId: string, gesprekId: string): Promise<GesprekResultaat> {

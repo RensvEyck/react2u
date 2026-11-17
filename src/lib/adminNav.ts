@@ -32,6 +32,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Postvak IN", href: "/admin/postvak-in", icon: LuInbox, badge: "inbox", keywords: "inbox berichten sollicitaties inzendingen" },
   { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads", keywords: "leads bellen crm terugbellen" },
   { label: "Klantenbord", href: "/admin/klantenbord", icon: LuLayoutGrid, keywords: "whiteboard klanten leads bord kanban status laatste gesprek volgende stap pijplijn klantlijst importeren crm" },
+  { label: "Vandaag: wie bel ik", href: "/admin/klantenbord/vandaag", icon: LuPhone, keywords: "werkrij vandaag bellen te laat opvolgen warm klantenbord", paletteOnly: true },
   { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen" },
   { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding sales" },
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
@@ -87,7 +88,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
 ];
 
 export const CRUMBS: Record<string, string> = {
-  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", klantenbord: "Klantenbord", brochures: "Brochures", paginas: "Pagina's", blog: "Blog",
+  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", klantenbord: "Klantenbord", vandaag: "Vandaag", brochures: "Brochures", paginas: "Pagina's", blog: "Blog",
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",

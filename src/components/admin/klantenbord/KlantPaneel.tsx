@@ -1,13 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { LuCalendarClock, LuCheck, LuExternalLink, LuMail, LuPhone, LuPlus, LuTrash2, LuX } from "react-icons/lu";
+import { LuCalendarClock, LuCheck, LuExternalLink, LuMail, LuPhone, LuPlus, LuSend, LuTrash2, LuX } from "react-icons/lu";
 import {
   actieStand, bronHref, CHECKLIST, GESPREK_SOORTEN, KLANT_STATUS, relatief, relatiefMoment, statusInfo, type Bezoek, type Gesprek, type GesprekSoort, type Klant,
   type KlantStatus, type Koppeling,
 } from "@/lib/klanten";
 import { datumLang, momentLang } from "@/lib/offertes";
-import { maakKlant, verwijderGesprek, verwijderKlant, voegGesprekToe, wijzigKlant, zetKlantStatus, type KlantInvoer } from "@/app/admin/klantenActions";
+import { MAIL_SJABLONEN, naamUitEmail, sjabloon, voornaamUit, vulIn } from "@/lib/klantMail";
+import { noteerBel } from "@/lib/belAfloop";
+import { maakKlant, mailKlant, verwijderGesprek, verwijderKlant, voegGesprekToe, wijzigKlant, zetKlantStatus, type KlantInvoer } from "@/app/admin/klantenActions";
 import { BRON_ICOON, BRON_LABEL, Checklist, Eigenaar, GesprekIcoon, KoppelChip, SiteIcoon, SOORT_LABEL } from "./bits";
 
 /**
@@ -25,6 +27,10 @@ type Props = {
   bezoek: Bezoek | null;
   vandaag: string;
   eigenaren: string[];
+  /** Of Resend is ingesteld; zo niet, dan zegt het paneel dat in plaats van een knop. */
+  mailAan: boolean;
+  /** Het e-mailadres van wie is ingelogd: de afzender van een mail. */
+  ik: string;
   onClose: () => void;
   onKlant: (k: Klant, gesprek?: Gesprek | null) => void;
   onGesprekWeg: (klant: Klant, gesprekId: string) => void;
@@ -191,7 +197,7 @@ function tijdlijn(gesprekken: Gesprek[], bezoek: Bezoek | null): Regel[] {
   return regels.sort((a, b) => b.moment.localeCompare(a.moment));
 }
 
-function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenaren, onClose, onKlant, onGesprekWeg, onVerwijderd, meld }: Props & { klant: Klant }) {
+function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenaren, mailAan, ik, onClose, onKlant, onGesprekWeg, onVerwijderd, meld }: Props & { klant: Klant }) {
   const [bezig, start] = useTransition();
   const [fout, setFout] = useState<string | null>(null);
   const actie = actieStand(k, vandaag);
@@ -210,6 +216,48 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
   const [vervolg, setVervolg] = useState("");
   const [vervolgOp, setVervolgOp] = useState("");
   const [naar, setNaar] = useState<KlantStatus | "">("");
+
+  // Mailen vanuit de kaart.
+  const [mailOpen, setMailOpen] = useState(false);
+  const [mailKey, setMailKey] = useState<string>(k.status === "offerte" || k.status === "akkoord" ? "offerte_nabellen" : k.status === "inrichten" || k.status === "klant" ? "welkom" : "kennismaking");
+  const [mailAan2, setMailAan2] = useState(k.email || "");
+  const [afzender, setAfzender] = useState(() => {
+    try {
+      return localStorage.getItem("kb-afzender") || naamUitEmail(ik);
+    } catch {
+      return naamUitEmail(ik);
+    }
+  });
+  const velden = { voornaam: voornaamUit(k.contactpersoon), bedrijf: k.bedrijf, afzender };
+  const [onderwerp, setOnderwerp] = useState(() => vulIn(sjabloon(mailKey).onderwerp, velden));
+  const [mailTekst, setMailTekst] = useState(() => vulIn(sjabloon(mailKey).tekst, velden));
+  const [mailVervolg, setMailVervolg] = useState(true);
+  const kiesSjabloon = (key: string) => {
+    const sj = sjabloon(key);
+    setMailKey(key);
+    setOnderwerp(vulIn(sj.onderwerp, velden));
+    setMailTekst(vulIn(sj.tekst, velden));
+    setMailVervolg(Boolean(sj.volgende));
+  };
+  const verstuurMail = () =>
+    doe(
+      async () => {
+        const sj = sjabloon(mailKey);
+        const vervolg = mailVervolg && sj.volgende ? { volgende_actie: sj.volgende.tekst, volgende_actie_op: plusDagen(vandaag, sj.volgende.overDagen) } : {};
+        const r = await mailKlant(k.id, { aan: mailAan2, onderwerp, tekst: mailTekst, afzender, ...vervolg });
+        if (r.ok) onKlant(r.klant, r.gesprek);
+        return r;
+      },
+      () => {
+        try {
+          localStorage.setItem("kb-afzender", afzender);
+        } catch {
+          // geen opslag: dan de volgende keer weer de naam uit het e-mailadres
+        }
+        setMailOpen(false);
+        meld(true, `Mail verstuurd naar ${mailAan2}.`);
+      },
+    );
 
   // De gegevens.
   const [g, setG] = useState<KlantInvoer>({
@@ -340,7 +388,7 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
         {(k.telefoon || k.email) && (
           <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13.5px]">
             {k.contactpersoon && <span className="text-black/60">{k.contactpersoon}</span>}
-            {k.telefoon && <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 font-semibold text-[#e75387] hover:underline"><LuPhone className="text-[12px]" />{k.telefoon}</a>}
+            {k.telefoon && <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} onClick={() => noteerBel({ id: k.id, bedrijf: k.bedrijf, naam: k.contactpersoon })} className="inline-flex items-center gap-1.5 font-semibold text-[#e75387] hover:underline"><LuPhone className="text-[12px]" />{k.telefoon}</a>}
             {k.email && <a href={`mailto:${k.email}`} className="inline-flex items-center gap-1.5 font-semibold text-[#e75387] hover:underline"><LuMail className="text-[12px]" />{k.email}</a>}
           </div>
         )}
@@ -430,6 +478,62 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
               </button>
             </div>
           </div>
+        </section>
+
+        {/* Mail sturen */}
+        <section className="acard p-4" aria-labelledby="kb-mail">
+          <div className="flex items-center justify-between gap-3">
+            <h3 id="kb-mail" className={`${kop} inline-flex items-center gap-1.5`}><LuMail className="text-[13px]" /> Mail sturen</h3>
+            {!mailOpen && (
+              <button type="button" onClick={() => setMailOpen(true)} className="abtn-ghost !px-3 !py-1 !text-[12.5px]" disabled={!mailAan}>{mailAan ? "Schrijf een mail" : "Mailen staat uit"}</button>
+            )}
+          </div>
+          {!mailAan && <p className="mt-2 text-[12.5px] text-black/45">Resend is niet ingesteld (Instellingen → E-mail). Tot die tijd mail je vanuit je eigen mailprogramma en leg je het hier vast als &quot;Gemaild&quot;.</p>}
+          {mailOpen && (
+            <form
+              className="mt-3 space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                verstuurMail();
+              }}
+            >
+              <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Sjabloon">
+                {MAIL_SJABLONEN.map((sj) => (
+                  <button key={sj.key} type="button" role="radio" aria-checked={mailKey === sj.key} onClick={() => kiesSjabloon(sj.key)} className={`rounded-full px-3 py-1 text-[12.5px] font-semibold transition ${mailKey === sj.key ? "bg-[#312e82] text-white" : "bg-black/[0.04] text-black/60 hover:bg-black/[0.08]"}`}>
+                    {sj.label}
+                  </button>
+                ))}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <label className="alabel" htmlFor="kb-mail-aan">Aan</label>
+                  <input id="kb-mail-aan" className={veld} type="email" value={mailAan2} onChange={(e) => setMailAan2(e.target.value)} required />
+                </div>
+                <div>
+                  <label className="alabel" htmlFor="kb-mail-van">Je naam onder de mail</label>
+                  <input id="kb-mail-van" className={veld} value={afzender} onChange={(e) => setAfzender(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="alabel" htmlFor="kb-mail-onderwerp">Onderwerp</label>
+                <input id="kb-mail-onderwerp" className={veld} value={onderwerp} onChange={(e) => setOnderwerp(e.target.value)} required />
+              </div>
+              <div>
+                <label className="alabel" htmlFor="kb-mail-tekst">Tekst <span className="font-normal text-black/40">(de groet en je naam komen eronder)</span></label>
+                <textarea id="kb-mail-tekst" className={`${veld} font-sans`} rows={7} value={mailTekst} onChange={(e) => setMailTekst(e.target.value)} required />
+              </div>
+              {sjabloon(mailKey).volgende && (
+                <label className="flex cursor-pointer items-center gap-2 text-[13px] font-semibold text-black/65">
+                  <input type="checkbox" checked={mailVervolg} onChange={(e) => setMailVervolg(e.target.checked)} className="h-4 w-4 accent-[#e75387]" />
+                  Volgende stap: {sjabloon(mailKey).volgende!.tekst.toLowerCase()} over {sjabloon(mailKey).volgende!.overDagen} dagen
+                </label>
+              )}
+              <div className="flex items-center justify-end gap-2">
+                <button type="button" onClick={() => setMailOpen(false)} className="abtn-ghost !px-3 !py-1.5 !text-[13px]">Annuleren</button>
+                <button className="abtn !px-4 !py-1.5 !text-[13px] disabled:opacity-40" disabled={bezig || !mailAan2 || !onderwerp.trim() || !mailTekst.trim()}><LuSend /> Verstuur mail</button>
+              </div>
+            </form>
+          )}
         </section>
 
         {/* Tijdlijn */}
