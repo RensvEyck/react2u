@@ -158,7 +158,7 @@ async function stil(page, sel) {
   await klant.waitForTimeout(400);
   await shot(klant, "06b-klant-artikelen", { fullPage: false });
   check(await klant.locator('nav[aria-label="Inhoud van het contract"] a[aria-current="true"]').count(), "inhoudsopgave loopt mee");
-  check((await klant.locator("#checklist").innerText()).includes("Nog niet ingevuld") && (await klant.locator("#checklist li").count()) === 8, "band Checklist arbeidsomstandigheden met de acht onderdelen, nog niet ingevuld");
+  check((await klant.locator("#checklist").innerText()).includes("Nog niet ingevuld") && (await klant.locator("#checklist ol li").count()) === 8, "band Checklist arbeidsomstandigheden met de acht onderdelen, nog niet ingevuld");
   check(await klant.locator('header nav a[href="#checklist"]').count(), "Checklist in de kopbalk");
   const bekeken = mails().find((m) => /bekijkt het basiscontract/.test(m.subject));
   check(Boolean(bekeken), "seintje aan de afzender bij eerste keer openen");
