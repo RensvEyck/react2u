@@ -171,7 +171,7 @@ export type ContractPubliek = Pick<
 export type ContractGebeurtenis = {
   id: number;
   contract_id: string;
-  soort: "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "code" | "getekend" | "ingetrokken" | "heropend";
+  soort: "aangemaakt" | "gewijzigd" | "verstuurd" | "herinnering" | "bekeken" | "code" | "getekend" | "ingetrokken" | "heropend" | "checklist";
   door: string | null;
   details: Record<string, string | number | boolean> | null;
   at: string;

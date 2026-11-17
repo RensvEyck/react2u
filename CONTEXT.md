@@ -1381,6 +1381,40 @@ organisatie in en tekent online met een code per mail.
   lettertypen, keurmerken en de handtekening van de bestuurder mee naar Vercel;
   dat laatste nu ook voor `/offerte/**` (de offerte-pdf tekent hem sinds 3 nov).
 
+- **Checklist arbeidsomstandigheden** (sinds migratie
+  [0042](supabase/migrations/0042_contract_checklist.sql), 17 november 2026; Rens: "deze
+  moet bij het contract komen, in dezelfde stijl"): de "Checklist arbeidsomstandigheden -
+  inventarisatie" is een vast onderdeel van elk basiscontract, niet van een
+  resellerovereenkomst. De tekst staat letterlijk uit het Word-bestand in
+  [`lib/contractChecklist.ts`](src/lib/contractChecklist.ts): de titel "Checklist
+  arbeidsomstandigheden wet", de vijf vakken bovenaan (plaats, bedrijf, datum, naam,
+  functie), de drie kolommen en de acht onderdelen, met de toelichting bij de
+  preventiemedewerker in de kolom actiepunten; "R&IE" en "de arbeidsomstandighedenbeleid"
+  staan zo in het bestand. De klant vult hem online in op `/contract/<token>/checklist`
+  ([`ContractChecklistPagina.tsx`](src/components/contract/ContractChecklistPagina.tsx):
+  de kopbalk van het contract met de weg terug, de opening in de lila tint, het formulier
+  als wit vel met per onderdeel de actiepunten en afspraken en de datum van afronding;
+  de naam is verplicht en minstens één onderdeel), ook na het tekenen en zo vaak hij wil
+  (`contract_checklists`: één rij per contract, `versie` telt; de checklist hoort niet
+  bij wat getekend is en zit niet in de hash). De contractpagina heeft de band "Bij dit
+  contract" met de acht onderdelen, de stand en de knoppen (ook in de kopbalk en de
+  inhoudsopgave). Schrijven alleen via `contract_checklist_opslaan` (token als sleutel),
+  lezen via `contract_checklist_bekijken`; het beheer leest de tabel
+  (`has_perm('bellijst')`) en toont de antwoorden bij het contract, met de soort
+  `checklist` in de tijdlijn en een stip in het register; `klant_gebeurtenis` (0041) kent
+  de soort, zodat het klantenbord hem toont. Pdf
+  ([`lib/contractChecklistPdf.tsx`](src/lib/contractChecklistPdf.tsx)) in de stijl van de
+  contract-pdf: leeg (met schrijfruimte, twee pagina's) als bijlage bij de contractmail en
+  als download, ingevuld met de antwoorden; routes `/contract/<token>/checklist/pdf` en
+  `/admin/contractvoorbeeld/<id>/checklist` (+ `/pdf`). Mails: het blok "Bij dit
+  contract" in de contractmail met de pdf als bijlage (`checklist` in `ContractMail`); na
+  het invullen een kopie met pdf aan de klant (`sendContractChecklistKopie`, op het adres
+  van het contract) en een sober seintje aan sales (`notifyContractChecklist`); de
+  bevestiging na het tekenen krijgt de ingevulde checklist als tweede bijlage, of de regel
+  dat hij nog openstaat. Tests: `lib/contractChecklist.test.ts` (o.a. dat er geen woord
+  uit het Word-bestand verloren gaat), `lib/contractChecklistPdf.test.tsx` en de
+  checkliststappen in `e2e/contract.cjs`.
+
 ### De resellerovereenkomst
 
 Sinds migratie [0033](supabase/migrations/0033_resellerovereenkomst.sql) (4 november

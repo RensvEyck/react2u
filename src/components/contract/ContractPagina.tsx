@@ -10,6 +10,7 @@ import {
   CONTRACT_EMAIL, CONTRACT_FOUT, CONTRACT_SOORT, comparities, contractFeiten, contractInhoud, contractKort, looptijdNu, normaliseerOpdrachtgever,
   opdrachtgeverFout, plaatsUit, react2uPartij, soortVan, versieTekst, type ContractPubliek, type ContractSoort, type Opdrachtgever,
 } from "@/lib/contracten";
+import { CHECKLIST_NAAM, CHECKLIST_TITEL, CHECKLIST_UITLEG, CHECKLIST_VRAGEN, checklistVoortgang, heeftChecklist, onderdeelBeantwoord, type ChecklistStand } from "@/lib/contractChecklist";
 import type { ContractStructuur } from "@/lib/contractTekst";
 import type { ContactInfo } from "@/lib/content";
 import { DOCUMENTEN } from "@/lib/documenten";
@@ -39,29 +40,35 @@ import { ondertekenContract, vraagContractCode } from "@/app/(offerte)/contract/
  * De resellerovereenkomst met een partner (0033) gebruikt hetzelfde scherm,
  * met zijn eigen kopjes en rollen (CONTRACT_SOORT): React2u en Reseller, het
  * kantoor met mailadres en telefoon, en geen looptijd maar "onbepaalde tijd".
+ *
+ * Bij een basiscontract hoort de Checklist arbeidsomstandigheden (0042): een
+ * band tussen het contract en het ondertekenen (en na het tekenen tussen de
+ * handtekeningen en de tekst) met de stand en de knop naar de checklistpagina
+ * (ContractChecklistPagina.tsx). De bouwstenen van deze pagina (kopbalk, voet,
+ * knoppen) worden daar hergebruikt; daarom zijn ze geëxporteerd.
  */
 
-const outfit = Outfit({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-outfit", display: "swap" });
+export const outfit = Outfit({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-outfit", display: "swap" });
 
 // Grijs van de site, net iets donkerder voor contrast (zoals de offertepagina).
-const MUTE = "#6B6985";
-const NAVY_LICHT = "#3B378F";
-const IVOOR = "#F8F5F1";
+export const MUTE = "#6B6985";
+export const NAVY_LICHT = "#3B378F";
+export const IVOOR = "#F8F5F1";
 
 export type Modus = "klant" | "collega" | "voorbeeld";
 
-const KNOP = "inline-flex h-[52px] items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold disabled:opacity-60";
-const knop = {
+export const KNOP = "inline-flex h-[52px] items-center justify-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-bold disabled:opacity-60";
+export const knop = {
   roze: `hv-btn hv-btn-roze ${KNOP}`,
   rand: `hv-btn hv-btn-rand ${KNOP}`,
 };
-const veld =
+export const veld =
   "h-[52px] w-full rounded-[14px] border border-[#DCDAE8] bg-white px-4 text-[16px] text-[#322E83] outline-none transition-[border-color,box-shadow] placeholder:text-[#A9A7BC] focus:border-[#322E83] focus:shadow-[0_0_0_3px_rgba(50,46,131,0.12)] disabled:bg-[#F6F5FB] disabled:text-[#A9A7BC]";
 
 // De vlakken met een decoratieve cirkel gebruiken overflow-clip, geen overflow-hidden: een verborgen
 // overloop is nog steeds te scrollen, en dan schuift het tekenblok opzij als de browser een veld of
 // knop in beeld scrollt (gezien in de browsertest).
-const PAGINA_CSS = `
+export const PAGINA_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .contract-doc *, .contract-doc *::before, .contract-doc *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
@@ -73,17 +80,17 @@ const PAGINA_CSS = `
 @media print { .contract-doc header, .contract-doc .geen-print { display: none !important; } }
 `;
 
-type Huis = { contact: ContactInfo };
+export type Huis = { contact: ContactInfo };
 
-const telLink = (t: string | null) => (t ? `tel:${t.replace(/[^\d+]/g, "")}` : null);
-const voornaam = (n: string | null | undefined) => (n || "").trim().split(/\s+/)[0] || "";
-const initialen = (naam: string | null) =>
+export const telLink = (t: string | null) => (t ? `tel:${t.replace(/[^\d+]/g, "")}` : null);
+export const voornaam = (n: string | null | undefined) => (n || "").trim().split(/\s+/)[0] || "";
+export const initialen = (naam: string | null) =>
   (naam || "React2u").split(/\s+/).filter(Boolean).map((w) => w[0]).filter((c) => /[A-Za-zÀ-ÿ]/.test(c)).slice(0, 2).join("").toUpperCase() || "R";
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /* ---------- kleine bouwstenen ---------- */
 
-function Vink({ size = 14, dik = 2.8 }: { size?: number; dik?: number }) {
+export function Vink({ size = 14, dik = 2.8 }: { size?: number; dik?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={dik} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="m5 12 5 5L20 7" />
@@ -91,21 +98,21 @@ function Vink({ size = 14, dik = 2.8 }: { size?: number; dik?: number }) {
   );
 }
 
-function Icoon({ d, size = 16 }: { d: string; size?: number }) {
+export function Icoon({ d, size = 16 }: { d: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={d} />
     </svg>
   );
 }
-const TELEFOON = "M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z";
-const OMLAAG = "M12 5v14M6 13l6 6 6-6";
-const DOWNLOAD = "M12 3v12m0 0-4-4m4 4 4-4M5 21h14";
-const MAIL = "M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm0 2 8 6 8-6";
+export const TELEFOON = "M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.1 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z";
+export const OMLAAG = "M12 5v14M6 13l6 6 6-6";
+export const DOWNLOAD = "M12 3v12m0 0-4-4m4 4 4-4M5 21h14";
+export const MAIL = "M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm0 2 8 6 8-6";
 const SLOT = "M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1zm2 0V7a4 4 0 0 1 8 0v4";
-const DOCUMENT = "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zm0 0v5h5M9 13h6M9 17h4";
+export const DOCUMENT = "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zm0 0v5h5M9 13h6M9 17h4";
 
-function Label({ children, licht = false }: { children: React.ReactNode; licht?: boolean }) {
+export function Label({ children, licht = false }: { children: React.ReactNode; licht?: boolean }) {
   return <span className="block text-[12.5px] font-bold uppercase tracking-[1.2px]" style={{ color: licht ? "rgba(255,255,255,0.72)" : MUTE }}>{children}</span>;
 }
 
@@ -143,7 +150,7 @@ function MetOpenPlekken({ tekst }: { tekst: string }) {
   );
 }
 
-function SectieKop({ eyebrow, titel, tekst, kleur = PINK }: { eyebrow: string; titel: string; tekst?: React.ReactNode; kleur?: string }) {
+export function SectieKop({ eyebrow, titel, tekst, kleur = PINK }: { eyebrow: string; titel: string; tekst?: React.ReactNode; kleur?: string }) {
   return (
     <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
       <div className="flex flex-col gap-4 lg:col-span-7">
@@ -155,7 +162,7 @@ function SectieKop({ eyebrow, titel, tekst, kleur = PINK }: { eyebrow: string; t
   );
 }
 
-function scrollNaar(id: string) {
+export function scrollNaar(id: string) {
   const rustig = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.getElementById(id)?.scrollIntoView({ behavior: rustig ? "auto" : "smooth", block: "start" });
 }
@@ -204,7 +211,7 @@ function useActief(ids: string[]) {
 }
 
 /** Of een onderdeel in beeld is: dan hoeft de knop ernaartoe niet meer. */
-function useInBeeld(id: string) {
+export function useInBeeld(id: string) {
   const [inBeeld, setInBeeld] = useState(false);
   useEffect(() => {
     const el = document.getElementById(id);
@@ -229,7 +236,7 @@ function useVandaag() {
 /* ---------- de pagina ---------- */
 
 export default function ContractPagina({
-  contract, token, modus, contact, vers = false,
+  contract, token, modus, contact, vers = false, checklist = null,
 }: {
   contract: ContractPubliek;
   token?: string;
@@ -237,17 +244,100 @@ export default function ContractPagina({
   contact: ContactInfo;
   /** Net getekend (minder dan een kwartier geleden): dan de felicitatie. */
   vers?: boolean;
+  /** De Checklist arbeidsomstandigheden (0042): wat de klant al invulde, of null. */
+  checklist?: ChecklistStand | null;
 }) {
   const huis: Huis = { contact };
   return (
     <div className={`hv ${outfit.variable} contract-doc min-h-screen bg-white`}>
       <style>{PAGINA_CSS}</style>
       {contract.status === "getekend" && contract.getekend_inhoud ? (
-        <Getekend contract={contract} token={token} modus={modus} vers={vers} huis={huis} />
+        <Getekend contract={contract} token={token} modus={modus} vers={vers} huis={huis} checklist={checklist} />
       ) : (
-        <Ondertekenen contract={contract} token={token} modus={modus} huis={huis} />
+        <Ondertekenen contract={contract} token={token} modus={modus} huis={huis} checklist={checklist} />
       )}
     </div>
+  );
+}
+
+/** De link naar de checklistpagina en zijn pdf: via het token voor de klant, via het beheer in het voorbeeld. */
+export function checklistLinks(contract: Pick<ContractPubliek, "id">, token?: string) {
+  const basis = token ? `/contract/${token}/checklist` : `/admin/contractvoorbeeld/${contract.id}/checklist`;
+  return { pagina: basis, pdf: `${basis}/pdf` };
+}
+
+/* ---------- de checklist arbeidsomstandigheden (0042) ---------- */
+
+/**
+ * De band "Bij dit contract": wat de checklist is, de acht onderdelen in het
+ * kort met wat al beantwoord is, de stand, en de knoppen naar de
+ * checklistpagina en de pdf.
+ */
+function ChecklistBand({ contract, stand, token }: { contract: ContractPubliek; stand: ChecklistStand | null; token?: string }) {
+  const links = checklistLinks(contract, token);
+  const v = checklistVoortgang(stand?.data);
+  const klaar = v.beantwoord === v.totaal;
+  return (
+    <section id="checklist" aria-label={CHECKLIST_NAAM} className="scroll-mt-[96px] bg-white">
+      <div className={`${BREED} flex flex-col gap-10 py-16 md:gap-14 md:py-[112px]`}>
+        <SectieKop eyebrow="Bij dit contract" titel={CHECKLIST_NAAM} tekst={CHECKLIST_UITLEG.kort} />
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="rounded-[28px] border p-6 md:p-10" style={{ borderColor: LINE, background: SOFT }}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <Label>Inventarisatie</Label>
+                <p className={`${kop} m-0 mt-1 text-[24px] leading-[1.2] tracking-[-0.4px] md:text-[28px]`} style={{ color: NAVY }}>{CHECKLIST_TITEL}</p>
+              </div>
+              <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13.5px] font-bold" style={stand ? { background: klaar ? "#E3F6ED" : "#FFFFFF", color: klaar ? "#0A7A4B" : NAVY, boxShadow: klaar ? undefined : `inset 0 0 0 1.5px ${LINE}` } : { background: "#FFFFFF", color: MUTE, boxShadow: `inset 0 0 0 1.5px ${LINE}` }}>
+                {stand && klaar && <Vink size={13} dik={3} />}
+                {v.beantwoord} van {v.totaal} beantwoord
+              </span>
+            </div>
+            <ol className="m-0 mt-6 grid list-none gap-2.5 p-0 sm:grid-cols-2">
+              {CHECKLIST_VRAGEN.map((q, i) => {
+                const b = Boolean(stand) && onderdeelBeantwoord(stand!.data, q.id);
+                return (
+                  <li key={q.id} className="flex items-start gap-3 rounded-[14px] bg-white px-3.5 py-3 text-[14.5px] leading-[1.45]" style={{ color: b ? NAVY : BODY }}>
+                    <span className={`${kop} mt-px grid h-6 w-6 shrink-0 place-items-center rounded-full text-[12px]`} style={b ? { background: NAVY, color: "#fff" } : { background: LAV, color: NAVY }}>
+                      {b ? <Vink size={12} dik={3} /> : i + 1}
+                    </span>
+                    <span>{q.alineas[0]}</span>
+                  </li>
+                );
+              })}
+            </ol>
+            <div className="geen-print mt-7 flex flex-wrap gap-3">
+              <a href={links.pagina} className={knop.roze}>{stand ? "Bekijk of vul aan" : "Vul de checklist in"}<Pijl size={14} /></a>
+              <a href={links.pdf} className={knop.rand}><Icoon d={DOWNLOAD} size={15} /> Download als pdf</a>
+            </div>
+          </div>
+          <div className="rounded-[24px] bg-white p-6 shadow-[0_30px_70px_-40px_rgba(50,46,131,0.45)] md:p-8" style={{ boxShadow: `inset 0 0 0 1px ${LINE}` }}>
+            <div className="flex items-start justify-between gap-4">
+              <Label>Stand</Label>
+              <span className="h-3 w-3 rounded-full" style={{ background: stand ? (klaar ? "#0A7A4B" : PINK) : "#D6D4E4" }} aria-hidden="true" />
+            </div>
+            {stand ? (
+              <>
+                <p className={`${kop} m-0 mt-3 text-[22px] leading-[1.25]`} style={{ color: NAVY }}>{klaar ? "Alle onderdelen beantwoord" : "Ingevuld, nog aan te vullen"}</p>
+                <p className="m-0 mt-2 text-[15px] leading-[1.6]" style={{ color: BODY }}>
+                  Ingevuld op {momentLang(stand.ingevuld_at)}{stand.door ? ` door ${stand.door}` : ""}{stand.versie > 1 ? `, bijgewerkt op ${momentLang(stand.bijgewerkt_at)}` : ""}.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className={`${kop} m-0 mt-3 text-[22px] leading-[1.25]`} style={{ color: NAVY }}>Nog niet ingevuld</p>
+                <p className="m-0 mt-2 text-[15px] leading-[1.6]" style={{ color: BODY }}>{CHECKLIST_UITLEG.invullen}</p>
+              </>
+            )}
+            <ul className="m-0 mt-5 flex list-none flex-col gap-2.5 border-t p-0 pt-5 text-[14.5px] leading-[1.5]" style={{ borderColor: LINE, color: NAVY }}>
+              {["Acht onderdelen, met per onderdeel actiepunten en afspraken en de datum van afronding", "Tussendoor opslaan en later aanvullen kan altijd", "Je krijgt een kopie als pdf in je mail; wij lezen mee"].map((r) => (
+                <li key={r} className="flex items-start gap-2.5"><span className="mt-0.5 shrink-0" style={{ color: PINK }}><Vink size={16} /></span>{r}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -255,7 +345,7 @@ export default function ContractPagina({
 
 type Onderdeel = { id: string; label: string };
 
-function Kopbalk({ contract, actie, onderdelen = [] }: { contract: ContractPubliek; actie?: React.ReactNode; onderdelen?: Onderdeel[] }) {
+export function Kopbalk({ contract, actie, onderdelen = [], terug }: { contract: ContractPubliek; actie?: React.ReactNode; onderdelen?: Onderdeel[]; terug?: { href: string; label: string } }) {
   const tel = telLink(contract.afzender_telefoon);
   const voortgang = useVoortgang();
   const actief = useActief(onderdelen.map((o) => o.id));
@@ -266,6 +356,12 @@ function Kopbalk({ contract, actie, onderdelen = [] }: { contract: ContractPubli
           <Logo className="h-9 w-auto shrink-0 md:h-11" />
           <span className="hidden h-8 w-px sm:block" style={{ background: LINE }} aria-hidden="true" />
           <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>Contract {contract.nummer}</span>
+          {terug && (
+            <a href={terug.href} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[14px] font-bold transition-colors hover:bg-[#F6F5FB]" style={{ color: NAVY }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
+              {terug.label}
+            </a>
+          )}
         </div>
         {onderdelen.length > 0 && (
           <nav aria-label="Onderdelen van het contract" className="hidden items-center gap-7 xl:flex">
@@ -294,7 +390,7 @@ function Kopbalk({ contract, actie, onderdelen = [] }: { contract: ContractPubli
   );
 }
 
-function Melding({ modus, soort }: { modus: Modus; soort: ContractSoort }) {
+export function Melding({ modus, soort }: { modus: Modus; soort: ContractSoort }) {
   if (modus === "klant") return null;
   const wie = CONTRACT_SOORT[soort].wederpartij;
   return (
@@ -308,7 +404,7 @@ function Melding({ modus, soort }: { modus: Modus; soort: ContractSoort }) {
   );
 }
 
-function Voet({ contract, huis, pdf }: { contract: ContractPubliek; huis: Huis; pdf: string | null }) {
+export function Voet({ contract, huis, pdf }: { contract: ContractPubliek; huis: Huis; pdf: string | null }) {
   const c = huis.contact;
   const mail = contract.afzender_email || CONTRACT_EMAIL;
   const kolomkop = "m-0 text-[15px] font-bold";
@@ -463,6 +559,7 @@ function Tekst({ soort, s, partijen, titel, eyebrow, tekst, metOndertekenen = fa
     { id: "partijen", label: sd.partijenKop },
     { id: "overwegingen", label: "Overwegingen" },
     ...s.artikelen.map((a) => ({ id: artikelId(a.nr), label: `${a.nr}. ${a.titel}` })),
+    ...(metOndertekenen && soort === "basiscontract" ? [{ id: "checklist", label: CHECKLIST_NAAM }] : []),
     ...(metOndertekenen ? [{ id: "ondertekenen", label: "Ondertekenen" }] : []),
   ];
   const actief = useActief(inhoud.map((o) => o.id));
@@ -602,9 +699,10 @@ function Documenten() {
 
 type OrgVeld = keyof Opdrachtgever;
 
-function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubliek; token?: string; modus: Modus; huis: Huis }) {
+function Ondertekenen({ contract, token, modus, huis, checklist }: { contract: ContractPubliek; token?: string; modus: Modus; huis: Huis; checklist: ChecklistStand | null }) {
   const soort = soortVan(contract);
   const reseller = soort === "reseller";
+  const metChecklist = heeftChecklist(contract);
   const vooraf = normaliseerOpdrachtgever(contract.opdrachtgever);
   const [og, setOg] = useState<Record<OrgVeld, string>>({
     naam: vooraf.naam || contract.bedrijf, adres: vooraf.adres || "", postcode: vooraf.postcode || "", plaats: vooraf.plaats || "", kvk: vooraf.kvk || "",
@@ -622,6 +720,7 @@ function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubl
   const partijen = comparities(soort, contract.opdrachtnemer, normaliseerOpdrachtgever(og), { naam, functie });
   const onderdelen = [
     { id: "contract", label: reseller ? "De overeenkomst" : "Het contract" },
+    ...(metChecklist ? [{ id: "checklist", label: "Checklist" }] : []),
     { id: "ondertekenen", label: "Ondertekenen" },
   ];
 
@@ -675,6 +774,8 @@ function Ondertekenen({ contract, token, modus, huis }: { contract: ContractPubl
           tekst={`De tekst van ${reseller ? "de Resellerovereenkomst arbodienstverlening" : "het Basiscontract Arbodienstverlening"}. De kop vult zich met de gegevens die je onderaan invult.`}
           metOndertekenen
         />
+
+        {metChecklist && <ChecklistBand contract={contract} stand={checklist} token={token} />}
 
         <section id="ondertekenen" aria-label="Ondertekenen" className="scroll-mt-[96px] px-[6px] py-10 md:px-6 md:py-16 xl:px-10">
           <div className="relative mx-auto max-w-[1360px] overflow-clip rounded-[28px] px-5 py-10 md:rounded-[36px] md:p-14 lg:p-16" style={{ background: LAV }}>
@@ -1084,8 +1185,9 @@ function Feest() {
   );
 }
 
-function Getekend({ contract, token, modus, vers, huis }: { contract: ContractPubliek; token?: string; modus: Modus; vers: boolean; huis: Huis }) {
+function Getekend({ contract, token, modus, vers, huis, checklist }: { contract: ContractPubliek; token?: string; modus: Modus; vers: boolean; huis: Huis; checklist: ChecklistStand | null }) {
   const inhoud = contract.getekend_inhoud!;
+  const metChecklist = heeftChecklist(inhoud);
   const og = inhoud.opdrachtgever || {};
   const soort = soortVan(inhoud);
   const reseller = soort === "reseller";
@@ -1096,7 +1198,11 @@ function Getekend({ contract, token, modus, vers, huis }: { contract: ContractPu
   const partijen = comparities(soort, inhoud.opdrachtnemer, og, { naam: inhoud.getekend_naam, functie: inhoud.getekend_functie });
   return (
     <>
-      <Kopbalk contract={contract} actie={<a href={`${pdf}?download=1`} className={`${knop.rand} !h-[48px] md:!h-[52px]`}><Icoon d={DOWNLOAD} size={15} /> Pdf</a>} />
+      <Kopbalk
+        contract={contract}
+        onderdelen={metChecklist ? [{ id: "checklist", label: "Checklist" }, { id: "contract", label: "Het contract" }] : []}
+        actie={<a href={`${pdf}?download=1`} className={`${knop.rand} !h-[48px] md:!h-[52px]`}><Icoon d={DOWNLOAD} size={15} /> Pdf</a>}
+      />
       <Melding modus={modus} soort={soortVan(contract)} />
       <main>
         <Opening
@@ -1177,6 +1283,8 @@ function Getekend({ contract, token, modus, vers, huis }: { contract: ContractPu
             )}
           </div>
         </section>
+
+        {metChecklist && <ChecklistBand contract={contract} stand={checklist} token={token} />}
 
         <Tekst soort={soort} s={s} partijen={partijen} eyebrow={reseller ? "De overeenkomst" : "Het contract"} titel="Wat we hebben afgesproken" tekst="De tekst zoals hij is getekend, met beide partijen in de kop." />
       </main>

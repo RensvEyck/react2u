@@ -130,6 +130,7 @@ async function stil(page, sel) {
   const art3 = await klant.locator("#artikel-3").innerText();
   check(/a\.\s*eerste Contractjaar: 50% van het Aansluittarief;/.test(art3) && /b\.\s*ieder volgend Contractjaar: 50% van het Aansluittarief\./.test(art3), "artikel 3.1 met de percentages van de partner");
   check((await klant.locator("text=Documenten bij dit contract").count()) === 0, "geen documenten van het basiscontract");
+  check((await klant.locator("#checklist").count()) === 0 && (await klant.locator('header nav a[href="#checklist"]').count()) === 0, "geen checklist arbeidsomstandigheden bij de resellerovereenkomst");
   check(await klant.locator("text=Aldus overeengekomen en in tweevoud ondertekend.").count(), "slotzin van het Word-bestand");
   await shot(klant, "04-partner-boven", { fullPage: false });
   await shot(klant, "05-partner-heel");

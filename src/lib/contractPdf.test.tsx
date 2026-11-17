@@ -6,7 +6,7 @@ const { contractPdf } = await import("./contractPdf");
 const { CONTACT_FALLBACK } = await import("./content");
 const { CONTRACT_STANDAARD, CONTRACT_VERSIE, RESELLER_VERSIE, resellerTekst } = await import("./contractTekst");
 const { opdrachtnemerUit } = await import("./contracten");
-const { contractMailHtml, contractCodeHtml, contractGetekendHtml } = await import("./contractMail");
+const { contractMailHtml, contractCodeHtml, contractGetekendHtml, contractChecklistHtml } = await import("./contractMail");
 import type { ContractCertificaat, GetekendContract } from "./contracten";
 
 const inhoud: GetekendContract = {
@@ -95,6 +95,28 @@ describe("contractmails", () => {
     });
     expect(klaar).toContain("Welkom als partner.");
     expect(klaar).toContain("de resellerovereenkomst voor Jouw HR Partner");
+  });
+
+  it("de checklist arbeidsomstandigheden (0042): het blok in de contractmail, de regel in de bevestiging en de kopie", () => {
+    const basis = { basis: "https://react2u.nl", aanhef: "Marieke", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc", bericht: null, afzender, feiten: [], kort: [] };
+    expect(contractMailHtml({ ...basis, checklist: true })).toContain("Bij dit contract");
+    expect(contractMailHtml({ ...basis, checklist: true })).toContain("Als pdf in de bijlage");
+    expect(contractMailHtml(basis)).not.toContain("Bij dit contract");
+    // Een resellerovereenkomst heeft geen checklist, ook niet als de vlag per ongeluk meekomt.
+    expect(contractMailHtml({ ...basis, soort: "reseller", checklist: true })).not.toContain("Checklist arbeidsomstandigheden");
+    const b = { basis: "https://react2u.nl", naam: "Marieke Jansen", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc", hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [], afzender, pdf: true };
+    expect(contractGetekendHtml({ ...b, checklist: "bijgevoegd" })).toContain("ingevulde Checklist arbeidsomstandigheden zit er ook bij");
+    expect(contractGetekendHtml({ ...b, checklist: "open" })).toContain("hoort ook de Checklist arbeidsomstandigheden");
+    expect(contractGetekendHtml(b)).not.toContain("Checklist arbeidsomstandigheden");
+    const kopie = contractChecklistHtml({
+      basis: "https://react2u.nl", aanhef: "Marieke", bedrijf: "Jansen & <Zn>", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc/checklist",
+      beantwoord: 3, totaal: 8, opnieuw: false, door: "Marieke Jansen", afzender, pdf: true,
+    });
+    expect(kopie).toContain("Je checklist is opgeslagen");
+    expect(kopie).toContain("3 van 8 onderdelen beantwoord");
+    expect(kopie).toContain("Jansen &amp; &lt;Zn&gt;");
+    expect(kopie).toContain("https://react2u.nl/contract/abc/checklist");
+    expect(contractChecklistHtml({ basis: "https://react2u.nl", aanhef: null, bedrijf: "Jansen", nummer: "C2026-0001", link: "x", beantwoord: 8, totaal: 8, opnieuw: true, door: null, afzender, pdf: false })).toContain("Je checklist is bijgewerkt");
   });
 
   it("de code en de bevestiging", () => {

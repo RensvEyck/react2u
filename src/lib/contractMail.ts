@@ -1,4 +1,5 @@
 import type { ContactInfo } from "./content";
+import { CHECKLIST_NAAM, CHECKLIST_UITLEG } from "./contractChecklist";
 import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
 import { MERKEN } from "./offerteMerk";
 import {
@@ -12,7 +13,9 @@ import {
  * (lib/offerteMail.ts), in de kleuren van React2u zelf zoals de brochure: een
  * basiscontract hoort bij de arbodienst, niet bij één label. De
  * resellerovereenkomst met een partner (0033) gebruikt dezelfde mails, met
- * zijn eigen woorden.
+ * zijn eigen woorden. Bij een basiscontract gaat de Checklist
+ * arbeidsomstandigheden (0042) mee: een blok in de contractmail, een kopie aan
+ * de klant als hij hem invult, en een regel in de bevestiging na het tekenen.
  */
 
 /** De indigo tint van React2u Ready als kleur van de kop, net als bij de brochure. */
@@ -59,8 +62,20 @@ export type ContractMail = {
   feiten: Feit[];
   /** De belangrijkste afspraken in gewone woorden, als vinkjes. */
   kort: string[];
+  /** De Checklist arbeidsomstandigheden gaat mee (basiscontract, 0042): het blok "Bij dit contract" en de pdf in de bijlage. */
+  checklist?: boolean;
   contact?: ContactInfo;
 };
+
+/** Het blok over de checklist in de contractmail: wat het is, en dat hij online in te vullen is. */
+function checklistKaart() {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td style="background:${HUIS.tint};border-radius:18px;padding:20px 22px" class="binnen">
+  <p style="margin:0 0 4px;font-family:${FONT_KOP};font-size:18px;line-height:1.25;font-weight:700;color:${KLEUR.inkt}">${esc(CHECKLIST_NAAM)}</p>
+  <p style="margin:0;font-family:${FONT};font-size:15px;line-height:1.55;color:${KLEUR.tekst}">${esc(CHECKLIST_UITLEG.mail)}</p>
+  <p style="margin:10px 0 0;font-family:${FONT};font-size:13px;line-height:1.4;font-weight:700;color:${KLEUR.grijs}">Als pdf in de bijlage</p>
+</td></tr></table>`;
+}
 
 export function contractMailHtml(c: ContractMail): string {
   const bedrijf = esc(c.bedrijf);
@@ -116,6 +131,7 @@ ${ruimte(8)}
 ${c.kort.length ? `${eyebrow("In het kort", HUIS.tekst)}${vinkjes(HUIS, c.kort.map(esc))}${ruimte(32)}` : ""}
 ${eyebrow("Zo werkt het", HUIS.tekst)}
 ${stappen(HUIS, werkwijze)}
+${c.checklist && !reseller ? `${ruimte(32)}${eyebrow("Bij dit contract", HUIS.tekst)}${checklistKaart()}` : ""}
 ${ruimte(34)}
 ${scheiding}
 ${ruimte(28)}
@@ -167,6 +183,8 @@ ${afzenderKaart(c.afzender, HUIS)}`);
 export function contractGetekendHtml(b: {
   basis: string; soort?: ContractSoort; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
   regels: { label: string; waarde: string }[]; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo;
+  /** Basiscontract (0042): de ingevulde checklist zit erbij, of staat nog open. */
+  checklist?: "bijgevoegd" | "open";
 }): string {
   const voornaam = b.naam.trim().split(/\s+/)[0] || b.naam;
   const reseller = soortVan(b) === "reseller";
@@ -200,6 +218,11 @@ export function contractGetekendHtml(b: {
         ? "In de bijlage zit het ondertekende contract als pdf, met achterin het ondertekeningscertificaat. Bewaar het bij je administratie; je ondernemingsraad of personeelsvertegenwoordiging mag het inzien."
         : "Via de knop zie je het ondertekende contract terug en download je het als pdf.",
   )}
+${b.checklist === "bijgevoegd"
+    ? p(`De ingevulde ${esc(CHECKLIST_NAAM)} zit er ook bij als pdf. Aanvullen kan altijd via dezelfde link.`)
+    : b.checklist === "open"
+      ? p(`Bij het contract hoort ook de ${esc(CHECKLIST_NAAM)}: de inventarisatie van de verplichte onderdelen. Die vul je via dezelfde link in, wanneer het jou past.`)
+      : ""}
 ${ruimte(6)}
 ${knop(reseller ? "Bekijk de ondertekende overeenkomst" : "Bekijk het ondertekende contract", b.link, KLEUR.indigo, 340)}
 ${ruimte(34)}
@@ -214,5 +237,35 @@ ${afzenderKaart(b.afzender, HUIS)}`);
     kaart: kop + romp,
     voetnoot: `Kenmerk van de ondertekende versie: <span style="font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all">${esc(b.hash)}</span>`,
     contact: b.contact,
+  });
+}
+
+/* ---------- de kopie van de checklist (0042) ---------- */
+
+/** Aan de klant, zodra hij de Checklist arbeidsomstandigheden invult of bijwerkt: wat er staat, en de pdf in de bijlage. */
+export function contractChecklistHtml(c: {
+  basis: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; beantwoord: number; totaal: number; opnieuw: boolean;
+  door: string | null; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo;
+}): string {
+  const kaart = vak(`${pil(`Contract ${esc(c.nummer)}`, KLEUR.roze)}
+${ruimte(22)}
+<p class="kop-groot" style="margin:0 0 12px;font-family:${FONT_KOP};font-size:32px;line-height:1.15;font-weight:700;letter-spacing:-0.015em;color:${KLEUR.indigo}">${c.opnieuw ? "Je checklist is bijgewerkt" : "Je checklist is opgeslagen"}</p>
+${p(`${c.door ? `${esc(c.door)} heeft` : "Je hebt"} de ${esc(CHECKLIST_NAAM)} bij het basiscontract voor ${esc(c.bedrijf.trim())} ${c.opnieuw ? "bijgewerkt" : "ingevuld"}: ${c.beantwoord} van ${c.totaal} onderdelen beantwoord.`, "margin-bottom:0")}`, `${heldAchtergrond(c.basis, HUIS)};border-radius:27px 27px 0 0`);
+  const romp = vak(`${p(`Beste ${esc(c.aanhef?.trim() || "relatie")},`)}
+${p(c.pdf ? "In de bijlage staat de checklist als pdf, met alle antwoorden. Bewaar hem bij het contract; de datums van afronding kun je later aanvullen via de knop hieronder." : "Via de knop hieronder zie je de checklist terug en kun je hem aanvullen, bijvoorbeeld met de datums van afronding.")}
+${ruimte(6)}
+${knop("Bekijk of vul aan", c.link, KLEUR.indigo, 300)}
+${ruimte(34)}
+${scheiding}
+${ruimte(28)}
+${afzenderKaart(c.afzender, HUIS)}
+${ruimte(30)}
+${linkAlsTekst(c.link)}`);
+  return omhulsel({
+    basis: c.basis,
+    titel: `${CHECKLIST_NAAM} bij contract ${c.nummer}`,
+    preheader: `${c.beantwoord} van ${c.totaal} onderdelen beantwoord. ${c.pdf ? "De checklist zit als pdf in de bijlage." : ""}`.trim(),
+    kaart: kaart + romp,
+    contact: c.contact,
   });
 }
