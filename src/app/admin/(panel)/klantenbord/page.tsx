@@ -15,7 +15,7 @@ import { LuDatabase } from "react-icons/lu";
  * Het klantenbord (migratie 0040): alle leads en klanten op één scherm, met
  * de status, het laatste gesprek en de volgende stap. De rijen komen hier
  * vandaan, samen met wat er in de andere modules over dezelfde bedrijven
- * staat (offertes, brochures, contracten, onboardings, de bellijst); het bord
+ * staat (offertes, brochures, contracten, onboardings, klantevaluaties, de bellijst); het bord
  * zelf is een client component die zichzelf bijwerkt.
  */
 
@@ -33,7 +33,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
   const metBezoek = admin.permissions.includes("bezoek");
   const sinds = new Date(nu.getTime() - 14 * 86_400_000).toISOString();
 
-  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes, pvRes, prRes, verkoop] = await Promise.all([
+  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes, pvRes, prRes, verkoop, evRes] = await Promise.all([
     sb.from("klanten").select("*").order("updated_at", { ascending: false }).limit(2000),
     sb.from("klant_gesprekken").select("*").order("op", { ascending: false }).order("created_at", { ascending: false }).limit(5000),
     sb.from("offertes").select("id, nummer, status, bedrijf, verstuurd_at, getekend_at, created_at").neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
@@ -46,6 +46,8 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
     metBezoek ? sb.from("company_profiles").select("key, name, domain, ignored, lead_id") : Promise.resolve({ data: null }),
     // Voor de teller op de knop Vandaag: dezelfde signalen als de werkrij.
     haalVerkoop(sb, nu).catch(() => null),
+    // Klantevaluaties (0043); vóór die migratie bestaat de tabel niet, dan gewoon geen koppelingen.
+    sb.from("evaluaties").select("id, nummer, status, bedrijf, bekeken_at, verstuurd_at, ingevuld_at, created_at").neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
   ]);
 
   const tabel = !kRes.error || !isMissingTable(kRes.error);
@@ -57,6 +59,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
     contracten: (cRes.data as unknown as Bronnen["contracten"] | null) || [],
     onboardings: (((obRes.data as unknown as OnboardingRij[] | null) || []).map((o) => ({ ...o, weergave: onboardingWeergave(o) }))),
     leads: (lRes.data as Bronnen["leads"] | null) || [],
+    evaluaties: (evRes.data as unknown as Bronnen["evaluaties"] | null) || [],
   };
   const index = koppelIndex(bronnen);
   const koppelingen: Record<string, Koppeling[]> = {};

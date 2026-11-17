@@ -24,7 +24,7 @@ export default function OfferteVersturen({
   /** Een andere verzendactie dan die van offertes (brochures 0030, contracten 0031). */
   actie?: (prev: VersturenState, fd: FormData) => Promise<VersturenState>;
   /** Wat er verstuurd wordt, voor de teksten; "overeenkomst" is de resellerovereenkomst (0033). */
-  woord?: "offerte" | "brochure" | "contract" | "overeenkomst" | "onboarding";
+  woord?: "offerte" | "brochure" | "contract" | "overeenkomst" | "onboarding" | "evaluatie";
 }) {
   // "de offerte", "de brochure", maar "het basiscontract" en "de resellerovereenkomst".
   const het = woord === "contract" ? "het basiscontract" : woord === "overeenkomst" ? "de resellerovereenkomst" : `de ${woord}`;
@@ -35,6 +35,8 @@ export default function OfferteVersturen({
     ? `Ik wilde even checken of je ${het} voor ${bedrijf} hebt kunnen bekijken. Heb je nog vragen, of wil je iets anders zien? Laat het gerust weten${woord === "offerte" ? ", dan pas ik hem aan" : ""}.`
     : woord === "onboarding"
       ? `Fijn dat we gaan samenwerken! Hierbij de onboarding voor ${bedrijf}: alles om goed te starten op één plek. Vul in wat je online kunt invullen, de rest staat klaar om te downloaden.`
+      : woord === "evaluatie"
+        ? `Fijn dat we voor ${bedrijf} mogen zorgen. Hierbij onze jaarlijkse klantevaluatie: samen kijken we wat goed gaat, wat beter kan en wat je komend jaar nodig hebt. Invullen kost een kwartier; we bespreken het daarna samen.`
       : `${woord === "contract" || woord === "overeenkomst" ? "Fijn dat we gaan samenwerken!" : "Bedankt voor het prettige gesprek."} Zoals besproken stuur ik je hierbij ${ons} voor ${bedrijf}${/[.!?]$/.test(bedrijf.trim()) ? "" : "."}`;
   const [bericht, setBericht] = useState(standaard);
   // Na een geslaagde verzending een nieuwe standaardtekst (van "hierbij de offerte" naar een herinnering).

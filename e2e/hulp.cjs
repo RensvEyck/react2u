@@ -21,6 +21,7 @@ const mails = () => (fs.existsSync(MAILS) ? fs.readFileSync(MAILS, "utf8").trim(
 const offerteLink = (html) => (html || "").match(/href="(https?:\/\/[^"]+\/offerte\/[a-f0-9]{48,})"/)?.[1];
 const brochureLink = (html) => (html || "").match(/href="(https?:\/\/[^"]+\/brochure\/[a-f0-9]{48,})"/)?.[1];
 const onboardingLink = (html) => (html || "").match(/href="(https?:\/\/[^"]+\/onboarding\/[a-f0-9]{48,})"/)?.[1];
+const evaluatieLink = (html) => (html || "").match(/href="(https?:\/\/[^"]+\/evaluatie\/[a-f0-9]{48,})"/)?.[1];
 
 function base32(s) {
   const a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -45,7 +46,7 @@ const geheim = () => fs.readFileSync(path.join(UIT, "totp-geheim.txt"), "utf8").
 
 const sql = (q) => execFileSync("docker", ["exec", "-i", DB, "psql", "-U", "postgres", "-d", "postgres", "-tA", "-c", q]).toString().trim();
 
-module.exports = { BASIS, UIT, MAILS, DB, BEHEERDER, mails, offerteLink, brochureLink, onboardingLink, totp, geheim, sql };
+module.exports = { BASIS, UIT, MAILS, DB, BEHEERDER, mails, offerteLink, brochureLink, onboardingLink, evaluatieLink, totp, geheim, sql };
 
 /**
  * Een .xlsx zoals Excel hem opslaat (deflate, gedeelde tekst, een datumopmaak),

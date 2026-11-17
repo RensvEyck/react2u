@@ -177,10 +177,10 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     await supabase.auth.getUser();
     return response();
   }
-  // Een offerte (/offerte/<token>), brochure (/brochure/<token>), contract (/contract/<token>), onboarding (/onboarding/<token>)
-  // of machtiging van een werknemer (/machtiging/<token>, 0038) is voor één persoon, geen pagina van de site: geen
-  // onderhoudspagina en geen doorverwijzingen ervoor. Wie net wil tekenen, moet dat ook kunnen als de site even dicht is.
-  if (["/offerte/", "/brochure/", "/contract/", "/onboarding/", "/machtiging/"].some((p) => pathname.startsWith(p))) return NextResponse.next();
+  // Een offerte (/offerte/<token>), brochure (/brochure/<token>), contract (/contract/<token>), onboarding (/onboarding/<token>),
+  // machtiging van een werknemer (/machtiging/<token>, 0038) of klantevaluatie (/evaluatie/<token>, 0043) is voor één persoon, geen
+  // pagina van de site: geen onderhoudspagina en geen doorverwijzingen ervoor. Wie net wil tekenen, moet dat ook kunnen als de site even dicht is.
+  if (["/offerte/", "/brochure/", "/contract/", "/onboarding/", "/machtiging/", "/evaluatie/"].some((p) => pathname.startsWith(p))) return NextResponse.next();
   return publicGate(request, event);
 }
 
