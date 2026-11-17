@@ -332,13 +332,12 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   check(await page.locator("ol[aria-label='Werkrij'] >> text=Vandaag: Bellen over de brochure").count(), "wat vandaag moet staat erin");
   check(await page.locator("ol[aria-label='Werkrij'] li:has-text('Bakkerij De Korenaar') >> text=Op de site").count(), "het sitebezoek als reden");
   await shot(page, "12-vandaag", { fullPage: false });
-  // Met het toetsenbord: naar de rij van de bakkerij, N = niet bereikt.
-  const eersteKorenaar = (await page.locator("ol[aria-label='Werkrij'] > li").first().innerText()).includes("Bakkerij De Korenaar");
-  if (!eersteKorenaar) await page.keyboard.press("j");
+  // Met het toetsenbord: de rij van de bakkerij kiezen (in CI staan er ook kaarten van eerdere tests), dan N = niet bereikt.
+  await page.locator("ol[aria-label='Werkrij'] li:has-text('Bakkerij De Korenaar')").click();
   await page.keyboard.press("n");
   check((await tot(`select count(*) from public.klant_gesprekken where klant_id = '${id}' and tekst = 'Niet bereikt'`, "1")) === "1", "N: niet bereikt vastgelegd");
   check(sql(`select volgende_actie || ' ' || volgende_actie_op from public.klanten where id = '${id}'`) === `Offerte nabellen ${morgen}`, "en morgen opnieuw, met dezelfde actie");
-  await page.waitForSelector("text=niet bereikt, morgen opnieuw.");
+  await page.waitForSelector("text=Bakkerij De Korenaar: niet bereikt, morgen opnieuw.");
   check((await page.locator("ol[aria-label='Werkrij'] li:has-text('Bakkerij De Korenaar')").count()) === 0, "de rij is weg");
   // Enter = gesproken, met de volgende stap en een nieuwe kolom.
   const kapsalonRij = page.locator("ol[aria-label='Werkrij'] li:has-text('Kapsalon Knip')");
@@ -351,10 +350,10 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await page.click("ol[aria-label='Werkrij'] button:has-text('Vastleggen')");
   check((await tot(`select status from public.klanten where id = '${kapsalon[0]}'`, "gesprek")) === "gesprek", "gesproken: kaart naar In gesprek");
   check(sql(`select volgende_actie || ' | ' || laatste_contact from public.klanten where id = '${kapsalon[0]}'`) === "Offerte maken | Sanne wil een offerte voor 8 medewerkers.", "volgende stap en laatste contact gezet");
-  // De rest: D = klaar, tot de rij leeg is.
-  for (let i = 0; i < 12 && (await page.locator("ol[aria-label='Werkrij'] > li").count()) > 0; i++) {
+  // De rest: D = klaar, tot de rij leeg is (in CI ook de kaarten van eerdere tests).
+  for (let i = 0; i < 60 && (await page.locator("ol[aria-label='Werkrij'] > li").count()) > 0; i++) {
     await page.keyboard.press("d");
-    await wacht(400);
+    await wacht(350);
   }
   await page.waitForSelector("text=De rij is leeg. Mooi werk.", { timeout: 15000 });
   check(true, "de rij is leeg");
