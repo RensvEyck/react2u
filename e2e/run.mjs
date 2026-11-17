@@ -89,7 +89,9 @@ function nepResend() {
     req.on("end", () => {
       if (req.method === "POST" && req.url === "/emails") {
         fs.appendFileSync(bestand, JSON.stringify({ at: new Date().toISOString(), ...JSON.parse(body || "{}") }) + "\n");
-        res.writeHead(200, { "content-type": "application/json" });
+        // Geen keep-alive: Node hergebruikt anders een verbinding die deze server net na vijf seconden stilte sloot,
+        // en dan mislukt een mail op ECONNRESET (gezien bij de bevestiging met een pdf in de evaluatietest).
+        res.writeHead(200, { "content-type": "application/json", connection: "close" });
         return res.end(JSON.stringify({ id: `nep-${Date.now()}` }));
       }
       res.writeHead(404);

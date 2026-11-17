@@ -135,7 +135,8 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   check((await page.inputValue("#vs-aan")) === KLANT_EMAIL, "aan: het adres van de klant");
   check((await page.inputValue("#vs-bericht")).includes("jaarlijkse klantevaluatie"), "standaardbericht over de evaluatie");
   await page.click("button:has-text('Verstuur evaluatie')");
-  await page.waitForSelector("text=Verstuurd.", { timeout: 20000 });
+  // Niet `text=Verstuurd.`: dat vindt ook "Nog niet verstuurd." in het blok van het bezoek.
+  await page.waitForSelector("[role=status]:has-text('Verstuurd.')", { timeout: 20000 });
   const mail = mails().find((m) => m.to?.includes(KLANT_EMAIL));
   check(mail?.subject === `Klantevaluatie React2u voor ${BEDRIJF}`, `onderwerp: ${mail?.subject}`);
   check(mail?.reply_to === "sales@react2u.nl", `antwoorden naar de salesbox (${mail?.reply_to})`);
@@ -144,7 +145,7 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   const link = evaluatieLink(mail?.html);
   check(Boolean(link), `link in de mail: ${link}`);
   await page.reload();
-  await page.waitForSelector("span:has-text('Verstuurd')");
+  await page.waitForSelector("span.apill:has-text('Verstuurd')");
   check(await page.locator(`text=Verstuurd naar ${KLANT_EMAIL}`).count(), "verstuurd in de tijdlijn");
   const nummer = sql(`select nummer from public.evaluaties where id = '${id}'`);
   check((await tot(`select count(*) from public.klant_gesprekken where bron = 'evaluatie' and bron_id = '${id}' and tekst = 'Klantevaluatie ${nummer} verstuurd naar ${KLANT_EMAIL}'`, "1")) === "1", "klantenbord: verstuurd in de tijdlijn");
@@ -246,10 +247,11 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   stap("De klant past iets aan");
   const voorWijziging = mails().length;
   await klant.fill("#ev-wensen", "Een PMO voor de behandelaren en een training voor leidinggevenden.");
+  check((await klant.locator("[role=status]").count()) === 0, "de melding 'verstuurd' verdwijnt zodra er weer iets wijzigt");
   await klant.click("#acties button:has-text('Wijzigingen opslaan')");
   await klant.waitForSelector("[role=status]:has-text('Opgeslagen. Dank je wel!')", { timeout: 20000 });
-  check(sql(`select antwoorden->>'wensen' from public.evaluaties where id = '${id}'`).includes("leidinggevenden"), "de wijziging staat erin");
-  check(sql(`select count(*) from public.evaluatie_gebeurtenissen where evaluatie_id = '${id}' and soort = 'ingevuld' and (details->>'opnieuw') = 'true'`) === "1", "aangepast in de tijdlijn");
+  check((await tot(`select antwoorden->>'wensen' like '%leidinggevenden%' from public.evaluaties where id = '${id}'`, "t")) === "t", "de wijziging staat erin");
+  check((await tot(`select count(*) from public.evaluatie_gebeurtenissen where evaluatie_id = '${id}' and soort = 'ingevuld' and (details->>'opnieuw') = 'true'`, "1")) === "1", "aangepast in de tijdlijn");
   const aangepast = await mailMet(/heeft de klantevaluatie aangepast/, voorWijziging);
   check(Boolean(aangepast), `seintje aan de afzender: ${aangepast?.subject}`);
   await wacht(1500);
@@ -305,8 +307,9 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   const pdfWeg = await klant.request.get(`${link}/pdf`);
   check(pdfWeg.status() === 404, "pdf van een ingetrokken evaluatie: 404");
   await page.click("button:has-text('Heropenen')");
-  await page.waitForSelector("span:has-text('Ingevuld')", { timeout: 20000 });
-  check(sql(`select status from public.evaluaties where id = '${id}'`) === "ingevuld", "heropend: weer ingevuld");
+  // Niet `span:has-text('Ingevuld')`: de tijdlijn zegt ook "Evaluatie ingevuld door".
+  await page.waitForSelector("span.apill:has-text('Ingevuld')", { timeout: 20000 });
+  check((await tot(`select status from public.evaluaties where id = '${id}'`, "ingevuld")) === "ingevuld", "heropend: weer ingevuld");
 
   stap("Onbekende link");
   const onbekend = await klant.goto(`${BASIS}/evaluatie/${"c".repeat(64)}`);

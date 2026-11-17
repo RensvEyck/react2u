@@ -221,10 +221,12 @@ alter table public.klant_gesprekken add constraint klant_gesprekken_bron_check
   check (bron in ('offerte', 'brochure', 'contract', 'onboarding', 'opdracht', 'evaluatie'));
 
 /**
- * Dezelfde functie als in 0041, met de klantevaluatie erbij: de naam
- * "Klantevaluatie KE2026-0001", 'bekeken' heet geopend, 'ingevuld' is het
- * hele formulier (geen document), en een evaluatie verplaatst de kaart niet
- * (wie een evaluatie krijgt, is al klant; een nieuwe kaart begint in Klant).
+ * Dezelfde functie als in 0041 (met de tak 'checklist' uit 0042), met de
+ * klantevaluatie erbij: de naam "Klantevaluatie KE2026-0001", 'bekeken' heet
+ * geopend, 'ingevuld' is het hele formulier (geen document), en een evaluatie
+ * verplaatst de kaart niet (wie een evaluatie krijgt, is al klant; een nieuwe
+ * kaart begint in Klant). Wie deze functie later weer vervangt, neemt alle
+ * takken mee: de laatste migratie wint.
  */
 create or replace function public.klant_gebeurtenis(
   p_bron text, p_bron_id uuid, p_gebeurtenis bigint, p_bedrijf text, p_contactpersoon text, p_email text, p_telefoon text,
@@ -274,6 +276,11 @@ begin
     when 'machtiging' then
       if coalesce(p_details->>'actie', '') <> 'getekend' then return; end if;
       tekst := coalesce(nullif(p_details->>'naam', ''), 'Een werknemer') || ' tekende de machtiging (' || lower(left(naam, 1)) || substr(naam, 2) || ')';
+      wie := coalesce(wie, 'klant');
+    -- Uit 0042 (checklist arbeidsomstandigheden bij het basiscontract): deze tak moet hier blijven, anders verdwijnt
+    -- hij doordat 0043 de functie als laatste vervangt.
+    when 'checklist' then
+      tekst := 'Checklist arbeidsomstandigheden ' || case when coalesce((p_details->>'opnieuw')::boolean, false) then 'bijgewerkt' else 'ingevuld' end || ' (' || lower(left(naam, 1)) || substr(naam, 2) || ')';
       wie := coalesce(wie, 'klant');
     else return;
   end case;
