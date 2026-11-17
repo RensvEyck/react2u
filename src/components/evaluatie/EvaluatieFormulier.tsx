@@ -78,7 +78,9 @@ export default function EvaluatieFormulier({
     });
   };
 
-  const kaart = (tint: boolean): React.CSSProperties => (tint ? { background: "#ffffff", boxShadow: "0 30px 70px -40px rgba(50,46,131,0.45)" } : { background: SOFT, border: `1px solid ${LINE}` });
+  // Losse randeigenschappen, geen `border`-verkorting: de kaart wisselt van randkleur (antwoord, fout) zonder dat React over het mengen klaagt.
+  const kaart = (tint: boolean): React.CSSProperties =>
+    tint ? { background: "#ffffff", boxShadow: "0 30px 70px -40px rgba(50,46,131,0.45)" } : { background: SOFT, borderWidth: 1, borderStyle: "solid", borderColor: LINE };
 
   return (
     <form
@@ -87,6 +89,8 @@ export default function EvaluatieFormulier({
         e.preventDefault();
         verstuur();
       }}
+      // Na een geslaagde opslag verdwijnt "opgeslagen" zodra de klant weer iets wijzigt: anders lijkt de wijziging al bewaard.
+      onChange={() => { if (state?.ok) setState(null); }}
     >
       {/* Deel 1: de checklist */}
       <Band id="checklist" tint={false} label={ONDERDELEN[0].label}>
