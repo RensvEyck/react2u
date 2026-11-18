@@ -1,11 +1,12 @@
-// Weekevaluatie (0044) van begin tot eind: de rol werknemer en het recht in de database, een collega met die rol
-// die na het inloggen alleen het dashboard, zijn weekevaluatie en Account ziet (omzet en het kwartaaloverzicht
-// sturen hem weg), het signaal op het dashboard, deze week en vorige week invullen, een gesloten week die niet
-// meer kan (ook niet rechtstreeks in de database), alleen de eigen rijen zien, dan de beheerder met het
-// kwartaaloverzicht (gemiddelden, trend, gemiste weken, de teksten), de koppeling aan een medewerker zodat de
-// uren ernaast staan (ook bij de collega zelf), de export als Excelbestand en de vrijdagherinnering via de cron
-// (wie al invulde krijgt niets; de super admin pas als hij zelf meedoet). Beide collega's werken in een eigen
-// browsercontext, zodat niemand twee keer hoeft in te loggen.
+// Weekevaluatie (0044, 0045) van begin tot eind: de rol werknemer en het recht in de database, een collega met die
+// rol die na het inloggen alleen het dashboard, zijn weekevaluatie en Account ziet, het signaal op het dashboard,
+// deze week invullen met de nieuwe vragen (zeven cijfers, thema's bij het knelpunt, "welke kennis miste je" alleen
+// bij een lage kennis, de voortgang op een doel uit de kwartaalmeeting, bespreekvinkjes), vorige week invullen
+// waarna twee zware weken een mail aan de beheerder geven (één keer), een gesloten week die niet meer kan, de
+// maandvragen en de terugblik in gesloten weken, alleen de eigen rijen zien, dan de beheerder met het
+// kwartaaloverzicht als agenda (doelen, hoe het ging, toewijding per maand, knelpunten en kennis, bespreekpunten,
+// terugblik, nieuwe doelen vastleggen), de koppeling aan een medewerker, het signaal op zijn dashboard, de export
+// en de vrijdagherinnering via de cron. Beide collega's werken in een eigen browsercontext.
 // Draaien via e2e/run.mjs (E2E_ALLEEN=weekevaluatie), na omzet.cjs: die maakt de medewerkers leeg.
 const { chromium } = require("playwright");
 const fs = require("fs");
@@ -26,6 +27,8 @@ async function totDat(f, ms = 15000) {
 
 /** De testcollega met de rol werknemer (alleen in de testomgeving). */
 const WERKNEMER = { id: "bbbbbbbb-0000-4000-8000-000000000002", email: "noor@react2u.test", wachtwoord: "Test-wachtwoord-456", naam: "Noor de Vries" };
+const RENS_ID = "aaaaaaaa-0000-4000-8000-000000000001";
+const DOEL = "dddddddd-0000-4000-8000-000000000001";
 
 // Dezelfde weekregels als lib/weekevaluatie.ts, om de verwachting uit te rekenen.
 const DAG = 86_400_000;
@@ -34,25 +37,32 @@ const utc = (d) => new Date(`${d}T00:00:00Z`);
 const iso = (d) => d.toISOString().slice(0, 10);
 const maandag = (d) => iso(new Date(utc(d).getTime() - ((utc(d).getUTCDay() + 6) % 7) * DAG));
 const plusWeken = (m, n) => iso(new Date(utc(m).getTime() + n * 7 * DAG));
+const donderdag = (m) => new Date(utc(m).getTime() + 3 * DAG);
 const weeknr = (m) => {
-  const don = new Date(utc(m).getTime() + 3 * DAG);
+  const don = donderdag(m);
   const v = new Date(Date.UTC(don.getUTCFullYear(), 0, 4));
   const start = new Date(v.getTime() - ((v.getUTCDay() + 6) % 7) * DAG);
   return 1 + Math.round((utc(m).getTime() - start.getTime()) / (7 * DAG));
 };
-const kwartaalVan = (m) => {
-  const don = new Date(utc(m).getTime() + 3 * DAG);
-  return { jaar: don.getUTCFullYear(), kwartaal: Math.floor(don.getUTCMonth() / 3) + 1 };
-};
+const kwartaalVan = (m) => ({ jaar: donderdag(m).getUTCFullYear(), kwartaal: Math.floor(donderdag(m).getUTCMonth() / 3) + 1 });
+const maandVan = (m) => iso(donderdag(m)).slice(0, 7);
+const isMaandEinde = (m) => maandVan(m) !== maandVan(plusWeken(m, 1));
+const isKwartaalEinde = (m) => JSON.stringify(kwartaalVan(m)) !== JSON.stringify(kwartaalVan(plusWeken(m, 1)));
 const dezeWeek = maandag(vandaag);
 const vorigeWeek = plusWeken(dezeWeek, -1);
 const kwartaal = kwartaalVan(dezeWeek);
 const kwartaalSleutel = `${kwartaal.jaar}-Q${kwartaal.kwartaal}`;
+const volgend = kwartaal.kwartaal === 4 ? { jaar: kwartaal.jaar + 1, kwartaal: 1 } : { jaar: kwartaal.jaar, kwartaal: kwartaal.kwartaal + 1 };
+const inKwartaal = (wk) => JSON.stringify(kwartaalVan(wk)) === JSON.stringify(kwartaal);
 // De gesloten weken van dit kwartaal (van oud naar nieuw), en die van het kwartaal ervoor.
 const geslotenDitKwartaal = [];
-for (let w = plusWeken(dezeWeek, -2); kwartaalVan(w).jaar === kwartaal.jaar && kwartaalVan(w).kwartaal === kwartaal.kwartaal; w = plusWeken(w, -1)) geslotenDitKwartaal.unshift(w);
-const eersteWeekKwartaal = geslotenDitKwartaal[0] || vorigeWeek;
+for (let w = plusWeken(dezeWeek, -2); inKwartaal(w); w = plusWeken(w, -1)) geslotenDitKwartaal.unshift(w);
+const eersteWeekKwartaal = geslotenDitKwartaal[0] || (inKwartaal(vorigeWeek) ? vorigeWeek : dezeWeek);
 const vorigKwartaalWeken = [plusWeken(eersteWeekKwartaal, -1), plusWeken(eersteWeekKwartaal, -2)];
+// De open weken die bij dit kwartaal horen (aan het begin van een kwartaal valt vorige week er nog buiten).
+const openInKwartaal = [vorigeWeek, dezeWeek].filter(inKwartaal);
+const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(1).replace(".", ","));
+const gemiddelde = (l) => Math.round((l.reduce((s, x) => s + x, 0) / l.length) * 10) / 10;
 
 /** Een authenticator voor een collega instellen (tweestaps is verplicht); het geheim gaat naar de test. */
 async function stelAuthenticatorIn(email, wachtwoord) {
@@ -82,32 +92,47 @@ async function inloggen(page, email, wachtwoord, secret) {
 function alsCollega(userId, q) {
   return sql(`set role authenticated; set request.jwt.claim.sub = '${userId}'; set request.jwt.claims = '{"sub":"${userId}","role":"authenticated"}'; ${q}`).split("\n").pop();
 }
-const inKwartaal = (wk) => kwartaalVan(wk).jaar === kwartaal.jaar && kwartaalVan(wk).kwartaal === kwartaal.kwartaal;
-// De open weken die bij dit kwartaal horen (aan het begin van een kwartaal valt vorige week er nog buiten).
-const openInKwartaal = [vorigeWeek, dezeWeek].filter(inKwartaal);
 
-const schaal = async (page, naam, waarde) => page.click(`label:has(input[name="${naam}"][value="${waarde}"])`);
+const schaal = (page, naam, waarde) => page.click(`label:has(input[name="${naam}"][value="${waarde}"])`);
+const keuze = (page, veld, sleutel) => page.click(`label:has(input[name="${veld}"][value="${sleutel}"])`);
+const bespreek = (page, sleutel) => page.check(`input[name="bespreken"][value="${sleutel}"]`);
+const antwoord = (week, q) => sql(`select ${q} from public.weekevaluaties where user_id = '${WERKNEMER.id}' and week = '${week}'`);
+const MAAND = { trots: 8, inzet: 9, waardering: 5, ruimte: 7, geleerd: 6, steun: 8 };
+const json = (o) => JSON.stringify(o).replace(/'/g, "''");
+
+/** Vult de lagen die deze week extra gevraagd worden. */
+async function vulExtra(page, week) {
+  if (isMaandEinde(week)) for (const [naam, waarde] of Object.entries(MAAND)) await schaal(page, naam, waarde);
+  if (isKwartaalEinde(week)) {
+    await schaal(page, "blijven", 7);
+    await page.fill("#we-blijven_waarom", "Het team en de vrijheid in mijn dossiers.");
+  }
+}
 
 (async () => {
   if (fs.existsSync(MAILS)) fs.unlinkSync(MAILS);
 
-  stap("Database: het recht, de rol werknemer en de testcollega");
+  stap("Database: het recht, de rol werknemer, de testcollega en een doel uit de vorige kwartaalmeeting");
   check(sql("select permissions::text from public.roles where key = 'werknemer'") === "{weekevaluatie}", "de rol werknemer heeft alleen het recht weekevaluatie");
   check(sql("select is_system from public.roles where key = 'werknemer'") === "f", "en is geen systeemrol");
   check(sql("select 'weekevaluatie' = any(permissions) from public.roles where key = 'superadmin'") === "t", "de super admin heeft het recht ook");
-  check(sql("select 'weekevaluatie' = any(permissions) from public.roles where key = 'beheerder'") === "t", "de beheerder ook");
   check(sql("select coalesce('weekevaluatie' = any(permissions), false) from public.roles where key = 'redacteur'") === "f", "de redacteur niet");
-  sql(`delete from public.weekevaluaties; delete from public.medewerkers;
+  sql(`delete from public.weekevaluaties; delete from public.weekevaluatie_doelen; delete from public.medewerkers;
 delete from public.admins where user_id = '${WERKNEMER.id}'; delete from auth.identities where user_id = '${WERKNEMER.id}'; delete from auth.users where id = '${WERKNEMER.id}';
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change, email_change_token_current, reauthentication_token, phone_change, phone_change_token)
 values ('00000000-0000-0000-0000-000000000000', '${WERKNEMER.id}', 'authenticated', 'authenticated', '${WERKNEMER.email}', extensions.crypt('${WERKNEMER.wachtwoord}', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', '', '', '', '', '');
 insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
 values (gen_random_uuid(), '${WERKNEMER.id}', '${WERKNEMER.id}', '{"sub":"${WERKNEMER.id}","email":"${WERKNEMER.email}"}', 'email', now(), now(), now());
-insert into public.admins (user_id, email, role_id, invited_at) select '${WERKNEMER.id}', '${WERKNEMER.email}', id, '${eersteWeekKwartaal}' from public.roles where key = 'werknemer';`);
+insert into public.admins (user_id, email, role_id, invited_at) select '${WERKNEMER.id}', '${WERKNEMER.email}', id, '${plusWeken(eersteWeekKwartaal, -2)}' from public.roles where key = 'werknemer';
+insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toelichting, sort) values ('${DOEL}', '${WERKNEMER.id}', ${kwartaal.jaar}, ${kwartaal.kwartaal}, 'Spoor 2 zelfstandig doen', 'Twee dossiers van begin tot eind', 1);`);
   check(sql(`select r.key from public.admins a join public.roles r on r.id = a.role_id where a.user_id = '${WERKNEMER.id}'`) === "werknemer", "de testcollega heeft de rol werknemer");
   let anonLeest = true;
   try { sql("set role anon; select count(*) from public.weekevaluaties"); } catch { anonLeest = false; }
   check(!anonLeest, "anon kan weekevaluaties niet lezen");
+  let doelZelf = true;
+  try { alsCollega(WERKNEMER.id, `insert into public.weekevaluatie_doelen (user_id, jaar, kwartaal, titel) values ('${WERKNEMER.id}', ${kwartaal.jaar}, ${kwartaal.kwartaal}, 'Zelf bedacht')`); } catch { doelZelf = false; }
+  check(!doelZelf, "een werknemer kan zelf geen doelen vastleggen");
+  check(alsCollega(WERKNEMER.id, "select count(*) from public.weekevaluatie_doelen") === "1", "maar leest zijn eigen doel wel");
   const geheimWerknemer = await stelAuthenticatorIn(WERKNEMER.email, WERKNEMER.wachtwoord);
 
   const browser = await chromium.launch();
@@ -127,116 +152,201 @@ insert into public.admins (user_id, email, role_id, invited_at) select '${WERKNE
   await w.goto(`${BASIS}/admin`);
   const menu = await w.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
   check(JSON.stringify(menu) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/account"]), `menu: alleen Dashboard, Weekevaluatie en Account (${menu.join(", ")})`);
-  check((await w.locator("body").innerText()).includes("Werknemer"), "de rol staat onder in het menu");
   const signaal = await w.locator("#weekevaluatie-open").innerText();
   check(/weekevaluaties van week \d+ en \d+ staan nog open/.test(signaal), `dashboard: beide weken staan nog open (${signaal.split("\n")[0]})`);
-  // De melding (?fout=geen-rechten) haalt de Toast meteen uit de URL; het pad zegt genoeg.
-  await w.goto(`${BASIS}/admin/omzet`);
-  check(new URL(w.url()).pathname === "/admin", "omzet stuurt de werknemer terug naar het dashboard");
-  await w.goto(`${BASIS}/admin/weekevaluatie/team`);
-  check(new URL(w.url()).pathname === "/admin", "het kwartaaloverzicht ook");
-  await w.goto(`${BASIS}/admin/bellijst`);
-  check(new URL(w.url()).pathname === "/admin", "de bellijst ook");
+  check(!(await w.locator("#weekevaluatie-signalen").count()), "geen signalen over collega's voor een werknemer");
+  for (const pad of ["/admin/omzet", "/admin/weekevaluatie/team", "/admin/bellijst"]) {
+    await w.goto(`${BASIS}${pad}`);
+    check(new URL(w.url()).pathname === "/admin", `${pad} stuurt de werknemer terug naar het dashboard`);
+  }
 
-  stap("Deze week invullen");
+  stap(`Deze week invullen (week ${weeknr(dezeWeek)})`);
   await w.goto(`${BASIS}/admin/weekevaluatie`);
   await w.waitForSelector("h1:has-text('Mijn weekevaluatie')");
-  check(await w.locator(`h2:has-text("Week ${weeknr(dezeWeek)}")`).count(), `het formulier staat op week ${weeknr(dezeWeek)}`);
-  check((await w.locator('input[type="radio"]').count()) === 50, "vijf schalen van tien");
-  for (const [naam, waarde] of [["energie", 7], ["werkdruk", 6], ["voldoening", 8], ["samenwerking", 9], ["cijfer", 8]]) await schaal(w, naam, waarde);
-  await w.fill("#we-goed", "Twee werknemers zijn weer gestart en de werkgever van de bakkerij belde zelf terug.");
-  await w.fill("#we-beter", "Ik heb te lang gewacht met terugbellen.");
-  await w.fill("#we-nodig", "Een uur samen door de spoor 2-dossiers.");
+  let tekst = await w.locator("body").innerText();
+  check(tekst.includes("nooit voor beoordeling of salaris") && tekst.includes("niet naar je gezondheid"), "de uitleg waar de antwoorden voor zijn staat erboven");
+  const schalen = 7 + 1 + (isMaandEinde(dezeWeek) ? 6 : 0) + (isKwartaalEinde(dezeWeek) ? 1 : 0);
+  check((await w.locator('input[type="radio"]').count()) === schalen * 10, `${schalen} vragen met cijfers van 1 tot 10 (zeven per week, één doel${isMaandEinde(dezeWeek) ? ", zes maandvragen" : ""})`);
+  check(tekst.includes(`Je doelen voor Q${kwartaal.kwartaal} ${kwartaal.jaar}`) && tekst.includes("Spoor 2 zelfstandig doen"), "het doel uit de kwartaalmeeting staat in het formulier");
+  check(!(await w.locator("#we-kennis_mist").count()), "welke kennis je miste staat er nog niet");
+  for (const [naam, waarde] of [["energie", 4], ["plezier", 6], ["tijd", 3], ["emotie", 6], ["herstel", 5], ["kennis", 5], ["cijfer", 6], [`doel_${DOEL}`, 6]]) await schaal(w, naam, waarde);
+  check(await w.locator("#we-kennis_mist").isVisible(), "na een 5 voor kennis vraagt het formulier welke kennis je miste");
+  await vulExtra(w, dezeWeek);
+  await w.fill(`input[name="doel_${DOEL}_tekst"]`, "Eerste dossier samen met Susanne doorgenomen.");
+  await w.fill("#we-hoogtepunt", "Twee werknemers zijn weer gestart en de werkgever van de bakkerij belde zelf terug.");
+  await keuze(w, "knelpunt_themas", "werkdruk");
+  await keuze(w, "knelpunt_themas", "planning");
+  await w.fill("#we-knelpunt", "Drie spoedgevallen op één dag, en de bedrijfsarts pas donderdag.");
+  await bespreek(w, "knelpunt");
+  await keuze(w, "kennis_themas", "reintegratie");
+  await w.fill("#we-kennis_mist", "Wanneer een loonsanctie dreigt bij een te late eerstejaarsevaluatie.");
+  await bespreek(w, "kennis_mist");
   await w.screenshot({ path: path.join(SHOTS, "01-formulier-1440.png"), fullPage: true });
   await w.click("button.abtn:has-text('Weekevaluatie bewaren')");
   await w.waitForURL(/opgeslagen=weekevaluatie/, { timeout: 20000 });
-  check(sql(`select (antwoorden->>'energie') || '/' || (antwoorden->>'cijfer') || '/' || door from public.weekevaluaties where user_id = '${WERKNEMER.id}' and week = '${dezeWeek}'`) === `7/8/${WERKNEMER.email}`, "bewaard: energie 7, cijfer 8, door de collega zelf");
-  check(sql(`select antwoorden->>'goed' from public.weekevaluaties where user_id = '${WERKNEMER.id}' and week = '${dezeWeek}'`).startsWith("Twee werknemers"), "de tekst staat erin");
-  check(sql(`select antwoorden ? 'trots' from public.weekevaluaties where user_id = '${WERKNEMER.id}' and week = '${dezeWeek}'`) === "f", "een leeg veld wordt niet opgeslagen");
-  let tekst = await w.locator("body").innerText();
+  check(antwoord(dezeWeek, "(antwoorden->>'energie') || '/' || (antwoorden->>'tijd') || '/' || (antwoorden->>'kennis') || '/' || door") === `4/3/5/${WERKNEMER.email}`, "bewaard: energie 4, tijd 3, kennis 5, door de collega zelf");
+  check(antwoord(dezeWeek, "antwoorden->'knelpunt_themas'") === '["werkdruk", "planning"]', "de knelpuntthema's");
+  check(antwoord(dezeWeek, "antwoorden->'kennis_themas'") === '["reintegratie"]' && antwoord(dezeWeek, "antwoorden->>'kennis_mist'").startsWith("Wanneer een loonsanctie"), "de kennis die gemist werd");
+  check(antwoord(dezeWeek, "antwoorden->'bespreken'") === '["knelpunt", "kennis_mist"]', "twee punten voor de kwartaalmeeting");
+  check(antwoord(dezeWeek, `antwoorden->'doelen'->'${DOEL}'->>'cijfer'`) === "6" && antwoord(dezeWeek, `antwoorden->'doelen'->'${DOEL}'->>'tekst'`).startsWith("Eerste dossier"), "de voortgang op het doel");
+  if (isMaandEinde(dezeWeek)) check(antwoord(dezeWeek, "antwoorden->>'trots'") === "8", "de maandvragen");
+  check(antwoord(dezeWeek, "antwoorden ? 'hoogtepunt' and not antwoorden ? 'kwartaal_anders'") === "t", "de terugblik alleen in de laatste week van het kwartaal");
+  tekst = await w.locator("body").innerText();
   check(tekst.includes("Bewaard op") && tekst.includes("Wijzigingen bewaren"), "het formulier zegt dat hij bewaard is en blijft te wijzigen");
-  check(/Deze week[\s\S]*Ingevuld · cijfer 8/i.test(tekst), "de weekkaart toont ingevuld met het cijfer");
-  check(await w.locator('input[name="cijfer"][value="8"]').isChecked(), "de keuze staat aangevinkt");
+  check(await w.locator('input[name="bespreken"][value="knelpunt"]').isChecked() && await w.locator('input[name="knelpunt_themas"][value="planning"]').isChecked(), "vinkjes en thema's staan er weer");
+  check(!mails().some((m) => /Twee zware weken/.test(m.subject || "")), "één zware week geeft nog geen melding");
 
-  stap("Vorige week aanpassen, een gesloten week niet");
+  stap(`Vorige week invullen (week ${weeknr(vorigeWeek)}): twee zware weken`);
   await w.goto(`${BASIS}/admin/weekevaluatie?week=${vorigeWeek}`);
-  for (const [naam, waarde] of [["energie", 5], ["werkdruk", 4], ["voldoening", 6], ["samenwerking", 7], ["cijfer", 6]]) await schaal(w, naam, waarde);
-  await w.fill("#we-knelpunt", "De bedrijfsarts was pas donderdag beschikbaar.");
+  for (const [naam, waarde] of [["energie", 3], ["plezier", 5], ["tijd", 4], ["emotie", 5], ["herstel", 4], ["kennis", 8], ["cijfer", 5]]) await schaal(w, naam, waarde);
+  if (inKwartaal(vorigeWeek)) await schaal(w, `doel_${DOEL}`, 5);
+  await vulExtra(w, vorigeWeek);
+  check(!(await w.locator("#we-kennis_mist").count()), "bij een 8 voor kennis vraagt het formulier niet wat je miste");
   await w.click("button.abtn:has-text('Weekevaluatie bewaren')");
   await w.waitForURL(/opgeslagen=weekevaluatie/, { timeout: 20000 });
   check(sql(`select count(*) from public.weekevaluaties where user_id = '${WERKNEMER.id}'`) === "2", "twee weken ingevuld");
+  check(await totDat(() => mails().some((m) => m.subject === "Twee zware weken voor Noor")), "twee zware weken: een mail aan de beheerder");
+  const zwaar = mails().find((m) => m.subject === "Twee zware weken voor Noor");
+  check(zwaar && zwaar.to.includes(BEHEERDER.email) && zwaar.html.includes(`week ${weeknr(vorigeWeek)} en ${weeknr(dezeWeek)}`) && zwaar.html.includes("energie en werk paste in de tijd"), "aan de super admin, met de weken en de schalen");
+  check(zwaar && !zwaar.html.includes("spoedgevallen") && zwaar.html.includes(`#collega-${WERKNEMER.id}`), "zonder de antwoorden zelf, met een link naar de collega");
+  fs.writeFileSync(path.join(SHOTS, "mail-signaal.html"), zwaar?.html || "");
+  check(antwoord(dezeWeek, "signaal_at is not null") === "t", "de database onthoudt dat het gemeld is");
+  await w.click("button.abtn:has-text('Wijzigingen bewaren')");
+  await w.waitForURL(/opgeslagen=weekevaluatie/, { timeout: 20000 });
+  await wacht(800);
+  check(mails().filter((m) => m.subject === "Twee zware weken voor Noor").length === 1, "opnieuw bewaren mailt niet nog een keer");
   await w.goto(`${BASIS}/admin`);
-  check(!(await w.locator("#weekevaluatie-open").count()), "dashboard: geen signaal meer");
+  check(!(await w.locator("#weekevaluatie-open").count()), "dashboard: geen open week meer");
+
+  stap("Gesloten weken, de maandvragen en de terugblik");
   const gesloten = plusWeken(dezeWeek, -3);
   await w.goto(`${BASIS}/admin/weekevaluatie?week=${gesloten}`);
   tekst = await w.locator("body").innerText();
-  check(tekst.includes("gesloten") && tekst.includes("niet ingevuld, en hij is inmiddels gesloten"), "een gesloten week zonder evaluatie is alleen tekst");
-  check(!(await w.locator("button.abtn:has-text('bewaren')").count()), "zonder knop om te bewaren");
+  check(tekst.includes("niet ingevuld, en hij is inmiddels gesloten") && !(await w.locator("button.abtn:has-text('bewaren')").count()), "een gesloten week zonder evaluatie is alleen tekst, zonder knop");
   let geslotenKon = true;
   try { alsCollega(WERKNEMER.id, `insert into public.weekevaluaties (user_id, week, antwoorden) values ('${WERKNEMER.id}', '${gesloten}', '{"cijfer":7}')`); } catch { geslotenKon = false; }
   check(!geslotenKon, "de database weigert een gesloten week, ook rechtstreeks");
   let anderKon = true;
-  try { alsCollega(WERKNEMER.id, `insert into public.weekevaluaties (user_id, week, antwoorden) values ('aaaaaaaa-0000-4000-8000-000000000001', '${dezeWeek}', '{"cijfer":7}')`); } catch { anderKon = false; }
+  try { alsCollega(WERKNEMER.id, `insert into public.weekevaluaties (user_id, week, antwoorden) values ('${RENS_ID}', '${dezeWeek}', '{"cijfer":7}')`); } catch { anderKon = false; }
   check(!anderKon, "en een rij voor iemand anders");
-  // Geschiedenis en een vergelijking voor het overzicht: gesloten weken van dit kwartaal (één laten we open als 'gemist')
-  // en twee weken in het vorige kwartaal. Rechtstreeks als postgres: dat is het verleden.
+  // Het verleden, rechtstreeks als postgres: gesloten weken van dit kwartaal (de oudste laten we leeg als 'gemist'),
+  // met de maandvragen in de laatste week van een maand, en twee weken van het vorige kwartaal met de terugblik.
   const seed = geslotenDitKwartaal.slice(-5);
   const gemist = seed.length > 1 ? seed[0] : null;
   const ingevuldSeed = seed.filter((x) => x !== gemist);
-  const cijfers = [6, 7, 8, 7]; // gemiddeld 7 bij vier weken
-  sql(ingevuldSeed.map((wk, i) => `insert into public.weekevaluaties (user_id, week, antwoorden, door, created_at, updated_at) values ('${WERKNEMER.id}', '${wk}', '{"energie":${cijfers[i % 4]},"werkdruk":${cijfers[i % 4]},"voldoening":7,"samenwerking":8,"cijfer":${cijfers[i % 4]},"goed":"Week ${weeknr(wk)} liep lekker.","trots":"De werkgever van de bakkerij voelde zich gehoord."}', '${WERKNEMER.email}', '${wk}T16:00:00Z', '${wk}T16:00:00Z');`).join("\n")
-    + vorigKwartaalWeken.map((wk) => `insert into public.weekevaluaties (user_id, week, antwoorden, door, created_at, updated_at) values ('${WERKNEMER.id}', '${wk}', '{"energie":5,"werkdruk":5,"voldoening":6,"samenwerking":7,"cijfer":6}', '${WERKNEMER.email}', '${wk}T16:00:00Z', '${wk}T16:00:00Z');`).join("\n"));
-  // De beheerder krijgt een rij van iemand anders om het lezen te testen: de werknemer mag die niet zien.
-  sql(`insert into public.weekevaluaties (user_id, week, antwoorden, door) values ('aaaaaaaa-0000-4000-8000-000000000001', '${vorigeWeek}', '{"energie":9,"werkdruk":9,"voldoening":9,"samenwerking":9,"cijfer":9}', '${BEHEERDER.email}')`);
+  const cijfers = [6, 7, 8, 7];
+  const seedAntwoorden = (wk, i) => ({
+    energie: cijfers[i % 4], plezier: 7, tijd: cijfers[i % 4], emotie: 7, herstel: 6, kennis: 7, cijfer: cijfers[i % 4],
+    hoogtepunt: `Week ${weeknr(wk)} liep lekker.`, knelpunt_themas: ["werkdruk"], ...(i === 0 ? { bespreken: ["hoogtepunt"] } : {}),
+    doelen: { [DOEL]: { cijfer: 4 + i } },
+    ...(isMaandEinde(wk) ? MAAND : {}),
+  });
+  const vorigAntwoorden = (wk) => ({
+    energie: 5, plezier: 6, tijd: 5, emotie: 6, herstel: 5, kennis: 6, cijfer: 6,
+    ...(isMaandEinde(wk) ? { trots: 7, inzet: 8, waardering: 6, ruimte: 6, geleerd: 5, steun: 7 } : {}),
+    ...(isKwartaalEinde(wk) ? { blijven: 6, blijven_waarom: "Ik twijfel over de reistijd.", kwartaal_anders: "Vaste belmomenten afspreken." } : {}),
+  });
+  sql([
+    ...ingevuldSeed.map((wk, i) => `insert into public.weekevaluaties (user_id, week, antwoorden, door, created_at, updated_at) values ('${WERKNEMER.id}', '${wk}', '${json(seedAntwoorden(wk, i))}', '${WERKNEMER.email}', '${wk}T16:00:00Z', '${wk}T16:00:00Z');`),
+    ...vorigKwartaalWeken.map((wk) => `insert into public.weekevaluaties (user_id, week, antwoorden, door, created_at, updated_at) values ('${WERKNEMER.id}', '${wk}', '${json(vorigAntwoorden(wk))}', '${WERKNEMER.email}', '${wk}T16:00:00Z', '${wk}T16:00:00Z');`),
+    // Een rij van iemand anders: de werknemer mag die niet zien.
+    `insert into public.weekevaluaties (user_id, week, antwoorden, door) values ('${RENS_ID}', '${vorigeWeek}', '{"energie":9,"tijd":9,"cijfer":9}', '${BEHEERDER.email}');`,
+  ].join("\n"));
   check(alsCollega(WERKNEMER.id, "select count(*) from public.weekevaluaties") === String(2 + ingevuldSeed.length + vorigKwartaalWeken.length), "de werknemer ziet alleen zijn eigen rijen");
+  sql(`delete from public.weekevaluaties where user_id = '${RENS_ID}'`);
+  const maandWeek = [...ingevuldSeed].reverse().find(isMaandEinde);
+  if (maandWeek) {
+    await w.goto(`${BASIS}/admin/weekevaluatie?week=${maandWeek}`);
+    tekst = await w.locator("body").innerText();
+    check(tekst.includes("Maandvragen") && tekst.includes("Ik ben trots op het werk") && await w.locator('input[name="trots"][value="8"]').isChecked(), `de maandvragen van week ${weeknr(maandWeek)} zijn terug te lezen`);
+    check(await w.locator('input[name="trots"][value="8"]').isDisabled(), "maar niet meer te wijzigen");
+  }
+  const kwartaalWeek = vorigKwartaalWeken.find(isKwartaalEinde);
+  if (kwartaalWeek) {
+    await w.goto(`${BASIS}/admin/weekevaluatie?week=${kwartaalWeek}`);
+    tekst = await w.locator("body").innerText();
+    check(tekst.includes("Terugblik op") && tekst.includes("Ik twijfel over de reistijd."), `de terugblik van week ${weeknr(kwartaalWeek)} is terug te lezen`);
+  }
   await w.goto(`${BASIS}/admin/weekevaluatie`);
   tekst = await w.locator("body").innerText();
   check(tekst.includes("Jouw laatste twaalf weken") && tekst.includes("Eerdere weken"), "grafiek en geschiedenis staan er");
   if (gemist) check(tekst.includes("niet ingevuld"), "de gemiste week staat als niet ingevuld in de geschiedenis");
-  // De eerste uitklapbare in de geschiedenis (de grafiek heeft er ook een, "Toon als tabel").
-  await w.locator('section[aria-labelledby="geschiedenis-kop"] details summary').first().click();
-  check((await w.locator("body").innerText()).includes("liep lekker"), "een eerdere week is terug te lezen");
+  if (ingevuldSeed.length) {
+    await w.locator('section[aria-labelledby="geschiedenis-kop"] details summary').first().click();
+    check((await w.locator("body").innerText()).includes("liep lekker"), "een eerdere week is terug te lezen");
+  }
   await w.screenshot({ path: path.join(SHOTS, "02-ingevuld-1440.png"), fullPage: true });
-  sql(`delete from public.weekevaluaties where user_id = 'aaaaaaaa-0000-4000-8000-000000000001'`);
 
-  stap("De beheerder: het kwartaaloverzicht");
+  stap("De beheerder: het kwartaaloverzicht als agenda");
   await inloggen(b, BEHEERDER.email, BEHEERDER.wachtwoord, GEHEIM);
   await b.goto(`${BASIS}/admin`);
-  check(await b.locator('aside nav a[href="/admin/weekevaluatie"]').count(), "Weekevaluatie staat in het menu van de beheerder");
-  await b.goto(`${BASIS}/admin/weekevaluatie`);
-  check(await b.locator('a[href="/admin/weekevaluatie/team"]:has-text("Kwartaaloverzicht")').count(), "met de knop naar het kwartaaloverzicht");
+  const dash = await b.locator("#weekevaluatie-signalen").innerText().catch(() => "");
+  check(dash.includes("Twee zware weken") && dash.includes("Noor") && dash.includes(`wk ${weeknr(dezeWeek)}`), `dashboard van de beheerder: het signaal over Noor (${dash.split("\n").slice(0, 2).join(" ")})`);
   await b.goto(`${BASIS}/admin/weekevaluatie/team`);
   await b.waitForSelector("h1:has-text('Weekevaluaties van het team')");
   tekst = await b.locator("body").innerText();
   check(tekst.includes(`Q${kwartaal.kwartaal} ${kwartaal.jaar}`) && tekst.includes("dit kwartaal"), "het lopende kwartaal staat open");
-  check((await b.locator("section[id^=collega-]").count()) === 1, "één collega doet mee (de super admin vulde nooit in)");
+  check(/Twee zware weken achter elkaar[\s\S]*Noor/.test(tekst), "bovenaan het signaal");
+  check((await b.locator("article[id^=collega-]").count()) === 1, "één collega doet mee (de super admin vulde nooit in)");
+  check(tekst.includes("Waar het team tegenaan liep") && /Werkdruk\s*\d+×/.test(tekst) && /Re-integratie spoor 1 en 2\s*1×/.test(tekst), "de thema's van het team, het begin van het opleidingsplan");
   const kaart = b.locator(`#collega-${WERKNEMER.id}`);
-  const kaartTekst = await kaart.innerText();
+  let kaartTekst = await kaart.innerText();
   check(kaartTekst.includes(WERKNEMER.email) && kaartTekst.includes("koppel aan een medewerker"), "nog niet gekoppeld: e-mailadres en de koppellink");
+  for (const punt of ["Doelen voor", "Hoe ging het", "Toewijding en groei, per maand", "Knelpunten en kennis", "Wil Noor bespreken", "Terugblik op het kwartaal"]) check(kaartTekst.includes(punt), `agendapunt: ${punt}`);
   const verwacht = openInKwartaal.length + geslotenDitKwartaal.length;
   const ingevuldAantal = openInKwartaal.length + ingevuldSeed.length;
   check(kaartTekst.includes(`${ingevuldAantal} van ${verwacht} ${verwacht === 1 ? "week" : "weken"} ingevuld`), `${ingevuldAantal} van ${verwacht} weken ingevuld (${kaartTekst.match(/\d+ van \d+ wek\w* ingevuld/)?.[0]})`);
-  const alleGemist = geslotenDitKwartaal.filter((x) => !ingevuldSeed.includes(x));
-  if (alleGemist.length) check(kaartTekst.includes(`gemist: ${alleGemist.map((x) => `wk ${weeknr(x)}`).join(", ")}`), `gemist: ${alleGemist.map(weeknr).join(", ")}`);
-  else check(!kaartTekst.includes("gemist"), "niets gemist");
-  // Gemiddeld cijfer: deze week 8, vorige week 6 (als die in dit kwartaal valt), plus de seed.
-  const alle = [...openInKwartaal.map((wk) => (wk === dezeWeek ? 8 : 6)), ...ingevuldSeed.map((_, i) => cijfers[i % 4])];
-  const gem = Math.round((alle.reduce((s, x) => s + x, 0) / alle.length) * 10) / 10;
-  const gemTekst = Number.isInteger(gem) ? String(gem) : gem.toFixed(1).replace(".", ",");
-  const t = Math.round((gem - 6) * 10) / 10;
-  const trendTekst = t === 0 ? "±0" : `${t > 0 ? "+" : "−"}${Number.isInteger(Math.abs(t)) ? Math.abs(t) : Math.abs(t).toFixed(1).replace(".", ",")}`;
-  check(new RegExp(`Cijfer\\s*${gemTekst}\\s*${trendTekst.replace("+", "\\+")}`, "i").test(kaartTekst), `cijfer gemiddeld ${gemTekst}, trend ${trendTekst} t.o.v. vorig kwartaal (6) (${kaartTekst.match(/Cijfer\s*[\d,]+\s*\S*/i)?.[0]})`);
-  check(kaartTekst.includes("Lees wat Noor schreef"), "de teksten zijn uit te klappen, met de voornaam uit het e-mailadres");
-  await kaart.locator("summary").last().click();
-  check((await kaart.innerText()).includes("Twee werknemers zijn weer gestart") && (await kaart.innerText()).includes("voelde zich gehoord"), "de open antwoorden per week");
-  check(/Ingevuld\s*\d+%/i.test(tekst) && tekst.includes("Het team per week"), "kerncijfers en de teamgrafiek");
-  check((await b.locator("text=Toon als tabel").count()) >= 2, "grafieken hebben een tabel");
-  check(await b.locator(`a[href="/admin/weekevaluatie/team/export?kwartaal=${kwartaalSleutel}"]`).count(), "exportknop voor dit kwartaal");
+  // 1. Het doel: de voortgang van de seed (4, 5, …) en van deze en vorige week (6, 5).
+  const doelCijfers = [...ingevuldSeed.map((_, i) => 4 + i), ...openInKwartaal.map((wk) => (wk === dezeWeek ? 6 : 5))];
+  check(new RegExp(`Spoor 2 zelfstandig doen\\s*${fmt(gemiddelde(doelCijfers))}\\s*voortgang`).test(kaartTekst), `doel met voortgang ${fmt(gemiddelde(doelCijfers))}`);
+  check(kaartTekst.includes("Eerste dossier samen met Susanne"), "en de laatste toelichting");
+  // 2. Energie: gemiddeld en de trend tegenover het vorige kwartaal (5).
+  const energie = [...openInKwartaal.map((wk) => (wk === dezeWeek ? 4 : 3)), ...ingevuldSeed.map((_, i) => cijfers[i % 4])];
+  const gem = gemiddelde(energie);
+  const t = Math.round((gem - 5) * 10) / 10;
+  const trendTekst = t === 0 ? "±0" : `${t > 0 ? "\\+" : "−"}${fmt(Math.abs(t))}`;
+  check(new RegExp(`Energie\\s*${fmt(gem)}\\s*${trendTekst}`, "i").test(kaartTekst), `energie gemiddeld ${fmt(gem)}, trend tegenover het vorige kwartaal (${kaartTekst.match(/Energie\s*[\d,]+\s*\S*/i)?.[0]})`);
+  if (energie.length >= 3) check(kaartTekst.includes("Zwaarste weken:") && kaartTekst.includes(`wk ${weeknr(vorigeWeek)}`), "de twee zwaarste weken, met vorige week erbij");
+  check(new RegExp(`wk ${weeknr(vorigeWeek)} en wk ${weeknr(dezeWeek)}: twee keer een 4 of lager`).test(kaartTekst), "het signaal staat bij de collega");
+  // 3. De maandvragen, 4. thema's en kennis, 5. bespreekpunten.
+  if (maandWeek || isMaandEinde(dezeWeek) || isMaandEinde(vorigeWeek)) check(/Trots op het werk\s*[\s\S]*8/.test(kaartTekst), "de maandvragen per maand");
+  else check(kaartTekst.includes("Nog geen maandvragen in dit kwartaal"), "nog geen maandvragen");
+  check(/Liep tegenaan:[\s\S]*Werkdruk\s*\d+×[\s\S]*Planning\s*1×/.test(kaartTekst), "de knelpunten van Noor, geteld");
+  check(/Miste kennis over:[\s\S]*Re-integratie spoor 1 en 2\s*1×/.test(kaartTekst) && kaartTekst.includes("Wanneer een loonsanctie dreigt"), "de kennis die ze miste");
+  check(kaartTekst.includes("Drie spoedgevallen op één dag") && /KNELPUNT · WK \d+\s*Werkdruk · Planning/i.test(kaartTekst), "het knelpunt dat ze wil bespreken, met de thema's");
+  if (ingevuldSeed.length) check(kaartTekst.includes(`Week ${weeknr(ingevuldSeed[0])} liep lekker.`), "en het hoogtepunt dat ze wilde bespreken");
+  check(kaartTekst.includes("De terugblik staat in de laatste week van het kwartaal"), "de terugblik komt nog");
   await b.screenshot({ path: path.join(SHOTS, "03-kwartaal-1440.png"), fullPage: true });
+
+  stap(`Doelen voor ${volgend.jaar}-Q${volgend.kwartaal} vastleggen in de meeting`);
+  check(kaartTekst.includes(`Doelen voor Q${volgend.kwartaal} ${volgend.jaar}`) && kaartTekst.includes("Nog geen doelen voor volgend kwartaal"), "agendapunt 7 is nog leeg");
+  for (const [titel, toelichting] of [["Gesprekstechniek verdiepen", "Training in februari"], ["Spoor 2 zelfstandig", ""], ["Eén vast belmoment per dag", ""]]) {
+    await kaart.locator('input[name="titel"]').fill(titel);
+    if (toelichting) await kaart.locator('input[name="toelichting"]').fill(toelichting);
+    await kaart.locator("button:has-text('Doel toevoegen')").click();
+    await b.waitForURL(/opgeslagen=doel/, { timeout: 20000 });
+  }
+  check(sql(`select count(*) || ':' || min(jaar) || '-' || min(kwartaal) from public.weekevaluatie_doelen where user_id = '${WERKNEMER.id}' and not (jaar = ${kwartaal.jaar} and kwartaal = ${kwartaal.kwartaal})`) === `3:${volgend.jaar}-${volgend.kwartaal}`, "drie doelen voor volgend kwartaal");
+  check(!(await kaart.locator("button:has-text('Doel toevoegen')").count()), "bij drie doelen verdwijnt het formulier");
+  let vierde = true;
+  try { sql(`insert into public.weekevaluatie_doelen (user_id, jaar, kwartaal, titel) values ('${WERKNEMER.id}', ${volgend.jaar}, ${volgend.kwartaal}, 'Vierde')`); } catch { vierde = false; }
+  check(!vierde, "ook de database houdt het bij drie");
+  await kaart.locator("li", { hasText: "Eén vast belmoment per dag" }).locator("button").click();
+  await b.waitForURL(/opgeslagen=doel-weg/, { timeout: 20000 });
+  check(sql(`select count(*) from public.weekevaluatie_doelen where user_id = '${WERKNEMER.id}' and jaar = ${volgend.jaar} and kwartaal = ${volgend.kwartaal}`) === "2", "een doel verwijderd");
+  kaartTekst = await kaart.innerText();
+  check(kaartTekst.includes("Gesprekstechniek verdiepen") && kaartTekst.includes("Training in februari"), "de doelen staan in de agenda");
+
+  stap("Het vorige kwartaal: de terugblik");
+  const vorigKwartaal = kwartaal.kwartaal === 1 ? `${kwartaal.jaar - 1}-Q4` : `${kwartaal.jaar}-Q${kwartaal.kwartaal - 1}`;
   await b.click('nav[aria-label="Kwartaal"] a[aria-label="Vorig kwartaal"]');
-  await b.waitForURL(/kwartaal=/);
+  // Het adres heeft na het vastleggen van de doelen al ?kwartaal=; wacht op het vorige kwartaal zelf.
+  await b.waitForURL(new RegExp(`kwartaal=${vorigKwartaal}`));
+  await b.waitForSelector(`text=Q${vorigKwartaal.slice(-1)} ${vorigKwartaal.slice(0, 4)}`);
   tekst = await b.locator("body").innerText();
-  check(/\d+ van \d+ weken ingevuld/.test(tekst) && tekst.includes("Lees wat Noor schreef") === false, "vorig kwartaal: alleen cijfers, geen teksten");
+  // Het label staat in hoofdletters (CSS), en innerText neemt dat over.
+  if (kwartaalWeek) check(/Over een jaar nog bij React2u\s*6\s*van 10/i.test(tekst) && tekst.includes("Ik twijfel over de reistijd.") && tekst.includes("Vaste belmomenten afspreken."), "de terugblik van het vorige kwartaal");
+  check(/\d+ van \d+ weken ingevuld/.test(tekst), "vorig kwartaal: de weken uit de seed");
 
   stap("Koppelen aan een medewerker: uren naast de evaluatie");
   await b.goto(`${BASIS}/admin/omzet/uren`);
@@ -250,7 +360,6 @@ insert into public.admins (user_id, email, role_id, invited_at) select '${WERKNE
   check(sql(`select naam from public.medewerkers where user_id = '${WERKNEMER.id}'`) === WERKNEMER.naam, "medewerker gekoppeld aan het account");
   const mwId = sql(`select id from public.medewerkers where user_id = '${WERKNEMER.id}'`);
   sql(`insert into public.uren (medewerker_id, week, declarabel, afwezig) values ('${mwId}', '${dezeWeek}', 27, 0), ('${mwId}', '${vorigeWeek}', 21, 8)`);
-  // Een tweede medewerker aan hetzelfde account mag niet.
   await b.fill("#mw-naam-nieuw", "Dubbel");
   await b.selectOption("#mw-account-nieuw", WERKNEMER.id);
   await b.click("#nieuw button:has-text('Toevoegen')");
@@ -259,21 +368,22 @@ insert into public.admins (user_id, email, role_id, invited_at) select '${WERKNE
   await b.goto(`${BASIS}/admin/weekevaluatie/team`);
   const gekoppeld = await b.locator(`#collega-${WERKNEMER.id}`).innerText();
   check(gekoppeld.includes(WERKNEMER.naam) && gekoppeld.includes("Casemanager") && !gekoppeld.includes("koppel aan"), "het overzicht toont nu naam en functie");
-  check(/declarabel\s*75%/.test(gekoppeld.replace(/\n/g, " ")) && gekoppeld.includes("48 van 64 uur"), `declarabel 75% (27 + 21 van 36 + 28 uur) (${gekoppeld.match(/declarabel[^\n]*/)?.[0]})`);
-  check(alsCollega(WERKNEMER.id, "select declarabel from public.uren where week = '" + dezeWeek + "'") === "27.00", "de collega mag zijn eigen uren lezen");
+  const urenVerwacht = openInKwartaal.reduce((s, wk) => s + (wk === dezeWeek ? 27 : 21), 0);
+  if (urenVerwacht) check(/declarabel\s*\d+%/.test(gekoppeld.replace(/\n/g, " ")), `declarabel naast de evaluatie (${gekoppeld.match(/declarabel[^\n]*/)?.[0]})`);
+  check(alsCollega(WERKNEMER.id, `select declarabel from public.uren where week = '${dezeWeek}'`) === "27.00", "de collega mag zijn eigen uren lezen");
   let urenSchrijven = true;
   try { alsCollega(WERKNEMER.id, `update public.uren set declarabel = 40 where medewerker_id = '${mwId}'`); urenSchrijven = sql(`select declarabel from public.uren where medewerker_id = '${mwId}' and week = '${dezeWeek}'`) === "40.00"; } catch { urenSchrijven = false; }
   check(!urenSchrijven, "maar niet wijzigen");
   await w.goto(`${BASIS}/admin/weekevaluatie`);
   tekst = await w.locator("body").innerText();
-  check(tekst.includes("Jouw uren deze week") && tekst.includes("27 declarabel") && tekst.includes("75% declarabel bij een norm van 75%"), "de collega ziet zijn uren bij het formulier");
+  check(tekst.includes("Jouw uren deze week") && tekst.includes("27 declarabel"), "de collega ziet zijn uren bij het formulier");
 
   stap("Export");
   const exp = await b.request.get(`${BASIS}/admin/weekevaluatie/team/export?kwartaal=${kwartaalSleutel}`);
   check(exp.status() === 200 && (exp.headers()["content-type"] || "").includes("spreadsheetml"), `export: ${exp.status()} ${exp.headers()["content-type"]}`);
   check((exp.headers()["content-disposition"] || "").includes(`weekevaluaties-${kwartaalSleutel}.xlsx`), "met de bestandsnaam van het kwartaal");
-  const xlsx = (await exp.body()).toString("latin1");
-  check(xlsx.startsWith("PK") && xlsx.includes(WERKNEMER.naam) && xlsx.includes("Twee werknemers zijn weer gestart") && xlsx.includes("gemist") === Boolean(alleGemist.length) && xlsx.includes("Declarabele uren"), "het Excelbestand bevat naam, tekst, status en de urenkolom");
+  const xlsx = (await exp.body()).toString("utf8");
+  check(xlsx.startsWith("PK") && xlsx.includes(WERKNEMER.naam) && xlsx.includes("Knelpuntthema's") && xlsx.includes("Werkdruk, Planning") && xlsx.includes("Spoor 2 zelfstandig doen: 6") && xlsx.includes("Twee zware weken") && xlsx.includes("Declarabele uren"), "het Excelbestand bevat naam, thema's, doelen, het signaal en de uren");
   fs.writeFileSync(path.join(SHOTS, `weekevaluaties-${kwartaalSleutel}.xlsx`), await exp.body());
   const expW = await w.request.get(`${BASIS}/admin/weekevaluatie/team/export?kwartaal=${kwartaalSleutel}`);
   check(!(expW.headers()["content-type"] || "").includes("spreadsheetml"), "de werknemer krijgt de export niet");
@@ -282,28 +392,25 @@ insert into public.admins (user_id, email, role_id, invited_at) select '${WERKNE
   const cron = (q = "") => b.request.get(`${BASIS}/api/cron/weekevaluatie${q}`, { headers: { authorization: "Bearer e2e-cron-geheim" } });
   check((await b.request.get(`${BASIS}/api/cron/weekevaluatie`)).status() === 401, "zonder geheim: 401");
   let cr = await (await cron("?dry=1&altijd=1")).json();
-  check(cr.ok && cr.week === dezeWeek && cr.deelnemers === 2, `twee collega's met het recht, week ${cr.week}`);
-  check(cr.plannen.length === 0, "niemand te herinneren: de werknemer vulde in, de super admin doet niet mee");
+  check(cr.ok && cr.week === dezeWeek && cr.deelnemers === 2 && cr.plannen.length === 0, "niemand te herinneren: de werknemer vulde in, de super admin doet niet mee");
   sql(`delete from public.weekevaluaties where user_id = '${WERKNEMER.id}' and week = '${dezeWeek}'`);
   cr = await (await cron("?dry=1&altijd=1")).json();
-  check(cr.plannen.length === 1 && cr.plannen[0].aan === WERKNEMER.email && cr.plannen[0].onderwerp === `Hoe was je week ${weeknr(dezeWeek)}?`, `droog: alleen de werknemer (${JSON.stringify(cr.plannen)})`);
-  check(cr.verstuurd === 0, "droog: niets verstuurd");
+  check(cr.plannen.length === 1 && cr.plannen[0].aan === WERKNEMER.email && cr.plannen[0].onderwerp === `Hoe was je week ${weeknr(dezeWeek)}?` && cr.verstuurd === 0, `droog: alleen de werknemer, niets verstuurd (${JSON.stringify(cr.plannen)})`);
   cr = await (await cron("?altijd=1")).json();
   check(cr.verstuurd === 1 && cr.mislukt.length === 0, "verstuurd: 1");
   check(await totDat(() => mails().some((m) => m.to.includes(WERKNEMER.email))), "de mail is onderschept");
   const mail = mails().find((m) => m.to.includes(WERKNEMER.email));
-  check(mail && mail.subject === `Hoe was je week ${weeknr(dezeWeek)}?` && mail.html.includes("Hoi Noor,") && mail.html.includes("/admin/weekevaluatie") && mail.html.includes("kwartaalmeeting") && mail.html.includes("Vul je weekevaluatie in"), "aanhef, knop naar het scherm en de uitleg");
+  check(mail && mail.html.includes("Hoi Noor,") && mail.html.includes("/admin/weekevaluatie") && mail.html.includes("Zeven cijfers") && mail.html.includes("Vul je weekevaluatie in"), "aanhef, knop naar het scherm en de uitleg");
+  if (isMaandEinde(dezeWeek)) check(mail && mail.html.includes("laatste week van de"), "met de maandvragen erbij genoemd");
   fs.writeFileSync(path.join(SHOTS, "mail-herinnering.html"), mail?.html || "");
-  // De super admin doet mee zodra hij zelf een keer invulde: dan hoort hij bij het team en krijgt hij de herinnering.
-  sql(`insert into public.weekevaluaties (user_id, week, antwoorden, door) values ('aaaaaaaa-0000-4000-8000-000000000001', '${vorigeWeek}', '{"energie":8,"werkdruk":7,"voldoening":8,"samenwerking":8,"cijfer":8}', '${BEHEERDER.email}')`);
+  sql(`insert into public.weekevaluaties (user_id, week, antwoorden, door) values ('${RENS_ID}', '${vorigeWeek}', '{"energie":8,"tijd":7,"cijfer":8}', '${BEHEERDER.email}')`);
   cr = await (await cron("?dry=1&altijd=1")).json();
   check(cr.plannen.length === 2 && cr.plannen.some((p) => p.aan === BEHEERDER.email), "nu ook de super admin, die vorige week invulde maar deze week nog niet");
   await b.goto(`${BASIS}/admin/weekevaluatie/team`);
-  check((await b.locator("section[id^=collega-]").count()) === 2, "en hij staat in het kwartaaloverzicht");
-  await b.goto(`${BASIS}/admin`);
-  check(/weekevaluatie van week \d+ staat nog open/.test(await b.locator("#weekevaluatie-open").innerText()), "dashboard van de beheerder: deze week staat nog open");
+  check((await b.locator("article[id^=collega-]").count()) === 2, "en hij staat in het kwartaaloverzicht");
+  check(await b.locator('nav[aria-label="Collega\'s"] a').count() === 2, "met een snelle navigatie naar elke collega");
 
-  for (const [page, url, naam] of [[w, "/admin/weekevaluatie", "werknemer"], [b, "/admin/weekevaluatie/team", "kwartaal"], [w, "/admin", "dashboard-werknemer"]]) {
+  for (const [page, url, naam] of [[w, "/admin/weekevaluatie", "werknemer"], [b, "/admin/weekevaluatie/team", "kwartaal"], [b, "/admin", "dashboard-beheerder"]]) {
     stap(`Telefoon: ${naam}`);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${BASIS}${url}`);

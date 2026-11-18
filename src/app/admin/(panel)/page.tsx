@@ -3,7 +3,7 @@ import type { IconType } from "react-icons";
 import {
   LuInbox, LuPhone, LuSearch, LuUsers, LuArrowRight, LuPlus, LuCircleCheck,
   LuMessageSquare, LuBuilding, LuFilePen, LuCalendarClock, LuTrendingUp, LuTrendingDown,
-  LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck,
+  LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck, LuTriangleAlert,
 } from "react-icons/lu";
 import { requireAdmin } from "@/lib/admin";
 import type { Permission } from "@/lib/permissions";
@@ -22,7 +22,8 @@ import {
 import { haalVerkoop, verkoopOverzicht } from "@/lib/opvolgenDb";
 import VerkoopBlok from "@/components/admin/VerkoopBlok";
 import { datumOver } from "@/lib/offertes";
-import { openWeken, sluitOp, weekBereikDag } from "@/lib/weekevaluatie";
+import { kwartaalSleutel, kwartaalVanWeek, openWeken, schalenZin, sluitOp, weekBereikDag, weekKort } from "@/lib/weekevaluatie";
+import { haalSignalen } from "@/lib/weekevaluatieDb";
 import { weekNummer } from "@/lib/uren";
 
 type InboxRow = { kind: "bericht" | "sollicitatie"; id: string; name: string; about: string; at: string };
@@ -43,6 +44,8 @@ export default async function AdminDashboard() {
   const contentPerms = can("paginas") || can("blog") || can("vacatures") || can("instellingen") || can("seo");
   // Offertes, brochures en contracten: eigen zes query's, tegelijk met de rest gestart.
   const verkoopRes = can("bellijst") ? haalVerkoop(sb, now) : Promise.resolve(null);
+  // Twee zware weken bij een collega (0045): voor wie het kwartaaloverzicht van de weekevaluaties mag zien.
+  const signalenRes = can("omzet") ? haalSignalen(sb, datumOver(0, now)) : Promise.resolve([]);
   // De eigen weekevaluatie (0044): welke van de twee open weken nog niet ingevuld is. Vóór de migratie: een fout, en dan niets.
   const openEvalWeken = openWeken(datumOver(0, now));
   const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, profilesRes, evalRes] = await Promise.all([
@@ -167,10 +170,12 @@ export default async function AdminDashboard() {
   // Zonder de tabel (vóór 0044) is er een fout en geen data; dan tonen we niets.
   const evalIngevuld = new Set((((evalRes as { data?: { week: string }[] | null }).data) || []).map((r) => r.week));
   const evalOpen = can("weekevaluatie") && !(evalRes as { error?: unknown }).error ? openEvalWeken.filter((w) => !evalIngevuld.has(w)) : [];
+  const zwareWeken = await signalenRes;
 
   const attention =
     (unhandled > 0 ? 1 : 0) + (toCall.length > 0 ? 1 : 0) + (seoIssues > 0 ? 1 : 0) +
-    (expiring.length > 0 ? 1 : 0) + (verkoop?.signalen.some((s) => s.toon !== "info") ? 1 : 0) + (evalOpen.length > 0 ? 1 : 0);
+    (expiring.length > 0 ? 1 : 0) + (verkoop?.signalen.some((s) => s.toon !== "info") ? 1 : 0) + (evalOpen.length > 0 ? 1 : 0) +
+    (zwareWeken.length > 0 ? 1 : 0);
 
   const name = firstName(admin.email);
 
@@ -209,6 +214,23 @@ export default async function AdminDashboard() {
           </span>
           <span className="abtn !py-2 text-[13.5px]">Invullen</span>
         </Link>
+      )}
+
+      {zwareWeken.length > 0 && (
+        <section className="acard flex flex-wrap items-start gap-4 border-l-[3px] border-l-[#c77700] px-5 py-4" id="weekevaluatie-signalen" aria-labelledby="signalen-kop">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff4e5] text-[18px] text-[#c77700]"><LuTriangleAlert /></span>
+          <div className="min-w-[200px] flex-1">
+            <h2 id="signalen-kop" className="text-[14.5px] font-semibold text-[#1c1a4e]">Twee zware weken achter elkaar</h2>
+            <ul className="mt-0.5 space-y-0.5 text-[13px] text-black/55">
+              {zwareWeken.map((z) => (
+                <li key={`${z.user_id}-${z.week}`}>
+                  <Link href={`/admin/weekevaluatie/team?kwartaal=${kwartaalSleutel(kwartaalVanWeek(z.week))}#collega-${z.user_id}`} className="font-semibold text-[#312e82] hover:underline">{z.naam}</Link>
+                  {" "}t/m {weekKort(z.week)}: een 4 of lager voor {schalenZin(z.schalen)}. Even bellen of langslopen, zonder te wachten op de kwartaalmeeting.
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       )}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">

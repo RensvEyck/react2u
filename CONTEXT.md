@@ -37,7 +37,9 @@ Gebruik deze termen; de code doet dat ook.
 | **Super admin** | De toprol (`superadmin`, `sort` 0). Systeemrol: houdt altijd alle rechten (twaalf sinds 0044) en is niet te verwijderen. Als enige met het recht `gebruikers` — uitnodigen en rollen verdelen is hieraan voorbehouden. |
 | **Beheerder** | Alles behálve `gebruikers` en `omzet`. Kan de hele site en alle inzendingen beheren, maar niemand uitnodigen of van rol wisselen, en ziet de omzet niet. |
 | **Werknemer** (`werknemer`) | De rol voor een collega die alleen zijn eigen weekevaluatie invult (migratie 0044): één recht, `weekevaluatie`. Ziet na het inloggen het dashboard, Weekevaluatie en Account, niets van sales, omzet of de site. Geen systeemrol: de super admin mag er rechten bij zetten. Zie *Weekevaluatie*. |
-| **Weekevaluatie** (`weekevaluaties`) | Eén rij per collega per ISO-week (de maandag): vijf cijfers van 1 tot 10 en vijf open vragen, als jsonb op de sleutels uit `VRAGEN` in [`src/lib/weekevaluatie.ts`](src/lib/weekevaluatie.ts). Deze en vorige week zijn te wijzigen, daarna staat de week vast. Zie *Weekevaluatie*. |
+| **Weekevaluatie** (`weekevaluaties`) | Eén rij per collega per ISO-week (de maandag): zeven cijfers van 1 tot 10 en drie open vragen, in de laatste week van de maand zes maandvragen erbij en in de laatste week van het kwartaal een terugblik, als jsonb op de sleutels uit `VRAGEN` in [`src/lib/weekevaluatie.ts`](src/lib/weekevaluatie.ts). Deze en vorige week zijn te wijzigen, daarna staat de week vast. Zie *Weekevaluatie*. |
+| **Kwartaaldoel** (`weekevaluatie_doelen`) | Eén tot drie doelen per collega per kwartaal, vastgelegd in de kwartaalmeeting (0045). De collega geeft elke week aan hoe ver hij kwam. |
+| **Twee zware weken** | Twee weken achter elkaar een 4 of lager voor energie of voor "werk paste in de tijd". Geeft meteen een mail aan wie het kwartaaloverzicht mag zien, en een melding op diens dashboard. |
 | **Recht** | Toegang tot één onderdeel van het paneel, bv. `bellijst` of `paginas`. De sleutels staan in [`src/lib/permissions.ts`](src/lib/permissions.ts) én in de RLS-policies — hernoemen vraagt dus een migratie. |
 | **Commandopalet** | Zoekveld over het hele paneel: ⌘K, Ctrl+K of `/`. Vindt schermen, acties, pagina's, tekst ín blokken, artikelen, vacatures, inzendingen, leads en gebruikers — alleen wat je mag zien. Zie *Commandopalet en dashboard*. |
 | **Doorverwijzing** (`redirects`) | Een oud adres dat naar een nieuw adres stuurt, beheerd onder SEO → Doorverwijzingen. Permanent (308) of tijdelijk (307). Zie *Doorverwijzingen en 404's*. |
@@ -1880,12 +1882,49 @@ klantevaluatie onder Documenten).
   gewoon via Gebruikers met de rol Werknemer; tweestaps blijft verplicht.
 - **De vragen staan in code**, in `VRAGEN` in
   [`lib/weekevaluatie.ts`](src/lib/weekevaluatie.ts), zoals `DOCUMENTEN` bij de
-  onboarding: vijf schalen van 1 tot 10 waar hoger altijd beter is (energie,
-  werkdruk te doen, voldoening, samenwerking, cijfer voor de week) en vijf open
-  vragen (wat ging goed, wat kon beter, waar liep je tegenaan, wat heb je nodig,
-  waar ben je trots op). De schalen zijn verplicht, de teksten niet. De
-  database bewaart de antwoorden als jsonb op die sleutels; een vraag erbij is
-  een regel in code, geen migratie. Oude rijen missen die sleutel dan gewoon.
+  onboarding, in drie lagen (sinds 0045; Rens, 18 nov: "wat zijn nog betere
+  vragen. 1 om het werkgeluk te meten [...] 2 de druk, kennis en toewijding te
+  meten 3 hoe kunnen we vragen stellen die terug komen in de kwartaalmeetings"):
+  - **Elke week**, twee minuten: zeven cijfers van 1 tot 10 waar hoger altijd
+    beter is. Werkgeluk: energie en plezier. Druk: werk paste in de tijd,
+    emotioneel te dragen, loskomen na het werk. Kennis: kon je met je kennis
+    uit de voeten. En het cijfer voor de week. Daarna drie open vragen: het
+    hoogtepunt, waar je tegenaan liep (met vaste thema's: werkdruk, kennis,
+    klant of werkgever, samenwerking, systemen, planning) en, alleen bij een 6
+    of lager voor kennis, welke kennis je miste (met thema's als Wet
+    poortwachter, re-integratie, gesprekstechniek, XpertSuite, sales).
+  - **De laatste week van de maand**: zes stellingen over toewijding en wat
+    werkgeluk voedt (trots, extra inzet, gewaardeerd, eigen ruimte, geleerd,
+    steun van collega's). Toewijding schommelt niet per week, en wekelijks
+    vragen maakt moe.
+  - **De laatste week van het kwartaal**: de terugblik. Hoe zeker zie je jezelf
+    over een jaar nog hier, en waarom; je hoogtepunt van het kwartaal; wat
+    volgend kwartaal anders moet, bij jou en bij React2u.
+  Elke week dezelfde woorden: een andere formulering is een andere vraag, en
+  dan breekt de trend. Een week hoort bij de maand en het kwartaal van zijn
+  donderdag (`isMaandEinde`, `isKwartaalEinde`). De cijfers zijn verplicht, de
+  teksten niet. **Niets over gezondheid** (klachten, slaap): een werkgever mag
+  geen medische gegevens vastleggen, dus we vragen naar het werk. Boven het
+  formulier staat waar de antwoorden voor zijn (`WAARVOOR`): voor het gesprek,
+  nooit voor beoordeling of salaris. Een sleutel hernoemen maakt oude
+  antwoorden onvindbaar; een vraag erbij is een regel in code.
+- **Terug in de kwartaalmeeting.** Drie dingen lopen van de week naar de
+  meeting: de **doelen** (`weekevaluatie_doelen`, 0045: één tot drie per
+  kwartaal, vastgelegd in punt 7 van de agenda, alleen met het recht `omzet`;
+  de collega ziet ze in zijn formulier en geeft elke week een cijfer voor zijn
+  voortgang met een regel toelichting), het **vinkje** "meenemen naar de
+  kwartaalmeeting" bij elk open antwoord (`bespreken` in de antwoorden), en de
+  **thema's** bij het knelpunt en de gemiste kennis, die per kwartaal geteld
+  worden.
+- **Twee zware weken** (0045): twee weken achter elkaar een 4 of lager voor
+  energie of voor tijd. Na het bewaren roept de server action
+  `weekevaluatie_signaal(p_week)` aan (security definer); die bekijkt deze
+  week met de week ervoor en de week erna met deze, zet `signaal_at` zodat
+  opnieuw bewaren niet opnieuw mailt, en geeft de adressen van wie het recht
+  `omzet` heeft. De mail (`sendWeekevaluatieSignaal`, tekst in `signaalMail`)
+  noemt de weken en de schalen, niet de antwoorden. Dezelfde regel staat in
+  code (`signaal`, `SIGNAAL_GRENS`) voor het dashboard en het overzicht; wie
+  de grens verandert, verandert beide.
 - **Eén evaluatie per ISO-week**, de week is zijn maandag zoals bij de uren.
   Deze week en vorige week staan open; aan het eind van de week erna sluit een
   week (`weekStand`, `sluitOp`). Dat zit ook in de database: de insert- en
@@ -1893,23 +1932,33 @@ klantevaluatie onder Documenten).
   week toe, en alleen de eigen `user_id`. Er is geen delete-policy: een
   evaluatie pas je aan, je haalt hem niet weg.
 - **`/admin/weekevaluatie`** (recht `weekevaluatie`): de twee open weken als
-  kaarten, het formulier van de gekozen week (radio's als rij knoppen, zonder
-  JavaScript), daaronder je laatste twaalf weken als grafiek en de eerdere weken
+  kaarten (met "met maandvragen" of "met terugblik" erbij), het formulier van
+  de gekozen week in lagen (`WeekevaluatieForm`, een client component omdat
+  "welke kennis miste je" pas verschijnt bij een lage kennis), daaronder je
+  laatste twaalf weken als grafiek (energie, tijd, kennis) en de eerdere weken
   om terug te lezen. Is de collega gekoppeld aan een medewerker, dan staan zijn
   uren van die week uit de urenregistratie erbij (alleen lezen; policies
   "eigen medewerker lezen" en "eigen uren lezen").
-- **`/admin/weekevaluatie/team`** (recht `omzet`): het kwartaaloverzicht voor
-  de kwartaalmeeting. Per kwartaal (`?kwartaal=2026-Q4`; een week hoort bij het
-  kwartaal van zijn donderdag, net als bij de maand): ingevuld van verwacht, het
-  teamgemiddelde per week (energie, werkdruk, cijfer, `Grafiek.tsx`), en per
-  collega de gemiddelden per schaal met de trend tegenover het kwartaal ervoor,
-  wie welke weken miste (weken van vóór zijn uitnodiging tellen niet), de open
-  antwoorden per week uitklapbaar, en de declarabiliteit over het kwartaal als
-  hij gekoppeld is. **Export** (`/admin/weekevaluatie/team/export`): één rij per
-  collega per verstreken week, gemiste weken erbij met de status "gemist", als
-  Excelbestand uit [`lib/xlsx.ts`](src/lib/xlsx.ts). Het ophalen staat in
-  [`lib/weekevaluatieDb.ts`](src/lib/weekevaluatieDb.ts), gedeeld door scherm
-  en export.
+- **`/admin/weekevaluatie/team`** (recht `omzet`): het kwartaaloverzicht,
+  opgebouwd als **de agenda van de kwartaalmeeting**. Per kwartaal
+  (`?kwartaal=2026-Q4`) bovenaan het team: de signalen, ingevuld van verwacht,
+  energie, tijd en kennis met de trend tegenover het kwartaal ervoor, de
+  teamgrafiek per week (`Grafiek.tsx`) en hoe vaak elk knelpunt- en
+  kennisthema gekozen is (het begin van het opleidingsplan). Dan per collega
+  zeven agendapunten: 1. de doelen van dit kwartaal met de voortgang per week
+  en de laatste toelichting; 2. hoe het ging (de zeven weekcijfers met trend,
+  de grafiek, de twee zwaarste weken, de signalen); 3. toewijding en groei per
+  maand (de maandvragen in een tabel); 4. knelpunten en kennis, geteld; 5. wat
+  hij wil bespreken; 6. zijn terugblik; 7. de doelen voor volgend kwartaal,
+  vast te leggen in de meeting. Daaronder alle antwoorden per week. Wie welke
+  weken miste staat in de kop van de kaart (weken van vóór zijn uitnodiging
+  tellen niet), net als de declarabiliteit als hij gekoppeld is. **Export**
+  (`/admin/weekevaluatie/team/export`): één rij per collega per verstreken
+  week, gemiste weken erbij met de status "gemist", met alle cijfers, thema's,
+  doelvoortgang, bespreekpunten, de maandvragen, de terugblik en het signaal,
+  als Excelbestand uit [`lib/xlsx.ts`](src/lib/xlsx.ts). Het ophalen staat in
+  [`lib/weekevaluatieDb.ts`](src/lib/weekevaluatieDb.ts), gedeeld door scherm,
+  export en dashboard.
 - **Waarom `omzet` en niet `gebruikers`.** Het overzicht bevat persoonlijke
   reflecties van collega's en zet ze naast hun declarabele uren. Het recht
   `omzet` dekt al de medewerkers en hun uren en is sinds 0035 alleen van de
@@ -1931,13 +1980,15 @@ klantevaluatie onder Documenten).
 - **De vrijdagherinnering** (`api/cron/weekevaluatie`, vercel.json: vrijdag
   13:00 UTC, dus 14:00 of 15:00 Nederlandse tijd): aan wie meedoet en deze week
   nog niets invulde, met één knop naar het scherm
-  (`sendWeekevaluatieHerinnering`, tekst in `herinnering()`). `?dry=1` plant
+  (`sendWeekevaluatieHerinnering`, tekst in `herinnering()`; in de laatste week
+  van de maand of het kwartaal noemt hij de maandvragen en de terugblik). `?dry=1` plant
   alleen, `?altijd=1` ook op een andere dag. Draait met de service-role-sleutel,
   zoals de andere crons.
 
-Regels en 18 unittests in `lib/weekevaluatie.ts`; browsertest
+Regels en 30 unittests in `lib/weekevaluatie.ts`; browsertest
 `e2e/weekevaluatie.cjs` (met een tweede testcollega in de rol werknemer, in een
-eigen browsercontext naast de beheerder).
+eigen browsercontext naast de beheerder; de maandvragen en de terugblik test hij
+in gesloten weken, omdat welke lagen er open staan van de datum afhangt).
 
 ## Klantenbord
 
