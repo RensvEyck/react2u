@@ -7,6 +7,8 @@ import {
   CONTRACT_EMAIL, contractFeiten, contractKort, controleerContract, normaliseerOpdrachtgever, offerteKenmerk, opdrachtnemerUit, soortVan,
   type Contract, type ContractSoort, type ContractStatus,
 } from "@/lib/contracten";
+import { heeftChecklist, type ChecklistStand } from "@/lib/contractChecklist";
+import { checklistPdfBijlage } from "@/lib/contractChecklistBestand";
 import { contractStructuur, standaardTekst, standaardVersie, wijktAf } from "@/lib/contractTekst";
 import { contractUrl, sendContract } from "@/lib/mail";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
@@ -51,6 +53,21 @@ function ververs(id?: string, partnerId?: string | null) {
 async function laad(sb: Sb, id: string): Promise<Contract | null> {
   const { data } = await sb.from("contracten").select("*").eq("id", id).maybeSingle();
   return (data as Contract | null) ?? null;
+}
+
+/**
+ * De Checklist arbeidsomstandigheden als pdf bij de contractmail (0042): met de
+ * antwoorden als de klant hem al invulde, anders leeg. Lukt de pdf niet, dan
+ * gaat de mail zonder; de checklist staat altijd op de contractpagina.
+ */
+async function checklistBijlage(sb: Sb, c: Contract) {
+  try {
+    const { data } = await sb.from("contract_checklists").select("*").eq("contract_id", c.id).maybeSingle();
+    return await checklistPdfBijlage(c, (data as ChecklistStand | null) ?? null);
+  } catch (e) {
+    console.error("[contract] checklist-pdf mislukt:", e);
+    return null;
+  }
 }
 
 /** React2u als partij: elke keer vers uit Instellingen, zodat een verhuizing of nieuw KvK-nummer meteen meegaat. */
@@ -160,6 +177,7 @@ export async function verstuurContract(id: string, _prev: VersturenState, fd: Fo
 
   const herinnering = c.status === "verstuurd";
   const { contact } = await offerteHuisstijl();
+  const checklist = heeftChecklist(c) ? await checklistBijlage(sb, c) : null;
   const res = await sendContract({
     to: aan,
     soort: soortVan(c),
@@ -172,6 +190,8 @@ export async function verstuurContract(id: string, _prev: VersturenState, fd: Fo
     herinnering,
     feiten: contractFeiten(c),
     kort: contractKort(c),
+    checklist: Boolean(checklist),
+    bijlagen: checklist ? [checklist] : undefined,
     contact,
   });
   if (!res.ok) {

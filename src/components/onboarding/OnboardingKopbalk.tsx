@@ -57,9 +57,12 @@ function useActief(ids: string[]) {
 }
 
 export default function OnboardingKopbalk({
-  nummer, onderdelen, klaar, totaal, tel, telNaam, terug,
+  nummer, onderdelen, klaar, totaal, tel, telNaam, terug, titel = "Onboarding", navLabel = "Hoofdstukken van de onboarding",
 }: {
   nummer: string;
+  /** Wat er voor het nummer staat: "Onboarding" (0037), of "Klantevaluatie" (0043). */
+  titel?: string;
+  navLabel?: string;
   onderdelen: Onderdeel[];
   klaar: number;
   totaal: number;
@@ -77,7 +80,7 @@ export default function OnboardingKopbalk({
         <div className="flex min-w-0 items-center gap-4">
           <Logo className="h-9 w-auto shrink-0 md:h-11" />
           <span className="hidden h-8 w-px sm:block" style={{ background: LINE }} aria-hidden="true" />
-          <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>Onboarding {nummer}</span>
+          <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>{titel} {nummer}</span>
           {terug && (
             <a href={terug.href} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[14px] font-bold transition-colors hover:bg-[#F6F5FB]" style={{ color: NAVY }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
@@ -86,7 +89,7 @@ export default function OnboardingKopbalk({
           )}
         </div>
         {onderdelen.length > 0 && (
-          <nav aria-label="Hoofdstukken van de onboarding" className="hidden items-center gap-7 xl:flex">
+          <nav aria-label={navLabel} className="hidden items-center gap-7 xl:flex">
             {onderdelen.map((o) => {
               const hier = o.id === actief;
               return (

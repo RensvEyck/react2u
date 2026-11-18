@@ -104,8 +104,8 @@ export type Klant = {
 
 export type GesprekSoort = "gesprek" | "mail" | "bezoek" | "notitie" | "status" | "import" | "systeem";
 
-/** Uit welke module een systeemregel komt (0041); `opdracht` is een los opgevoerde klant of opdracht. */
-export type Bron = "offerte" | "brochure" | "contract" | "onboarding" | "opdracht";
+/** Uit welke module een systeemregel komt (0041); `opdracht` is een los opgevoerde klant of opdracht, `evaluatie` de klantevaluatie (0043). */
+export type Bron = "offerte" | "brochure" | "contract" | "onboarding" | "opdracht" | "evaluatie";
 
 export type Gesprek = {
   id: string;
@@ -146,6 +146,7 @@ export function bronHref(bron: Bron | null, id: string | null): string | null {
     case "contract": return `/admin/contracten/${id}`;
     case "onboarding": return `/admin/onboarding/${id}`;
     case "opdracht": return "/admin/verkoop/los";
+    case "evaluatie": return `/admin/documenten/evaluaties/${id}`;
   }
 }
 
@@ -282,7 +283,7 @@ export function initialen(naam: string | null | undefined): string {
 
 /* ---------- koppelingen met de andere modules ---------- */
 
-export type KoppelSoort = "offerte" | "brochure" | "contract" | "onboarding" | "lead";
+export type KoppelSoort = "offerte" | "brochure" | "contract" | "onboarding" | "evaluatie" | "lead";
 
 export type Koppeling = {
   soort: KoppelSoort;
@@ -303,6 +304,8 @@ export type Bronnen = {
   brochures: { id: string; nummer: string; status: string; bedrijf: string; verstuurd_at: string | null; bekeken_at: string | null; created_at: string }[];
   contracten: { id: string; nummer: string; status: string; bedrijf: string; soort?: string | null; verstuurd_at: string | null; getekend_at: string | null; created_at: string }[];
   onboardings: { id: string; nummer: string; status: string; bedrijf: string; weergave: string; verstuurd_at: string | null; afgerond_at: string | null; created_at: string }[];
+  /** Klantevaluaties (0043); ontbreekt zolang de migratie niet gedraaid is. */
+  evaluaties?: { id: string; nummer: string; status: string; bedrijf: string; bekeken_at: string | null; verstuurd_at: string | null; ingevuld_at: string | null; created_at: string }[];
   leads: { id: string; name: string; company: string | null; status: string; follow_up_on: string | null }[];
 };
 
@@ -321,6 +324,7 @@ const STAND: Record<string, { label: string; kleur: string; achter: string }> = 
   ingetrokken: { label: "ingetrokken", ...GRIJS },
   afgerond: { label: "klant klaar", ...ORANJE },
   ingericht: { label: "ingericht", ...GROEN },
+  ingevuld: { label: "ingevuld", ...GROEN },
 };
 
 const LEAD_STAND: Record<string, { label: string; kleur: string; achter: string }> = {
@@ -361,6 +365,10 @@ export function koppelIndex(bronnen: Bronnen): Map<string, Koppeling[]> {
   for (const o of bronnen.onboardings) {
     const st = STAND[o.weergave] || STAND[o.status] || STAND.concept;
     zet(o.bedrijf, { soort: "onboarding", id: o.id, nummer: o.nummer, stand: o.weergave === "bekeken" ? "klant bezig" : st.label, kleur: st.kleur, achter: st.achter, href: `/admin/onboarding/${o.id}`, at: o.afgerond_at || o.verstuurd_at || o.created_at });
+  }
+  for (const e of bronnen.evaluaties || []) {
+    const st = e.status === "verstuurd" && e.bekeken_at ? STAND.bekeken : STAND[e.status] || STAND.concept;
+    zet(e.bedrijf, { soort: "evaluatie", id: e.id, nummer: e.nummer, stand: e.status === "verstuurd" && e.bekeken_at ? "klant bezig" : st.label, kleur: st.kleur, achter: st.achter, href: `/admin/documenten/evaluaties/${e.id}`, at: e.ingevuld_at || e.verstuurd_at || e.created_at });
   }
   for (const l of bronnen.leads) {
     const st = LEAD_STAND[l.status] || LEAD_STAND.gebeld;

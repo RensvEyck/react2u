@@ -11,8 +11,8 @@
 //   E2E_GEEN_BUILD=1   bestaande .next gebruiken (alleen als die met deze
 //                      instellingen is gebouwd)
 //   E2E_ALLEEN=offerte alleen deze test(s), met komma's (offerte, vormen, brochure,
-//                      contract, onboarding, klantenbord, reseller, partner, dashboard,
-//                      omzet of weekevaluatie)
+//                      contract, onboarding, klantenbord, evaluatie, reseller, partner,
+//                      dashboard, omzet of weekevaluatie)
 //   E2E_POORT=3024     de site op een andere poort dan 3014 (en E2E_RESEND_POORT
 //                      voor de nep-Resend), als een vorige run nog draait
 //   E2E_STACK=2        een tweede Supabase-stack naast een lopende (een andere
@@ -89,7 +89,9 @@ function nepResend() {
     req.on("end", () => {
       if (req.method === "POST" && req.url === "/emails") {
         fs.appendFileSync(bestand, JSON.stringify({ at: new Date().toISOString(), ...JSON.parse(body || "{}") }) + "\n");
-        res.writeHead(200, { "content-type": "application/json" });
+        // Geen keep-alive: Node hergebruikt anders een verbinding die deze server net na vijf seconden stilte sloot,
+        // en dan mislukt een mail op ECONNRESET (gezien bij de bevestiging met een pdf in de evaluatietest).
+        res.writeHead(200, { "content-type": "application/json", connection: "close" });
         return res.end(JSON.stringify({ id: `nep-${Date.now()}` }));
       }
       res.writeHead(404);
@@ -228,7 +230,7 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
   const testEnv = { ...env, E2E_BASIS: BASIS, E2E_UIT: UIT, E2E_DB_CONTAINER: DB };
   // dashboard en omzet als laatste: die maken de verkooptabellen leeg voor hun eigen vaste set;
   // weekevaluatie daarna, want die hangt aan de medewerkers die omzet leegmaakt.
-  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "klantenbord", "reseller", "partner", "dashboard", "omzet", "weekevaluatie"];
+  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "klantenbord", "evaluatie", "reseller", "partner", "dashboard", "omzet", "weekevaluatie"];
   const mislukt = [];
   for (const t of tests) {
     stap(`Test: ${t}`);

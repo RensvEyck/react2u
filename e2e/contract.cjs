@@ -1,5 +1,7 @@
 // Basiscontract (0031) van begin tot eind: aanmaken in het beheer (ook vanuit een offerte), versturen, de klant
 // leest het, vult zijn organisatie in, krijgt een code, tekent en ontvangt de pdf; daarna staat het vast.
+// Sinds 0042 ook de Checklist arbeidsomstandigheden: als pdf bij de contractmail, de klant vult hem online in
+// (en werkt hem bij), de kopie en het seintje, de pdf's, de band op de contractpagina en de antwoorden in het beheer.
 // Draaien via e2e/run.mjs (E2E_ALLEEN=contract).
 const { chromium } = require("playwright");
 const fs = require("fs");
@@ -93,6 +95,7 @@ async function stil(page, sel) {
   const id = contractUrl.split("/").pop();
   check(await page.locator("h1:has-text('Bakkerij De Gouden Korst')").count(), "contract aangemaakt");
   check(await page.locator("text=Standaardtekst, versie").count(), "standaardtekst herkend");
+  check(await page.locator("#checklist >> text=Nog open").count(), "kaart Checklist arbeidsomstandigheden, nog open");
   await shot(page, "03-beheer-concept");
 
   stap("Voorbeeld en concept-pdf vanuit het beheer");
@@ -100,8 +103,16 @@ async function stil(page, sel) {
   await vb.goto(`${BASIS}/admin/contractvoorbeeld/${id}`);
   await vb.waitForSelector("h1");
   check(await vb.locator("text=Voorbeeld: zo ziet de klant het contract").count(), "voorbeeldmelding");
+  check(await vb.locator("#checklist >> text=Nog niet ingevuld").count(), "voorbeeld: de band van de checklist");
   await shot(vb, "04-voorbeeld");
+  await vb.goto(`${BASIS}/admin/contractvoorbeeld/${id}/checklist`);
+  await vb.waitForSelector("#checklist-formulier");
+  check(await vb.locator("#checklist-formulier button[type=submit][disabled]").count(), "in het voorbeeld kan de checklist niet worden opgeslagen");
+  check((await vb.locator("#checklist-formulier li[id^=onderdeel-]").count()) === 8, "voorbeeld: acht onderdelen");
+  await shot(vb, "04b-voorbeeld-checklist");
   await vb.close();
+  const clpdf = await page.request.get(`${BASIS}/admin/contractvoorbeeld/${id}/checklist/pdf?download=1`);
+  check(clpdf.status() === 200 && (await clpdf.body()).subarray(0, 5).toString() === "%PDF-" && /\(leeg\)/.test(clpdf.headers()["content-disposition"] || ""), `lege checklist-pdf uit het beheer: ${clpdf.status()}`);
   const cpdf = await page.request.get(`${BASIS}/admin/contractvoorbeeld/${id}/concept?download=1`);
   const cbody = await cpdf.body();
   check(cpdf.status() === 200 && cbody.subarray(0, 5).toString() === "%PDF-", `concept-pdf uit het beheer: ${cpdf.status()}`);
@@ -117,6 +128,9 @@ async function stil(page, sel) {
   fs.writeFileSync(path.join(SHOTS, "mail-contract.html"), verstuurMail?.html || "");
   const link = contractLink(verstuurMail?.html);
   check(Boolean(link), `link in de mail: ${link}`);
+  const bijlageMail = verstuurMail?.attachments?.[0];
+  check(Boolean(bijlageMail) && /^Checklist arbeidsomstandigheden C\d{4}-\d{4} .*\(leeg\)\.pdf$/.test(bijlageMail.filename), `lege checklist als pdf bij de contractmail: ${bijlageMail?.filename}`);
+  check(/Bij dit contract/.test(verstuurMail?.html || "") && /Checklist arbeidsomstandigheden/.test(verstuurMail?.html || ""), "de contractmail noemt de checklist");
 
   stap("De klant opent het contract");
   const kctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "nl-NL" });
@@ -144,6 +158,8 @@ async function stil(page, sel) {
   await klant.waitForTimeout(400);
   await shot(klant, "06b-klant-artikelen", { fullPage: false });
   check(await klant.locator('nav[aria-label="Inhoud van het contract"] a[aria-current="true"]').count(), "inhoudsopgave loopt mee");
+  check((await klant.locator("#checklist").innerText()).includes("Nog niet ingevuld") && (await klant.locator("#checklist ol li").count()) === 8, "band Checklist arbeidsomstandigheden met de acht onderdelen, nog niet ingevuld");
+  check(await klant.locator('header nav a[href="#checklist"]').count(), "Checklist in de kopbalk");
   const bekeken = mails().find((m) => /bekijkt het basiscontract/.test(m.subject));
   check(Boolean(bekeken), "seintje aan de afzender bij eerste keer openen");
 
@@ -152,6 +168,72 @@ async function stil(page, sel) {
   const kcBody = await kc.body();
   check(kc.status() === 200 && kcBody.subarray(0, 5).toString() === "%PDF-" && kcBody.toString("latin1").includes("arbodienstverlening, concept"), `concept-pdf: ${kc.status()}`);
   fs.writeFileSync(path.join(SHOTS, "concept.pdf"), kcBody);
+
+  stap("De checklist arbeidsomstandigheden");
+  const leegPdf = await klant.request.get(`${link}/checklist/pdf`);
+  check(leegPdf.status() === 200 && (await leegPdf.body()).subarray(0, 5).toString() === "%PDF-" && /\(leeg\)/.test(leegPdf.headers()["content-disposition"] || ""), `lege checklist-pdf voor de klant: ${leegPdf.status()}`);
+  await klant.locator("#checklist").scrollIntoViewIfNeeded();
+  await klant.waitForTimeout(400);
+  await shot(klant, "06c-klant-checklist-band", { fullPage: false });
+  await klant.click("#checklist a:has-text('Vul de checklist in')");
+  await klant.waitForURL(/\/checklist$/, { timeout: 20000 });
+  await klant.waitForSelector("#checklist-formulier");
+  check((await klant.inputValue("#cl-naam")) === "Marieke Jansen" && (await klant.inputValue("#cl-bedrijf")) === "Bakkerij De Gouden Korst B.V.", "naam en statutaire naam vooringevuld");
+  check((await klant.inputValue("#cl-plaats")) === "Eindhoven", "plaats: de vestigingsplaats");
+  check(/^\d{4}-\d{2}-\d{2}$/.test(await klant.inputValue("#cl-datum")), "datum van vandaag vooringevuld");
+  check((await klant.locator("#checklist-formulier li[id^=onderdeel-]").count()) === 8, "acht onderdelen");
+  check(await klant.locator("text=Iedere organisatie moet 1 preventiemedewerker aanstellen").count(), "toelichting bij de preventiemedewerker, zoals in het Word-bestand");
+  check(await klant.locator("text=Checklist arbeidsomstandigheden wet").count(), "de titel van het Word-bestand");
+  await shot(klant, "06d-checklist-boven", { fullPage: false });
+  await shot(klant, "06e-checklist-heel");
+  // Leeg opslaan wordt geweigerd, en zonder naam ook.
+  await klant.fill("#cl-naam", "");
+  await klant.click("#checklist-formulier button[type=submit]");
+  await klant.waitForSelector("#checklist-formulier [role=alert]", { timeout: 15000 });
+  check((await klant.locator("#checklist-formulier [role=alert]").innerText()).includes("minstens één onderdeel"), "lege checklist geweigerd");
+  check(sql(`select count(*) from public.contract_checklists where contract_id = '${id}'`) === "0", "niets opgeslagen bij een fout");
+  await klant.fill("#cl-naam", "Marieke Jansen");
+  await klant.fill("#cl-functie", "directeur");
+  await klant.fill("#cl-casemanager-actie", "Piet de Vries (HR) is de interne casemanager.");
+  await klant.fill("#cl-rie-actie", "RI&E is van 2024; toetsing door de kerndeskundige van React2u inplannen.");
+  await klant.fill("#cl-rie-datum", "2027-03-01");
+  await klant.fill("#cl-preventiemedewerker-actie", "Marieke Jansen zelf (minder dan 25 werknemers).");
+  check(await klant.locator("#checklist-formulier >> text=3 van 8 beantwoord").count(), "de teller loopt mee: 3 van 8");
+  await klant.locator("#opslaan").scrollIntoViewIfNeeded();
+  await klant.waitForTimeout(300);
+  await shot(klant, "06f-checklist-ingevuld", { fullPage: false });
+  const voorChecklist = mails().length;
+  await klant.click("#checklist-formulier button[type=submit]");
+  await klant.waitForSelector("#checklist-formulier [role=status]", { timeout: 20000 });
+  check((await klant.locator("#checklist-formulier [role=status]").innerText()).includes("Opgeslagen"), "opgeslagen");
+  check(sql(`select (data->>'casemanager_actie') || '|' || door || '|' || versie from public.contract_checklists where contract_id = '${id}'`) === "Piet de Vries (HR) is de interne casemanager.|Marieke Jansen|1", "antwoorden in de database, op naam, versie 1");
+  check(sql(`select count(*) from public.contract_gebeurtenissen where contract_id = '${id}' and soort = 'checklist'`) === "1", "gebeurtenis checklist in de tijdlijn");
+  check(sql(`select count(*) from public.klant_gesprekken where tekst like 'Checklist arbeidsomstandigheden ingevuld%'`) === "1", "regel op het klantenbord");
+  await klant.waitForTimeout(3000);
+  const naChecklist = mails().slice(voorChecklist);
+  const kopie = naChecklist.find((m) => /^Opgeslagen: checklist arbeidsomstandigheden/.test(m.subject));
+  const seintje = naChecklist.find((m) => /vulde de checklist arbeidsomstandigheden in/.test(m.subject));
+  check(Boolean(kopie) && kopie.to.includes("marieke@goudenkorst.test") && /\(ingevuld\)\.pdf$/.test(kopie.attachments?.[0]?.filename || ""), `kopie met de ingevulde pdf aan de klant: ${kopie?.subject}`);
+  check(Boolean(seintje) && seintje.to.includes("sales@test.local") && seintje.to.includes("sales@react2u.nl") && /3 van 8/.test(seintje.html || ""), `seintje aan sales: ${seintje?.subject}`);
+  fs.writeFileSync(path.join(SHOTS, "mail-checklist.html"), kopie?.html || "");
+  if (kopie?.attachments?.[0]) fs.writeFileSync(path.join(SHOTS, "checklist-uit-mail.pdf"), Buffer.from(kopie.attachments[0].content, "base64"));
+  const volPdf = await klant.request.get(`${link}/checklist/pdf`);
+  const volBody = await volPdf.body();
+  check(volPdf.status() === 200 && /\(ingevuld\)/.test(volPdf.headers()["content-disposition"] || "") && volBody.toString("latin1").includes("basiscontract, ingevuld"), "ingevulde checklist-pdf voor de klant");
+  fs.writeFileSync(path.join(SHOTS, "checklist-ingevuld.pdf"), volBody);
+  // Bijwerken: een onderdeel erbij, versie 2.
+  await klant.reload();
+  await klant.waitForSelector("#checklist-formulier button:has-text('Wijzigingen opslaan')", { timeout: 20000 });
+  check((await klant.inputValue("#cl-casemanager-actie")) === "Piet de Vries (HR) is de interne casemanager.", "na herladen staan de antwoorden er");
+  await klant.fill("#cl-klachtenregeling-actie", "Klachtenregeling staat op react2u.nl; medewerkers horen het via het verzuimprotocol.");
+  await klant.click("#checklist-formulier button[type=submit]");
+  await klant.waitForSelector("#checklist-formulier [role=status]", { timeout: 20000 });
+  check(sql(`select versie from public.contract_checklists where contract_id = '${id}'`) === "2", "bijgewerkt: versie 2");
+  await klant.waitForTimeout(2500);
+  check(mails().some((m) => /^Bijgewerkt: checklist arbeidsomstandigheden/.test(m.subject)), "kopie bij het bijwerken");
+  await klant.goto(link);
+  await klant.waitForSelector("#checklist");
+  check((await klant.locator("#checklist").innerText()).includes("4 van 8 beantwoord") && (await klant.locator("#checklist a:has-text('Bekijk of vul aan')").count()) === 1, "de band op het contract toont 4 van 8 beantwoord");
 
   stap("Telefoon");
   const tel = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "nl-NL" });
@@ -166,6 +248,13 @@ async function stil(page, sel) {
   const naarTekenen = await stil(tp, "#ondertekenen");
   check(naarTekenen.y < 200, `knop onderaan brengt je naar ondertekenen (${Math.round(naarTekenen.y)})`);
   await shot(tp, "09-telefoon-tekenen", { fullPage: false });
+  await tp.goto(`${link}/checklist`);
+  await tp.waitForSelector("#checklist-formulier");
+  const breedCl = await tp.evaluate(() => document.documentElement.scrollWidth);
+  check(breedCl <= 390, `checklist: geen horizontale scroll op 390 px (${breedCl})`);
+  check(await tp.locator("div.fixed button:has-text('Opslaan')").count(), "telefoon: knop Opslaan onderaan");
+  await shot(tp, "09b-telefoon-checklist", { fullPage: false });
+  await shot(tp, "09c-telefoon-checklist-heel");
   await tel.close();
 
   stap("Ondertekenen");
@@ -231,6 +320,8 @@ async function stil(page, sel) {
   const bevestiging = alle.find((m) => m.to?.includes("marieke@goudenkorst.test") && /^Ondertekend: basiscontract/.test(m.subject));
   const melding = alle.find((m) => /^Getekend: basiscontract/.test(m.subject));
   check(Boolean(bevestiging?.attachments?.[0]), `bevestiging met pdf: ${bevestiging?.subject}`);
+  check(bevestiging?.attachments?.length === 2 && /^Checklist arbeidsomstandigheden .*\(ingevuld\)\.pdf$/.test(bevestiging.attachments[1].filename), `de ingevulde checklist als tweede bijlage (${(bevestiging?.attachments || []).map((a) => a.filename).join(", ")})`);
+  check(/ingevulde Checklist arbeidsomstandigheden zit er ook bij/.test(bevestiging?.html || ""), "de bevestiging noemt de checklist");
   check(Boolean(melding) && melding.to.includes("sales@test.local") && melding.to.includes("sales@react2u.nl"), `melding naar sales: ${melding?.to}`);
   check(/KvK 12345678/.test(melding?.html || "") && /directeur/.test(melding?.html || ""), "melding aan sales met de organisatie en functie");
   fs.writeFileSync(path.join(SHOTS, "mail-bevestiging.html"), bevestiging?.html || "");
@@ -264,9 +355,17 @@ async function stil(page, sel) {
   check(await page.locator("text=bevestigd met code").count(), "beheer: e-mail bevestigd met code");
   check(await page.locator("text=Opzeggen kan uiterlijk").count(), "beheer: tot wanneer opzeggen kan");
   check((await page.locator("#ct-bedrijf").count()) === 0, "formulier weg na ondertekening");
+  check(await page.locator("#checklist >> text=Piet de Vries (HR) is de interne casemanager.").count(), "beheer: de antwoorden van de checklist");
+  check(await page.locator("#checklist >> text=4/8 beantwoord").count(), "beheer: 4 van 8 beantwoord");
+  check(await page.locator("#checklist >> text=Geen actiepunten ingevuld").count() === 4, "beheer: de open onderdelen staan erbij");
+  check(await page.locator("text=Checklist arbeidsomstandigheden ingevuld door Marieke Jansen").count(), "tijdlijn: checklist ingevuld");
+  check(await page.locator("text=Checklist arbeidsomstandigheden bijgewerkt door Marieke Jansen").count(), "tijdlijn: checklist bijgewerkt");
   await shot(page, "13-beheer-getekend");
+  const aclpdf = await page.request.get(`${BASIS}/admin/contractvoorbeeld/${id}/checklist/pdf`);
+  check(aclpdf.status() === 200 && /\(ingevuld\)/.test(aclpdf.headers()["content-disposition"] || ""), `ingevulde checklist-pdf uit het beheer: ${aclpdf.status()}`);
   await page.goto(`${BASIS}/admin/contracten`);
   check(await page.locator("text=Opzeggen uiterlijk").count(), "overzicht: opzegdatum in het register");
+  check(await page.locator("table >> text=Checklist").count(), "register: checklist ingevuld");
   await shot(page, "14-overzicht");
   const apdf = await page.request.get(`${BASIS}/admin/contractvoorbeeld/${id}/pdf`);
   check(apdf.status() === 200, `pdf uit het beheer: ${apdf.status()}`);
@@ -274,6 +373,9 @@ async function stil(page, sel) {
   stap("Collega opent de link");
   await page.goto(link);
   check(await page.locator("text=Je bekijkt dit contract als collega").count(), "collega-melding");
+  await page.goto(`${link}/checklist`);
+  await page.waitForSelector("#checklist-formulier");
+  check(await page.locator("#checklist-formulier button[type=submit][disabled]").count() && (await page.locator("text=invullen doet de klant via zijn link").count()), "collega kan de checklist bekijken, niet opslaan");
 
   stap("Onbekende link");
   const onbekend = await klant.goto(`${BASIS}/contract/${"a".repeat(64)}`);
@@ -282,7 +384,7 @@ async function stil(page, sel) {
   stap("Mails renderen");
   const mp = await ctx.newPage();
   await mp.setViewportSize({ width: 680, height: 900 });
-  for (const naam of ["mail-contract", "mail-code", "mail-bevestiging"]) {
+  for (const naam of ["mail-contract", "mail-code", "mail-bevestiging", "mail-checklist"]) {
     await mp.goto("file://" + path.join(SHOTS, `${naam}.html`));
     await mp.waitForTimeout(400);
     await shot(mp, naam);

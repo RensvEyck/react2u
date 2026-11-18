@@ -89,6 +89,8 @@ const FOUT_TEKST: Record<string, string> = {
   // Contracten
   "contract-onvolledig": "Het contract is nog niet compleet: kijk bij Versturen wat er ontbreekt.",
   "migratie-0031": "Contracten staan nog niet aan: migratie 0031 moet eerst in Supabase worden uitgevoerd.",
+  // Klantevaluaties (0043)
+  "evaluatie-onvolledig": "Vul de naam van het bedrijf in voordat je de evaluatie openzet.",
 };
 
 // Bij `?opgeslagen=<sleutel>` een specifiekere bevestiging dan de standaard.
@@ -145,6 +147,12 @@ const OK_TEKST: Record<string, string> = {
   "contract-heropend": "Het contract staat weer open.",
   "contract-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
   sjabloon: "Bewaard als sjabloon. Nieuwe offertes van deze vorm beginnen voortaan hiermee.",
+  evaluatie: "Evaluatie opgeslagen.",
+  "evaluatie-nieuw": "Evaluatie aangemaakt. Bekijk het voorbeeld en verstuur hem.",
+  "evaluatie-open": "De link staat open voor de klant. Stuur hem door.",
+  "evaluatie-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",
+  "evaluatie-heropend": "De evaluatie staat weer open.",
+  "evaluatie-link": "Nieuwe link gemaakt. De oude werkt niet meer.",
   "sjabloon-standaard": "Terug naar de standaardversie.",
 };
 

@@ -7,6 +7,7 @@ import { supabasePublic } from "@/lib/supabase/public";
 import { isCollega } from "@/lib/isCollega";
 import { contractAdminUrl, notifyContractBekeken } from "@/lib/mail";
 import { CONTRACT_EMAIL, CONTRACT_SOORT, soortVan, type ContractPubliek } from "@/lib/contracten";
+import type { ChecklistStand } from "@/lib/contractChecklist";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,12 @@ export default async function ContractRoute({ params }: { params: Promise<{ toke
   const { token } = await params;
   if (!/^[a-f0-9]{48,}$/.test(token)) notFound();
   const [collega, huis] = await Promise.all([isCollega(), offerteHuisstijl()]);
-  const { data } = await supabasePublic().rpc("contract_bekijken", { p_token: token, p_tel: !collega });
+  const sb = supabasePublic();
+  // De checklist (0042) erbij: null bij een resellerovereenkomst, en zolang er niets is ingevuld.
+  const [{ data }, { data: checklist }] = await Promise.all([
+    sb.rpc("contract_bekijken", { p_token: token, p_tel: !collega }),
+    sb.rpc("contract_checklist_bekijken", { p_token: token }),
+  ]);
   const contract = data as ContractPubliek | null;
   if (!contract) notFound();
   if (contract.status === "ingetrokken") {
@@ -46,5 +52,14 @@ export default async function ContractRoute({ params }: { params: Promise<{ toke
     after(() => notifyContractBekeken({ to: afzender_email, soort: soortVan(contract), nummer, bedrijf, adminLink: contractAdminUrl(id) }));
   }
 
-  return <ContractPagina contract={contract} token={token} modus={collega ? "collega" : "klant"} contact={huis.contact} vers={netGetekend(contract.getekend_at)} />;
+  return (
+    <ContractPagina
+      contract={contract}
+      token={token}
+      modus={collega ? "collega" : "klant"}
+      contact={huis.contact}
+      vers={netGetekend(contract.getekend_at)}
+      checklist={(checklist as ChecklistStand | null) ?? null}
+    />
+  );
 }

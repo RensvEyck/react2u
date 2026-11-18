@@ -49,6 +49,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Bewaartermijn** | Voor sollicitaties: hoe lang ze mogen blijven staan. Bepaald in [`src/lib/retention.ts`](src/lib/retention.ts); het Postvak IN wijst aan wat erover is, en `api/cron/opruimen` verwijdert het dagelijks. |
 | **Conversie** (`conversions`) | Eén verstuurd formulier: het soort (`contact`, `offerte`, `sollicitatie`, `terugbel`) en de pagina waar het stond. Geen persoonsgegevens. Zie *Bewaartermijnen en privacy*, "Conversies". |
 | **Belbalk** | Vaste balk onderaan het scherm op de telefoon, alleen op werkgeverspagina's: bellen of een terugbelmoment aanvragen (`BelBalk.tsx`, `lib/belbalk.ts`). Een terugbelverzoek is een bericht met onderwerp "Terugbelverzoek". |
+| **Klantevaluatie** (`evaluaties`) | Het jaarlijkse evaluatieformulier als losse module onder Documenten: één persoonlijke link, de klant vult online in. Zie *Documenten en klantevaluatie*. |
 | **Tarievenjaar** (`tarieven`) | Instelling `{jaar, geldigTot}`. De tariefblokken zetten het jaar in hun bovenkopje en tonen de geldigheid; per 1 januari pas je hier het jaar aan en in de blokken de bedragen. |
 | **Offerte** (`offertes`) | Een voorstel aan één klant, opgesteld in `/admin/offertes`. Statussen `concept`, `verstuurd`, `getekend`, `afgewezen` (de klant: niet akkoord) en `ingetrokken`; "bekeken" en "verlopen" leidt het beheer af. Nummer `jjjj-nnnn`. Zie *Offertes*. |
 | **Offerteregel** | Eén onderdeel van een offerte (`regels`, jsonb) met prijs, eenheid en soort: `vast`, `optie` (klant zet aan/uit), `keuze` (precies één uit zijn `groep`) of `tarief` (prijs bij gebruik, telt niet mee). Vorm en rekenregels in [`src/lib/offertes.ts`](src/lib/offertes.ts). |
@@ -1383,6 +1384,41 @@ organisatie in en tekent online met een code per mail.
   lettertypen, keurmerken en de handtekening van de bestuurder mee naar Vercel;
   dat laatste nu ook voor `/offerte/**` (de offerte-pdf tekent hem sinds 3 nov).
 
+- **Checklist arbeidsomstandigheden** (sinds migratie
+  [0042](supabase/migrations/0042_contract_checklist.sql), 17 november 2026; Rens: "deze
+  moet bij het contract komen, in dezelfde stijl"): de "Checklist arbeidsomstandigheden -
+  inventarisatie" is een vast onderdeel van elk basiscontract, niet van een
+  resellerovereenkomst. De tekst staat letterlijk uit het Word-bestand in
+  [`lib/contractChecklist.ts`](src/lib/contractChecklist.ts): de titel "Checklist
+  arbeidsomstandigheden wet", de vijf vakken bovenaan (plaats, bedrijf, datum, naam,
+  functie), de drie kolommen en de acht onderdelen, met de toelichting bij de
+  preventiemedewerker in de kolom actiepunten; "R&IE" en "de arbeidsomstandighedenbeleid"
+  staan zo in het bestand. De klant vult hem online in op `/contract/<token>/checklist`
+  ([`ContractChecklistPagina.tsx`](src/components/contract/ContractChecklistPagina.tsx):
+  de kopbalk van het contract met de weg terug, de opening in de lila tint, het formulier
+  als wit vel met per onderdeel de actiepunten en afspraken en de datum van afronding;
+  de naam is verplicht en minstens één onderdeel), ook na het tekenen en zo vaak hij wil
+  (`contract_checklists`: één rij per contract, `versie` telt; de checklist hoort niet
+  bij wat getekend is en zit niet in de hash). De contractpagina heeft de band "Bij dit
+  contract" met de acht onderdelen, de stand en de knoppen (ook in de kopbalk en de
+  inhoudsopgave). Schrijven alleen via `contract_checklist_opslaan` (token als sleutel),
+  lezen via `contract_checklist_bekijken`; het beheer leest de tabel
+  (`has_perm('bellijst')`) en toont de antwoorden bij het contract, met de soort
+  `checklist` in de tijdlijn en een stip in het register. Het klantenbord toont het invullen
+  via de tak `checklist` in `klant_gebeurtenis`; die staat in 0043 (de laatste versie van
+  die functie), niet in 0042, zodat de volgorde van live zetten niet uitmaakt. Pdf
+  ([`lib/contractChecklistPdf.tsx`](src/lib/contractChecklistPdf.tsx)) in de stijl van de
+  contract-pdf: leeg (met schrijfruimte, twee pagina's) als bijlage bij de contractmail en
+  als download, ingevuld met de antwoorden; routes `/contract/<token>/checklist/pdf` en
+  `/admin/contractvoorbeeld/<id>/checklist` (+ `/pdf`). Mails: het blok "Bij dit
+  contract" in de contractmail met de pdf als bijlage (`checklist` in `ContractMail`); na
+  het invullen een kopie met pdf aan de klant (`sendContractChecklistKopie`, op het adres
+  van het contract) en een sober seintje aan sales (`notifyContractChecklist`); de
+  bevestiging na het tekenen krijgt de ingevulde checklist als tweede bijlage, of de regel
+  dat hij nog openstaat. Tests: `lib/contractChecklist.test.ts` (o.a. dat er geen woord
+  uit het Word-bestand verloren gaat), `lib/contractChecklistPdf.test.tsx` en de
+  checkliststappen in `e2e/contract.cjs`.
+
 ### De resellerovereenkomst
 
 Sinds migratie [0033](supabase/migrations/0033_resellerovereenkomst.sql) (4 november
@@ -1679,6 +1715,89 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   `lib/onboardingHerinnering.test.ts`, `lib/onboardingPdf.test.tsx` (ook de
   getekende machtiging en de opdracht; met `ONBOARDING_PDF_MAP=<map>` schrijft
   hij de pdf's weg) en de onboardingregels in `lib/opvolgen.test.ts`.
+
+## Documenten en klantevaluatie
+
+Sinds migratie [0043](supabase/migrations/0043_klantevaluatie.sql) (Rens, 17
+nov 2026: "klant evaluatie moet ook in dezelfde stijl gestuurd worden als losse
+module. Misschien moeten we het in de sidebar gewoon documenten noemen"): één
+ingang **Documenten** in het zijmenu ([`/admin/documenten`](src/app/admin/(panel)/documenten/page.tsx),
+recht `bellijst`) voor de losse documenten die een klant via een persoonlijke
+link online invult, in dezelfde stijl als het contract en de onboarding. Nu
+één document, de **klantevaluatie**; een volgend document krijgt er een eigen
+tegel bij met dezelfde bouwstenen. De vaste trajecten (offertes, contracten,
+onboarding, brochures) houden hun eigen ingang; de pagina Documenten verwijst
+ernaar. De checklist arbeidsomstandigheden hoort bij het basiscontract en
+staat niet onder Documenten.
+
+- **De klantevaluatie** is het Word-formulier *Klant Evaluatie* (v2) van de
+  accountmanager, nu als module: `/admin/documenten/evaluaties` (register met
+  de filters *Bij de klant*, *Ingevuld*, *Concept*, *Ingetrokken*, zoeken en
+  per rij het aantal aandachtspunten), `/nieuw` (ook vanuit een kaart op het
+  klantenbord met `?klant=<id>`) en `/<id>`: versturen of herinneren
+  (`OfferteVersturen` met `woord="evaluatie"`), het bezoek, *Wat de klant
+  invulde*, de pdf, de tijdlijn, het formulier en een notitie.
+  `/admin/evaluatievoorbeeld/<id>` (+ `/pdf`) toont de pagina zoals de klant
+  hem ziet, ook als concept; invullen kan daar niet. Nummers `KE<jaar>-<volgnummer>`.
+- **De tekst van het formulier staat letterlijk in de code**
+  ([`lib/evaluatie.ts`](src/lib/evaluatie.ts)): het blok *Gegevens* (datum
+  bezoek, tijd, bedrijfsnaam, contactpersoon, e-mailadres), de negen punten
+  van de *Checklist* met hun toelichting (RI&E, PSA, aanstellingskeuring,
+  vrije toegang bedrijfsarts, PMO, preventiemedewerker met twee open vragen,
+  ondernemingsraad, klachtenprocedure, verzuimprotocol), de drie vrije vakken
+  (*Evaluatie dienstverlening (tevens wijzen op het KTO)*, *Wensen komend jaar
+  dienstverlening*, *Gemaakte afspraken*), *Datum volgend bezoek* met *Tijd*
+  en *tot*, en de tabel *Acties* (acties, actie door, status). De toelichting
+  houdt het "u" van het origineel; de knoppen en uitleg eromheen zeggen "je".
+  Niets samenvatten of herschrijven zonder nieuwe opdracht. Het ene vakje per
+  punt is online een keuze uit drie: *Ja, geregeld*, *Nee, nog niet*, *Niet van
+  toepassing* ("(van toepassing)" staat al bij de aanstellingskeuring), met een
+  toelichting die leeg mag. De "nee's" zijn de **aandachtspunten**
+  (`aandachtspunten()`): in het beheer bovenaan, in het seintje aan sales en in
+  de bevestiging aan de klant.
+- **Klantpagina** `/evaluatie/<token>`
+  ([`EvaluatiePagina.tsx`](src/components/evaluatie/EvaluatiePagina.tsx),
+  [`EvaluatieFormulier.tsx`](src/components/evaluatie/EvaluatieFormulier.tsx)):
+  de kopbalk van de onboarding (`OnboardingKopbalk` met `titel`), de opening
+  in de lila tint met het persoonlijke woord (`bericht`, met `{bedrijf}` en
+  `{voornaam}`), de feiten (het bezoek, hoe lang het duurt) en rechts de kaart
+  met de voortgangsring van de checklist, de vier delen en het aanspreekpunt;
+  dan de vier delen als banden (checklist, dienstverlening, afspraken, acties),
+  één formulier met onderaan *Ingevuld door* en de knop; de indigo band *Zo
+  gaat het verder* en de voet. Elk punt van de checklist is verplicht; de rest
+  mag leeg. Na het invullen staat bovenaan *Dank je wel* met de pdf, en kan de
+  klant tot het gesprek aanpassen (status blijft `ingevuld`, tijdlijn
+  *aangepast*). Modus klant, collega (bezoek telt niet, invullen mag, samen
+  tijdens het bezoek) en voorbeeld, zoals de onboarding.
+- **Database**: `evaluaties` (status `concept`, `verstuurd`, `ingevuld`,
+  `ingetrokken`; `antwoorden` jsonb; `ingevuld_at`, `ingevuld_door`;
+  `bezoek_datum`, `bezoek_tijd`) en `evaluatie_gebeurtenissen`. De klant komt
+  nooit bij de tabel: `evaluatie_bekijken(token)` en
+  `evaluatie_opslaan(token, data, naam)` zijn security definer, de trigger
+  `evaluatie_bewaken` houdt het bezoek en de antwoorden bij de database. De
+  vorm van de antwoorden controleert Next (`schoonAntwoorden`,
+  `controleerAntwoorden`). Bewaartermijn: twee jaar na de laatste activiteit
+  (cron `opruimen-evaluaties`), omdat de evaluatie het vertrekpunt voor het
+  gesprek van volgend jaar is.
+- **Pdf en mail**: [`lib/evaluatiePdf.tsx`](src/lib/evaluatiePdf.tsx) volgt
+  de indeling van het Word-formulier in de huisstijl van de onboardingpdf's,
+  leeg om te printen (twee pagina's) of ingevuld met de vakjes in de kleur van
+  het antwoord. [`lib/evaluatieMail.ts`](src/lib/evaluatieMail.ts): de
+  uitnodiging en herinnering aan de klant (*Jouw mening telt*, met de vier
+  delen als lijst), de bevestiging na het invullen met de pdf als bijlage en
+  de aandachtspunten, en de seintjes aan de afzender (geopend; ingevuld of
+  aangepast, met de aandachtspunten). Geen automatische herinnering via een
+  cron: de herinnering gaat met de hand vanuit het beheer.
+- **Klantenbord**: een nieuwe evaluatie maakt (of vindt) de kaart van het
+  bedrijf in de kolom *Klant* (bron `evaluatie`); *verstuurd*, *geopend*,
+  *ingevuld* en *aangepast* komen als systeemregels in de tijdlijn via
+  `klant_gebeurtenis` (0043 vervangt die functie met de bron `evaluatie`
+  erbij), en de evaluatie staat als koppeling op de kaart. Een evaluatie
+  verplaatst een kaart niet.
+- **Middleware en headers**: `/evaluatie/*` gaat om de onderhoudspagina en de
+  doorverwijzingen heen en krijgt `noindex`, `no-referrer` en `no-store`, zoals
+  de onboarding. Tests: `src/lib/evaluatie.test.ts`,
+  `src/lib/evaluatiePdf.test.tsx` en de browsertest `e2e/evaluatie.cjs`.
 
 ## Omzet en uren
 
@@ -2561,7 +2680,7 @@ regels waar het op aankomt; de schermen eromheen zijn dun.
 
 **Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
 eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`), en sindsdien per
-module een test (brochure, contract, onboarding, klantenbord, reseller, partner, dashboard, omzet, weekevaluatie). `e2e/run.mjs`
+module een test (brochure, contract, onboarding, klantenbord, evaluatie, reseller, partner, dashboard, omzet, weekevaluatie). `e2e/run.mjs`
 bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
 testbeheerder, lege versies van twee productiefuncties en pg_cron uit
 `e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen
