@@ -34,8 +34,10 @@ Gebruik deze termen; de code doet dat ook.
 | **Niet volgen** | Een bedrijf dat verborgen is en waarvan nieuwe bezoeken zonder bedrijfsnaam worden opgeslagen (`company_profiles.ignored`). *Vergeten* haalt daarnaast de naam uit eerdere bezoeken. |
 | **Beheerder** (`admins`) | Rij die een Supabase-auth-gebruiker toegang tot `/admin` geeft. Een auth-account zonder rij hier heeft géén toegang. Elke rij heeft precies één rol. |
 | **Rol** (`roles`) | Een naam met een lijst rechten. Bewerkbaar op `/admin/gebruikers`, gesorteerd op `sort`. |
-| **Super admin** | De toprol (`superadmin`, `sort` 0). Systeemrol: houdt altijd alle tien rechten en is niet te verwijderen. Als enige met het recht `gebruikers` — uitnodigen en rollen verdelen is hieraan voorbehouden. |
-| **Beheerder** | Alles behálve `gebruikers` (negen rechten). Kan de hele site en alle inzendingen beheren, maar niemand uitnodigen of van rol wisselen. |
+| **Super admin** | De toprol (`superadmin`, `sort` 0). Systeemrol: houdt altijd alle rechten (twaalf sinds 0044) en is niet te verwijderen. Als enige met het recht `gebruikers` — uitnodigen en rollen verdelen is hieraan voorbehouden. |
+| **Beheerder** | Alles behálve `gebruikers` en `omzet`. Kan de hele site en alle inzendingen beheren, maar niemand uitnodigen of van rol wisselen, en ziet de omzet niet. |
+| **Werknemer** (`werknemer`) | De rol voor een collega die alleen zijn eigen weekevaluatie invult (migratie 0044): één recht, `weekevaluatie`. Ziet na het inloggen het dashboard, Weekevaluatie en Account, niets van sales, omzet of de site. Geen systeemrol: de super admin mag er rechten bij zetten. Zie *Weekevaluatie*. |
+| **Weekevaluatie** (`weekevaluaties`) | Eén rij per collega per ISO-week (de maandag): vijf cijfers van 1 tot 10 en vijf open vragen, als jsonb op de sleutels uit `VRAGEN` in [`src/lib/weekevaluatie.ts`](src/lib/weekevaluatie.ts). Deze en vorige week zijn te wijzigen, daarna staat de week vast. Zie *Weekevaluatie*. |
 | **Recht** | Toegang tot één onderdeel van het paneel, bv. `bellijst` of `paginas`. De sleutels staan in [`src/lib/permissions.ts`](src/lib/permissions.ts) én in de RLS-policies — hernoemen vraagt dus een migratie. |
 | **Commandopalet** | Zoekveld over het hele paneel: ⌘K, Ctrl+K of `/`. Vindt schermen, acties, pagina's, tekst ín blokken, artikelen, vacatures, inzendingen, leads en gebruikers — alleen wat je mag zien. Zie *Commandopalet en dashboard*. |
 | **Doorverwijzing** (`redirects`) | Een oud adres dat naar een nieuw adres stuurt, beheerd onder SEO → Doorverwijzingen. Permanent (308) of tijdelijk (307). Zie *Doorverwijzingen en 404's*. |
@@ -1742,6 +1744,82 @@ as, 2px tussen stapeldelen, een legenda vanaf twee reeksen, een tip bij
 aanwijzen en de cijfers als tabel; violet, aqua en geel zijn getoetst op
 kleurenblindheid. Browsertest: `e2e/omzet.cjs`.
 
+## Weekevaluatie
+
+Sinds migratie [0044](supabase/migrations/0044_weekevaluatie.sql) (Rens, 18 nov
+2026: "bouw de weekevaluatie voor werknemers van react2u in de admin, zodat we
+deze data kunnen gebruiken in de kwartaalmeetings. maak dus ook een werknemer
+rol"). Voor de collega's van React2u zelf, niet voor klanten (dat is de
+klantevaluatie onder Documenten).
+
+- **Rol en recht.** Het recht `weekevaluatie` (je eigen weekevaluatie invullen
+  en teruglezen) hoort bij de super admin en de beheerder, en is het enige
+  recht van de nieuwe rol **Werknemer**. Een collega met die rol ziet na het
+  inloggen het dashboard met het signaal "je weekevaluatie staat nog open",
+  zijn eigen scherm en Account; `/admin/omzet`, de bellijst en de rest sturen
+  hem terug (`requirePerm`) en de policies geven niets terug. Uitnodigen gaat
+  gewoon via Gebruikers met de rol Werknemer; tweestaps blijft verplicht.
+- **De vragen staan in code**, in `VRAGEN` in
+  [`lib/weekevaluatie.ts`](src/lib/weekevaluatie.ts), zoals `DOCUMENTEN` bij de
+  onboarding: vijf schalen van 1 tot 10 waar hoger altijd beter is (energie,
+  werkdruk te doen, voldoening, samenwerking, cijfer voor de week) en vijf open
+  vragen (wat ging goed, wat kon beter, waar liep je tegenaan, wat heb je nodig,
+  waar ben je trots op). De schalen zijn verplicht, de teksten niet. De
+  database bewaart de antwoorden als jsonb op die sleutels; een vraag erbij is
+  een regel in code, geen migratie. Oude rijen missen die sleutel dan gewoon.
+- **Eén evaluatie per ISO-week**, de week is zijn maandag zoals bij de uren.
+  Deze week en vorige week staan open; aan het eind van de week erna sluit een
+  week (`weekStand`, `sluitOp`). Dat zit ook in de database: de insert- en
+  update-policy laten alleen `weekevaluatie_deze_week() - 7` tot en met deze
+  week toe, en alleen de eigen `user_id`. Er is geen delete-policy: een
+  evaluatie pas je aan, je haalt hem niet weg.
+- **`/admin/weekevaluatie`** (recht `weekevaluatie`): de twee open weken als
+  kaarten, het formulier van de gekozen week (radio's als rij knoppen, zonder
+  JavaScript), daaronder je laatste twaalf weken als grafiek en de eerdere weken
+  om terug te lezen. Is de collega gekoppeld aan een medewerker, dan staan zijn
+  uren van die week uit de urenregistratie erbij (alleen lezen; policies
+  "eigen medewerker lezen" en "eigen uren lezen").
+- **`/admin/weekevaluatie/team`** (recht `omzet`): het kwartaaloverzicht voor
+  de kwartaalmeeting. Per kwartaal (`?kwartaal=2026-Q4`; een week hoort bij het
+  kwartaal van zijn donderdag, net als bij de maand): ingevuld van verwacht, het
+  teamgemiddelde per week (energie, werkdruk, cijfer, `Grafiek.tsx`), en per
+  collega de gemiddelden per schaal met de trend tegenover het kwartaal ervoor,
+  wie welke weken miste (weken van vóór zijn uitnodiging tellen niet), de open
+  antwoorden per week uitklapbaar, en de declarabiliteit over het kwartaal als
+  hij gekoppeld is. **Export** (`/admin/weekevaluatie/team/export`): één rij per
+  collega per verstreken week, gemiste weken erbij met de status "gemist", als
+  Excelbestand uit [`lib/xlsx.ts`](src/lib/xlsx.ts). Het ophalen staat in
+  [`lib/weekevaluatieDb.ts`](src/lib/weekevaluatieDb.ts), gedeeld door scherm
+  en export.
+- **Waarom `omzet` en niet `gebruikers`.** Het overzicht bevat persoonlijke
+  reflecties van collega's en zet ze naast hun declarabele uren. Het recht
+  `omzet` dekt al de medewerkers en hun uren en is sinds 0035 alleen van de
+  super admin; `gebruikers` gaat over accounts en rollen. Wie het overzicht
+  moet zien krijgt dus `omzet`, en daarmee ook de omzet; een apart recht is er
+  bewust niet, dat zou het dertiende zijn.
+- **Wie doet mee** (`doetMee`): iedereen met het recht, behalve de super admin
+  zolang die zelf nooit invulde. Die heeft het recht omdat hij alles heeft,
+  niet omdat hij meedoet; zonder deze regel stond Rens elke week als "gemist"
+  in zijn eigen overzicht en kreeg hij elke vrijdag een herinnering. Vult hij
+  één keer in, dan telt hij gewoon mee. `weekevaluatie_deelnemers()` (security
+  definer, alleen met `omzet`) geeft de kandidaten; de regel zelf staat in code.
+- **Koppeling met de uren.** `medewerkers.user_id` (0044) koppelt een
+  medewerker uit de omzetmodule aan een account, via het veld *Account in het
+  beheer* bij Omzet → Uren (alleen zichtbaar na de migratie; zonder het recht
+  `gebruikers` staat alleen je eigen account in de lijst). Eén account per
+  medewerker. Zo heet de collega in het overzicht zoals bij de uren, en staan
+  uren en evaluatie naast elkaar.
+- **De vrijdagherinnering** (`api/cron/weekevaluatie`, vercel.json: vrijdag
+  13:00 UTC, dus 14:00 of 15:00 Nederlandse tijd): aan wie meedoet en deze week
+  nog niets invulde, met één knop naar het scherm
+  (`sendWeekevaluatieHerinnering`, tekst in `herinnering()`). `?dry=1` plant
+  alleen, `?altijd=1` ook op een andere dag. Draait met de service-role-sleutel,
+  zoals de andere crons.
+
+Regels en 18 unittests in `lib/weekevaluatie.ts`; browsertest
+`e2e/weekevaluatie.cjs` (met een tweede testcollega in de rol werknemer, in een
+eigen browsercontext naast de beheerder).
+
 ## Klantenbord
 
 Sinds migratie [0040](supabase/migrations/0040_klantenbord.sql) (Rens, 16 nov
@@ -2483,7 +2561,7 @@ regels waar het op aankomt; de schermen eromheen zijn dun.
 
 **Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
 eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`), en sindsdien per
-module een test (brochure, contract, onboarding, klantenbord, reseller, partner, dashboard, omzet). `e2e/run.mjs`
+module een test (brochure, contract, onboarding, klantenbord, reseller, partner, dashboard, omzet, weekevaluatie). `e2e/run.mjs`
 bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
 testbeheerder, lege versies van twee productiefuncties en pg_cron uit
 `e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen

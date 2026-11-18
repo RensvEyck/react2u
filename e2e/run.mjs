@@ -11,8 +11,8 @@
 //   E2E_GEEN_BUILD=1   bestaande .next gebruiken (alleen als die met deze
 //                      instellingen is gebouwd)
 //   E2E_ALLEEN=offerte alleen deze test(s), met komma's (offerte, vormen, brochure,
-//                      contract, onboarding, klantenbord, reseller, partner, dashboard
-//                      of omzet)
+//                      contract, onboarding, klantenbord, reseller, partner, dashboard,
+//                      omzet of weekevaluatie)
 //   E2E_POORT=3024     de site op een andere poort dan 3014 (en E2E_RESEND_POORT
 //                      voor de nep-Resend), als een vorige run nog draait
 //   E2E_STACK=2        een tweede Supabase-stack naast een lopende (een andere
@@ -226,8 +226,9 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
   await wachtOp(BASIS, 90);
 
   const testEnv = { ...env, E2E_BASIS: BASIS, E2E_UIT: UIT, E2E_DB_CONTAINER: DB };
-  // dashboard en omzet als laatste: die maken de verkooptabellen leeg voor hun eigen vaste set.
-  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "klantenbord", "reseller", "partner", "dashboard", "omzet"];
+  // dashboard en omzet als laatste: die maken de verkooptabellen leeg voor hun eigen vaste set;
+  // weekevaluatie daarna, want die hangt aan de medewerkers die omzet leegmaakt.
+  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "klantenbord", "reseller", "partner", "dashboard", "omzet", "weekevaluatie"];
   const mislukt = [];
   for (const t of tests) {
     stap(`Test: ${t}`);

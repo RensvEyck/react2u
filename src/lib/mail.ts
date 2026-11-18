@@ -21,7 +21,7 @@ import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
 import type { ContactInfo } from "./content";
 import type { Vorm } from "./offertes";
 import { merkVoorVorm } from "./offerteMerk";
-import { FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail, eyebrow, knop } from "./offerteMail";
+import { FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail, eyebrow, knop, linkAlsTekst } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
 import { doorgestuurdHtml, machtigingGetekendHtml, machtigingMailHtml, onboardingKlantHtml, onboardingMailHtml, overdrachtMailHtml, type MachtigingMail, type MailDocument, type OnboardingKlantMail } from "./onboardingMail";
 import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
@@ -273,6 +273,24 @@ ${delen}
 ${knop("Open de werkrij van vandaag", m.link)}`);
   const html = omhulsel({ basis: siteBasis(), titel: m.onderwerp, preheader: m.onderwerp, kaart, contact: m.contact });
   return verstuur([m.to], m.onderwerp, html);
+}
+
+/**
+ * De vrijdagherinnering van de weekevaluatie (api/cron/weekevaluatie, tekst
+ * uit lib/weekevaluatie.ts): een korte persoonlijke mail met één knop naar
+ * het eigen scherm. Antwoorden komt uit bij het meldingenadres.
+ */
+export async function sendWeekevaluatieHerinnering(h: {
+  to: string; onderwerp: string; aanhef: string; alineas: string[]; knop: string; link: string; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const kaart = vak(`${p(esc(h.aanhef), `color:${KLEUR.inkt}`)}
+${h.alineas.map((a) => p(esc(a))).join("\n")}
+<div style="height:6px"></div>
+${knop(h.knop, h.link)}
+<div style="height:22px"></div>
+${linkAlsTekst(h.link)}`);
+  const html = omhulsel({ basis: siteBasis(), titel: h.onderwerp, preheader: h.alineas[0] || h.onderwerp, kaart, contact: h.contact });
+  return verstuur([h.to], h.onderwerp, html, adressen(process.env.NOTIFY_TO)[0]);
 }
 
 /** Testmail vanuit Instellingen: werkt de koppeling, en komt het aan? */

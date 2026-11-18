@@ -31,6 +31,8 @@ export async function medewerkerOpslaan(formData: FormData) {
   const terug = `/admin/omzet/uren${String(formData.get("terug") || "")}`;
   if (!naam) redirect(`/admin/omzet/uren?fout=medewerker-naam#medewerkers`);
   const tarief = getal(formData, "uurtarief");
+  // Het account voor de weekevaluatie (0044); alleen als het formulier het veld had, anders faalt het vóór die migratie.
+  const account = formData.has("user_id") ? String(formData.get("user_id") || "") : null;
   const rij = {
     naam: naam.slice(0, 120),
     functie: String(formData.get("functie") || "").trim().slice(0, 120) || null,
@@ -39,12 +41,18 @@ export async function medewerkerOpslaan(formData: FormData) {
     uurtarief: tarief === null ? null : tussen(tarief, 0, 1000),
     // Een niet aangevinkt vakje stuurt niets mee: dan is hij inactief.
     actief: formData.get("actief") === "aan",
+    ...(account === null ? {} : { user_id: UUID.test(account) ? account : null }),
   };
   const { error } = UUID.test(id)
     ? await sb.from("medewerkers").update(rij).eq("id", id)
     : await sb.from("medewerkers").insert({ ...rij, sort: Date.now() % 1_000_000 });
-  if (error) redirect(`/admin/omzet/uren?fout=${isMissingTable(error) ? "migratie-0035" : "opslaan"}#medewerkers`);
+  if (error) {
+    // Twee medewerkers aan hetzelfde account: de unieke index van 0044.
+    if (/medewerkers_user_id_key/.test(error.message)) redirect(`/admin/omzet/uren?fout=medewerker-account#medewerkers`);
+    redirect(`/admin/omzet/uren?fout=${isMissingTable(error) ? "migratie-0035" : "opslaan"}#medewerkers`);
+  }
   revalidatePath("/admin/omzet", "layout");
+  revalidatePath("/admin/weekevaluatie", "layout");
   redirect(`${terug}${terug.includes("?") ? "&" : "?"}opgeslagen=medewerker#medewerkers`);
 }
 
