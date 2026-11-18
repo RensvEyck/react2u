@@ -295,6 +295,21 @@ ${linkAlsTekst(h.link)}`);
   return verstuur([h.to], h.onderwerp, html, adressen(process.env.NOTIFY_TO)[0]);
 }
 
+/**
+ * Twee zware weken bij een collega (weekevaluatieActions, regel in
+ * weekevaluatie_signaal van 0045): een korte mail aan wie het kwartaaloverzicht
+ * mag zien, zonder de antwoorden zelf, met een knop naar de collega in het overzicht.
+ */
+export async function sendWeekevaluatieSignaal(s: { to: string; onderwerp: string; alineas: string[]; knop: string; link: string; contact?: ContactInfo }): Promise<Verzonden> {
+  const kaart = vak(`${s.alineas.map((a) => p(esc(a))).join("\n")}
+<div style="height:6px"></div>
+${knop(s.knop, s.link, KLEUR.indigo)}
+<div style="height:22px"></div>
+${linkAlsTekst(s.link)}`);
+  const html = omhulsel({ basis: siteBasis(), titel: s.onderwerp, preheader: s.alineas[0] || s.onderwerp, kaart, contact: s.contact });
+  return verstuur([s.to], s.onderwerp, html);
+}
+
 /** Testmail vanuit Instellingen: werkt de koppeling, en komt het aan? */
 export async function sendTestMail(to: string): Promise<Verzonden> {
   const html = persoonlijk(

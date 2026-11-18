@@ -1,19 +1,30 @@
-import { LuLock } from "react-icons/lu";
+"use client";
+import { useState } from "react";
+import { LuLock, LuMessageSquareText } from "react-icons/lu";
 import { weekevaluatieOpslaan } from "@/app/admin/weekevaluatieActions";
-import { cijferTekst, SCHALEN, sluitOp, TEKSTVRAGEN, weekBereikDag, type Antwoorden } from "@/lib/weekevaluatie";
+import {
+  KEUZES, kwartaalLabel, kwartaalVanWeek, momenten, SCHALEN, sluitOp, TEKSTVRAGEN, THEMA_LABEL, weekBereikDag, wordtGevraagd,
+  type Antwoorden, type Doel, type KeuzeVeld, type SchaalVraag, type TekstVraag, type Thema,
+} from "@/lib/weekevaluatie";
 import { urenTekst } from "@/lib/uren";
 
 /**
- * Het formulier van één week: vijf schalen van 1 tot 10 als rij knoppen (radio's
- * zonder JavaScript, `peer` doet de opmaak), vijf open vragen, en als de collega
- * aan een medewerker gekoppeld is zijn uren van die week uit de omzetmodule.
- * Gesloten weken tonen hetzelfde, maar dan alleen om te lezen.
+ * Het formulier van één week, in lagen: elke week zeven cijfers en drie open
+ * vragen, de voortgang op de doelen uit de kwartaalmeeting, in de laatste week
+ * van de maand zes maandvragen en in de laatste week van het kwartaal de
+ * terugblik. "Welke kennis miste je?" verschijnt pas bij een 6 of lager voor
+ * kennis. Elk open antwoord kan mee naar de kwartaalmeeting. Gesloten weken
+ * tonen hetzelfde, maar dan alleen om te lezen. Bewaren gaat via de server
+ * action; die controleert alles opnieuw (lib/weekevaluatie.ts, leesAntwoorden).
  */
 
 export type UrenVanWeek = { declarabel: number; afwezig: number; beschikbaar: number; procent: number | null; norm: number } | null;
+export type FormDoel = Pick<Doel, "id" | "titel" | "toelichting">;
+
+const WEEK_GROEPEN: Thema[] = ["werkgeluk", "druk", "kennis", "totaal"];
 
 export default function WeekevaluatieForm({
-  week, antwoorden, open, bijgewerkt, uren,
+  week, antwoorden, open, bijgewerkt, uren, doelen,
 }: {
   week: string;
   antwoorden: Antwoorden | null;
@@ -22,59 +33,104 @@ export default function WeekevaluatieForm({
   /** Wanneer de collega hem het laatst bewaarde, als tekst. */
   bijgewerkt: string | null;
   uren: UrenVanWeek;
+  /** De doelen uit de kwartaalmeeting voor het kwartaal van deze week. */
+  doelen: FormDoel[];
 }) {
   const a = antwoorden || {};
-  const slot = sluitOp(week);
+  const lagen = momenten(week);
+  const [kennis, setKennis] = useState<number | undefined>(a.kennis);
+  let nummer = 0;
+  const volgende = () => ++nummer;
+
+  const weekSchalen = SCHALEN.filter((s) => s.moment === "week");
+  const weekTekst = TEKSTVRAGEN.filter((t) => t.moment === "week");
+
   return (
-    <form action={weekevaluatieOpslaan} className="space-y-7">
+    <form action={weekevaluatieOpslaan} className="space-y-9">
       <input type="hidden" name="week" value={week} />
 
-      <ol className="space-y-6">
-        {SCHALEN.map((s, i) => {
-          const waarde = a[s.sleutel];
-          return (
-            <li key={s.sleutel}>
-              <fieldset disabled={!open} className="min-w-0">
-                <legend className="flex items-baseline gap-2.5">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[12px] font-bold text-[#312e82]">{i + 1}</span>
-                  <span>
-                    <span className="block text-[15px] font-semibold text-[#1c1a4e]">{s.label}</span>
-                    <span className="block text-[12.5px] text-black/45">{s.hint}</span>
-                  </span>
-                </legend>
-                <div className="mt-3 pl-0 sm:pl-[34px]">
-                  <div className="grid grid-cols-10 gap-1 sm:gap-1.5" role="radiogroup" aria-label={s.label}>
-                    {Array.from({ length: 10 }, (_, k) => k + 1).map((n) => (
-                      <label key={n} className="relative block cursor-pointer">
-                        <input
-                          type="radio"
-                          name={s.sleutel}
-                          value={n}
-                          defaultChecked={waarde === n}
-                          required
-                          className="peer sr-only"
-                          aria-label={`${s.kort} ${n}`}
-                        />
-                        <span
-                          className={`flex h-10 items-center justify-center rounded-lg border text-[14px] font-semibold tabular-nums transition sm:h-11 sm:rounded-xl sm:text-[15px] ${
-                            open ? "border-black/[0.1] bg-white text-[#1c1a4e] hover:border-[#312e82]/50 hover:bg-[#f7f7fc]" : "border-black/[0.06] bg-[#fafafd] text-black/35"
-                          } peer-checked:border-[#312e82] peer-checked:bg-[#312e82] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#e75387]/50 peer-focus-visible:ring-offset-1`}
-                        >
-                          {n}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="mt-1.5 flex justify-between text-[11.5px] text-black/40">
-                    <span>1 · {s.laag}</span>
-                    <span>10 · {s.hoog}</span>
-                  </div>
+      <Laag titel="Deze week" uitleg="Een cijfer van 1 tot 10; hoger is altijd beter.">
+        {WEEK_GROEPEN.map((thema) => (
+          <div key={thema} className="space-y-5">
+            {thema !== "totaal" && <p className="text-[11.5px] font-semibold uppercase tracking-[0.08em] text-black/40">{THEMA_LABEL[thema]}</p>}
+            {weekSchalen.filter((s) => s.thema === thema).map((s) => (
+              <SchaalRij
+                key={s.sleutel}
+                nummer={volgende()}
+                naam={s.sleutel}
+                vraag={s}
+                waarde={a[s.sleutel]}
+                open={open}
+                onKies={s.sleutel === "kennis" ? setKennis : undefined}
+              />
+            ))}
+          </div>
+        ))}
+      </Laag>
+
+      {doelen.length > 0 && (
+        <Laag titel={`Je doelen voor ${kwartaalLabel(kwartaalVanWeek(week))}`} uitleg="Afgesproken in de kwartaalmeeting. Hoeveel kwam je deze week verder?">
+          {doelen.map((d) => {
+            const v = a.doelen?.[d.id];
+            return (
+              <div key={d.id} className="space-y-2.5">
+                <SchaalRij
+                  nummer={volgende()}
+                  naam={`doel_${d.id}`}
+                  vraag={{ label: d.titel, hint: d.toelichting || "", laag: "niet verder", hoog: "flink verder", kort: d.titel }}
+                  waarde={v?.cijfer}
+                  open={open}
+                />
+                <div className="sm:pl-[34px]">
+                  {open ? (
+                    <input
+                      name={`doel_${d.id}_tekst`}
+                      maxLength={500}
+                      defaultValue={v?.tekst || ""}
+                      placeholder="Wat deed je eraan? Eén regel is genoeg."
+                      aria-label={`Wat deed je aan: ${d.titel}`}
+                      className="ainput !py-2 text-[14px] placeholder:text-black/30"
+                    />
+                  ) : v?.tekst ? (
+                    <p className="rounded-xl bg-[#fafafd] px-4 py-2.5 text-[14px] text-[#1c1a4e]">{v.tekst}</p>
+                  ) : null}
                 </div>
-              </fieldset>
-            </li>
-          );
-        })}
-      </ol>
+              </div>
+            );
+          })}
+        </Laag>
+      )}
+
+      {lagen.includes("maand") && (
+        <Laag
+          titel="Maandvragen"
+          uitleg="De laatste week van de maand: zes stellingen over toewijding en wat je werkgeluk voedt. 1 is helemaal niet mee eens, 10 helemaal mee eens."
+          accent
+        >
+          {SCHALEN.filter((s) => s.moment === "maand").map((s) => (
+            <SchaalRij key={s.sleutel} nummer={volgende()} naam={s.sleutel} vraag={s} waarde={a[s.sleutel]} open={open} />
+          ))}
+        </Laag>
+      )}
+
+      <Laag titel="In je eigen woorden" uitleg="Niets in te vullen? Laat het leeg. Vink aan wat je mee wilt nemen naar de kwartaalmeeting.">
+        {weekTekst.map((t) =>
+          wordtGevraagd(t, { kennis }) ? (
+            <TekstRij key={t.sleutel} nummer={volgende()} vraag={t} a={a} open={open} />
+          ) : null,
+        )}
+      </Laag>
+
+      {lagen.includes("kwartaal") && (
+        <Laag titel={`Terugblik op ${kwartaalLabel(kwartaalVanWeek(week))}`} uitleg="De laatste week van het kwartaal. Dit is het begin van je kwartaalmeeting." accent>
+          {SCHALEN.filter((s) => s.moment === "kwartaal").map((s) => (
+            <SchaalRij key={s.sleutel} nummer={volgende()} naam={s.sleutel} vraag={s} waarde={a[s.sleutel]} open={open} />
+          ))}
+          {TEKSTVRAGEN.filter((t) => t.moment === "kwartaal").map((t) => (
+            <TekstRij key={t.sleutel} nummer={volgende()} vraag={t} a={a} open={open} />
+          ))}
+        </Laag>
+      )}
 
       {uren && (
         <div className="rounded-2xl bg-[#f6f2ec] px-5 py-4 text-[13.5px] text-black/60">
@@ -86,43 +142,12 @@ export default function WeekevaluatieForm({
         </div>
       )}
 
-      <div className="space-y-5">
-        {TEKSTVRAGEN.map((t, i) => (
-          <div key={t.sleutel}>
-            <label htmlFor={`we-${t.sleutel}`} className="flex items-baseline gap-2.5">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[12px] font-bold text-[#312e82]">{SCHALEN.length + i + 1}</span>
-              <span>
-                <span className="block text-[15px] font-semibold text-[#1c1a4e]">{t.label}</span>
-                <span className="block text-[12.5px] text-black/45">{t.hint}</span>
-              </span>
-            </label>
-            <div className="mt-2.5 sm:pl-[34px]">
-              {open ? (
-                <textarea
-                  id={`we-${t.sleutel}`}
-                  name={t.sleutel}
-                  rows={3}
-                  maxLength={2000}
-                  defaultValue={a[t.sleutel] || ""}
-                  placeholder={t.voorbeeld}
-                  className="ainput min-h-[84px] resize-y text-[14.5px] leading-relaxed placeholder:text-black/30"
-                />
-              ) : (
-                <p id={`we-${t.sleutel}`} className={`whitespace-pre-line rounded-xl px-4 py-3 text-[14.5px] leading-relaxed ${a[t.sleutel] ? "bg-[#fafafd] text-[#1c1a4e]" : "text-black/35"}`}>
-                  {a[t.sleutel] || "Niet ingevuld."}
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-black/[0.06] pt-5">
         <p className="text-[13px] text-black/45">
           {open ? (
             <>
               {bijgewerkt ? `Bewaard op ${bijgewerkt}. ` : ""}
-              Nog aan te passen tot en met zondag {weekBereikDag(slot)}.
+              Nog aan te passen tot en met zondag {weekBereikDag(sluitOp(week))}.
             </>
           ) : (
             <span className="inline-flex items-center gap-1.5"><LuLock className="text-[12px]" /> Deze week is gesloten{bijgewerkt ? `; bewaard op ${bijgewerkt}` : ""}.</span>
@@ -130,9 +155,134 @@ export default function WeekevaluatieForm({
         </p>
         {open && <button className="abtn">{antwoorden ? "Wijzigingen bewaren" : "Weekevaluatie bewaren"}</button>}
       </div>
-      {!open && antwoorden && (
-        <p className="sr-only">Cijfers: {SCHALEN.map((s) => `${s.kort} ${cijferTekst(a[s.sleutel])}`).join(", ")}</p>
-      )}
     </form>
+  );
+}
+
+function Laag({ titel, uitleg, accent, children }: { titel: string; uitleg: string; accent?: boolean; children: React.ReactNode }) {
+  return (
+    <section className={accent ? "rounded-2xl bg-[#f6f2ec] px-4 py-5 sm:px-6" : ""}>
+      <div className="mb-5 border-b border-black/[0.06] pb-3">
+        <h3 className="font-heading text-[17px] font-bold text-[#312e82]">{titel}</h3>
+        <p className="mt-0.5 text-[12.5px] text-black/45">{uitleg}</p>
+      </div>
+      <div className="space-y-6">{children}</div>
+    </section>
+  );
+}
+
+function Nummer({ n }: { n: number }) {
+  return <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[12px] font-bold text-[#312e82]">{n}</span>;
+}
+
+function SchaalRij({
+  nummer, naam, vraag, waarde, open, onKies,
+}: {
+  nummer: number;
+  naam: string;
+  vraag: Pick<SchaalVraag, "label" | "hint" | "laag" | "hoog" | "kort">;
+  waarde: number | undefined;
+  open: boolean;
+  onKies?: (n: number) => void;
+}) {
+  return (
+    <fieldset disabled={!open} className="min-w-0">
+      <legend className="flex items-baseline gap-2.5">
+        <Nummer n={nummer} />
+        <span>
+          <span className="block text-[15px] font-semibold text-[#1c1a4e]">{vraag.label}</span>
+          {vraag.hint && <span className="block text-[12.5px] text-black/45">{vraag.hint}</span>}
+        </span>
+      </legend>
+      <div className="mt-3 sm:pl-[34px]">
+        <div className="grid grid-cols-10 gap-1 sm:gap-1.5" role="radiogroup" aria-label={vraag.label}>
+          {Array.from({ length: 10 }, (_, k) => k + 1).map((n) => (
+            <label key={n} className="relative block cursor-pointer">
+              <input
+                type="radio"
+                name={naam}
+                value={n}
+                defaultChecked={waarde === n}
+                required
+                onChange={onKies ? () => onKies(n) : undefined}
+                className="peer sr-only"
+                aria-label={`${vraag.kort} ${n}`}
+              />
+              <span
+                className={`flex h-10 items-center justify-center rounded-lg border text-[14px] font-semibold tabular-nums transition sm:h-11 sm:rounded-xl sm:text-[15px] ${
+                  open ? "border-black/[0.1] bg-white text-[#1c1a4e] hover:border-[#312e82]/50 hover:bg-[#f7f7fc]" : "border-black/[0.06] bg-[#fafafd] text-black/35"
+                } peer-checked:border-[#312e82] peer-checked:bg-[#312e82] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-[#e75387]/50 peer-focus-visible:ring-offset-1`}
+              >
+                {n}
+              </span>
+            </label>
+          ))}
+        </div>
+        <div className="mt-1.5 flex justify-between gap-3 text-[11.5px] text-black/40">
+          <span>1 · {vraag.laag}</span>
+          <span className="text-right">10 · {vraag.hoog}</span>
+        </div>
+      </div>
+    </fieldset>
+  );
+}
+
+function TekstRij({ nummer, vraag: t, a, open }: { nummer: number; vraag: TekstVraag; a: Antwoorden; open: boolean }) {
+  const id = `we-${t.sleutel}`;
+  const gekozen = t.keuzes ? a[t.keuzes] ?? [] : [];
+  const besproken = Boolean(a.bespreken?.includes(t.sleutel));
+  return (
+    <div>
+      <label htmlFor={id} className="flex items-baseline gap-2.5">
+        <Nummer n={nummer} />
+        <span>
+          <span className="block text-[15px] font-semibold text-[#1c1a4e]">{t.label}</span>
+          <span className="block text-[12.5px] text-black/45">{t.hint}</span>
+        </span>
+      </label>
+      <div className="mt-2.5 space-y-2.5 sm:pl-[34px]">
+        {t.keuzes && <Keuzes veld={t.keuzes} gekozen={gekozen} open={open} vraag={t.kort} />}
+        {open ? (
+          <textarea
+            id={id}
+            name={t.sleutel}
+            rows={2}
+            maxLength={2000}
+            defaultValue={a[t.sleutel] || ""}
+            placeholder={t.voorbeeld}
+            className="ainput min-h-[72px] resize-y text-[14.5px] leading-relaxed placeholder:text-black/30"
+          />
+        ) : (
+          <p id={id} className={`whitespace-pre-line rounded-xl px-4 py-3 text-[14.5px] leading-relaxed ${a[t.sleutel] ? "bg-[#fafafd] text-[#1c1a4e]" : "text-black/35"}`}>
+            {a[t.sleutel] || "Niet ingevuld."}
+          </p>
+        )}
+        {t.bespreekbaar && (open || besproken) && (
+          <label className={`inline-flex items-center gap-2 text-[13px] ${open ? "cursor-pointer text-black/55 hover:text-[#312e82]" : "text-[#312e82]"}`}>
+            <input type="checkbox" name="bespreken" value={t.sleutel} defaultChecked={besproken} disabled={!open} className="h-4 w-4 accent-[#312e82]" />
+            <LuMessageSquareText className="text-[13px]" /> Meenemen naar de kwartaalmeeting
+          </label>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Keuzes({ veld, gekozen, open, vraag }: { veld: KeuzeVeld; gekozen: string[]; open: boolean; vraag: string }) {
+  return (
+    <div className="flex flex-wrap gap-1.5" role="group" aria-label={`${vraag}: thema's`}>
+      {KEUZES[veld].map((k) => (
+        <label key={k.sleutel} className={`relative ${open ? "cursor-pointer" : ""}`}>
+          <input type="checkbox" name={veld} value={k.sleutel} defaultChecked={gekozen.includes(k.sleutel)} disabled={!open} className="peer sr-only" />
+          <span
+            className={`inline-flex items-center rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
+              open ? "border-black/[0.12] bg-white text-black/60 hover:border-[#312e82]/50" : "border-black/[0.06] bg-[#fafafd] text-black/35"
+            } peer-checked:border-[#312e82] peer-checked:bg-[#eef0ff] peer-checked:text-[#312e82] peer-focus-visible:ring-2 peer-focus-visible:ring-[#e75387]/50`}
+          >
+            {k.label}
+          </span>
+        </label>
+      ))}
+    </div>
   );
 }

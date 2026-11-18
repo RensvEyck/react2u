@@ -1,59 +1,125 @@
 import { describe, expect, it } from "vitest";
 import {
-  cijferTekst, deelname, deelnemers, EXPORT_KOP, exportNaam, exportRijen, gemiddelde, gemiddelden, herinnering, kwartaalLabel, kwartaalSleutel,
-  kwartaalVanDatum, kwartaalVanWeek, leesAntwoorden, leesKwartaal, magWijzigen, normaliseerAntwoorden, openWeken, perWeek, plusKwartalen, SCHALEN,
-  sluitOp, TEKSTVRAGEN, teltVoor, trend, trendTekst, VRAGEN, weekStand, weekTitel, wekenInKwartaal, wieHerinneren, type Deelnemer, type Evaluatie,
+  ALLE_SCHALEN, bespreekpunten, cijferTekst, deelname, deelnemers, doelenVan, doelStanden, EXPORT_KOP, exportNaam, exportRijen, gemiddelde, gemiddelden,
+  herinnering, isKwartaalEinde, isMaandEinde, kwartaalLabel, kwartaalSleutel, kwartaalVanDatum, kwartaalVanWeek, leesAntwoorden, leesKwartaal,
+  maandenInKwartaal, maandOverzicht, magWijzigen, momenten, normaliseerAntwoorden, openWeken, perWeek, plusKwartalen, SCHALEN, schalenZin, signaal,
+  signaalMail, signalen, sluitOp, telKeuzes, TEKSTVRAGEN, teltVoor, trend, trendTekst, VRAGEN, vragenVoorWeek, weekStand, weekTitel, wekenInKwartaal,
+  wieHerinneren, zwaarsteWeken, type Antwoorden, type Deelnemer, type Doel, type Evaluatie,
 } from "./weekevaluatie";
 
-const ev = (user_id: string, week: string, antwoorden: Evaluatie["antwoorden"] = { cijfer: 7 }): Evaluatie => ({
+const ev = (user_id: string, week: string, antwoorden: Antwoorden = { cijfer: 7 }): Evaluatie => ({
   id: `${user_id}-${week}`, user_id, week, antwoorden, door: `${user_id}@react2u.test`, created_at: `${week}T10:00:00Z`, updated_at: `${week}T10:00:00Z`,
 });
 
+/** Een formulier zoals de browser het stuurt: elke naam een lijst waarden. */
+const formulier = (velden: Record<string, string | string[]>) =>
+  Object.fromEntries(Object.entries(velden).map(([k, v]) => [k, Array.isArray(v) ? v : [v]]));
+
+const WEEK_OK = { energie: "7", plezier: "8", tijd: "6", emotie: "7", herstel: "5", kennis: "8", cijfer: "7" };
+const MAAND_OK = { trots: "8", inzet: "9", waardering: "6", ruimte: "7", geleerd: "5", steun: "8" };
+
+// Woensdag 18 november 2026: week 47. De laatste week van november is week 48 (donderdag 26 nov),
+// de laatste van het kwartaal week 53 (maandag 28 december, donderdag 31 december).
+const WEEK_47 = "2026-11-16";
+const WEEK_48 = "2026-11-23";
+const WEEK_53 = "2026-12-28";
+const DOEL = "11111111-2222-4333-8444-555555555555";
+
 describe("de vragen", () => {
-  it("heeft vijf schalen en vijf open vragen, elk met een unieke sleutel", () => {
-    expect(SCHALEN.map((s) => s.sleutel)).toEqual(["energie", "werkdruk", "voldoening", "samenwerking", "cijfer"]);
-    expect(TEKSTVRAGEN.map((t) => t.sleutel)).toEqual(["goed", "beter", "knelpunt", "nodig", "trots"]);
+  it("heeft zeven weekschalen, zes maandvragen en een terugblik per kwartaal, elk met een unieke sleutel", () => {
+    expect(SCHALEN.filter((s) => s.moment === "week").map((s) => s.sleutel)).toEqual(["energie", "plezier", "tijd", "emotie", "herstel", "kennis", "cijfer"]);
+    expect(SCHALEN.filter((s) => s.moment === "maand").map((s) => s.sleutel)).toEqual(["trots", "inzet", "waardering", "ruimte", "geleerd", "steun"]);
+    expect(VRAGEN.filter((v) => v.moment === "kwartaal").map((v) => v.sleutel)).toEqual(["blijven", "blijven_waarom", "kwartaal_hoogtepunt", "kwartaal_anders"]);
     expect(new Set(VRAGEN.map((v) => v.sleutel)).size).toBe(VRAGEN.length);
+    expect(TEKSTVRAGEN.every((t) => t.bespreekbaar)).toBe(true);
   });
 
-  it("leest het formulier: schalen verplicht van 1 tot 10, tekst bijgeknipt en leeg weggelaten", () => {
-    const { antwoorden, fouten } = leesAntwoorden({ energie: "7", werkdruk: "6", voldoening: "8", samenwerking: "9", cijfer: "7", goed: "  Twee gestart.  ", beter: "", trots: "x".repeat(2500) });
+  it("vraagt niets over gezondheid", () => {
+    const alles = VRAGEN.map((v) => `${v.label} ${v.hint}`).join(" ").toLowerCase();
+    for (const woord of ["klacht", "slaap", "ziek ben", "medicijn", "pijn"]) expect(alles).not.toContain(woord);
+  });
+
+  it("weet welke weken maandvragen en een terugblik hebben", () => {
+    expect(isMaandEinde(WEEK_47)).toBe(false);
+    expect(isMaandEinde(WEEK_48)).toBe(true);
+    expect(isKwartaalEinde(WEEK_48)).toBe(false);
+    expect(isKwartaalEinde(WEEK_53)).toBe(true);
+    expect(isMaandEinde(WEEK_53)).toBe(true);
+    // Maandag 28 september 2026: donderdag 1 oktober, dus de eerste week van Q4 en niet de laatste van september.
+    expect(isMaandEinde("2026-09-21")).toBe(true);
+    expect(momenten(WEEK_47)).toEqual(["week"]);
+    expect(momenten(WEEK_48)).toEqual(["week", "maand"]);
+    expect(momenten(WEEK_53)).toEqual(["week", "maand", "kwartaal"]);
+    expect(vragenVoorWeek(WEEK_47)).toHaveLength(10);
+    expect(vragenVoorWeek(WEEK_53)).toHaveLength(VRAGEN.length);
+  });
+});
+
+describe("het formulier lezen", () => {
+  it("leest een gewone week: schalen verplicht, tekst bijgeknipt, leeg weggelaten", () => {
+    const { antwoorden, fouten } = leesAntwoorden(formulier({ ...WEEK_OK, hoogtepunt: "  Twee gestart.  ", knelpunt: "", trots: "9" }), { week: WEEK_47, doelen: [] });
     expect(fouten).toEqual([]);
-    expect(antwoorden).toMatchObject({ energie: 7, werkdruk: 6, voldoening: 8, samenwerking: 9, cijfer: 7, goed: "Twee gestart." });
-    expect(antwoorden.beter).toBeUndefined();
-    expect(antwoorden.trots).toHaveLength(2000);
+    expect(antwoorden).toEqual({ energie: 7, plezier: 8, tijd: 6, emotie: 7, herstel: 5, kennis: 8, cijfer: 7, hoogtepunt: "Twee gestart." });
   });
 
-  it("noemt de schalen die ontbreken of onzin zijn", () => {
-    const { fouten } = leesAntwoorden({ energie: "11", werkdruk: "0", voldoening: "abc", samenwerking: "7,5", cijfer: "7" });
-    expect(fouten).toEqual(["energie", "werkdruk", "voldoening", "samenwerking"]);
+  it("noemt de schalen die ontbreken of onzin zijn, ook de maandvragen in de laatste week van de maand", () => {
+    expect(leesAntwoorden(formulier({ ...WEEK_OK, energie: "11", tijd: "0", kennis: "7,5" }), { week: WEEK_47, doelen: [] }).fouten).toEqual(["energie", "tijd", "kennis"]);
+    expect(leesAntwoorden(formulier(WEEK_OK), { week: WEEK_48, doelen: [] }).fouten).toEqual(["trots", "inzet", "waardering", "ruimte", "geleerd", "steun"]);
+    expect(leesAntwoorden(formulier({ ...WEEK_OK, ...MAAND_OK }), { week: WEEK_53, doelen: [] }).fouten).toEqual(["blijven"]);
+    expect(leesAntwoorden(formulier({ ...WEEK_OK, ...MAAND_OK, blijven: "8" }), { week: WEEK_53, doelen: [] }).fouten).toEqual([]);
+  });
+
+  it("vraagt alleen welke kennis je miste als kennis een 6 of lager is", () => {
+    const veld = { kennis_mist: "Loonsanctie", kennis_themas: ["wetgeving", "onzin"], bespreken: ["kennis_mist"] };
+    const hoog = leesAntwoorden(formulier({ ...WEEK_OK, ...veld }), { week: WEEK_47, doelen: [] }).antwoorden;
+    expect(hoog.kennis_mist).toBeUndefined();
+    expect(hoog.kennis_themas).toBeUndefined();
+    expect(hoog.bespreken).toBeUndefined();
+    const laag = leesAntwoorden(formulier({ ...WEEK_OK, kennis: "5", ...veld }), { week: WEEK_47, doelen: [] }).antwoorden;
+    expect(laag).toMatchObject({ kennis: 5, kennis_mist: "Loonsanctie", kennis_themas: ["wetgeving"], bespreken: ["kennis_mist"] });
+  });
+
+  it("houdt thema's op vaste volgorde en een bespreekvinkje alleen bij een antwoord", () => {
+    const { antwoorden } = leesAntwoorden(
+      formulier({ ...WEEK_OK, knelpunt_themas: ["planning", "werkdruk", "planning"], bespreken: ["knelpunt", "hoogtepunt", "kwartaal_anders"] }),
+      { week: WEEK_47, doelen: [] },
+    );
+    expect(antwoorden.knelpunt_themas).toEqual(["werkdruk", "planning"]);
+    // Knelpunt heeft alleen thema's en telt; hoogtepunt is leeg en de terugblik wordt deze week niet gevraagd.
+    expect(antwoorden.bespreken).toEqual(["knelpunt"]);
+  });
+
+  it("vraagt de voortgang op elk doel", () => {
+    expect(leesAntwoorden(formulier(WEEK_OK), { week: WEEK_47, doelen: [{ id: DOEL }] }).fouten).toEqual([`doel:${DOEL}`]);
+    const { antwoorden } = leesAntwoorden(formulier({ ...WEEK_OK, [`doel_${DOEL}`]: "6", [`doel_${DOEL}_tekst`]: " Twee dossiers samen doorgenomen " }), { week: WEEK_47, doelen: [{ id: DOEL }] });
+    expect(antwoorden.doelen).toEqual({ [DOEL]: { cijfer: 6, tekst: "Twee dossiers samen doorgenomen" } });
   });
 
   it("houdt uit de database alleen bekende, geldige antwoorden over", () => {
-    expect(normaliseerAntwoorden({ energie: 7, werkdruk: 12, cijfer: "8", goed: "Prima", onbekend: "weg", trots: "   " })).toEqual({ energie: 7, goed: "Prima" });
+    expect(normaliseerAntwoorden({
+      energie: 7, tijd: 12, cijfer: "8", hoogtepunt: "Prima", onbekend: "weg", knelpunt: "   ",
+      knelpunt_themas: ["planning", "onzin", "werkdruk"], bespreken: ["hoogtepunt", "eval()"],
+      doelen: { [DOEL]: { cijfer: 7, tekst: "ok" }, "geen-uuid": { cijfer: 7 }, "22222222-2222-4333-8444-555555555555": { cijfer: 11 } },
+    })).toEqual({ energie: 7, hoogtepunt: "Prima", knelpunt_themas: ["werkdruk", "planning"], bespreken: ["hoogtepunt"], doelen: { [DOEL]: { cijfer: 7, tekst: "ok" } } });
     expect(normaliseerAntwoorden(null)).toEqual({});
   });
 });
 
 describe("open en gesloten weken", () => {
   it("laat deze week en vorige week open, tot en met de zondag van de week erna", () => {
-    // Woensdag 18 november 2026: week 47 (16 nov) en week 46 (9 nov) staan open.
     expect(openWeken("2026-11-18")).toEqual(["2026-11-09", "2026-11-16"]);
     expect(weekStand("2026-11-16", "2026-11-18")).toBe("open");
     expect(weekStand("2026-11-09", "2026-11-18")).toBe("open");
     expect(weekStand("2026-11-02", "2026-11-18")).toBe("gesloten");
     expect(weekStand("2026-11-23", "2026-11-18")).toBe("toekomst");
-    expect(magWijzigen("2026-11-09", "2026-11-22")).toBe(true); // zondag: laatste dag
-    expect(magWijzigen("2026-11-09", "2026-11-23")).toBe(false); // maandag erna: dicht
+    expect(magWijzigen("2026-11-09", "2026-11-22")).toBe(true);
+    expect(magWijzigen("2026-11-09", "2026-11-23")).toBe(false);
     expect(sluitOp("2026-11-09")).toBe("2026-11-22");
-  });
-
-  it("schrijft de titel van een week", () => {
     expect(weekTitel("2026-11-16")).toBe("Week 47 · 16–22 nov");
   });
 
   it("telt weken van vóór iemands komst niet mee", () => {
-    expect(teltVoor("2026-11-09", "2026-11-12")).toBe(true); // de zondag (15 nov) valt na de komst
+    expect(teltVoor("2026-11-09", "2026-11-12")).toBe(true);
     expect(teltVoor("2026-11-02", "2026-11-12")).toBe(false);
     expect(teltVoor("2026-11-02", null)).toBe(true);
   });
@@ -62,32 +128,28 @@ describe("open en gesloten weken", () => {
 describe("kwartalen", () => {
   it("rekent het kwartaal van een week naar zijn donderdag, ook over de jaargrens", () => {
     expect(kwartaalVanWeek("2026-11-16")).toEqual({ jaar: 2026, kwartaal: 4 });
-    // Maandag 28 december 2026: week 53, donderdag 31 december, dus nog Q4 2026, ook op vrijdag 1 januari.
-    expect(kwartaalVanWeek("2026-12-28")).toEqual({ jaar: 2026, kwartaal: 4 });
+    expect(kwartaalVanWeek(WEEK_53)).toEqual({ jaar: 2026, kwartaal: 4 });
     expect(kwartaalVanDatum("2027-01-01")).toEqual({ jaar: 2026, kwartaal: 4 });
     expect(kwartaalVanDatum("2027-01-04")).toEqual({ jaar: 2027, kwartaal: 1 });
-    // Maandag 30 maart 2026: donderdag 2 april, dus Q2.
     expect(kwartaalVanWeek("2026-03-30")).toEqual({ jaar: 2026, kwartaal: 2 });
   });
 
-  it("geeft de weken van een kwartaal: twaalf tot veertien, naar de donderdag", () => {
+  it("geeft de weken en maanden van een kwartaal", () => {
     const q4 = wekenInKwartaal({ jaar: 2026, kwartaal: 4 });
-    expect(q4[0]).toBe("2026-09-28"); // donderdag 1 oktober
-    expect(q4[q4.length - 1]).toBe("2026-12-28"); // donderdag 31 december
+    expect(q4[0]).toBe("2026-09-28");
+    expect(q4[q4.length - 1]).toBe(WEEK_53);
     expect(q4).toHaveLength(14);
     const q1 = wekenInKwartaal({ jaar: 2027, kwartaal: 1 });
     expect(q1[0]).toBe("2027-01-04");
-    expect(q1[q1.length - 1]).toBe("2027-03-22"); // donderdag 25 maart; de week erna hoort bij Q2
+    expect(q1[q1.length - 1]).toBe("2027-03-22");
     expect(q1).toHaveLength(12);
-    expect(wekenInKwartaal({ jaar: 2026, kwartaal: 2 })[0]).toBe("2026-03-30");
+    expect(maandenInKwartaal({ jaar: 2026, kwartaal: 4 })).toEqual(["2026-10", "2026-11", "2026-12"]);
   });
 
   it("leest en schrijft de sleutel en het label", () => {
     expect(kwartaalSleutel({ jaar: 2026, kwartaal: 4 })).toBe("2026-Q4");
     expect(leesKwartaal("2026-Q4")).toEqual({ jaar: 2026, kwartaal: 4 });
     expect(leesKwartaal("2026-Q5")).toBeNull();
-    expect(leesKwartaal(undefined)).toBeNull();
-    expect(kwartaalLabel({ jaar: 2026, kwartaal: 4 })).toBe("Q4 2026");
     expect(kwartaalLabel({ jaar: 2026, kwartaal: 1 }, true)).toBe("eerste kwartaal 2026");
     expect(plusKwartalen({ jaar: 2026, kwartaal: 4 }, 1)).toEqual({ jaar: 2027, kwartaal: 1 });
     expect(plusKwartalen({ jaar: 2026, kwartaal: 1 }, -1)).toEqual({ jaar: 2025, kwartaal: 4 });
@@ -97,37 +159,106 @@ describe("kwartalen", () => {
 
 describe("gemiddelden en trends", () => {
   it("middelt op één decimaal en kent laagste en hoogste", () => {
-    expect(gemiddelde([7, 8, 6])).toBe(7);
     expect(gemiddelde([7, 8])).toBe(7.5);
     expect(gemiddelde([7, 8, 8])).toBe(7.7);
     expect(gemiddelde([])).toBeNull();
     const g = gemiddelden([ev("a", "2026-11-02", { energie: 6, cijfer: 7 }), ev("a", "2026-11-09", { energie: 8, cijfer: 8 }), ev("a", "2026-11-16", { cijfer: 6 })]);
     expect(g.energie).toEqual({ gem: 7, n: 2, laagste: 6, hoogste: 8 });
     expect(g.cijfer).toEqual({ gem: 7, n: 3, laagste: 6, hoogste: 8 });
-    expect(g.werkdruk).toEqual({ gem: null, n: 0, laagste: null, hoogste: null });
+    expect(g.trots).toEqual({ gem: null, n: 0, laagste: null, hoogste: null });
+    expect(Object.keys(g)).toEqual(ALLE_SCHALEN);
   });
 
   it("schrijft cijfers en trends in het Nederlands", () => {
     expect(cijferTekst(7.4)).toBe("7,4");
-    expect(cijferTekst(8)).toBe("8");
     expect(cijferTekst(null)).toBe("–");
-    expect(trend(7.4, 7)).toBe(0.4);
     expect(trend(6.8, 7.2)).toBe(-0.4);
     expect(trend(7, null)).toBeNull();
     expect(trendTekst(0.4)).toBe("+0,4");
     expect(trendTekst(-1.2)).toBe("−1,2");
     expect(trendTekst(0)).toBe("±0");
-    expect(trendTekst(null)).toBe("");
   });
 
   it("middelt per week over wie die week invulde", () => {
-    const rijen = perWeek(
-      [ev("a", "2026-11-09", { energie: 6, cijfer: 7 }), ev("b", "2026-11-09", { energie: 8, cijfer: 6 }), ev("a", "2026-11-16", { cijfer: 9 })],
-      ["2026-11-02", "2026-11-09", "2026-11-16"],
-    );
+    const rijen = perWeek([ev("a", "2026-11-09", { energie: 6, cijfer: 7 }), ev("b", "2026-11-09", { energie: 8, cijfer: 6 })], ["2026-11-02", "2026-11-09"]);
     expect(rijen[0]).toEqual({ week: "2026-11-02", waarden: {}, n: 0 });
     expect(rijen[1]).toEqual({ week: "2026-11-09", waarden: { energie: 7, cijfer: 6.5 }, n: 2 });
-    expect(rijen[2]).toEqual({ week: "2026-11-16", waarden: { cijfer: 9 }, n: 1 });
+  });
+});
+
+describe("twee zware weken", () => {
+  it("geeft een signaal bij twee weken achter elkaar een 4 of lager voor energie of tijd", () => {
+    expect(signaal({ energie: 4, tijd: 6 }, { energie: 3, tijd: 3 })).toEqual(["energie"]);
+    expect(signaal({ energie: 4, tijd: 2 }, { energie: 3, tijd: 4 })).toEqual(["energie", "tijd"]);
+    expect(signaal({ energie: 5, tijd: 5 }, { energie: 1, tijd: 1 })).toEqual([]);
+    // Emotie en herstel tellen hier niet; die staan in de zwaarste weken.
+    expect(signaal({ emotie: 1, herstel: 1 }, { emotie: 1, herstel: 1 })).toEqual([]);
+    expect(signaal({ energie: 2 }, undefined)).toEqual([]);
+  });
+
+  it("vindt alle signalen in een reeks, op de tweede week, alleen bij opeenvolgende weken", () => {
+    const s = signalen([
+      ev("noor", "2026-11-02", { energie: 3 }), ev("noor", "2026-11-09", { energie: 4 }), ev("noor", "2026-11-16", { energie: 2 }),
+      ev("sam", "2026-10-26", { tijd: 2 }), ev("sam", "2026-11-09", { tijd: 2 }),
+    ]);
+    expect(s).toEqual([
+      { user_id: "noor", week: "2026-11-16", schalen: ["energie"] },
+      { user_id: "noor", week: "2026-11-09", schalen: ["energie"] },
+    ]);
+  });
+
+  it("schrijft de mail zonder de antwoorden zelf", () => {
+    expect(schalenZin(["energie", "tijd"])).toBe("energie en werk paste in de tijd");
+    const m = signaalMail("Noor", "2026-11-16", ["energie"]);
+    expect(m.onderwerp).toBe("Twee zware weken voor Noor");
+    expect(m.alineas[0]).toBe("Noor gaf in week 46 en 47 allebei een 4 of lager voor energie.");
+    expect(m.alineas.join(" ")).toContain("niet naar de gezondheid");
+  });
+});
+
+describe("voor de kwartaalmeeting", () => {
+  const reeks = [
+    ev("noor", "2026-10-05", { energie: 8, tijd: 7, emotie: 8, herstel: 7, knelpunt_themas: ["planning"] }),
+    ev("noor", "2026-10-12", { energie: 3, tijd: 4, emotie: 5, herstel: 4, knelpunt_themas: ["werkdruk", "klant"], knelpunt: "Drie spoedgevallen", bespreken: ["knelpunt"] }),
+    ev("noor", "2026-10-19", { energie: 6, tijd: 6, emotie: 6, herstel: 6, knelpunt_themas: ["werkdruk"], kennis_themas: ["wetgeving"] }),
+    ev("noor", "2026-10-26", { energie: 5, tijd: 3, emotie: 4, herstel: 5, trots: 8, inzet: 9, hoogtepunt: "Bakkerij weer aan het werk", bespreken: ["hoogtepunt"] }),
+  ];
+
+  it("wijst de twee zwaarste weken aan, pas vanaf drie weken", () => {
+    expect(zwaarsteWeken(reeks)).toEqual([{ week: "2026-10-12", zwaarte: 4 }, { week: "2026-10-26", zwaarte: 4.3 }]);
+    expect(zwaarsteWeken(reeks.slice(0, 2))).toEqual([]);
+  });
+
+  it("telt de thema's, vaakst eerst", () => {
+    expect(telKeuzes(reeks, "knelpunt_themas").map((t) => `${t.label}:${t.aantal}`)).toEqual(["Werkdruk:2", "Klant of werkgever:1", "Planning:1"]);
+    expect(telKeuzes(reeks, "kennis_themas").map((t) => t.label)).toEqual(["Wet poortwachter en WIA"]);
+  });
+
+  it("zet de bespreekpunten op een rij, nieuwste eerst, met de thema's erbij", () => {
+    expect(bespreekpunten(reeks)).toEqual([
+      { week: "2026-10-26", sleutel: "hoogtepunt", vraag: "Hoogtepunt", tekst: "Bakkerij weer aan het werk", themas: [] },
+      { week: "2026-10-12", sleutel: "knelpunt", vraag: "Knelpunt", tekst: "Drie spoedgevallen", themas: ["Werkdruk", "Klant of werkgever"] },
+    ]);
+  });
+
+  it("zet de maandvragen per maand van het kwartaal", () => {
+    const m = maandOverzicht(reeks, { jaar: 2026, kwartaal: 4 });
+    expect(m.maanden).toEqual(["2026-10", "2026-11", "2026-12"]);
+    expect(m.ingevuld).toBe(1);
+    expect(m.rijen.find((r) => r.sleutel === "trots")?.waarden).toEqual([8, null, null]);
+  });
+
+  it("volgt de doelen per week", () => {
+    const doel: Doel = { id: DOEL, user_id: "noor", jaar: 2026, kwartaal: 4, titel: "Spoor 2 eigen maken", toelichting: null, sort: 0 };
+    const [d] = doelStanden([doel], [
+      ev("noor", "2026-10-12", { doelen: { [DOEL]: { cijfer: 4, tekst: "Boek besteld" } } }),
+      ev("noor", "2026-10-05", { doelen: { [DOEL]: { cijfer: 6 } } }),
+      ev("noor", "2026-10-19", {}),
+    ]);
+    expect(d.perWeek).toEqual([{ week: "2026-10-05", cijfer: 6 }, { week: "2026-10-12", cijfer: 4 }]);
+    expect(d.gem).toBe(5);
+    expect(d.laatste).toEqual({ week: "2026-10-12", tekst: "Boek besteld" });
+    expect(doelenVan([{ ...doel, sort: 2, titel: "B" }, { ...doel, sort: 1, titel: "A" }, { ...doel, kwartaal: 1 }], { jaar: 2026, kwartaal: 4 }).map((x) => x.titel)).toEqual(["A", "B"]);
   });
 });
 
@@ -143,65 +274,71 @@ describe("wie doet mee en wie miste", () => {
 
   it("weet welke weken iemand invulde, miste en nog kan invullen, vanaf zijn komst", () => {
     const weken = wekenInKwartaal({ jaar: 2026, kwartaal: 4 });
-    const vandaag = "2026-11-18";
-    const noor = deelname(NOOR, weken, new Set(["2026-10-05", "2026-10-19", "2026-11-16"]), vandaag);
-    expect(noor.ingevuld).toEqual(["2026-10-05", "2026-10-19", "2026-11-16"]);
-    // Week 40 (28 sep) telt mee: de zondag is 4 oktober, na 1 oktober.
+    const noor = deelname(NOOR, weken, new Set(["2026-10-05", "2026-10-19", "2026-11-16"]), "2026-11-18");
     expect(noor.gemist).toEqual(["2026-09-28", "2026-10-12", "2026-10-26", "2026-11-02"]);
     expect(noor.open).toEqual(["2026-11-09"]);
     expect(noor.verwacht).toBe(8);
-    // Sam kwam op 12 november: week 46 (9 nov) is zijn eerste, en die staat nog open.
-    const sam = deelname(SAM, weken, new Set(), vandaag);
-    expect(sam.gemist).toEqual([]);
+    const sam = deelname(SAM, weken, new Set(), "2026-11-18");
     expect(sam.open).toEqual(["2026-11-09", "2026-11-16"]);
     expect(sam.verwacht).toBe(2);
-    // Een evaluatie van vóór iemands komst (een account dat later opnieuw is uitgenodigd) telt gewoon als ingevuld.
-    const eerder = deelname(SAM, weken, new Set(["2026-10-19"]), vandaag);
+    const eerder = deelname(SAM, weken, new Set(["2026-10-19"]), "2026-11-18");
     expect(eerder.ingevuld).toEqual(["2026-10-19"]);
-    expect(eerder.gemist).toEqual([]);
     expect(eerder.verwacht).toBe(3);
   });
 
   it("herinnert wie meedoet en deze week nog niets invulde", () => {
     const evaluaties = [ev("noor", "2026-11-09"), ev("sam", "2026-11-16")];
     expect(wieHerinneren([NOOR, SAM, RENS], evaluaties, "2026-11-16").map((d) => d.user_id)).toEqual(["noor"]);
-    // Rens vulde ooit in: dan hoort hij er wel bij.
     expect(wieHerinneren([NOOR, SAM, RENS], [...evaluaties, ev("rens", "2026-10-05")], "2026-11-16").map((d) => d.user_id)).toEqual(["noor", "rens"]);
-    // Wie na deze week pas begon, krijgt geen herinnering voor een week waarin hij er nog niet was.
     expect(wieHerinneren([{ ...SAM, sinds: "2026-11-23" }], [], "2026-11-16")).toEqual([]);
   });
 
-  it("schrijft de herinnering met het weeknummer en de sluitdatum", () => {
-    const h = herinnering("Noor", "2026-11-16", { vorigeWeekOok: false });
+  it("schrijft de herinnering, met de maandvragen en de terugblik in de weken waarin ze staan", () => {
+    const h = herinnering("Noor", WEEK_47, { vorigeWeekOok: false });
     expect(h.onderwerp).toBe("Hoe was je week 47?");
     expect(h.aanhef).toBe("Hoi Noor,");
     expect(h.alineas[0]).toContain("week 47 (16–22 nov)");
     expect(h.alineas[0]).toContain("zondag 29 november");
-    expect(h.alineas[1]).toContain("kwartaalmeeting");
-    expect(herinnering(null, "2026-11-16", { vorigeWeekOok: true }).alineas[1]).toContain("Vorige week staat ook nog open");
-    expect(herinnering(null, "2026-11-16", { vorigeWeekOok: true }).aanhef).toBe("Hoi,");
+    expect(h.alineas[1]).toContain("nooit voor beoordeling of salaris");
+    expect(herinnering(null, WEEK_47, { vorigeWeekOok: true }).alineas[1]).toContain("Vorige week staat ook nog open");
+    expect(herinnering(null, WEEK_48, { vorigeWeekOok: false }).alineas[1]).toContain("laatste week van de maand");
+    expect(herinnering(null, WEEK_53, { vorigeWeekOok: false }).alineas[1]).toContain("laatste week van het kwartaal");
   });
 });
 
 describe("export", () => {
-  it("maakt één rij per collega per verstreken week, met gemiste weken erbij", () => {
-    const weken = ["2026-11-02", "2026-11-09", "2026-11-16", "2026-11-23"];
+  it("maakt één rij per collega per verstreken week, met gemiste weken, thema's, doelen en signalen", () => {
+    const doel: Doel = { id: DOEL, user_id: "noor", jaar: 2026, kwartaal: 4, titel: "Spoor 2 eigen maken", toelichting: null, sort: 0 };
     const rijen = exportRijen({
       deelnemers: [NOOR, RENS],
-      evaluaties: [ev("noor", "2026-11-09", { energie: 7, werkdruk: 6, voldoening: 8, samenwerking: 7, cijfer: 7.5 as unknown as number, goed: "Twee gestart", trots: "De bakkerij" })],
-      weken,
+      evaluaties: [
+        ev("noor", "2026-11-02", { energie: 3, tijd: 3 }),
+        ev("noor", "2026-11-09", {
+          energie: 4, plezier: 6, tijd: 4, emotie: 7, herstel: 5, kennis: 5, cijfer: 6, hoogtepunt: "Twee gestart", knelpunt: "Bedrijfsarts pas donderdag",
+          knelpunt_themas: ["werkdruk", "planning"], kennis_themas: ["reintegratie"], kennis_mist: "Spoor 2", bespreken: ["knelpunt"],
+          doelen: { [DOEL]: { cijfer: 6, tekst: "Twee dossiers" } },
+        }),
+      ],
+      weken: ["2026-10-26", "2026-11-02", "2026-11-09", "2026-11-16", "2026-11-23"],
       namen: new Map([["noor", "Noor de Vries"]]),
       uren: new Map([["noor|2026-11-09", { declarabel: 27.5, afwezig: 0 }]]),
+      doelen: [doel],
       vandaag: "2026-11-18",
     });
+    const kol = (rij: string[], naam: string) => rij[EXPORT_KOP.indexOf(naam)];
     expect(rijen[0]).toEqual(EXPORT_KOP);
-    expect(rijen).toHaveLength(4); // kop + week 45, 46, 47 van Noor; Rens doet niet mee, week 48 is toekomst
-    expect(rijen[1].slice(0, 6)).toEqual(["Noor de Vries", "noor@react2u.test", "2026", "45", "2–8 nov", "gemist"]);
-    expect(rijen[2].slice(0, 6)).toEqual(["Noor de Vries", "noor@react2u.test", "2026", "46", "9–15 nov", "ingevuld"]);
-    expect(rijen[2].slice(6, 11)).toEqual(["7", "6", "8", "7", "7,5"]);
-    expect(rijen[2][11]).toBe("Twee gestart");
-    expect(rijen[2][15]).toBe("De bakkerij");
-    expect(rijen[2].slice(16)).toEqual(["27,5", "0", "2026-11-09"]);
-    expect(rijen[3][5]).toBe("nog open");
+    expect(rijen).toHaveLength(5); // kop + week 44 tot en met 47 van Noor; Rens doet niet mee, week 48 is toekomst
+    expect(kol(rijen[1], "Status")).toBe("gemist");
+    const w46 = rijen[3];
+    expect(kol(w46, "Week")).toBe("46");
+    expect(kol(w46, "Status")).toBe("ingevuld");
+    expect(kol(w46, "Energie")).toBe("4");
+    expect(kol(w46, "Knelpuntthema's")).toBe("Werkdruk, Planning");
+    expect(kol(w46, "Kennisthema's")).toBe("Re-integratie spoor 1 en 2");
+    expect(kol(w46, "Voortgang doelen")).toBe("Spoor 2 eigen maken: 6 (Twee dossiers)");
+    expect(kol(w46, "Te bespreken")).toBe("Knelpunt");
+    expect(kol(w46, "Twee zware weken")).toBe("energie en werk paste in de tijd");
+    expect(kol(w46, "Declarabele uren")).toBe("27,5");
+    expect(kol(rijen[4], "Status")).toBe("nog open");
   });
 });

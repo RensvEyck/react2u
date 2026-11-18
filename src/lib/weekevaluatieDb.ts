@@ -1,21 +1,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isMissingTable } from "./dbErrors";
-import { cel, optellen, urenIndex, type Medewerker, type Totaal, type UrenRij } from "./uren";
+import { firstName } from "./dashboard";
+import { cel, optellen, plusWeken, urenIndex, type Medewerker, type Totaal, type UrenRij } from "./uren";
 import {
-  deelname, deelnemers, gemiddelden, normaliseerAntwoorden, plusKwartalen, weekStand, wekenInKwartaal,
-  type Deelname, type Deelnemer, type Evaluatie, type Kwartaal, type Schaal, type SchaalSamenvatting,
+  bespreekpunten, deelname, deelnemers, doelenVan, doelStanden, gemiddelden, isKwartaalEinde, maandOverzicht, normaliseerAntwoorden, openWeken,
+  plusKwartalen, signalen, telKeuzes, weekStand, wekenInKwartaal, zwaarsteWeken,
+  type Bespreekpunt, type Deelname, type Deelnemer, type Doel, type DoelStand, type Evaluatie, type Keuze, type Kwartaal, type MaandRij, type Schaal,
+  type SchaalSamenvatting, type Signaal,
 } from "./weekevaluatie";
 
 /**
- * Het kwartaaloverzicht van de weekevaluaties (recht `omzet`): wat het scherm
- * en de export allebei nodig hebben, in één keer opgehaald met de ingelogde
- * client (de policies van 0044 bepalen wat er terugkomt). De rekenregels
- * staan in lib/weekevaluatie.ts; dit haalt alleen op en zet bij elkaar.
+ * Het kwartaaloverzicht van de weekevaluaties (recht `omzet`): wat het scherm,
+ * de export en het dashboard nodig hebben, in één keer opgehaald met de
+ * ingelogde client (de policies van 0044 en 0045 bepalen wat er terugkomt).
+ * De rekenregels staan in lib/weekevaluatie.ts; dit haalt alleen op en zet
+ * per collega bij elkaar, als de agenda van zijn kwartaalmeeting.
  */
 
 export type Collega = {
   d: Deelnemer;
-  /** De naam uit de medewerkers (0035) als de collega gekoppeld is, anders het e-mailadres. */
+  /** De naam uit de medewerkers (0035) als de collega gekoppeld is, anders de voornaam uit het e-mailadres. */
   naam: string;
   medewerker: Medewerker | null;
   evaluaties: Evaluatie[];
@@ -24,11 +28,29 @@ export type Collega = {
   deelname: Deelname;
   /** De declarabele uren van de verstreken weken van het kwartaal, als de collega gekoppeld is. */
   uren: Totaal | null;
+  /** 1. De doelen van dit kwartaal met hun voortgang. */
+  doelen: DoelStand[];
+  /** De doelen die al voor volgend kwartaal klaarstaan. */
+  doelenVolgend: Doel[];
+  /** 2. De twee zwaarste weken en de signalen (twee zware weken achter elkaar). */
+  zwaarste: { week: string; zwaarte: number }[];
+  signalen: Signaal[];
+  /** 3. Toewijding en groei per maand. */
+  maanden: { maanden: string[]; rijen: MaandRij[]; ingevuld: number };
+  /** 4. Waar hij tegenaan liep en welke kennis hij miste. */
+  knelpunten: (Keuze & { aantal: number })[];
+  kennis: (Keuze & { aantal: number })[];
+  kennisTeksten: { week: string; tekst: string }[];
+  /** 5. Wat hij zelf wil bespreken. */
+  bespreken: Bespreekpunt[];
+  /** 6. De terugblik uit de laatste week van het kwartaal, als die er is. */
+  terugblik: Evaluatie | null;
 };
 
 export type KwartaalOverzicht = {
   kwartaal: Kwartaal;
   vorig: Kwartaal;
+  volgend: Kwartaal;
   weken: string[];
   /** De weken die al begonnen zijn: alleen daarover zijn er cijfers. */
   verstreken: string[];
@@ -39,28 +61,45 @@ export type KwartaalOverzicht = {
   namen: Map<string, string>;
   /** Declarabele uren per `${user_id}|${week}`. */
   uren: Map<string, { declarabel: number; afwezig: number }>;
+  doelen: Doel[];
   team: Record<Schaal, SchaalSamenvatting>;
   teamVorig: Record<Schaal, SchaalSamenvatting>;
+  knelpunten: (Keuze & { aantal: number })[];
+  kennis: (Keuze & { aantal: number })[];
+  signalen: Signaal[];
   ingevuld: number;
   verwacht: number;
   gemist: number;
   open: number;
+  /** Of de doelen er al zijn (migratie 0045). */
+  doelenAan: boolean;
 };
 
 type Sb = SupabaseClient;
 
 const norm = (x: Evaluatie): Evaluatie => ({ ...x, antwoorden: normaliseerAntwoorden(x.antwoorden) });
 
+const naamVan = (d: Pick<Deelnemer, "email">, mw: Medewerker | null | undefined) => mw?.naam || firstName(d.email) || d.email;
+
+/** De doelen van twee kwartalen; vóór 0045 een lege lijst en `aan: false`. */
+async function haalDoelen(sb: Sb, kwartalen: Kwartaal[]): Promise<{ doelen: Doel[]; aan: boolean }> {
+  const res = await Promise.all(kwartalen.map((k) => sb.from("weekevaluatie_doelen").select("*").eq("jaar", k.jaar).eq("kwartaal", k.kwartaal)));
+  if (res.some((r) => r.error)) return { doelen: [], aan: !res.some((r) => isMissingTable(r.error)) };
+  return { doelen: res.flatMap((r) => (r.data as Doel[] | null) || []), aan: true };
+}
+
 /** Null als migratie 0044 nog niet gedraaid is. */
 export async function haalKwartaal(sb: Sb, kwartaal: Kwartaal, vandaag: string): Promise<KwartaalOverzicht | null> {
   const vorig = plusKwartalen(kwartaal, -1);
+  const volgend = plusKwartalen(kwartaal, 1);
   const weken = wekenInKwartaal(kwartaal);
   const wekenVorig = wekenInKwartaal(vorig);
-  const [d, e, m, u] = await Promise.all([
+  const [d, e, m, u, doelRes] = await Promise.all([
     sb.rpc("weekevaluatie_deelnemers"),
-    sb.from("weekevaluaties").select("*").gte("week", wekenVorig[0]).lte("week", weken[weken.length - 1]).order("week").limit(5000),
+    sb.from("weekevaluaties").select("*").gte("week", plusWeken(wekenVorig[0], -1)).lte("week", weken[weken.length - 1]).order("week").limit(5000),
     sb.from("medewerkers").select("*").not("user_id", "is", null),
     sb.from("uren").select("medewerker_id, week, declarabel, afwezig").gte("week", weken[0]).lte("week", weken[weken.length - 1]).limit(5000),
+    haalDoelen(sb, [kwartaal, volgend]),
   ]);
   if (isMissingTable(e.error) || d.error?.code === "PGRST202") return null;
   if (e.error) throw new Error(e.error.message);
@@ -78,14 +117,16 @@ export async function haalKwartaal(sb: Sb, kwartaal: Kwartaal, vandaag: string):
   const verstreken = weken.filter((w) => weekStand(w, vandaag) !== "toekomst");
   const inKwartaal = rijen.filter((x) => x.week >= weken[0] && x.week <= weken[weken.length - 1]);
   const inVorig = rijen.filter((x) => x.week >= wekenVorig[0] && x.week <= wekenVorig[wekenVorig.length - 1]);
+  // De signalen van dit kwartaal; de week ervoor (uit het vorige kwartaal) telt mee als eerste van een paar.
+  const alleSignalen = signalen(rijen).filter((s) => s.week >= weken[0]);
   const ids = new Set(lijst.map((x) => x.user_id));
 
   const namen = new Map<string, string>();
   const uren = new Map<string, { declarabel: number; afwezig: number }>();
   const collegas: Collega[] = lijst.map((d) => {
     const mw = perAccount.get(d.user_id) || null;
-    const naam = mw?.naam || d.email;
-    namen.set(d.user_id, naam);
+    const naam = naamVan(d, mw);
+    namen.set(d.user_id, mw?.naam || d.email);
     const eigen = inKwartaal.filter((x) => x.user_id === d.user_id);
     const eigenVorig = inVorig.filter((x) => x.user_id === d.user_id);
     let totaal: Totaal | null = null;
@@ -97,22 +138,60 @@ export async function haalKwartaal(sb: Sb, kwartaal: Kwartaal, vandaag: string):
       });
       totaal = optellen(cellen);
     }
+    const eigenDoelen = doelRes.doelen.filter((x) => x.user_id === d.user_id);
     return {
       d, naam, medewerker: mw, evaluaties: eigen,
       gem: gemiddelden(eigen), gemVorig: gemiddelden(eigenVorig),
       deelname: deelname(d, weken, new Set(eigen.map((x) => x.week)), vandaag),
       uren: totaal,
+      doelen: doelStanden(doelenVan(eigenDoelen, kwartaal), eigen),
+      doelenVolgend: doelenVan(eigenDoelen, volgend),
+      zwaarste: zwaarsteWeken(eigen),
+      signalen: alleSignalen.filter((s) => s.user_id === d.user_id),
+      maanden: maandOverzicht(eigen, kwartaal),
+      knelpunten: telKeuzes(eigen, "knelpunt_themas"),
+      kennis: telKeuzes(eigen, "kennis_themas"),
+      kennisTeksten: eigen.filter((x) => x.antwoorden.kennis_mist).map((x) => ({ week: x.week, tekst: x.antwoorden.kennis_mist! })).reverse(),
+      bespreken: bespreekpunten(eigen),
+      terugblik: eigen.find((x) => isKwartaalEinde(x.week) && (x.antwoorden.blijven !== undefined || x.antwoorden.kwartaal_anders || x.antwoorden.kwartaal_hoogtepunt)) || null,
     };
   });
 
   const teamRijen = inKwartaal.filter((x) => ids.has(x.user_id));
   const teamVorigRijen = inVorig.filter((x) => ids.has(x.user_id));
   return {
-    kwartaal, vorig, weken, verstreken, deelnemers: lijst, evaluaties: teamRijen, evaluatiesVorig: teamVorigRijen, collegas, namen, uren,
+    kwartaal, vorig, volgend, weken, verstreken, deelnemers: lijst, evaluaties: teamRijen, evaluatiesVorig: teamVorigRijen, collegas, namen, uren,
+    doelen: doelRes.doelen.filter((x) => x.jaar === kwartaal.jaar && x.kwartaal === kwartaal.kwartaal),
     team: gemiddelden(teamRijen), teamVorig: gemiddelden(teamVorigRijen),
+    knelpunten: telKeuzes(teamRijen, "knelpunt_themas"),
+    kennis: telKeuzes(teamRijen, "kennis_themas"),
+    signalen: alleSignalen.filter((s) => ids.has(s.user_id)),
     ingevuld: collegas.reduce((s, c) => s + c.deelname.ingevuld.length, 0),
     verwacht: collegas.reduce((s, c) => s + c.deelname.verwacht, 0),
     gemist: collegas.reduce((s, c) => s + c.deelname.gemist.length, 0),
     open: collegas.reduce((s, c) => s + c.deelname.open.length, 0),
+    doelenAan: doelRes.aan,
   };
+}
+
+export type DashboardSignaal = Signaal & { naam: string };
+
+/**
+ * De signalen van de open weken (deze en vorige week), voor het dashboard van
+ * wie het overzicht mag zien. Leeg zonder recht, vóór 0044, of als er niets is.
+ */
+export async function haalSignalen(sb: Sb, vandaag: string): Promise<DashboardSignaal[]> {
+  const [vorige, deze] = openWeken(vandaag);
+  const [e, d, m] = await Promise.all([
+    sb.from("weekevaluaties").select("user_id, week, antwoorden").gte("week", plusWeken(vorige, -1)).lte("week", deze),
+    sb.rpc("weekevaluatie_deelnemers"),
+    sb.from("medewerkers").select("naam, user_id").not("user_id", "is", null),
+  ]);
+  if (e.error || d.error) return [];
+  const rijen = ((e.data as Pick<Evaluatie, "user_id" | "week" | "antwoorden">[] | null) || []).map((x) => ({ ...x, antwoorden: normaliseerAntwoorden(x.antwoorden) }));
+  const mensen = new Map(((d.data as Deelnemer[] | null) || []).map((x) => [x.user_id, x]));
+  const mw = new Map(((m.data as { naam: string; user_id: string }[] | null) || []).map((x) => [x.user_id, x]));
+  return signalen(rijen)
+    .filter((s) => s.week >= vorige && mensen.has(s.user_id))
+    .map((s) => ({ ...s, naam: naamVan(mensen.get(s.user_id)!, mw.get(s.user_id) as Medewerker | undefined) }));
 }

@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   const k = leesKwartaal(new URL(req.url).searchParams.get("kwartaal")) ?? kwartaalVanDatum(vandaag);
   const o = await haalKwartaal(sb, k, vandaag);
   if (!o) return new NextResponse("Migratie 0044 is nog niet uitgevoerd.", { status: 503 });
-  const rijen = exportRijen({ deelnemers: o.deelnemers, evaluaties: o.evaluaties, weken: o.weken, namen: o.namen, uren: o.uren, vandaag });
+  const rijen = exportRijen({ deelnemers: o.deelnemers, evaluaties: o.evaluaties, weken: o.weken, namen: o.namen, uren: o.uren, doelen: o.doelen, vandaag });
   const bestand = xlsx(rijen, kwartaalLabel(k));
   return new Response(new Uint8Array(bestand), {
     headers: {
