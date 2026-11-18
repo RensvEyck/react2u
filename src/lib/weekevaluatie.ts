@@ -38,11 +38,17 @@ export const MAAND_SCHALEN = ["trots", "inzet", "waardering", "ruimte", "geleerd
 export const KWARTAAL_SCHALEN = ["blijven"] as const;
 export type Schaal = (typeof WEEK_SCHALEN)[number] | (typeof MAAND_SCHALEN)[number] | (typeof KWARTAAL_SCHALEN)[number];
 
-export const TEKST_SLEUTELS = ["hoogtepunt", "knelpunt", "kennis_mist", "blijven_waarom", "kwartaal_hoogtepunt", "kwartaal_anders"] as const;
+export const TEKST_SLEUTELS = [
+  "cijfers_toelichting", "hoogtepunt", "knelpunt", "kennis_mist", "beter", "nodig", "volgende_week", "melding",
+  "maand_toelichting", "blijven_waarom", "kwartaal_hoogtepunt", "kwartaal_anders",
+] as const;
 export type Tekstvraag = (typeof TEKST_SLEUTELS)[number];
 
+/** Waar een open vraag in het formulier staat: bij de cijfers, in eigen woorden, bij melden, bij de maandvragen of in de terugblik. */
+export type Blok = "cijfers" | "woorden" | "melden" | "maand" | "terugblik";
+
 export type Keuze = { sleutel: string; label: string };
-export type KeuzeVeld = "knelpunt_themas" | "kennis_themas";
+export type KeuzeVeld = "knelpunt_themas" | "kennis_themas" | "melding_soort";
 
 /** Waar je tegenaan liep, als thema: per kwartaal te tellen. */
 export const KNELPUNT_THEMAS: Keuze[] = [
@@ -65,14 +71,26 @@ export const KENNIS_THEMAS: Keuze[] = [
   { sleutel: "anders", label: "Iets anders" },
 ];
 
-export const KEUZES: Record<KeuzeVeld, Keuze[]> = { knelpunt_themas: KNELPUNT_THEMAS, kennis_themas: KENNIS_THEMAS };
+/** Wat voor melding het is: één keuze, zodat Rens in één oogopslag ziet of het een zorg of een compliment is. */
+export const MELDING_SOORTEN: Keuze[] = [
+  { sleutel: "zorg", label: "Iets wat niet goed gaat" },
+  { sleutel: "idee", label: "Een idee" },
+  { sleutel: "compliment", label: "Een compliment" },
+  { sleutel: "vraag", label: "Een vraag" },
+  { sleutel: "anders", label: "Iets anders" },
+];
+
+export const KEUZES: Record<KeuzeVeld, Keuze[]> = { knelpunt_themas: KNELPUNT_THEMAS, kennis_themas: KENNIS_THEMAS, melding_soort: MELDING_SOORTEN };
+
+/** Keuzes waarvan er maar één mag (rondjes in plaats van vinkjes). Bewaard als lijst met één element, net als de rest. */
+export const ENKELE_KEUZE: KeuzeVeld[] = ["melding_soort"];
 
 export type SchaalVraag = {
   sleutel: Schaal; soort: "schaal"; moment: Moment; thema: Thema;
   label: string; kort: string; hint: string; laag: string; hoog: string;
 };
 export type TekstVraag = {
-  sleutel: Tekstvraag; soort: "tekst"; moment: Moment; thema: Thema;
+  sleutel: Tekstvraag; soort: "tekst"; moment: Moment; thema: Thema; blok: Blok;
   label: string; kort: string; hint: string; voorbeeld: string;
   /** Een rij keuzes erboven, die per kwartaal geteld worden. */
   keuzes?: KeuzeVeld;
@@ -106,9 +124,14 @@ export const VRAGEN: Vraag[] = [
   { sleutel: "herstel", soort: "schaal", moment: "week", thema: "druk", label: "Lukte het je om na het werk los te komen?", kort: "Loskomen na het werk", hint: "'s Avonds en in het weekend: was je hoofd ook vrij?", laag: "helemaal niet", hoog: "helemaal" },
   { sleutel: "kennis", soort: "schaal", moment: "week", thema: "kennis", label: "Kon je met je kennis uit de voeten bij wat er op je pad kwam?", kort: "Kennis", hint: "Wetgeving, re-integratie, gesprekken, systemen.", laag: "vaak niet", hoog: "altijd" },
   { sleutel: "cijfer", soort: "schaal", moment: "week", thema: "totaal", label: "Welk cijfer geef je deze week?", kort: "Cijfer", hint: "Alles bij elkaar.", laag: "slechte week", hoog: "topweek" },
-  { sleutel: "hoogtepunt", soort: "tekst", moment: "week", thema: "werkgeluk", label: "Wat was je hoogtepunt van de week?", kort: "Hoogtepunt", hint: "Groot of klein. Twee zinnen zijn genoeg.", voorbeeld: "Bijvoorbeeld: twee werknemers zijn weer gestart, en de werkgever belde zelf om te bedanken.", bespreekbaar: true },
-  { sleutel: "knelpunt", soort: "tekst", moment: "week", thema: "druk", label: "Waar liep je tegenaan?", kort: "Knelpunt", hint: "Kies wat erbij past en schrijf er een zin bij. Niets? Laat het leeg.", voorbeeld: "Bijvoorbeeld: de bedrijfsarts was pas donderdag beschikbaar, de werkgever belde drie keer.", keuzes: "knelpunt_themas", bespreekbaar: true },
-  { sleutel: "kennis_mist", soort: "tekst", moment: "week", thema: "kennis", label: "Welke kennis miste je?", kort: "Kennis gemist", hint: "Omdat je kennis een 6 of lager kreeg: waar zat het?", voorbeeld: "Bijvoorbeeld: wanneer een loonsanctie dreigt bij een te late eerstejaarsevaluatie.", keuzes: "kennis_themas", alleenAls: { schaal: "kennis", max: 6 }, bespreekbaar: true },
+  { sleutel: "cijfers_toelichting", soort: "tekst", moment: "week", thema: "totaal", blok: "cijfers", label: "Wil je iets toelichten bij je cijfers?", kort: "Toelichting bij de cijfers", hint: "Waarom je energie laag was, of wat de week zo goed maakte.", voorbeeld: "Bijvoorbeeld: maandag twee ziekmeldingen tegelijk, daarna ging het beter.", bespreekbaar: true },
+  { sleutel: "hoogtepunt", soort: "tekst", moment: "week", thema: "werkgeluk", blok: "woorden", label: "Wat was je hoogtepunt van de week?", kort: "Hoogtepunt", hint: "Groot of klein. Twee zinnen zijn genoeg.", voorbeeld: "Bijvoorbeeld: twee werknemers zijn weer gestart, en de werkgever belde zelf om te bedanken.", bespreekbaar: true },
+  { sleutel: "knelpunt", soort: "tekst", moment: "week", thema: "druk", blok: "woorden", label: "Waar liep je tegenaan?", kort: "Knelpunt", hint: "Kies wat erbij past en schrijf er een zin bij. Niets? Laat het leeg.", voorbeeld: "Bijvoorbeeld: de bedrijfsarts was pas donderdag beschikbaar, de werkgever belde drie keer.", keuzes: "knelpunt_themas", bespreekbaar: true },
+  { sleutel: "kennis_mist", soort: "tekst", moment: "week", thema: "kennis", blok: "woorden", label: "Welke kennis miste je?", kort: "Kennis gemist", hint: "Omdat je kennis een 6 of lager kreeg: waar zat het?", voorbeeld: "Bijvoorbeeld: wanneer een loonsanctie dreigt bij een te late eerstejaarsevaluatie.", keuzes: "kennis_themas", alleenAls: { schaal: "kennis", max: 6 }, bespreekbaar: true },
+  { sleutel: "beter", soort: "tekst", moment: "week", thema: "totaal", blok: "woorden", label: "Wat kon beter?", kort: "Kon beter", hint: "Bij jezelf, in het team of in hoe we werken.", voorbeeld: "Bijvoorbeeld: ik heb te lang gewacht met terugbellen.", bespreekbaar: true },
+  { sleutel: "nodig", soort: "tekst", moment: "week", thema: "werkgeluk", blok: "woorden", label: "Wat heb je nodig?", kort: "Nodig", hint: "Van React2u, van je collega's, van Rens.", voorbeeld: "Bijvoorbeeld: een uur samen door de spoor 2-dossiers.", bespreekbaar: true },
+  { sleutel: "volgende_week", soort: "tekst", moment: "week", thema: "totaal", blok: "woorden", label: "Wat neem je mee naar volgende week?", kort: "Volgende week", hint: "Eén ding dat je anders doet, of juist weer zo.", voorbeeld: "Bijvoorbeeld: elke ochtend eerst de terugbelverzoeken.", bespreekbaar: true },
+  { sleutel: "melding", soort: "tekst", moment: "week", thema: "totaal", blok: "melden", label: "Wil je iets melden of delen?", kort: "Gemeld of gedeeld", hint: "Een zorg, een idee, een compliment voor een collega, een vraag: alles mag, ook als het niet over deze week gaat.", voorbeeld: "Bijvoorbeeld: Susanne nam deze week twee van mijn dossiers over toen ik vastliep. Dat mag gezien worden.", keuzes: "melding_soort", bespreekbaar: false },
 
   // De laatste week van de maand: toewijding en wat werkgeluk voedt.
   { sleutel: "trots", soort: "schaal", moment: "maand", thema: "toewijding", label: "Ik ben trots op het werk dat ik bij React2u doe.", kort: "Trots op het werk", hint: "", ...EENS },
@@ -117,12 +140,13 @@ export const VRAGEN: Vraag[] = [
   { sleutel: "ruimte", soort: "schaal", moment: "maand", thema: "werkgeluk", label: "Ik heb ruimte om mijn dossiers op mijn eigen manier aan te pakken.", kort: "Eigen ruimte", hint: "", ...EENS },
   { sleutel: "geleerd", soort: "schaal", moment: "maand", thema: "kennis", label: "Ik heb deze maand iets geleerd waar ik beter van werd.", kort: "Geleerd", hint: "", ...EENS },
   { sleutel: "steun", soort: "schaal", moment: "maand", thema: "druk", label: "Ik krijg steun van collega's als het zwaar is.", kort: "Steun van collega's", hint: "", ...EENS },
+  { sleutel: "maand_toelichting", soort: "tekst", moment: "maand", thema: "toewijding", blok: "maand", label: "Wil je iets toelichten bij de maandvragen?", kort: "Toelichting maandvragen", hint: "Waarom je je wel of niet gewaardeerd voelt, wat je leerde, wie je steunde.", voorbeeld: "Bijvoorbeeld: ik leerde veel van het meelopen met de bedrijfsarts.", bespreekbaar: true },
 
   // De laatste week van het kwartaal: de terugblik voor de meeting.
   { sleutel: "blijven", soort: "schaal", moment: "kwartaal", thema: "blijven", label: "Hoe zeker zie je jezelf over een jaar nog bij React2u?", kort: "Over een jaar nog hier", hint: "Eerlijk is fijner dan wenselijk: dit is voor het gesprek.", laag: "zeker niet", hoog: "zeker wel" },
-  { sleutel: "blijven_waarom", soort: "tekst", moment: "kwartaal", thema: "blijven", label: "Waarom?", kort: "Waarom", hint: "Wat houdt je hier, of wat zou je doen twijfelen?", voorbeeld: "Bijvoorbeeld: het team, de vrijheid in mijn dossiers, of juist de reistijd.", bespreekbaar: true },
-  { sleutel: "kwartaal_hoogtepunt", soort: "tekst", moment: "kwartaal", thema: "werkgeluk", label: "Wat was je hoogtepunt dit kwartaal?", kort: "Hoogtepunt van het kwartaal", hint: "Waar denk je aan terug?", voorbeeld: "Bijvoorbeeld: het dossier dat na acht maanden toch goed afliep.", bespreekbaar: true },
-  { sleutel: "kwartaal_anders", soort: "tekst", moment: "kwartaal", thema: "totaal", label: "Wat moet volgend kwartaal anders, bij jou en bij React2u?", kort: "Volgend kwartaal anders", hint: "Eén ding bij jezelf, één ding bij ons is genoeg.", voorbeeld: "Bijvoorbeeld: ik plan mijn belmomenten vaster; wij spreken af wie de nieuwe klanten intakt.", bespreekbaar: true },
+  { sleutel: "blijven_waarom", soort: "tekst", moment: "kwartaal", thema: "blijven", blok: "terugblik", label: "Waarom?", kort: "Waarom", hint: "Wat houdt je hier, of wat zou je doen twijfelen?", voorbeeld: "Bijvoorbeeld: het team, de vrijheid in mijn dossiers, of juist de reistijd.", bespreekbaar: true },
+  { sleutel: "kwartaal_hoogtepunt", soort: "tekst", moment: "kwartaal", thema: "werkgeluk", blok: "terugblik", label: "Wat was je hoogtepunt dit kwartaal?", kort: "Hoogtepunt van het kwartaal", hint: "Waar denk je aan terug?", voorbeeld: "Bijvoorbeeld: het dossier dat na acht maanden toch goed afliep.", bespreekbaar: true },
+  { sleutel: "kwartaal_anders", soort: "tekst", moment: "kwartaal", thema: "totaal", blok: "terugblik", label: "Wat moet volgend kwartaal anders, bij jou en bij React2u?", kort: "Volgend kwartaal anders", hint: "Eén ding bij jezelf, één ding bij ons is genoeg.", voorbeeld: "Bijvoorbeeld: ik plan mijn belmomenten vaster; wij spreken af wie de nieuwe klanten intakt.", bespreekbaar: true },
 ];
 
 export const SCHALEN = VRAGEN.filter((v): v is SchaalVraag => v.soort === "schaal");
@@ -153,6 +177,12 @@ export const MAX_DOELEN = 3;
 export type Antwoorden = Partial<Record<Schaal, number>> & Partial<Record<Tekstvraag, string>> & {
   knelpunt_themas?: string[];
   kennis_themas?: string[];
+  /** Eén soort: zorg, idee, compliment, vraag of anders. */
+  melding_soort?: string[];
+  /** De collega wil de melding meteen naar Rens, niet pas in de kwartaalmeeting. */
+  melding_nu?: boolean;
+  /** Vingerafdruk van de melding die al gemaild is; zet de server, zodat opnieuw bewaren niet opnieuw mailt. */
+  melding_verstuurd?: string;
   /** De open vragen die de collega wil bespreken in de kwartaalmeeting. */
   bespreken?: Tekstvraag[];
   /** Voortgang per doel (id uit weekevaluatie_doelen). */
@@ -219,12 +249,17 @@ export function leesAntwoorden(
     let keuzes: string[] = [];
     if (v.keuzes) {
       const bekend = new Set(KEUZES[v.keuzes].map((k) => k.sleutel));
-      keuzes = [...new Set(invoer[v.keuzes] ?? [])].filter((k) => bekend.has(k));
-      if (keuzes.length) antwoorden[v.keuzes] = KEUZES[v.keuzes].map((k) => k.sleutel).filter((k) => keuzes.includes(k));
+      const gekozen = new Set((invoer[v.keuzes] ?? []).filter((k) => bekend.has(k)));
+      // In de vaste volgorde van de lijst; bij één keuze telt de eerste daarvan.
+      keuzes = KEUZES[v.keuzes].map((k) => k.sleutel).filter((k) => gekozen.has(k));
+      if (ENKELE_KEUZE.includes(v.keuzes)) keuzes = keuzes.slice(0, 1);
+      if (keuzes.length) antwoorden[v.keuzes] = keuzes;
     }
     if (v.bespreekbaar && bespreken.has(v.sleutel) && (t || keuzes.length)) besproken.push(v.sleutel);
   }
   if (besproken.length) antwoorden.bespreken = besproken;
+  // Meteen doorsturen kan alleen met een melding erbij.
+  if (antwoorden.melding && een("melding_nu") === "aan") antwoorden.melding_nu = true;
   for (const d of context.doelen) {
     const n = cijfer(een(`doel_${d.id}`));
     if (n === null) {
@@ -252,8 +287,10 @@ export function normaliseerAntwoorden(ruw: unknown): Antwoorden {
     const lijst = o[veld];
     if (!Array.isArray(lijst)) continue;
     const bekend = KEUZES[veld].map((k) => k.sleutel).filter((k) => lijst.includes(k));
-    if (bekend.length) a[veld] = bekend;
+    if (bekend.length) a[veld] = ENKELE_KEUZE.includes(veld) ? bekend.slice(0, 1) : bekend;
   }
+  if (o.melding_nu === true && a.melding) a.melding_nu = true;
+  if (typeof o.melding_verstuurd === "string" && /^[0-9a-f]{8,64}$/.test(o.melding_verstuurd)) a.melding_verstuurd = o.melding_verstuurd;
   if (Array.isArray(o.bespreken)) {
     const b = TEKST_SLEUTELS.filter((k) => (o.bespreken as unknown[]).includes(k));
     if (b.length) a.bespreken = b;
@@ -551,6 +588,48 @@ export function bespreekpunten(evaluaties: Pick<Evaluatie, "week" | "antwoorden"
   return uit;
 }
 
+/** Alle antwoorden op één open vraag, nieuwste week eerst. */
+export function teksten(evaluaties: Pick<Evaluatie, "week" | "antwoorden">[], sleutel: Tekstvraag): { week: string; tekst: string }[] {
+  return [...evaluaties]
+    .sort((a, b) => b.week.localeCompare(a.week))
+    .flatMap((e) => (e.antwoorden[sleutel] ? [{ week: e.week, tekst: e.antwoorden[sleutel]! }] : []));
+}
+
+export type Melding = { week: string; soort: string | null; soortLabel: string; tekst: string; nu: boolean; verstuurd: boolean };
+
+/** Wat een collega meldde of deelde, nieuwste week eerst, met de soort en of het meteen doorgestuurd is. */
+export function meldingen(evaluaties: Pick<Evaluatie, "week" | "antwoorden">[]): Melding[] {
+  return teksten(evaluaties, "melding").map(({ week, tekst }) => {
+    const a = evaluaties.find((e) => e.week === week)!.antwoorden;
+    const soort = a.melding_soort?.[0] ?? null;
+    return { week, soort, soortLabel: soort ? keuzeLabel("melding_soort", soort) : "Gemeld of gedeeld", tekst, nu: Boolean(a.melding_nu), verstuurd: Boolean(a.melding_verstuurd) };
+  });
+}
+
+/** Waar de vingerafdruk van een melding van gemaakt wordt: de soort en de tekst. Andere tekst is een nieuwe melding. */
+export function meldingInhoud(a: Antwoorden): string | null {
+  return a.melding && a.melding_nu ? `${a.melding_soort?.[0] ?? ""}|${a.melding}` : null;
+}
+
+/** De mail als een collega iets meteen wil laten weten. Met de tekst zelf: die koos hij om te delen. */
+export function meldingMail(naam: string, week: string, soort: string | null, tekst: string): { onderwerp: string; alineas: string[]; citaat: string; knop: string } {
+  const onderwerp: Record<string, string> = {
+    zorg: `${naam} meldt iets wat niet goed gaat`,
+    idee: `${naam} deelt een idee`,
+    compliment: `${naam} deelt een compliment`,
+    vraag: `${naam} heeft een vraag`,
+  };
+  return {
+    onderwerp: (soort && onderwerp[soort]) || `${naam} wil iets melden`,
+    alineas: [
+      `${naam} schreef dit in de weekevaluatie van week ${weekNummer(week).week} en wil het niet laten wachten tot de kwartaalmeeting.`,
+      `Beantwoord je deze mail, dan gaat je antwoord rechtstreeks naar ${naam}.`,
+    ],
+    citaat: tekst,
+    knop: "Open in het kwartaaloverzicht",
+  };
+}
+
 export type MaandRij = { sleutel: Schaal; label: string; kort: string; thema: Thema; waarden: (number | null)[] };
 
 /** De maandvragen van één collega per maand van het kwartaal (uit de laatste week van elke maand). */
@@ -691,9 +770,11 @@ const MAAND_VRAGEN = SCHALEN.filter((s) => s.moment === "maand");
 export const EXPORT_KOP = [
   "Collega", "E-mail", "Jaar", "Week", "Periode", "Status",
   ...WEEK_VRAGEN.map((s) => s.kort),
-  "Hoogtepunt", "Knelpunt", "Knelpuntthema's", "Kennis gemist", "Kennisthema's",
+  "Toelichting bij de cijfers",
+  "Hoogtepunt", "Knelpunt", "Knelpuntthema's", "Kennis gemist", "Kennisthema's", "Kon beter", "Nodig", "Volgende week",
+  "Soort melding", "Gemeld of gedeeld", "Meteen doorgestuurd",
   "Voortgang doelen", "Te bespreken",
-  ...MAAND_VRAGEN.map((s) => s.kort),
+  ...MAAND_VRAGEN.map((s) => s.kort), "Toelichting maandvragen",
   "Over een jaar nog hier", "Waarom", "Hoogtepunt van het kwartaal", "Volgend kwartaal anders",
   "Twee zware weken", "Declarabele uren", "Uren afwezig", "Ingevuld op",
 ];
@@ -725,13 +806,18 @@ export function exportRijen(i: ExportInvoer): string[][] {
         naam, d.email, String(jaar), String(week), weekBereik(w),
         e ? "ingevuld" : stand === "open" ? "nog open" : "gemist",
         ...WEEK_VRAGEN.map((v) => getal(a[v.sleutel])),
+        a.cijfers_toelichting || "",
         a.hoogtepunt || "", a.knelpunt || "",
         (a.knelpunt_themas ?? []).map((t) => keuzeLabel("knelpunt_themas", t)).join(", "),
         a.kennis_mist || "",
         (a.kennis_themas ?? []).map((t) => keuzeLabel("kennis_themas", t)).join(", "),
+        a.beter || "", a.nodig || "", a.volgende_week || "",
+        a.melding && a.melding_soort?.[0] ? keuzeLabel("melding_soort", a.melding_soort[0]) : "",
+        a.melding || "",
+        a.melding ? (a.melding_verstuurd ? "ja" : a.melding_nu ? "gevraagd" : "nee") : "",
         Object.entries(a.doelen ?? {}).filter(([id]) => doelTitel.has(id)).map(([id, v]) => `${doelTitel.get(id)}: ${v.cijfer}${v.tekst ? ` (${v.tekst})` : ""}`).join("; "),
         (a.bespreken ?? []).map((k) => vraag(k).kort).join(", "),
-        ...MAAND_VRAGEN.map((v) => getal(a[v.sleutel])),
+        ...MAAND_VRAGEN.map((v) => getal(a[v.sleutel])), a.maand_toelichting || "",
         getal(a.blijven), a.blijven_waarom || "", a.kwartaal_hoogtepunt || "", a.kwartaal_anders || "",
         s ? schalenZin(s.schalen) : "",
         u ? getal(u.declarabel) : "", u ? getal(u.afwezig) : "",

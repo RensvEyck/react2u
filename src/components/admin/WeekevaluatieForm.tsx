@@ -1,19 +1,21 @@
 "use client";
 import { useState } from "react";
-import { LuLock, LuMessageSquareText } from "react-icons/lu";
+import { LuLock, LuMegaphone, LuMessageSquareText, LuPhone, LuSend } from "react-icons/lu";
 import { weekevaluatieOpslaan } from "@/app/admin/weekevaluatieActions";
 import {
-  KEUZES, kwartaalLabel, kwartaalVanWeek, momenten, SCHALEN, sluitOp, TEKSTVRAGEN, THEMA_LABEL, weekBereikDag, wordtGevraagd,
-  type Antwoorden, type Doel, type KeuzeVeld, type SchaalVraag, type TekstVraag, type Thema,
+  ENKELE_KEUZE, KEUZES, keuzeLabel, kwartaalLabel, kwartaalVanWeek, momenten, SCHALEN, sluitOp, TEKSTVRAGEN, THEMA_LABEL, vraag, weekBereikDag,
+  wordtGevraagd, type Antwoorden, type Blok, type Doel, type KeuzeVeld, type SchaalVraag, type TekstVraag, type Thema,
 } from "@/lib/weekevaluatie";
 import { urenTekst } from "@/lib/uren";
 
 /**
- * Het formulier van één week, in lagen: elke week zeven cijfers en drie open
- * vragen, de voortgang op de doelen uit de kwartaalmeeting, in de laatste week
- * van de maand zes maandvragen en in de laatste week van het kwartaal de
- * terugblik. "Welke kennis miste je?" verschijnt pas bij een 6 of lager voor
- * kennis. Elk open antwoord kan mee naar de kwartaalmeeting. Gesloten weken
+ * Het formulier van één week, in lagen: elke week zeven cijfers met ruimte
+ * voor een toelichting, de voortgang op de doelen uit de kwartaalmeeting,
+ * zes open vragen in eigen woorden en een veld om iets te melden of te delen
+ * (met de keuze om het meteen naar Rens te sturen); in de laatste week van de
+ * maand zes maandvragen en in de laatste week van het kwartaal de terugblik.
+ * "Welke kennis miste je?" verschijnt pas bij een 6 of lager voor kennis.
+ * Elk open antwoord kan mee naar de kwartaalmeeting. Gesloten weken
  * tonen hetzelfde, maar dan alleen om te lezen. Bewaren gaat via de server
  * action; die controleert alles opnieuw (lib/weekevaluatie.ts, leesAntwoorden).
  */
@@ -43,7 +45,7 @@ export default function WeekevaluatieForm({
   const volgende = () => ++nummer;
 
   const weekSchalen = SCHALEN.filter((s) => s.moment === "week");
-  const weekTekst = TEKSTVRAGEN.filter((t) => t.moment === "week");
+  const inBlok = (blok: Blok) => TEKSTVRAGEN.filter((t) => t.blok === blok);
 
   return (
     <form action={weekevaluatieOpslaan} className="space-y-9">
@@ -66,6 +68,7 @@ export default function WeekevaluatieForm({
             ))}
           </div>
         ))}
+        {inBlok("cijfers").map((t) => <TekstRij key={t.sleutel} nummer={volgende()} vraag={t} a={a} open={open} />)}
       </Laag>
 
       {doelen.length > 0 && (
@@ -110,23 +113,30 @@ export default function WeekevaluatieForm({
           {SCHALEN.filter((s) => s.moment === "maand").map((s) => (
             <SchaalRij key={s.sleutel} nummer={volgende()} naam={s.sleutel} vraag={s} waarde={a[s.sleutel]} open={open} />
           ))}
+          {inBlok("maand").map((t) => <TekstRij key={t.sleutel} nummer={volgende()} vraag={t} a={a} open={open} />)}
         </Laag>
       )}
 
       <Laag titel="In je eigen woorden" uitleg="Niets in te vullen? Laat het leeg. Vink aan wat je mee wilt nemen naar de kwartaalmeeting.">
-        {weekTekst.map((t) =>
+        {inBlok("woorden").map((t) =>
           wordtGevraagd(t, { kennis }) ? (
             <TekstRij key={t.sleutel} nummer={volgende()} vraag={t} a={a} open={open} />
           ) : null,
         )}
       </Laag>
 
+      {(open || a.melding) && (
+        <Laag titel="Iets melden of delen" uitleg="Voor alles wat niet in de vragen past. Het komt in je kwartaalmeeting, of meteen bij Rens als je dat aanvinkt." accent>
+          <MeldRij nummer={volgende()} a={a} open={open} />
+        </Laag>
+      )}
+
       {lagen.includes("kwartaal") && (
         <Laag titel={`Terugblik op ${kwartaalLabel(kwartaalVanWeek(week))}`} uitleg="De laatste week van het kwartaal. Dit is het begin van je kwartaalmeeting." accent>
           {SCHALEN.filter((s) => s.moment === "kwartaal").map((s) => (
             <SchaalRij key={s.sleutel} nummer={volgende()} naam={s.sleutel} vraag={s} waarde={a[s.sleutel]} open={open} />
           ))}
-          {TEKSTVRAGEN.filter((t) => t.moment === "kwartaal").map((t) => (
+          {inBlok("terugblik").map((t) => (
             <TekstRij key={t.sleutel} nummer={volgende()} vraag={t} a={a} open={open} />
           ))}
         </Laag>
@@ -269,11 +279,12 @@ function TekstRij({ nummer, vraag: t, a, open }: { nummer: number; vraag: TekstV
 }
 
 function Keuzes({ veld, gekozen, open, vraag }: { veld: KeuzeVeld; gekozen: string[]; open: boolean; vraag: string }) {
+  const enkel = ENKELE_KEUZE.includes(veld);
   return (
-    <div className="flex flex-wrap gap-1.5" role="group" aria-label={`${vraag}: thema's`}>
+    <div className="flex flex-wrap gap-1.5" role={enkel ? "radiogroup" : "group"} aria-label={`${vraag}: ${enkel ? "soort" : "thema's"}`}>
       {KEUZES[veld].map((k) => (
         <label key={k.sleutel} className={`relative ${open ? "cursor-pointer" : ""}`}>
-          <input type="checkbox" name={veld} value={k.sleutel} defaultChecked={gekozen.includes(k.sleutel)} disabled={!open} className="peer sr-only" />
+          <input type={enkel ? "radio" : "checkbox"} name={veld} value={k.sleutel} defaultChecked={gekozen.includes(k.sleutel)} disabled={!open} className="peer sr-only" />
           <span
             className={`inline-flex items-center rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
               open ? "border-black/[0.12] bg-white text-black/60 hover:border-[#312e82]/50" : "border-black/[0.06] bg-[#fafafd] text-black/35"
@@ -283,6 +294,59 @@ function Keuzes({ veld, gekozen, open, vraag }: { veld: KeuzeVeld; gekozen: stri
           </span>
         </label>
       ))}
+    </div>
+  );
+}
+
+/** Iets melden of delen: de soort, de tekst, en of het meteen naar Rens moet. */
+function MeldRij({ nummer, a, open }: { nummer: number; a: Antwoorden; open: boolean }) {
+  const t = vraag("melding");
+  return (
+    <div>
+      <label htmlFor="we-melding" className="flex items-baseline gap-2.5">
+        <Nummer n={nummer} />
+        <span>
+          <span className="block text-[15px] font-semibold text-[#1c1a4e]">{t.label}</span>
+          <span className="block text-[12.5px] text-black/45">{t.hint}</span>
+        </span>
+      </label>
+      <div className="mt-2.5 space-y-2.5 sm:pl-[34px]">
+        {open ? (
+          <>
+            <Keuzes veld="melding_soort" gekozen={a.melding_soort ?? []} open={open} vraag={t.kort} />
+            <textarea
+              id="we-melding"
+              name="melding"
+              rows={3}
+              maxLength={2000}
+              defaultValue={a.melding || ""}
+              placeholder={t.voorbeeld}
+              className="ainput min-h-[88px] resize-y bg-white text-[14.5px] leading-relaxed placeholder:text-black/30"
+            />
+            <label className="flex cursor-pointer items-start gap-2 text-[13.5px] text-[#1c1a4e]">
+              <input type="checkbox" name="melding_nu" value="aan" defaultChecked={Boolean(a.melding_nu)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#e75387]" />
+              <span>
+                <span className="inline-flex items-center gap-1.5 font-semibold"><LuSend className="text-[13px] text-[#e75387]" /> Stuur dit meteen naar Rens</span>
+                <span className="block text-[12.5px] text-black/50">Niet pas in de kwartaalmeeting. Hij kan je mail rechtstreeks beantwoorden.</span>
+              </span>
+            </label>
+            <p className="flex items-start gap-1.5 text-[12.5px] text-black/45">
+              <LuPhone className="mt-0.5 shrink-0 text-[12px]" /> Is het dringend, zoals agressie of een ongeval? Bel dan meteen; een mail kan blijven liggen.
+            </p>
+          </>
+        ) : (
+          <div id="we-melding" className="rounded-xl bg-white px-4 py-3">
+            <p className="flex flex-wrap items-center gap-2 text-[12px] font-semibold text-[#312e82]">
+              <LuMegaphone className="text-[13px]" /> {a.melding_soort?.[0] ? keuzeLabel("melding_soort", a.melding_soort[0]) : "Gemeld of gedeeld"}
+              {a.melding_verstuurd ? <span className="apill !py-0 !text-[11px] bg-[#e6f7f4] text-[#0e9f8a]">meteen doorgestuurd</span> : a.melding_nu ? <span className="apill !py-0 !text-[11px] bg-[#fff4e5] text-[#c77700]">doorsturen gevraagd</span> : null}
+            </p>
+            <p className="mt-1 whitespace-pre-line text-[14.5px] leading-relaxed text-[#1c1a4e]">{a.melding}</p>
+          </div>
+        )}
+        {open && a.melding_verstuurd && (
+          <p className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#0e9f8a]"><LuSend className="text-[12px]" /> Deze melding is al naar Rens gestuurd. Pas je de tekst aan, dan krijgt hij de nieuwe versie.</p>
+        )}
+      </div>
     </div>
   );
 }

@@ -3,9 +3,9 @@ import { isMissingTable } from "./dbErrors";
 import { firstName } from "./dashboard";
 import { cel, optellen, plusWeken, urenIndex, type Medewerker, type Totaal, type UrenRij } from "./uren";
 import {
-  bespreekpunten, deelname, deelnemers, doelenVan, doelStanden, gemiddelden, isKwartaalEinde, maandOverzicht, normaliseerAntwoorden, openWeken,
-  plusKwartalen, signalen, telKeuzes, weekStand, wekenInKwartaal, zwaarsteWeken,
-  type Bespreekpunt, type Deelname, type Deelnemer, type Doel, type DoelStand, type Evaluatie, type Keuze, type Kwartaal, type MaandRij, type Schaal,
+  bespreekpunten, deelname, deelnemers, doelenVan, doelStanden, gemiddelden, isKwartaalEinde, maandOverzicht, meldingen, normaliseerAntwoorden, openWeken,
+  plusKwartalen, signalen, teksten, telKeuzes, weekStand, wekenInKwartaal, zwaarsteWeken,
+  type Bespreekpunt, type Deelname, type Deelnemer, type Doel, type DoelStand, type Evaluatie, type Keuze, type Kwartaal, type MaandRij, type Melding, type Schaal,
   type SchaalSamenvatting, type Signaal,
 } from "./weekevaluatie";
 
@@ -32,18 +32,23 @@ export type Collega = {
   doelen: DoelStand[];
   /** De doelen die al voor volgend kwartaal klaarstaan. */
   doelenVolgend: Doel[];
-  /** 2. De twee zwaarste weken en de signalen (twee zware weken achter elkaar). */
+  /** 2. De twee zwaarste weken, de signalen (twee zware weken achter elkaar) en de toelichting bij de cijfers. */
   zwaarste: { week: string; zwaarte: number }[];
   signalen: Signaal[];
-  /** 3. Toewijding en groei per maand. */
+  toelichtingen: { week: string; tekst: string }[];
+  /** 3. Toewijding en groei per maand, met de toelichting. */
   maanden: { maanden: string[]; rijen: MaandRij[]; ingevuld: number };
-  /** 4. Waar hij tegenaan liep en welke kennis hij miste. */
+  maandToelichtingen: { week: string; tekst: string }[];
+  /** 4. Waar hij tegenaan liep, welke kennis hij miste en wat hij nodig heeft. */
   knelpunten: (Keuze & { aantal: number })[];
   kennis: (Keuze & { aantal: number })[];
   kennisTeksten: { week: string; tekst: string }[];
-  /** 5. Wat hij zelf wil bespreken. */
+  nodig: { week: string; tekst: string }[];
+  /** 5. Wat hij meldde of deelde. */
+  meldingen: Melding[];
+  /** 6. Wat hij zelf wil bespreken. */
   bespreken: Bespreekpunt[];
-  /** 6. De terugblik uit de laatste week van het kwartaal, als die er is. */
+  /** 7. De terugblik uit de laatste week van het kwartaal, als die er is. */
   terugblik: Evaluatie | null;
 };
 
@@ -67,6 +72,8 @@ export type KwartaalOverzicht = {
   knelpunten: (Keuze & { aantal: number })[];
   kennis: (Keuze & { aantal: number })[];
   signalen: Signaal[];
+  /** Wat iedereen meldde of deelde, nieuwste eerst. */
+  meldingen: (Melding & { user_id: string })[];
   ingevuld: number;
   verwacht: number;
   gemist: number;
@@ -148,10 +155,14 @@ export async function haalKwartaal(sb: Sb, kwartaal: Kwartaal, vandaag: string):
       doelenVolgend: doelenVan(eigenDoelen, volgend),
       zwaarste: zwaarsteWeken(eigen),
       signalen: alleSignalen.filter((s) => s.user_id === d.user_id),
+      toelichtingen: teksten(eigen, "cijfers_toelichting"),
       maanden: maandOverzicht(eigen, kwartaal),
+      maandToelichtingen: teksten(eigen, "maand_toelichting"),
       knelpunten: telKeuzes(eigen, "knelpunt_themas"),
       kennis: telKeuzes(eigen, "kennis_themas"),
-      kennisTeksten: eigen.filter((x) => x.antwoorden.kennis_mist).map((x) => ({ week: x.week, tekst: x.antwoorden.kennis_mist! })).reverse(),
+      kennisTeksten: teksten(eigen, "kennis_mist"),
+      nodig: teksten(eigen, "nodig"),
+      meldingen: meldingen(eigen),
       bespreken: bespreekpunten(eigen),
       terugblik: eigen.find((x) => isKwartaalEinde(x.week) && (x.antwoorden.blijven !== undefined || x.antwoorden.kwartaal_anders || x.antwoorden.kwartaal_hoogtepunt)) || null,
     };
@@ -166,6 +177,7 @@ export async function haalKwartaal(sb: Sb, kwartaal: Kwartaal, vandaag: string):
     knelpunten: telKeuzes(teamRijen, "knelpunt_themas"),
     kennis: telKeuzes(teamRijen, "kennis_themas"),
     signalen: alleSignalen.filter((s) => ids.has(s.user_id)),
+    meldingen: collegas.flatMap((c) => c.meldingen.map((m) => ({ ...m, user_id: c.d.user_id }))).sort((a, b) => b.week.localeCompare(a.week)),
     ingevuld: collegas.reduce((s, c) => s + c.deelname.ingevuld.length, 0),
     verwacht: collegas.reduce((s, c) => s + c.deelname.verwacht, 0),
     gemist: collegas.reduce((s, c) => s + c.deelname.gemist.length, 0),

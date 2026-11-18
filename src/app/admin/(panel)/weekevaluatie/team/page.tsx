@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   LuArrowLeft, LuChevronLeft, LuChevronRight, LuCircleDashed, LuDownload, LuLink2, LuMessageSquareText, LuPlus, LuTarget, LuTrash2,
-  LuTrendingDown, LuTrendingUp, LuTriangleAlert, LuUserPlus,
+  LuMegaphone, LuSend, LuTrendingDown, LuTrendingUp, LuTriangleAlert, LuUserPlus,
 } from "react-icons/lu";
 import { requirePerm } from "@/lib/admin";
 import { datumOver } from "@/lib/offertes";
@@ -9,7 +9,7 @@ import { oordeel, urenTekst } from "@/lib/uren";
 import {
   cijferTekst, keuzeLabel, kwartaalLabel, kwartaalSleutel, kwartaalVanDatum, leesKwartaal, maandKort, MAX_DOELEN, plusKwartalen, SCHALEN,
   schalenZin, TEKSTVRAGEN, trend, trendTekst, vraag, weekKort, weekTitel, wekenInKwartaal, zelfdeKwartaal,
-  type Antwoorden, type Keuze, type Kwartaal, type Schaal, type SchaalSamenvatting,
+  type Antwoorden, type Keuze, type Kwartaal, type Melding, type Schaal, type SchaalSamenvatting,
 } from "@/lib/weekevaluatie";
 import { haalKwartaal, type Collega } from "@/lib/weekevaluatieDb";
 import { weekevaluatieDoelOpslaan, weekevaluatieDoelVerwijderen } from "@/app/admin/weekevaluatieActions";
@@ -143,6 +143,18 @@ export default async function Team({ searchParams }: { searchParams: Promise<{ k
             </section>
           )}
 
+          {o.meldingen.length > 0 && (
+            <section className="acard p-6" aria-labelledby="meldingen-kop">
+              <h2 id="meldingen-kop" className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]"><LuMegaphone /> Gemeld en gedeeld</h2>
+              <p className="mb-4 text-[12.5px] text-black/40">Zorgen, ideeën, complimenten en vragen van het team in {kwartaalLabel(k, true)}, nieuwste eerst.</p>
+              <ul className="grid gap-3 md:grid-cols-2">
+                {o.meldingen.map((m) => (
+                  <MeldingKaart key={`${m.user_id}-${m.week}`} m={m} naam={o.collegas.find((c) => c.d.user_id === m.user_id)?.naam} href={`#collega-${m.user_id}`} />
+                ))}
+              </ul>
+            </section>
+          )}
+
           <div className="space-y-6">
             {o.collegas.map((c) => (
               <CollegaKaart key={c.d.user_id} c={c} k={k} vorig={kwartaalLabel(o.vorig)} volgend={o.volgend} scherm={scherm} doelenAan={o.doelenAan} />
@@ -268,7 +280,7 @@ function CollegaKaart({ c, k, vorig, volgend, scherm, doelenAan }: { c: Collega;
 
       <Agendapunt n={1} titel={`Doelen voor ${kwartaalLabel(k)}`}>
         {c.doelen.length === 0 ? (
-          <p className="text-[13.5px] text-black/45">Geen doelen vastgelegd voor dit kwartaal. Spreek ze af in punt 7.</p>
+          <p className="text-[13.5px] text-black/45">Geen doelen vastgelegd voor dit kwartaal. Spreek ze af in punt 8.</p>
         ) : (
           <ul className="grid gap-3 md:grid-cols-2">
             {c.doelen.map((d) => (
@@ -318,6 +330,7 @@ function CollegaKaart({ c, k, vorig, volgend, scherm, doelenAan }: { c: Collega;
                 ))}
               </div>
             )}
+            {c.toelichtingen.length > 0 && <Teksten titel="Toelichting bij de cijfers" lijst={c.toelichtingen} />}
           </div>
         )}
       </Agendapunt>
@@ -343,13 +356,14 @@ function CollegaKaart({ c, k, vorig, volgend, scherm, doelenAan }: { c: Collega;
                 ))}
               </tbody>
             </table>
+            {c.maandToelichtingen.length > 0 && <div className="mt-3"><Teksten titel="Toelichting" lijst={c.maandToelichtingen} /></div>}
           </div>
         )}
       </Agendapunt>
 
-      <Agendapunt n={4} titel="Knelpunten en kennis">
-        {c.knelpunten.length === 0 && c.kennis.length === 0 && c.kennisTeksten.length === 0 ? (
-          <p className="text-[13.5px] text-black/45">Geen knelpunten of kennisvragen aangegeven.</p>
+      <Agendapunt n={4} titel="Knelpunten, kennis en wat nodig is">
+        {c.knelpunten.length === 0 && c.kennis.length === 0 && c.kennisTeksten.length === 0 && c.nodig.length === 0 ? (
+          <p className="text-[13.5px] text-black/45">Geen knelpunten, kennisvragen of wensen aangegeven.</p>
         ) : (
           <div className="space-y-3">
             {c.knelpunten.length > 0 && <Chips titel="Liep tegenaan" lijst={c.knelpunten} />}
@@ -359,11 +373,22 @@ function CollegaKaart({ c, k, vorig, volgend, scherm, doelenAan }: { c: Collega;
                 {c.kennisTeksten.map((t) => <li key={t.week}><span className="text-black/40">{weekKort(t.week)}:</span> {t.tekst}</li>)}
               </ul>
             )}
+            {c.nodig.length > 0 && <Teksten titel={`Wat ${voornaam} nodig heeft`} lijst={c.nodig} />}
           </div>
         )}
       </Agendapunt>
 
-      <Agendapunt n={5} titel={`Wil ${voornaam} bespreken`}>
+      <Agendapunt n={5} titel="Gemeld en gedeeld">
+        {c.meldingen.length === 0 ? (
+          <p className="text-[13.5px] text-black/45">Niets gemeld of gedeeld in dit kwartaal.</p>
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2">
+            {c.meldingen.map((m) => <MeldingKaart key={m.week} m={m} />)}
+          </ul>
+        )}
+      </Agendapunt>
+
+      <Agendapunt n={6} titel={`Wil ${voornaam} bespreken`}>
         {c.bespreken.length === 0 ? (
           <p className="text-[13.5px] text-black/45">Niets aangevinkt om te bespreken.</p>
         ) : (
@@ -381,7 +406,7 @@ function CollegaKaart({ c, k, vorig, volgend, scherm, doelenAan }: { c: Collega;
         )}
       </Agendapunt>
 
-      <Agendapunt n={6} titel="Terugblik op het kwartaal">
+      <Agendapunt n={7} titel="Terugblik op het kwartaal">
         {!c.terugblik ? (
           <p className="text-[13.5px] text-black/45">De terugblik staat in de laatste week van het kwartaal ({weekTitel(laatsteWeek)}).</p>
         ) : (
@@ -389,7 +414,7 @@ function CollegaKaart({ c, k, vorig, volgend, scherm, doelenAan }: { c: Collega;
         )}
       </Agendapunt>
 
-      <Agendapunt n={7} titel={`Doelen voor ${kwartaalLabel(volgend)}`}>
+      <Agendapunt n={8} titel={`Doelen voor ${kwartaalLabel(volgend)}`}>
         {!doelenAan ? (
           <p className="text-[13.5px] text-black/45">Doelen vastleggen kan zodra migratie 0045 in Supabase is uitgevoerd.</p>
         ) : (
@@ -460,6 +485,34 @@ function CollegaKaart({ c, k, vorig, volgend, scherm, doelenAan }: { c: Collega;
         <p className="flex items-center gap-2 border-t border-black/[0.06] px-6 py-3 text-[13px] text-black/40"><LuCircleDashed /> Alleen cijfers, nog geen tekst in dit kwartaal.</p>
       )}
     </article>
+  );
+}
+
+/** Een vrije tekst per week, nieuwste eerst. */
+function Teksten({ titel, lijst }: { titel: string; lijst: { week: string; tekst: string }[] }) {
+  return (
+    <div>
+      <p className="mb-1 text-[12px] font-semibold uppercase tracking-[0.06em] text-black/45">{titel}</p>
+      <ul className="space-y-1 text-[13.5px] leading-relaxed text-black/65">
+        {lijst.map((t) => <li key={t.week} className="whitespace-pre-line"><span className="text-black/40">{weekKort(t.week)}:</span> {t.tekst}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+/** Eén melding: de soort, of hij meteen doorgestuurd is, de week en de tekst. */
+function MeldingKaart({ m, naam, href }: { m: Melding; naam?: string; href?: string }) {
+  const zorg = m.soort === "zorg";
+  return (
+    <li className={`rounded-2xl px-4 py-3 ${zorg ? "bg-[#fff4e5]" : "bg-[#fafafd]"}`}>
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-semibold text-black/50">
+        <span className={`inline-flex items-center gap-1 ${zorg ? "text-[#b25e09]" : "text-[#312e82]"}`}><LuMegaphone className="text-[12px]" /> {m.soortLabel}</span>
+        <span>· {weekKort(m.week)}</span>
+        {naam && href && <a href={href} className="text-[#312e82] hover:underline">· {naam}</a>}
+        {m.verstuurd && <span className="apill gap-1 !py-0 !text-[11px] bg-[#e6f7f4] text-[#0e9f8a]"><LuSend className="text-[10px]" /> meteen doorgestuurd</span>}
+      </p>
+      <p className="mt-1 whitespace-pre-line text-[14px] leading-relaxed text-[#1c1a4e]">{m.tekst}</p>
+    </li>
   );
 }
 
