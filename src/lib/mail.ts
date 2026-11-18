@@ -24,6 +24,7 @@ import { merkVoorVorm } from "./offerteMerk";
 import { FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail, eyebrow, knop } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
 import { doorgestuurdHtml, machtigingGetekendHtml, machtigingMailHtml, onboardingKlantHtml, onboardingMailHtml, overdrachtMailHtml, type MachtigingMail, type MailDocument, type OnboardingKlantMail } from "./onboardingMail";
+import { evaluatieIngevuldHtml, evaluatieMailHtml, type EvaluatieIngevuldMail, type EvaluatieMail } from "./evaluatieMail";
 import { contractChecklistHtml, contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
 import { CHECKLIST_NAAM } from "./contractChecklist";
 import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
@@ -750,6 +751,49 @@ export function onboardingAdminUrl(id: string) {
 
 export function onboardingUrl(token: string) {
   return `${siteBasis()}/onboarding/${token}`;
+}
+
+/* ---------- klantevaluatie (migratie 0043) ---------- */
+
+/** Aan de klant: de uitnodiging om de evaluatie online in te vullen, of een herinnering. Antwoorden gaat naar de afzender. */
+export async function sendEvaluatie(e: Omit<EvaluatieMail, "basis"> & { to: string }): Promise<Verzonden> {
+  const { to, ...rest } = e;
+  const html = evaluatieMailHtml({ basis: siteBasis(), ...rest });
+  const onderwerp = e.herinnering ? `Herinnering: de klantevaluatie van ${e.bedrijf}` : `Klantevaluatie React2u voor ${e.bedrijf}`;
+  return verstuur([to], onderwerp, html, e.afzender.email || undefined);
+}
+
+/** Aan de klant na het invullen: dank je wel, met de ingevulde evaluatie als pdf. */
+export async function bevestigEvaluatieIngevuld(b: Omit<EvaluatieIngevuldMail, "basis" | "pdf"> & { to: string; bijlage?: Bijlage | null }): Promise<Verzonden> {
+  const { to, bijlage, ...rest } = b;
+  const html = evaluatieIngevuldHtml({ basis: siteBasis(), ...rest, pdf: Boolean(bijlage) });
+  return verstuur([to], `Ontvangen: de klantevaluatie van ${b.bedrijf}`, html, b.afzender.email || undefined, bijlage ? [bijlage] : undefined);
+}
+
+/** Aan de afzender: de klant opende de evaluatie, of vulde hem in (met de aandachtspunten erbij). */
+export async function notifyEvaluatie(n: { to: string; nummer: string; bedrijf: string; adminLink: string; soort: "bekeken" | "ingevuld"; opnieuw?: boolean; door?: string | null; aandachtspunten?: string[] }) {
+  const kop =
+    n.soort === "ingevuld"
+      ? `${n.bedrijf} heeft de klantevaluatie ${n.opnieuw ? "aangepast" : "ingevuld"}`
+      : `${n.bedrijf} heeft de klantevaluatie geopend`;
+  const punten = n.aandachtspunten || [];
+  const tekst =
+    n.soort === "ingevuld"
+      ? `Klantevaluatie ${esc(n.nummer)} is ${n.opnieuw ? "aangepast" : "ingevuld"}${n.door ? ` door ${esc(n.door)}` : ""}. ${
+          punten.length
+            ? `${punten.length === 1 ? "Eén aandachtspunt" : `${punten.length} aandachtspunten`} (nog niet geregeld): ${esc(punten.join(", "))}.`
+            : "Alle punten van de checklist zijn geregeld of niet van toepassing."
+        } Je ziet de antwoorden en de pdf in het beheer.`
+      : `Klantevaluatie ${esc(n.nummer)} is zojuist voor het eerst geopend.`;
+  await post([n.to], kop, persoonlijk(kop, [tekst], { tekst: "Open de evaluatie", link: n.adminLink }));
+}
+
+export function evaluatieAdminUrl(id: string) {
+  return `${siteBasis()}/admin/documenten/evaluaties/${id}`;
+}
+
+export function evaluatieUrl(token: string) {
+  return `${siteBasis()}/evaluatie/${token}`;
 }
 
 /* ---------- contracten (migratie 0031, de resellerovereenkomst sinds 0033) ---------- */

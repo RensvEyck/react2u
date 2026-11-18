@@ -2,7 +2,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
-  LuBookOpen, LuClipboardCheck, LuEuro, LuFilePenLine, LuGlobe, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload, LuZap,
+  LuBookOpen, LuClipboardCheck, LuClipboardList, LuEuro, LuFilePenLine, LuGlobe, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload, LuZap,
 } from "react-icons/lu";
 import { CHECKLIST, initialen, statusInfo, type Bron, type GesprekSoort, type Klant, type KlantStatus, type Koppeling, type KoppelSoort } from "@/lib/klanten";
 
@@ -70,6 +70,7 @@ export const BRON_ICOON: Record<Bron, ComponentType<{ className?: string }>> = {
   contract: LuScrollText,
   onboarding: LuClipboardCheck,
   opdracht: LuEuro,
+  evaluatie: LuClipboardList,
 };
 
 export const BRON_LABEL: Record<Bron, string> = {
@@ -78,6 +79,7 @@ export const BRON_LABEL: Record<Bron, string> = {
   contract: "Contract",
   onboarding: "Onboarding",
   opdracht: "Losse klant of opdracht",
+  evaluatie: "Klantevaluatie",
 };
 
 export const SiteIcoon = LuGlobe;
@@ -87,6 +89,7 @@ export const KOPPEL_ICOON: Record<KoppelSoort, ComponentType<{ className?: strin
   brochure: LuBookOpen,
   contract: LuScrollText,
   onboarding: LuClipboardCheck,
+  evaluatie: LuClipboardList,
   lead: LuPhoneCall,
 };
 
@@ -95,6 +98,7 @@ export const KOPPEL_LABEL: Record<KoppelSoort, string> = {
   brochure: "Brochure",
   contract: "Contract",
   onboarding: "Onboarding",
+  evaluatie: "Klantevaluatie",
   lead: "Bellijst",
 };
 

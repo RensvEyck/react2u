@@ -17,10 +17,13 @@
 --   wat er getekend is (geen deel van getekend_inhoud en de hash), en de datums
 --   van afronding komen juist later.
 -- - contract_gebeurtenissen krijgt de soort 'checklist' (ingevuld of
---   bijgewerkt); het klantenbord (0041) zet die als regel in de tijdlijn.
+--   bijgewerkt); het klantenbord zet die als regel in de tijdlijn, via de tak
+--   'checklist' in klant_gebeurtenis (die staat in 0043, zie onderaan).
 --
--- VOLGORDE: na 0041. Zonder deze migratie geeft /contract/<token>/checklist een
--- 404 en toont de contractpagina de checklist zonder antwoorden.
+-- VOLGORDE: na 0041; vóór of na 0043 maakt niet uit (deze migratie raakt
+-- klant_gebeurtenis niet aan). Zonder deze migratie geeft
+-- /contract/<token>/checklist een 404 en toont de contractpagina de checklist
+-- zonder antwoorden.
 --
 -- Registreren: via apply_migration (naam 0042_contract_checklist) vanzelf.
 
@@ -113,67 +116,14 @@ grant execute on function public.contract_checklist_bekijken(text) to anon, auth
 grant execute on function public.contract_checklist_opslaan(text, jsonb, text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
--- Het klantenbord (0041): de nieuwe soort als regel in de tijdlijn van de
--- klant. Dezelfde functie als in 0041, met alleen de regel voor 'checklist'
--- erbij; wie deze functie later wijzigt, neemt die regel mee.
+-- Het klantenbord: de regel "Checklist arbeidsomstandigheden ingevuld" in de
+-- tijdlijn van de klant staat als tak 'checklist' in public.klant_gebeurtenis,
+-- en die functie wordt hier bewust NIET vervangen. De laatste versie staat in
+-- 0043_klantevaluatie.sql (die ook de bron 'evaluatie' kent) en bevat de tak
+-- al. 0043 stond eerder op productie dan deze migratie; een kopie hier zou de
+-- tak 'evaluatie' daar weer weghalen. Wie klant_gebeurtenis later wijzigt,
+-- neemt de tak 'checklist' mee.
 -- ---------------------------------------------------------------------------
-create or replace function public.klant_gebeurtenis(
-  p_bron text, p_bron_id uuid, p_gebeurtenis bigint, p_bedrijf text, p_contactpersoon text, p_email text, p_telefoon text,
-  p_nummer text, p_soort text, p_door text, p_details jsonb, p_at timestamptz, p_status_bij_aanmaak text
-) returns void
-language plpgsql security definer set search_path = public
-as $$
-declare
-  k uuid;
-  tekst text;
-  contact boolean := true;
-  naar text;
-  wie text := p_door;
-  naam text := case p_bron when 'offerte' then 'Offerte ' when 'brochure' then 'Brochure ' when 'contract' then 'Contract ' when 'onboarding' then 'Onboarding ' end || coalesce(p_nummer, '');
-  aan text := nullif(p_details->>'aan', '');
-begin
-  if p_bron is null or p_bedrijf is null then return; end if;
-  case p_soort
-    when 'aangemaakt' then tekst := naam || ' aangemaakt'; contact := false;
-    when 'verstuurd' then
-      tekst := naam || ' verstuurd' || coalesce(' naar ' || aan, '');
-      naar := case p_bron when 'offerte' then 'offerte' when 'contract' then 'akkoord' when 'onboarding' then 'inrichten' end;
-    when 'herinnering' then
-      tekst := 'Herinnering gestuurd voor ' || lower(left(naam, 1)) || substr(naam, 2);
-      naar := case p_bron when 'offerte' then 'offerte' when 'contract' then 'akkoord' when 'onboarding' then 'inrichten' end;
-    when 'bekeken' then tekst := naam || case p_bron when 'onboarding' then ' geopend' else ' bekeken' end; wie := coalesce(wie, 'klant');
-    when 'code' then tekst := 'Vroeg een code aan om ' || lower(left(naam, 1)) || substr(naam, 2) || ' te tekenen'; wie := coalesce(wie, 'klant');
-    when 'getekend' then
-      tekst := naam || ' getekend' || coalesce(' door ' || nullif(p_door, ''), '');
-      naar := case p_bron when 'offerte' then 'akkoord' when 'contract' then 'inrichten' end;
-      wie := coalesce(wie, 'klant');
-    when 'gekozen' then tekst := 'Koos zelf onderdelen in ' || lower(left(naam, 1)) || substr(naam, 2); wie := coalesce(wie, 'klant');
-    when 'afgewezen' then tekst := naam || ' afgewezen' || coalesce(': ' || nullif(p_details->>'reden', ''), ''); wie := coalesce(wie, 'klant');
-    when 'ingetrokken' then tekst := naam || ' ingetrokken'; contact := false;
-    when 'heropend' then tekst := naam || ' heropend'; contact := false;
-    when 'ingevuld' then tekst := public.klant_document_naam(p_details->>'document') || ' ingevuld (' || lower(left(naam, 1)) || substr(naam, 2) || ')'; wie := coalesce(wie, 'klant');
-    when 'gelezen' then tekst := public.klant_document_naam(p_details->>'document') || ' afgevinkt (' || lower(left(naam, 1)) || substr(naam, 2) || ')'; wie := coalesce(wie, 'klant');
-    when 'afgerond' then tekst := 'Klant klaar met ' || lower(left(naam, 1)) || substr(naam, 2) || ': alles aangeleverd'; naar := 'inrichten'; wie := coalesce(wie, 'klant');
-    when 'live' then tekst := 'Live: ' || lower(left(naam, 1)) || substr(naam, 2) || ' is ingericht'; naar := 'klant'; contact := true;
-    when 'doorgestuurd' then tekst := 'Een stap van ' || lower(left(naam, 1)) || substr(naam, 2) || ' doorgestuurd naar een collega'; contact := false; wie := coalesce(wie, 'klant');
-    when 'machtiging' then
-      if coalesce(p_details->>'actie', '') <> 'getekend' then return; end if;
-      tekst := coalesce(nullif(p_details->>'naam', ''), 'Een werknemer') || ' tekende de machtiging (' || lower(left(naam, 1)) || substr(naam, 2) || ')';
-      wie := coalesce(wie, 'klant');
-    when 'checklist' then
-      tekst := 'Checklist arbeidsomstandigheden ' || case when coalesce((p_details->>'opnieuw')::boolean, false) then 'bijgewerkt' else 'ingevuld' end || ' (' || lower(left(naam, 1)) || substr(naam, 2) || ')';
-      wie := coalesce(wie, 'klant');
-    else return;
-  end case;
-
-  k := public.klant_zeker(p_bedrijf, p_contactpersoon, p_email, p_telefoon, coalesce(naar, p_status_bij_aanmaak), p_bron);
-  if k is null then return; end if;
-  perform public.klant_vooruit(k, naar, lower(left(tekst, 1)) || substr(tekst, 2));
-  insert into public.klant_gesprekken (klant_id, soort, op, tekst, door, contact, bron, bron_id, bron_gebeurtenis, created_at)
-  values (k, 'systeem', (p_at at time zone 'Europe/Amsterdam')::date, left(tekst, 5000), wie, contact, p_bron, p_bron_id, p_gebeurtenis, p_at)
-  on conflict (bron, bron_gebeurtenis) where bron_gebeurtenis is not null do nothing;
-end;
-$$;
 
 -- Controle (verwacht: als anon een fout op de tabel, de functie met een
 -- onbekend token null):
