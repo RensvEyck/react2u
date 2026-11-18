@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LuArrowLeft, LuChevronLeft, LuChevronRight, LuPlus, LuTrash2, LuUserRound } from "react-icons/lu";
+import { LuArrowLeft, LuChevronLeft, LuChevronRight, LuLink2, LuPlus, LuTrash2, LuUserRound } from "react-icons/lu";
 import { requirePerm } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
 import { datumOver, euro } from "@/lib/offertes";
@@ -24,9 +24,12 @@ export default async function Uren({ searchParams }: { searchParams: Promise<{ t
   const ruw = (await searchParams).tot;
   const tot = ruw && /^\d{4}-\d{2}-\d{2}$/.test(ruw) ? maandagVan(ruw) : maandagVan(vandaag);
   const weken = wekenTot(tot, WEKEN);
-  const [m, u] = await Promise.all([
+  const [m, u, a] = await Promise.all([
     sb.from("medewerkers").select("*").order("actief", { ascending: false }).order("sort"),
     sb.from("uren").select("medewerker_id, week, declarabel, afwezig").gte("week", weken[0]).lte("week", weken[weken.length - 1]),
+    // De accounts om een medewerker aan te koppelen (0044, voor de weekevaluatie). Zonder het recht
+    // gebruikers geeft RLS alleen je eigen rij terug; dan kun je alleen jezelf koppelen.
+    sb.from("admins").select("user_id, email").order("email"),
   ]);
   if (isMissingTable(m.error) || isMissingTable(u.error)) {
     return (
@@ -38,6 +41,9 @@ export default async function Uren({ searchParams }: { searchParams: Promise<{ t
   }
 
   const medewerkers = ((m.data as Medewerker[] | null) || []).map((x) => ({ ...x, contracturen: Number(x.contracturen), uurtarief: x.uurtarief === null ? null : Number(x.uurtarief) }));
+  // Pas na 0044 heeft medewerkers een user_id; daarvóór geen koppelveld, anders faalt het opslaan.
+  const koppelen = medewerkers.length ? "user_id" in medewerkers[0] : !(await sb.from("medewerkers").select("user_id").limit(1)).error;
+  const accounts = koppelen ? (((a.data as { user_id: string; email: string }[] | null) || [])) : [];
   const actief = medewerkers.filter((x) => x.actief);
   const begin = Object.fromEntries(((u.data as UrenRij[] | null) || []).map((r) => [`${r.medewerker_id}|${r.week}`, { declarabel: Number(r.declarabel), afwezig: Number(r.afwezig) }]));
   const dezeWeek = maandagVan(vandaag);
@@ -94,7 +100,7 @@ export default async function Uren({ searchParams }: { searchParams: Promise<{ t
                   <span className="text-[12.5px] font-semibold text-black/35 group-open/mw:hidden">Wijzig</span>
                 </summary>
                 <div className="px-6 pb-5">
-                  <MedewerkerForm mw={mw} terug={terug} />
+                  <MedewerkerForm mw={mw} terug={terug} accounts={accounts} />
                   <div className="mt-3">
                     <ConfirmButton
                       action={medewerkerVerwijderen.bind(null, mw.id)}
@@ -111,7 +117,7 @@ export default async function Uren({ searchParams }: { searchParams: Promise<{ t
         </ul>
         <div id="nieuw" className="border-t border-black/[0.06] bg-[#fafafd] px-6 py-5">
           <p className="mb-3 flex items-center gap-2 text-[14px] font-semibold text-[#1c1a4e]"><LuUserRound className="text-black/35" /> Medewerker toevoegen</p>
-          <MedewerkerForm terug={terug} />
+          <MedewerkerForm terug={terug} accounts={accounts} />
         </div>
       </section>
     </div>
@@ -130,7 +136,7 @@ function Kop() {
   );
 }
 
-function MedewerkerForm({ mw, terug }: { mw?: Medewerker; terug: string }) {
+function MedewerkerForm({ mw, terug, accounts }: { mw?: Medewerker; terug: string; accounts: { user_id: string; email: string }[] }) {
   const id = mw?.id ?? "nieuw";
   const veld = "ainput !py-2 text-[14px]";
   return (
@@ -161,6 +167,15 @@ function MedewerkerForm({ mw, terug }: { mw?: Medewerker; terug: string }) {
         <input type="checkbox" name="actief" value="aan" defaultChecked={mw ? mw.actief : true} className="h-4 w-4 accent-[#312e82]" />
         Actief: staat in het rooster
       </label>
+      {accounts.length > 0 && (
+        <label className="lg:col-span-4">
+          <span className="alabel inline-flex items-center gap-1.5"><LuLink2 className="text-[12px]" /> Account in het beheer <span className="font-normal text-black/40">voor de weekevaluatie: dan staan uren en evaluatie naast elkaar</span></span>
+          <select id={`mw-account-${id}`} name="user_id" defaultValue={mw?.user_id ?? ""} className={veld}>
+            <option value="">Niet gekoppeld</option>
+            {accounts.map((acc) => <option key={acc.user_id} value={acc.user_id}>{acc.email}</option>)}
+          </select>
+        </label>
+      )}
       <div className="flex items-end lg:col-span-2">
         <button className="abtn !py-2 text-[14px]">{mw ? "Opslaan" : <><LuPlus /> Toevoegen</>}</button>
       </div>

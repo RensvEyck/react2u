@@ -19,6 +19,8 @@ export type Medewerker = {
   uurtarief: number | null;
   actief: boolean;
   sort: number;
+  /** Het account in het beheer van deze collega (0044), voor de weekevaluatie; leeg = niet gekoppeld. */
+  user_id?: string | null;
 };
 
 export type UrenRij = { medewerker_id: string; week: string; declarabel: number; afwezig: number };

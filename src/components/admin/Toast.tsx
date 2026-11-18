@@ -57,6 +57,7 @@ const FOUT_TEKST: Record<string, string> = {
   // Partners
   // Omzet en uren
   "medewerker-naam": "Vul de naam van de medewerker in.",
+  "medewerker-account": "Dat account is al aan een andere medewerker gekoppeld.",
   "migratie-0035": "Hiervoor moet migratie 0035 eerst in Supabase worden uitgevoerd.",
   stoppen: "Beëindigen mislukt: kies de maand vanaf wanneer het abonnement stopt.",
   "los-bedrijf": "Vul de naam van de klant in.",
@@ -64,6 +65,11 @@ const FOUT_TEKST: Record<string, string> = {
   "los-datum": "Vul een geldige datum in.",
   "los-stop": "De laatste maand moet na de startdatum liggen.",
   "migratie-0036": "Hiervoor moet migratie 0036 eerst in Supabase worden uitgevoerd.",
+  // Weekevaluatie
+  "weekevaluatie-schaal": "Geef op elke schaal een cijfer van 1 tot 10.",
+  "weekevaluatie-week": "Die week is gesloten: een week kun je tot het eind van de week erna invullen of aanpassen.",
+  "weekevaluatie-recht": "Je mag alleen je eigen weekevaluatie invullen.",
+  "migratie-0044": "De weekevaluatie staat nog niet aan: migratie 0044 moet eerst in Supabase worden uitgevoerd.",
   "partner-kantoor": "Vul de naam van het kantoor in.",
   "partner-code": "Die partnercode is al in gebruik. Kies een andere, of laat het veld leeg voor een voorstel.",
   "partner-klanten": "Deze partner heeft klanten en kan niet weg. Zet hem op inactief: dan koppelt zijn link geen nieuwe aanvragen meer.",
@@ -134,6 +140,7 @@ const OK_TEKST: Record<string, string> = {
   los: "Opgeslagen.",
   "los-nieuw": "Opgevoerd: het telt mee in het salesdashboard en de omzet.",
   "los-weg": "Verwijderd.",
+  weekevaluatie: "Weekevaluatie bewaard. Tot het eind van volgende week kun je hem nog aanpassen.",
   "contract-nieuw": "Contract aangemaakt. Bekijk het voorbeeld en verstuur het als het klaar is.",
   "contract-open": "De link staat open voor de klant. Stuur hem door.",
   "contract-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",

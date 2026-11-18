@@ -24,6 +24,7 @@ export const PERMISSIONS = [
   { key: "instellingen", label: "Instellingen", hint: "Contactgegevens, documenten, certificaten" },
   { key: "gebruikers", label: "Gebruikers", hint: "Collega's uitnodigen en rollen beheren" },
   { key: "omzet", label: "Omzet", hint: "Omzet, declarabele uren en medewerkers (sinds 0035)" },
+  { key: "weekevaluatie", label: "Weekevaluatie", hint: "Je eigen weekevaluatie invullen en teruglezen (sinds 0044)" },
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number]["key"];
@@ -48,6 +49,14 @@ export const ADMIN_PERMISSION: Permission = "gebruikers";
  * tussen de twee weg zonder dat iemand het merkt.
  */
 export const OWNER_ROLE_KEY = "superadmin";
+
+/**
+ * De rol voor collega's die alleen hun weekevaluatie invullen (migratie 0044).
+ * Geen systeemrol: de super admin mag er rechten bij zetten. De sleutel wordt
+ * gebruikt om nieuwe collega's zonder evaluatie toch mee te tellen in de
+ * herinnering en het kwartaaloverzicht (lib/weekevaluatie.ts, `doetMee`).
+ */
+export const WERKNEMER_ROLE_KEY = "werknemer";
 
 export function isPermission(value: unknown): value is Permission {
   return typeof value === "string" && (ALL_PERMISSIONS as string[]).includes(value);
@@ -104,6 +113,9 @@ const PATH_PERMISSIONS: [string, Permission][] = [
   ["/admin/instellingen", "instellingen"],
   ["/admin/gebruikers", "gebruikers"],
   ["/admin/omzet", "omzet"],
+  // Het kwartaaloverzicht vóór het eigen scherm: specifiek gaat voor algemeen.
+  ["/admin/weekevaluatie/team", "omzet"],
+  ["/admin/weekevaluatie", "weekevaluatie"],
 ];
 
 export function permissionForPath(path: string): Permission | null {

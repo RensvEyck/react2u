@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -46,6 +46,8 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
   { label: "Uren", href: "/admin/omzet/uren", icon: LuClock, keywords: "declarabele uren medewerkers werknemers urenregistratie declarabiliteit norm week invullen", paletteOnly: true },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
+  { label: "Weekevaluatie", href: "/admin/weekevaluatie", icon: LuCalendarCheck, keywords: "weekevaluatie week evaluatie energie werkdruk cijfer invullen reflectie collega's werknemers" },
+  { label: "Kwartaaloverzicht weekevaluaties", href: "/admin/weekevaluatie/team", icon: LuChartColumn, keywords: "kwartaalmeeting kwartaal team gemiddelden trend gemist export excel weekevaluaties", paletteOnly: true },
   { label: "Pagina's", href: "/admin/paginas", icon: LuFileText, keywords: "teksten blokken content cms" },
   { label: "Blog", href: "/admin/blog", icon: LuNewspaper, keywords: "artikelen nieuws posts" },
   { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase, keywords: "banen werken bij jobs" },
@@ -98,5 +100,6 @@ export const CRUMBS: Record<string, string> = {
   instellingen: "Instellingen", account: "Account",
   documenten: "Documenten", evaluaties: "Klantevaluaties",
   offertes: "Offertes", contracten: "Contracten", onboarding: "Onboarding", werknemers: "Werknemers", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
+  weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };
