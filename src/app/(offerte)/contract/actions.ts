@@ -10,8 +10,10 @@ import {
   type Opdrachtgever,
 } from "@/lib/contracten";
 import { datumLang, momentLang } from "@/lib/offertes";
-import { bevestigContractGetekend, contractAdminUrl, contractUrl, notifyContractGetekend, sendContractCode } from "@/lib/mail";
+import { bevestigContractGetekend, contractAdminUrl, contractUrl, notifyContractChecklist, notifyContractGetekend, sendContractChecklistKopie, sendContractCode, type Bijlage } from "@/lib/mail";
 import { getekendContractPdf } from "@/lib/contractGetekend";
+import { CHECKLIST_FOUT, checklistVoortgang, controleerChecklist, heeftChecklist, schoonChecklist } from "@/lib/contractChecklist";
+import { checklistPdfViaToken, checklistStand, checklistUrl } from "@/lib/contractChecklistBestand";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
 /*
@@ -22,6 +24,10 @@ import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
  *
  * De code: Next maakt en mailt hem, de database bewaart alleen de hash, en
  * alleen met OFFERTE_SLEUTEL (dezelfde sleutel als voor offertes).
+ *
+ * De Checklist arbeidsomstandigheden (0042) gaat via contract_checklist_opslaan:
+ * Next controleert de vorm, de database of het mag; daarna een kopie aan de
+ * klant en een seintje aan sales, met de pdf.
  */
 
 export type ContractState = { ok: boolean; fout?: string };
@@ -113,6 +119,8 @@ export async function ondertekenContract(
       console.error("[contract] pdf maken mislukt:", e);
       return null;
     });
+    // Bij een basiscontract: de ingevulde checklist als tweede bijlage, of de regel dat hij nog openstaat (0042).
+    const checklist = heeftChecklist(inhoud) ? await checklistBijTekenen(token, c) : null;
     const og2 = inhoud.opdrachtgever || {};
     const soort = soortVan(inhoud);
     const reseller = soort === "reseller";
@@ -143,6 +151,7 @@ export async function ondertekenContract(
         ],
         afzender,
         pdf,
+        checklist,
         contact,
       }),
       notifyContractGetekend({
@@ -161,4 +170,74 @@ export async function ondertekenContract(
     ]);
   });
   return { ok: true };
+}
+
+/* ---------- de checklist arbeidsomstandigheden (0042) ---------- */
+
+/** Voor de bevestiging na het tekenen: de ingevulde checklist als pdf, "open" als er nog niets is ingevuld, null bij een storing. */
+async function checklistBijTekenen(token: string, c: ContractPubliek): Promise<Bijlage | "open" | null> {
+  try {
+    const stand = await checklistStand(token);
+    return stand ? await checklistPdfViaToken(token, c) : "open";
+  } catch (e) {
+    console.error("[contract] checklist-pdf mislukt:", e);
+    return null;
+  }
+}
+
+export type ChecklistState = { ok: boolean; fout?: string; velden?: Record<string, string> };
+
+/**
+ * De klant vult de Checklist arbeidsomstandigheden in, of past hem aan. Next
+ * controleert de vorm (lib/contractChecklist.ts), de database of het mag
+ * (token, status, een basiscontract) en hoe groot het is. De kopie en het
+ * seintje gaan pas na het antwoord (after).
+ */
+export async function slaChecklistOp(token: string, invoer: Record<string, unknown>): Promise<ChecklistState> {
+  if (!TOKEN.test(token)) return { ok: false, fout: CHECKLIST_FOUT.onbekend };
+  const data = schoonChecklist(invoer);
+  const fouten = controleerChecklist(data);
+  if (Object.keys(fouten).length) return { ok: false, fout: fouten.leeg || "Niet alles klopt nog. Kijk de velden met een melding even na.", velden: fouten };
+  if (!(await withinLimit("contract-checklist", { limit: 60, windowSeconds: 60 * 60 }))) return { ok: false, fout: CHECKLIST_FOUT.limiet };
+
+  const { data: res, error } = await supabasePublic().rpc("contract_checklist_opslaan", { p_token: token, p_data: data, p_naam: data.naam || null });
+  const uitkomst = res as { ok: boolean; fout?: string; eerste?: boolean } | null;
+  if (error || !uitkomst) {
+    console.error("[contract] checklist opslaan mislukt:", error?.message);
+    return { ok: false, fout: CHECKLIST_FOUT.storing };
+  }
+  if (!uitkomst.ok) return { ok: false, fout: CHECKLIST_FOUT[uitkomst.fout || ""] || CHECKLIST_FOUT.storing };
+  const opnieuw = !uitkomst.eerste;
+  after(() => checklistSeintje(token, opnieuw));
+  return { ok: true };
+}
+
+/** Na het opslaan: de kopie met de pdf aan de klant (op het adres van het contract), en een seintje aan sales. */
+async function checklistSeintje(token: string, opnieuw: boolean) {
+  const c = await lees(token);
+  if (!c || !heeftChecklist(c)) return;
+  const [stand, pdf, { contact }] = await Promise.all([
+    checklistStand(token),
+    checklistPdfViaToken(token, c).catch((e) => {
+      console.error("[contract] checklist-pdf mislukt:", e);
+      return null;
+    }),
+    offerteHuisstijl(),
+  ]);
+  const v = checklistVoortgang(stand?.data);
+  const door = stand?.door ?? null;
+  const aan = c.getekend_email || c.email;
+  await Promise.all([
+    notifyContractChecklist({
+      nummer: c.nummer, bedrijf: c.bedrijf, door, beantwoord: v.beantwoord, totaal: v.totaal, opnieuw,
+      adminLink: contractAdminUrl(c.id), afzenderEmail: c.afzender_email, pdf,
+    }),
+    aan
+      ? sendContractChecklistKopie({
+          to: aan, aanhef: c.contactpersoon?.split(" ")[0] ?? null, bedrijf: c.bedrijf, nummer: c.nummer, link: checklistUrl(token),
+          beantwoord: v.beantwoord, totaal: v.totaal, opnieuw, door,
+          afzender: { naam: c.afzender_naam, functie: c.afzender_functie, email: c.afzender_email || CONTRACT_EMAIL, telefoon: c.afzender_telefoon }, pdf, contact,
+        })
+      : Promise.resolve(),
+  ]);
 }

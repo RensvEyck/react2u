@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requirePerm } from "@/lib/admin";
 import { CONTRACT_SOORT, CONTRACT_WEERGAVE, contractWeergave, looptijdNu, soortVan, type Contract, type ContractSoort } from "@/lib/contracten";
 import { datumLang, datumOver, momentLang } from "@/lib/offertes";
-import { LuChevronRight, LuDatabase, LuEye, LuScrollText, LuPlus, LuHandshake } from "react-icons/lu";
+import { LuChevronRight, LuDatabase, LuEye, LuScrollText, LuPlus, LuHandshake, LuClipboardList } from "react-icons/lu";
 
 /**
  * Alle contracten (migratie 0031 en 0033): de basiscontracten met klanten en
@@ -29,8 +29,13 @@ export default async function Contracten({ searchParams }: { searchParams: Promi
   const { sb } = await requirePerm("bellijst");
   const filter = (await searchParams).soort;
   const gekozen: ContractSoort | null = filter === "reseller" || filter === "basiscontract" ? filter : null;
-  const { data, error } = await sb.from("contracten").select("*").order("created_at", { ascending: false }).limit(300);
+  const [{ data, error }, checklistRes] = await Promise.all([
+    sb.from("contracten").select("*").order("created_at", { ascending: false }).limit(300),
+    sb.from("contract_checklists").select("contract_id").limit(1000),
+  ]);
   const tabel = !error || (error.code !== "PGRST205" && error.code !== "42P01");
+  // Welke basiscontracten een ingevulde Checklist arbeidsomstandigheden hebben (0042).
+  const metChecklist = new Set(((checklistRes.data as { contract_id: string }[] | null) || []).map((k) => k.contract_id));
   const vandaag = datumOver(0);
   const rijen = ((data as Contract[] | null) || []).map((c) => ({ c, w: contractWeergave(c) }));
   const alle = gekozen ? rijen.filter(({ c }) => soortVan(c) === gekozen) : rijen;
@@ -141,6 +146,7 @@ export default async function Contracten({ searchParams }: { searchParams: Promi
                         <span className="inline-flex items-center gap-2">
                           <span className="apill" style={{ background: s.achter, color: s.kleur }}>{s.label}</span>
                           {c.aantal_bekeken > 0 && c.status !== "getekend" && <span className="inline-flex items-center gap-1 text-[12.5px] text-black/45"><LuEye /> {c.aantal_bekeken}</span>}
+                          {metChecklist.has(c.id) && <span className="inline-flex items-center gap-1 text-[12.5px] text-[#0b5f5a]" title="Checklist arbeidsomstandigheden ingevuld"><LuClipboardList /> Checklist</span>}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-black/60">

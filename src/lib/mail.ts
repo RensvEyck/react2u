@@ -25,7 +25,8 @@ import { FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMai
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
 import { doorgestuurdHtml, machtigingGetekendHtml, machtigingMailHtml, onboardingKlantHtml, onboardingMailHtml, overdrachtMailHtml, type MachtigingMail, type MailDocument, type OnboardingKlantMail } from "./onboardingMail";
 import { evaluatieIngevuldHtml, evaluatieMailHtml, type EvaluatieIngevuldMail, type EvaluatieMail } from "./evaluatieMail";
-import { contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
+import { contractChecklistHtml, contractCodeHtml, contractGetekendHtml, contractMailHtml, type ContractMail } from "./contractMail";
+import { CHECKLIST_NAAM } from "./contractChecklist";
 import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
 
 // RESEND_API_URL alleen voor tests (een nepserver die vastlegt wat er verstuurd
@@ -801,12 +802,12 @@ export function evaluatieUrl(token: string) {
  * Het contract naar de klant of de partner: een persoonlijke mail met één knop
  * naar de contractpagina (lib/contractMail.ts). Antwoorden gaat naar de afzender.
  */
-export async function sendContract(c: Omit<ContractMail, "basis"> & { to: string }): Promise<Verzonden> {
-  const { to, ...rest } = c;
+export async function sendContract(c: Omit<ContractMail, "basis"> & { to: string; bijlagen?: Bijlage[] }): Promise<Verzonden> {
+  const { to, bijlagen, ...rest } = c;
   const html = contractMailHtml({ basis: siteBasis(), ...rest });
   const naam = CONTRACT_SOORT[soortVan(c)].naam;
   const onderwerp = `${c.herinnering ? `Herinnering: ${naam.toLowerCase()}` : naam} ${c.nummer} voor ${c.bedrijf}`;
-  return verstuur([to], onderwerp, html, c.afzender.email || undefined);
+  return verstuur([to], onderwerp, html, c.afzender.email || undefined, bijlagen?.length ? bijlagen : undefined);
 }
 
 /** De code waarmee wie tekent zijn e-mailadres bevestigt; vooraan in het onderwerp, net als bij offertes. */
@@ -819,12 +820,47 @@ export async function sendContractCode(c: { to: string; soort?: ContractSoort; c
 export async function bevestigContractGetekend(b: {
   to: string; soort?: ContractSoort; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
   regels: { label: string; waarde: string }[]; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo;
+  /** Basiscontract (0042): de ingevulde checklist als tweede bijlage, of de regel dat hij nog openstaat. */
+  checklist?: Bijlage | "open" | null;
 }): Promise<Verzonden> {
+  const checklistPdf = b.checklist && b.checklist !== "open" ? b.checklist : null;
   const html = contractGetekendHtml({
     basis: siteBasis(), soort: b.soort, naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash, moment: b.moment,
     regels: b.regels, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact,
+    checklist: checklistPdf ? "bijgevoegd" : b.checklist === "open" ? "open" : undefined,
   });
-  return verstuur([b.to], `Ondertekend: ${CONTRACT_SOORT[soortVan(b)].zin.replace(/^(het|de) /, "")} ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
+  const bijlagen = [b.pdf, checklistPdf].filter((x): x is Bijlage => Boolean(x));
+  return verstuur([b.to], `Ondertekend: ${CONTRACT_SOORT[soortVan(b)].zin.replace(/^(het|de) /, "")} ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, bijlagen.length ? bijlagen : undefined);
+}
+
+/** De kopie aan de klant zodra hij de Checklist arbeidsomstandigheden invult of bijwerkt (0042), met de pdf. */
+export async function sendContractChecklistKopie(c: {
+  to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; beantwoord: number; totaal: number; opnieuw: boolean; door: string | null;
+  afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const html = contractChecklistHtml({ basis: siteBasis(), ...c, pdf: Boolean(c.pdf) });
+  return verstuur([c.to], `${c.opnieuw ? "Bijgewerkt" : "Opgeslagen"}: ${CHECKLIST_NAAM.toLowerCase()} bij contract ${c.nummer}`, html, c.afzender.email || undefined, c.pdf ? [c.pdf] : undefined);
+}
+
+/** Aan sales (en de afzender) zodra de klant de checklist invult of bijwerkt: sober, zoals de melding "getekend". */
+export async function notifyContractChecklist(n: {
+  nummer: string; bedrijf: string; door: string | null; beantwoord: number; totaal: number; opnieuw: boolean; adminLink: string; afzenderEmail: string | null; pdf?: Bijlage | null;
+}) {
+  const woord = CHECKLIST_NAAM.toLowerCase();
+  await post(
+    offerteOntvangers(n.afzenderEmail),
+    `${n.bedrijf} ${n.opnieuw ? "werkte" : "vulde"} de ${woord} ${n.opnieuw ? "bij" : "in"}`,
+    persoonlijk(
+      `${n.bedrijf} heeft de ${woord} ${n.opnieuw ? "bijgewerkt" : "ingevuld"}`,
+      [
+        `${n.door ? `${esc(n.door)} heeft` : "De klant heeft"} de ${esc(CHECKLIST_NAAM)} bij contract ${esc(n.nummer)} zojuist online ${n.opnieuw ? "bijgewerkt" : "ingevuld"}: ${n.beantwoord} van ${n.totaal} onderdelen beantwoord.`,
+        `De antwoorden staan bij het contract in het beheer.${n.pdf ? " De checklist zit als pdf bij deze mail." : ""}`,
+      ],
+      { tekst: "Open het contract", link: n.adminLink }
+    ),
+    undefined,
+    n.pdf ? [n.pdf] : undefined
+  );
 }
 
 export async function notifyContractGetekend(n: {

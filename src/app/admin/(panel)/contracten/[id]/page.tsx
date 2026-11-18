@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
@@ -12,23 +13,26 @@ import { contractUrl } from "@/lib/mail";
 import {
   CONTRACT_SOORT, CONTRACT_WEERGAVE, contractWeergave, looptijdNu, looptijdTekst, soortVan, versieTekst, type Contract, type ContractGebeurtenis,
 } from "@/lib/contracten";
+import { actieSleutel, CHECKLIST_KOP, CHECKLIST_NAAM, CHECKLIST_VRAGEN, checklistVoortgang, datumSleutel, heeftChecklist, type ChecklistStand } from "@/lib/contractChecklist";
 import { resellerVergoeding, wijktAf } from "@/lib/contractTekst";
 import { apparaatUit, datumLang, datumOver, momentLang } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil, LuSignature, LuMailCheck,
-  LuStickyNote, LuFileDown, LuShieldCheck, LuTriangleAlert, LuFilePenLine, LuCalendarClock, LuHandshake, LuClipboardCheck,
+  LuStickyNote, LuFileDown, LuShieldCheck, LuTriangleAlert, LuFilePenLine, LuCalendarClock, LuHandshake, LuClipboardCheck, LuClipboardList,
 } from "react-icons/lu";
 
 /**
  * Eén contract (een basiscontract of een resellerovereenkomst): versturen of
  * herinneren, wat de klant of partner deed, en daaronder het formulier. Na
  * ondertekening staat het vast: dan staat hier wat er getekend is, met de
- * handtekening, het bewijs en tot wanneer het loopt.
+ * handtekening, het bewijs en tot wanneer het loopt. Bij een basiscontract
+ * ook de Checklist arbeidsomstandigheden (0042): wat de klant invulde, of dat
+ * hij nog openstaat.
  */
 
 const ICONEN: Record<ContractGebeurtenis["soort"], React.ComponentType<{ className?: string }>> = {
   aangemaakt: LuFilePlus, gewijzigd: LuPencil, verstuurd: LuSend, herinnering: LuBellRing, bekeken: LuEye, code: LuMailCheck,
-  getekend: LuSignature, ingetrokken: LuBan, heropend: LuRotateCcw,
+  getekend: LuSignature, ingetrokken: LuBan, heropend: LuRotateCcw, checklist: LuClipboardList,
 };
 
 function zin(g: ContractGebeurtenis): string {
@@ -44,20 +48,23 @@ function zin(g: ContractGebeurtenis): string {
     case "getekend": return `Getekend door ${g.door}${d.functie ? ` (${d.functie})` : ""}${d.bevestigd ? ", met de code uit de mail" : ""}`;
     case "ingetrokken": return `Ingetrokken${door}`;
     case "heropend": return `Heropend${door}`;
+    case "checklist": return `${CHECKLIST_NAAM} ${d.opnieuw ? "bijgewerkt" : "ingevuld"}${door}`;
   }
 }
 
 export default async function ContractAdmin({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { sb } = await requirePerm("bellijst");
-  const [contractRes, tijdlijnRes, offertes, partners] = await Promise.all([
+  const [contractRes, tijdlijnRes, checklistRes, offertes, partners] = await Promise.all([
     sb.from("contracten").select("*").eq("id", id).maybeSingle(),
     sb.from("contract_gebeurtenissen").select("*").eq("contract_id", id).order("at", { ascending: false }).limit(200),
+    sb.from("contract_checklists").select("*").eq("contract_id", id).maybeSingle(),
     offerteKeuzes(sb),
     partnerKeuzes(sb),
   ]);
   if (!contractRes.data) notFound();
   const c = contractRes.data as Contract;
+  const checklist = (checklistRes.data as ChecklistStand | null) ?? null;
   const soort = soortVan(c);
   const reseller = soort === "reseller";
   const partner = c.partner_id ? partners.find((p) => p.id === c.partner_id) : null;
@@ -170,6 +177,8 @@ export default async function ContractAdmin({ params }: { params: Promise<{ id: 
         </div>
       )}
 
+      {heeftChecklist(c) && <Checklist c={c} stand={checklist} />}
+
       {getekend ? (
         <div className="grid gap-6 lg:grid-cols-2">
           <Notitie c={c} />
@@ -194,7 +203,11 @@ function Tijdlijn({ items }: { items: ContractGebeurtenis[] }) {
     <ol className="mt-4 space-y-3">
       {items.map((g) => {
         const Icoon = ICONEN[g.soort] || LuPencil;
-        const kleur = g.soort === "getekend" ? "bg-[#e3f6ed] text-[#0a7a4b]" : g.soort === "bekeken" ? "bg-[#e6f2ff] text-[#0b6bcb]" : "bg-black/[0.04] text-black/50";
+        const kleur =
+          g.soort === "getekend" ? "bg-[#e3f6ed] text-[#0a7a4b]"
+            : g.soort === "bekeken" ? "bg-[#e6f2ff] text-[#0b6bcb]"
+              : g.soort === "checklist" ? "bg-[#e5f6f4] text-[#0b5f5a]"
+                : "bg-black/[0.04] text-black/50";
         return (
           <li key={g.id} className="flex items-start gap-3">
             <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] ${kleur}`}><Icoon /></span>
@@ -206,6 +219,67 @@ function Tijdlijn({ items }: { items: ContractGebeurtenis[] }) {
         );
       })}
     </ol>
+  );
+}
+
+/**
+ * De Checklist arbeidsomstandigheden (0042): wat de klant invulde (de vijf
+ * gegevens bovenaan en per onderdeel de actiepunten en de datum), of dat hij
+ * nog openstaat. Het beheer leest; invullen doet de klant via zijn link.
+ */
+function Checklist({ c, stand }: { c: Contract; stand: ChecklistStand | null }) {
+  const data = stand?.data || {};
+  const v = checklistVoortgang(data);
+  const basis = `/admin/contractvoorbeeld/${c.id}/checklist`;
+  return (
+    <section className="acard p-6" id="checklist">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]"><LuClipboardList /> {CHECKLIST_NAAM}</h2>
+          <p className="mt-0.5 text-[13px] text-black/45">
+            {stand
+              ? `Ingevuld ${momentLang(stand.ingevuld_at)}${stand.door ? ` door ${stand.door}` : ""}${stand.versie > 1 ? `, bijgewerkt ${momentLang(stand.bijgewerkt_at)}` : ""}. ${v.beantwoord} van ${v.totaal} onderdelen beantwoord.`
+              : c.status === "concept"
+                ? "Gaat als pdf mee met de contractmail en staat op de contractpagina; de klant vult hem online in."
+                : "Nog niet ingevuld door de klant. Hij staat op de contractpagina en ging als pdf mee met de contractmail."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {stand ? (
+            <span className={`apill ${v.beantwoord === v.totaal ? "bg-[#e3f6ed] text-[#0a7a4b]" : "bg-[#e5f6f4] text-[#0b5f5a]"}`}>{v.beantwoord}/{v.totaal} beantwoord</span>
+          ) : (
+            <span className="apill bg-black/[0.04] text-black/55">Nog open</span>
+          )}
+          <a href={`${basis}/pdf?download=1`} className="abtn-ghost !py-1.5 text-[13px]"><LuFileDown /> {stand ? "Download pdf" : "Lege pdf"}</a>
+          <Link href={basis} target="_blank" className="abtn-ghost !py-1.5 text-[13px]"><LuEye /> Zoals de klant het ziet</Link>
+        </div>
+      </div>
+      {stand && (
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <ol className="divide-y divide-black/[0.06] rounded-[14px] border border-black/[0.07]">
+            {CHECKLIST_VRAGEN.map((q, i) => {
+              const actie = data[actieSleutel(q.id)];
+              const datum = data[datumSleutel(q.id)];
+              return (
+                <li key={q.id} className="grid gap-x-5 gap-y-1.5 px-4 py-3 text-[13.5px] sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1.3fr)_120px]">
+                  <p className="text-[#1c1a4e]"><span className="mr-1.5 font-bold text-[#312e82]">{i + 1}.</span>{q.alineas.join(" ")}</p>
+                  <p className={actie ? "whitespace-pre-line text-[#1c1a4e]" : "text-black/35"}>{actie || "Geen actiepunten ingevuld"}</p>
+                  <p className={datum ? "text-[#1c1a4e]" : "text-black/35"}>{datum ? datumLang(datum) : "Geen datum"}</p>
+                </li>
+              );
+            })}
+          </ol>
+          <dl className="grid h-fit grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-[14px] bg-black/[0.025] p-4 text-[13.5px]">
+            {CHECKLIST_KOP.map((veld) => (
+              <Fragment key={veld.naam}>
+                <dt className="text-black/45">{veld.label}</dt>
+                <dd className="text-[#1c1a4e]">{veld.naam === "datum" && data.datum ? datumLang(data.datum) : data[veld.naam] || <span className="text-black/35">leeg</span>}</dd>
+              </Fragment>
+            ))}
+          </dl>
+        </div>
+      )}
+    </section>
   );
 }
 
