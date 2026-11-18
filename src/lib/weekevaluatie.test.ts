@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   ALLE_SCHALEN, bespreekpunten, cijferTekst, deelname, deelnemers, doelenVan, doelStanden, EXPORT_KOP, exportNaam, exportRijen, gemiddelde, gemiddelden,
   herinnering, isKwartaalEinde, isMaandEinde, kwartaalLabel, kwartaalSleutel, kwartaalVanDatum, kwartaalVanWeek, leesAntwoorden, leesKwartaal,
-  maandenInKwartaal, maandOverzicht, magWijzigen, momenten, normaliseerAntwoorden, openWeken, perWeek, plusKwartalen, SCHALEN, schalenZin, signaal,
-  signaalMail, signalen, sluitOp, telKeuzes, TEKSTVRAGEN, teltVoor, trend, trendTekst, VRAGEN, vragenVoorWeek, weekStand, weekTitel, wekenInKwartaal,
-  wieHerinneren, zwaarsteWeken, type Antwoorden, type Deelnemer, type Doel, type Evaluatie,
+  maandenInKwartaal, maandOverzicht, magWijzigen, meldingen, meldingInhoud, meldingMail, momenten, normaliseerAntwoorden, openWeken, perWeek,
+  plusKwartalen, SCHALEN, schalenZin, signaal, signaalMail, signalen, sluitOp, teksten, telKeuzes, TEKSTVRAGEN, teltVoor, trend, trendTekst, VRAGEN,
+  vragenVoorWeek, weekStand, weekTitel, wekenInKwartaal, wieHerinneren, zwaarsteWeken, type Antwoorden, type Deelnemer, type Doel, type Evaluatie,
 } from "./weekevaluatie";
 
 const ev = (user_id: string, week: string, antwoorden: Antwoorden = { cijfer: 7 }): Evaluatie => ({
@@ -31,7 +31,17 @@ describe("de vragen", () => {
     expect(SCHALEN.filter((s) => s.moment === "maand").map((s) => s.sleutel)).toEqual(["trots", "inzet", "waardering", "ruimte", "geleerd", "steun"]);
     expect(VRAGEN.filter((v) => v.moment === "kwartaal").map((v) => v.sleutel)).toEqual(["blijven", "blijven_waarom", "kwartaal_hoogtepunt", "kwartaal_anders"]);
     expect(new Set(VRAGEN.map((v) => v.sleutel)).size).toBe(VRAGEN.length);
-    expect(TEKSTVRAGEN.every((t) => t.bespreekbaar)).toBe(true);
+    // Alles mag mee naar de kwartaalmeeting, behalve de melding: die heeft een eigen plek op de agenda.
+    expect(TEKSTVRAGEN.filter((t) => !t.bespreekbaar).map((t) => t.sleutel)).toEqual(["melding"]);
+  });
+
+  it("heeft vrije velden bij de cijfers, in eigen woorden, bij de maandvragen en een veld om iets te melden", () => {
+    const per = (blok: string) => TEKSTVRAGEN.filter((t) => t.blok === blok).map((t) => t.sleutel);
+    expect(per("cijfers")).toEqual(["cijfers_toelichting"]);
+    expect(per("woorden")).toEqual(["hoogtepunt", "knelpunt", "kennis_mist", "beter", "nodig", "volgende_week"]);
+    expect(per("melden")).toEqual(["melding"]);
+    expect(per("maand")).toEqual(["maand_toelichting"]);
+    expect(per("terugblik")).toEqual(["blijven_waarom", "kwartaal_hoogtepunt", "kwartaal_anders"]);
   });
 
   it("vraagt niets over gezondheid", () => {
@@ -50,7 +60,7 @@ describe("de vragen", () => {
     expect(momenten(WEEK_47)).toEqual(["week"]);
     expect(momenten(WEEK_48)).toEqual(["week", "maand"]);
     expect(momenten(WEEK_53)).toEqual(["week", "maand", "kwartaal"]);
-    expect(vragenVoorWeek(WEEK_47)).toHaveLength(10);
+    expect(vragenVoorWeek(WEEK_47)).toHaveLength(15);
     expect(vragenVoorWeek(WEEK_53)).toHaveLength(VRAGEN.length);
   });
 });
@@ -89,6 +99,19 @@ describe("het formulier lezen", () => {
     expect(antwoorden.bespreken).toEqual(["knelpunt"]);
   });
 
+  it("leest de melding: één soort, en meteen doorsturen alleen met tekst", () => {
+    const { antwoorden } = leesAntwoorden(
+      formulier({ ...WEEK_OK, melding: " Susanne nam twee dossiers over. ", melding_soort: ["compliment", "zorg"], melding_nu: "aan", nodig: "Een uur samen", volgende_week: "Eerst terugbellen" }),
+      { week: WEEK_47, doelen: [] },
+    );
+    expect(antwoorden).toMatchObject({ melding: "Susanne nam twee dossiers over.", melding_soort: ["zorg"], melding_nu: true, nodig: "Een uur samen", volgende_week: "Eerst terugbellen" });
+    // Bij twee rondjes tegelijk (kan alleen buiten de browser om) blijft de eerste in de vaste volgorde over.
+    expect(leesAntwoorden(formulier({ ...WEEK_OK, melding_soort: "idee", melding_nu: "aan" }), { week: WEEK_47, doelen: [] }).antwoorden).toEqual({ ...Object.fromEntries(Object.entries(WEEK_OK).map(([k, v]) => [k, Number(v)])), melding_soort: ["idee"] });
+    // De toelichting bij de maandvragen telt alleen in de laatste week van de maand.
+    expect(leesAntwoorden(formulier({ ...WEEK_OK, maand_toelichting: "x" }), { week: WEEK_47, doelen: [] }).antwoorden.maand_toelichting).toBeUndefined();
+    expect(leesAntwoorden(formulier({ ...WEEK_OK, ...MAAND_OK, maand_toelichting: "Veel geleerd" }), { week: WEEK_48, doelen: [] }).antwoorden.maand_toelichting).toBe("Veel geleerd");
+  });
+
   it("vraagt de voortgang op elk doel", () => {
     expect(leesAntwoorden(formulier(WEEK_OK), { week: WEEK_47, doelen: [{ id: DOEL }] }).fouten).toEqual([`doel:${DOEL}`]);
     const { antwoorden } = leesAntwoorden(formulier({ ...WEEK_OK, [`doel_${DOEL}`]: "6", [`doel_${DOEL}_tekst`]: " Twee dossiers samen doorgenomen " }), { week: WEEK_47, doelen: [{ id: DOEL }] });
@@ -101,6 +124,9 @@ describe("het formulier lezen", () => {
       knelpunt_themas: ["planning", "onzin", "werkdruk"], bespreken: ["hoogtepunt", "eval()"],
       doelen: { [DOEL]: { cijfer: 7, tekst: "ok" }, "geen-uuid": { cijfer: 7 }, "22222222-2222-4333-8444-555555555555": { cijfer: 11 } },
     })).toEqual({ energie: 7, hoogtepunt: "Prima", knelpunt_themas: ["werkdruk", "planning"], bespreken: ["hoogtepunt"], doelen: { [DOEL]: { cijfer: 7, tekst: "ok" } } });
+    expect(normaliseerAntwoorden({ melding: "Idee", melding_soort: ["idee", "zorg"], melding_nu: true, melding_verstuurd: "a1b2c3d4e5f60718" }))
+      .toEqual({ melding: "Idee", melding_soort: ["zorg"], melding_nu: true, melding_verstuurd: "a1b2c3d4e5f60718" });
+    expect(normaliseerAntwoorden({ melding_nu: true, melding_verstuurd: "<script>" })).toEqual({});
     expect(normaliseerAntwoorden(null)).toEqual({});
   });
 });
@@ -241,6 +267,33 @@ describe("voor de kwartaalmeeting", () => {
     ]);
   });
 
+  it("zet de vrije teksten en de meldingen op een rij, nieuwste eerst", () => {
+    const rijen = [
+      ev("noor", "2026-11-02", { nodig: "Een uur samen", melding: "Nieuwe printer?", melding_soort: ["vraag"] }),
+      ev("noor", "2026-11-09", { nodig: "Rust", melding: "Klant werd agressief aan de telefoon", melding_soort: ["zorg"], melding_nu: true, melding_verstuurd: "a1b2c3d4" }),
+      ev("noor", "2026-11-16", { melding: "Zomaar" }),
+    ];
+    expect(teksten(rijen, "nodig")).toEqual([{ week: "2026-11-09", tekst: "Rust" }, { week: "2026-11-02", tekst: "Een uur samen" }]);
+    expect(meldingen(rijen)).toEqual([
+      { week: "2026-11-16", soort: null, soortLabel: "Gemeld of gedeeld", tekst: "Zomaar", nu: false, verstuurd: false },
+      { week: "2026-11-09", soort: "zorg", soortLabel: "Iets wat niet goed gaat", tekst: "Klant werd agressief aan de telefoon", nu: true, verstuurd: true },
+      { week: "2026-11-02", soort: "vraag", soortLabel: "Een vraag", tekst: "Nieuwe printer?", nu: false, verstuurd: false },
+    ]);
+  });
+
+  it("mailt een melding alleen als de collega dat vroeg, en opnieuw alleen bij een andere tekst", () => {
+    expect(meldingInhoud({ melding: "Idee", melding_soort: ["idee"] })).toBeNull();
+    expect(meldingInhoud({ melding: "Idee", melding_soort: ["idee"], melding_nu: true })).toBe("idee|Idee");
+    expect(meldingInhoud({ melding: "Idee", melding_nu: true })).toBe("|Idee");
+    const m = meldingMail("Noor", "2026-11-16", "compliment", "Susanne nam twee dossiers over.");
+    expect(m.onderwerp).toBe("Noor deelt een compliment");
+    expect(m.alineas[0]).toContain("week 47");
+    expect(m.alineas[1]).toContain("rechtstreeks naar Noor");
+    expect(m.citaat).toBe("Susanne nam twee dossiers over.");
+    expect(meldingMail("Noor", "2026-11-16", "zorg", "x").onderwerp).toBe("Noor meldt iets wat niet goed gaat");
+    expect(meldingMail("Noor", "2026-11-16", null, "x").onderwerp).toBe("Noor wil iets melden");
+  });
+
   it("zet de maandvragen per maand van het kwartaal", () => {
     const m = maandOverzicht(reeks, { jaar: 2026, kwartaal: 4 });
     expect(m.maanden).toEqual(["2026-10", "2026-11", "2026-12"]);
@@ -316,7 +369,8 @@ describe("export", () => {
         ev("noor", "2026-11-09", {
           energie: 4, plezier: 6, tijd: 4, emotie: 7, herstel: 5, kennis: 5, cijfer: 6, hoogtepunt: "Twee gestart", knelpunt: "Bedrijfsarts pas donderdag",
           knelpunt_themas: ["werkdruk", "planning"], kennis_themas: ["reintegratie"], kennis_mist: "Spoor 2", bespreken: ["knelpunt"],
-          doelen: { [DOEL]: { cijfer: 6, tekst: "Twee dossiers" } },
+          doelen: { [DOEL]: { cijfer: 6, tekst: "Twee dossiers" } }, cijfers_toelichting: "Maandag zwaar", nodig: "Een uur samen",
+          melding: "Susanne hielp", melding_soort: ["compliment"], melding_nu: true, melding_verstuurd: "a1b2c3d4",
         }),
       ],
       weken: ["2026-10-26", "2026-11-02", "2026-11-09", "2026-11-16", "2026-11-23"],
@@ -337,6 +391,12 @@ describe("export", () => {
     expect(kol(w46, "Kennisthema's")).toBe("Re-integratie spoor 1 en 2");
     expect(kol(w46, "Voortgang doelen")).toBe("Spoor 2 eigen maken: 6 (Twee dossiers)");
     expect(kol(w46, "Te bespreken")).toBe("Knelpunt");
+    expect(kol(w46, "Toelichting bij de cijfers")).toBe("Maandag zwaar");
+    expect(kol(w46, "Nodig")).toBe("Een uur samen");
+    expect(kol(w46, "Soort melding")).toBe("Een compliment");
+    expect(kol(w46, "Gemeld of gedeeld")).toBe("Susanne hielp");
+    expect(kol(w46, "Meteen doorgestuurd")).toBe("ja");
+    expect(kol(rijen[1], "Meteen doorgestuurd")).toBe("");
     expect(kol(w46, "Twee zware weken")).toBe("energie en werk paste in de tijd");
     expect(kol(w46, "Declarabele uren")).toBe("27,5");
     expect(kol(rijen[4], "Status")).toBe("nog open");

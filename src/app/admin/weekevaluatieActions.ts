@@ -1,4 +1,5 @@
 "use server";
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
@@ -7,8 +8,8 @@ import { isMissingTable } from "@/lib/dbErrors";
 import { datumOver } from "@/lib/offertes";
 import { maandagVan } from "@/lib/uren";
 import {
-  doelenVan, kwartaalSleutel, kwartaalVanWeek, leesAntwoorden, leesKwartaal, magWijzigen, MAX_DOELEN, signaalMail,
-  type Doel, type Schaal,
+  doelenVan, kwartaalSleutel, kwartaalVanWeek, leesAntwoorden, leesKwartaal, magWijzigen, MAX_DOELEN, meldingInhoud, meldingMail,
+  normaliseerAntwoorden, signaalMail, type Antwoorden, type Doel, type Schaal,
 } from "@/lib/weekevaluatie";
 
 /**
@@ -45,6 +46,14 @@ export async function weekevaluatieOpslaan(formData: FormData) {
   const { antwoorden, fouten } = leesAntwoorden(velden(formData), { week, doelen });
   if (fouten.length) redirect(terug("fout=weekevaluatie-schaal"));
 
+  // Een melding die meteen naar Rens moet: alleen mailen als deze tekst nog niet gemaild is.
+  const { data: bestaand } = await sb.from("weekevaluaties").select("antwoorden").eq("user_id", admin.userId).eq("week", week).maybeSingle();
+  const eerder = normaliseerAntwoorden((bestaand as { antwoorden?: unknown } | null)?.antwoorden).melding_verstuurd;
+  const inhoud = meldingInhoud(antwoorden);
+  const vingerafdruk = inhoud ? createHash("sha256").update(inhoud).digest("hex").slice(0, 32) : null;
+  if (vingerafdruk && vingerafdruk === eerder) antwoorden.melding_verstuurd = eerder;
+  const mailen = Boolean(vingerafdruk && vingerafdruk !== eerder);
+
   const { error } = await sb
     .from("weekevaluaties")
     .upsert({ user_id: admin.userId, week, antwoorden, door: admin.email }, { onConflict: "user_id,week" });
@@ -57,9 +66,49 @@ export async function weekevaluatieOpslaan(formData: FormData) {
   }
 
   await meldZwareWeken(sb, admin.userId, admin.email, week);
+  let melding: "verstuurd" | "mislukt" | null = null;
+  if (mailen && vingerafdruk) {
+    melding = (await stuurMelding(sb, admin.userId, admin.email, week, antwoorden)) ? "verstuurd" : "mislukt";
+    if (melding === "verstuurd") {
+      await sb.from("weekevaluaties").update({ antwoorden: { ...antwoorden, melding_verstuurd: vingerafdruk } }).eq("user_id", admin.userId).eq("week", week);
+    }
+  }
   revalidatePath("/admin/weekevaluatie", "layout");
   revalidatePath("/admin");
-  redirect(terug("opgeslagen=weekevaluatie"));
+  redirect(terug(`opgeslagen=${melding === "verstuurd" ? "weekevaluatie-melding" : "weekevaluatie"}${melding === "mislukt" ? "&fout=melding-mail" : ""}`));
+}
+
+/** Naam van de collega zoals het team hem kent: uit de medewerkers, anders de voornaam uit het e-mailadres. */
+async function naamVan(sb: Awaited<ReturnType<typeof requirePerm>>["sb"], userId: string, email: string) {
+  const { data: mw } = await sb.from("medewerkers").select("naam").eq("user_id", userId).maybeSingle();
+  return (mw as { naam?: string } | null)?.naam || firstName(email) || email;
+}
+
+/**
+ * Een melding die de collega meteen wil laten weten: naar wie het recht omzet
+ * heeft (weekevaluatie_ontvangers in 0046), met de tekst erbij, want die koos
+ * hij om te delen. Antwoorden gaat rechtstreeks naar de collega. Geeft terug
+ * of er minstens één mail aankwam; mislukt het, dan staat de melding nog
+ * gewoon in het kwartaaloverzicht.
+ */
+async function stuurMelding(sb: Awaited<ReturnType<typeof requirePerm>>["sb"], userId: string, email: string, week: string, a: Antwoorden): Promise<boolean> {
+  const { data, error } = await sb.rpc("weekevaluatie_ontvangers");
+  const ontvangers = !error && Array.isArray(data) ? (data as string[]) : [];
+  if (!ontvangers.length) {
+    console.error("[weekevaluatie] melding: geen ontvangers%s", error ? ` (${error.message})` : "");
+    return false;
+  }
+  const naam = await naamVan(sb, userId, email);
+  const m = meldingMail(naam, week, a.melding_soort?.[0] ?? null, a.melding!);
+  const { sendWeekevaluatieMelding, siteBasis } = await import("@/lib/mail");
+  const link = `${siteBasis()}/admin/weekevaluatie/team?kwartaal=${kwartaalSleutel(kwartaalVanWeek(week))}#collega-${userId}`;
+  let gelukt = false;
+  for (const aan of ontvangers) {
+    const res = await sendWeekevaluatieMelding({ to: aan, ...m, link, replyTo: email });
+    if (res.ok) gelukt = true;
+    else console.error("[weekevaluatie] melding aan %s mislukt: %s", aan, res.reden);
+  }
+  return gelukt;
 }
 
 /**
@@ -71,8 +120,7 @@ export async function weekevaluatieOpslaan(formData: FormData) {
 async function meldZwareWeken(sb: Awaited<ReturnType<typeof requirePerm>>["sb"], userId: string, email: string, week: string) {
   const { data, error } = await sb.rpc("weekevaluatie_signaal", { p_week: week });
   if (error || !Array.isArray(data) || !data.length) return;
-  const { data: mw } = await sb.from("medewerkers").select("naam").eq("user_id", userId).maybeSingle();
-  const naam = (mw as { naam?: string } | null)?.naam || firstName(email) || email;
+  const naam = await naamVan(sb, userId, email);
   const { sendWeekevaluatieSignaal, siteBasis } = await import("@/lib/mail");
   for (const rij of data as { signaal_week: string; signaal_schalen: string[]; signaal_ontvangers: string[] }[]) {
     const m = signaalMail(naam, rij.signaal_week, rij.signaal_schalen as Schaal[]);

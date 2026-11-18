@@ -206,6 +206,7 @@ export default async function Weekevaluatie({ searchParams }: { searchParams: Pr
                         <div key={t.sleutel}>
                           <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-black/45">
                             {t.kort}{a.bespreken?.includes(t.sleutel) && <span className="ml-2 normal-case tracking-normal text-[#312e82]">· voor de kwartaalmeeting</span>}
+                            {t.sleutel === "melding" && a.melding_verstuurd && <span className="ml-2 normal-case tracking-normal text-[#0e9f8a]">· meteen naar Rens gestuurd</span>}
                           </p>
                           {t.keuzes && a[t.keuzes]?.length ? <p className="mt-1 text-[12.5px] text-[#312e82]">{a[t.keuzes]!.map((s) => keuzeLabel(t.keuzes!, s)).join(" · ")}</p> : null}
                           {a[t.sleutel] && <p className="mt-1 whitespace-pre-line text-[14px] leading-relaxed text-[#1c1a4e]">{a[t.sleutel]}</p>}
@@ -229,7 +230,7 @@ function Kop({ kanOverzicht = false }: { kanOverzicht?: boolean }) {
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Mijn weekevaluatie</h1>
-        <p className="text-[14.5px] text-black/50">Zeven cijfers en een paar zinnen, elke week. Tot het eind van de week erna kun je nog aanpassen.</p>
+        <p className="text-[14.5px] text-black/50">Zeven cijfers en zoveel woorden als je wilt, elke week. Tot het eind van de week erna kun je nog aanpassen.</p>
       </div>
       {kanOverzicht && (
         <Link href="/admin/weekevaluatie/team" className="abtn-ghost !py-2 text-[13.5px]"><LuChartColumn className="text-[14px]" /> Kwartaaloverzicht</Link>

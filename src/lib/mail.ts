@@ -310,6 +310,28 @@ ${linkAlsTekst(s.link)}`);
   return verstuur([s.to], s.onderwerp, html);
 }
 
+/**
+ * Een melding uit de weekevaluatie die de collega meteen wil laten weten
+ * (weekevaluatieActions, tekst in meldingMail): de tekst als citaat, een knop
+ * naar de collega in het kwartaaloverzicht. Beantwoorden gaat naar de collega.
+ */
+export async function sendWeekevaluatieMelding(m: {
+  to: string; onderwerp: string; alineas: string[]; citaat: string; knop: string; link: string; replyTo: string; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const citaat = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 22px"><tr>
+<td style="border-left:3px solid ${KLEUR.roze};background:${KLEUR.zand};border-radius:0 14px 14px 0;padding:16px 20px;font-family:${FONT};font-size:16px;line-height:1.6;color:${KLEUR.inkt};white-space:pre-line">${esc(m.citaat)}</td>
+</tr></table>`;
+  const kaart = vak(`${p(esc(m.alineas[0]))}
+${citaat}
+${m.alineas.slice(1).map((a) => p(esc(a))).join("\n")}
+<div style="height:6px"></div>
+${knop(m.knop, m.link, KLEUR.indigo)}
+<div style="height:22px"></div>
+${linkAlsTekst(m.link)}`);
+  const html = omhulsel({ basis: siteBasis(), titel: m.onderwerp, preheader: m.citaat.slice(0, 140), kaart, contact: m.contact });
+  return verstuur([m.to], m.onderwerp, html, m.replyTo);
+}
+
 /** Testmail vanuit Instellingen: werkt de koppeling, en komt het aan? */
 export async function sendTestMail(to: string): Promise<Verzonden> {
   const html = persoonlijk(
