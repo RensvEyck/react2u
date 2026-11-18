@@ -115,6 +115,10 @@ const nextConfig: NextConfig = {
     "/machtiging/**": ["./src/lib/pdf/fonts/*.woff"],
     "/admin/onboarding/**": ["./src/lib/pdf/fonts/*.woff"],
     "/admin/offertevoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
+    // Klantevaluatie (0043): de pdf voor de klant, het voorbeeld in het beheer en de bevestiging met de pdf als bijlage.
+    "/evaluatie/**": ["./src/lib/pdf/fonts/*.woff"],
+    "/admin/evaluatievoorbeeld/**": ["./src/lib/pdf/fonts/*.woff"],
+    "/admin/documenten/**": ["./src/lib/pdf/fonts/*.woff"],
     // Contracten (0031): dezelfde bestanden.
     "/contract/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
     "/admin/contractvoorbeeld/**": ["./src/lib/pdf/fonts/*.woff", "./public/beeld/keurmerken/*", "./public/beeld/handtekening-rens.png"],
@@ -187,6 +191,11 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/machtiging/:path*",
+        headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
+      },
+      // Klantevaluaties (0043): dezelfde regels als de onboarding.
+      {
+        source: "/evaluatie/:path*",
         headers: [NOINDEX, { key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "private, no-store" }],
       },
     ];

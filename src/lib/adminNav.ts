@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -39,6 +39,9 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Contracten", href: "/admin/contracten", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening arbowet overeenkomst ondertekenen tekenen looptijd opzeggen verlengen sales" },
   { label: "Onboarding", href: "/admin/onboarding", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom inrichting werknemersbestand xpertsuite import machtiging verzuimprotocol documenten versturen invullen" },
   { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales" },
+  // Documenten (0043): de losse documenten die de klant via een persoonlijke link invult, in de stijl van het contract en de onboarding.
+  { label: "Documenten", href: "/admin/documenten", icon: LuFiles, keywords: "documenten klantevaluatie evaluatie formulier invullen versturen losse documenten jaarlijks bezoek" },
+  { label: "Klantevaluaties", href: "/admin/documenten/evaluaties", icon: LuClipboardList, keywords: "klantevaluatie evaluatie jaarlijks bezoek checklist rie psa pmo preventiemedewerker dienstverlening wensen afspraken acties", paletteOnly: true },
   { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
   { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
   { label: "Uren", href: "/admin/omzet/uren", icon: LuClock, keywords: "declarabele uren medewerkers werknemers urenregistratie declarabiliteit norm week invullen", paletteOnly: true },
@@ -73,6 +76,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "Nieuw contract", href: "/admin/contracten/nieuw", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening maken versturen ondertekenen" },
   { label: "Nieuwe onboarding", href: "/admin/onboarding/nieuw", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom documenten versturen invullen" },
   { label: "Nieuwe brochure", href: "/admin/brochures/nieuw", icon: LuBookOpen, keywords: "brochure maken versturen prospect kennismaking" },
+  { label: "Nieuwe klantevaluatie", href: "/admin/documenten/evaluaties/nieuw", icon: LuClipboardList, keywords: "evaluatie klant jaarlijks bezoek maken versturen formulier" },
   { label: "Lead toevoegen", href: "/admin/bellijst#nieuw", icon: LuUserPlus, keywords: "lead nieuw bellijst" },
   { label: "Lead of klant op het bord", href: "/admin/klantenbord#nieuw", icon: LuLayoutGrid, keywords: "klantenbord nieuw klant lead kaart toevoegen" },
   { label: "Klantlijst importeren", href: "/admin/klantenbord#import", icon: LuUpload, keywords: "klantenbord excel klantlijst xlsx importeren upload" },
@@ -92,6 +96,7 @@ export const CRUMBS: Record<string, string> = {
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",
+  documenten: "Documenten", evaluaties: "Klantevaluaties",
   offertes: "Offertes", contracten: "Contracten", onboarding: "Onboarding", werknemers: "Werknemers", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };
