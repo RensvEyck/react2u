@@ -398,6 +398,8 @@ export async function domeinStatus(): Promise<DomeinStatus> {
 
 export async function notifyContactMessage(m: {
   name: string; email: string; phone: string; subject: string; message: string; taal?: Taal;
+  /** Hoe de afzender ons vond, als leesbare tekst (lib/herkomst.ts), met de landingspagina (migratie 0047). */
+  herkomst?: string | null; landingspagina?: string | null;
 }) {
   await send(
     `Nieuw bericht via de website${m.subject ? `: ${m.subject}` : ""}`,
@@ -406,6 +408,8 @@ export async function notifyContactMessage(m: {
       { label: "E-mail", value: m.email },
       { label: "Telefoon", value: m.phone },
       { label: "Onderwerp", value: m.subject || "(geen onderwerp)" },
+      { label: "Gevonden via", value: m.herkomst ?? null },
+      { label: "Kwam binnen op", value: m.landingspagina ?? null },
       taalVeld(m.taal),
     ], m.message)
   );
@@ -440,6 +444,8 @@ export async function notifyOfferte(o: {
   pakket: string; employees: number; message: string | null; taal?: Taal;
   /** Partnercode uit de aanmeldlink, als de aanvraag via een partner kwam. */
   partner?: string | null;
+  /** Hoe de aanvrager ons vond, als leesbare tekst (lib/herkomst.ts), met de landingspagina (migratie 0047). */
+  herkomst?: string | null; landingspagina?: string | null;
 }) {
   await send(
     `Offerteaanvraag ${o.pakket}: ${o.company}`,
@@ -451,6 +457,8 @@ export async function notifyOfferte(o: {
       { label: "E-mail", value: o.email },
       { label: "Telefoon", value: o.phone },
       { label: "Via partner", value: o.partner },
+      { label: "Gevonden via", value: o.herkomst ?? null },
+      { label: "Kwam binnen op", value: o.landingspagina ?? null },
       taalVeld(o.taal),
     ], o.message),
     process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"

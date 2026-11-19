@@ -3,7 +3,7 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
-const { BASIS, UIT, MAILS, BEHEERDER, mails, offerteLink, totp, geheim } = require("./hulp.cjs");
+const { BASIS, UIT, MAILS, BEHEERDER, mails, offerteLink, totp, geheim, sql } = require("./hulp.cjs");
 
 const SHOTS = path.join(UIT, "offerte");
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -99,11 +99,14 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   const totaalTekst = await page.locator("aside .acard").first().innerText();
   check(totaalTekst.includes("€1.617"), `totaal bij standaardkeuze klopt (42 × €38,50 = €1.617): ${totaalTekst.split("\n")[1]}`);
   await shot(page, "02-editor");
+  await page.selectOption("#of-herkomst", "google");
   await page.click("button:has-text('Offerte aanmaken')");
   await page.waitForURL(/\/admin\/offertes\/[0-9a-f-]{36}$/, { timeout: 30000 });
   const offerteUrl = page.url();
   ok(`opgeslagen: ${new URL(offerteUrl).pathname}`);
   await page.waitForSelector("text=Offerte aangemaakt");
+  // De herkomst van de offerte komt via de trigger (0047) op de kaart van het klantenbord.
+  check(sql("select herkomst from public.klanten where bedrijf = 'Bakkerij De Gouden Korst BV'") === "google", "herkomst van de offerte staat op de kaart (0047)");
   await shot(page, "03-offerte-concept");
 
   stap("Voorbeeld");
@@ -364,6 +367,7 @@ const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS,
   await page.fill("#of-bedrijf", "Transport Van Dijk");
   await page.fill("#of-mw", "15");
   await page.fill("#of-email", "jan@vandijk.test");
+  await page.selectOption("#of-herkomst", "belbureau");
   await page.click("button:has-text('Offerte aanmaken')");
   await page.waitForURL(/\/admin\/offertes\/[0-9a-f-]{36}$/);
   await page.click("text=Liever zelf versturen");

@@ -6,6 +6,7 @@ import {
   type ImportRij, type Klant, type KlantStatus,
 } from "@/lib/klanten";
 import { alineas, mailSamenvatting } from "@/lib/klantMail";
+import { isHerkomst, type Herkomst } from "@/lib/herkomst";
 import { sendBrief } from "@/lib/mail";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
@@ -36,6 +37,9 @@ export type KlantInvoer = {
   telefoon?: string | null;
   eigenaar?: string | null;
   bron?: string | null;
+  /** Hoe de klant ons vond, een sleutel uit lib/herkomst.ts (migratie 0047); verplicht bij een nieuwe kaart. */
+  herkomst?: string | null;
+  herkomst_toelichting?: string | null;
   startdatum?: string | null;
   stand?: string | null;
   volgende_actie?: string | null;
@@ -61,7 +65,7 @@ const meerregelig = (w: unknown, max: number): string | null => {
 
 function foutUit(error: { code?: string; message?: string } | null | undefined): string {
   if (!error) return "Opslaan mislukt.";
-  if (error.code === "PGRST205" || error.code === "42P01" || error.code === "42703" || error.code === "PGRST204") return "Het klantenbord staat nog niet (helemaal) aan: migraties 0040 en 0041 moeten eerst in Supabase worden uitgevoerd.";
+  if (error.code === "PGRST205" || error.code === "42P01" || error.code === "42703" || error.code === "PGRST204") return "Het klantenbord staat nog niet (helemaal) aan: migraties 0040, 0041 en 0047 moeten eerst in Supabase worden uitgevoerd.";
   if (error.code === "23505") return "Dit bedrijf staat al op het bord.";
   if (error.code === "23514") return "Een van de velden klopt niet (bijvoorbeeld het e-mailadres of een te lange tekst).";
   return "Opslaan mislukt.";
@@ -88,6 +92,12 @@ function schoon(invoer: KlantInvoer): { velden: Partial<Klant>; fout?: string } 
   if ("telefoon" in invoer) v.telefoon = tekst(invoer.telefoon, 40);
   if ("eigenaar" in invoer) v.eigenaar = tekst(invoer.eigenaar, 80);
   if ("bron" in invoer) v.bron = tekst(invoer.bron, 120);
+  if ("herkomst" in invoer) {
+    const h = tekst(invoer.herkomst, 40);
+    if (h && !isHerkomst(h)) return { velden: v, fout: "Onbekende herkomst." };
+    v.herkomst = (h as Herkomst | null) ?? null;
+  }
+  if ("herkomst_toelichting" in invoer) v.herkomst_toelichting = tekst(invoer.herkomst_toelichting, 200);
   if ("stand" in invoer) v.stand = meerregelig(invoer.stand, 2000);
   if ("volgende_actie" in invoer) v.volgende_actie = tekst(invoer.volgende_actie, 500);
   if ("notitie" in invoer) v.notitie = meerregelig(invoer.notitie, 10000);
@@ -124,6 +134,9 @@ export async function maakKlant(invoer: KlantInvoer): Promise<KlantResultaat> {
   const { sb, user, admin } = await requirePerm("bellijst");
   const { velden, fout } = schoon({ ...invoer, bedrijf: invoer.bedrijf ?? "" });
   if (fout) return { ok: false, fout };
+  // Met de hand op het bord: dan weet je hoe de klant ons vond. Een kaart uit
+  // een module krijgt het van de offerte (0047) of blijft leeg tot iemand het invult.
+  if (!velden.herkomst) return { ok: false, fout: "Kies hoe deze klant ons vond." };
   const { data, error } = await sb.from("klanten").insert({ ...velden, created_by: user.id }).select("*").single();
   if (error || !data) return { ok: false, fout: foutUit(error) };
   const klant = data as Klant;

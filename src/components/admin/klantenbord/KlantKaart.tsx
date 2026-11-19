@@ -55,7 +55,11 @@ export default function KlantKaart({
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="min-w-0 truncate text-[14.5px] font-bold leading-tight text-[#1c1a4e]">{k.bedrijf}</h3>
-        <Eigenaar naam={k.eigenaar} />
+        <span className="flex shrink-0 items-center gap-1.5">
+          {/* Zonder herkomst (0047) weet niemand waar deze klant vandaan kwam; het paneel vraagt erom. */}
+          {!k.herkomst && <span className="rounded-full bg-[#fff4e5] px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-[#b86e00]" title="Hoe vond deze klant ons? Vul de herkomst in via het paneel.">herkomst?</span>}
+          <Eigenaar naam={k.eigenaar} />
+        </span>
       </div>
 
       {(k.contactpersoon || k.telefoon || k.email) && (

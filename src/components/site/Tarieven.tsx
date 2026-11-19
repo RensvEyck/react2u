@@ -10,6 +10,8 @@ import { kleur } from "@/lib/brand";
 import { Arrow } from "./Arrow";
 import { Bedankt, Field, fieldClass } from "./FormField";
 import TurnstileField from "./TurnstileField";
+import HerkomstSelect from "./HerkomstSelect";
+import { metHerkomst } from "./BronOnthouden";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
 
@@ -449,7 +451,8 @@ function OfferteDialog({
 }: {
   ref: React.Ref<HTMLDialogElement>; pakketten: Pakket[]; keuze: string; setKeuze: (s: string) => void; n: number;
 }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(submitOfferte, null);
+  // Bron en landingspagina erbij (BronOnthouden, migratie 0047), dan naar de server.
+  const [state, action, pending] = useActionState<FormState, FormData>((prev, fd) => submitOfferte(prev, metHerkomst(fd)), null);
   const partner = usePartnercode();
   const opties = [...pakketten.map((p) => ({ sleutel: p.sleutel, naam: p.naam })), { sleutel: "maatwerk", naam: "Maatwerk" }];
   const sluit = (e: React.MouseEvent) => (e.currentTarget.closest("dialog") as HTMLDialogElement | null)?.close();
@@ -494,6 +497,9 @@ function OfferteDialog({
             </Field>
             <Field label="Opmerking" optional>
               <textarea className={fieldClass} name="message" rows={3} maxLength={4000} />
+            </Field>
+            <Field label="Hoe heb je ons gevonden?">
+              <HerkomstSelect className={fieldClass} />
             </Field>
             <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
             <TurnstileField resetKey={state?.error} />

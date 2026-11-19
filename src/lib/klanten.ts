@@ -9,6 +9,7 @@
  * Verkoopblok dat doet). De schermen eromheen zijn dun; dit is wat getest wordt
  * (klanten.test.ts).
  */
+import type { Herkomst } from "./herkomst";
 
 import { normalizeName } from "./companies";
 import { datumLang } from "./offertes";
@@ -83,7 +84,12 @@ export type Klant = {
   email: string | null;
   telefoon: string | null;
   eigenaar: string | null;
+  /** Vrije tekst van vroeger, of de module die de kaart maakte (offerte, brochure, …). */
   bron: string | null;
+  /** Hoe deze klant ons vond, uit de vaste keuzelijst (lib/herkomst.ts, migratie 0047); leeg bij oudere kaarten. */
+  herkomst?: Herkomst | null;
+  /** Bijvoorbeeld wie doorverwees of welke beurs. */
+  herkomst_toelichting?: string | null;
   startdatum: string | null;
   offerte_retour: boolean;
   contract_retour: boolean;

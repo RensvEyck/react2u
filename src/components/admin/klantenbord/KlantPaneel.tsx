@@ -9,6 +9,7 @@ import {
 import { datumLang, momentLang } from "@/lib/offertes";
 import { MAIL_SJABLONEN, naamUitEmail, sjabloon, voornaamUit, vulIn } from "@/lib/klantMail";
 import { noteerBel } from "@/lib/belAfloop";
+import { herkomstLabel, HERKOMST_UITLEG, HERKOMSTEN } from "@/lib/herkomst";
 import { maakKlant, mailKlant, verwijderGesprek, verwijderKlant, voegGesprekToe, wijzigKlant, zetKlantStatus, type KlantInvoer } from "@/app/admin/klantenActions";
 import { BRON_ICOON, BRON_LABEL, Checklist, Eigenaar, GesprekIcoon, KoppelChip, SiteIcoon, SOORT_LABEL } from "./bits";
 
@@ -77,7 +78,7 @@ export default function KlantPaneel(p: Props) {
 function Nieuw({ vandaag, eigenaren, onClose, onKlant, meld }: Props) {
   const [bezig, start] = useTransition();
   const [fout, setFout] = useState<string | null>(null);
-  const [v, setV] = useState<KlantInvoer>({ bedrijf: "", status: "lead", contactpersoon: "", telefoon: "", email: "", eigenaar: "", bron: "", startdatum: "", stand: "", volgende_actie: "", volgende_actie_op: "" });
+  const [v, setV] = useState<KlantInvoer>({ bedrijf: "", status: "lead", contactpersoon: "", telefoon: "", email: "", eigenaar: "", herkomst: "", herkomst_toelichting: "", startdatum: "", stand: "", volgende_actie: "", volgende_actie_op: "" });
   const zet = (k: keyof KlantInvoer, w: string) => setV((x) => ({ ...x, [k]: w }));
 
   return (
@@ -97,7 +98,7 @@ function Nieuw({ vandaag, eigenaren, onClose, onKlant, meld }: Props) {
       <header className="flex items-start justify-between gap-4 border-b border-black/[0.06] bg-white px-6 py-5">
         <div>
           <h2 className="font-heading text-[20px] font-bold text-[#312e82]">Nieuwe lead of klant</h2>
-          <p className="text-[13.5px] text-black/50">Alleen de bedrijfsnaam is verplicht. De rest vul je aan terwijl je belt.</p>
+          <p className="text-[13.5px] text-black/50">De bedrijfsnaam en hoe de klant ons vond zijn verplicht. De rest vul je aan terwijl je belt.</p>
         </div>
         <button type="button" onClick={onClose} className="rounded-lg p-2 text-black/40 hover:bg-black/[0.05] hover:text-[#1c1a4e]" aria-label="Sluiten"><LuX /></button>
       </header>
@@ -129,8 +130,15 @@ function Nieuw({ vandaag, eigenaren, onClose, onKlant, meld }: Props) {
             <input id="kb-email" className={veld} type="email" value={v.email || ""} onChange={(e) => zet("email", e.target.value)} />
           </div>
           <div>
-            <label className="alabel" htmlFor="kb-bron">Bron</label>
-            <input id="kb-bron" className={veld} value={v.bron || ""} onChange={(e) => zet("bron", e.target.value)} placeholder="beurs, website, partner…" />
+            <label className="alabel" htmlFor="kb-herkomst">Hoe vond de klant ons? *</label>
+            <select id="kb-herkomst" className={veld} value={v.herkomst || ""} onChange={(e) => zet("herkomst", e.target.value)} required>
+              <option value="" disabled>Kies een herkomst</option>
+              {HERKOMSTEN.map((h) => <option key={h} value={h}>{HERKOMST_UITLEG[h]}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="alabel" htmlFor="kb-herkomst-toelichting">Toelichting</label>
+            <input id="kb-herkomst-toelichting" className={veld} value={v.herkomst_toelichting || ""} onChange={(e) => zet("herkomst_toelichting", e.target.value)} maxLength={200} placeholder="Wie verwees door, welke beurs" />
           </div>
           <div>
             <label className="alabel" htmlFor="kb-start">Startdatum</label>
@@ -261,11 +269,12 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
 
   // De gegevens.
   const [g, setG] = useState<KlantInvoer>({
-    bedrijf: k.bedrijf, contactpersoon: k.contactpersoon || "", telefoon: k.telefoon || "", email: k.email || "", eigenaar: k.eigenaar || "", bron: k.bron || "",
+    bedrijf: k.bedrijf, contactpersoon: k.contactpersoon || "", telefoon: k.telefoon || "", email: k.email || "", eigenaar: k.eigenaar || "",
+    herkomst: k.herkomst || "", herkomst_toelichting: k.herkomst_toelichting || "",
     startdatum: k.startdatum || "", stand: k.stand || "", notitie: k.notitie || "",
   });
   const zetG = (veld: keyof KlantInvoer, w: string) => setG((x) => ({ ...x, [veld]: w }));
-  const gegevensGewijzigd = (["bedrijf", "contactpersoon", "telefoon", "email", "eigenaar", "bron", "startdatum", "stand", "notitie"] as const).some(
+  const gegevensGewijzigd = (["bedrijf", "contactpersoon", "telefoon", "email", "eigenaar", "herkomst", "herkomst_toelichting", "startdatum", "stand", "notitie"] as const).some(
     (f) => (g[f] || "") !== ((k[f] as string | null) || ""),
   );
 
@@ -372,8 +381,14 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
             <p className="mt-0.5 text-[13px] text-black/50">
               {s.uitleg}
               {k.startdatum ? ` · start ${datumLang(k.startdatum)}` : ""}
-              {k.bron ? ` · via ${k.bron}` : ""}
+              {/* De herkomst uit de vaste lijst (0047); daarvóór de vrije tekst of de module die de kaart maakte. */}
+              {k.herkomst ? ` · via ${herkomstLabel(k.herkomst)}${k.herkomst_toelichting ? ` (${k.herkomst_toelichting})` : ""}` : k.bron ? ` · via ${k.bron}` : ""}
             </p>
+            {!k.herkomst && (
+              <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-[#fff4e5] px-2.5 py-0.5 text-[12px] font-semibold text-[#b86e00]">
+                Hoe vond deze klant ons? Vul de herkomst in bij Gegevens.
+              </p>
+            )}
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-2 text-black/40 hover:bg-black/[0.05] hover:text-[#1c1a4e]" aria-label="Sluiten"><LuX /></button>
         </div>
@@ -651,8 +666,15 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
               <input id="kb-g-email" className={veld} type="email" value={g.email || ""} onChange={(e) => zetG("email", e.target.value)} />
             </div>
             <div>
-              <label className="alabel" htmlFor="kb-g-bron">Bron</label>
-              <input id="kb-g-bron" className={veld} value={g.bron || ""} onChange={(e) => zetG("bron", e.target.value)} />
+              <label className="alabel" htmlFor="kb-g-herkomst">Hoe vond de klant ons?</label>
+              <select id="kb-g-herkomst" className={veld} value={g.herkomst || ""} onChange={(e) => zetG("herkomst", e.target.value)}>
+                <option value="">Nog niet ingevuld</option>
+                {HERKOMSTEN.map((h) => <option key={h} value={h}>{HERKOMST_UITLEG[h]}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-herkomst-toelichting">Toelichting bij de herkomst</label>
+              <input id="kb-g-herkomst-toelichting" className={veld} value={g.herkomst_toelichting || ""} onChange={(e) => zetG("herkomst_toelichting", e.target.value)} maxLength={200} placeholder="Wie verwees door, welke beurs" />
             </div>
             <div>
               <label className="alabel" htmlFor="kb-g-start">Startdatum</label>

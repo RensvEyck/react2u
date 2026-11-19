@@ -50,7 +50,8 @@ Gebruik deze termen; de code doet dat ook.
 | **Taal** (`Taal`) | `nl` of `en`. Nederlands op de gewone paden, Engels onder `/en`. Zie *Tweetalig*. |
 | **Koppeltabel** (`SLUGS`) | NL-slug ↔ EN-slug in [`src/lib/taal.ts`](src/lib/taal.ts), de enige plek die zegt welke Engelse URL bij een pagina hoort. |
 | **Bewaartermijn** | Voor sollicitaties: hoe lang ze mogen blijven staan. Bepaald in [`src/lib/retention.ts`](src/lib/retention.ts); het Postvak IN wijst aan wat erover is, en `api/cron/opruimen` verwijdert het dagelijks. |
-| **Conversie** (`conversions`) | Eén verstuurd formulier: het soort (`contact`, `offerte`, `sollicitatie`, `terugbel`) en de pagina waar het stond. Geen persoonsgegevens. Zie *Bewaartermijnen en privacy*, "Conversies". |
+| **Conversie** (`conversions`) | Eén verstuurd formulier (`contact`, `offerte`, `sollicitatie`, `terugbel`) of een klik op bellen of mailen (`bel`, `mail`, migratie 0047), met de pagina waar het stond, de herkomst, de bron en de landingspagina. Geen persoonsgegevens. Zie *Bewaartermijnen en privacy*, "Conversies". |
+| **Herkomst** (`herkomst`) | Hoe een werkgever ons vond, uit één vaste keuzelijst in [`src/lib/herkomst.ts`](src/lib/herkomst.ts): google, ai, linkedin, verwijzing, partner, belbureau, anders. De bezoeker kiest hem in contact en kennismaken; hij reist mee naar het Postvak IN, de offerte en de kaart op het klantenbord (migratie 0047). Naast de herkomst staan de **bron** (wat de browser zag: verwijzer of campagne, `BronOnthouden.tsx`) en de **landingspagina** (de eerste pagina van het bezoek). |
 | **Belbalk** | Vaste balk onderaan het scherm op de telefoon, alleen op werkgeverspagina's: bellen of een terugbelmoment aanvragen (`BelBalk.tsx`, `lib/belbalk.ts`). Een terugbelverzoek is een bericht met onderwerp "Terugbelverzoek". |
 | **Klantevaluatie** (`evaluaties`) | Het jaarlijkse evaluatieformulier als losse module onder Documenten: één persoonlijke link, de klant vult online in. Zie *Documenten en klantevaluatie*. |
 | **Tarievenjaar** (`tarieven`) | Instelling `{jaar, geldigTot}`. De tariefblokken zetten het jaar in hun bovenkopje en tonen de geldigheid; per 1 januari pas je hier het jaar aan en in de blokken de bedragen. |
@@ -2053,6 +2054,15 @@ met de laatste stand en soms een contactpersoon.
   systeemregels en tellen niet als contact), het instaptraject (de vijf
   vinkjes), de koppelingen en de gegevens. Zonder kaart is het het formulier
   voor een nieuwe lead of klant (`#nieuw`, ook uit het commandopalet).
+- **Herkomst** (migratie 0047): hoe de klant ons vond, uit de vaste keuzelijst
+  van [`lib/herkomst.ts`](src/lib/herkomst.ts), met een toelichting (wie
+  doorverwees, welke beurs). Verplicht bij een kaart met de hand (`maakKlant`)
+  en bij elke offerte in de editor; een kaart uit een offerte krijgt hem van die
+  offerte (trigger `klantenbord_offerte`, en later alsnog als de offerte hem
+  krijgt), een kaart uit een brochure, contract of import blijft leeg tot iemand
+  hem invult. De kaart toont *herkomst?* zolang hij ontbreekt. Het oude vrije
+  veld `bron` blijft bestaan voor wat er al stond en voor de module die de
+  kaart maakte.
 - **Zoeken en filteren** gebeuren in de browser: elk woord moet ergens
   voorkomen (bedrijf, contactpersoon, mail, eigenaar, stand, volgende actie,
   laatste contact, bron; een telefoonnummer zonder spaties), filter op
@@ -2707,6 +2717,22 @@ per soort, en per pagina met bezoekers en percentage
 ([`src/lib/conversions.ts`](src/lib/conversions.ts)). Twaalf maanden bewaard,
 net als bezoek. Een terugbelverzoek uit de belbalk telt als `terugbel`.
 
+Sinds migratie [0047](supabase/migrations/0047_herkomst.sql) telt ook een klik
+op een telefoonnummer of mailadres (`bel`, `mail`; `KlikTracker.tsx` meldt hem
+aan `/api/track`, één per soort per pagina per bezoek), want bij een arbodienst
+komen de meeste aanvragen zo binnen en niet via een formulier. Klikken zijn geen
+aanvragen: `aanvragen()` en `klikken()` houden ze uit elkaar, en het percentage
+rekent alleen met formulieren. Bij elke rij staan verder de **herkomst** (wat de
+bezoeker koos bij "hoe heb je ons gevonden"; verplicht in contact en
+kennismaken, niet in de belbalk), de **bron** en de **landingspagina** (beide
+uit `sessionStorage`, `BronOnthouden.tsx`, net als `applications.bron`) en de
+daghash van de bezoeker (`visitor_hash`, dezelfde als in `page_views`; geen IP,
+roteert elke nacht). Daarmee laat `/admin/bezoek` zien hoe werkgevers ons
+vonden, welke pagina's tot bellen of mailen leiden en op welke pagina het bezoek
+begon dat later iets opleverde. Dezelfde herkomst, bron en landingspagina staan
+op `contact_messages` (het Postvak IN toont ze als pil) en gaan via *Offerte
+maken* mee de offerte in.
+
 Het privacyreglement (PDF, verzuimdossiers) belooft tweefactorauthenticatie voor
 toegang tot digitale bestanden. Het adminpaneel heeft dat: in te stellen onder
 Account, en afgedwongen door `requireAdmin()` voor wie hem heeft ingesteld.
@@ -2732,7 +2758,11 @@ og_image leeg), `0013_formulieren_conversies_bewaren.sql` (`rate_limits`,
 `SUPABASE_SERVICE_ROLE_KEY` ook in Preview staat) en
 `0016_rechten_functies.sql` (EXECUTE op security definer-functies alleen voor
 wie ze nodig heeft; `has_perm()` houdt anon, want de policies "public read …"
-roepen hem aan). Supabase-project `tumwtappyegkjabtmold`.
+roepen hem aan) en `0047_herkomst.sql` (bel- en mailklikken in `conversions`;
+herkomst, bron en landingspagina op `conversions` en `contact_messages`;
+`herkomst` en `herkomst_toelichting` op `klanten` en `offertes`; `klant_zeker()`
+met twee parameters erbij en de trigger die de herkomst van een offerte naar de
+kaart brengt). Supabase-project `tumwtappyegkjabtmold`.
 
 De tabel `supabase_migrations.schema_migrations` in de live database gebruikt
 tijdstempelversies met eigen namen (`init_react2u_cms` = 0001, enz.) en

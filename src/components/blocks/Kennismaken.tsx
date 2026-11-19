@@ -5,6 +5,8 @@ import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, BODY, MUTE, LAV, kop, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
+import HerkomstSelect from "@/components/site/HerkomstSelect";
+import { metHerkomst } from "@/components/site/BronOnthouden";
 import { useTaal } from "@/components/site/Taal";
 import { pad, telefoonInTaal } from "@/lib/taal";
 import { usePartnercode } from "@/lib/partnercode";
@@ -46,7 +48,8 @@ async function verstuur(prev: FormState, fd: FormData): Promise<FormState> {
   ].filter(Boolean);
   fd.set("message", regels.join("\n"));
   if (!fd.get("pakket")) fd.set("pakket", "Kennismaking");
-  return submitOfferte(prev, fd);
+  // Bron en landingspagina erbij (BronOnthouden, migratie 0047).
+  return submitOfferte(prev, metHerkomst(fd));
 }
 
 function Formulier({ d }: { d: any }) {
@@ -96,6 +99,8 @@ function Formulier({ d }: { d: any }) {
           <input className={veld} name="pakket" maxLength={80} placeholder={k.interessePlaceholder} /></label>
         <label className="flex flex-col gap-2 sm:col-span-2"><Label>{k.toelichting}</Label>
           <textarea className={`${veld} h-[120px] resize-none py-3.5 leading-[1.6]`} name="toelichting" maxLength={3000} placeholder={k.toelichtingPlaceholder} /></label>
+        <label className="flex flex-col gap-2 sm:col-span-2"><Label verplicht>{f.herkomst.label}</Label>
+          <HerkomstSelect className={veld} /></label>
       </div>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...LOKVELD} />
       <TurnstileField resetKey={state?.error} />

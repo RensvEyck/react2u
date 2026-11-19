@@ -74,7 +74,7 @@ export default async function NieuweOfferte({
         }
       : { titel: "Offerte", regels: [] }),
     ...(aanvraag
-      ? { bedrijf: aanvraag.bedrijf, contactpersoon: aanvraag.contactpersoon, email: aanvraag.email, telefoon: aanvraag.telefoon, medewerkers: aanvraag.medewerkers }
+      ? { bedrijf: aanvraag.bedrijf, contactpersoon: aanvraag.contactpersoon, email: aanvraag.email, telefoon: aanvraag.telefoon, medewerkers: aanvraag.medewerkers, herkomst: aanvraag.herkomst }
       : {}),
     ...(vanBrochure ?? {}),
   };

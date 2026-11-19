@@ -8,6 +8,7 @@ import {
 } from "@/lib/offertes";
 import { sleutelUit, STANDAARD_SJABLONEN } from "@/lib/offerteSjablonen";
 import { ruimModulesOp } from "@/lib/offerteCatalogus";
+import { isHerkomst } from "@/lib/herkomst";
 import { sendOfferte, offerteUrl } from "@/lib/mail";
 import { offerteSamenvatting } from "@/lib/offerteMail";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
@@ -65,11 +66,17 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
   const vorm = fd.get("vorm");
   const medewerkersRuw = Number(String(fd.get("medewerkers") || "").replace(/\D/g, ""));
   const geldig = String(fd.get("geldig_tot") || "");
+  // Hoe de klant ons vond (migratie 0047): verplicht, zodat het klantenbord en
+  // /admin/bezoek het kunnen optellen. De kaart neemt het over via de trigger.
+  const herkomst = tekst(fd, "herkomst", 40);
+  if (!isHerkomst(herkomst)) return { fout: "Kies hoe de klant ons vond." };
   const rij = {
     bedrijf: tekst(fd, "bedrijf") || "",
     contactpersoon: tekst(fd, "contactpersoon"),
     email: tekst(fd, "email", 254)?.toLowerCase() ?? null,
     telefoon: tekst(fd, "telefoon", 40),
+    herkomst,
+    herkomst_toelichting: tekst(fd, "herkomst_toelichting", 200),
     medewerkers: medewerkersRuw > 0 ? Math.min(medewerkersRuw, 1_000_000) : null,
     vorm: isVorm(vorm) ? vorm : "verzuimbegeleiding",
     titel: tekst(fd, "titel") || "Offerte",

@@ -10,7 +10,9 @@ import { cvLezenAan, leesCvUit } from "@/lib/cvLezen";
 import { schoonSamenvatting, type CvSamenvatting } from "@/lib/cvSamenvatting";
 import { isAanbieder, veiligeFoto } from "@/lib/inloggen";
 import { recordConversion } from "@/lib/conversionsDb";
-import { pathFromReferer, type ConversionKind } from "@/lib/conversions";
+import { pathFromReferer, type ConversionExtra, type ConversionKind } from "@/lib/conversions";
+import { isTrackablePath, normalizePath, visitorHash } from "@/lib/analytics";
+import { HERKOMST_LABEL, isHerkomst, type Herkomst } from "@/lib/herkomst";
 import { geldigEmail, TERUGBEL_MOMENTEN } from "@/lib/formulier";
 import { isTaal, type Taal } from "@/lib/taal";
 import { woordenboek, type Woordenboek } from "@/lib/woordenboek";
@@ -18,6 +20,52 @@ import { woordenboek, type Woordenboek } from "@/lib/woordenboek";
 export type FormState = { ok: boolean; error?: string } | null;
 
 const veld = (fd: FormData, naam: string) => String(fd.get(naam) || "").trim();
+
+/**
+ * Waar een aanvraag vandaan kwam (migratie 0047): wat de bezoeker koos bij
+ * "hoe heb je ons gevonden" (`herkomst`, een sleutel uit lib/herkomst.ts),
+ * wat de browser zag (`bron`, uit BronOnthouden) en de eerste pagina van het
+ * bezoek (`landing`). Alle drie mogen ontbreken; het formulier zelf bepaalt
+ * of de herkomst verplicht is.
+ */
+function herkomstUit(fd: FormData): { herkomst: Herkomst | null; bron: string | null; landingspagina: string | null } {
+  const h = veld(fd, "herkomst");
+  const landing = veld(fd, "landing");
+  return {
+    herkomst: isHerkomst(h) ? h : null,
+    bron: veld(fd, "bron").slice(0, 120) || null,
+    landingspagina: landing && isTrackablePath(landing) ? normalizePath(landing).slice(0, 200) : null,
+  };
+}
+
+/**
+ * De daghash van de bezoeker, dezelfde als in page_views (lib/analytics.ts),
+ * zodat een aanvraag aan het bezoek te koppelen is. Geen IP in de database;
+ * zonder zout geen hash, net als bij de bezoekregistratie.
+ */
+async function bezoekerHash(): Promise<string | null> {
+  const salt = process.env.ANALYTICS_SALT;
+  const ip = await requestIp();
+  if (!salt || !ip) return null;
+  const h = await headers();
+  return visitorHash(ip, h.get("user-agent") || "", new Date().toISOString().slice(0, 10), salt);
+}
+
+/** De extra kolommen voor de conversie en de kolommen voor het bericht, in één keer. */
+async function herkomstVoor(fd: FormData): Promise<{ conversie: ConversionExtra; bericht: Record<string, string>; label: string | null; landingspagina: string | null }> {
+  const { herkomst, bron, landingspagina } = herkomstUit(fd);
+  const visitor_hash = await bezoekerHash();
+  const bericht: Record<string, string> = {};
+  if (herkomst) bericht.herkomst = herkomst;
+  if (bron) bericht.bron = bron;
+  if (landingspagina) bericht.landingspagina = landingspagina;
+  return {
+    conversie: { herkomst, bron, landingspagina, visitor_hash },
+    bericht,
+    label: herkomst ? HERKOMST_LABEL[herkomst] : null,
+    landingspagina,
+  };
+}
 
 /**
  * De formulieren van de Nederlandse en de Engelse site posten naar dezelfde
@@ -86,12 +134,16 @@ export async function submitContact(_prev: FormState, formData: FormData): Promi
   const message = veld(formData, "message");
   if (!name || !email || !phone || !message) return { ok: false, error: fout.contactVerplicht };
   if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
+  // Het formulier vraagt hoe de bezoeker ons vond (verplicht); een inzending
+  // zonder dat veld (een oudere pagina, een ander formulier) gaat gewoon door.
+  const h = await herkomstVoor(formData);
+  if (formData.has("herkomst") && !h.conversie.herkomst) return { ok: false, error: fout.herkomstVerplicht };
 
-  const error = await insertMetExtra("contact_messages", { name, email, phone, subject, message }, { lang: taal });
+  const error = await insertMetExtra("contact_messages", { name, email, phone, subject, message }, { lang: taal, ...h.bericht });
   if (error) return { ok: false, error: fout.algemeen };
   await Promise.all([
-    recordConversion("contact", await paginaPad()),
-    notifyContactMessage({ name, email, phone, subject, message, taal }),
+    recordConversion("contact", await paginaPad(), h.conversie),
+    notifyContactMessage({ name, email, phone, subject, message, taal, herkomst: h.label, landingspagina: h.landingspagina }),
   ]);
   return { ok: true };
 }
@@ -206,27 +258,31 @@ export async function submitOfferte(_prev: FormState, formData: FormData): Promi
   const pakket = PAKKETTEN.includes(gekozen) ? gekozen : gekozen.slice(0, 80) || "Onbekend";
   if (!name || !company || !email || !phone || employees < 1) return { ok: false, error: fout.offerteVerplicht };
   if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
+  const h = await herkomstVoor(formData);
+  if (formData.has("herkomst") && !h.conversie.herkomst) return { ok: false, error: fout.herkomstVerplicht };
 
   // De samenvatting is voor het Postvak IN en blijft Nederlands: dat leest het team.
   // Via de aanmeldlink van een partner (lib/partnercode.ts). De database koppelt
   // de code aan een actieve partner (migratie 0022); in de tekst staat hij ook,
-  // zodat hij zichtbaar is als die migratie nog niet gedraaid is.
+  // zodat hij zichtbaar is als die migratie nog niet gedraaid is. Hetzelfde
+  // geldt voor de herkomst (0047): in de kolom én in de tekst.
   const partner = normaliseerPartnercode(formData.get("partner"));
   const message = [
     `Aansluiting: ${pakket}`,
     `Bedrijf: ${company}`,
     `Aantal medewerkers: ${employees}`,
     partner ? `Partnercode: ${partner}` : "",
+    h.label ? `Gevonden via: ${h.label}` : "",
     extra ? `\n${extra}` : "",
   ].filter(Boolean).join("\n");
 
   const error = await insertMetExtra("contact_messages", {
     name, email, phone, subject: `Offerteaanvraag: ${pakket}`, message,
-  }, { lang: taal, ...(partner ? { partner_code: partner } : {}) });
+  }, { lang: taal, ...(partner ? { partner_code: partner } : {}), ...h.bericht });
   if (error) return { ok: false, error: fout.algemeen };
   await Promise.all([
-    recordConversion("offerte", await paginaPad()),
-    notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null, taal, partner }),
+    recordConversion("offerte", await paginaPad(), h.conversie),
+    notifyOfferte({ name, company, email, phone, pakket, employees, message: extra || null, taal, partner, herkomst: h.label, landingspagina: h.landingspagina }),
   ]);
   return { ok: true };
 }
@@ -259,13 +315,16 @@ export async function submitTerugbel(_prev: FormState, formData: FormData): Prom
     company ? `Bedrijf: ${company}` : "",
     `Pagina: ${path}`,
   ].filter(Boolean).join("\n");
+  // De belbalk vraagt niet hoe iemand ons vond (hoe minder velden, hoe beter);
+  // bron en landingspagina gaan wel mee.
+  const h = await herkomstVoor(formData);
 
   const error = await insertMetExtra("contact_messages", {
     name, email, phone, subject: "Terugbelverzoek", message,
-  }, { lang: taal });
+  }, { lang: taal, ...h.bericht });
   if (error) return { ok: false, error: fout.terugbelAlgemeen };
   await Promise.all([
-    recordConversion("terugbel", path),
+    recordConversion("terugbel", path, h.conversie),
     notifyTerugbel({ name, phone, company: company || null, moment, path }),
   ]);
   return { ok: true };
@@ -301,13 +360,14 @@ export async function submitPartner(_prev: FormState, formData: FormData): Promi
     omvang ? `Werkgevers in het klantenbestand: ${omvang}` : "",
     "Wil teruggebeld worden over het partnerprogramma.",
   ].filter(Boolean).join("\n");
+  const h = await herkomstVoor(formData);
 
   const error = await insertMetExtra("contact_messages", {
     name, email, phone, subject: `Partneraanmelding: ${company}`, message,
-  }, { lang: taal });
+  }, { lang: taal, ...h.bericht });
   if (error) return { ok: false, error: fout.terugbelAlgemeen };
   await Promise.all([
-    recordConversion("terugbel", path),
+    recordConversion("terugbel", path, h.conversie),
     notifyPartner({ name, company, email, phone, soort, omvang, path }),
   ]);
   return { ok: true };
