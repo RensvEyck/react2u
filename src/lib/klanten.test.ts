@@ -15,7 +15,7 @@ const klant = (bedrijf: string, extra: Partial<Klant> = {}): Klant => ({
 
 const rij = (extra: Partial<ImportRij>): ImportRij => ({
   regel: 2, bedrijf: "Testbedrijf", startdatum: null, offerte_retour: null, contract_retour: null, formulieren_retour: null, koppeling: null, facturatie: null,
-  stand: null, contactpersoon: null, email: null, telefoon: null, eigenaar: null, volgende_actie: null, bron: null, waarschuwingen: [], ...extra,
+  stand: null, contactpersoon: null, email: null, telefoon: null, eigenaar: null, casemanager: null, volgende_actie: null, bron: null, waarschuwingen: [], ...extra,
 });
 
 /** De klantlijst van november 2026 in vorm, met verzonnen bedrijven: de kop van kolom H staat boven een lege kolom, de standtekst staat in I zonder kop. */
@@ -303,5 +303,29 @@ describe("de tijdlijn", () => {
   it("kent de soort stamkaart (0048)", () => {
     expect(isGesprekSoort("stamkaart")).toBe(true);
     expect(isGesprekSoort("iets anders")).toBe(false);
+  });
+});
+
+describe("casemanager uit de klantlijst (Rens, 19 nov 2026: Robin Roos, Nadja en Ida zijn casemanagers)", () => {
+  it("een kolom Casemanager is geen eigenaar", () => {
+    const { rijen, kolommen } = rijenUitKlantlijst([
+      ["klant", "casemanager", "accountmanager"],
+      ["Bakkerij De Korenaar", "Nadja", "Cindy"],
+    ], VANDAAG);
+    expect(kolommen.map((k) => k.veld)).toEqual(["bedrijf", "casemanager", "eigenaar"]);
+    expect(rijen[0].casemanager).toBe("Nadja");
+    expect(rijen[0].eigenaar).toBe("Cindy");
+    expect(rijNaarVelden(rijen[0])).toMatchObject({ casemanager: "Nadja", eigenaar: "Cindy" });
+  });
+
+  it("ook als de kop Case manager of CM heet", () => {
+    expect(herkenKolommen([["Bedrijf", "Case manager"], ["X", "Ida"]]).kolommen[1].veld).toBe("casemanager");
+    expect(herkenKolommen([["Bedrijf", "CM"], ["X", "Ida"]]).kolommen[1].veld).toBe("casemanager");
+  });
+
+  it("het controlerapport noemt een nieuwe casemanager", () => {
+    const v = importVoorstel([rij({ bedrijf: "Bakkerij De Korenaar", casemanager: "Robin Roos" })], [klant("Bakkerij De Korenaar", { status: "klant" })], VANDAAG);
+    expect(v.regels[0].actie).toBe("bijwerken");
+    expect(v.regels[0].wijzigingen).toEqual(["casemanager"]);
   });
 });

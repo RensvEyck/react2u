@@ -36,6 +36,8 @@ export type KlantInvoer = {
   email?: string | null;
   telefoon?: string | null;
   eigenaar?: string | null;
+  /** De casemanager (stamkaart, 0048); uit de klantlijst of met de hand. */
+  casemanager?: string | null;
   bron?: string | null;
   /** Hoe de klant ons vond, een sleutel uit lib/herkomst.ts (migratie 0047); verplicht bij een nieuwe kaart. */
   herkomst?: string | null;
@@ -91,6 +93,7 @@ function schoon(invoer: KlantInvoer): { velden: Partial<Klant>; fout?: string } 
   }
   if ("telefoon" in invoer) v.telefoon = tekst(invoer.telefoon, 40);
   if ("eigenaar" in invoer) v.eigenaar = tekst(invoer.eigenaar, 80);
+  if ("casemanager" in invoer) v.casemanager = tekst(invoer.casemanager, 120);
   if ("bron" in invoer) v.bron = tekst(invoer.bron, 120);
   if ("herkomst" in invoer) {
     const h = tekst(invoer.herkomst, 40);
