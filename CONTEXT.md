@@ -251,6 +251,20 @@ Doorverwijzingen onder SEO). `PATH_PERMISSIONS` in
 [`src/lib/permissions.ts`](src/lib/permissions.ts) zegt welk recht het vraagt;
 ontbreekt het daar, dan ziet iedereen met een account het in het menu.
 
+**Het zijmenu blijft kort** (Rens, 19 nov 2026: "maak de sidebar een stuk
+minder uitgebreid"): wat je dagelijks gebruikt staat los (Dashboard, Postvak
+IN, Bellijst, Klantenbord, Documenten, Partners, Weekevaluatie), de rest zit in
+drie inklapbare groepen (`groep` op het item, `NAV_GROEPEN`): **Cijfers**
+(Verkoop, Omzet, Prognose), **Website** (Pagina's, Blog, Vacatures,
+Sollicitaties, Berichten, Bezoek, Media, SEO) en **Beheer** (Gebruikers,
+Instellingen). Een groep klapt vanzelf open als je in een van zijn schermen
+zit; dicht blijven de links in de pagina maar `inert`. Mag je maar één scherm
+uit een groep zien, dan staat dat los. Een documentsoort krijgt geen eigen
+regel maar valt onder Documenten (`ook` laat Documenten oplichten op
+`DOCUMENT_PADEN`). Account staat onder je naam onderaan de zijbalk, niet meer
+als regel. Zo ging het menu van 25 naar 10 regels; een nieuw scherm hoort dus
+meestal in een groep, als tab, of alleen in het palet.
+
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de
 build. Pure hulpjes voor de formulieren staan daarom in `src/lib/formulier.ts`.
@@ -1748,13 +1762,21 @@ Sinds migratie [0043](supabase/migrations/0043_klantevaluatie.sql) (Rens, 17
 nov 2026: "klant evaluatie moet ook in dezelfde stijl gestuurd worden als losse
 module. Misschien moeten we het in de sidebar gewoon documenten noemen"): één
 ingang **Documenten** in het zijmenu ([`/admin/documenten`](src/app/admin/(panel)/documenten/page.tsx),
-recht `bellijst`) voor de losse documenten die een klant via een persoonlijke
-link online invult, in dezelfde stijl als het contract en de onboarding. Nu
-één document, de **klantevaluatie**; een volgend document krijgt er een eigen
-tegel bij met dezelfde bouwstenen. De vaste trajecten (offertes, contracten,
-onboarding, brochures) houden hun eigen ingang; de pagina Documenten verwijst
-ernaar. De checklist arbeidsomstandigheden hoort bij het basiscontract en
-staat niet onder Documenten.
+recht `bellijst`). Sinds 19 nov 2026 ("noem het bijvoorbeeld documenten, zet
+daar alle documenten neer") staan daar **alle** documenten die naar een klant
+gaan, in de volgorde van de klantreis: brochures, offertes, contracten,
+onboarding en klantevaluaties, elk als tegel met *Concept*, *Bij klant* en
+klaar (getekend, ingevuld, klaar; bij een brochure: bekeken), *Nieuw* en
+de lijst. Bovenaan **Ligt bij de klant**: alles wat verstuurd is en nog niet
+getekend of ingevuld, het langst wachtende eerst, met of de klant het al
+opende (een verlopen offerte telt niet meer mee). De regels staan in
+[`src/lib/klantdocumenten.ts`](src/lib/klantdocumenten.ts) (niet
+`documenten.ts`: dat zijn de juridische pdf's van de site). Offertes,
+contracten, onboarding en brochures staan niet meer los in het menu; ze zijn
+er via Documenten, het palet (⌘K) en hun eigen adres, en Documenten licht op
+als je erin zit. De resellerovereenkomst staat als verwijstegel naar Partners
+(die is voor partners, niet voor klanten). De checklist arbeidsomstandigheden
+hoort bij het basiscontract en heeft geen eigen tegel.
 
 - **De klantevaluatie** is het Word-formulier *Klant Evaluatie* (v2) van de
   accountmanager, nu als module: `/admin/documenten/evaluaties` (register met

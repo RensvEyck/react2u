@@ -70,8 +70,29 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   await page.waitForSelector("h1:has-text('Documenten')");
   check(await page.locator('nav a[href="/admin/documenten"]').count(), "Documenten staat in het menu");
   check((await page.locator('nav a[href="/admin/documenten/evaluaties"]').count()) === 0, "de evaluaties zelf niet apart in het menu (wel in het palet)");
-  check(await page.locator("h3:has-text('Klantevaluatie')").count() && (await page.locator("a:has-text('Nieuwe evaluatie')").count()), "de tegel Klantevaluatie met de knop");
-  check(await page.locator("text=Ruimte voor een volgend document").count(), "ruimte voor een volgend document");
+  check(await page.locator("h3:has-text('Klantevaluatie')").count() && (await page.locator('article[data-soort="evaluatie"] a[href="/admin/documenten/evaluaties/nieuw"]').count()), "de tegel Klantevaluaties met de knop Nieuw");
+  // Alle documenten op één plek (19 nov 2026): vijf soorten in de volgorde van de klantreis, plus de resellerovereenkomst.
+  const soorten = await page.locator("article[data-soort]").evaluateAll((els) => els.map((e) => e.getAttribute("data-soort")));
+  check(soorten.join(",") === "brochure,offerte,contract,onboarding,evaluatie,reseller", `alle documentsoorten als tegel (${soorten.join(",")})`);
+  check(await page.locator("#bij-de-klant-lijst h2:has-text('Ligt bij de klant')").count(), "bovenaan wat bij de klant ligt");
+  // Het zijmenu kort: losse ingangen plus drie inklapbare groepen; de documentsoorten zelf niet los.
+  const regels = await page.locator("aside nav > *").count();
+  check(regels <= 11, `het zijmenu heeft ${regels} regels (was 25)`);
+  for (const h of ["/admin/offertes", "/admin/contracten", "/admin/onboarding", "/admin/brochures"]) {
+    check((await page.locator(`aside nav a[href="${h}"]`).count()) === 0, `${h} staat niet meer los in het menu`);
+  }
+  const groepen = await page.locator("aside nav button[aria-expanded]").evaluateAll((els) => els.map((e) => `${e.textContent.trim()}:${e.getAttribute("aria-expanded")}`));
+  check(groepen.join(",") === "Cijfers:false,Website:false,Beheer:false", `drie groepen, dicht buiten hun schermen (${groepen.join(",")})`);
+  check(await page.locator('aside nav a[href="/admin/documenten"][aria-current="page"]').count(), "Documenten licht op");
+  // Dicht staan de links nog in de pagina (inert), afgeknipt door een rij van hoogte 0; Playwright noemt ze dan nog "zichtbaar".
+  const websiteHoogte = () => page.evaluate(() => document.getElementById("menu-website").getBoundingClientRect().height);
+  check((await websiteHoogte()) < 1, "Pagina's zit dicht in Website");
+  check((await page.locator("#menu-website[inert]").count()) === 1, "en is dan niet te bereiken met Tab");
+  await page.click("aside nav button:has-text('Website')");
+  await page.waitForFunction(() => document.getElementById("menu-website").getBoundingClientRect().height > 200);
+  check((await page.locator("#menu-website[inert]").count()) === 0, "open is de lijst weer bereikbaar");
+  check((await page.locator("aside nav button:has-text('Website')").getAttribute("aria-expanded")) === "true", "Website klapt open");
+  check(await page.locator('aside nav a[href="/admin/paginas"]').isVisible(), "en dan staat Pagina's erin");
   await shot(page, "01-documenten", { fullPage: false });
   await page.goto(`${BASIS}/admin/documenten/evaluaties`);
   await page.waitForSelector("h1:has-text('Klantevaluaties')");
@@ -147,6 +168,26 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   await page.reload();
   await page.waitForSelector("span.apill:has-text('Verstuurd')");
   check(await page.locator(`text=Verstuurd naar ${KLANT_EMAIL}`).count(), "verstuurd in de tijdlijn");
+  // Verstuurd en nog niet geopend: dan ligt hij bij de klant, bovenaan Documenten.
+  await page.goto(`${BASIS}/admin/documenten`);
+  const uitRij = page.locator(`#bij-de-klant-lijst a[href="/admin/documenten/evaluaties/${id}"]`);
+  const uitTekst = (await uitRij.count()) === 1 ? await uitRij.innerText() : "";
+  check(["Klantevaluatie", "nog niet geopend", "vandaag"].every((w) => uitTekst.includes(w)), `Documenten: de evaluatie ligt bij de klant, nog niet geopend, sinds vandaag (${uitTekst.replace(/\s+/g, " ")})`);
+  await shot(page, "03b-documenten-bij-de-klant");
+  const telDoc = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "nl-NL", storageState: await ctx.storageState() });
+  const tdp = await telDoc.newPage();
+  await tdp.goto(`${BASIS}/admin/documenten`);
+  await tdp.waitForSelector("h1:has-text('Documenten')");
+  check((await tdp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)) <= 0, "Documenten op 390 px zonder zijwaarts scrollen");
+  await shot(tdp, "03c-documenten-390");
+  await tdp.click("button[aria-label='Menu']");
+  // Op een telefoon is de zijbalk een la; de vaste zijbalk van de laptop staat er verborgen naast.
+  await tdp.waitForSelector("div.fixed.inset-0 aside nav");
+  check((await tdp.locator("div.fixed.inset-0 aside nav > *").count()) <= 11, "ook het telefoonmenu is kort");
+  await shot(tdp, "03d-menu-390", { fullPage: false });
+  await telDoc.close();
+  await page.goto(adminUrl);
+  await page.waitForSelector("span.apill:has-text('Verstuurd')");
   const nummer = sql(`select nummer from public.evaluaties where id = '${id}'`);
   check((await tot(`select count(*) from public.klant_gesprekken where bron = 'evaluatie' and bron_id = '${id}' and tekst = 'Klantevaluatie ${nummer} verstuurd naar ${KLANT_EMAIL}'`, "1")) === "1", "klantenbord: verstuurd in de tijdlijn");
   await shot(page, "06-beheer-verstuurd");
@@ -279,7 +320,9 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   check(await page.locator(`td a:has-text('${BEDRIJF}')`).count(), "filter en zoeken");
   await shot(page, "14-register", { fullPage: false });
   await page.goto(`${BASIS}/admin/documenten`);
-  check(await page.locator(`text=Laatst ingevuld:`).count() && (await page.locator(`a:has-text('${BEDRIJF}')`).count()), "de ingang noemt de laatst ingevulde evaluatie");
+  const tegel = await page.locator('article[data-soort="evaluatie"]').innerText();
+  check(/Ingevuld\s*1\b/i.test(tegel), `de tegel telt de ingevulde evaluatie (${tegel.replace(/\s+/g, " ").slice(0, 120)})`);
+  check((await page.locator(`#bij-de-klant-lijst a:has-text('${BEDRIJF}')`).count()) === 0, "een ingevulde evaluatie ligt niet meer bij de klant");
   const kid = sql(`select id from public.klanten where sleutel = public.bedrijf_sleutel('${BEDRIJF}')`);
   await page.goto(`${BASIS}/admin/klantenbord`);
   await page.waitForSelector(`section[data-kolom="klant"] #klant-${kid}`, { timeout: 20000 });

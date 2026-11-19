@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuGauge, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuGauge, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard, LuGlobe, LuSlidersHorizontal } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -25,7 +25,28 @@ export type NavItem = {
   keywords?: string;
   /** Alleen in het palet, niet in het zijmenu — bijvoorbeeld een tab binnen een scherm. */
   paletteOnly?: boolean;
+  /** In het zijmenu ingeklapt onder deze groep (zie NAV_GROEPEN). */
+  groep?: NavGroepKey;
+  /** Andere adressen waarop dit menu-item oplicht, zoals de documentsoorten onder Documenten. */
+  ook?: string[];
 };
+
+/**
+ * Het zijmenu kort houden (Rens, 19 nov 2026: "maak de sidebar een stuk minder
+ * uitgebreid"): wat je dagelijks gebruikt staat los, de rest zit ingeklapt in
+ * een groep die vanzelf openklapt als je erin zit. Een groep waarvan je maar
+ * één scherm mag zien, wordt gewoon dat ene item.
+ */
+export type NavGroepKey = "cijfers" | "website" | "beheer";
+
+export const NAV_GROEPEN: Record<NavGroepKey, { label: string; icon: IconType }> = {
+  cijfers: { label: "Cijfers", icon: LuChartColumn },
+  website: { label: "Website", icon: LuGlobe },
+  beheer: { label: "Beheer", icon: LuSlidersHorizontal },
+};
+
+/** De documentsoorten die onder Documenten vallen (zie klantdocumenten.ts). */
+export const DOCUMENT_PADEN = ["/admin/offertes", "/admin/contracten", "/admin/onboarding", "/admin/brochures"];
 
 export const ADMIN_NAV: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LuLayoutDashboard, keywords: "home start overzicht vandaag" },
@@ -35,35 +56,35 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Vandaag: wie bel ik", href: "/admin/klantenbord/vandaag", icon: LuPhone, keywords: "werkrij vandaag bellen te laat opvolgen warm klantenbord", paletteOnly: true },
   // De klantenlijst met stamkaart (0048): alle klanten onder elkaar, per klant de bedrijfsgegevens, documenten en tariefafspraken.
   { label: "Alle klanten: stamkaarten", href: "/admin/klanten", icon: LuIdCard, keywords: "klantenlijst klanten stamkaart bedrijfsgegevens kvk iban documenten tariefafspraken tarieven adres contactpersoon factuur", paletteOnly: true },
-  { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen" },
-  { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding sales" },
+  // Documenten: één ingang voor alles wat naar een klant gaat (offertes, contracten, onboarding, brochures, klantevaluaties); de soorten zelf staan in het palet.
+  { label: "Documenten", href: "/admin/documenten", icon: LuFiles, keywords: "documenten alle documenten offertes contracten onboarding brochures klantevaluatie evaluatie formulier invullen versturen tekenen staat uit bij de klant", ook: DOCUMENT_PADEN },
+  { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding sales", paletteOnly: true },
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
-  { label: "Contracten", href: "/admin/contracten", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening arbowet overeenkomst ondertekenen tekenen looptijd opzeggen verlengen sales" },
-  { label: "Onboarding", href: "/admin/onboarding", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom inrichting werknemersbestand xpertsuite import machtiging verzuimprotocol documenten versturen invullen" },
-  { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales" },
-  // Documenten (0043): de losse documenten die de klant via een persoonlijke link invult, in de stijl van het contract en de onboarding.
-  { label: "Documenten", href: "/admin/documenten", icon: LuFiles, keywords: "documenten klantevaluatie evaluatie formulier invullen versturen losse documenten jaarlijks bezoek" },
+  { label: "Contracten", href: "/admin/contracten", icon: LuScrollText, keywords: "contract basiscontract arbodienstverlening arbowet overeenkomst ondertekenen tekenen looptijd opzeggen verlengen sales", paletteOnly: true },
+  { label: "Onboarding", href: "/admin/onboarding", icon: LuClipboardCheck, keywords: "onboarding nieuwe klant welkom inrichting werknemersbestand xpertsuite import machtiging verzuimprotocol documenten versturen invullen", paletteOnly: true },
+  { label: "Brochures", href: "/admin/brochures", icon: LuBookOpen, keywords: "brochure prospect kennismaking diensten specialismen template versturen sales", paletteOnly: true },
   { label: "Klantevaluaties", href: "/admin/documenten/evaluaties", icon: LuClipboardList, keywords: "klantevaluatie evaluatie jaarlijks bezoek checklist rie psa pmo preventiemedewerker dienstverlening wensen afspraken acties", paletteOnly: true },
-  { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
-  { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
-  { label: "Prognose", href: "/admin/prognose", icon: LuGauge, keywords: "prognose werkdruk capaciteit bezetting casemanagers fte werven personeel planning forecast komende maanden" },
-  { label: "Uren", href: "/admin/omzet/uren", icon: LuClock, keywords: "declarabele uren medewerkers werknemers urenregistratie declarabiliteit norm week invullen", paletteOnly: true },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
   { label: "Weekevaluatie", href: "/admin/weekevaluatie", icon: LuCalendarCheck, keywords: "weekevaluatie week evaluatie energie werkdruk cijfer invullen reflectie collega's werknemers" },
   { label: "Kwartaaloverzicht weekevaluaties", href: "/admin/weekevaluatie/team", icon: LuChartColumn, keywords: "kwartaalmeeting kwartaal team gemiddelden trend gemist export excel weekevaluaties", paletteOnly: true },
-  { label: "Pagina's", href: "/admin/paginas", icon: LuFileText, keywords: "teksten blokken content cms" },
-  { label: "Blog", href: "/admin/blog", icon: LuNewspaper, keywords: "artikelen nieuws posts" },
-  { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase, keywords: "banen werken bij jobs" },
-  { label: "Sollicitaties", href: "/admin/sollicitaties", icon: LuUsers, badge: "apps", keywords: "kandidaten cv" },
-  { label: "Berichten", href: "/admin/berichten", icon: LuMessageSquare, badge: "msgs", keywords: "contactformulier" },
-  { label: "Bezoek", href: "/admin/bezoek", icon: LuChartNoAxesColumn, keywords: "statistieken analytics bezoekers" },
+  { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen", groep: "cijfers" },
+  { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
+  { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten", groep: "cijfers" },
+  { label: "Prognose", href: "/admin/prognose", icon: LuGauge, keywords: "prognose werkdruk capaciteit bezetting casemanagers fte werven personeel planning forecast komende maanden", groep: "cijfers" },
+  { label: "Uren", href: "/admin/omzet/uren", icon: LuClock, keywords: "declarabele uren medewerkers werknemers urenregistratie declarabiliteit norm week invullen", paletteOnly: true },
+  { label: "Pagina's", href: "/admin/paginas", icon: LuFileText, keywords: "teksten blokken content cms", groep: "website" },
+  { label: "Blog", href: "/admin/blog", icon: LuNewspaper, keywords: "artikelen nieuws posts", groep: "website" },
+  { label: "Vacatures", href: "/admin/vacatures", icon: LuBriefcase, keywords: "banen werken bij jobs", groep: "website" },
+  { label: "Sollicitaties", href: "/admin/sollicitaties", icon: LuUsers, badge: "apps", keywords: "kandidaten cv", groep: "website" },
+  { label: "Berichten", href: "/admin/berichten", icon: LuMessageSquare, badge: "msgs", keywords: "contactformulier", groep: "website" },
+  { label: "Bezoek", href: "/admin/bezoek", icon: LuChartNoAxesColumn, keywords: "statistieken analytics bezoekers", groep: "website" },
   { label: "Bedrijven op de site", href: "/admin/bezoek/bedrijven", icon: LuBuilding, keywords: "bezoekers herkend warm leads salesfeed leadinfo", paletteOnly: true },
-  { label: "Media", href: "/admin/media", icon: LuImage, keywords: "afbeeldingen foto's uploaden pdf documenten" },
-  { label: "SEO", href: "/admin/seo", icon: LuSearch, keywords: "google zoekmachine meta titel omschrijving" },
+  { label: "Media", href: "/admin/media", icon: LuImage, keywords: "afbeeldingen foto's uploaden pdf documenten", groep: "website" },
+  { label: "SEO", href: "/admin/seo", icon: LuSearch, keywords: "google zoekmachine meta titel omschrijving", groep: "website" },
   { label: "Doorverwijzingen", href: "/admin/seo/doorverwijzingen", icon: LuSignpost, keywords: "redirect 404 niet gevonden oude url kapotte link", paletteOnly: true },
-  { label: "Gebruikers", href: "/admin/gebruikers", icon: LuUserCog, keywords: "rollen rechten collega's uitnodigen" },
-  { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings, keywords: "contactgegevens footer documenten certificaten onderhoud" },
-  { label: "Account", href: "/admin/account", icon: LuUserRound, keywords: "wachtwoord tweestapsverificatie 2fa profiel" },
+  { label: "Gebruikers", href: "/admin/gebruikers", icon: LuUserCog, keywords: "rollen rechten collega's uitnodigen", groep: "beheer" },
+  { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings, keywords: "contactgegevens footer documenten certificaten onderhoud", groep: "beheer" },
+  { label: "Account", href: "/admin/account", icon: LuUserRound, keywords: "wachtwoord tweestapsverificatie 2fa profiel", paletteOnly: true },
   { label: "Prullenbak", href: "/admin/prullenbak", icon: LuTrash2, keywords: "verwijderd terugzetten herstellen ongedaan maken", paletteOnly: true },
 ];
 

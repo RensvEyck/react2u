@@ -2,9 +2,9 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LuExternalLink, LuMenu, LuX, LuConstruction, LuSearch } from "react-icons/lu";
+import { LuExternalLink, LuMenu, LuX, LuConstruction, LuSearch, LuChevronDown } from "react-icons/lu";
 import { permissionForPath, type Permission } from "@/lib/permissions";
-import { ADMIN_NAV, CRUMBS, type Counts } from "@/lib/adminNav";
+import { ADMIN_NAV, CRUMBS, NAV_GROEPEN, type Counts, type NavGroepKey, type NavItem } from "@/lib/adminNav";
 import CommandPalette from "./CommandPalette";
 import AccountMenu, { Avatar, UitlogForm } from "./AccountMenu";
 
@@ -33,6 +33,26 @@ export default function AdminShell({
     return !perm || permissions.includes(perm);
   });
 
+  // Losse items en groepen, in de volgorde van ADMIN_NAV: een groep staat op
+  // de plek van zijn eerste scherm. Mag je maar één scherm uit een groep zien,
+  // dan staat dat gewoon los; een groep van één is een extra klik voor niets.
+  type Regel = { soort: "item"; item: NavItem } | { soort: "groep"; key: NavGroepKey; items: NavItem[] };
+  const regels: Regel[] = [];
+  for (const n of visible) {
+    const g = n.groep ? regels.find((r) => r.soort === "groep" && r.key === n.groep) : undefined;
+    if (g && g.soort === "groep") g.items.push(n);
+    else if (n.groep) regels.push({ soort: "groep", key: n.groep, items: [n] });
+    else regels.push({ soort: "item", item: n });
+  }
+  const menu: Regel[] = regels.map((r) => (r.soort === "groep" && r.items.length === 1 ? { soort: "item", item: r.items[0] } : r));
+
+  const isActief = (n: NavItem) =>
+    n.href === "/admin" ? pathname === "/admin" : [n.href, ...(n.ook || [])].some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  // Een groep staat open als je erin zit, tot je hem zelf dichtklapt; en
+  // andersom blijft een groep die je openklapt open terwijl je verder klikt.
+  const [uitgeklapt, setUitgeklapt] = useState<Partial<Record<NavGroepKey, boolean>>>({});
+
   // Beheerders zien de site ook tijdens onderhoud gewoon. Zonder deze melding
   // valt dus nergens te merken dat bezoekers voor een dichte deur staan.
   const maintenanceContent = (
@@ -57,29 +77,71 @@ export default function AdminShell({
   const crumbs = pathname.split("/").filter((c) => c && !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(c));
   const crumbLabels = crumbs.map((c) => CRUMBS[c] || decodeURIComponent(c));
 
+  const link = (n: NavItem, inGroep = false) => {
+    const active = isActief(n);
+    const badge = n.badge ? counts[n.badge] : 0;
+    return (
+      <Link
+        key={n.href}
+        href={n.href}
+        onClick={() => setOpen(false)}
+        aria-current={active ? "page" : undefined}
+        className={`group flex items-center gap-3 rounded-xl font-medium transition-colors ${inGroep ? "px-3 py-2 text-[14px]" : "px-3.5 py-2.5 text-[14.5px]"} ${
+          active ? "bg-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" : "text-white/65 hover:bg-white/[0.07] hover:text-white"
+        }`}
+      >
+        {inGroep ? (
+          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${active ? "bg-[#ff8ab5]" : "bg-white/25 group-hover:bg-white/60"}`} aria-hidden />
+        ) : (
+          <n.icon className={`text-[17px] ${active ? "text-[#ff8ab5]" : "text-white/50 group-hover:text-white/80"}`} />
+        )}
+        <span className="flex-1">{n.label}</span>
+        {badge > 0 && (
+          <span className="rounded-full bg-[#e75387] px-2 py-0.5 text-[11px] font-bold text-white">{badge}</span>
+        )}
+      </Link>
+    );
+  };
+
   const nav = (
     // Het menu scrolt zelf. Zonder dat viel op een laptopscherm (768 px hoog)
     // of een telefoon de onderkant met Uitloggen buiten beeld, onbereikbaar,
     // want de zijbalk staat vast.
     <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-3 py-4 [scrollbar-color:rgba(255,255,255,0.18)_transparent] [scrollbar-width:thin]">
-      {visible.map((n) => {
-        const active = n.href === "/admin" ? pathname === "/admin" : pathname.startsWith(n.href);
-        const badge = n.badge ? counts[n.badge] : 0;
+      {menu.map((r) => {
+        if (r.soort === "item") return link(r.item);
+        const g = NAV_GROEPEN[r.key];
+        const binnen = r.items.some(isActief);
+        const isOpen = uitgeklapt[r.key] ?? binnen;
+        const id = `menu-${r.key}`;
         return (
-          <Link
-            key={n.href}
-            href={n.href}
-            onClick={() => setOpen(false)}
-            className={`group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[14.5px] font-medium transition-colors ${
-              active ? "bg-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" : "text-white/65 hover:bg-white/[0.07] hover:text-white"
-            }`}
-          >
-            <n.icon className={`text-[17px] ${active ? "text-[#ff8ab5]" : "text-white/50 group-hover:text-white/80"}`} />
-            <span className="flex-1">{n.label}</span>
-            {badge > 0 && (
-              <span className="rounded-full bg-[#e75387] px-2 py-0.5 text-[11px] font-bold text-white">{badge}</span>
-            )}
-          </Link>
+          <div key={r.key}>
+            <button
+              type="button"
+              aria-expanded={isOpen}
+              aria-controls={id}
+              onClick={() => setUitgeklapt((u) => ({ ...u, [r.key]: !isOpen }))}
+              className={`group flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[14.5px] font-medium transition-colors hover:bg-white/[0.07] hover:text-white ${
+                binnen && !isOpen ? "text-white" : "text-white/65"
+              }`}
+            >
+              <g.icon className={`text-[17px] ${binnen ? "text-[#ff8ab5]" : "text-white/50 group-hover:text-white/80"}`} />
+              <span className="flex-1">{g.label}</span>
+              <LuChevronDown className={`text-[15px] text-white/40 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} aria-hidden />
+            </button>
+            {/* Dicht blijven de links in de pagina (het palet en de tests vinden ze), maar inert: niet te tabben. */}
+            <div
+              id={id}
+              inert={!isOpen}
+              className={`grid transition-[grid-template-rows] duration-200 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="ml-[22px] mt-0.5 space-y-0.5 border-l border-white/10 pb-1 pl-2.5">
+                  {r.items.map((n) => link(n, true))}
+                </div>
+              </div>
+            </div>
+          </div>
         );
       })}
     </nav>
