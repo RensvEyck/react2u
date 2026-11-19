@@ -41,6 +41,8 @@ Gebruik deze termen; de code doet dat ook.
 | **Kwartaaldoel** (`weekevaluatie_doelen`) | Eén tot drie doelen per collega per kwartaal, vastgelegd in de kwartaalmeeting (0045). De collega geeft elke week aan hoe ver hij kwam. |
 | **Melding** (in de weekevaluatie) | Iets wat een collega wil melden of delen: een zorg, een idee, een compliment, een vraag. Komt in de kwartaalmeeting, of meteen per mail bij Rens als de collega dat aanvinkt (0046). |
 | **Twee zware weken** | Twee weken achter elkaar een 4 of lager voor energie of voor "werk paste in de tijd". Geeft meteen een mail aan wie het kwartaaloverzicht mag zien, en een melding op diens dashboard. |
+| **Prognose** | Hoeveel werknemers React2u de komende twaalf maanden begeleidt en hoeveel fte casemanagement dat vraagt, tegenover de bezetting, met de weekevaluaties als controle (`/admin/prognose`, 0049). Zie *Prognose*. |
+| **Ingangsdatum** (`offertes.ingangsdatum`) | Wanneer de dienstverlening van een offerte start. Voor de prognose; ook na tekenen nog te verschuiven. |
 | **Recht** | Toegang tot één onderdeel van het paneel, bv. `bellijst` of `paginas`. De sleutels staan in [`src/lib/permissions.ts`](src/lib/permissions.ts) én in de RLS-policies — hernoemen vraagt dus een migratie. |
 | **Commandopalet** | Zoekveld over het hele paneel: ⌘K, Ctrl+K of `/`. Vindt schermen, acties, pagina's, tekst ín blokken, artikelen, vacatures, inzendingen, leads en gebruikers — alleen wat je mag zien. Zie *Commandopalet en dashboard*. |
 | **Doorverwijzing** (`redirects`) | Een oud adres dat naar een nieuw adres stuurt, beheerd onder SEO → Doorverwijzingen. Permanent (308) of tijdelijk (307). Zie *Doorverwijzingen en 404's*. |
@@ -2030,6 +2032,69 @@ Regels en 34 unittests in `lib/weekevaluatie.ts`; browsertest
 `e2e/weekevaluatie.cjs` (met een tweede testcollega in de rol werknemer, in een
 eigen browsercontext naast de beheerder; de maandvragen en de terugblik test hij
 in gesloten weken, omdat welke lagen er open staan van de datum afhangt).
+
+## Prognose
+
+Sinds migratie [0049](supabase/migrations/0049_prognose.sql) (Rens, 19 nov
+2026: "Zouden we een soort van prognosetool kunnen inbouwen, waarin we op basis
+van het aantal medewerkers een indicatie kunnen showen van de werkdruk die er
+de komende periode aankomt? [...] dan kunnen we ook gericht sturen op het
+aantal medewerkers dat we nodig hebben", en: "neem ook de weekevaluatie van
+werknemers hierin mee"). `/admin/prognose`, recht `omzet`, in het menu onder
+Omzet. Rekenregels in [`lib/prognose.ts`](src/lib/prognose.ts), ophalen in
+[`lib/prognoseDb.ts`](src/lib/prognoseDb.ts).
+
+- **De bronnen**, per bedrijf één keer (op de bedrijfsnaam zonder rechtsvorm):
+  - *lopende klanten*: de kaarten met status akkoord, inrichten of klant. Het
+    aantal werknemers van de stamkaart (0048), of anders dat van hun getekende
+    offerte (wat er getekend is gaat voor);
+  - *getekend, gaat nog in*: de startdatum komt van de ingangsdatum op de
+    offerte, dan de startdatum op de kaart, dan de ingangsdatum van het
+    contract, en anders de datum van tekenen plus een vaste inrichtingstijd;
+  - *de pijplijn*: openstaande, niet verlopen offertes voor bedrijven die nog
+    geen klant zijn, gewogen met de kans op tekenen. Die kans is de eigen
+    hitrate van het laatste halfjaar (dezelfde telling als het
+    salesdashboard), of wat Rens instelt. De verwachte start is versturen plus
+    de mediane doorlooptijd plus de inrichtingstijd.
+  Alleen verzuimbegeleiding en Reflex tellen als werknemers; RI&E, PAGO,
+  trainingen en trajecten zijn eenmalige opdrachten met een urennorm.
+- **Van werknemers naar casemanagers** met één norm: werknemers per fte
+  casemanager. Zonder ingestelde norm is dat de huidige verhouding, de
+  werknemers van de lopende klanten gedeeld door de fte casemanagement van
+  nu; die wordt alleen berekend als elke lopende klant een aantal heeft, anders
+  vraagt de prognose te weinig mensen. Daarbovenop inrichtingsuren per nieuwe
+  klant en uren per eenmalige opdracht, alleen als Rens die norm invult: er
+  wordt niets uit een prijs afgeleid. De **bezetting** zijn de actieve
+  medewerkers in Omzet → Uren met "casemanager" in de functie, hun
+  contracturen gedeeld door een volle werkweek.
+- **Het advies**: de eerste maand waarin de bezetting, met een kwart fte
+  speling, niet genoeg is, eerst voor de zekere vraag en dan met de pijplijn;
+  daarvoor de wervingstijd ("begin uiterlijk in december met werven"). Het
+  staat bovenaan het scherm en, als er geworven moet worden, op het dashboard
+  van wie het recht `omzet` heeft.
+- **De weekevaluaties als controle.** De prognose rekent met verhoudingen; de
+  weekevaluatie zegt of die te dragen is. Per maand het gemiddelde van de
+  casemanagers voor "werk paste in de tijd" en energie, de laatste vier weken
+  als kerncijfer, en een oordeel bij de norm: onder de 6 is krap (zet de norm
+  lager), onder de 7 redelijk, daarboven ruim. **Per casemanager** zijn
+  portefeuille (de klanten met zijn naam als casemanager op de kaart; de
+  voornaam is genoeg, `zelfdePersoon`) tegenover wat hij volgens de norm
+  aankan, naast zijn eigen tijd en energie, als hij aan zijn account gekoppeld
+  is. Zo zie je niet alleen hoe het voelt, maar ook waarom.
+- **Scherper maken**: klanten zonder aantal werknemers (met het voorstel uit de
+  getekende offerte al ingevuld) en zonder casemanager zijn vanaf de prognose
+  aan te vullen, via de stamkaart (`wijzigStamkaart`, met een regel in de
+  tijdlijn; vraagt het salesrecht). Getekende offertes zonder ingangsdatum
+  linken naar de offerte. De **ingangsdatum** staat in de offerte-editor
+  naast het aantal medewerkers, en na tekenen in het blok Intern: hij staat in
+  `offerte_bewaken` bij de vrije velden, zoals de notitie.
+- **Normen** (`prognose_normen`, één rij, recht `omzet`): werknemers per fte,
+  uren in een volle werkweek, kans op de pijplijn, inrichtingsuren, start na
+  tekenen, wervingstijd en uren per eenmalige opdracht. **Wat als**
+  (`?extra=1&vanaf=2027-03&kans=50`): rekent met een extra collega of een
+  andere kans, zonder iets op te slaan.
+
+Regels en unittests in `lib/prognose.ts`; browsertest `e2e/prognose.cjs`.
 
 ## Klantenbord
 

@@ -25,7 +25,7 @@ import {
 
 export type EditorBegin = Partial<Pick<
   Offerte,
-  | "id" | "status" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "medewerkers" | "titel" | "intro" | "geldig_tot"
+  | "id" | "status" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "medewerkers" | "titel" | "intro" | "geldig_tot" | "ingangsdatum"
   | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "vorm" | "betreft" | "inhoud" | "voorwaarden" | "factuur"
   | "herkomst" | "herkomst_toelichting"
 >> & { regels?: Regel[]; vervolg?: Stap[] | null };
@@ -271,6 +271,11 @@ export default function OfferteEditor({
               <div>
                 <label className="alabel" htmlFor="of-mw">Aantal medewerkers</label>
                 <input id="of-mw" className="ainput tabular-nums" name="medewerkers" inputMode="numeric" value={medewerkers} onChange={(e) => setMedewerkers(e.target.value)} placeholder="Voor de prijs per medewerker" />
+              </div>
+              <div>
+                <label className="alabel" htmlFor="of-ingang">Gaat in op</label>
+                <input id="of-ingang" className="ainput" name="ingangsdatum" type="date" defaultValue={begin.ingangsdatum || ""} aria-describedby="of-ingang-hint" />
+                <p id="of-ingang-hint" className="mt-1 text-[12px] text-black/40">Voor de prognose van de werkdruk; de klant ziet het niet.</p>
               </div>
               <div>
                 <label className="alabel" htmlFor="of-cp">Contactpersoon</label>

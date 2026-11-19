@@ -174,6 +174,8 @@ export type Offerte = {
   vervolg: Stap[] | null;
   regels: Regel[];
   geldig_tot: string | null;
+  /** Wanneer de dienstverlening start (0049), voor de prognose; ook na tekenen nog te verschuiven. */
+  ingangsdatum?: string | null;
   afzender_naam: string | null;
   afzender_functie: string | null;
   afzender_email: string | null;

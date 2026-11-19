@@ -194,7 +194,7 @@ export default async function OfferteAdmin({ params }: { params: Promise<{ id: s
 
       {getekend ? (
         <div className="grid gap-6 lg:grid-cols-2">
-          <Notitie o={o} />
+          <Notitie o={o} metIngang />
           <section className="acard p-6">
             <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Tijdlijn</h2>
             <Tijdlijn items={tijdlijn} />
@@ -235,14 +235,23 @@ function Tijdlijn({ items }: { items: Gebeurtenis[] }) {
   );
 }
 
-function Notitie({ o }: { o: Offerte }) {
+/** Met `metIngang` ook de ingangsdatum: bij een getekende offerte, want dan is de editor weg. */
+function Notitie({ o, metIngang = false }: { o: Offerte; metIngang?: boolean }) {
   return (
     <section className="acard p-6">
-      <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]"><LuStickyNote /> Interne notitie</h2>
+      <h2 className="flex items-center gap-2 font-heading text-[16px] font-bold text-[#312e82]"><LuStickyNote /> Intern</h2>
       <p className="mt-0.5 text-[13px] text-black/45">Alleen voor collega&apos;s; de klant ziet dit nooit. Blijft bewerkbaar, ook na ondertekening.</p>
       <form action={saveOfferteNotitie.bind(null, o.id)} className="mt-3 space-y-3">
-        <textarea className="ainput min-h-[90px]" name="notitie" defaultValue={o.notitie || ""} maxLength={5000} aria-label="Interne notitie" />
-        <button className="abtn-ghost !py-1.5 text-[13px]">Notitie opslaan</button>
+        {metIngang && o.ingangsdatum !== undefined && (
+          <div className="max-w-[260px]">
+            <label className="alabel" htmlFor="notitie-ingang">Gaat in op</label>
+            <input id="notitie-ingang" className="ainput" name="ingangsdatum" type="date" defaultValue={o.ingangsdatum || ""} />
+            <p className="mt-1 text-[12px] text-black/40">Voor de prognose van de werkdruk. Mag verschuiven.</p>
+          </div>
+        )}
+        <label className="alabel" htmlFor="notitie-tekst">Notitie</label>
+        <textarea id="notitie-tekst" className="ainput min-h-[90px]" name="notitie" defaultValue={o.notitie || ""} maxLength={5000} />
+        <button className="abtn-ghost !py-1.5 text-[13px]">Opslaan</button>
       </form>
     </section>
   );
