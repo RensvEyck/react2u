@@ -137,3 +137,16 @@ export function firstAllowedPath(permissions: Permission[]): string {
   const match = PATH_PERMISSIONS.find(([, perm]) => permissions.includes(perm));
   return match ? match[0] : "/admin/account";
 }
+
+/**
+ * Rechten die alleen over jezelf gaan. Wie geen ander recht heeft, krijgt het
+ * beheer als eigen plek, "Mijn React2u" (Rens, 19 nov 2026): zonder
+ * "Systeembeheer" bovenaan, zonder Bekijk website en zonder het zoekpalet (⌘K),
+ * dat voor twee schermen alleen in de weg zit. Dit is vormgeving, geen
+ * beveiliging: die blijft in requirePerm() en de RLS-policies.
+ */
+export const EIGEN_RECHTEN: readonly Permission[] = ["weekevaluatie"];
+
+export function isMijnReact2u(permissions: readonly Permission[]): boolean {
+  return permissions.every((p) => EIGEN_RECHTEN.includes(p));
+}

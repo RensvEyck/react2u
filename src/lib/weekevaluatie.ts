@@ -496,6 +496,46 @@ export function perWeek(evaluaties: Pick<Evaluatie, "week" | "antwoorden">[], we
   });
 }
 
+/* ---------- mijn verloop ---------- */
+
+/** De lijnen op het dashboard van een werknemer, in de volgorde die Rens noemde (19 nov 2026). */
+export const VERLOOP_SCHALEN: Schaal[] = ["energie", "tijd", "plezier"];
+
+export type VerloopPunt = { week: string; waarde: number | null; later: boolean };
+export type Verloop = {
+  schaal: Schaal;
+  punten: VerloopPunt[];
+  laatste: { week: string; waarde: number } | null;
+  /** Tegenover de ingevulde week daarvoor; null zonder twee ingevulde weken. */
+  verschil: number | null;
+  vorigeWeek: string | null;
+};
+
+/**
+ * Mijn verloop: per schaal de eigen cijfers per week van het kwartaal. Een
+ * week zonder evaluatie is een gat in de lijn, geen nul; weken die nog moeten
+ * komen staan er al wel, zodat je ziet hoe ver het kwartaal is.
+ */
+export function verloop(evaluaties: Pick<Evaluatie, "week" | "antwoorden">[], weken: string[], schalen: Schaal[], vandaag: string): Verloop[] {
+  const per = new Map(evaluaties.map((e) => [e.week, e.antwoorden]));
+  return schalen.map((schaal) => {
+    const punten: VerloopPunt[] = weken.map((week) => {
+      const v = per.get(week)?.[schaal];
+      return { week, waarde: typeof v === "number" ? v : null, later: weekStand(week, vandaag) === "toekomst" };
+    });
+    const ingevuld = punten.filter((p): p is VerloopPunt & { waarde: number } => p.waarde !== null);
+    const laatste = ingevuld.at(-1);
+    const vorige = ingevuld.at(-2);
+    return {
+      schaal,
+      punten,
+      laatste: laatste ? { week: laatste.week, waarde: laatste.waarde } : null,
+      verschil: laatste && vorige ? trend(laatste.waarde, vorige.waarde) : null,
+      vorigeWeek: vorige?.week ?? null,
+    };
+  });
+}
+
 /* ---------- twee zware weken ---------- */
 
 /**

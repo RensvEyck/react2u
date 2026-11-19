@@ -6,7 +6,7 @@ import {
   LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck, LuTriangleAlert, LuGauge,
 } from "react-icons/lu";
 import { requireAdmin } from "@/lib/admin";
-import type { Permission } from "@/lib/permissions";
+import { isMijnReact2u, type Permission } from "@/lib/permissions";
 import type { Lead, Page, PageView, Post, Vacancy } from "@/lib/types";
 import { needsCall, sortLeads, today, LEAD_STATUS } from "@/lib/leads";
 import { byDay, lastDays, totals } from "@/lib/analytics";
@@ -22,7 +22,10 @@ import {
 import { haalVerkoop, verkoopOverzicht } from "@/lib/opvolgenDb";
 import VerkoopBlok from "@/components/admin/VerkoopBlok";
 import { datumOver } from "@/lib/offertes";
-import { kwartaalSleutel, kwartaalVanWeek, openWeken, schalenZin, sluitOp, weekBereikDag, weekKort } from "@/lib/weekevaluatie";
+import {
+  kwartaalSleutel, kwartaalVanWeek, normaliseerAntwoorden, openWeken, schalenZin, sluitOp, verloop, VERLOOP_SCHALEN, weekBereikDag, weekKort, wekenInKwartaal,
+} from "@/lib/weekevaluatie";
+import MijnVerloop from "@/components/admin/MijnVerloop";
 import { haalSignalen } from "@/lib/weekevaluatieDb";
 import { haalPrognose } from "@/lib/prognoseDb";
 import { fteTekst, maandLang } from "@/lib/prognose";
@@ -52,6 +55,13 @@ export default async function AdminDashboard() {
   const prognoseRes = can("omzet") ? haalPrognose(sb, undefined, null, now).then((p) => p.advies).catch(() => null) : Promise.resolve(null);
   // De eigen weekevaluatie (0044): welke van de twee open weken nog niet ingevuld is. Vóór de migratie: een fout, en dan niets.
   const openEvalWeken = openWeken(datumOver(0, now));
+  // Mijn React2u (een werknemer): de eigen cijfers van dit kwartaal voor Mijn verloop.
+  const mijn = isMijnReact2u(admin.permissions);
+  const verloopKwartaal = kwartaalVanWeek(openEvalWeken[1]);
+  const verloopRes = mijn && can("weekevaluatie")
+    ? sb.from("weekevaluaties").select("week, antwoorden").eq("user_id", admin.userId).in("week", wekenInKwartaal(verloopKwartaal))
+        .then((r) => (r.error ? null : (r.data as { week: string; antwoorden: unknown }[])))
+    : Promise.resolve(null);
   const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, profilesRes, evalRes] = await Promise.all([
     can("postvak")
       ? sb.from("contact_messages").select("id, name, subject, created_at", { count: "exact" })
@@ -175,6 +185,10 @@ export default async function AdminDashboard() {
   const evalIngevuld = new Set((((evalRes as { data?: { week: string }[] | null }).data) || []).map((r) => r.week));
   const evalOpen = can("weekevaluatie") && !(evalRes as { error?: unknown }).error ? openEvalWeken.filter((w) => !evalIngevuld.has(w)) : [];
   const zwareWeken = await signalenRes;
+  const mijnRijen = await verloopRes;
+  const mijnLijnen = mijnRijen
+    ? verloop(mijnRijen.map((r) => ({ week: r.week, antwoorden: normaliseerAntwoorden(r.antwoorden) })), wekenInKwartaal(verloopKwartaal), VERLOOP_SCHALEN, datumOver(0, now))
+    : null;
   const werven = await prognoseRes;
 
   const attention =
@@ -194,7 +208,7 @@ export default async function AdminDashboard() {
           </h1>
           <p className="mt-0.5 text-[14.5px] text-black/50">
             {attention === 0
-              ? "Niets dat op je wacht — alles is bij."
+              ? "Niets dat op je wacht, alles is bij."
               : attention === 1
                 ? "Er vraagt één ding je aandacht."
                 : `Er vragen ${attention} dingen je aandacht.`}
@@ -220,6 +234,8 @@ export default async function AdminDashboard() {
           <span className="abtn !py-2 text-[13.5px]">Invullen</span>
         </Link>
       )}
+
+      {mijnLijnen && <MijnVerloop kwartaal={verloopKwartaal} lijnen={mijnLijnen} />}
 
       {werven?.soort === "werven" && (
         <Link href="/admin/prognose" id="prognose-advies" className="acard flex flex-wrap items-center gap-4 border-l-[3px] border-l-[#e75387] px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -526,9 +542,11 @@ export default async function AdminDashboard() {
         </div>
       )}
 
-      <p className="text-center text-[12.5px] text-black/35">
-        Tip: druk op <kbd className="akbd">⌘K</kbd> om overal naartoe te springen of iets te zoeken.
-      </p>
+      {!mijn && (
+        <p className="text-center text-[12.5px] text-black/35">
+          Tip: druk op <kbd className="akbd">⌘K</kbd> om overal naartoe te springen of iets te zoeken.
+        </p>
+      )}
     </div>
   );
 }

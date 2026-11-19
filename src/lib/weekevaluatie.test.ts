@@ -4,6 +4,7 @@ import {
   herinnering, isKwartaalEinde, isMaandEinde, kwartaalLabel, kwartaalSleutel, kwartaalVanDatum, kwartaalVanWeek, leesAntwoorden, leesKwartaal,
   maandenInKwartaal, maandOverzicht, magWijzigen, meldingen, meldingInhoud, meldingMail, momenten, normaliseerAntwoorden, openWeken, perWeek,
   plusKwartalen, SCHALEN, schalenZin, signaal, signaalMail, signalen, sluitOp, teksten, telKeuzes, TEKSTVRAGEN, teltVoor, trend, trendTekst, VRAGEN,
+  verloop, VERLOOP_SCHALEN,
   vragenVoorWeek, weekStand, weekTitel, wekenInKwartaal, wieHerinneren, zwaarsteWeken, type Antwoorden, type Deelnemer, type Doel, type Evaluatie,
 } from "./weekevaluatie";
 
@@ -148,6 +149,31 @@ describe("open en gesloten weken", () => {
     expect(teltVoor("2026-11-09", "2026-11-12")).toBe(true);
     expect(teltVoor("2026-11-02", "2026-11-12")).toBe(false);
     expect(teltVoor("2026-11-02", null)).toBe(true);
+  });
+});
+
+describe("mijn verloop", () => {
+  const weken = ["2026-11-02", "2026-11-09", "2026-11-16", "2026-11-23"];
+  it("geeft per schaal de eigen cijfers per week, met een gat waar een week ontbreekt", () => {
+    const [energie, tijd, plezier] = verloop(
+      [ev("noor", "2026-11-02", { energie: 7, tijd: 6, plezier: 8 }), ev("noor", "2026-11-16", { energie: 4, tijd: 3 })],
+      weken, VERLOOP_SCHALEN, "2026-11-19",
+    );
+    expect([energie.schaal, tijd.schaal, plezier.schaal]).toEqual(["energie", "tijd", "plezier"]);
+    expect(energie.punten.map((p) => p.waarde)).toEqual([7, null, 4, null]);
+    expect(energie.punten.map((p) => p.later)).toEqual([false, false, false, true]);
+    expect(energie.laatste).toEqual({ week: "2026-11-16", waarde: 4 });
+    expect(energie.verschil).toBe(-3);
+    expect(energie.vorigeWeek).toBe("2026-11-02");
+    expect(plezier.laatste).toEqual({ week: "2026-11-02", waarde: 8 });
+    expect(plezier.verschil).toBeNull();
+  });
+
+  it("heeft zonder evaluaties niets te melden", () => {
+    const [energie] = verloop([], weken, ["energie"], "2026-11-19");
+    expect(energie.laatste).toBeNull();
+    expect(energie.verschil).toBeNull();
+    expect(energie.punten.every((p) => p.waarde === null)).toBe(true);
   });
 });
 
