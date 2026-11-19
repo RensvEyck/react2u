@@ -264,11 +264,36 @@ export function stamkaartVolledigheid(k: Klant): Volledigheid {
 
 /* ---------- de lijst ---------- */
 
+/**
+ * Wie in de klantenlijst hoort (Rens, 19 nov 2026: "alleen echte klanten,
+ * leads staan op het bord"): de kolommen vanaf Akkoord, zoals zijn
+ * klantlijst.xlsx (offerte retour, contract retour, ingericht). Leads,
+ * gesprekken en openstaande offertes blijven op het bord.
+ */
+export const KLANT_STATUSSEN: KlantStatus[] = ["akkoord", "inrichten", "klant"];
+
+/**
+ * Een echte klant: akkoord of verder. Een inactieve kaart telt alleen mee als
+ * hij ooit klant was (een contract retour, een koppeling, facturatie of een
+ * startdatum); een verloren lead die op inactief staat niet.
+ */
+export function isEchteKlant(k: Pick<Klant, "status" | "contract_retour" | "koppeling" | "facturatie" | "startdatum">): boolean {
+  if (KLANT_STATUSSEN.includes(k.status)) return true;
+  if (k.status === "inactief") return Boolean(k.contract_retour || k.koppeling || k.facturatie || k.startdatum);
+  return false;
+}
+
+/** De kaarten van het bord die in de klantenlijst horen. */
+export function echteKlanten<T extends Pick<Klant, "status" | "contract_retour" | "koppeling" | "facturatie" | "startdatum">>(klanten: T[]): T[] {
+  return klanten.filter(isEchteKlant);
+}
+
 export type LijstFilter = { q: string; status: KlantStatus | "alle"; inactief: boolean };
 
 /**
  * De klantenlijst: zoeken (zoals op het bord, plus KvK, plaats, casemanager en
- * website), een kolom van het bord als filter, en inactief alleen op verzoek.
+ * website), een kolom van het bord als filter, en gestopte klanten (inactief)
+ * alleen op verzoek. Verwacht de kaarten uit `echteKlanten`.
  */
 export function filterKlantenlijst<T extends Klant>(klanten: T[], f: LijstFilter): T[] {
   const woorden = f.q.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").split(/\s+/).filter(Boolean);

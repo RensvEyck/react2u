@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { bedrijfSleutel, type Klant } from "./klanten";
 import {
-  afsprakenUitOffertes, documentenVoor, documentTelling, filterKlantenlijst, leesBedrag, losseAfspraken, merkUitLabel, schoonIban, schoonKvk, schoonPostcode,
+  afsprakenUitOffertes, documentenVoor, documentTelling, echteKlanten, filterKlantenlijst, isEchteKlant, KLANT_STATUSSEN, leesBedrag, losseAfspraken, merkUitLabel, schoonIban, schoonKvk, schoonPostcode,
   schoonStamkaart, schoonTarief, schoonWebsite, sorteerKlantenlijst, STAMKAART, STAMKAART_VELDEN, stamkaartRegel, stamkaartVolledigheid, tariefGeldt, tariefPeriode, tariefRegel,
   tariefTekst, veldWaarde, voorstelStamkaart, type DocumentBronnen, type StamkaartBronnen,
 } from "./stamkaart";
@@ -90,11 +90,31 @@ describe("controle van de invoer", () => {
   });
 });
 
+describe("wie in de klantenlijst hoort", () => {
+  it("alleen echte klanten: akkoord, inrichten en klant; leads, gesprekken en offertes blijven op het bord", () => {
+    expect(KLANT_STATUSSEN).toEqual(["akkoord", "inrichten", "klant"]);
+    expect(isEchteKlant(klant("A", { status: "akkoord" }))).toBe(true);
+    expect(isEchteKlant(klant("B", { status: "inrichten" }))).toBe(true);
+    expect(isEchteKlant(klant("C", { status: "klant" }))).toBe(true);
+    expect(isEchteKlant(klant("D", { status: "lead" }))).toBe(false);
+    expect(isEchteKlant(klant("E", { status: "gesprek" }))).toBe(false);
+    expect(isEchteKlant(klant("F", { status: "offerte" }))).toBe(false);
+  });
+
+  it("een inactieve kaart telt alleen mee als hij ooit klant was", () => {
+    expect(isEchteKlant(klant("Verloren lead", { status: "inactief" }))).toBe(false);
+    expect(isEchteKlant(klant("Gestopt", { status: "inactief", contract_retour: true }))).toBe(true);
+    expect(isEchteKlant(klant("Gestopt 2", { status: "inactief", startdatum: "2025-01-01" }))).toBe(true);
+    expect(isEchteKlant(klant("Gestopt 3", { status: "inactief", facturatie: true }))).toBe(true);
+    expect(echteKlanten([klant("A", { status: "lead" }), klant("B", { status: "klant" }), klant("C", { status: "inactief", koppeling: true })]).map((k) => k.bedrijf)).toEqual(["B", "C"]);
+  });
+});
+
 describe("de klantenlijst", () => {
   const lijst = [
     klant("Bakkerij De Korenaar B.V.", { status: "klant", contactpersoon: "Fatima El Amrani", kvk: "12345678", bezoek_plaats: "Eindhoven", casemanager: "Iki", laatste_contact_op: "2026-11-10" }),
-    klant("Kapsalon Knip", { status: "lead", contactpersoon: "Sanne de Vries", eigenaar: "Cindy", updated_at: "2026-11-18T10:00:00Z" }),
-    klant("Oud Bedrijf", { status: "inactief" }),
+    klant("Kapsalon Knip", { status: "akkoord", contactpersoon: "Sanne de Vries", eigenaar: "Cindy", updated_at: "2026-11-18T10:00:00Z" }),
+    klant("Oud Bedrijf", { status: "inactief", contract_retour: true }),
   ];
 
   it("zoekt ook op KvK, plaats en casemanager en laat inactief alleen op verzoek zien", () => {
@@ -104,14 +124,14 @@ describe("de klantenlijst", () => {
     expect(filterKlantenlijst(lijst, { q: "eindhoven", status: "alle", inactief: false })).toHaveLength(1);
     expect(filterKlantenlijst(lijst, { q: "iki", status: "alle", inactief: false })).toHaveLength(1);
     expect(filterKlantenlijst(lijst, { q: "sanne", status: "alle", inactief: false }).map((k) => k.bedrijf)).toEqual(["Kapsalon Knip"]);
-    expect(filterKlantenlijst(lijst, { q: "", status: "lead", inactief: false })).toHaveLength(1);
+    expect(filterKlantenlijst(lijst, { q: "", status: "akkoord", inactief: false })).toHaveLength(1);
     expect(filterKlantenlijst(lijst, { q: "", status: "inactief", inactief: false })).toHaveLength(1);
     expect(filterKlantenlijst(lijst, { q: "bestaat niet", status: "alle", inactief: true })).toHaveLength(0);
   });
 
   it("sorteert per kolom, met de bedrijfsnaam als tweede sleutel", () => {
     expect(sorteerKlantenlijst(lijst, "bedrijf", true).map((k) => k.bedrijf)).toEqual(["Bakkerij De Korenaar B.V.", "Kapsalon Knip", "Oud Bedrijf"]);
-    expect(sorteerKlantenlijst(lijst, "status", true).map((k) => k.status)).toEqual(["lead", "klant", "inactief"]);
+    expect(sorteerKlantenlijst(lijst, "status", true).map((k) => k.status)).toEqual(["akkoord", "klant", "inactief"]);
     expect(sorteerKlantenlijst(lijst, "casemanager", true).map((k) => k.casemanager || k.eigenaar)).toEqual(["Cindy", "Iki", null]);
     expect(sorteerKlantenlijst(lijst, "laatste", false).map((k) => k.bedrijf)[0]).toBe("Kapsalon Knip");
     expect(sorteerKlantenlijst(lijst, "volledig", false).map((k) => k.bedrijf)[0]).toBe("Bakkerij De Korenaar B.V.");

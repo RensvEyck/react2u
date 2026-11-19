@@ -3,15 +3,18 @@ import { LuLayoutGrid, LuPlus, LuUpload } from "react-icons/lu";
 import { requirePerm } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
 import { vandaagNL, type Klant } from "@/lib/klanten";
+import { echteKlanten } from "@/lib/stamkaart";
 import { MigratieNodig } from "@/components/admin/Kerncijfer";
 import KlantenLijst from "@/components/admin/klanten/KlantenLijst";
 
 /**
- * Alle klanten onder elkaar (migratie 0048): dezelfde kaarten als het
- * klantenbord, als lijst met de contactgegevens, wie de klant bij React2u
- * heeft en hoe compleet de stamkaart is. Een rij opent de stamkaart
- * (/admin/klanten/<id>) met de bedrijfsgegevens, alle documenten en de
- * tariefafspraken. Zoeken, filteren en sorteren gebeurt in de browser.
+ * Alle klanten onder elkaar (migratie 0048): de echte klanten van het
+ * klantenbord (akkoord of verder, zoals de klantlijst in Excel; Rens, 19 nov
+ * 2026: "alleen echte klanten, leads staan op het bord"), als lijst met de
+ * contactgegevens, wie de klant bij React2u heeft en hoe compleet de
+ * stamkaart is. Een rij opent de stamkaart (/admin/klanten/<id>) met de
+ * bedrijfsgegevens, alle documenten en de tariefafspraken. Zoeken, filteren
+ * en sorteren gebeurt in de browser.
  */
 export default async function KlantenPagina({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const { sb } = await requirePerm("bellijst");
@@ -25,15 +28,18 @@ export default async function KlantenPagina({ searchParams }: { searchParams: Pr
       </div>
     );
   }
-  const klanten = (data as Klant[] | null) || [];
+  const alle = (data as Klant[] | null) || [];
+  // Alleen echte klanten: akkoord, inrichten en klant (en gestopte klanten op verzoek). Leads blijven op het bord.
+  const klanten = echteKlanten(alle);
+  const opHetBord = alle.length - klanten.length;
   // Zonder 0048 ontbreken de stamkaartvelden: de lijst werkt, de stamkaart meldt het.
-  const stamkaartAan = klanten.length === 0 || "kvk" in klanten[0];
+  const stamkaartAan = alle.length === 0 || "kvk" in alle[0];
 
   return (
     <div className="space-y-6">
       <Kop />
       {!stamkaartAan && <MigratieNodig bestand="0048_stamkaart.sql" wat="De stamkaart, de documenten en de tariefafspraken per klant hebben nieuwe velden en tabellen nodig." />}
-      <KlantenLijst klanten={klanten} vandaag={vandaagNL()} beginQ={q || ""} beginStatus={status || "alle"} />
+      <KlantenLijst klanten={klanten} vandaag={vandaagNL()} beginQ={q || ""} beginStatus={status || "alle"} opHetBord={opHetBord} />
     </div>
   );
 }
@@ -43,7 +49,7 @@ function Kop() {
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 className="font-heading text-[26px] font-bold text-[#312e82]">Klanten</h1>
-        <p className="text-[14.5px] text-black/50">Alle leads en klanten van het bord onder elkaar. Open een klant voor de stamkaart met de bedrijfsgegevens, alle documenten en de tariefafspraken.</p>
+        <p className="text-[14.5px] text-black/50">Alle klanten onder elkaar: wie akkoord is, wordt ingericht of live is. Open een klant voor de stamkaart met de bedrijfsgegevens, alle documenten en de tariefafspraken. Leads en gesprekken staan op het bord.</p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Link href="/admin/klantenbord" className="abtn-ghost"><LuLayoutGrid /> Klantenbord</Link>
