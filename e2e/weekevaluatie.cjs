@@ -156,6 +156,17 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   const signaal = await w.locator("#weekevaluatie-open").innerText();
   check(/weekevaluaties van week \d+ en \d+ staan nog open/.test(signaal), `dashboard: beide weken staan nog open (${signaal.split("\n")[0]})`);
   check(signaal.includes("Zeven cijfers en een paar zinnen"), "dashboard: zeven cijfers, net als het formulier en de vrijdagmail");
+  const zijbalk = await w.locator("aside").first().innerText();
+  check(zijbalk.includes("Mijn React2u") && !zijbalk.includes("SYSTEEMBEHEER"), "Mijn React2u bovenaan, geen Systeembeheer");
+  check(!(await w.locator('button[aria-label="Zoeken (⌘K)"]').count()) && !(await w.locator('a[aria-label="Bekijk website"]').count()), "geen zoekveld en geen Bekijk website in de balk");
+  check(!(await w.locator("text=Tip: druk op").count()), "geen tip over ⌘K");
+  await w.keyboard.press("Meta+k");
+  await wacht(300);
+  check(!(await w.locator('[role="dialog"]').count()), "⌘K opent geen zoekpalet");
+  await w.click('button[aria-label^="Account:"]');
+  check(await w.locator('[role="menu"] >> text=Account en beveiliging').count() && !(await w.locator('[role="menu"] >> text=Bekijk website').count()), "het accountmenu zonder Bekijk website");
+  await w.keyboard.press("Escape");
+  check((await w.locator("#mijn-verloop").innerText()).includes("Na je eerste weekevaluatie"), "Mijn verloop wacht op de eerste week van het kwartaal");
   check(!(await w.locator("#weekevaluatie-signalen").count()), "geen signalen over collega's voor een werknemer");
   for (const pad of ["/admin/omzet", "/admin/weekevaluatie/team", "/admin/bellijst"]) {
     await w.goto(`${BASIS}${pad}`);
@@ -213,6 +224,7 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   fs.writeFileSync(path.join(SHOTS, "mail-melding.html"), meld?.html || "");
   check(/^[0-9a-f]{32}$/.test(antwoord(dezeWeek, "antwoorden->>'melding_verstuurd'")), "de database onthoudt dat deze melding verstuurd is");
   check(tekst.includes("Deze melding is al doorgestuurd"), "het formulier zegt dat hij al doorgestuurd is");
+  check(!/\bRens\b/.test(tekst), "ook na het bewaren met een melding staat er geen naam");
   await w.click("button.abtn:has-text('Wijzigingen bewaren')");
   await w.waitForURL(/opgeslagen=weekevaluatie/, { timeout: 20000 });
   await wacht(800);
@@ -245,6 +257,18 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   check(mails().filter((m) => m.subject === "Twee zware weken voor Noor").length === 1, "opnieuw bewaren mailt niet nog een keer");
   await w.goto(`${BASIS}/admin`);
   check(!(await w.locator("#weekevaluatie-open").count()), "dashboard: geen open week meer");
+  {
+    const twee = inKwartaal(vorigeWeek);
+    const volgorde = await w.locator("#mijn-verloop [data-schaal]").evaluateAll((els) => els.map((e) => e.getAttribute("data-schaal")).join(","));
+    check(volgorde === "energie,tijd,plezier", `Mijn verloop: energie, tijd en plezier (${volgorde})`);
+    const paneel = async (s) => (await w.locator(`#mijn-verloop [data-schaal="${s}"]`).innerText()).replace(/\s+/g, " ");
+    const [en, ti, pl] = [await paneel("energie"), await paneel("tijd"), await paneel("plezier")];
+    check(en.includes(`laatst in wk ${weeknr(dezeWeek)}`) && / 4 /.test(` ${en} `) && ti.includes(" 3 ") && pl.includes(" 6 "), `het laatste cijfer per lijn: energie 4, tijd 3, plezier 6 (${en} | ${ti} | ${pl})`);
+    if (twee) check(en.includes(`+1 t.o.v. wk ${weeknr(vorigeWeek)}`) && ti.includes("−1 t.o.v.") && pl.includes("+1 t.o.v."), "met het verschil tegenover vorige week");
+    const stippen = await w.locator('#mijn-verloop [data-schaal="energie"] [data-punt]').count();
+    check(stippen === (twee ? 2 : 1), `een stip per ingevulde week (${stippen})`);
+    await w.screenshot({ path: path.join(SHOTS, "05-mijn-react2u-1440.png"), fullPage: true });
+  }
 
   stap("Gesloten weken, de maandvragen en de terugblik");
   const gesloten = plusWeken(dezeWeek, -3);
@@ -309,6 +333,7 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   await inloggen(b, BEHEERDER.email, BEHEERDER.wachtwoord, GEHEIM);
   await b.goto(`${BASIS}/admin`);
   const dash = await b.locator("#weekevaluatie-signalen").innerText().catch(() => "");
+  check((await b.locator("aside").first().innerText()).includes("SYSTEEMBEHEER") && await b.locator('button[aria-label="Zoeken (⌘K)"]').count() && !(await b.locator("#mijn-verloop").count()), "de super admin houdt het systeembeheer, met zoeken en zonder Mijn verloop");
   check(dash.includes("Twee zware weken") && dash.includes("Noor") && dash.includes(`wk ${weeknr(dezeWeek)}`), `dashboard van de beheerder: het signaal over Noor (${dash.split("\n").slice(0, 2).join(" ")})`);
   await b.goto(`${BASIS}/admin/weekevaluatie/team`);
   await b.waitForSelector("h1:has-text('Weekevaluaties van het team')");
@@ -442,7 +467,7 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   check((await b.locator("article[id^=collega-]").count()) === 2, "en hij staat in het kwartaaloverzicht");
   check(await b.locator('nav[aria-label="Collega\'s"] a').count() === 2, "met een snelle navigatie naar elke collega");
 
-  for (const [page, url, naam] of [[w, "/admin/weekevaluatie", "werknemer"], [b, "/admin/weekevaluatie/team", "kwartaal"], [b, "/admin", "dashboard-beheerder"]]) {
+  for (const [page, url, naam] of [[w, "/admin", "mijn-react2u"], [w, "/admin/weekevaluatie", "werknemer"], [b, "/admin/weekevaluatie/team", "kwartaal"], [b, "/admin", "dashboard-beheerder"]]) {
     stap(`Telefoon: ${naam}`);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${BASIS}${url}`);

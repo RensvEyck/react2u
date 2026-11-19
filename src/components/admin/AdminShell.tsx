@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LuExternalLink, LuMenu, LuX, LuConstruction, LuSearch, LuChevronDown } from "react-icons/lu";
-import { permissionForPath, type Permission } from "@/lib/permissions";
+import { isMijnReact2u, permissionForPath, type Permission } from "@/lib/permissions";
 import { ADMIN_NAV, CRUMBS, NAV_GROEPEN, type Counts, type NavGroepKey, type NavItem } from "@/lib/adminNav";
 import CommandPalette from "./CommandPalette";
 import AccountMenu, { Avatar, UitlogForm } from "./AccountMenu";
@@ -20,6 +20,8 @@ export default function AdminShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  // Wie alleen eigen rechten heeft (een werknemer), krijgt een eigen plek in plaats van het systeembeheer.
+  const mijn = isMijnReact2u(permissions);
   const [open, setOpen] = useState(false);
   const [palette, setPalette] = useState(false);
   const [, startSignOut] = useTransition();
@@ -150,8 +152,14 @@ export default function AdminShell({
   const sidebarInner = (
     <>
       <div className="shrink-0 border-b border-white/10 px-6 py-5">
-        <p className="font-heading text-[19px] font-bold text-white">React2u</p>
-        <p className="text-[12.5px] font-medium tracking-wide text-white/45">SYSTEEMBEHEER</p>
+        {mijn ? (
+          <p className="font-heading text-[19px] font-bold text-white"><span className="text-[#ff8ab5]">Mijn</span> React2u</p>
+        ) : (
+          <>
+            <p className="font-heading text-[19px] font-bold text-white">React2u</p>
+            <p className="text-[12.5px] font-medium tracking-wide text-white/45">SYSTEEMBEHEER</p>
+          </>
+        )}
       </div>
       {nav}
       <div className="shrink-0 border-t border-white/10 px-3 pb-3 pt-3">
@@ -212,35 +220,43 @@ export default function AdminShell({
             </div>
             <div className="ml-auto flex shrink-0 items-center gap-2">
               {maintenance && maintenancePill}
-              <button
-                type="button"
-                onClick={() => setPalette(true)}
-                className="group flex items-center gap-2 rounded-xl border border-black/[0.1] bg-white px-2.5 py-2 text-[13.5px] text-black/45 transition hover:border-[#312e82]/40 hover:text-[#312e82] sm:min-w-[180px] sm:px-3"
-                aria-label="Zoeken (⌘K)"
-              >
-                <LuSearch className="text-[15px]" />
-                <span className="hidden sm:inline">Zoeken…</span>
-                <kbd className="akbd ml-auto hidden sm:inline-flex">⌘K</kbd>
-              </button>
-              {/* Op een telefoon staat Bekijk website in het accountmenu; daar is de balk te smal voor allebei.
-                  De wrapper verbergt hem: .abtn-ghost zet zelf display en wint van `hidden`. */}
-              <span className="hidden sm:contents">
-                <a href="/" target="_blank" className="abtn-ghost whitespace-nowrap !px-3 !py-2 text-[13.5px] md:!px-4" aria-label="Bekijk website">
-                  <span className="hidden md:inline">Bekijk website</span> <LuExternalLink className="text-[13px]" />
-                </a>
-              </span>
-              <AccountMenu email={email} roleLabel={roleLabel} signOut={signOut} />
+              {/* Mijn React2u: geen zoekpalet en geen Bekijk website, alleen je account. */}
+              {!mijn && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setPalette(true)}
+                    className="group flex items-center gap-2 rounded-xl border border-black/[0.1] bg-white px-2.5 py-2 text-[13.5px] text-black/45 transition hover:border-[#312e82]/40 hover:text-[#312e82] sm:min-w-[180px] sm:px-3"
+                    aria-label="Zoeken (⌘K)"
+                  >
+                    <LuSearch className="text-[15px]" />
+                    <span className="hidden sm:inline">Zoeken…</span>
+                    <kbd className="akbd ml-auto hidden sm:inline-flex">⌘K</kbd>
+                  </button>
+                  {/* Op een telefoon staat Bekijk website in het accountmenu; daar is de balk te smal voor allebei.
+                      De wrapper verbergt hem: .abtn-ghost zet zelf display en wint van `hidden`. */}
+                  <span className="hidden sm:contents">
+                    <a href="/" target="_blank" className="abtn-ghost whitespace-nowrap !px-3 !py-2 text-[13.5px] md:!px-4" aria-label="Bekijk website">
+                      <span className="hidden md:inline">Bekijk website</span> <LuExternalLink className="text-[13px]" />
+                    </a>
+                  </span>
+                </>
+              )}
+              <AccountMenu email={email} roleLabel={roleLabel} signOut={signOut} website={!mijn} />
             </div>
           </div>
         </header>
         <main className="mx-auto max-w-[1160px] px-5 py-8 lg:px-8">{children}</main>
       </div>
-      <CommandPalette
-        open={palette}
-        onOpenChange={setPalette}
-        permissions={permissions}
-        onSignOut={() => startSignOut(async () => { await signOut(); })}
-      />
+      {/* Zonder palet ook geen ⌘K: voor twee schermen zit het alleen in de weg. */}
+      {!mijn && (
+        <CommandPalette
+          open={palette}
+          onOpenChange={setPalette}
+          permissions={permissions}
+          onSignOut={() => startSignOut(async () => { await signOut(); })}
+        />
+      )}
     </div>
   );
 }

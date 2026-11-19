@@ -265,6 +265,18 @@ regel maar valt onder Documenten (`ook` laat Documenten oplichten op
 als regel. Zo ging het menu van 25 naar 10 regels; een nieuw scherm hoort dus
 meestal in een groep, als tab, of alleen in het palet.
 
+**Mijn React2u** (Rens, 19 nov 2026: "een eigen plek"): wie alleen rechten
+heeft die over jezelf gaan (`EIGEN_RECHTEN`, nu alleen `weekevaluatie`; dus
+een werknemer), ziet het beheer als eigen plek. Bovenaan staat "Mijn React2u"
+in plaats van "SYSTEEMBEHEER", en er is geen zoekveld, geen ⌘K-palet, geen
+Bekijk website (ook niet in het accountmenu) en geen tip over ⌘K
+(`isMijnReact2u`). Op het dashboard staat dan **Mijn verloop**: de eigen
+energie, tijd en plezier per week van het kwartaal, drie kleine lijnen met
+dezelfde as van 1 tot 10 (`verloop`, `VERLOOP_SCHALEN`, `Lijn` in
+Grafiek.tsx). Een week zonder evaluatie is een gat in de lijn. Er staat bij
+dat je hetzelfde verloop in de kwartaalmeeting bespreekt: het is niet geheim
+voor het beheer. Teksten voor werknemers noemen geen namen.
+
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de
 build. Pure hulpjes voor de formulieren staan daarom in `src/lib/formulier.ts`.

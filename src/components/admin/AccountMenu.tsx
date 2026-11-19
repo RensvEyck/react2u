@@ -52,7 +52,15 @@ export function Avatar({ email, className = "" }: { email: string; className?: s
  * buiten beeld en op een telefoon zat het achter het menu. Hier staat het op
  * elk scherm en elke schermgrootte op dezelfde plek, waar mensen het zoeken.
  */
-export default function AccountMenu({ email, roleLabel, signOut }: { email: string; roleLabel: string; signOut: SignOut }) {
+export default function AccountMenu({
+  email, roleLabel, signOut, website = true,
+}: {
+  email: string;
+  roleLabel: string;
+  signOut: SignOut;
+  /** Bekijk website in het menu; niet in Mijn React2u. */
+  website?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const knop = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -133,9 +141,11 @@ export default function AccountMenu({ email, roleLabel, signOut }: { email: stri
           <Link href="/admin/account" role="menuitem" onClick={() => setOpen(false)} className={item}>
             <LuShieldCheck className="text-[16px] text-[#312e82]" /> Account en beveiliging
           </Link>
-          <a href="/" target="_blank" rel="noopener" role="menuitem" onClick={() => setOpen(false)} className={item}>
-            <LuExternalLink className="text-[16px] text-[#312e82]" /> Bekijk website
-          </a>
+          {website && (
+            <a href="/" target="_blank" rel="noopener" role="menuitem" onClick={() => setOpen(false)} className={item}>
+              <LuExternalLink className="text-[16px] text-[#312e82]" /> Bekijk website
+            </a>
+          )}
           <div className="my-1 h-px bg-black/[0.06]" />
           <UitlogForm signOut={signOut} role="menuitem" className={`${item} !text-[#e0356b] hover:!bg-[#fdeef4] focus-visible:!bg-[#fdeef4]`} />
           <p className="px-3 pb-2 pt-0.5 text-[12px] text-black/40">

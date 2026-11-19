@@ -146,7 +146,7 @@ const OK_TEKST: Record<string, string> = {
   "los-nieuw": "Opgevoerd: het telt mee in het salesdashboard en de omzet.",
   "los-weg": "Verwijderd.",
   weekevaluatie: "Weekevaluatie bewaard. Tot het eind van volgende week kun je hem nog aanpassen.",
-  "weekevaluatie-melding": "Weekevaluatie bewaard, en je melding is naar Rens gestuurd.",
+  "weekevaluatie-melding": "Weekevaluatie bewaard, en je melding is doorgestuurd.",
   normen: "Normen opgeslagen. De prognose rekent er meteen mee.",
   doel: "Doel vastgelegd. De collega ziet het vanaf nu in zijn weekevaluatie.",
   "doel-weg": "Doel verwijderd.",
