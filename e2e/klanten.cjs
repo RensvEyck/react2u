@@ -56,7 +56,10 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
 
   stap("Een klant die uit de modules ontstaat: getekende offerte, getekend contract, onboarding en losse opdracht");
   sql("delete from public.klanten");
-  sql("delete from public.losse_opdrachten where bedrijf like 'Bakkerij De Korenaar%'");
+  // In CI draaiden de andere tests eerder en lieten ze een offerte en een lead voor dezelfde bakkerij achter; alleen wat deze test zelf neerzet telt.
+  for (const tabel of ["offertes", "contracten", "onboardings", "brochures", "evaluaties", "losse_opdrachten"]) {
+    sql(`delete from public.${tabel} where public.bedrijf_sleutel(bedrijf) = 'bakkerij de korenaar'`);
+  }
   const offerte = sql(`insert into public.offertes (vorm, bedrijf, contactpersoon, email, telefoon, medewerkers, regels, keuze, status, verstuurd_at, keuze_at, getekend_at, getekend_naam, getekend_functie, getekend_email, factuur, afzender_naam, afzender_email)
     values ('verzuimbegeleiding', 'Bakkerij de Korenaar', 'Fatima El Amrani', 'fatima@korenaar.test', '040 123 45 67', 12, '[${RECOVER},${RIE},${ARTS}]', '["a","b"]', 'getekend', now() - interval '10 days', now() - interval '8 days', now() - interval '7 days', 'Fatima El Amrani', 'Eigenaar', 'fatima@korenaar.test', '{"adres":"Postbus 12","postcode":"5600AA","plaats":"Eindhoven","kvk":"12345678","email":"facturen@korenaar.test"}', 'Rens van Eyck', 'sales@react2u.nl')
     returning id || ' ' || nummer`).split("\n")[0].split(" ");
@@ -156,7 +159,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.waitForURL(/tab=documenten/);
   await page.waitForSelector("tr[data-document]");
   const docs = async (soort) => page.locator(`tr[data-document="${soort}"]`).count();
-  check((await docs("offerte")) === 1 && (await docs("contract")) === 1 && (await docs("checklist")) === 1 && (await docs("onboarding")) === 1, "offerte, basiscontract, checklist en onboarding in de lijst");
+  check((await docs("offerte")) === 1 && (await docs("contract")) === 1 && (await docs("checklist")) === 1 && (await docs("onboarding")) === 1, `offerte, basiscontract, checklist en onboarding in de lijst (${await docs("offerte")}, ${await docs("contract")}, ${await docs("checklist")}, ${await docs("onboarding")})`);
   check(await page.locator(`text=Offerte Recover ${offerte[1]}`).count(), "de offerte met zijn label en nummer");
   check(await page.locator("text=getekend door Fatima El Amrani").count(), "wie de offerte tekende");
   check(await page.locator("tr[data-document='checklist'] >> text=nog niet ingevuld").count(), "de checklist bij het contract, nog niet ingevuld");
