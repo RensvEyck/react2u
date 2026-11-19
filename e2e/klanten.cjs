@@ -90,7 +90,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   check(await page.locator(`tr[data-klant="${klant}"]`).count(), "de klant staat in de lijst");
   check(await page.locator("tr[data-klant]").count() === 2 && (await page.locator("tr[data-klant] >> text=Garage Smits").count()), "alleen echte klanten: de klant en de kaart in Akkoord; de lead en de gestopte niet");
   check((await page.locator("tr[data-klant] >> text=Kapsalon Knip").count()) === 0, "de lead blijft op het bord");
-  check(await page.locator("text=2 klanten").count() && (await page.locator("a:has-text('1 op het bord')").count()), "telling: 2 klanten, 1 op het bord (de verloren lead telt nergens mee)");
+  check(await page.locator("text=2 klanten").count() && (await page.locator("a:has-text('2 op het bord')").count()), "telling: 2 klanten, 2 op het bord (de lead en de verloren lead)");
   check(await page.locator(`tr[data-klant="${klant}"] >> text=Joris Verhoeven`).count() && (await page.locator(`tr[data-klant="${klant}"] >> text=joris@verhoeven.test`).count()), "contactpersoon en mail uit de modules in de rij");
   check(await page.locator(`tr[data-klant="${klant}"] >> text=3/8`).count(), "stamkaart 3 van 8: contactpersoon, telefoon en mail zijn al bekend");
   await shot(page, "01-lijst", { fullPage: false });
