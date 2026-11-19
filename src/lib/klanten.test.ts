@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  actieStand, bedrijfSleutel, bezoekPerKlant, bronHref, herkenKolommen, importVoorstel, koppelingenVoor, leesDatum, leesJaNee, relatief, relatiefMoment,
-  rijenUitKlantlijst, rijNaarVelden, sorteerKaarten, statusUitRij, statusVerder, telling, zoekKlanten, type Bronnen, type ImportRij, type Klant,
+  actieStand, bedrijfSleutel, bezoekPerKlant, bronHref, herkenKolommen, importVoorstel, isGesprekSoort, koppelingenVoor, leesDatum, leesJaNee, relatief, relatiefMoment,
+  rijenUitKlantlijst, rijNaarVelden, sorteerKaarten, statusUitRij, statusVerder, telling, tijdlijnRegels, zoekKlanten, type Bronnen, type Gesprek, type ImportRij, type Klant,
 } from "./klanten";
 
 const VANDAAG = "2026-11-16";
@@ -282,5 +282,26 @@ describe("csv en geplakte tekst", () => {
     expect(cellenUitTekst('klant,stand\n"Son & Koot, Eindhoven","ingericht, ""live"""')).toEqual([["klant", "stand"], ["Son & Koot, Eindhoven", 'ingericht, "live"']]);
     expect(cellenUitTekst("klant\tstand\r\nWBLO\tingericht")).toEqual([["klant", "stand"], ["WBLO", "ingericht"]]);
     expect(cellenUitTekst("")).toEqual([]);
+  });
+});
+
+describe("de tijdlijn", () => {
+  const gesprek = (id: string, created_at: string, extra: Partial<Gesprek> = {}): Gesprek => ({
+    id, klant_id: "k", soort: "gesprek", op: created_at.slice(0, 10), tekst: id, door: null, contact: true, bron: null, bron_id: null, bron_gebeurtenis: null, created_at, ...extra,
+  });
+
+  it("zet gesprekken en sitebezoeken door elkaar, nieuwste eerst", () => {
+    const regels = tijdlijnRegels(
+      [gesprek("a", "2026-11-10T10:00:00Z"), gesprek("b", "2026-11-12T10:00:00Z", { soort: "stamkaart", contact: false })],
+      { laatst: "2026-11-11T10:00:00Z", paginas: 3, sessies: [{ start: "2026-11-11T10:00:00Z", paginas: ["/", "/werkgevers"] }] },
+    );
+    expect(regels.map((r) => r.key)).toEqual(["b", "site-2026-11-11T10:00:00Z", "a"]);
+    expect(regels[1].sessie?.paginas).toEqual(["/", "/werkgevers"]);
+    expect(tijdlijnRegels([], null)).toEqual([]);
+  });
+
+  it("kent de soort stamkaart (0048)", () => {
+    expect(isGesprekSoort("stamkaart")).toBe(true);
+    expect(isGesprekSoort("iets anders")).toBe(false);
   });
 });

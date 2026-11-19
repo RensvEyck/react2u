@@ -2083,6 +2083,9 @@ met de laatste stand en soms een contactpersoon.
   hem invult. De kaart toont *herkomst?* zolang hij ontbreekt. Het oude vrije
   veld `bron` blijft bestaan voor wat er al stond en voor de module die de
   kaart maakte.
+- **Alle klanten** (de knop naast *Vandaag*, migratie 0048) opent de
+  klantenlijst met per klant de stamkaart; de kaart en het paneel linken er
+  ook heen. Zie *Klantenlijst en stamkaart* hieronder.
 - **Zoeken en filteren** gebeuren in de browser: elk woord moet ergens
   voorkomen (bedrijf, contactpersoon, mail, eigenaar, stand, volgende actie,
   laatste contact, bron; een telefoonnummer zonder spaties), filter op
@@ -2214,6 +2217,95 @@ met de laatste stand en soms een contactpersoon.
   toetsenbord, het telefoontje dat zichzelf vastlegt, mailen vanuit de kaart
   via de nep-Resend en de ochtendmail via de cron), `lib/werkrij.test.ts`,
   `lib/klantMail.test.ts`, `lib/belAfloop.test.ts` en `lib/ochtendmail.test.ts`.
+
+## Klantenlijst en stamkaart
+
+Sinds migratie [0048](supabase/migrations/0048_stamkaart.sql) (Rens, 19 nov
+2026: "maak in het klantenbord een knop naar alle klanten onder elkaar.
+bedrijfsinformatie als stamkaart, documenten en tariefafspraken", met vier
+schermafbeeldingen van een inlenerslijst in een uitzendplatform als
+inspiratie): de knop **Alle klanten** op het bord opent
+[`/admin/klanten`](src/app/admin/(panel)/klanten/page.tsx), dezelfde kaarten
+als lijst, en elke rij (en de kaart en het zijpaneel op het bord) opent de
+**stamkaart** [`/admin/klanten/<id>`](src/app/admin/(panel)/klanten/[id]/page.tsx).
+Recht `bellijst`, zoals het bord. De regels staan in
+[`lib/stamkaart.ts`](src/lib/stamkaart.ts), de acties in
+[`stamkaartActions.ts`](src/app/admin/stamkaartActions.ts), de schermen in
+`src/components/admin/klanten/`.
+
+- **De lijst** ([`KlantenLijst.tsx`](src/components/admin/klanten/KlantenLijst.tsx)):
+  bedrijf (met plaats en KvK), status op het bord, contactpersoon met functie,
+  telefoon en mail, wie de klant bij React2u heeft (casemanager, anders de
+  eigenaar), de laatste activiteit en hoe compleet de stamkaart is (`x/8`,
+  `stamkaartVolledigheid`: KvK, bezoekadres met postcode en plaats,
+  contactpersoon met telefoon en mail, factuur-e-mail). Zoeken zoals op het
+  bord plus KvK, plaats, casemanager, website en functie
+  (`filterKlantenlijst`), een kolom van het bord als filter, inactief alleen
+  op verzoek, sorteren per kolom (`sorteerKlantenlijst`). Alles in de browser;
+  `?q=` en `?status=` staan in de URL.
+- **Stamkaart**: vijf blokken (`STAMKAART`): Bedrijf (KvK, rechtsvorm,
+  branche, SBI, website, aantal werknemers, algemeen nummer en adres), Adres
+  (bezoek- en postadres), Contactpersoon (naam, functie, telefoon, mail; dat
+  zijn de bestaande `contactpersoon`, `telefoon` en `email` van de kaart),
+  Facturatie (factuur-e-mail, btw, debiteurnummer, IBAN met tenaamstelling,
+  bevoegd ondertekenaar) en Bij React2u (eigenaar, casemanager, startdatum,
+  plus de status en herkomst van het bord, alleen te lezen). *Bewerken* zet
+  alles in één formulier; `schoonStamkaart` maakt het netjes (KvK acht
+  cijfers, IBAN met de mod-97-controle en zonder spaties, postcode `5611 NB`,
+  website met `https://`, btw zonder punten) en zegt in woorden wat niet
+  klopt. Alleen wat veranderde komt als regel `stamkaart` in de tijdlijn
+  ("Stamkaart bijgewerkt: Rechtsvorm, IBAN"), geen contact.
+- **Niemand typt dubbel** (`voorstelStamkaart`): voor elk leeg veld wat de
+  modules al weten, de meest betrouwbare bron eerst: het (getekende) contract
+  (opdrachtgever: KvK, bezoekadres, wie tekende als bevoegd ondertekenaar,
+  ingangsdatum als startdatum), dan de onboarding (wat de klant zelf invulde
+  bij *Inrichting nieuwe klant*: KvK, btw, factuuradres als postadres,
+  factuur-e-mail, contactpersoon met functie, casemanager, debiteurnummer),
+  dan de offerte (aantal medewerkers, de factuurgegevens bij het tekenen, wie
+  tekende), de bellijst (naam, telefoon, mail) en de bedrijfsherkenning of het
+  domein van het e-mailadres voor de website (niet van gmail en zo). De
+  stamkaart toont het voorstel in grijs bij het veld met de bron erbij, per
+  veld *Overnemen* of in één keer *Alles overnemen* (`neemVoorstelOver`): de
+  tijdlijn zegt dan waar het vandaan kwam ("Stamkaart aangevuld uit de
+  modules: KvK-nummer (contract C2026-0003), …"). Een veld dat intussen gevuld
+  is blijft staan. Een resellerovereenkomst telt niet als bron.
+- **Documenten** (`documentenVoor`): alles van deze klant uit alle modules in
+  één tabel, nieuwste eerst, gevonden op de bedrijfssleutel: brochures (pdf
+  via de klantlink), offertes (getekend: de pdf met certificaat; anders de
+  concept-pdf), het basiscontract met zijn checklist arbeidsomstandigheden
+  (ingevuld, bijgewerkt of nog niet), de onboarding (klantpagina,
+  verzuimprotocol, inrichting als pdf, werknemersbestand als Excel) met per
+  getekende machtiging een rij en de opdracht tot overdracht, klantevaluaties,
+  resellerovereenkomsten als de klant partner is, en de **eigen bestanden**:
+  bucket `klantbestanden` (privé, 20 MB, pdf, Word, Excel, afbeeldingen) en
+  tabel `klant_bestanden`, zoals de partnerbestanden (0034): uploaden vanuit
+  de browser ([`KlantBestanden.tsx`](src/components/admin/klanten/KlantBestanden.tsx)),
+  soort *getekend stuk*, *correspondentie* of *ander bestand* met een
+  omschrijving, downloaden via `/admin/klantbestand/<id>` (nooit een deelbare
+  link). Filter per soort.
+- **Tariefafspraken**: uit de getekende offertes per offerte de regels die de
+  klant koos (en de vaste, en de tarieven bij gebruik), per label (Recover,
+  Resist, …) gegroepeerd, met het bedrag zoals het op de offerte staat
+  (`tariefRegel`: "€38,50 per medewerker per jaar", "× 12 medewerkers",
+  abonnement of eenmalig) en de totalen van de offerte zelf; de losse klanten
+  en opdrachten (0036); en de **afwijkende afspraken** (`klant_tarieven`):
+  vrije regels met label, omschrijving, bedrag met een eenheid uit de
+  offerte-eenheden (of op aanvraag), ingangs- en einddatum en een
+  toelichting, bij te houden op de stamkaart
+  ([`Afspraken.tsx`](src/components/admin/klanten/Afspraken.tsx)). Niets
+  wordt hier uitgerekend: vaste bedragen zoals vastgelegd.
+- **Tijdlijn**: dezelfde als het zijpaneel (het delen nu
+  [`Tijdlijn.tsx`](src/components/admin/klantenbord/Tijdlijn.tsx)), met een
+  kort formulier om een gesprek vast te leggen; de volgende stap en de kolom
+  blijven op het bord.
+- **Database**: de stamkaartvelden op `klanten`, de soort `stamkaart` in
+  `klant_gesprekken`, `klant_tarieven`, `klant_bestanden` en de bucket; alles
+  achter `has_perm('bellijst')`. Zonder 0048 werkt de lijst en meldt de
+  stamkaart het. Tests: `lib/stamkaart.test.ts`, `lib/klantBestanden.test.ts`
+  en de browsertest [`e2e/klanten.cjs`](e2e/klanten.cjs) (een klant uit
+  offerte, contract, onboarding en opdracht, de lijst, het voorstel en alles
+  overnemen, bewerken met controle, de documenten, uploaden en downloaden, de
+  tarieven en een afspraak erbij, de tijdlijn, de telefoon).
 
 ## Van Postvak IN naar bellijst
 
@@ -2816,7 +2908,9 @@ roepen hem aan) en `0047_herkomst.sql` (bel- en mailklikken in `conversions`;
 herkomst, bron en landingspagina op `conversions` en `contact_messages`;
 `herkomst` en `herkomst_toelichting` op `klanten` en `offertes`; `klant_zeker()`
 met twee parameters erbij en de trigger die de herkomst van een offerte naar de
-kaart brengt). Supabase-project `tumwtappyegkjabtmold`.
+kaart brengt) en `0048_stamkaart.sql` (stamkaartvelden op `klanten`, de soort
+`stamkaart` in de tijdlijn, `klant_tarieven`, `klant_bestanden` en de bucket
+`klantbestanden`). Supabase-project `tumwtappyegkjabtmold`.
 
 De tabel `supabase_migrations.schema_migrations` in de live database gebruikt
 tijdstempelversies met eigen namen (`init_react2u_cms` = 0001, enz.) en
@@ -2835,7 +2929,7 @@ regels waar het op aankomt; de schermen eromheen zijn dun.
 
 **Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
 eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`), en sindsdien per
-module een test (brochure, contract, onboarding, klantenbord, evaluatie, reseller, partner, dashboard, omzet, weekevaluatie). `e2e/run.mjs`
+module een test (brochure, contract, onboarding, klantenbord, klanten, evaluatie, reseller, partner, dashboard, omzet, weekevaluatie). `e2e/run.mjs`
 bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
 testbeheerder, lege versies van twee productiefuncties en pg_cron uit
 `e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen

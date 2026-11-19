@@ -194,7 +194,7 @@ export type GesprekInvoer = {
 export async function voegGesprekToe(id: string, invoer: GesprekInvoer): Promise<GesprekResultaat> {
   const { sb, admin } = await requirePerm("bellijst");
   const soort = invoer.soort;
-  if (!isGesprekSoort(soort) || soort === "status" || soort === "import" || soort === "systeem") return { ok: false, fout: "Kies wat voor contact het was." };
+  if (!isGesprekSoort(soort) || soort === "status" || soort === "import" || soort === "systeem" || soort === "stamkaart") return { ok: false, fout: "Kies wat voor contact het was." };
   const t = meerregelig(invoer.tekst, 5000);
   const heeftVervolg = invoer.volgende_actie !== undefined || invoer.volgende_actie_op !== undefined || (invoer.status && isKlantStatus(invoer.status));
   if (!t && !heeftVervolg) return { ok: false, fout: "Schrijf kort op wat er besproken is." };

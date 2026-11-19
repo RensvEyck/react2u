@@ -2,7 +2,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
-  LuBookOpen, LuClipboardCheck, LuClipboardList, LuEuro, LuFilePenLine, LuGlobe, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload, LuZap,
+  LuBookOpen, LuClipboardCheck, LuClipboardList, LuEuro, LuFilePenLine, LuGlobe, LuIdCard, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload, LuZap,
 } from "react-icons/lu";
 import { CHECKLIST, initialen, statusInfo, type Bron, type GesprekSoort, type Klant, type KlantStatus, type Koppeling, type KoppelSoort } from "@/lib/klanten";
 
@@ -51,6 +51,7 @@ export const SOORT_ICOON: Record<GesprekSoort, ComponentType<{ className?: strin
   status: LuArrowRight,
   import: LuUpload,
   systeem: LuZap,
+  stamkaart: LuIdCard,
 };
 
 export const SOORT_LABEL: Record<GesprekSoort, string> = {
@@ -61,6 +62,7 @@ export const SOORT_LABEL: Record<GesprekSoort, string> = {
   status: "Verplaatst",
   import: "Import",
   systeem: "Vanuit de modules",
+  stamkaart: "Stamkaart",
 };
 
 /** Het icoon en de naam van de module waar een systeemregel vandaan komt (0041). */
