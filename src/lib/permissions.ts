@@ -116,6 +116,7 @@ const PATH_PERMISSIONS: [string, Permission][] = [
   ["/admin/gebruikers", "gebruikers"],
   ["/admin/omzet", "omzet"],
   ["/admin/prognose", "omzet"],
+  ["/admin/inwerken", "omzet"],
   // Het kwartaaloverzicht vóór het eigen scherm: specifiek gaat voor algemeen.
   ["/admin/weekevaluatie/team", "omzet"],
   ["/admin/weekevaluatie", "weekevaluatie"],
