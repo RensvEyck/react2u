@@ -39,7 +39,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Werknemer** (`werknemer`) | De rol voor een collega die alleen zijn eigen weekevaluatie invult (migratie 0044): één recht, `weekevaluatie`. Ziet na het inloggen het dashboard, Weekevaluatie en Account, niets van sales, omzet of de site. Geen systeemrol: de super admin mag er rechten bij zetten. Zie *Weekevaluatie*. |
 | **Weekevaluatie** (`weekevaluaties`) | Eén rij per collega per ISO-week (de maandag): zeven cijfers van 1 tot 10, vrije velden en een veld om iets te melden of te delen, in de laatste week van de maand zes maandvragen erbij en in de laatste week van het kwartaal een terugblik, als jsonb op de sleutels uit `VRAGEN` in [`src/lib/weekevaluatie.ts`](src/lib/weekevaluatie.ts). Deze en vorige week zijn te wijzigen, daarna staat de week vast. Zie *Weekevaluatie*. |
 | **Kwartaaldoel** (`weekevaluatie_doelen`) | Eén tot drie doelen per collega per kwartaal, vastgelegd in de kwartaalmeeting (0045). De collega geeft elke week aan hoe ver hij kwam. |
-| **Melding** (in de weekevaluatie) | Iets wat een collega wil melden of delen: een zorg, een idee, een compliment, een vraag. Komt in de kwartaalmeeting, of meteen per mail bij Rens als de collega dat aanvinkt (0046). |
+| **Melding** (in de weekevaluatie) | Iets wat een collega wil melden of delen: een zorg, een idee, een compliment, een vraag. Komt in de kwartaalmeeting, of meteen per mail bij de super admin als de collega dat aanvinkt (0046). |
 | **Twee zware weken** | Twee weken achter elkaar een 4 of lager voor energie of voor "werk paste in de tijd". Geeft meteen een mail aan wie het kwartaaloverzicht mag zien, en een melding op diens dashboard. |
 | **Prognose** | Hoeveel werknemers React2u de komende twaalf maanden begeleidt en hoeveel fte casemanagement dat vraagt, tegenover de bezetting, met de weekevaluaties als controle (`/admin/prognose`, 0049). Zie *Prognose*. |
 | **Ingangsdatum** (`offertes.ingangsdatum`) | Wanneer de dienstverlening van een offerte start. Voor de prognose; ook na tekenen nog te verschuiven. |
@@ -1944,7 +1944,7 @@ klantevaluatie onder Documenten).
     kon beter, wat heb je nodig, wat neem je mee naar volgende week. En een
     eigen blok **Iets melden of delen**: de soort (iets wat niet goed gaat, een
     idee, een compliment, een vraag, iets anders; één keuze), de tekst en een
-    vinkje "Stuur dit meteen naar Rens". Waar een open vraag in het formulier
+    vinkje "Stuur dit meteen door" (een mail aan de super admin). Waar een open vraag in het formulier
     staat, zegt `blok` in `VRAGEN`.
   - **De laatste week van de maand**: zes stellingen over toewijding en wat
     werkgeluk voedt (trots, extra inzet, gewaardeerd, eigen ruimte, geleerd,
@@ -1958,8 +1958,11 @@ klantevaluatie onder Documenten).
   donderdag (`isMaandEinde`, `isKwartaalEinde`). De cijfers zijn verplicht, de
   teksten niet. **Niets over gezondheid** (klachten, slaap): een werkgever mag
   geen medische gegevens vastleggen, dus we vragen naar het werk. Boven het
-  formulier staat waar de antwoorden voor zijn (`WAARVOOR`): voor het gesprek,
-  nooit voor beoordeling of salaris. Een sleutel hernoemen maakt oude
+  formulier staat waar de antwoorden voor zijn (`WAARVOOR`): om inzicht te
+  houden en samen te blijven verbeteren, nooit voor beoordeling of salaris.
+  Wat een werknemer ziet noemt geen namen (Rens, 19 nov 2026: "haal mijn naam
+  eruit"): een melding gaat "meteen door", niet "naar Rens", en bij "Wat heb
+  je nodig?" staat "van React2u of van je collega's". Een sleutel hernoemen maakt oude
   antwoorden onvindbaar; een vraag erbij is een regel in code.
 - **Terug in de kwartaalmeeting.** Drie dingen lopen van de week naar de
   meeting: de **doelen** (`weekevaluatie_doelen`, 0045: één tot drie per

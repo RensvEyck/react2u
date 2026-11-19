@@ -215,7 +215,7 @@ export default async function AdminDashboard() {
                 ? `Je weekevaluatie van week ${weekNummer(evalOpen[0]).week} staat nog open`
                 : `Je weekevaluaties van week ${evalOpen.map((w) => weekNummer(w).week).join(" en ")} staan nog open`}
             </span>
-            <span className="block text-[12.5px] text-black/45">Vijf cijfers en een paar zinnen. Week {weekNummer(evalOpen[0]).week} kun je nog aanpassen tot en met zondag {weekBereikDag(sluitOp(evalOpen[0]))}.</span>
+            <span className="block text-[12.5px] text-black/45">Zeven cijfers en een paar zinnen. Week {weekNummer(evalOpen[0]).week} kun je nog aanpassen tot en met zondag {weekBereikDag(sluitOp(evalOpen[0]))}.</span>
           </span>
           <span className="abtn !py-2 text-[13.5px]">Invullen</span>
         </Link>

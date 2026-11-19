@@ -206,7 +206,7 @@ export default async function Weekevaluatie({ searchParams }: { searchParams: Pr
                         <div key={t.sleutel}>
                           <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-black/45">
                             {t.kort}{a.bespreken?.includes(t.sleutel) && <span className="ml-2 normal-case tracking-normal text-[#312e82]">· voor de kwartaalmeeting</span>}
-                            {t.sleutel === "melding" && a.melding_verstuurd && <span className="ml-2 normal-case tracking-normal text-[#0e9f8a]">· meteen naar Rens gestuurd</span>}
+                            {t.sleutel === "melding" && a.melding_verstuurd && <span className="ml-2 normal-case tracking-normal text-[#0e9f8a]">· meteen doorgestuurd</span>}
                           </p>
                           {t.keuzes && a[t.keuzes]?.length ? <p className="mt-1 text-[12.5px] text-[#312e82]">{a[t.keuzes]!.map((s) => keuzeLabel(t.keuzes!, s)).join(" · ")}</p> : null}
                           {a[t.sleutel] && <p className="mt-1 whitespace-pre-line text-[14px] leading-relaxed text-[#1c1a4e]">{a[t.sleutel]}</p>}
