@@ -170,6 +170,8 @@ const OK_TEKST: Record<string, string> = {
   "inwerkreis-af": "Inwerkreis afgerond.",
   "inwerkreis-heropend": "De inwerkreis loopt weer.",
   "inwerkreis-weg": "Inwerkreis verwijderd.",
+  "inwerkreis-gekozen": "Inwerkreis gestart en aan gezet, met vandaag als eerste werkdag. Die pas je zo nodig aan onder Inwerken.",
+  "inwerkreis-functie": "De inwerkreis volgt nu de nieuwe functie. Wat al gedaan was, blijft bewaard.",
   "contract-nieuw": "Contract aangemaakt. Bekijk het voorbeeld en verstuur het als het klaar is.",
   "contract-open": "De link staat open voor de klant. Stuur hem door.",
   "contract-ingetrokken": "Ingetrokken: de link toont alleen nog je contactgegevens.",

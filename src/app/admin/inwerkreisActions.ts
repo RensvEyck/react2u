@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin, requirePerm } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
 import { leesStap } from "@/lib/inwerkreis";
+import { datumOver } from "@/lib/offertes";
 
 /**
  * De inwerkreis (0050). Sjablonen en reizen: alleen met het recht omzet. Een
@@ -194,6 +195,38 @@ export async function inwerkStapZetten(reisId: string, stapId: string, gedaan: b
       if (staat) return { ok: false, fout: "Een mijlpaal zet het beheer terug." };
     }
   }
+  ververs();
+  return { ok: true };
+}
+
+/* ---------- kiezen en aan of uit (0051) ---------- */
+
+/**
+ * Onder Gebruikers het inwerktraject van een collega kiezen. Zonder reis start
+ * dit er een, met vandaag als eerste werkdag (aan te passen onder Inwerken);
+ * met een reis wisselt het de functie. Wat al gedaan is, blijft bewaard.
+ */
+export async function inwerkreisKiezen(userId: string, formData: FormData) {
+  const { sb } = await requirePerm("omzet");
+  const sjabloon = String(formData.get("sjabloon_id") || "");
+  if (!UUID.test(userId) || !UUID.test(sjabloon)) return;
+  const terug = (q: string) => `/admin/gebruikers?${q}#gebruiker-${userId}`;
+  const { data: bestaand, error: e1 } = await sb.from("inwerkreizen").select("id").eq("user_id", userId).maybeSingle();
+  if (e1) redirect(terug(`fout=${foutSleutel(e1)}`));
+  const { error } = bestaand
+    ? await sb.from("inwerkreizen").update({ sjabloon_id: sjabloon }).eq("id", (bestaand as { id: string }).id)
+    : await sb.from("inwerkreizen").insert({ user_id: userId, sjabloon_id: sjabloon, startdatum: datumOver(0), aan: true });
+  if (error) redirect(terug(`fout=${foutSleutel(error)}`));
+  ververs();
+  redirect(terug(`opgeslagen=${bestaand ? "inwerkreis-functie" : "inwerkreis-gekozen"}`));
+}
+
+/** De schakelaar: aan, of uit (de collega ziet de reis niet en vinkt niets af; alles blijft bewaard). */
+export async function inwerkreisAanUit(reisId: string, aan: boolean): Promise<ZetUitkomst> {
+  const { sb } = await requirePerm("omzet");
+  if (!UUID.test(reisId)) return { ok: false, fout: "Dat lukte niet." };
+  const { data, error } = await sb.from("inwerkreizen").update({ aan }).eq("id", reisId).select("id");
+  if (error || !data?.length) return { ok: false, fout: "Aan of uit zetten lukte niet. Probeer het nog eens." };
   ververs();
   return { ok: true };
 }

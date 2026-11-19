@@ -191,7 +191,7 @@ export default async function AdminDashboard() {
   const evalOpen = can("weekevaluatie") && !(evalRes as { error?: unknown }).error ? openEvalWeken.filter((w) => !evalIngevuld.has(w)) : [];
   const zwareWeken = await signalenRes;
   const inwerk = await inwerkRes;
-  const eigenReis = inwerk.ok && inwerk.data && !inwerk.data.reis.afgerond_at ? inwerk.data : null;
+  const eigenReis = inwerk.ok && inwerk.data && inwerk.data.reis.aan && !inwerk.data.reis.afgerond_at ? inwerk.data : null;
   const eigenStand = eigenReis ? reisStand(eigenReis.reis, eigenReis.stappen, eigenReis.voortgang, datumOver(0, now)) : null;
   const mijnRijen = await verloopRes;
   const mijnLijnen = mijnRijen

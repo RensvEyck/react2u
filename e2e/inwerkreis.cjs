@@ -244,7 +244,52 @@ insert into public.medewerkers (naam, functie, user_id) values ('${NIEUW.naam}',
   await b.waitForURL(/opgeslagen=inwerk-sjabloon-weg/, { timeout: 20000 });
   check(sql("select count(*) from public.inwerk_sjablonen where functie = 'Bedrijfsarts'") === "0", "en weer verwijderd");
 
-  for (const [page, url, naam] of [[n, "/admin", "dashboard"], [n, "/admin/inwerkreis", "mijn-inwerkreis"], [b, "/admin/inwerken", "overzicht"], [b, `/admin/inwerken/sjabloon/${CM}`, "sjabloon"], [b, `/admin/inwerken/${REIS}`, "reis-beheer"]]) {
+  stap("Onder Gebruikers: het traject kiezen en aan of uit zetten (0051)");
+  await b.goto(`${BASIS}/admin/gebruikers`);
+  let rij = b.locator(`[data-inwerk="${NIEUW.email}"]`);
+  check((await rij.count()) === 1 && (await rij.locator('select[name="sjabloon_id"]').inputValue()) === CM, "bij de nieuwe collega staat Casemanager Verzuim gekozen");
+  check((await rij.locator('[role="switch"]').getAttribute("aria-checked")) === "true", "en de inwerkreis staat aan");
+  await rij.locator('[role="switch"]').click();
+  check(await totDat(() => sql(`select aan from public.inwerkreizen where id = '${REIS}'`) === "f"), "uit gezet met de schakelaar");
+  check((await rij.locator('[role="switch"]').getAttribute("aria-checked")) === "false", "de schakelaar staat op uit");
+  await n.goto(`${BASIS}/admin`);
+  const menuUit = await n.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+  check(!menuUit.includes("/admin/inwerkreis") && !(await n.locator("#mijn-inwerkreis").count()), `uit: geen Inwerkreis in het menu en geen kaart op het dashboard (${menuUit.join(", ")})`);
+  await n.goto(`${BASIS}/admin/inwerkreis`);
+  check(await n.locator("#reis-staat-uit").count() && !(await n.locator('button[role="checkbox"]').count()), "uit: het eigen scherm zegt dat hij uit staat, zonder vinkjes");
+  const OEFEN = sql("select id from public.inwerk_stappen where titel = 'Een ziekmelding van begin tot eind'");
+  check(!mag(() => alsCollega(NIEUW.id, `insert into public.inwerk_voortgang (reis_id, stap_id) values ('${REIS}', '${OEFEN}')`)), "uit: zelf afvinken weigert de database");
+  check(sql(`select count(*) from public.inwerk_voortgang where reis_id = '${REIS}'`) === "2", "wat al gedaan was, blijft bewaard");
+  await b.goto(`${BASIS}/admin/inwerken/${REIS}`);
+  check(await b.locator("#reis-uit").count(), "het beheer ziet bij de reis dat hij uit staat");
+  await b.click('#reis-aan [role="switch"]');
+  check(await totDat(() => sql(`select aan from public.inwerkreizen where id = '${REIS}'`) === "t"), "weer aan gezet vanaf de pagina van de reis");
+  await n.goto(`${BASIS}/admin`);
+  check(await n.locator('aside nav a[href="/admin/inwerkreis"]').count() && await n.locator("#mijn-inwerkreis").count(), "aan: menu en kaart zijn terug");
+
+  await b.goto(`${BASIS}/admin/gebruikers`);
+  rij = b.locator(`[data-inwerk="${NIEUW.email}"]`);
+  await rij.locator('select[name="sjabloon_id"]').selectOption(BO);
+  await b.waitForURL(/opgeslagen=inwerkreis-functie/, { timeout: 20000 });
+  check(sql(`select sjabloon_id from public.inwerkreizen where id = '${REIS}'`) === BO, "een andere functie kiezen zet de reis om");
+  await n.goto(`${BASIS}/admin/inwerkreis`);
+  check((await n.locator("main").innerText()).includes("Geheime backofficestap"), "de collega ziet de stappen van de nieuwe functie");
+  await b.goto(`${BASIS}/admin/gebruikers`);
+  await b.locator(`[data-inwerk="${NIEUW.email}"] select[name="sjabloon_id"]`).selectOption(CM);
+  await b.waitForURL(/opgeslagen=inwerkreis-functie/, { timeout: 20000 });
+  check(sql(`select sjabloon_id from public.inwerkreizen where id = '${REIS}'`) === CM && sql(`select count(*) from public.inwerk_voortgang where reis_id = '${REIS}'`) === "2", "terug naar Casemanager Verzuim, met de vinkjes van eerst");
+
+  sql(`delete from public.inwerkreizen where user_id = '${RENS_ID}'`);
+  await b.goto(`${BASIS}/admin/gebruikers`);
+  rij = b.locator(`[data-inwerk="${BEHEERDER.email}"]`);
+  check((await rij.locator('select[name="sjabloon_id"]').inputValue()) === "" && !(await rij.locator('[role="switch"]').count()), "zonder reis: Geen gekozen en geen schakelaar");
+  await rij.locator('select[name="sjabloon_id"]').selectOption(BO);
+  await b.waitForURL(/opgeslagen=inwerkreis-gekozen/, { timeout: 20000 });
+  check(sql(`select sjabloon_id || '|' || startdatum || '|' || aan from public.inwerkreizen where user_id = '${RENS_ID}'`) === `${BO}|${vandaag}|true`, "een functie kiezen start een reis: vandaag, aan");
+  check((await b.locator(`[data-inwerk="${BEHEERDER.email}"] [role="switch"]`).getAttribute("aria-checked")) === "true", "en de schakelaar verschijnt, op aan");
+  await b.screenshot({ path: path.join(SHOTS, "06-gebruikers-1440.png"), fullPage: true });
+
+  for (const [page, url, naam] of [[n, "/admin", "dashboard"], [n, "/admin/inwerkreis", "mijn-inwerkreis"], [b, "/admin/inwerken", "overzicht"], [b, `/admin/inwerken/sjabloon/${CM}`, "sjabloon"], [b, `/admin/inwerken/${REIS}`, "reis-beheer"], [b, "/admin/gebruikers", "gebruikers"]]) {
     stap(`Telefoon: ${naam}`);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${BASIS}${url}`);
