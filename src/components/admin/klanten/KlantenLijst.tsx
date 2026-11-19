@@ -5,18 +5,19 @@ import { useRouter } from "next/navigation";
 import { LuChevronDown, LuChevronUp, LuChevronRight, LuMail, LuPhone, LuSearch, LuUsers } from "react-icons/lu";
 import { isKlantStatus, KLANT_STATUS, relatief, type Klant, type KlantStatus } from "@/lib/klanten";
 import { noteerBel } from "@/lib/belAfloop";
-import { filterKlantenlijst, sorteerKlantenlijst, stamkaartVolledigheid, type LijstSortering } from "@/lib/stamkaart";
+import { filterKlantenlijst, KLANT_STATUSSEN, sorteerKlantenlijst, stamkaartVolledigheid, type LijstSortering } from "@/lib/stamkaart";
 import { Eigenaar, StatusPill } from "@/components/admin/klantenbord/bits";
 
 /**
- * De klantenlijst: zoeken, een kolom van het bord als filter, inactief op
- * verzoek, sorteren per kolom. Een rij opent de stamkaart. Het aantal staat
- * naast het zoekveld, zoals op het bord.
+ * De klantenlijst: alleen echte klanten (akkoord, inrichten, klant), zoeken,
+ * een kolom als filter, gestopte klanten op verzoek, sorteren per kolom. Een
+ * rij opent de stamkaart. Het aantal staat naast het zoekveld, zoals op het
+ * bord; wat op het bord blijft (leads, gesprekken, offertes) wordt genoemd.
  */
-export default function KlantenLijst({ klanten, vandaag, beginQ, beginStatus }: { klanten: Klant[]; vandaag: string; beginQ: string; beginStatus: string }) {
+export default function KlantenLijst({ klanten, vandaag, beginQ, beginStatus, opHetBord }: { klanten: Klant[]; vandaag: string; beginQ: string; beginStatus: string; opHetBord: number }) {
   const router = useRouter();
   const [q, setQ] = useState(beginQ);
-  const [status, setStatus] = useState<KlantStatus | "alle">(isKlantStatus(beginStatus) ? beginStatus : "alle");
+  const [status, setStatus] = useState<KlantStatus | "alle">(isKlantStatus(beginStatus) && (KLANT_STATUSSEN.includes(beginStatus) || beginStatus === "inactief") ? beginStatus : "alle");
   const [inactief, setInactief] = useState(beginStatus === "inactief");
   const [sorteer, setSorteer] = useState<LijstSortering>("bedrijf");
   const [oplopend, setOplopend] = useState(true);
@@ -78,7 +79,7 @@ export default function KlantenLijst({ klanten, vandaag, beginQ, beginStatus }: 
           />
         </label>
         <nav className="flex flex-wrap gap-1.5" aria-label="Status">
-          {([["alle", "Alle", actief], ...KLANT_STATUS.filter((s) => s.key !== "inactief").map((s) => [s.key, s.label, telling[s.key]] as const)] as [KlantStatus | "alle", string, number][]).map(([key, label, n]) => (
+          {([["alle", "Alle", actief], ...KLANT_STATUS.filter((s) => KLANT_STATUSSEN.includes(s.key)).map((s) => [s.key, s.label, telling[s.key]] as const)] as [KlantStatus | "alle", string, number][]).map(([key, label, n]) => (
             <button
               key={key}
               type="button"
@@ -100,19 +101,29 @@ export default function KlantenLijst({ klanten, vandaag, beginQ, beginStatus }: 
                 else setInactief(e.target.checked);
               }}
             />
-            Ook inactief <span className="text-black/35">{telling.inactief}</span>
+            Ook gestopt <span className="text-black/35">{telling.inactief}</span>
           </label>
         </nav>
         <span className="ml-auto text-[12.5px] text-black/45" aria-live="polite">
           {gefilterd ? `${rijen.length} van ${klanten.length}` : `${rijen.length} ${rijen.length === 1 ? "klant" : "klanten"}`}
+          {opHetBord > 0 && !gefilterd && (
+            <>
+              {" · "}
+              <Link href="/admin/klantenbord" className="font-semibold text-[#312e82] hover:underline" title="Leads, gesprekken en openstaande offertes staan op het bord">{opHetBord} op het bord</Link>
+            </>
+          )}
         </span>
       </div>
 
       {rijen.length === 0 ? (
         <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef0ff] text-[22px] text-[#312e82]"><LuUsers /></span>
-          <p className="text-[15px] font-semibold text-[#1c1a4e]">{klanten.length === 0 ? "Nog geen klanten op het bord" : "Niets gevonden met deze zoekvraag of dit filter"}</p>
-          {klanten.length === 0 && <p className="max-w-[420px] text-[13.5px] text-black/50">Zet je eerste lead op het klantenbord of importeer je klantlijst; elke kaart krijgt hier een stamkaart.</p>}
+          <p className="text-[15px] font-semibold text-[#1c1a4e]">{klanten.length === 0 ? "Nog geen klanten" : "Niets gevonden met deze zoekvraag of dit filter"}</p>
+          {klanten.length === 0 && (
+            <p className="max-w-[460px] text-[13.5px] text-black/50">
+              Hier komt een klant zodra zijn kaart op het bord op Akkoord, Inrichten of Klant staat{opHetBord > 0 ? `; ${opHetBord} ${opHetBord === 1 ? "lead of gesprek staat" : "leads en gesprekken staan"} nog op het bord` : ""}. Importeer je klantlijst of sleep een kaart verder.
+            </p>
+          )}
         </div>
       ) : (
         // `relative`: wat er absoluut in staat blijft binnen de rij, zodat de pagina op een telefoon niet breder wordt dan het scherm.

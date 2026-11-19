@@ -2084,8 +2084,9 @@ met de laatste stand en soms een contactpersoon.
   veld `bron` blijft bestaan voor wat er al stond en voor de module die de
   kaart maakte.
 - **Alle klanten** (de knop naast *Vandaag*, migratie 0048) opent de
-  klantenlijst met per klant de stamkaart; de kaart en het paneel linken er
-  ook heen. Zie *Klantenlijst en stamkaart* hieronder.
+  klantenlijst: alleen de echte klanten (akkoord of verder), elk met een
+  stamkaart; de kaart en het paneel linken er ook heen, ook voor een lead.
+  Zie *Klantenlijst en stamkaart* hieronder.
 - **Zoeken en filteren** gebeuren in de browser: elk woord moet ergens
   voorkomen (bedrijf, contactpersoon, mail, eigenaar, stand, volgende actie,
   laatste contact, bron; een telefoonnummer zonder spaties), filter op
@@ -2234,14 +2235,20 @@ Recht `bellijst`, zoals het bord. De regels staan in
 `src/components/admin/klanten/`.
 
 - **De lijst** ([`KlantenLijst.tsx`](src/components/admin/klanten/KlantenLijst.tsx)):
-  bedrijf (met plaats en KvK), status op het bord, contactpersoon met functie,
+  **alleen echte klanten** (Rens, 19 nov 2026: "alleen echte klanten, leads
+  staan op het bord"): de kaarten in *Akkoord*, *Inrichten* en *Klant*
+  (`KLANT_STATUSSEN`, `echteKlanten`), zoals zijn klantlijst in Excel; een
+  inactieve kaart alleen als hij ooit klant was (contract retour, koppeling,
+  facturatie of een startdatum), onder *Ook gestopt*. Leads, gesprekken en
+  openstaande offertes blijven op het bord; de telling noemt hoeveel er daar
+  staan. Per rij: bedrijf (met plaats en KvK), status op het bord, contactpersoon met functie,
   telefoon en mail, wie de klant bij React2u heeft (casemanager, anders de
   eigenaar), de laatste activiteit en hoe compleet de stamkaart is (`x/8`,
   `stamkaartVolledigheid`: KvK, bezoekadres met postcode en plaats,
   contactpersoon met telefoon en mail, factuur-e-mail). Zoeken zoals op het
   bord plus KvK, plaats, casemanager, website en functie
-  (`filterKlantenlijst`), een kolom van het bord als filter, inactief alleen
-  op verzoek, sorteren per kolom (`sorteerKlantenlijst`). Alles in de browser;
+  (`filterKlantenlijst`), een kolom als filter, gestopte klanten alleen op
+  verzoek, sorteren per kolom (`sorteerKlantenlijst`). Alles in de browser;
   `?q=` en `?status=` staan in de URL.
 - **Stamkaart**: vijf blokken (`STAMKAART`): Bedrijf (KvK, rechtsvorm,
   branche, SBI, website, aantal werknemers, algemeen nummer en adres), Adres

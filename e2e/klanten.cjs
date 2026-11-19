@@ -1,6 +1,6 @@
 // Klantenlijst en stamkaart (0048) van begin tot eind: een klant die uit een getekende offerte, een getekend
 // contract, een onboarding en een losse opdracht ontstaat; de knop Alle klanten op het bord en de link op de
-// kaart; de lijst met zoeken, het statusfilter en inactief op verzoek; de stamkaart met het voorstel uit de
+// kaart; de lijst met alleen echte klanten (leads blijven op het bord), zoeken, het statusfilter en gestopte klanten op verzoek; de stamkaart met het voorstel uit de
 // modules (en alles in één keer overnemen, met de bron in de tijdlijn), bewerken met controle van KvK en IBAN;
 // de documenten uit alle modules met de pdf; een eigen bestand uploaden, downloaden en zonder sessie niet; de
 // tariefafspraken uit de offerte en de losse opdracht en een afwijkende afspraak erbij; de tijdlijn met een
@@ -70,11 +70,12 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
       '{"inrichting":{"data":{"bedrijfsnaam":"Houthandel Verhoeven B.V.","kvk":"17061007","btw":"NL001234567B01","factuur_straat":"Fabriekslaan 3","factuur_postcode":"5611 NB","factuur_plaats":"Eindhoven","factuur_email":"facturatie@verhoeven.test","contact_naam":"Joris Verhoeven","contact_functie":"HR-manager","contact_telefoon":"06 1234 5678","contact_email":"joris@verhoeven.test"},"at":"2026-11-15T10:00:00Z","door":"Joris Verhoeven"}}')
     returning id || ' ' || nummer`).split("\n")[0].split(" ");
   sql(`insert into public.losse_opdrachten (soort, bedrijf, omschrijving, vorm, bedrag, datum, verkoper) values ('eenmalig', 'Houthandel Verhoeven', 'Werkplekonderzoek', 'rie', 450, current_date - 20, 'Cindy')`);
-  sql(`insert into public.klanten (bedrijf, status, contactpersoon, eigenaar) values ('Kapsalon Knip', 'lead', 'Sanne de Boer', 'Cindy'), ('Oud Bedrijf', 'inactief', null, null)`);
+  // Een lead, een klant in Akkoord, een gestopte klant (ooit contract retour) en een verloren lead op inactief.
+  sql(`insert into public.klanten (bedrijf, status, contactpersoon, eigenaar, contract_retour) values ('Kapsalon Knip', 'lead', 'Sanne de Boer', 'Cindy', false), ('Garage Smits', 'akkoord', 'Piet Smits', 'Cindy', false), ('Oud Bedrijf', 'inactief', null, null, true), ('Verloren Lead', 'inactief', null, null, false)`);
   const klant = sql("select id from public.klanten where sleutel = 'houthandel verhoeven'").trim();
   check(klant.length === 36, "één kaart voor de offerte, het contract, de onboarding en de opdracht");
   check(sql(`select status from public.klanten where id = '${klant}'`) === "klant", "de losse opdracht zette de kaart op Klant");
-  check(sql("select count(*) from public.klanten") === "3", "drie kaarten: een klant, een lead en een inactieve");
+  check(sql("select count(*) from public.klanten") === "5", "vijf kaarten: twee klanten, een lead, een gestopte klant en een verloren lead");
 
   stap("Van het bord naar de lijst");
   await page.goto(`${BASIS}/admin/klantenbord`);
@@ -87,8 +88,9 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.waitForURL(/\/admin\/klanten$/);
   await page.waitForSelector("h1:has-text('Klanten')");
   check(await page.locator(`tr[data-klant="${klant}"]`).count(), "de klant staat in de lijst");
-  check(await page.locator("tr[data-klant]").count() === 2, "inactief staat er standaard niet bij");
-  check(await page.locator("text=2 klanten").count(), "telling: 2 klanten");
+  check(await page.locator("tr[data-klant]").count() === 2 && (await page.locator("tr[data-klant] >> text=Garage Smits").count()), "alleen echte klanten: de klant en de kaart in Akkoord; de lead en de gestopte niet");
+  check((await page.locator("tr[data-klant] >> text=Kapsalon Knip").count()) === 0, "de lead blijft op het bord");
+  check(await page.locator("text=2 klanten").count() && (await page.locator("a:has-text('2 op het bord')").count()), "telling: 2 klanten, 2 op het bord (de lead en de verloren lead)");
   check(await page.locator(`tr[data-klant="${klant}"] >> text=Joris Verhoeven`).count() && (await page.locator(`tr[data-klant="${klant}"] >> text=joris@verhoeven.test`).count()), "contactpersoon en mail uit de modules in de rij");
   check(await page.locator(`tr[data-klant="${klant}"] >> text=3/8`).count(), "stamkaart 3 van 8: contactpersoon, telefoon en mail zijn al bekend");
   await shot(page, "01-lijst", { fullPage: false });
@@ -96,14 +98,15 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await wacht(200);
   check(await page.locator("tr[data-klant]").count() === 1 && (await page.locator("text=1 van 3").count()), "zoeken op bedrijfsnaam");
   await page.fill("#kl-zoek", "");
-  await page.click("button:has-text('Lead')");
+  check((await page.locator("nav[aria-label='Status'] button:has-text('Lead')").count()) === 0, "geen filter op leads: die horen niet in de lijst");
+  await page.click("button:has-text('Akkoord')");
   await wacht(200);
-  check((await page.locator("tr[data-klant]").count()) === 1 && (await page.locator("tr[data-klant] >> text=Kapsalon Knip").count()), "filter op de kolom Lead");
+  check((await page.locator("tr[data-klant]").count()) === 1 && (await page.locator("tr[data-klant] >> text=Garage Smits").count()), "filter op de kolom Akkoord");
   await page.click("button:has-text('Alle')");
-  await page.check("label:has-text('Ook inactief') input");
+  await page.check("label:has-text('Ook gestopt') input");
   await wacht(200);
-  check((await page.locator("tr[data-klant]").count()) === 3, "ook inactief: drie rijen");
-  await page.click("label:has-text('Ook inactief')");
+  check((await page.locator("tr[data-klant]").count()) === 3 && (await page.locator("tr[data-klant] >> text=Oud Bedrijf").count()) && (await page.locator("tr[data-klant] >> text=Verloren Lead").count()) === 0, "ook gestopt: de klant die ooit contract retour had erbij, de verloren lead niet");
+  await page.click("label:has-text('Ook gestopt')");
   await page.click(`tr[data-klant="${klant}"] a`);
   await page.waitForURL(new RegExp(`/admin/klanten/${klant}$`));
 
