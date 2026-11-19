@@ -33,8 +33,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     // Voor iedereen, ook zonder recht op Instellingen: wie de site bekijkt als
     // beheerder ziet hem gewoon, en moet dus hier kunnen zien dat hij dicht is.
     sb.from("site_settings").select("value").eq("key", "maintenance").maybeSingle(),
-    // Heeft deze collega een inwerkreis (0050)? Dan staat Inwerkreis in het menu. Vóór de migratie: een fout, en dan niet.
-    sb.from("inwerkreizen").select("id").eq("user_id", user.id).maybeSingle(),
+    // Heeft deze collega een inwerkreis die aan staat (0050, 0051)? Dan staat Inwerkreis in het menu. Vóór de migratie: een fout, en dan niet.
+    sb.from("inwerkreizen").select("id").eq("user_id", user.id).eq("aan", true).maybeSingle(),
   ]);
 
   const appCount = apps.count ?? 0;

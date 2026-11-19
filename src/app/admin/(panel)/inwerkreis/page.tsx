@@ -32,6 +32,14 @@ export default async function MijnInwerkreis() {
             Je hebt geen inwerkreis. Begin je nieuw bij React2u, dan zet het beheer hier je reis klaar: taken, oefencasussen en mijlpalen voor je eerste 90 dagen.
           </p>
         </section>
+      ) : !uit.data.reis.aan ? (
+        // Uit (0051): niets laten zien, maar zeggen dat het bewaard blijft.
+        <section className="acard flex flex-col items-center gap-2 px-6 py-12 text-center" id="reis-staat-uit">
+          <LuRoute className="text-[28px] text-black/25" />
+          <p className="max-w-[460px] text-[14px] leading-[1.6] text-black/55">
+            Je inwerkreis staat op dit moment uit. Wat je al gedaan hebt, blijft bewaard; zodra hij weer aan staat, ga je verder waar je was.
+          </p>
+        </section>
       ) : (
         <ReisWeergave volledig={uit.data} stand={reisStand(uit.data.reis, uit.data.stappen, uit.data.voortgang, datumOver(0))} modus="zelf" />
       )}

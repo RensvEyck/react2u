@@ -5,7 +5,8 @@ import { requirePerm } from "@/lib/admin";
 import { reisStand } from "@/lib/inwerkreis";
 import { haalCollegas, haalReis } from "@/lib/inwerkreisDb";
 import { datumOver } from "@/lib/offertes";
-import { inwerkreisAfronden, inwerkreisBijwerken, inwerkreisVerwijderen } from "@/app/admin/inwerkreisActions";
+import { inwerkreisAanUit, inwerkreisAfronden, inwerkreisBijwerken, inwerkreisVerwijderen } from "@/app/admin/inwerkreisActions";
+import AanUit from "@/components/admin/inwerk/AanUit";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import ReisWeergave from "@/components/admin/inwerk/Reis";
 
@@ -29,14 +30,21 @@ export default async function Reis({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/admin/inwerken" className="mb-1 inline-flex items-center gap-1 text-[13px] font-semibold text-black/45 hover:text-[#312e82]"><LuArrowLeft /> Inwerken</Link>
-        <h1 className="font-heading text-[26px] font-bold text-[#312e82]">{collega?.naam || "Inwerkreis"}</h1>
-        <p className="text-[14.5px] text-black/50">
-          {collega ? `${collega.email} · ` : ""}
-          {sjabloon ? <Link href={`/admin/inwerken/sjabloon/${sjabloon.id}`} className="font-semibold text-[#312e82] hover:underline">{sjabloon.functie}</Link> : null}
-          {stand.mijlpalenOpen > 0 ? ` · ${stand.mijlpalenOpen === 1 ? "1 mijlpaal" : `${stand.mijlpalenOpen} mijlpalen`} af te tekenen` : ""}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <Link href="/admin/inwerken" className="mb-1 inline-flex items-center gap-1 text-[13px] font-semibold text-black/45 hover:text-[#312e82]"><LuArrowLeft /> Inwerken</Link>
+          <h1 className="font-heading text-[26px] font-bold text-[#312e82]">{collega?.naam || "Inwerkreis"}</h1>
+          <p className="text-[14.5px] text-black/50">
+            {collega ? `${collega.email} · ` : ""}
+            {sjabloon ? <Link href={`/admin/inwerken/sjabloon/${sjabloon.id}`} className="font-semibold text-[#312e82] hover:underline">{sjabloon.functie}</Link> : null}
+            {stand.mijlpalenOpen > 0 ? ` · ${stand.mijlpalenOpen === 1 ? "1 mijlpaal" : `${stand.mijlpalenOpen} mijlpalen`} af te tekenen` : ""}
+          </p>
+        </div>
+        {/* Aan of uit (0051): uit verbergt de reis voor de collega, alles blijft bewaard. */}
+        <div className="flex items-center gap-3 rounded-[14px] bg-white px-4 py-2.5 ring-1 ring-black/[0.06]" id="reis-aan">
+          <span className="text-[13px] font-semibold text-[#1c1a4e]">Inwerkreis</span>
+          <AanUit aan={reis.aan} zet={inwerkreisAanUit.bind(null, reis.id)} label={`Inwerkreis van ${collega?.naam || "deze collega"}`} />
+        </div>
       </div>
 
       <ReisWeergave volledig={uit.data} stand={stand} modus="beheer" />

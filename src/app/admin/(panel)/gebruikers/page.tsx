@@ -8,7 +8,10 @@ import { canInvite, supabaseAdmin } from "@/lib/supabase/admin";
 import { inviteErrorText } from "@/lib/invite";
 import { mailReady } from "@/lib/mail";
 import { PERMISSIONS, normalizePermissions, type Permission } from "@/lib/permissions";
-import { LuTrash2, LuShieldCheck, LuShieldOff, LuShieldX, LuTriangleAlert, LuCheck, LuMinus } from "react-icons/lu";
+import { LuTrash2, LuShieldCheck, LuShieldOff, LuShieldX, LuTriangleAlert, LuCheck, LuMinus, LuRoute } from "react-icons/lu";
+import Link from "next/link";
+import { inwerkreisAanUit, inwerkreisKiezen } from "@/app/admin/inwerkreisActions";
+import AanUit from "@/components/admin/inwerk/AanUit";
 
 type RoleRow = {
   id: string; key: string; label: string; permissions: string[];
@@ -74,10 +77,21 @@ function datum(iso: string) {
 export default async function GebruikersAdmin() {
   const { sb, admin } = await requirePerm("gebruikers");
 
-  const [usersRes, rolesRes] = await Promise.all([
+  // Het inwerktraject per collega (0050, 0051): kiezen en aan of uit zetten, voor wie ook het recht omzet heeft.
+  const inwerkRecht = admin.permissions.includes("omzet");
+  const [usersRes, rolesRes, sjablonenRes, reizenRes] = await Promise.all([
     sb.from("admins").select("user_id, email, role_id, invited_at, created_at").order("created_at"),
     sb.from("roles").select("*").order("sort").order("label"),
+    inwerkRecht ? sb.from("inwerk_sjablonen").select("id, functie").order("sort").order("functie") : Promise.resolve({ data: null, error: null }),
+    inwerkRecht ? sb.from("inwerkreizen").select("id, user_id, sjabloon_id, aan") : Promise.resolve({ data: null, error: null }),
   ]);
+  // Vóór de migraties (of zonder recht) een fout of niets: dan geen inwerkkeuze.
+  const inwerk = inwerkRecht && !sjablonenRes.error && !reizenRes.error && sjablonenRes.data
+    ? {
+        functies: (sjablonenRes.data as { id: string; functie: string }[]).map((s) => [s.id, s.functie] as [string, string]),
+        reizen: new Map(((reizenRes.data as { id: string; user_id: string; sjabloon_id: string; aan: boolean }[] | null) || []).map((r) => [r.user_id, r])),
+      }
+    : null;
 
   const users = (usersRes.data as AdminRow[]) || [];
   const auth = await authStatuses(users.map((u) => u.user_id));
@@ -139,7 +153,7 @@ export default async function GebruikersAdmin() {
             // op het inlogscherm verwijst hierheen).
             const nooitIngelogd = Boolean(status && (openstaand || !status.lastSignIn));
             return (
-              <div key={u.user_id} className="flex flex-wrap items-center gap-4 px-6 py-4">
+              <div key={u.user_id} id={`gebruiker-${u.user_id}`} className="flex scroll-mt-24 flex-wrap items-center gap-4 px-6 py-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[14px] font-bold text-[#312e82]">
                   {(u.email[0] || "?").toUpperCase()}
                 </div>
@@ -187,6 +201,28 @@ export default async function GebruikersAdmin() {
                     <LuShieldX className="text-[13px]" /> Tweestaps herstellen
                   </ConfirmButton>
                 )}
+                {inwerk && (() => {
+                  const reis = inwerk.reizen.get(u.user_id);
+                  return (
+                    <div className="flex flex-wrap items-center gap-2" data-inwerk={u.email}>
+                      {reis ? (
+                        <Link href={`/admin/inwerken/${reis.id}`} className="flex items-center gap-1 text-[12.5px] font-semibold text-black/45 hover:text-[#312e82]" title="Naar de inwerkreis">
+                          <LuRoute className="text-[13px]" /> Inwerkreis
+                        </Link>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[12.5px] font-semibold text-black/40"><LuRoute className="text-[13px]" /> Inwerkreis</span>
+                      )}
+                      <StatusSelect
+                        action={inwerkreisKiezen.bind(null, u.user_id)}
+                        current={reis?.sjabloon_id ?? ""}
+                        options={reis ? inwerk.functies : [["", "Geen"], ...inwerk.functies]}
+                        name="sjabloon_id"
+                        label={`Functie van de inwerkreis van ${u.email}`}
+                      />
+                      {reis && <AanUit aan={reis.aan} zet={inwerkreisAanUit.bind(null, reis.id)} label={`Inwerkreis van ${u.email}`} />}
+                    </div>
+                  );
+                })()}
                 <StatusSelect
                   action={setUserRole.bind(null, u.user_id)}
                   current={u.role_id}

@@ -42,7 +42,7 @@ export const SOORT_VOLGORDE: InwerkSoort[] = ["taak", "casus", "mijlpaal"];
 
 export type InwerkSjabloon = { id: string; functie: string; sort: number };
 export type InwerkStap = { id: string; sjabloon_id: string; fase: Fase; soort: InwerkSoort; titel: string; uitleg: string | null; sort: number; created_at: string };
-export type Inwerkreis = { id: string; user_id: string; sjabloon_id: string; startdatum: string; buddy: string | null; afgerond_at: string | null; created_at: string };
+export type Inwerkreis = { id: string; user_id: string; sjabloon_id: string; startdatum: string; buddy: string | null; afgerond_at: string | null; created_at: string; /** Uit (0051): de collega ziet de reis niet en vinkt niets af; alles blijft bewaard. */ aan: boolean };
 export type InwerkVoortgang = { reis_id: string; stap_id: string; gedaan_at: string; door: string };
 
 const DAG = 86_400_000;

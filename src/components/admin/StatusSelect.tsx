@@ -28,12 +28,14 @@ const NEUTRAAL = "border-[#312e82]/20 text-[#312e82] bg-[#f7f7fc]";
  * voor de rol van een gebruiker is dat `role_id`.
  */
 export default function StatusSelect({
-  action, current, options, name = "status",
+  action, current, options, name = "status", label,
 }: {
   action: (formData: FormData) => Promise<void>;
   current: string;
   options: [string, string][];
   name?: string;
+  /** Voor een schermlezer, als er geen zichtbaar label bij staat. */
+  label?: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, startTransition] = useTransition();
@@ -41,13 +43,14 @@ export default function StatusSelect({
     <form ref={formRef} action={action}>
       <select
         name={name}
+        aria-label={label}
         defaultValue={current}
         disabled={pending}
         onChange={() => startTransition(() => formRef.current?.requestSubmit())}
         className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-[13px] font-semibold outline-none transition ${COLORS[current] || NEUTRAAL} ${pending ? "opacity-50" : ""}`}
       >
-        {options.map(([val, label]) => (
-          <option key={val} value={val}>{label}</option>
+        {options.map(([val, tekst]) => (
+          <option key={val} value={val}>{tekst}</option>
         ))}
       </select>
     </form>

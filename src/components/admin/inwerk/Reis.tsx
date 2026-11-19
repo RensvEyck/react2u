@@ -114,6 +114,11 @@ export default function ReisWeergave({ volledig, stand, modus }: { volledig: Rei
         <div className="mt-6">
           <DagenBalk stand={stand} />
         </div>
+        {modus === "beheer" && !reis.aan && (
+          <p className="mt-4 rounded-[12px] bg-black/[0.04] px-3.5 py-2.5 text-[13px] text-black/60" id="reis-uit">
+            Staat uit: de collega ziet deze inwerkreis niet en vinkt niets af. Wat al gedaan is, blijft bewaard.
+          </p>
+        )}
         {!leeg && stand.achter > 0 && !reis.afgerond_at && (
           <p className="mt-4 rounded-[12px] bg-[#fff4e5] px-3.5 py-2.5 text-[13px] text-[#7a4206]">
             {stand.achter === 1 ? "Eén stap" : `${stand.achter} stappen`} uit een eerdere fase {stand.achter === 1 ? "staat" : "staan"} nog open.

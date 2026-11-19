@@ -63,7 +63,8 @@ export default async function Inwerken() {
                     <p className="truncate text-[15px] font-semibold text-[#1c1a4e]">{r.collega?.naam || "Onbekende collega"}</p>
                     <p className="truncate text-[12.5px] text-black/45">{r.functie} · {dagTekst(r.stand.dag)}</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {r.reis.buddy && <span className="apill bg-[#f6f5fb] !py-0.5 text-[11.5px] text-black/55"><LuHandshake className="text-[11px]" /> {r.reis.buddy}</span>}
+                      {!r.reis.aan && <span className="apill bg-black/[0.06] !py-0.5 text-[11.5px] text-black/55">Staat uit</span>}
+                      {r.reis.buddy &&<span className="apill bg-[#f6f5fb] !py-0.5 text-[11.5px] text-black/55"><LuHandshake className="text-[11px]" /> {r.reis.buddy}</span>}
                       {r.stand.mijlpalenOpen > 0 && (
                         <span className="apill bg-[#fff4e5] !py-0.5 text-[11.5px] text-[#b86e00]"><LuFlag className="text-[11px]" /> {r.stand.mijlpalenOpen === 1 ? "1 mijlpaal" : `${r.stand.mijlpalenOpen} mijlpalen`} af te tekenen</span>
                       )}
