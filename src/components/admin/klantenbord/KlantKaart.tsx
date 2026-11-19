@@ -1,5 +1,6 @@
 "use client";
-import { LuCalendarClock, LuMail, LuMessageSquare, LuPhone, LuUserRound } from "react-icons/lu";
+import Link from "next/link";
+import { LuCalendarClock, LuIdCard, LuMail, LuMessageSquare, LuPhone, LuUserRound } from "react-icons/lu";
 import { actieStand, KLANT_STATUS, relatief, relatiefMoment, type Bezoek, type Klant, type KlantStatus, type Koppeling } from "@/lib/klanten";
 import { noteerBel } from "@/lib/belAfloop";
 import { Checklist, Eigenaar, KoppelChip, SiteIcoon } from "./bits";
@@ -59,6 +60,17 @@ export default function KlantKaart({
           {/* Zonder herkomst (0047) weet niemand waar deze klant vandaan kwam; het paneel vraagt erom. */}
           {!k.herkomst && <span className="rounded-full bg-[#fff4e5] px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-[#b86e00]" title="Hoe vond deze klant ons? Vul de herkomst in via het paneel.">herkomst?</span>}
           <Eigenaar naam={k.eigenaar} />
+          {/* De stamkaart (0048): bedrijfsgegevens, documenten en tariefafspraken; zichtbaar als je over de kaart gaat. */}
+          <Link
+            href={`/admin/klanten/${k.id}`}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="kb-stamkaart inline-flex h-6 w-6 items-center justify-center rounded-full text-black/35 transition hover:bg-[#eef0ff] hover:text-[#312e82] focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+            aria-label={`Stamkaart van ${k.bedrijf}`}
+            title="Stamkaart"
+          >
+            <LuIdCard className="text-[14px]" />
+          </Link>
         </span>
       </div>
 

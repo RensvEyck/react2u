@@ -106,9 +106,41 @@ export type Klant = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+} & Partial<StamkaartVelden>;
+
+/**
+ * De stamkaart (migratie 0048): de bedrijfsgegevens achter /admin/klanten/<id>.
+ * Optioneel op de kaart, want een rij van vóór die migratie heeft ze niet; de
+ * regels eromheen staan in lib/stamkaart.ts.
+ */
+export type StamkaartVelden = {
+  kvk: string | null;
+  rechtsvorm: string | null;
+  branche: string | null;
+  sbi: string | null;
+  website: string | null;
+  algemeen_telefoon: string | null;
+  algemeen_email: string | null;
+  bezoekadres: string | null;
+  bezoek_postcode: string | null;
+  bezoek_plaats: string | null;
+  postadres: string | null;
+  post_postcode: string | null;
+  post_plaats: string | null;
+  contact_functie: string | null;
+  factuur_email: string | null;
+  btw: string | null;
+  iban: string | null;
+  iban_naam: string | null;
+  debiteurnummer: string | null;
+  ondertekenaar: string | null;
+  ondertekenaar_functie: string | null;
+  medewerkers: number | null;
+  casemanager: string | null;
 };
 
-export type GesprekSoort = "gesprek" | "mail" | "bezoek" | "notitie" | "status" | "import" | "systeem";
+/** `stamkaart` (0048): wat er aan de stamkaart veranderde en waar het vandaan kwam; geen contact, zoals status en import. */
+export type GesprekSoort = "gesprek" | "mail" | "bezoek" | "notitie" | "status" | "import" | "systeem" | "stamkaart";
 
 /** Uit welke module een systeemregel komt (0041); `opdracht` is een los opgevoerde klant of opdracht, `evaluatie` de klantevaluatie (0043). */
 export type Bron = "offerte" | "brochure" | "contract" | "onboarding" | "opdracht" | "evaluatie";
@@ -129,7 +161,7 @@ export type Gesprek = {
   created_at: string;
 };
 
-/** Wat je zelf kunt kiezen bij een nieuwe regel; status en import schrijft het systeem. */
+/** Wat je zelf kunt kiezen bij een nieuwe regel; status, import en stamkaart schrijft het systeem. */
 export const GESPREK_SOORTEN: { key: GesprekSoort; label: string }[] = [
   { key: "gesprek", label: "Gebeld of gesproken" },
   { key: "mail", label: "Gemaild" },
@@ -140,7 +172,7 @@ export const GESPREK_SOORTEN: { key: GesprekSoort; label: string }[] = [
 export const CONTACT_SOORTEN: GesprekSoort[] = ["gesprek", "mail", "bezoek", "notitie"];
 
 export function isGesprekSoort(s: unknown): s is GesprekSoort {
-  return typeof s === "string" && ["gesprek", "mail", "bezoek", "notitie", "status", "import", "systeem"].includes(s);
+  return typeof s === "string" && ["gesprek", "mail", "bezoek", "notitie", "status", "import", "systeem", "stamkaart"].includes(s);
 }
 
 /** Waar een systeemregel naartoe klikt. */
@@ -392,6 +424,18 @@ export function koppelingenVoor(bedrijf: string, bronnen: Bronnen): Koppeling[] 
   const s = bedrijfSleutel(bedrijf);
   if (!s) return [];
   return koppelIndex(bronnen).get(s) || [];
+}
+
+/* ---------- de tijdlijn ---------- */
+
+/** Een regel op de tijdlijn: een gesprek uit de database, of een sessie op de site. */
+export type TijdlijnRegel = { key: string; moment: string; gesprek: Gesprek | null; sessie: Bezoek["sessies"][number] | null };
+
+/** De regels uit de database en de sitebezoeken door elkaar, nieuwste eerst. Het zijpaneel en de stamkaart tonen dezelfde lijst. */
+export function tijdlijnRegels(gesprekken: Gesprek[], bezoek: Bezoek | null): TijdlijnRegel[] {
+  const regels: TijdlijnRegel[] = gesprekken.map((g) => ({ key: g.id, moment: g.created_at, gesprek: g, sessie: null }));
+  for (const sessie of bezoek?.sessies || []) regels.push({ key: `site-${sessie.start}`, moment: sessie.start, gesprek: null, sessie });
+  return regels.sort((a, b) => b.moment.localeCompare(a.moment));
 }
 
 /* ---------- sitebezoek ---------- */

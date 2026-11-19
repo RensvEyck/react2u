@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { LuChevronDown, LuChevronUp } from "react-icons/lu";
+import Link from "next/link";
+import { LuChevronDown, LuChevronUp, LuIdCard } from "react-icons/lu";
 import { actieStand, relatief, statusInfo, STATUS_SLEUTELS, type Klant, type Koppeling } from "@/lib/klanten";
 import { datumLang } from "@/lib/offertes";
 import { Checklist, Eigenaar, KoppelChip, StatusPill } from "./bits";
@@ -64,6 +65,7 @@ export default function KlantLijst({ klanten, koppelingen, vandaag, open, onOpen
             {kop("volgende", "Volgende stap")}
             <th className="px-4 py-3 text-[11.5px] font-bold uppercase tracking-[0.08em] text-black/45">Traject</th>
             {kop("start", "Start")}
+            <th className="px-4 py-3" />
           </tr>
         </thead>
         <tbody>
@@ -110,6 +112,11 @@ export default function KlantLijst({ klanten, koppelingen, vandaag, open, onOpen
                 </td>
                 <td className="px-4 py-3"><Checklist k={k} /></td>
                 <td className="px-4 py-3 text-black/60">{k.startdatum ? datumLang(k.startdatum) : <span className="text-black/30">{statusInfo(k.status).key === "klant" ? "onbekend" : ""}</span>}</td>
+                <td className="px-4 py-3 text-right">
+                  <Link href={`/admin/klanten/${k.id}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1 whitespace-nowrap text-[12.5px] font-semibold text-[#312e82] hover:underline" title="Stamkaart: bedrijfsgegevens, documenten en tariefafspraken">
+                    <LuIdCard className="text-[14px]" /> Stamkaart
+                  </Link>
+                </td>
               </tr>
             );
           })}

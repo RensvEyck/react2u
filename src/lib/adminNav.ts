@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -33,6 +33,8 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Bellijst", href: "/admin/bellijst", icon: LuPhone, badge: "leads", keywords: "leads bellen crm terugbellen" },
   { label: "Klantenbord", href: "/admin/klantenbord", icon: LuLayoutGrid, keywords: "whiteboard klanten leads bord kanban status laatste gesprek volgende stap pijplijn klantlijst importeren crm" },
   { label: "Vandaag: wie bel ik", href: "/admin/klantenbord/vandaag", icon: LuPhone, keywords: "werkrij vandaag bellen te laat opvolgen warm klantenbord", paletteOnly: true },
+  // De klantenlijst met stamkaart (0048): alle klanten onder elkaar, per klant de bedrijfsgegevens, documenten en tariefafspraken.
+  { label: "Alle klanten: stamkaarten", href: "/admin/klanten", icon: LuIdCard, keywords: "klantenlijst klanten stamkaart bedrijfsgegevens kvk iban documenten tariefafspraken tarieven adres contactpersoon factuur", paletteOnly: true },
   { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen" },
   { label: "Offertes", href: "/admin/offertes", icon: LuFilePenLine, keywords: "offerte voorstel ondertekenen tekenen handtekening prijsopgave aanbieding sales" },
   { label: "Offertesjablonen", href: "/admin/offertes/sjablonen", icon: LuFilePenLine, keywords: "sjabloon template rie pago spoor 2 werkfit verzuimtraining arbeidsdeskundig onderzoek vorm", paletteOnly: true },
@@ -94,7 +96,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
 ];
 
 export const CRUMBS: Record<string, string> = {
-  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", klantenbord: "Klantenbord", vandaag: "Vandaag", brochures: "Brochures", paginas: "Pagina's", blog: "Blog",
+  admin: "Dashboard", "postvak-in": "Postvak IN", bellijst: "Bellijst", klantenbord: "Klantenbord", vandaag: "Vandaag", klanten: "Klanten", brochures: "Brochures", paginas: "Pagina's", blog: "Blog",
   vacatures: "Vacatures", sollicitaties: "Sollicitaties", berichten: "Berichten",
   bezoek: "Bezoek", media: "Media", seo: "SEO", gebruikers: "Gebruikers",
   instellingen: "Instellingen", account: "Account",

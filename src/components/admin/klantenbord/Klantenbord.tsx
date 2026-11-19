@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LuCircleAlert, LuCircleCheck, LuLayoutGrid, LuList, LuPhoneCall, LuPlus, LuSearch, LuUpload, LuX } from "react-icons/lu";
+import { LuCircleAlert, LuCircleCheck, LuIdCard, LuLayoutGrid, LuList, LuPhoneCall, LuPlus, LuSearch, LuUpload, LuX } from "react-icons/lu";
 import {
   KLANT_STATUS, sorteerKaarten, telling, zoekKlanten, actieStand, type Bezoek, type Gesprek, type Klant, type KlantStatus, type Koppeling,
 } from "@/lib/klanten";
@@ -261,6 +261,8 @@ export default function Klantenbord({
               </button>
             ))}
           </div>
+          {/* De klantenlijst met stamkaart (0048): alle klanten onder elkaar, per klant bedrijfsgegevens, documenten en tariefafspraken. */}
+          <Link href="/admin/klanten" className="abtn-ghost"><LuIdCard /> Alle klanten</Link>
           <Link href="/admin/klantenbord/vandaag" className={`abtn-ghost ${teDoen ? "!border-[#e75387]/40 !text-[#e0356b]" : ""}`}>
             <LuPhoneCall /> Vandaag{teDoen ? <span className="rounded-full bg-[#e75387] px-1.5 py-px text-[11px] font-bold text-white">{teDoen}</span> : null}
           </Link>
