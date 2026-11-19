@@ -81,6 +81,11 @@ insert into public.offertes (vorm, bedrijf, email, medewerkers, regels, keuze, s
   await page.goto(`${BASIS}/admin`);
   check(await page.locator('aside nav a[href="/admin/verkoop"]').count(), "Verkoop staat in het menu");
   check(await page.locator('aside nav a[href="/admin/omzet"]').count(), "Omzet staat in het menu");
+  // Sinds 19 nov 2026 samen met Prognose in de groep Cijfers, die vanzelf openklapt als je erin zit.
+  check((await page.locator("aside nav button:has-text('Cijfers')").getAttribute("aria-expanded")) === "false", "Cijfers dicht op het dashboard");
+  await page.goto(`${BASIS}/admin/omzet`);
+  check((await page.locator("aside nav button:has-text('Cijfers')").getAttribute("aria-expanded")) === "true", "Cijfers open op Omzet");
+  check(await page.locator('aside nav a[href="/admin/omzet"][aria-current="page"]').count(), "Omzet licht op");
 
   stap("Medewerkers toevoegen");
   await page.goto(`${BASIS}/admin/omzet/uren`);

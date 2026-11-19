@@ -54,7 +54,7 @@ async function stil(page, sel) {
   await page.goto(`${BASIS}/admin/contracten`);
   await page.waitForSelector("h1:has-text('Contracten')");
   check(await page.locator("text=Nog geen contracten").count(), "lege staat");
-  check(await page.locator('nav a[href="/admin/contracten"]').count(), "Contracten staat in het menu");
+  check(await page.locator('aside nav a[href="/admin/documenten"][aria-current="page"]').count(), "Contracten valt onder Documenten in het menu");
   await shot(page, "01-overzicht-leeg");
 
   stap("Vanuit een offerte: alles staat klaar");

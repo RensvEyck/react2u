@@ -69,7 +69,7 @@ async function teken(pagina, selector) {
   await page.goto(`${BASIS}/admin/onboarding`);
   await page.waitForSelector("h1:has-text('Onboarding')");
   check(await page.locator("text=Nog geen onboardings").count(), "lege staat");
-  check(await page.locator('nav a[href="/admin/onboarding"]').count(), "Onboarding staat in het menu");
+  check(await page.locator('aside nav a[href="/admin/documenten"][aria-current="page"]').count(), "Onboarding valt onder Documenten in het menu");
   await shot(page, "01-overzicht-leeg", { fullPage: false });
 
   stap("Nieuwe onboarding met de documentkeuze");
