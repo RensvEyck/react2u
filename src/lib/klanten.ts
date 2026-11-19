@@ -480,7 +480,7 @@ export function bezoekPerKlant<T extends Pick<Klant, "id" | "bedrijf" | "sleutel
 
 export type ImportVeld =
   | "bedrijf" | "startdatum" | "offerte_retour" | "contract_retour" | "formulieren_retour" | "koppeling" | "facturatie"
-  | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "volgende_actie" | "bron";
+  | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron";
 
 export const IMPORT_VELD_LABEL: Record<ImportVeld, string> = {
   bedrijf: "Bedrijf",
@@ -494,7 +494,8 @@ export const IMPORT_VELD_LABEL: Record<ImportVeld, string> = {
   contactpersoon: "Contactpersoon",
   email: "E-mail",
   telefoon: "Telefoon",
-  eigenaar: "Eigenaar",
+  eigenaar: "Eigenaar (sales)",
+  casemanager: "Casemanager",
   volgende_actie: "Volgende actie",
   bron: "Bron",
 };
@@ -523,6 +524,8 @@ export type ImportRij = {
   email: string | null;
   telefoon: string | null;
   eigenaar: string | null;
+  /** De casemanager van React2u (op de stamkaart, 0048): een andere rol dan de eigenaar (sales). */
+  casemanager: string | null;
   volgende_actie: string | null;
   bron: string | null;
   waarschuwingen: string[];
@@ -545,6 +548,8 @@ const KOPPEN: [RegExp, ImportVeld][] = [
   [/contactpersoon|^contact$|aanspreek/, "contactpersoon"],
   [/mail/, "email"],
   [/telefoon|^tel\b|mobiel|nummer/, "telefoon"],
+  // Casemanager vóór eigenaar: de klantlijst van november 2026 had de casemanagers in een kolom die als eigenaar werd gelezen (Rens, 19 nov 2026: "Robin Roos, Nadja en Ida zijn casemanagers").
+  [/case ?manager|\bcm\b|arbo ?contact/, "casemanager"],
   [/eigenaar|accountmanager|verkoper|sales|van react2u|wie/, "eigenaar"],
   [/actie|volgende|to ?do|opvolg/, "volgende_actie"],
   [/bron|via|herkomst/, "bron"],
@@ -653,7 +658,7 @@ export function rijenUitKlantlijst(cellen: string[][], vandaag: string): { rijen
     if (!cel.some((c) => (c || "").trim())) return;
     const rij: ImportRij = {
       regel, bedrijf: "", startdatum: null, offerte_retour: null, contract_retour: null, formulieren_retour: null, koppeling: null, facturatie: null,
-      stand: null, contactpersoon: null, email: null, telefoon: null, eigenaar: null, volgende_actie: null, bron: null, waarschuwingen: [],
+      stand: null, contactpersoon: null, email: null, telefoon: null, eigenaar: null, casemanager: null, volgende_actie: null, bron: null, waarschuwingen: [],
     };
     kolommen.forEach((k, i) => {
       const w = (cel[i] || "").trim();
@@ -682,6 +687,7 @@ export function rijenUitKlantlijst(cellen: string[][], vandaag: string): { rijen
         case "stand": rij.stand = knip(w, 2000); break;
         case "contactpersoon": rij.contactpersoon = knip(w, 200); break;
         case "eigenaar": rij.eigenaar = knip(w, 80); break;
+        case "casemanager": rij.casemanager = knip(w, 120); break;
         case "volgende_actie": rij.volgende_actie = knip(w, 500); break;
         case "bron": rij.bron = knip(w, 120); break;
       }
@@ -733,16 +739,17 @@ export type Voorstel = {
   telling: Record<VoorstelActie, number>;
 };
 
-type Bestaand = Pick<Klant, "id" | "bedrijf" | "sleutel" | "status" | "startdatum" | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "volgende_actie" | "bron" | ChecklistSleutel>;
+type Bestaand = Pick<Klant, "id" | "bedrijf" | "sleutel" | "status" | "startdatum" | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron" | ChecklistSleutel>;
 
 /** De velden uit het bestand die een bestaande kaart kunnen wijzigen, met de tekst voor het rapport. */
-const TEKSTVELDEN: { veld: "startdatum" | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "volgende_actie" | "bron"; label: string }[] = [
+const TEKSTVELDEN: { veld: "startdatum" | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron"; label: string }[] = [
   { veld: "startdatum", label: "startdatum" },
   { veld: "stand", label: "laatste stand" },
   { veld: "contactpersoon", label: "contactpersoon" },
   { veld: "email", label: "e-mail" },
   { veld: "telefoon", label: "telefoon" },
   { veld: "eigenaar", label: "eigenaar" },
+  { veld: "casemanager", label: "casemanager" },
   { veld: "volgende_actie", label: "volgende actie" },
   { veld: "bron", label: "bron" },
 ];
@@ -806,6 +813,7 @@ export function rijNaarVelden(rij: ImportRij): Partial<Klant> {
   if (rij.email) uit.email = rij.email;
   if (rij.telefoon) uit.telefoon = rij.telefoon;
   if (rij.eigenaar) uit.eigenaar = rij.eigenaar;
+  if (rij.casemanager) uit.casemanager = rij.casemanager;
   if (rij.volgende_actie) uit.volgende_actie = rij.volgende_actie;
   if (rij.bron) uit.bron = rij.bron;
   for (const c of CHECKLIST) if (rij[c.key] !== null) uit[c.key] = rij[c.key]!;

@@ -2163,7 +2163,11 @@ met de laatste stand en soms een contactpersoon.
   (`lib/xlsxLezen.ts`), of een csv, of geplakte rijen. `herkenKolommen` kijkt
   eerst naar de kopregel en daarna naar de inhoud van kolommen zonder (of met
   een onbekende) kop: datums, ja/nee, namen van mensen, en anders vrije tekst
-  als laatste stand. Zo overleeft de import de klantlijst van november 2026,
+  als laatste stand. Een kop *casemanager* (of *case manager*, *CM*) is de
+  casemanager op de stamkaart, geen eigenaar: de klantlijst van november 2026
+  had Robin Roos, Nadja en Ida in zo'n kolom en die kwamen als eigenaar op het
+  bord (Rens, 19 nov 2026: "zijn casemanagers"; op productie met de hand
+  verplaatst, met een regel in de tijdlijn). Zo overleeft de import de klantlijst van november 2026,
   waar de kop *naar excact/facturatie verzonden* boven een lege kolom staat en
   de standtekst in de kolom ernaast zonder kop. `statusUitRij` leidt de kolom
   af: precies "ingericht" is klant, contract retour is inrichten, "offerte
