@@ -5,6 +5,7 @@ import { woordenboek } from "@/lib/woordenboek";
 import { MiniMarkdown } from "@/lib/md";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
+import { inkt } from "@/lib/kleur";
 import Beeld from "@/components/site/Beeld";
 
 /*
@@ -60,7 +61,7 @@ function Onderwerpen() {
           {ONDERWERPEN.map((o) => (
             <Link key={o.href} href={o.href} className="hv-btn relative flex flex-col gap-2 overflow-hidden rounded-[22px] p-6" style={{ background: o.tint }}>
               <span aria-hidden className="absolute right-[-36px] top-[-36px] h-[110px] w-[110px] rounded-full" style={{ background: o.kleur, opacity: 0.16 }} />
-              <span className="text-[13px] font-bold" style={{ color: o.kleur }}>{o.label}</span>
+              <span className="text-[13px] font-bold" style={{ color: inkt(o.kleur) }}>{o.label}</span>
               <span className={`${kop} text-[22px]`} style={{ color: NAVY }}>{o.titel}</span>
               <span className="text-[15px] leading-[1.55]" style={{ color: BODY }}>{o.tekst}</span>
               <span className="mt-2 inline-flex items-center gap-2 text-[14.5px] font-bold" style={{ color: NAVY }}>Meer over {o.titel.toLowerCase()}<Pijl size={14} /></span>

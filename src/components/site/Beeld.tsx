@@ -37,7 +37,12 @@ export default function Beeld({
   style?: React.CSSProperties;
   /** De foto vult zijn (gepositioneerde) vlak; next/image hoeft dan geen afmetingen te kennen. */
   fill?: boolean;
-  /** Boven de vouw: meteen laden en vooraf aankondigen (LCP). */
+  /**
+   * Boven de vouw: meteen laden en vooraf aankondigen met een <link rel="preload">
+   * (LCP). Next 16 noemt dit `preload`; `priority` is daar verouderd, maar
+   * blijft hier de naam. Geef de LCP-foto er `fetchPriority="high"` bij: de
+   * preload alleen zet geen fetchpriority op de <img>.
+   */
   priority?: boolean;
   loading?: "eager" | "lazy";
   fetchPriority?: "high" | "low" | "auto";
@@ -53,8 +58,8 @@ export default function Beeld({
     const maat = (afmetingen as unknown as Record<string, [number, number] | undefined>)[src.split("?")[0]];
     const gedeeld = {
       src, alt, sizes, className, style, quality,
-      ...(priority ? { priority: true } : { loading }),
-      ...(fetchPriority && !priority ? { fetchPriority } : {}),
+      ...(priority ? { preload: true } : { loading }),
+      ...(fetchPriority ? { fetchPriority } : {}),
       ...(decoding ? { decoding } : {}),
       ...(ariaHidden !== undefined ? { "aria-hidden": ariaHidden } : {}),
     };

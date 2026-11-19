@@ -8,6 +8,11 @@ import { useTaal } from "./Taal";
  * Engelse site hebben elk een eigen root layout, dus wisselen is toch een
  * volledige paginalading. De link gaat naar dezelfde pagina in de andere taal;
  * zonder vertaling naar het startscherm van die taal (lib/taal.ts).
+ *
+ * De zichtbare tekst ("NL", "EN") is de toegankelijke naam. Een aria-label
+ * "Nederlands"/"English" erbovenop gaf een label-in-name-fout: de zichtbare
+ * tekst kwam niet in de naam voor, en een spraakgebruiker die "EN" zegt vindt
+ * de knop dan niet. `lang` en `hrefLang` zeggen de taal van de tekst en het doel.
  */
 export default function Taalwissel({ donker = false, className = "" }: { donker?: boolean; className?: string }) {
   const path = usePathname() || "/";
@@ -24,7 +29,6 @@ export default function Taalwissel({ donker = false, className = "" }: { donker?
               lang={l}
               hrefLang={l}
               aria-current={actief ? "page" : undefined}
-              aria-label={t.algemeen.talen[l]}
               className={`rk-tab rounded-[6px] px-1.5 py-0.5 ${actief ? "underline underline-offset-4" : ""}`}
               style={actief
                 ? { color: donker ? "#ffffff" : "#322E83" }

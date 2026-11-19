@@ -50,7 +50,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const gebied = werkgebied(slug);
   if (gebied) {
-    const title = `Arbodienst ${gebied.naam} • Persoonlijke verzuimbegeleiding • React2u`;
+    // Kort: "Arbodienst Valkenburg aan de Geul • React2u" is 43 tekens; met
+    // "Persoonlijke verzuimbegeleiding" ertussen kapte Google 336 titels af.
+    const title = `Arbodienst ${gebied.naam} • React2u`;
     // Alleen een gemeente met een eigen tekst (en de kern rond Eindhoven) hoort
     // in Google; de andere gemeentepagina's bestaan wel, maar met noindex
     // (lib/gemeenten.ts). De omschrijving komt uit die eigen tekst.

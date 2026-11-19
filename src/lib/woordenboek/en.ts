@@ -526,7 +526,7 @@ export const en: Woordenboek = {
 
   seo: {
     siteOmschrijving: "React2u is a personal occupational health service (arbodienst) in Eindhoven. One regular case manager for employers and employees, from prevention to reintegration.",
-    homeTitel: "Personal occupational health service and absence support • React2u",
+    homeTitel: "Occupational health service and absence support • React2u",
     merk: "React2u",
   },
 };

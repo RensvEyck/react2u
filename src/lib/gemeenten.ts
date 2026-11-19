@@ -119,6 +119,16 @@ export function kernProvincies(): string[] {
   return REGIOS.flatMap((r) => r.provincies.map((p) => p.naam)).filter((n) => namen.has(n));
 }
 
+/**
+ * Wanneer de werkgebiedpagina's voor het laatst inhoudelijk veranderden: de
+ * teksten in src/content/plaatsen.json, de opbouw in PlaatsPagina.tsx of de
+ * titel en omschrijving in app/(site)/[slug]/page.tsx. sitemap.xml meldt dit
+ * als lastModified voor alle provincie- en gemeentepagina's; hoog hem op bij
+ * zo'n wijziging. Geen `new Date()`: altijd "nu" melden leert een crawler dat
+ * het veld niets zegt (zie sitemap.ts).
+ */
+export const WERKGEBIED_BIJGEWERKT = "2026-11-19";
+
 /** De adressen voor sitemap.xml: alle provincies en de geïndexeerde gemeenten. */
 export function werkgebiedPaden(): string[] {
   return [

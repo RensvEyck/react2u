@@ -2,8 +2,8 @@
   "_uitleg": "Engels startscherm (/en): dezelfde blokken als home.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "home",
   "title": "Home",
-  "seo_title": "React2u, the personal occupational health service for employers and employees",
-  "seo_description": "React2u is a personal occupational health service (arbodienst) in Eindhoven. One regular case manager for employers and employees, from prevention to reintegration.",
+  "seo_title": "Personal occupational health service in Eindhoven • React2u",
+  "seo_description": "React2u is a personal occupational health service in Eindhoven. One regular case manager for employers and employees, from prevention to reintegration.",
   "blocks": [
     {
       "type": "homeSplit",
@@ -19,7 +19,6 @@
             "short": "Control of sickness absence",
             "button": "To the employer site",
             "href": "/en/employers",
-            "aria": "I am an employer, to the page for employers",
             "image": "/beeld/home/samen-leren.webp",
             "alt": "Four colleagues laughing together at a round table",
             "focus": "46% 30%"
@@ -32,7 +31,6 @@
             "short": "Off sick or stuck?",
             "button": "To the employee site",
             "href": "/en/employees",
-            "aria": "I am an employee, to the page for employees",
             "image": "/beeld/home/samen-buiten.webp",
             "alt": "A woman and a man walking together in the park",
             "focus": "50% 20%"

@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedVacancies } from "@/lib/content";
 import { getZichtbareVacature, getZichtbareVacatures } from "@/lib/voorbeeld";
-import { jsonLd } from "@/lib/jsonld";
 import { metOmschrijving, omschrijving, paginaTitel } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
 import { hreflangVoor } from "@/lib/taal";
-import { jobPostingLd, vacatureInTaal } from "@/lib/vacatures";
+import { vacatureInTaal } from "@/lib/vacatures";
 import { VacatureDetail } from "@/components/blocks/WerkenBij";
 
 export const revalidate = 300;
@@ -20,7 +19,14 @@ export async function generateStaticParams() {
 /**
  * Een vacature op de Engelse site. Met Engelse velden (migratie 0015) in het
  * Engels; zonder in het Nederlands, met bovenaan "This vacancy is in Dutch".
- * De SEO-titel volgt de taal van de tekst, met "Vacancy" als label.
+ * De SEO-titel volgt de taal van de tekst, met "Vacancy" als label. De
+ * omschrijving is de ingekorte Engelse intro (de SEO-omschrijving uit de admin
+ * is Nederlands); eerder ging de intro er compleet in en werden 29 Engelse
+ * vacatures met 170 tot 220 tekens afgekapt. Zonder Engelse tekst dezelfde
+ * omschrijving als de Nederlandse pagina.
+ *
+ * Geen JobPosting hier: Google wil één vacature per baan, en die staat op de
+ * Nederlandse pagina (lib/vacatures.ts); hreflang verbindt de twee adressen.
  */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -32,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     ...concept,
     title: { absolute: paginaTitel(`${tekst.title} • Vacancy`) },
-    ...metOmschrijving(omschrijving(tekst.intro || v.seo_description)),
+    ...metOmschrijving(tekst.taal === "en" ? omschrijving(null, tekst.intro) : omschrijving(v.seo_description, v.intro)),
     alternates: { canonical: `/en/jobs/${slug}`, languages: hreflangVoor(`/vacatures/${slug}`) ?? undefined },
     openGraph: await openGraphVoor({ pad: `/en/jobs/${slug}`, taal: "en" }),
   };
@@ -43,10 +49,5 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
   const v = await getZichtbareVacature(slug);
   if (!v) notFound();
   const andere = (await getZichtbareVacatures()).filter((x) => x.id !== v.id);
-  return (
-    <>
-      <VacatureDetail v={v} andere={andere} taal="en" />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(jobPostingLd(v, "en")) }} />
-    </>
-  );
+  return <VacatureDetail v={v} andere={andere} taal="en" />;
 }

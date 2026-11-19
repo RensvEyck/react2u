@@ -80,16 +80,25 @@ export const STARTPAGINA: Record<Doelgroep, NavLink> = {
 
 const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol", "/je-rechten-en-privacy", "/je-casemanager"];
 /**
+ * Pagina's die alleen voor werkgevers zijn geschreven: de startpagina, het
+ * dienstenoverzicht, de abonnementen, de kennismaking en het werkgebied
+ * (/arbodienst-<gemeente>, /arbodienst-provincie-<provincie>). Zonder deze
+ * lijst gaf doelgroepVoorPad daar `null`, en toonde een bezoeker die eerder
+ * "werknemer" koos het werknemersmenu boven een werkgeverspagina (HALO-scan,
+ * november 2026). De labelpagina's (Resist, Recover, …) komen via labelVoor().
+ */
+const WERKGEVER_PADEN = ["/werkgevers", "/diensten", "/verzuimabonnementen", "/kennismaken"];
+/**
  * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
- * gedeelde pagina's (contact, blog, over ons): daar geldt de laatste keuze
- * van de bezoeker (zie lib/doelgroep.ts).
+ * gedeelde pagina's (contact, blog, over ons, vacatures): daar geldt de
+ * laatste keuze van de bezoeker (zie lib/doelgroep.ts).
  */
 export function doelgroepVoorPad(pathOfEnPath: string): Doelgroep | null {
   // Een Engels pad (/en/employees) telt als zijn Nederlandse tegenhanger.
   const path = nlPadVoor(pathOfEnPath);
   if (WERKNEMER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werknemer";
-  // De vijf labelpagina's (Resist, Recover, …) horen bij de werkgever.
-  if (path === "/werkgevers" || path === "/diensten" || labelVoor(path)) return "werkgever";
+  if (WERKGEVER_PADEN.some((p) => path === p || path.startsWith(`${p}/`))) return "werkgever";
+  if (path.startsWith("/arbodienst-") || labelVoor(path)) return "werkgever";
   return null;
 }
 

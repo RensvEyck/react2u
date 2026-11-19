@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { EN_KLAAR, SLUGS, heeftVertaling, hreflangVoor, nlPadVoor, pad, taalVanPad, telefoonInTaal, vertaalPad, vul } from "./taal";
+import { EN_KLAAR, SLUGS, heeftVertaling, hreflangVoor, isStart, kaalPad, nlPadVoor, pad, taalVanPad, telefoonInTaal, vertaalPad, vul } from "./taal";
 import { en } from "./woordenboek/en";
 import { nl } from "./woordenboek/nl";
 
@@ -72,6 +72,18 @@ describe("paden", () => {
     expect(vertaalPad("/en/bestaat-niet", "nl")).toBe("/");
     // Dezelfde taal: het pad zelf, zonder hash.
     expect(vertaalPad("/en/employees#faq", "en")).toBe("/en/employees");
+  });
+
+  it("ziet /index als het startscherm (de taalknop linkte naar /index)", () => {
+    expect(kaalPad("/index")).toBe("/");
+    expect(kaalPad("/en/index")).toBe("/en");
+    expect(kaalPad("/index/")).toBe("/");
+    expect(kaalPad("/indexering")).toBe("/indexering");
+    expect(isStart("/index")).toBe(true);
+    expect(vertaalPad("/index", "nl")).toBe("/");
+    expect(vertaalPad("/index", "en")).toBe("/en");
+    expect(vertaalPad("/en/index", "nl")).toBe("/");
+    expect(hreflangVoor("/index")).toEqual({ nl: "/", en: "/en", "x-default": "/" });
   });
 
   it("geneste Engelse slugs (fase 2) vertalen heen en terug", () => {

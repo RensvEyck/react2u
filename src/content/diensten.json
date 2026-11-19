@@ -2,8 +2,8 @@
   "_uitleg": "Overzicht van de zes labels (Resist, Recover, Restart, Reflex, Ready, Reward) in de blokken van het nieuwe ontwerp, met dezelfde labelkaarten als op /werkgevers. Vervangt sinds oktober 2026 de oude opbouw met losse dienstpagina's; die sturen met een 301 door naar hun label (DIENST_REDIRECTS in src/lib/redirects.ts). Engelse tegenhanger: src/content/en/services.json.",
   "slug": "diensten",
   "title": "Diensten",
-  "seo_title": "Diensten: zes specialismen voor verzuim, preventie en salaris • React2u",
-  "seo_description": "React2u biedt zes specialismen onder één dak: Resist, Recover, Restart, Reflex, Ready en Reward. Van preventie tot re-integratie en salarisadministratie, met één vaste casemanager.",
+  "seo_title": "Zes specialismen voor verzuim en preventie • React2u",
+  "seo_description": "Zes specialismen onder één dak: Resist, Recover, Restart, Reflex, Ready en Reward. Van preventie tot re-integratie en salaris, met één vaste casemanager.",
   "blocks": [
     {
       "type": "dgKop",

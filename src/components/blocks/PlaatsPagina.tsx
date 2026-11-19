@@ -6,6 +6,7 @@ import {
   REGIOS, isGeindexeerd, plaatsHref, provincieHref, slugVan,
   type Plaats, type Provincie, type Regio,
 } from "@/lib/gemeenten";
+import { inkt } from "@/lib/kleur";
 import { LABEL_INFO, REISTIJD_TEKST, SOORT_TEKST, plaatsTekst, type PlaatsTekst } from "@/lib/plaatsteksten";
 
 /*
@@ -67,11 +68,11 @@ function Specialismen() {
     <section aria-label="Specialismen" style={{ background: SOFT }}>
       <div className={`${BREED} flex flex-col gap-10 py-14 md:py-24`}>
         <KopBlok eyebrow="Specialismen" kopTekst="Zes specialismen, één casemanager" tekst="Je casemanager houdt het overzicht en schakelt de juiste specialist in." />
-        <Strook n={SPECIALISMEN.length} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Strook n={SPECIALISMEN.length} label="Specialismen" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SPECIALISMEN.map((s) => (
             <Link key={s.naam} href={s.href} className="hv-btn flex flex-col gap-3 rounded-[22px] border border-t-[3px] bg-white px-6 py-6" style={{ borderColor: LINE, borderTopColor: s.kleur }}>
               <span className={`${kop} text-[21px]`} style={{ color: NAVY }}>React2u {s.naam}</span>
-              <span className="text-[14px] font-bold" style={{ color: s.kleur }}>{s.sub}</span>
+              <span className="text-[14px] font-bold" style={{ color: inkt(s.kleur) }}>{s.sub}</span>
               <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{s.tekst}</span>
               <span className="mt-auto inline-flex items-center gap-2 pt-1.5 text-[14.5px] font-bold" style={{ color: NAVY }}>Lees meer<Pijl size={14} /></span>
             </Link>
@@ -156,7 +157,7 @@ function Sectoren({ plaats, t }: { plaats: Plaats; t: PlaatsTekst }) {
     <section aria-label={`Werk en verzuim in ${plaats.naam}`} style={{ background: SOFT }}>
       <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-24`}>
         <KopBlok eyebrow={`Werk in ${plaats.naam}`} kopTekst={`Waar verzuim in ${plaats.naam} vandaan komt`} tekst="Per sector kijken we naar wat uitval veroorzaakt en welk specialisme daarbij past. Je casemanager schakelt de juiste specialist in." />
-        <Strook n={sectoren.length} className={`grid gap-4 md:grid-cols-2 ${sectoren.length >= 4 ? "lg:grid-cols-4" : sectoren.length === 3 ? "lg:grid-cols-3" : ""}`}>
+        <Strook n={sectoren.length} label={`Werk en verzuim in ${plaats.naam}`} className={`grid gap-4 md:grid-cols-2 ${sectoren.length >= 4 ? "lg:grid-cols-4" : sectoren.length === 3 ? "lg:grid-cols-3" : ""}`}>
           {sectoren.map((sct) => {
             const l = LABEL_INFO[sct.label];
             return (

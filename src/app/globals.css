@@ -14,7 +14,8 @@
   --color-accent: #c8306a;
   --color-accent-deep: #a92656;
   --color-accent-blue: #39a5dd;
-  --color-accent-pink: #e51673;
+  /* Roze voor tekst en knoppen; de logokleur #e51673 haalt met wit 4,4:1 (lib/kleur.ts). */
+  --color-accent-pink: #d4136a;
   --color-accent-orange: #f19000;
   /* Grijs met een zweem indigo, zodat het bij de rest past: 6,85:1 op wit. */
   --color-body: #5a5870;
@@ -556,9 +557,21 @@ p {
 .hn a:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
 
 /* Kop van de startpagina: alles schaalt mee met het scherm. */
+/* De kopregel met de h1 boven de tegels: één regel in Outfit, klein genoeg om
+   op een telefoon in twee regels te passen (56px hoog) en breed genoeg om op
+   een laptop te lezen. `.hn .hn-h1` wint van `.hn :is(h1)` hierboven, dat de
+   kopstijlen van de layout terugzet; een Tailwind-maat op de h1 zou verliezen. */
+.hn .hn-kopregel { padding-top: 10px; padding-bottom: 8px; }
+.hn .hn-h1 { font-size: 15px; line-height: 1.25; letter-spacing: -0.2px; font-weight: 600; }
+@media (min-width: 768px) {
+  .hn .hn-kopregel { padding-top: 18px; padding-bottom: 14px; }
+  .hn .hn-h1 { font-size: clamp(17px, 1.3vw, 22px); line-height: 1.3; letter-spacing: -0.3px; }
+}
 /* Op de telefoon passen beide helften samen in het eerste scherm: het scherm
-   min de twee kopbalken (108px) en de naden, met een onder- en bovengrens. */
-.hn-split { --h: clamp(300px, calc((100svh - 126px) / 2), 400px); }
+   min de twee kopbalken (108px), de kopregel (twee regels, 56px) en de naden
+   (18px), met een onder- en bovengrens. Gemeten op 390 × 844: de onderrand
+   van de tweede tegel staat 6px boven de vouw. */
+.hn-split { --h: clamp(300px, calc((100svh - 182px) / 2), 400px); }
 .hn-orb { --o: 290px; width: var(--o); height: var(--o); bottom: calc(var(--o) * -0.24); gap: calc(var(--o) * 0.034); padding-bottom: calc(var(--o) * 0.17); }
 .hn-orb-l { left: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.28); }
 .hn-orb-r { right: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.21); }
@@ -567,7 +580,7 @@ p {
 .hn-orb-e { font-size: clamp(12px, calc(var(--o) * 0.025), 16px); letter-spacing: 0.09em; }
 .hn-orb-go { height: clamp(44px, calc(var(--o) * 0.108), 72px); min-width: clamp(44px, calc(var(--o) * 0.108), 72px); padding: 0 clamp(14px, calc(var(--o) * 0.036), 24px); font-size: clamp(15px, calc(var(--o) * 0.031), 20px); }
 @media (min-width: 768px) {
-  .hn-split { --h: clamp(520px, min(calc(100svh - 132px), 46vw), 1040px); height: var(--h); }
+  .hn-split { --h: clamp(520px, min(calc(100svh - 192px), 46vw), 1040px); height: var(--h); }
   .hn-orb { --o: clamp(400px, min(30vw, calc(var(--h) * 0.68)), 780px); bottom: calc(var(--o) * -0.19); padding-bottom: calc(var(--o) * 0.135); }
   .hn-orb-l { left: calc(var(--o) * -0.154); padding-left: calc(var(--o) * 0.29); }
   .hn-orb-r { right: calc(var(--o) * -0.154); padding-left: calc(var(--o) * 0.22); }
@@ -598,7 +611,7 @@ p {
   .r2u-kop { --hh: 88px; }
 }
 .r2u-dm { font-family: var(--font-dm-sans), system-ui, sans-serif; }
-.rk-roze { background: #E61674; border-color: #E61674; color: #ffffff; }
+.rk-roze { background: #D4136A; border-color: #D4136A; color: #ffffff; }
 @media (hover: hover) {
   .rk .rk-roze:hover { background: #C40F60; border-color: #C40F60; color: #ffffff; }
 }
@@ -763,7 +776,8 @@ p {
 .hv-reis.hv-go .hv-js { animation: hvPop .8s cubic-bezier(.2,.9,.25,1) both; }
 .hv-reis.hv-go .hv-jc { animation: hvUp .7s cubic-bezier(.2,.75,.2,1) both; }
 .hv-btn { transition: background .2s ease, color .2s ease, border-color .2s ease, transform .35s ease; }
-.hv-btn-roze { background: #E61674; color: #ffffff; border: 1.5px solid #E61674; }
+/* Roze knop: #D4136A geeft witte tekst 5,1:1 (de logokleur #E61674 4,4:1); zie lib/kleur.ts. */
+.hv-btn-roze { background: #D4136A; color: #ffffff; border: 1.5px solid #D4136A; }
 .hv-btn-roze:hover { background: #C40F60; border-color: #C40F60; }
 .hv-btn-rand { background: #ffffff; color: #322E83; border: 1.5px solid #D9D8E6; }
 .hv-btn-rand:hover { background: #322E83; border-color: #322E83; color: #ffffff; }

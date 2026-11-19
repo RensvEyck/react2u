@@ -2,8 +2,8 @@
   "_uitleg": "Engels dienstenoverzicht (/en/services): de zes labels in de blokken van het nieuwe ontwerp, met dezelfde opbouw als het Nederlandse /diensten (src/content/diensten.json). Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services",
   "title": "Services",
-  "seo_title": "Our services: six specialisms for sickness absence and payroll • React2u",
-  "seo_description": "React2u offers six specialisms under one roof: Resist, Recover, Restart, Reflex, Ready and Reward. From prevention to reintegration and payroll, with one regular case manager.",
+  "seo_title": "Our services: six specialisms • React2u",
+  "seo_description": "Six specialisms under one roof: Resist, Recover, Restart, Reflex, Ready and Reward. From prevention to reintegration and payroll, with one regular case manager.",
   "blocks": [
     {
       "type": "dgKop",

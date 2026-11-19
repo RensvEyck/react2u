@@ -387,6 +387,22 @@ regels:
 **Contrast is doorgerekend, niet geschat.** Roze knop met witte tekst 5,1:1;
 gedempte bovenkopjes 6,0:1 op wit; lopende tekst (`--color-body`) 6,9:1; de
 rand van invoervelden 3,7:1 (WCAG vraagt 3:1 voor randen van bedieningselementen).
+De merkkleuren uit het logo zijn voor vlakken en stippen, niet voor letters:
+roze `#E61674` en grijs `#77758F` haalden 4,44:1 (net onder AA), teal, oranje
+en blauw 2,4 tot 3,2. Tekst en knoppen in een merkkleur gebruiken sinds de
+HALO-scan (november 2026) de donkerdere tinten uit
+[`src/lib/kleur.ts`](src/lib/kleur.ts) (`inkt()`: roze `#D4136A`, grijs
+`#67657F`, teal `#007A6D`, oranje `#B45600`, blauw `#2277A8`); `PINK` en
+`MUTE` in `Gedeeld.tsx`, `K.magenta` en de roze knoppen in `globals.css` zijn
+die tinten. Vlakken, stippen, randen en het logo houden de logokleur.
+
+**Namen en bediening.** De taalknop (`Taalwissel.tsx`) heeft geen
+`aria-label` meer: de zichtbare tekst "NL"/"EN" is de naam (een label
+"Nederlands"/"English" gaf een label-in-name-fout), met `lang` en `hrefLang`
+voor de taal. Een `Strook` (de kaartenrij die je op de telefoon swipet,
+`Gedeeld.tsx`) is een benoemd gebied met `tabIndex={0}` (`label` is
+verplicht), zodat hij ook met het toetsenbord te scrollen is; die tabstop
+blijft op een laptop, waar de rij een raster is.
 
 **Eigen woorden en concepten.** Acture en ArboNed waren inspiratie, geen
 voorbeeld. De woorden komen van React2u zelf ("Jouw mensen, onze aandacht",
@@ -401,7 +417,7 @@ werkwijze (blok `method`) en de drie waarden met een feit erbij (blok
 
 | Bloktype | Wat |
 |---|---|
-| `audienceChoice` | Het startscherm, een splitscreen: een smalle kopregel met de h1, daaronder werkgever \| werknemer als twee paginavullende foto's van rand tot rand (`choices`: `doelgroep`, `title`, `text`, `button`, `image`, `focus`, `href`; `focus` is de `object-position`). Ook op de telefoon naast elkaar, zodat beide keuzes boven de vouw staan; daar vallen `text` en de knoptekst weg (ronde pijl). De helft onder de muis wordt breder (`.split` in `globals.css`). Het donkere verloop zit alleen achter de tekst; wit haalt daarop gemeten 3,2:1+ (kop) en 6:1+ (tekst). Eronder één regel vertrouwen (`trust`). Een terugkerende bezoeker ziet "Je vorige keuze". |
+| `audienceChoice` / `homeSplit` | Het startscherm, een splitscreen. De live versie is `homeSplit` (`HomeNeutraal.tsx`, ontwerp "Home neutraal"): een smalle, zichtbare kopregel met de h1 (`.hn-kopregel`; tot november 2026 stond de h1 als `sr-only`, de HALO-scan wilde hem zichtbaar), daaronder de twee fototegels met een bol erop. Op de telefoon onder elkaar, samen met de kopregel in het eerste scherm (`--h` in `globals.css` rekent de kopregel mee). De tegels hebben geen `aria-label`: de inhoud is de naam. Alleen de eerste foto krijgt voorrang (`priority` + `fetchPriority="high"`), de tweede laadt lui. Het oudere blok `audienceChoice` (`BlockRenderer.tsx`) werkt zo: een smalle kopregel met de h1, daaronder werkgever \| werknemer als twee paginavullende foto's van rand tot rand (`choices`: `doelgroep`, `title`, `text`, `button`, `image`, `focus`, `href`; `focus` is de `object-position`). Ook op de telefoon naast elkaar, zodat beide keuzes boven de vouw staan; daar vallen `text` en de knoptekst weg (ronde pijl). De helft onder de muis wordt breder (`.split` in `globals.css`). Het donkere verloop zit alleen achter de tekst; wit haalt daarop gemeten 3,2:1+ (kop) en 6:1+ (tekst). Eronder één regel vertrouwen (`trust`). Een terugkerende bezoeker ziet "Je vorige keuze". |
 | `heroStatement` | Paginakop voor een doelgroep: tekst op zand, foto van rand tot rand ernaast (`imagePosition`, `focus`), eventueel een keurmerkregel (`badge`). Met `doelgroep` vloeit de foto van het startscherm erin over. Hetzelfde ontwerp als `hero`. |
 | `pillars` | "Waar kunnen we je mee helpen?": de zes diensten per stap (voorkomen, begeleiden, versterken), als fototegels met de situatie. De drie kolommen delen hun rijen (subgrid), zodat de tegels op één lijn beginnen. Inhoud uit `PIJLERS`; het blok zelf heeft alleen de kop. |
 | `steps` | Een tijdlijn: ronde stappen verbonden door een lijn, zoals het verzuimprotocol (R-E-A-C-T-2U). `steps` met `badge`, `title`, `text`; `anchor` maakt er een #-doel van. |
@@ -476,8 +492,12 @@ Daarom:
   eigen menu en knop (`NAV` en `HEADER_CTA` in [`src/lib/nav.ts`](src/lib/nav.ts)).
   Het dienstenmenu staat alleen bij werkgevers.
 - **Welke doelgroep geldt**, bepaalt `doelgroepVoorPad()`: `/werknemers` en
-  `/verzuimprotocol` zijn van de werknemer; `/werkgevers`, `/diensten` en de
-  zes dienstpagina's van de werkgever. Op gedeelde pagina's (contact, blog,
+  `/verzuimprotocol` zijn van de werknemer; `/werkgevers`, `/diensten`,
+  `/verzuimabonnementen`, `/kennismaken`, het werkgebied (`/arbodienst-…`) en
+  de zes labelpagina's van de werkgever (voor november 2026 gaven de
+  abonnementen, de kennismaking en het werkgebied `null`, waardoor een
+  bezoeker die eerder "werknemer" koos daar het werknemersmenu zag). Op
+  gedeelde pagina's (contact, blog,
   over ons) geldt de laatste keuze van de bezoeker, bewaard in `localStorage`
   ([`src/lib/doelgroep.ts`](src/lib/doelgroep.ts)); zonder keuze werkgever. De
   server kent die keuze niet — de pagina's zijn statisch — dus op een gedeelde
@@ -2514,8 +2534,36 @@ De basis staat: elke route heeft eigen metadata en een canonical, er is een
 sitemap en een robots.txt, en de fonts komen via `next/font` (niet via een
 render-blocking `<link>` naar Google Fonts — dat kost Core Web Vitals).
 
-Structured data per paginasoort: `Organization` op de home, `JobPosting` op een
-vacature, `BlogPosting` + `BreadcrumbList` op een artikel.
+Structured data als één geheel ([`src/lib/organisatie.ts`](src/lib/organisatie.ts)):
+op `/` en `/en` één `@graph` met de organisatie (`Organization` én
+`LocalBusiness`, `@id https://react2u.nl/#organisatie`, KvK als `identifier`,
+btw-nummer, adres Stratumsedijk 29, openingstijden, LinkedIn) en de `WebSite`
+met die organisatie als `publisher`. Een artikel (`BlogPosting` +
+`BreadcrumbList`) en een vacature (`JobPosting`) verwijzen met hetzelfde `@id`
+naar die knoop (`organisatieRef()`: `publisher`, `hiringOrganization`), zodat
+Google één bedrijf ziet. `JobPosting` staat alleen op de Nederlandse
+vacaturepagina (één vacature per baan; de Engelse hangt er via hreflang aan)
+en heeft altijd een `validThrough`: de einddatum uit de admin, of anders 90
+dagen na de laatste wijziging (`geldigTot()` in `lib/vacatures.ts`). Een
+vacature die niemand bewerkt verdwijnt dus na drie maanden uit Google for Jobs
+tot hij een einddatum krijgt of opnieuw wordt opgeslagen; de dashboardkaart
+"loopt af" kijkt alleen naar de echte einddatum. Alle 32 vacatures stonden in
+november 2026 zonder einddatum.
+
+**Titels en omschrijvingen** blijven onder 60 en 160 tekens, de maten waarop
+Google afkapt (`TITLE_MAX`/`DESC_MAX` in `seo.ts` zijn de redactiehulp). De
+werkgebiedpagina's heten "Arbodienst {plaats} • React2u" (maximaal 43 tekens;
+met "Persoonlijke verzuimbegeleiding" ertussen werden er 336 afgekapt). De
+Engelse vacaturepagina kort de Engelse intro in met `kort()`; de concepten in
+`src/content/` en `vakgebieden.ts` zijn in november 2026 ingekort. De
+Nederlandse pagina's lezen titel en omschrijving uit de database: een te lange
+tekst daar pas je aan in `/admin/seo`, niet in de code.
+
+**`/index` is `/`.** Next ziet `/index` als de root en antwoordde er met de
+homepage; `usePathname()` gaf bij het voorbouwen "/index", waardoor de
+taalknop daarnaar linkte. `kaalPad()` in `lib/taal.ts` rekent `/index` en
+`/en/index` als het startscherm, en `INDEX_REDIRECTS` (`lib/redirects.ts`,
+via `next.config.ts`) stuurt het adres met een 301 naar `/` en `/en`.
 
 **`/admin/seo`** toont per pagina, artikel en vacature wat Google straks écht
 ziet — dus mét de fallbacks — plus de lengte en waar iets ontbreekt of afkapt.
@@ -2602,7 +2650,13 @@ wil er één per pagina, niet één per blok.
 
 `sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld
-niets zegt.
+niets zegt. Pagina's zonder item in de database hebben sinds november 2026 ook
+een datum: de 354 werkgebiedpagina's de constante `WERKGEBIED_BIJGEWERKT` in
+[`src/lib/gemeenten.ts`](src/lib/gemeenten.ts) (ophogen bij een wijziging aan
+`plaatsen.json`, `PlaatsPagina.tsx` of de titel/omschrijving), een
+vakgebiedpagina de nieuwste vacature in dat vakgebied (of de nieuwste
+vacature), de open sollicitatie en `/en` respectievelijk de nieuwste vacature
+en pagina.
 
 ## Bewaartermijnen en privacy
 

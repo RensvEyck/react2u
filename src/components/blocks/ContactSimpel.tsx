@@ -18,9 +18,9 @@ import { LOKVELD, WEBMCP } from "@/lib/webmcp";
  */
 
 const NAVY = "#322E83";
-const PINK = "#E61674";
+const PINK = "#D4136A";
 const BODY = "#5E5C78";
-const MUTE = "#77758F";
+const MUTE = "#67657F";
 const LINE = "#E6E5EF";
 const SOFT = "#F6F5FB";
 
@@ -118,7 +118,7 @@ export function ContactSimpel({ d, asH1 }: { d: any; asH1?: boolean }) {
               const inner = (
                 <>
                   <span className="text-[14px]" style={{ color: MUTE }}>{r.label}</span>
-                  <span className="hv-kop whitespace-pre-line text-[22px] leading-[1.3] transition-colors group-hover:text-[#E61674]" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</span>
+                  <span className="hv-kop whitespace-pre-line text-[22px] leading-[1.3] transition-colors group-hover:text-[#D4136A]" style={{ color: NAVY, fontWeight: 500, fontFamily: "var(--font-outfit), var(--font-dm-sans), sans-serif" }}>{r.value}</span>
                   {r.sub && <span className="text-[15px]" style={{ color: BODY }}>{r.sub}</span>}
                 </>
               );

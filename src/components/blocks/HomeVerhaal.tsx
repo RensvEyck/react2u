@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import { LuShieldCheck, LuMessageSquare, LuHeart, LuRoute, LuCheck } from "react-icons/lu";
 import ReisSpeler from "./ReisSpeler";
 import Beeld from "@/components/site/Beeld";
+import { inkt } from "@/lib/kleur";
 
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 
@@ -26,7 +27,7 @@ export const outfit = Outfit({
 const TEAL = "#00A098";
 const SKY = "#3AA5DD";
 const ORANGE = "#F19001";
-const PINK = "#E61674";
+const PINK = "#D4136A";
 const RED = "#CB152B";
 const NAVY = "#322E83";
 const TEKST = "#5E5C78";
@@ -224,7 +225,7 @@ export function HomeReis({ d }: BlockProps) {
             <ol className="mx-auto mt-2 grid max-w-[1200px] grid-cols-4 gap-10">
               {steps.map((s, i) => (
                 <li key={i} className="hv-jc flex flex-col items-center gap-2 px-2 text-center" style={{ animationDelay: `${(tStation(i) + 0.12).toFixed(2)}s` }}>
-                  <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: STAP_KLEUR[i] }}>{s.label}</span>
+                  <span className="text-[13px] font-bold uppercase tracking-[1.3px]" style={{ color: inkt(STAP_KLEUR[i]) }}>{s.label}</span>
                   <span className="hv-kop text-[20px] leading-[1.3] lg:text-[22px]" style={{ color: NAVY }}>{s.title}</span>
                   <span className="text-[15px] leading-[1.75] lg:text-[16px]" style={{ color: TEKST }}>{s.text}</span>
                 </li>

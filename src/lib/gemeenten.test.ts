@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  AANTAL_GEMEENTEN, AANTAL_PROVINCIES, KERNGEMEENTEN, geindexeerdePlaatsen, isGeindexeerd, kernProvincies, plaatsVoorSlug,
-  slugVan, werkgebiedPaden,
+  AANTAL_GEMEENTEN, AANTAL_PROVINCIES, KERNGEMEENTEN, WERKGEBIED_BIJGEWERKT, geindexeerdePlaatsen, isGeindexeerd, kernProvincies,
+  plaatsVoorSlug, slugVan, werkgebiedPaden,
 } from "./gemeenten";
 import { slugsMetTekst } from "./plaatsteksten";
 
@@ -23,6 +23,13 @@ describe("geïndexeerde gemeenten", () => {
     }
     expect(isGeindexeerd("gemeente-die-niet-bestaat")).toBe(false);
     expect(AANTAL_GEMEENTEN - geindexeerdePlaatsen().length).toBeGreaterThanOrEqual(0);
+  });
+
+  it("heeft een echte wijzigingsdatum voor sitemap.xml, niet in de toekomst", () => {
+    expect(WERKGEBIED_BIJGEWERKT).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const d = new Date(WERKGEBIED_BIJGEWERKT);
+    expect(Number.isNaN(d.getTime())).toBe(false);
+    expect(d.getTime()).toBeLessThanOrEqual(Date.now());
   });
 
   it("sitemap.xml bevat alle provincies en precies de geïndexeerde gemeenten", () => {
