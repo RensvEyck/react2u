@@ -164,7 +164,7 @@ export default function CommandPalette({
 
   const items = useMemo<Item[]>(() => {
     const qTerms = toTerms(trimmed);
-    const screens = ADMIN_NAV.filter((n) => allowed(n, permissions));
+    const screens = ADMIN_NAV.filter((n) => !n.alleenMet && allowed(n, permissions));
     const actions = ADMIN_ACTIONS.filter((a) => allowed(a, permissions));
 
     if (!qTerms.length) {

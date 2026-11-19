@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuGauge, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard, LuGlobe, LuSlidersHorizontal } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuGauge, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard, LuGlobe, LuSlidersHorizontal, LuRoute, LuMap } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -15,6 +15,9 @@ import type { IconType } from "react-icons";
  */
 
 export type Counts = { apps: number; msgs: number; inbox: number; leads: number };
+
+/** Wat per collega aan of uit staat, los van rechten: heeft deze collega een inwerkreis (0050)? */
+export type NavVlaggen = { inwerkreis: boolean };
 
 export type NavItem = {
   label: string;
@@ -29,6 +32,8 @@ export type NavItem = {
   groep?: NavGroepKey;
   /** Andere adressen waarop dit menu-item oplicht, zoals de documentsoorten onder Documenten. */
   ook?: string[];
+  /** Alleen in het menu als dit voor de ingelogde collega aan staat (zie NavVlaggen); nooit in het palet. */
+  alleenMet?: keyof NavVlaggen;
 };
 
 /**
@@ -66,6 +71,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Klantevaluaties", href: "/admin/documenten/evaluaties", icon: LuClipboardList, keywords: "klantevaluatie evaluatie jaarlijks bezoek checklist rie psa pmo preventiemedewerker dienstverlening wensen afspraken acties", paletteOnly: true },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
   { label: "Weekevaluatie", href: "/admin/weekevaluatie", icon: LuCalendarCheck, keywords: "weekevaluatie week evaluatie energie werkdruk cijfer invullen reflectie collega's werknemers" },
+  { label: "Inwerkreis", href: "/admin/inwerkreis", icon: LuRoute, keywords: "inwerken nieuwe collega eerste 90 dagen buddy taken oefencasussen mijlpalen", alleenMet: "inwerkreis" },
   { label: "Kwartaaloverzicht weekevaluaties", href: "/admin/weekevaluatie/team", icon: LuChartColumn, keywords: "kwartaalmeeting kwartaal team gemiddelden trend gemist export excel weekevaluaties", paletteOnly: true },
   { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen", groep: "cijfers" },
   { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
@@ -82,6 +88,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Media", href: "/admin/media", icon: LuImage, keywords: "afbeeldingen foto's uploaden pdf documenten", groep: "website" },
   { label: "SEO", href: "/admin/seo", icon: LuSearch, keywords: "google zoekmachine meta titel omschrijving", groep: "website" },
   { label: "Doorverwijzingen", href: "/admin/seo/doorverwijzingen", icon: LuSignpost, keywords: "redirect 404 niet gevonden oude url kapotte link", paletteOnly: true },
+  { label: "Inwerken", href: "/admin/inwerken", icon: LuMap, keywords: "inwerkreis nieuwe collega sjabloon functie casemanager backoffice sales buddy mijlpaal oefencasus 30 60 90 dagen", groep: "beheer" },
   { label: "Gebruikers", href: "/admin/gebruikers", icon: LuUserCog, keywords: "rollen rechten collega's uitnodigen", groep: "beheer" },
   { label: "Instellingen", href: "/admin/instellingen", icon: LuSettings, keywords: "contactgegevens footer documenten certificaten onderhoud", groep: "beheer" },
   { label: "Account", href: "/admin/account", icon: LuUserRound, keywords: "wachtwoord tweestapsverificatie 2fa profiel", paletteOnly: true },
@@ -124,6 +131,6 @@ export const CRUMBS: Record<string, string> = {
   instellingen: "Instellingen", account: "Account",
   documenten: "Documenten", evaluaties: "Klantevaluaties",
   offertes: "Offertes", contracten: "Contracten", onboarding: "Onboarding", werknemers: "Werknemers", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
-  weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht", prognose: "Prognose",
+  weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht", prognose: "Prognose", inwerkreis: "Inwerkreis", inwerken: "Inwerken", sjabloon: "Sjabloon",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

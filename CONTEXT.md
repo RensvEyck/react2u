@@ -41,6 +41,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Kwartaaldoel** (`weekevaluatie_doelen`) | Eén tot drie doelen per collega per kwartaal, vastgelegd in de kwartaalmeeting (0045). De collega geeft elke week aan hoe ver hij kwam. |
 | **Melding** (in de weekevaluatie) | Iets wat een collega wil melden of delen: een zorg, een idee, een compliment, een vraag. Komt in de kwartaalmeeting, of meteen per mail bij de super admin als de collega dat aanvinkt (0046). |
 | **Twee zware weken** | Twee weken achter elkaar een 4 of lager voor energie of voor "werk paste in de tijd". Geeft meteen een mail aan wie het kwartaaloverzicht mag zien, en een melding op diens dashboard. |
+| **Inwerkreis** (`inwerkreizen`) | De eerste negentig dagen van een nieuwe collega (0050): een sjabloon per functie (`inwerk_sjablonen`: Casemanager Verzuim, Backoffice, Sales / accountmanager, begonnen leeg) met stappen in drie fasen (tot dag 30, 60 en 90), elk een taak, een oefencasus of een mijlpaal. Eén reis per collega, met een eerste werkdag (dag 1) en de naam van een buddy. De collega vinkt taken en oefencasussen af; een mijlpaal tekent het beheer (recht `omzet`) af. |
 | **Prognose** | Hoeveel werknemers React2u de komende twaalf maanden begeleidt en hoeveel fte casemanagement dat vraagt, tegenover de bezetting, met de weekevaluaties als controle (`/admin/prognose`, 0049). Zie *Prognose*. |
 | **Ingangsdatum** (`offertes.ingangsdatum`) | Wanneer de dienstverlening van een offerte start. Voor de prognose; ook na tekenen nog te verschuiven. |
 | **Recht** | Toegang tot één onderdeel van het paneel, bv. `bellijst` of `paginas`. De sleutels staan in [`src/lib/permissions.ts`](src/lib/permissions.ts) én in de RLS-policies — hernoemen vraagt dus een migratie. |
@@ -276,6 +277,24 @@ dezelfde as van 1 tot 10 (`verloop`, `VERLOOP_SCHALEN`, `Lijn` in
 Grafiek.tsx). Een week zonder evaluatie is een gat in de lijn. Er staat bij
 dat je hetzelfde verloop in de kwartaalmeeting bespreekt: het is niet geheim
 voor het beheer. Teksten voor werknemers noemen geen namen.
+
+**De inwerkreis** (Rens, 19 nov 2026: "30, 60 en 90 dagen per functie, met
+een buddy, oefencasussen en mijlpalen"; gekozen: lege sjablonen, de buddy
+alleen een naam). Het beheer vult onder Beheer → Inwerken (`/admin/inwerken`,
+recht `omzet`) per functie een sjabloon en start een reis voor een collega
+met een inlog. Een reis wijst naar het sjabloon, niet naar een kopie: een
+stap erbij verschijnt meteen ook in lopende reizen, en een sjabloon in
+gebruik kan niet weg. De collega ziet Inwerkreis in het menu (alleen wie een
+reis heeft: `alleenMet` en `NavVlaggen`, nooit in het palet), een kaart op het
+dashboard met waar je staat en wat aan de beurt is (eerst wat uit een eerdere
+fase openstaat), en `/admin/inwerkreis` met per fase de stappen. Afvinken gaat
+meteen (optimistisch, `StapVink`); de policies laten een collega alleen taken
+en oefencasussen van de eigen reis afvinken, een trigger weigert een stap van
+een ander sjabloon en vult `door` in. Openstaande stappen uit een eerdere fase
+tellen op het dashboard als aandacht. Afronden houdt alles bewaard; de kaart
+verdwijnt dan van het dashboard. Collega's om een reis voor te starten komen
+uit `inwerk_collegas()`, omdat de gebruikerslijst alleen met het recht
+`gebruikers` leesbaar is.
 
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de

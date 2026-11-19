@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // Zonder het bijbehorende recht blokkeert RLS deze query's toch al — dan zou
   // de teller altijd 0 zijn. Ze overslaan scheelt drie query's per paginaladen
   // voor wie het onderdeel niet eens ziet.
-  const [apps, msgs, leads, maintenance] = await Promise.all([
+  const [apps, msgs, leads, maintenance, inwerkreis] = await Promise.all([
     can("postvak")
       ? sb.from("applications").select("id", { count: "exact", head: true }).eq("status", "nieuw")
       : Promise.resolve({ count: 0 }),
@@ -33,6 +33,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     // Voor iedereen, ook zonder recht op Instellingen: wie de site bekijkt als
     // beheerder ziet hem gewoon, en moet dus hier kunnen zien dat hij dicht is.
     sb.from("site_settings").select("value").eq("key", "maintenance").maybeSingle(),
+    // Heeft deze collega een inwerkreis (0050)? Dan staat Inwerkreis in het menu. Vóór de migratie: een fout, en dan niet.
+    sb.from("inwerkreizen").select("id").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const appCount = apps.count ?? 0;
@@ -48,6 +50,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       roleLabel={admin.roleLabel}
       permissions={admin.permissions}
       counts={{ apps: appCount, msgs: msgCount, inbox: appCount + msgCount, leads: leadCount }}
+      vlaggen={{ inwerkreis: Boolean(inwerkreis.data) }}
       maintenance={normalizeMaintenance(maintenance.data?.value).enabled}
       signOut={signOutAction}
     >

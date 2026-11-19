@@ -4,17 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LuExternalLink, LuMenu, LuX, LuConstruction, LuSearch, LuChevronDown } from "react-icons/lu";
 import { isMijnReact2u, permissionForPath, type Permission } from "@/lib/permissions";
-import { ADMIN_NAV, CRUMBS, NAV_GROEPEN, type Counts, type NavGroepKey, type NavItem } from "@/lib/adminNav";
+import { ADMIN_NAV, CRUMBS, NAV_GROEPEN, type Counts, type NavGroepKey, type NavItem, type NavVlaggen } from "@/lib/adminNav";
 import CommandPalette from "./CommandPalette";
 import AccountMenu, { Avatar, UitlogForm } from "./AccountMenu";
 
 export default function AdminShell({
-  email, roleLabel, permissions, counts, maintenance, signOut, children,
+  email, roleLabel, permissions, counts, vlaggen, maintenance, signOut, children,
 }: {
   email: string;
   roleLabel: string;
   permissions: Permission[];
   counts: Counts;
+  vlaggen: NavVlaggen;
   maintenance: boolean;
   signOut: () => Promise<void>;
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export default function AdminShell({
   // de database via has_perm(). Wie de URL intikt komt hier gewoon langs.
   const visible = ADMIN_NAV.filter((n) => {
     if (n.paletteOnly) return false;
+    if (n.alleenMet && !vlaggen[n.alleenMet]) return false;
     const perm = permissionForPath(n.href);
     return !perm || permissions.includes(perm);
   });
