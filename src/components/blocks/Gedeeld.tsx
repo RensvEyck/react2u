@@ -10,12 +10,14 @@ import { woordenboek } from "@/lib/woordenboek";
  */
 
 export const NAVY = "#322E83";
-export const PINK = "#E61674";
+/** Roze voor tekst en knoppen: 5,1:1 op wit. De logokleur #E61674 (4,4:1) blijft voor vlakken en stippen; zie lib/kleur.ts. */
+export const PINK = "#D4136A";
 export const TEAL = "#00A098";
 export const SKY = "#3AA5DD";
 export const ORANGE = "#F19001";
 export const BODY = "#5E5C78";
-export const MUTE = "#77758F";
+/** Gedempt grijs voor bijschriften: 5,6:1 op wit (was #77758F, 4,4:1). */
+export const MUTE = "#67657F";
 export const LINE = "#E6E5EF";
 export const SOFT = "#F6F5FB";
 export const LAV = "#ECEBF5";
@@ -108,11 +110,17 @@ export function Knop({ href, children, rand }: { href: string; children: React.R
  * eronder die meeloopt (zie `.strook` in globals.css). Vanaf 640px gelden de
  * meegegeven rasterklassen. `n` is het aantal kaarten; de stippen zijn
  * decoratie, de kaarten blijven gewone inhoud.
+ *
+ * De rij is een benoemd gebied (`role="region"`, `label`) dat met Tab te
+ * bereiken is: een scrollvlak zonder tabstop kon op de telefoon alleen met een
+ * vinger worden bewogen, niet met de pijltjestoetsen (HALO-scan, november
+ * 2026). De tabstop blijft ook op een laptop, waar de rij een raster is; de
+ * browser kent de schermbreedte pas na het renderen.
  */
-export function Strook({ n, className = "", children }: { n: number; className?: string; children: React.ReactNode }) {
+export function Strook({ n, label, className = "", children }: { n: number; label: string; className?: string; children: React.ReactNode }) {
   return (
     <div className="strook-wrap">
-      <div className={`strook ${className}`}>{children}</div>
+      <div className={`strook ${className}`} role="region" aria-label={label} tabIndex={0}>{children}</div>
       {n > 1 && (
         <div aria-hidden className="strook-stippen" style={{ "--n": n } as React.CSSProperties}>
           {Array.from({ length: n }, (_, i) => <span key={i} />)}
@@ -165,7 +173,7 @@ export function KlantenAanHetWoord({ bg = SOFT, eyebrow, heading, taal = "nl" }:
           <Eyebrow>{eyebrow || t.ervaringenEyebrow}</Eyebrow>
           <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{heading || t.ervaringenKop}</h2>
         </div>
-        <Strook n={t.citaten.length} className="grid gap-5 md:grid-cols-2 md:gap-6">
+        <Strook n={t.citaten.length} label={eyebrow || t.ervaringenEyebrow} className="grid gap-5 md:grid-cols-2 md:gap-6">
           {t.citaten.map((q) => (
             <figure key={q.naam} className="m-0 flex flex-col justify-between gap-7 rounded-[28px] bg-white p-6 sm:gap-8 sm:p-8 md:p-10">
               <blockquote className="m-0 flex flex-col gap-4">

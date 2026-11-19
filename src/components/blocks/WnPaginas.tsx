@@ -1,5 +1,6 @@
 import { outfit } from "./HomeVerhaal";
 import type { Taal } from "@/lib/taal";
+import { inkt } from "@/lib/kleur";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, kop, BREED, Eyebrow, Kruimels, Knop, Vink, Pijl } from "./Gedeeld";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -142,7 +143,7 @@ export function WnKaarten({ d }: { d: any }) {
             const inner = (
               <>
                 <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-[14px] md:h-[52px] md:w-[52px] md:rounded-[16px] ${c.letter ? `${kop} text-[20px]` : ""}`}
-                  style={{ background: c.tint || "#FDECF4", color: c.kleur || PINK }}>
+                  style={{ background: c.tint || "#FDECF4", color: inkt(c.kleur, PINK) }}>
                   {c.letter ? c.letter : <Icoon naam={c.icon} size={22} />}
                 </span>
                 <span className="flex flex-col gap-1.5">
@@ -307,9 +308,9 @@ export function Inloggen({ d, asH1 }: { d: any; asH1?: boolean }) {
           <div className="relative grid gap-5 md:grid-cols-2 md:gap-6">
             {portalen.map((p, i) => (
               <div key={i} id={p.anchor} className="flex flex-col gap-4 rounded-[28px] border bg-white p-6 shadow-[0_24px_48px_-32px_rgba(50,46,131,0.30)] md:gap-5 md:p-10" style={{ borderColor: LINE }}>
-                <span className="grid h-14 w-14 place-items-center rounded-[16px]" style={{ background: p.tint, color: p.kleur }}><Icoon naam={p.icon} size={26} /></span>
+                <span className="grid h-14 w-14 place-items-center rounded-[16px]" style={{ background: p.tint, color: inkt(p.kleur) }}><Icoon naam={p.icon} size={26} /></span>
                 <span className="flex flex-col gap-1.5">
-                  <span className="text-[14px] font-bold" style={{ color: p.kleur }}>{p.for}</span>
+                  <span className="text-[14px] font-bold" style={{ color: inkt(p.kleur) }}>{p.for}</span>
                   <span className={`${kop} text-[28px] md:text-[30px]`} style={{ color: NAVY }}>{p.title}</span>
                 </span>
                 <span className="text-[16.5px] leading-[1.65]" style={{ color: BODY }}>{p.text}</span>

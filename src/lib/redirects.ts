@@ -351,8 +351,19 @@ export const DIENST_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/begeleiding-en-coaching", destination: "/restart" },
 ];
 
+/**
+ * `/index` is geen pagina maar antwoordde wel met de homepage (Next ziet
+ * "index" als de root), en de taalknop linkte er even naartoe: twee adressen
+ * voor één pagina. Een 301 naar `/` maakt er weer één van; lib/taal.ts rekent
+ * `/index` sinds dezelfde fix als `/`. Idem voor de Engelse site.
+ */
+export const INDEX_REDIRECTS: { source: string; destination: string }[] = [
+  { source: "/index", destination: "/" },
+  { source: "/en/index", destination: "/en" },
+];
+
 /** Alle vaste regels uit de code, in de volgorde waarin next.config.ts ze toepast. */
-export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS];
+export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS, ...INDEX_REDIRECTS];
 
 /**
  * De bron zoals next.config.ts hem aan Next geeft: mét een optionele

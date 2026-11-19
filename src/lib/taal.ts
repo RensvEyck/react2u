@@ -68,9 +68,15 @@ export function isStart(path: string): boolean {
   return kaal === "/" || kaal === "/en";
 }
 
-/** Pad zonder querystring, hash en afsluitende schuine streep. */
+/**
+ * Pad zonder querystring, hash en afsluitende schuine streep. `/index` en
+ * `/en/index` tellen als het startscherm: bij het voorbouwen van de root geeft
+ * `usePathname()` "/index", en de taalknop linkte daardoor naar /index (de
+ * HALO-scan van november 2026). Het adres zelf stuurt next.config.ts met een
+ * 301 naar `/` (INDEX_REDIRECTS in lib/redirects.ts).
+ */
 export function kaalPad(path: string): string {
-  const s = path.split(/[?#]/)[0].replace(/\/+$/, "");
+  const s = path.split(/[?#]/)[0].replace(/\/+$/, "").replace(/^(\/en)?\/index$/, "$1");
   return s || "/";
 }
 

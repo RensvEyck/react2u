@@ -128,7 +128,7 @@ export const VAKGEBIEDEN: Vakgebied[] = [
       titel: "Working as an occupational physician",
       eyebrow: "Field",
       intro: "At React2u, as an occupational physician you have time for the person in front of you. Case managers and planners do the groundwork, you bring the medical judgement. Together with practice assistants and nurses you form the medical heart of the service.",
-      seo: "Working as an occupational physician, resident, practice assistant or occupational health nurse at React2u in Eindhoven. The work, the route to occupational physician and the team.",
+      seo: "Working as an occupational physician, resident, practice assistant or occupational health nurse at React2u in Eindhoven: the work, the route and the team.",
       fasenKop: "What does an occupational physician do?",
       fasen: [
         { kop: "Consultations", tekst: "You see employees on site, at the office or online, and assess work capacity and prognosis." },

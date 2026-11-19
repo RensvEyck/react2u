@@ -2,8 +2,8 @@
   "_uitleg": "Werkgeverspagina in het ontwerp van het canvas (Werkgevers). Zie CONTEXT.md, *Concepten*.",
   "slug": "werkgevers",
   "title": "Werkgevers",
-  "seo_title": "Arbodienst voor werkgevers: verzuimbegeleiding en preventie • React2u",
-  "seo_description": "React2u ondersteunt werkgevers bij ziekteverzuim, verzuimbegeleiding en re-integratie, binnen de WVP én bij eigenrisicodragerschap. Persoonlijk, menselijk en duidelijk.",
+  "seo_title": "Arbodienst voor werkgevers: verzuim en preventie • React2u",
+  "seo_description": "React2u ondersteunt werkgevers bij ziekteverzuim, verzuimbegeleiding en re-integratie, binnen de WVP én als eigenrisicodrager. Persoonlijk en duidelijk.",
   "blocks": [
     {
       "type": "dgKop",

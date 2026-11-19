@@ -1,5 +1,6 @@
 import type { Vacancy, VacatureOpbouw } from "./types";
 import type { Taal } from "./taal";
+import { organisatieRef } from "./organisatie";
 import { woordenboek } from "./woordenboek";
 
 /**
@@ -169,7 +170,35 @@ export function splitsVragen(md: string | null | undefined): { eisen: string; ex
   return eisen && extra ? { eisen, extraKop, extra } : null;
 }
 
-/** `JobPosting` voor Google for Jobs, in de taal waarin de tekst van de pagina staat. */
+/** Zoveel dagen na de laatste wijziging geldt een vacature zonder einddatum nog voor Google for Jobs. */
+export const GELDIG_DAGEN = 90;
+
+/**
+ * Tot wanneer een vacature geldt (`validThrough`, verplicht voor Google for
+ * Jobs). De einddatum uit de admin (`valid_through`) als die er is; anders
+ * GELDIG_DAGEN na de laatste wijziging (`updated_at`, of de publicatiedatum als
+ * die later is). Wie een vacature bewerkt, verlengt hem dus; wie hem laat
+ * staan, ziet hem na drie maanden uit Google for Jobs verdwijnen tot hij een
+ * einddatum krijgt of opnieuw wordt opgeslagen. Zonder termijn stonden alle
+ * vacatures (allemaal gepubliceerd op 21 oktober 2026, geen einddatum) zonder
+ * validThrough in de scan. Als datum (JJJJ-MM-DD), zoals de kolom.
+ */
+export function geldigTot(v: Pick<Vacancy, "valid_through" | "published_at" | "updated_at" | "created_at">): string {
+  if (v.valid_through) return v.valid_through;
+  const tijden = [v.updated_at, v.published_at, v.created_at]
+    .map((d) => (d ? new Date(d).getTime() : NaN))
+    .filter((t) => !Number.isNaN(t));
+  const d = new Date(tijden.length ? Math.max(...tijden) : Date.now());
+  d.setUTCDate(d.getUTCDate() + GELDIG_DAGEN);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * `JobPosting` voor Google for Jobs, in de taal waarin de tekst van de pagina
+ * staat. Alleen op de Nederlandse vacaturepagina: één vacature per baan, de
+ * Engelse pagina hangt er via hreflang aan. De werkgever is de organisatie van
+ * de homepage (lib/organisatie.ts), met hetzelfde @id.
+ */
 export function jobPostingLd(v: Vacancy, taal: Taal) {
   const tekst = vacatureInTaal(v, taal);
   return {
@@ -179,14 +208,9 @@ export function jobPostingLd(v: Vacancy, taal: Taal) {
     description: mdNaarHtml([tekst.intro || "", volledigeTekst(v, taal)].filter(Boolean).join("\n\n")),
     inLanguage: tekst.taal,
     datePosted: v.published_at || v.created_at,
-    ...(v.valid_through ? { validThrough: v.valid_through } : {}),
+    validThrough: geldigTot(v),
     employmentType: v.employment_type.includes(",") ? v.employment_type.split(",") : v.employment_type,
-    hiringOrganization: {
-      "@type": "Organization",
-      name: "React2u",
-      sameAs: SITE,
-      logo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp/2023/05/Logo-kleur.svg`,
-    },
+    hiringOrganization: { ...organisatieRef(), sameAs: SITE },
     jobLocation: {
       "@type": "Place",
       address: {

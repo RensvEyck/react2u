@@ -152,7 +152,7 @@ export function PtQuotes({ d }: { d: any }) {
           {d.eyebrow && <Eyebrow>{d.eyebrow}</Eyebrow>}
           <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.9px] md:text-[44px]`} style={{ color: NAVY }}>{d.heading}</h2>
         </div>
-        <Strook n={quotes.length} className="grid gap-5 md:grid-cols-2 md:gap-6">
+        <Strook n={quotes.length} label={d.heading} className="grid gap-5 md:grid-cols-2 md:gap-6">
           {quotes.map((q) => (
             <figure key={q.naam} className="relative m-0 flex flex-col justify-between gap-7 rounded-[28px] bg-white p-6 sm:gap-8 sm:p-8 md:p-10">
               {!q.goedgekeurd && (

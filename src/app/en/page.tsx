@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 import { conceptEn } from "@/lib/concept";
+import { jsonLd } from "@/lib/jsonld";
+import { organisatieGraphLd } from "@/lib/organisatie";
 import { openGraphVoor } from "@/lib/og";
 import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { hreflangVoor } from "@/lib/taal";
@@ -28,5 +30,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function EnglishHomePage() {
   const c = conceptEn("home");
   if (!c) notFound();
-  return <BlockRenderer blocks={c.blocks} ctx={{ lang: "en" }} />;
+  return (
+    <>
+      <BlockRenderer blocks={c.blocks} ctx={{ lang: "en" }} />
+      {/* Dezelfde organisatie en website als op /, met hetzelfde @id. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisatieGraphLd()) }} />
+    </>
+  );
 }

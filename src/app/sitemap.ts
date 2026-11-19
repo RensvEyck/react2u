@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPages, getPublishedVacancies, getPublishedPosts } from "@/lib/content";
 import { alleConceptSlugsEn, reserveSlugs } from "@/lib/concept";
-import { werkgebiedPaden } from "@/lib/gemeenten";
+import { WERKGEBIED_BIJGEWERKT, werkgebiedPaden } from "@/lib/gemeenten";
 import { coveredByWordpress } from "@/lib/redirects";
-import { VAKGEBIEDEN } from "@/lib/vakgebieden";
+import { VAKGEBIEDEN, vakgebiedVan } from "@/lib/vakgebieden";
 import { OPEN_SOLLICITATIE, heeftVertaling, vertaalPad } from "@/lib/taal";
 
 export const revalidate = 3600;
@@ -22,6 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const valid = dates.filter(Boolean).map((d) => new Date(d as string));
     return valid.length ? new Date(Math.max(...valid.map((d) => +d))) : undefined;
   };
+  // Pagina's zonder item in de database: het werkgebied staat in de code
+  // (lib/gemeenten.ts houdt de datum bij), de vacaturepagina's volgen de
+  // vacatures. Sinds de HALO-scan van november 2026 heeft elke regel een datum.
+  const werkgebiedDatum = new Date(WERKGEBIED_BIJGEWERKT);
+  const vacaturesDatum = newest(vacancies.map((v) => v.updated_at));
 
   /**
    * De hreflang-alternates van een Nederlands pad, als het ook in het Engels
@@ -55,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: base, lastModified: newest(pages.map((p) => p.updated_at)), priority: 1, ...alternates("/") },
-    ...engels("/", { priority: 0.9 }),
+    ...engels("/", { lastModified: newest(pages.map((p) => p.updated_at)), priority: 0.9 }),
     ...pages
       .filter((p) => p.slug !== "home")
       // Een pagina met een vaste doorverwijzing (zoals de oude /privacyverklaring,
@@ -72,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]),
     ...losseEn.map((enPath) => ({ url: `${base}${enPath}`, priority: 0.6 })),
     // Werkgebied: een pagina per provincie en per gemeente. Alleen Nederlands.
-    ...werkgebiedPaden().map((p) => ({ url: `${base}${p}`, priority: 0.5 })),
+    ...werkgebiedPaden().map((p) => ({ url: `${base}${p}`, lastModified: werkgebiedDatum, priority: 0.5 })),
     // Zonder artikelen staat de blog op noindex (blog/page.tsx) en hoort hij
     // hier niet; met het eerste artikel komt hij vanzelf terug. Alleen Nederlands.
     ...(posts.length > 0
@@ -83,22 +88,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(p.updated_at),
       priority: 0.6,
     })),
-    {
-      url: `${base}/vacatures`,
-      lastModified: newest(vacancies.map((v) => v.updated_at)),
-      priority: 0.7,
-      ...alternates("/vacatures"),
-    },
-    ...engels("/vacatures", { lastModified: newest(vacancies.map((v) => v.updated_at)), priority: 0.6 }),
+    { url: `${base}/vacatures`, lastModified: vacaturesDatum, priority: 0.7, ...alternates("/vacatures") },
+    ...engels("/vacatures", { lastModified: vacaturesDatum, priority: 0.6 }),
     ...vacancies.flatMap((v) => [
       { url: `${base}/vacatures/${v.slug}`, lastModified: new Date(v.updated_at), priority: 0.7, ...alternates(`/vacatures/${v.slug}`) },
       ...engels(`/vacatures/${v.slug}`, { lastModified: new Date(v.updated_at), priority: 0.6 }),
     ]),
-    ...VAKGEBIEDEN.flatMap((g) => [
-      { url: `${base}/vacatures/vakgebied/${g.slug}`, priority: 0.6, ...alternates(`/vacatures/vakgebied/${g.slug}`) },
-      ...engels(`/vacatures/vakgebied/${g.slug}`, { priority: 0.5 }),
-    ]),
-    { url: `${base}/vacatures/${OPEN_SOLLICITATIE.nl}`, priority: 0.5, ...alternates(`/vacatures/${OPEN_SOLLICITATIE.nl}`) },
-    ...engels(`/vacatures/${OPEN_SOLLICITATIE.nl}`, { priority: 0.5 }),
+    // Een vakgebiedpagina is zo vers als de nieuwste vacature in dat vakgebied;
+    // zonder vacature erin de nieuwste vacature überhaupt (de tekst erop is vast).
+    ...VAKGEBIEDEN.flatMap((g) => {
+      const inVak = vacancies.filter((v) => vakgebiedVan(v.vakgebied)?.slug === g.slug);
+      const datum = inVak.length ? newest(inVak.map((v) => v.updated_at)) : vacaturesDatum;
+      return [
+        { url: `${base}/vacatures/vakgebied/${g.slug}`, lastModified: datum, priority: 0.6, ...alternates(`/vacatures/vakgebied/${g.slug}`) },
+        ...engels(`/vacatures/vakgebied/${g.slug}`, { lastModified: datum, priority: 0.5 }),
+      ];
+    }),
+    { url: `${base}/vacatures/${OPEN_SOLLICITATIE.nl}`, lastModified: vacaturesDatum, priority: 0.5, ...alternates(`/vacatures/${OPEN_SOLLICITATIE.nl}`) },
+    ...engels(`/vacatures/${OPEN_SOLLICITATIE.nl}`, { lastModified: vacaturesDatum, priority: 0.5 }),
   ];
 }

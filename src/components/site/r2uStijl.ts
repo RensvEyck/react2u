@@ -18,7 +18,8 @@ export const letter = { className: "r2u-dm" };
 
 export const K = {
   indigo: "#322E83",
-  magenta: "#E61674",
+  /** Roze voor tekst en pijlen: 5,1:1 op wit (de logokleur #E61674 haalde 4,4:1; zie lib/kleur.ts). */
+  magenta: "#D4136A",
   magentaDonker: "#C40F60",
   ivoor: "#F8F5F1",
   tekst2: "#55518A",

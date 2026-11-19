@@ -2,8 +2,8 @@
   "_uitleg": "Engelse werkgeverspagina (/en/employers): dezelfde blokken als werkgevers.json, geschreven voor een internationale HR-manager in Nederland. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "employers",
   "title": "Employers",
-  "seo_title": "Occupational health service for employers: absence support and prevention • React2u",
-  "seo_description": "React2u supports employers in the Netherlands with sickness absence, reintegration and prevention, under the Gatekeeper Improvement Act and as a self-insurer. Personal, human and clear.",
+  "seo_title": "Occupational health service for employers • React2u",
+  "seo_description": "React2u supports employers in the Netherlands with sickness absence, reintegration and prevention, under the Gatekeeper Improvement Act and as a self-insurer.",
   "blocks": [
     {
       "type": "dgKop",

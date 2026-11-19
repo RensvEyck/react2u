@@ -1,5 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { baseSalaryLd, kenmerkInTaal, salarisKort, salarisRest, splitsVragen } from "./vacatures";
+import { ORGANISATIE_ID } from "./organisatie";
+import type { Vacancy } from "./types";
+import { GELDIG_DAGEN, baseSalaryLd, geldigTot, jobPostingLd, kenmerkInTaal, salarisKort, salarisRest, splitsVragen } from "./vacatures";
+
+const vacature = (extra: Partial<Vacancy> = {}): Vacancy => ({
+  id: "v1", slug: "casemanager", title: "Casemanager verzuim", location: "Eindhoven", employment_type: "FULL_TIME",
+  hours: "32-40 uur", salary: "€ 3.600 tot € 4.800 bruto per maand bij 40 uur", intro: "Je begeleidt verzuim.", description_md: "Tekst.",
+  status: "published", published_at: "2026-10-21T10:00:00+00:00", valid_through: null, seo_title: null, seo_description: null,
+  created_at: "2026-10-01T09:00:00+00:00", updated_at: "2026-10-21T10:00:00+00:00", ...extra,
+});
+
+describe("geldigTot", () => {
+  it("neemt de einddatum uit de admin als die er is", () => {
+    expect(geldigTot(vacature({ valid_through: "2027-03-01" }))).toBe("2027-03-01");
+  });
+
+  it(`geeft zonder einddatum ${GELDIG_DAGEN} dagen na de laatste wijziging`, () => {
+    expect(geldigTot(vacature())).toBe("2027-01-19");
+    // Een latere bewerking verlengt de termijn; een latere publicatiedatum telt ook.
+    expect(geldigTot(vacature({ updated_at: "2026-11-19T08:00:00+00:00" }))).toBe("2027-02-17");
+    expect(geldigTot(vacature({ updated_at: "2026-10-01T08:00:00+00:00", published_at: "2026-11-01T08:00:00+00:00" }))).toBe("2027-01-30");
+  });
+});
+
+describe("jobPostingLd", () => {
+  it("heeft altijd een validThrough en wijst naar de organisatie van de homepage", () => {
+    const ld = jobPostingLd(vacature(), "nl");
+    expect(ld.validThrough).toBe("2027-01-19");
+    expect(ld.datePosted).toBe("2026-10-21T10:00:00+00:00");
+    expect(ld.hiringOrganization["@id"]).toBe(ORGANISATIE_ID);
+    expect(ld.hiringOrganization.name).toBe("React2u");
+    expect(ld.jobLocation.address.addressLocality).toBe("Eindhoven");
+    expect(ld.baseSalary?.value).toMatchObject({ minValue: 3600, maxValue: 4800 });
+    // Geldig JSON-LD zonder ongedefinieerde waarden.
+    expect(JSON.parse(JSON.stringify(ld))).toEqual(ld);
+  });
+});
 
 describe("salarisRest", () => {
   it("geeft de tekst na de bedragen", () => {

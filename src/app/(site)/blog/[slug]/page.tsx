@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPublishedPosts, getPost } from "@/lib/content";
 import { MiniMarkdown } from "@/lib/md";
 import { jsonLd } from "@/lib/jsonld";
+import { organisatieRef } from "@/lib/organisatie";
 import { metOmschrijving, omschrijving, paginaTitel } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
 import { LuCalendar, LuUserRound, LuArrowLeft } from "react-icons/lu";
@@ -64,15 +65,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     ...(image ? { image: [image] } : {}),
     datePublished: p.published_at || p.created_at,
     dateModified: p.updated_at,
-    author: { "@type": p.author ? "Person" : "Organization", name: p.author || "React2u" },
-    publisher: {
-      "@type": "Organization",
-      name: "React2u",
-      logo: {
-        "@type": "ImageObject",
-        url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/wp/2023/05/Logo-kleur.svg`,
-      },
-    },
+    // Uitgever (en auteur zonder naam) is de organisatie van de homepage, met hetzelfde @id.
+    author: p.author ? { "@type": "Person", name: p.author } : organisatieRef(),
+    publisher: organisatieRef(),
     mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE}/blog/${p.slug}` },
   };
 

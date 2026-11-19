@@ -76,6 +76,11 @@ describe("doorverwijzingen", () => {
     expect(coveredByWordpress("/klachtenprocedure")?.destination).toBe("/documenten/klachtenregeling-react2u.pdf");
     expect(coveredByWordpress("/algemene-voorwaarden")?.destination).toBe("/documenten/algemene-voorwaarden-react2u.pdf");
     expect(VASTE_REDIRECTS.some((r) => r.destination.includes("/media/wp/"))).toBe(false);
+    // /index was een tweede adres van de homepage (HALO-scan, november 2026).
+    expect(coveredByWordpress("/index")?.destination).toBe("/");
+    expect(coveredByWordpress("/index/")?.destination).toBe("/");
+    expect(coveredByWordpress("/en/index")?.destination).toBe("/en");
+    expect(coveredByWordpress("/indexering")).toBeNull();
   });
 
   it("vangt de -niet-varianten van de oude site af, specifiek vóór algemeen", () => {

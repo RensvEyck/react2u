@@ -2,8 +2,8 @@
   "_uitleg": "Engels Over React2u (/en/about-us): dezelfde blokken als over-react2u.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "about-us",
   "title": "About React2u",
-  "seo_title": "About React2u • A personal occupational health service from Eindhoven",
-  "seo_description": "React2u is a personal occupational health service (arbodienst) from Eindhoven, founded in 2023. One regular case manager, short lines and certified by SBCA and DNV.",
+  "seo_title": "About React2u • Personal occupational health service",
+  "seo_description": "React2u is a personal occupational health service from Eindhoven, founded in 2023. One regular case manager, short lines, certified by SBCA and DNV.",
   "blocks": [
     {
       "type": "overReact2u",

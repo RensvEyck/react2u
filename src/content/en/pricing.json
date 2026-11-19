@@ -2,8 +2,8 @@
   "_uitleg": "Engelse tarievenpagina (/en/pricing): dezelfde blokken als tarieven.json, prijslijst 2027, zelfde bedragen, excl. VAT. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "pricing",
   "title": "Pricing",
-  "seo_title": "Absence subscriptions and prices of our occupational health service • React2u",
-  "seo_description": "Clear prices for sickness absence support: Pay per service for € 38.50 or Complete case management for € 139.50 per employee per year, excl. VAT, plus all individual rates per specialism.",
+  "seo_title": "Absence subscriptions and prices • React2u",
+  "seo_description": "Clear prices: Pay per service for € 38.50 or Complete case management for € 139.50 per employee per year, excl. VAT, plus all rates per specialism.",
   "blocks": [
     {
       "type": "dgTarieven",

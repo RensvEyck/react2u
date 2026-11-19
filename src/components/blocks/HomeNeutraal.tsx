@@ -3,7 +3,7 @@ import { outfit } from "./HomeVerhaal";
 import { LuUser, LuPhone, LuShieldCheck, LuFolder, LuMail, LuMapPin, LuClock } from "react-icons/lu";
 import Beeld from "@/components/site/Beeld";
 
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*
  * De neutrale startpagina (ontwerp "Home neutraal"): de splitscreen
@@ -14,7 +14,8 @@ import Beeld from "@/components/site/Beeld";
 
 
 const INDIGO = "#322E83";
-const MAGENTA = "#E61674";
+/** Roze met witte tekst erop (de bol) en als tekst: 5,1:1. De logokleur #E61674 haalde 4,4:1; zie lib/kleur.ts. */
+const MAGENTA = "#D4136A";
 const IVOOR = "#F8F5F1";
 const TEKST2 = "#55518A";
 
@@ -67,7 +68,16 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
   const H = asH1 ? "h1" : "h2";
   return (
     <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
-      <H className="sr-only">{d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}</H>
+      {/* De kopregel: één zichtbare regel met de h1 boven de twee tegels, op het
+          ivoor van de pagina. Tot november 2026 stond de h1 als sr-only; een
+          onzichtbare hoofdkop telt voor Google en schermlezers minder dan een
+          zichtbare. Smal gehouden (`.hn-kopregel` in globals.css), zodat op een
+          telefoon van 390 px beide tegels boven de vouw blijven. */}
+      <div className="hn-kopregel mx-auto flex max-w-[2400px] items-center justify-center px-5 md:px-8">
+        <H className="hn-h1 m-0 max-w-[960px] text-balance text-center" style={{ color: INDIGO }}>
+          {d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}
+        </H>
+      </div>
       <div className="hn-split mx-auto flex max-w-[2400px] flex-col gap-[6px] px-[6px] pb-[6px] md:flex-row md:gap-2 md:px-2 md:pb-2">
         {choices.map((c, i) => {
           const links = i === 0;
@@ -75,11 +85,19 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
           const zacht = links ? "#D6D2F7" : "#FFE3EC";
           const label = links ? "#B4ADF2" : "#FFD0E0";
           return (
-            <Link key={i} href={c.href} aria-label={c.aria || c.title}
+            // Geen aria-label: de inhoud van de tegel (eyebrow, "Ik ben werkgever",
+            // de regel en de knoptekst) is de naam. Een aria-label dat de zichtbare
+            // knoptekst niet bevatte gaf een label-in-name-fout.
+            <Link key={i} href={c.href}
               className="hn-tile group relative h-[var(--h)] overflow-hidden rounded-[28px] md:h-auto md:rounded-[36px]"
               style={{ background: links ? "#D9D3F0" : "#F5D9E4" }}>
-              <Beeld src={c.image} alt={c.alt || ""} fill priority sizes="(min-width: 768px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover"
-                style={{ objectPosition: c.focus || "50% 30%" }} />
+              {/* Alleen de eerste foto krijgt voorrang (preload én fetchpriority="high"):
+                  dat is de LCP. Met twee preloads streden ze om dezelfde bandbreedte. De
+                  tweede laadt lui; op een telefoon staat hij ook boven de vouw en haalt de
+                  browser hem na de eerste opmaak meteen op. */}
+              <Beeld src={c.image} alt={c.alt || ""} fill sizes="(min-width: 768px) 50vw, 100vw" className="absolute inset-0 h-full w-full object-cover"
+                style={{ objectPosition: c.focus || "50% 30%" }}
+                {...(links ? { priority: true, fetchPriority: "high" as const } : { loading: "lazy" as const })} />
               <span
                 className={`hn-orb absolute flex flex-col justify-center rounded-full text-white ${links ? "hn-orb-l" : "hn-orb-r"}`}
                 style={{ background: kleur, transformOrigin: links ? "28% 72%" : "72% 72%" }}>

@@ -78,7 +78,7 @@ export function Kaart({ k, labels }: { k: VacatureKaart; labels: Pick<ZoekLabels
         {k.opleiding && <li className="flex gap-2.5"><LuGraduationCap aria-hidden className={ICOON} style={{ color: MUTE }} />{k.opleiding}</li>}
         <li className="flex gap-2.5"><LuBriefcase aria-hidden className={ICOON} style={{ color: MUTE }} />{k.soortNaam}</li>
       </ul>
-      <span className="mt-auto inline-flex items-center gap-2 pt-1 text-[14.5px] font-bold transition-colors group-hover:text-[#E61674]" style={{ color: NAVY }}>
+      <span className="mt-auto inline-flex items-center gap-2 pt-1 text-[14.5px] font-bold transition-colors group-hover:text-[#D4136A]" style={{ color: NAVY }}>
         {labels.bekijk} <Pijl />
       </span>
     </Link>

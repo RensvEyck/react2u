@@ -2,6 +2,7 @@ import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, BLEED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN, Strook } from "./Gedeeld";
 import Beeld from "@/components/site/Beeld";
+import { inkt } from "@/lib/kleur";
 import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
 import { datumInTaal, pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
@@ -87,12 +88,12 @@ export function DgLabels({ d, ctx }: { d: any; ctx?: Ctx }) {
             drie en twee, die samen de volle breedte vullen (zes kolommen: 2+2+2,
             3+3). Met zes kaarten: twee rijen van drie, ook op een breed scherm.
             Op de telefoon (tot 640px) een strook om te swipen. */}
-        <Strook n={kaarten.length} className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 ${kaarten.length === 5 ? "min-[87.5rem]:grid-cols-5" : ""}`}>
+        <Strook n={kaarten.length} label={d.heading} className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-3 ${kaarten.length === 5 ? "min-[87.5rem]:grid-cols-5" : ""}`}>
           {kaarten.map((c, i) => (
             <div key={i} className={`relative flex flex-col gap-4 overflow-hidden rounded-[26px] px-5 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7 ${kaarten.length === 5 ? `min-[87.5rem]:col-span-1 ${i < 3 ? "lg:col-span-2" : "lg:col-span-3"}` : "lg:col-span-2"}`} style={{ background: c.tint }}>
               <span aria-hidden className="absolute right-[-40px] top-[-40px] h-[120px] w-[120px] rounded-full" style={{ background: c.kleur, opacity: 0.16 }} />
               <span className={`${kop} relative flex flex-col text-[19px] leading-[1.1]`} style={{ color: NAVY }}>
-                React2u<span className="text-[30px] tracking-[-0.6px]" style={{ color: c.kleur === NAVY ? NAVY : c.kleur }}>{c.naam}<sup className="text-[13px]" style={{ color: NAVY }}>®</sup></span>
+                React2u<span className="text-[30px] tracking-[-0.6px]" style={{ color: inkt(c.kleur) }}>{c.naam}<sup className="text-[13px]" style={{ color: NAVY }}>®</sup></span>
               </span>
               {c.label && (
                 <span className="text-[15px] leading-[1.45]" style={{ color: NAVY }}>
@@ -216,7 +217,7 @@ export function DgPrijzen({ d }: { d: any }) {
       <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
         <SectieKop d={d} />
         {/* Twee kaarten (zoals op /partners) naast elkaar over de hele breedte, anders drie. */}
-        <Strook n={kaarten.length} className={`grid gap-5 ${kaarten.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3"}`}>
+        <Strook n={kaarten.length} label={d.heading} className={`grid gap-5 ${kaarten.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3"}`}>
           {kaarten.map((c, i) => {
             const donker = Boolean(c.featured);
             const tekst = donker ? "#ffffff" : NAVY;
@@ -424,7 +425,7 @@ export function DgTarieven({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: Ctx
             <div className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-6">
               <div className="flex flex-col gap-4 lg:col-span-6">
                 {/* Een groep per label krijgt de labelkleur mee (prijslijst 2027). */}
-                <Eyebrow kleur={g.kleur || TEAL}>{g.eyebrow}</Eyebrow>
+                <Eyebrow kleur={inkt(g.kleur || TEAL)}>{g.eyebrow}</Eyebrow>
                 <h2 className={`${kop} m-0 text-[32px] leading-[1.1] tracking-[-0.9px] md:text-[40px]`} style={{ color: NAVY }}>{g.heading}</h2>
               </div>
               {g.text && <p className="m-0 text-[16px] lg:col-span-5 lg:col-start-8" style={{ color: BODY }}>{g.text}</p>}

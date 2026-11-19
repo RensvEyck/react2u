@@ -18,6 +18,7 @@ describe("formulieren", () => {
     expect(toontBelbalk("/recover")).toBe(true);
     expect(toontBelbalk("/recover")).toBe(true);
     expect(toontBelbalk("/verzuimabonnementen")).toBe(true);
+    expect(toontBelbalk("/arbodienst-eindhoven")).toBe(true);
     expect(toontBelbalk("/")).toBe(false);
     expect(toontBelbalk("/werknemers")).toBe(false);
     expect(toontBelbalk("/contact")).toBe(false);

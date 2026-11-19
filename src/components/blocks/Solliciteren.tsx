@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { leesBron } from "@/components/site/BronOnthouden";
 import { leesCv, submitApplication, type FormState } from "@/app/(site)/actions";
 import { NAVY, PINK, BODY, MUTE, SOFT, TEAL, kop, Pijl } from "./Gedeeld";
+import { inkt } from "@/lib/kleur";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
 import { useTaal } from "@/components/site/Taal";
@@ -139,7 +140,7 @@ export default function Solliciteren({ keuzes, vast, kopTekst, duur }: {
     }}>
       <div className="flex items-center justify-between gap-4">
         <h3 className={`${kop} m-0 text-[24px]`} style={{ color: NAVY }}>{kopTekst || s.kop}</h3>
-        <span className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold" style={{ background: "#E5F5F4", color: TEAL }}>{duur || s.duur2}</span>
+        <span className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold" style={{ background: "#E5F5F4", color: inkt(TEAL) }}>{duur || s.duur2}</span>
       </div>
       <input type="hidden" name="taal" value={taal} />
       <input type="hidden" name="vacancy_id" value={keuze?.id ?? ""} />

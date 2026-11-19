@@ -4,6 +4,7 @@ import Beeld from "@/components/site/Beeld";
 import { Strook } from "./Gedeeld";
 import { pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
+import { inkt } from "@/lib/kleur";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal } };
@@ -24,7 +25,7 @@ type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal } };
 
 const NAVY = "#322E83";
 const BODY = "#5E5C78";
-const MUTE = "#77758F";
+const MUTE = "#67657F";
 const LINE = "#E6E5EF";
 const SOFT = "#F6F5FB";
 
@@ -62,8 +63,9 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
   const t2 = w.dienstLabel;
   const c: string = d.kleur || NAVY;
   const t: string = d.tint || SOFT;
-  // Tekst in de labelkleur moet leesbaar blijven: navy blijft navy.
-  const tc = c;
+  // Tekst in de labelkleur: de donkerdere tint uit lib/kleur.ts (oranje en
+  // blauw halen anders geen 3:1, roze en teal geen 4,5:1); navy blijft navy.
+  const tc = inkt(c);
   const naam: string = d.naam || "";
   const H = asH1 ? "h1" : "h2";
   const checks: string[] = d.checks || [];
@@ -97,7 +99,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
               <H className={`${kop} m-0 text-[26px] leading-[1.05] tracking-[-0.4px] md:text-[34px]`} style={{ color: NAVY }}>
                 React2u<br />
                 <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[76px] md:tracking-[-2px]">
-                  <span style={{ color: c }}>{naam}</span>
+                  <span style={{ color: tc }}>{naam}</span>
                   <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
                 </span>
                 <span className="hv-dienst mt-5 block text-[18px] font-bold leading-[1.5] tracking-normal md:mt-[22px] md:text-[21px]">{d.label}</span>
@@ -160,7 +162,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
             <h2 className={`${kop} m-0 text-[34px] leading-[1.1] tracking-[-0.8px] md:text-[44px] md:tracking-[-1px] lg:col-span-7`}>{titel("omvat", t2.omvat)}</h2>
             <p className="m-0 text-[16px] leading-[1.7] md:text-[17px] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>{titel("omvatTekst", t2.omvatTekst)}</p>
           </div>
-          <Strook n={groepen.length} className={`grid gap-4 md:grid-cols-2 md:gap-6 ${kolommen}`}>
+          <Strook n={groepen.length} label={titel("omvat", t2.omvat)} className={`grid gap-4 md:grid-cols-2 md:gap-6 ${kolommen}`}>
             {groepen.map((g, i) => (
               <div key={i} className="flex flex-col gap-3.5 rounded-[28px] border bg-white p-6 md:p-9"
                 style={{ borderColor: LINE, boxShadow: "0 1px 2px rgba(46,42,126,0.04), 0 24px 48px -36px rgba(46,42,126,0.35)" }}>
@@ -194,7 +196,7 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
                 <li key={i} className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-4 gap-y-1.5 md:flex md:flex-col md:gap-3.5">
                   <span className="row-span-2 flex items-start gap-3 md:row-span-1 md:items-center">
                     <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[19px] font-semibold"
-                      style={{ background: c === NAVY ? "#ffffff" : c, color: c === NAVY ? NAVY : "#ffffff" }}>{i + 1}</span>
+                      style={{ background: c === NAVY ? "#ffffff" : tc, color: c === NAVY ? NAVY : "#ffffff" }}>{i + 1}</span>
                     {i < stappen.length - 1 && <span aria-hidden className="hidden h-px grow lg:block" style={{ background: "rgba(255,255,255,0.18)" }} />}
                   </span>
                   <h3 className={`${kop} m-0 pt-2.5 text-[21px] md:pt-0`} style={{ color: "#ffffff" }}>{s.titel}</h3>
