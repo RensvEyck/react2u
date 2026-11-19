@@ -126,7 +126,7 @@ export default function WeekevaluatieForm({
       </Laag>
 
       {(open || a.melding) && (
-        <Laag titel="Iets melden of delen" uitleg="Voor alles wat niet in de vragen past. Het komt in je kwartaalmeeting, of meteen bij Rens als je dat aanvinkt." accent>
+        <Laag titel="Iets melden of delen" uitleg="Voor alles wat niet in de vragen past. Het komt in je kwartaalmeeting, of gaat meteen door als je dat aanvinkt." accent>
           <MeldRij nummer={volgende()} a={a} open={open} />
         </Laag>
       )}
@@ -326,7 +326,7 @@ function MeldRij({ nummer, a, open }: { nummer: number; a: Antwoorden; open: boo
             <label className="flex cursor-pointer items-start gap-2 text-[13.5px] text-[#1c1a4e]">
               <input type="checkbox" name="melding_nu" value="aan" defaultChecked={Boolean(a.melding_nu)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#e75387]" />
               <span>
-                <span className="inline-flex items-center gap-1.5 font-semibold"><LuSend className="text-[13px] text-[#e75387]" /> Stuur dit meteen naar Rens</span>
+                <span className="inline-flex items-center gap-1.5 font-semibold"><LuSend className="text-[13px] text-[#e75387]" /> Stuur dit meteen door</span>
                 <span className="block text-[12.5px] text-black/50">Niet pas in de kwartaalmeeting. Hij kan je mail rechtstreeks beantwoorden.</span>
               </span>
             </label>
@@ -344,7 +344,7 @@ function MeldRij({ nummer, a, open }: { nummer: number; a: Antwoorden; open: boo
           </div>
         )}
         {open && a.melding_verstuurd && (
-          <p className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#0e9f8a]"><LuSend className="text-[12px]" /> Deze melding is al naar Rens gestuurd. Pas je de tekst aan, dan krijgt hij de nieuwe versie.</p>
+          <p className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#0e9f8a]"><LuSend className="text-[12px]" /> Deze melding is al doorgestuurd. Pas je de tekst aan, dan gaat de nieuwe versie ook door.</p>
         )}
       </div>
     </div>

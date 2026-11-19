@@ -129,7 +129,7 @@ export const VRAGEN: Vraag[] = [
   { sleutel: "knelpunt", soort: "tekst", moment: "week", thema: "druk", blok: "woorden", label: "Waar liep je tegenaan?", kort: "Knelpunt", hint: "Kies wat erbij past en schrijf er een zin bij. Niets? Laat het leeg.", voorbeeld: "Bijvoorbeeld: de bedrijfsarts was pas donderdag beschikbaar, de werkgever belde drie keer.", keuzes: "knelpunt_themas", bespreekbaar: true },
   { sleutel: "kennis_mist", soort: "tekst", moment: "week", thema: "kennis", blok: "woorden", label: "Welke kennis miste je?", kort: "Kennis gemist", hint: "Omdat je kennis een 6 of lager kreeg: waar zat het?", voorbeeld: "Bijvoorbeeld: wanneer een loonsanctie dreigt bij een te late eerstejaarsevaluatie.", keuzes: "kennis_themas", alleenAls: { schaal: "kennis", max: 6 }, bespreekbaar: true },
   { sleutel: "beter", soort: "tekst", moment: "week", thema: "totaal", blok: "woorden", label: "Wat kon beter?", kort: "Kon beter", hint: "Bij jezelf, in het team of in hoe we werken.", voorbeeld: "Bijvoorbeeld: ik heb te lang gewacht met terugbellen.", bespreekbaar: true },
-  { sleutel: "nodig", soort: "tekst", moment: "week", thema: "werkgeluk", blok: "woorden", label: "Wat heb je nodig?", kort: "Nodig", hint: "Van React2u, van je collega's, van Rens.", voorbeeld: "Bijvoorbeeld: een uur samen door de spoor 2-dossiers.", bespreekbaar: true },
+  { sleutel: "nodig", soort: "tekst", moment: "week", thema: "werkgeluk", blok: "woorden", label: "Wat heb je nodig?", kort: "Nodig", hint: "Van React2u of van je collega's.", voorbeeld: "Bijvoorbeeld: een uur samen door de spoor 2-dossiers.", bespreekbaar: true },
   { sleutel: "volgende_week", soort: "tekst", moment: "week", thema: "totaal", blok: "woorden", label: "Wat neem je mee naar volgende week?", kort: "Volgende week", hint: "Eén ding dat je anders doet, of juist weer zo.", voorbeeld: "Bijvoorbeeld: elke ochtend eerst de terugbelverzoeken.", bespreekbaar: true },
   { sleutel: "melding", soort: "tekst", moment: "week", thema: "totaal", blok: "melden", label: "Wil je iets melden of delen?", kort: "Gemeld of gedeeld", hint: "Een zorg, een idee, een compliment voor een collega, een vraag: alles mag, ook als het niet over deze week gaat.", voorbeeld: "Bijvoorbeeld: Susanne nam deze week twee van mijn dossiers over toen ik vastliep. Dat mag gezien worden.", keuzes: "melding_soort", bespreekbaar: false },
 
@@ -719,7 +719,7 @@ export type Herinnering = { onderwerp: string; aanhef: string; alineas: string[]
 
 /** Wat er bij het invullen staat over waar de antwoorden voor zijn; ook in de herinnering. */
 export const WAARVOOR =
-  "Je antwoorden zijn voor je gesprek met Rens in de kwartaalmeeting, nooit voor beoordeling of salaris. We vragen naar je werk, niet naar je gezondheid.";
+  "Je antwoorden zijn om inzicht te houden en samen te blijven verbeteren, nooit voor beoordeling of salaris. We vragen naar je werk, niet naar je gezondheid.";
 
 /** De vriendelijke mail van vrijdagmiddag. Kort: het invullen zelf duurt twee minuten. */
 export function herinnering(voornaam: string | null, week: string, open: { vorigeWeekOok: boolean }): Herinnering {

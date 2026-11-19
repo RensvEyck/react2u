@@ -155,6 +155,7 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   check(await w.locator('aside a[href="/admin/account"]').count(), "Account via je naam onder in de zijbalk");
   const signaal = await w.locator("#weekevaluatie-open").innerText();
   check(/weekevaluaties van week \d+ en \d+ staan nog open/.test(signaal), `dashboard: beide weken staan nog open (${signaal.split("\n")[0]})`);
+  check(signaal.includes("Zeven cijfers en een paar zinnen"), "dashboard: zeven cijfers, net als het formulier en de vrijdagmail");
   check(!(await w.locator("#weekevaluatie-signalen").count()), "geen signalen over collega's voor een werknemer");
   for (const pad of ["/admin/omzet", "/admin/weekevaluatie/team", "/admin/bellijst"]) {
     await w.goto(`${BASIS}${pad}`);
@@ -166,6 +167,7 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   await w.waitForSelector("h1:has-text('Mijn weekevaluatie')");
   let tekst = await w.locator("body").innerText();
   check(tekst.includes("nooit voor beoordeling of salaris") && tekst.includes("niet naar je gezondheid"), "de uitleg waar de antwoorden voor zijn staat erboven");
+  check(tekst.includes("om inzicht te houden en samen te blijven verbeteren") && !/\bRens\b/.test(tekst), "inzicht en verbeteren als doel, zonder een naam erin");
   const schalen = 7 + 1 + (isMaandEinde(dezeWeek) ? 6 : 0) + (isKwartaalEinde(dezeWeek) ? 1 : 0);
   check((await w.locator('input[type="radio"]:not([name="melding_soort"])').count()) === schalen * 10, `${schalen} vragen met cijfers van 1 tot 10 (zeven per week, één doel${isMaandEinde(dezeWeek) ? ", zes maandvragen" : ""})`);
   check(tekst.includes(`Je doelen voor Q${kwartaal.kwartaal} ${kwartaal.jaar}`) && tekst.includes("Spoor 2 zelfstandig doen"), "het doel uit de kwartaalmeeting staat in het formulier");
@@ -210,7 +212,7 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   check(meld && meld.to.includes(BEHEERDER.email) && meld.reply_to === WERKNEMER.email && meld.html.includes("twee van mijn dossiers over") && meld.html.includes(`#collega-${WERKNEMER.id}`), "aan de super admin, met de tekst, antwoorden gaat naar Noor");
   fs.writeFileSync(path.join(SHOTS, "mail-melding.html"), meld?.html || "");
   check(/^[0-9a-f]{32}$/.test(antwoord(dezeWeek, "antwoorden->>'melding_verstuurd'")), "de database onthoudt dat deze melding verstuurd is");
-  check(tekst.includes("Deze melding is al naar Rens gestuurd"), "het formulier zegt dat hij al verstuurd is");
+  check(tekst.includes("Deze melding is al doorgestuurd"), "het formulier zegt dat hij al doorgestuurd is");
   await w.click("button.abtn:has-text('Wijzigingen bewaren')");
   await w.waitForURL(/opgeslagen=weekevaluatie/, { timeout: 20000 });
   await wacht(800);
