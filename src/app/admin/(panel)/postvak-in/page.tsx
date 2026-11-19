@@ -8,8 +8,9 @@ import StatusSelect from "@/components/admin/StatusSelect";
 import type { Application, ContactMessage } from "@/lib/types";
 import {
   LuMail, LuMailOpen, LuPhone, LuPhoneCall, LuFileText, LuInbox, LuUsers, LuMessageSquare, LuTrash2,
-  LuReply, LuHourglass, LuHandshake, LuFilePenLine,
+  LuReply, LuHourglass, LuHandshake, LuFilePenLine, LuCompass,
 } from "react-icons/lu";
+import { herkomstLabel } from "@/lib/herkomst";
 
 // Het formulier waar de vinkjes in de kaarten naar verwijzen; zie InboxBulkBar.
 const BULK_FORM = "inbox-bulk";
@@ -224,6 +225,22 @@ function PartnerTag({ m }: { m: ContactMessage }) {
   return null;
 }
 
+/**
+ * Hoe de afzender ons vond (migratie 0047): wat hij zelf koos in het formulier,
+ * met in de tooltip de pagina waarop het bezoek begon en wat de browser zag.
+ * Zonder antwoord (belbalk, oudere berichten) alleen de landingspagina, als die er is.
+ */
+function HerkomstTag({ m }: { m: ContactMessage }) {
+  const label = herkomstLabel(m.herkomst);
+  if (!label && !m.landingspagina) return null;
+  const uitleg = [m.landingspagina ? `Kwam binnen op ${m.landingspagina}` : "", m.bron ? `De browser zag: ${m.bron}` : ""].filter(Boolean).join(" · ");
+  return (
+    <span className="apill bg-[#e6f7f4] text-[#0e7a6a]" title={uitleg || undefined}>
+      <LuCompass className="text-[12px]" /> {label ? `Via ${label}` : `Kwam binnen op ${m.landingspagina}`}
+    </span>
+  );
+}
+
 /** Kwam de inzending via de Engelse site (/en)? Dan verwacht de afzender een antwoord in het Engels. */
 function TaalTag({ lang }: { lang?: "nl" | "en" }) {
   if (lang !== "en") return null;
@@ -283,6 +300,7 @@ function MessageCard({ m, onList, kanOffertes }: { m: ContactMessage; onList: bo
             <TypeTag kind="bericht" />
             <TaalTag lang={m.lang} />
             <PartnerTag m={m} />
+            <HerkomstTag m={m} />
             <p className="text-[15.5px] font-bold text-[#1c1a4e]">{m.subject || "(geen onderwerp)"}</p>
           </div>
           <p className="mt-1 text-[13px] text-black/45">

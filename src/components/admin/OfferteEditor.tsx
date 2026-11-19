@@ -8,6 +8,7 @@ import {
   VORMEN, VORM_KEYS, regelbedrag, OFFERTE_EMAIL, type Eenheid, type Offerte, type Regel, type Soort, type Stap, type Vorm,
 } from "@/lib/offertes";
 import { alsRegel, ruimModulesOp, vernieuwModules, type CatalogusGroep } from "@/lib/offerteCatalogus";
+import { HERKOMST_UITLEG, HERKOMSTEN } from "@/lib/herkomst";
 import OfferteTekst from "@/components/offerte/OfferteTekst";
 import {
   LuPlus, LuSave, LuEye, LuArrowUp, LuArrowDown, LuCopy, LuTrash2, LuChevronDown, LuSearch, LuX, LuListPlus,
@@ -26,6 +27,7 @@ export type EditorBegin = Partial<Pick<
   Offerte,
   | "id" | "status" | "bedrijf" | "contactpersoon" | "email" | "telefoon" | "medewerkers" | "titel" | "intro" | "geldig_tot"
   | "afzender_naam" | "afzender_functie" | "afzender_email" | "afzender_telefoon" | "vorm" | "betreft" | "inhoud" | "voorwaarden" | "factuur"
+  | "herkomst" | "herkomst_toelichting"
 >> & { regels?: Regel[]; vervolg?: Stap[] | null };
 
 /** Tekstvak met een knop om te zien hoe het er voor de klant uitziet (OfferteTekst). */
@@ -281,6 +283,18 @@ export default function OfferteEditor({
               <div>
                 <label className="alabel" htmlFor="of-tel">Telefoon</label>
                 <input id="of-tel" className="ainput" name="telefoon" type="tel" defaultValue={begin.telefoon || ""} />
+              </div>
+              {/* Hoe de klant ons vond (migratie 0047): verplicht, gaat mee naar de kaart op het klantenbord en telt in /admin/bezoek. */}
+              <div className="lg:col-span-2">
+                <label className="alabel" htmlFor="of-herkomst">Hoe vond de klant ons? *</label>
+                <select id="of-herkomst" className="ainput" name="herkomst" required defaultValue={begin.herkomst || ""}>
+                  <option value="" disabled>Kies een herkomst</option>
+                  {HERKOMSTEN.map((h) => <option key={h} value={h}>{HERKOMST_UITLEG[h]}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="alabel" htmlFor="of-herkomst-toelichting">Toelichting</label>
+                <input id="of-herkomst-toelichting" className="ainput" name="herkomst_toelichting" defaultValue={begin.herkomst_toelichting || ""} maxLength={200} placeholder="Wie verwees door, welke beurs" />
               </div>
             </div>
             {/* Vooraf invullen scheelt de klant werk: hij ziet het ingevuld en bevestigt bij het tekenen. */}

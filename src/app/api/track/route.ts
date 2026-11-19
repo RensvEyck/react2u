@@ -4,6 +4,8 @@ import { clientIp, visitorHash, referrerHost, isTrackablePath, normalizePath } f
 import { isIgnored, lookupCompany } from "@/lib/companyLookup";
 import { missingReferrer } from "@/lib/redirects";
 import { mayIdentify, normalizeTracking, TRACKING_DEFAULT, type TrackingSettings } from "@/lib/tracking";
+import { isKlik } from "@/lib/conversions";
+import { recordConversion } from "@/lib/conversionsDb";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,10 +39,32 @@ export async function POST(req: NextRequest) {
       path?: string; referrer?: string; missing?: boolean;
       /** De keuze "Statistiek" in de cookiemelding: aan, uit, of nog niets gekozen. */
       consent?: boolean | null;
+      /** Een klik op een telefoonnummer of mailadres (KlikTracker, migratie 0047), in plaats van een paginaweergave. */
+      klik?: string;
+      /** Bron en landingspagina uit sessionStorage (BronOnthouden), alleen bij een klik. */
+      bron?: string;
+      landing?: string;
     };
     const raw = String(body.path || "");
     if (!isTrackablePath(raw)) return ok();
     const path = normalizePath(raw);
+
+    // Een klik op bellen of mailen telt als conversie, niet als bezoek: de
+    // pagina zelf is al geteld toen hij opende. Dezelfde daghash als bij het
+    // bezoek, zodat de klik aan dat bezoek te koppelen is; zonder zout geen hash.
+    if (body.klik) {
+      if (!isKlik(body.klik)) return ok();
+      const ip = clientIp(req.headers);
+      const salt = process.env.ANALYTICS_SALT;
+      const hash = ip && salt ? visitorHash(ip, req.headers.get("user-agent") || "", new Date().toISOString().slice(0, 10), salt) : null;
+      const landing = String(body.landing || "");
+      await recordConversion(body.klik, path, {
+        bron: String(body.bron || "").slice(0, 120) || null,
+        landingspagina: landing && isTrackablePath(landing) ? normalizePath(landing).slice(0, 200) : null,
+        visitor_hash: hash,
+      });
+      return ok();
+    }
 
     // Een 404 is geen bezoek. Die gaat naar missing_paths, zonder IP of hash —
     // alleen het pad en waar de link stond. Zie migratie 0007.

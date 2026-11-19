@@ -1,3 +1,5 @@
+import type { Herkomst } from "./herkomst";
+
 /**
  * Offertes (migratie 0024): de vorm van een offerte en alle rekenregels.
  *
@@ -177,6 +179,9 @@ export type Offerte = {
   afzender_email: string | null;
   afzender_telefoon: string | null;
   notitie: string | null;
+  /** Hoe deze klant ons vond (sleutel uit lib/herkomst.ts, migratie 0047); gaat mee naar de kaart op het klantenbord. */
+  herkomst?: Herkomst | null;
+  herkomst_toelichting?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

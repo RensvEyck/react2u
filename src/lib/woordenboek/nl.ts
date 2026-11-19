@@ -178,6 +178,20 @@ export const nl = {
     privacy: "Privacy",
     privacyverklaring: "privacyverklaring",
     honeypot: "website",
+    /** "Hoe heb je ons gevonden?" in contact en kennismaken; de sleutels zijn die van lib/herkomst.ts. */
+    herkomst: {
+      label: "Hoe heb je ons gevonden?",
+      kies: "Maak een keuze",
+      opties: {
+        google: "Via Google of een andere zoekmachine",
+        ai: "Via ChatGPT of een andere AI-assistent",
+        linkedin: "Via LinkedIn of social media",
+        verwijzing: "Via een klant, relatie of collega",
+        partner: "Via mijn accountant, verzekeraar of adviseur",
+        belbureau: "Jullie belden mij",
+        anders: "Anders of weet ik niet meer",
+      },
+    },
     sollicitatie: {
       kop: "Snel solliciteren",
       kopDirect: "Solliciteer direct",
@@ -223,6 +237,7 @@ export const nl = {
       telefoonOngeldig: "Controleer je telefoonnummer.",
       terugbelAlgemeen: "Er ging iets mis. Bel ons gerust direct.",
       contactVerplicht: "Vul naam, e-mailadres, telefoonnummer en bericht in.",
+      herkomstVerplicht: "Kies hoe je ons gevonden hebt.",
       algemeen: "Er ging iets mis. Probeer het later opnieuw.",
       sollicitatieVerplicht: "Vul in ieder geval je naam en e-mailadres in.",
       linkedinOngeldig: "Controleer de link naar je LinkedIn-profiel, bijvoorbeeld linkedin.com/in/jouwnaam.",

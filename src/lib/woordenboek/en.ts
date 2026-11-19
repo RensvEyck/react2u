@@ -167,6 +167,19 @@ export const en: Woordenboek = {
     privacy: "Privacy (Dutch)",
     privacyverklaring: "privacy statement (Dutch)",
     honeypot: "website",
+    herkomst: {
+      label: "How did you find us?",
+      kies: "Please choose",
+      opties: {
+        google: "Google or another search engine",
+        ai: "ChatGPT or another AI assistant",
+        linkedin: "LinkedIn or social media",
+        verwijzing: "A client, contact or colleague",
+        partner: "My accountant, insurer or adviser",
+        belbureau: "You called me",
+        anders: "Other, or I don't remember",
+      },
+    },
     sollicitatie: {
       kop: "Apply in a few minutes",
       kopDirect: "Apply now",
@@ -212,6 +225,7 @@ export const en: Woordenboek = {
       telefoonOngeldig: "Please check your phone number.",
       terugbelAlgemeen: "Something went wrong. Feel free to call us directly.",
       contactVerplicht: "Please fill in your name, email address, phone number and message.",
+      herkomstVerplicht: "Please tell us how you found us.",
       algemeen: "Something went wrong. Please try again later.",
       sollicitatieVerplicht: "Please fill in at least your name and email address.",
       linkedinOngeldig: "Please check the link to your LinkedIn profile, for example linkedin.com/in/yourname.",

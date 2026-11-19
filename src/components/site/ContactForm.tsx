@@ -4,10 +4,17 @@ import { submitContact, type FormState } from "@/app/(site)/actions";
 import { Field, Bedankt, fieldClass } from "./FormField";
 import { Arrow } from "./Arrow";
 import TurnstileField from "./TurnstileField";
+import HerkomstSelect from "./HerkomstSelect";
+import { metHerkomst } from "./BronOnthouden";
 import { DOCUMENTEN } from "@/lib/documenten";
 
+/** Bron en landingspagina erbij (BronOnthouden, migratie 0047), dan naar de server. */
+async function verstuur(prev: FormState, fd: FormData): Promise<FormState> {
+  return submitContact(prev, metHerkomst(fd));
+}
+
 export default function ContactForm() {
-  const [state, action, pending] = useActionState<FormState, FormData>(submitContact, null);
+  const [state, action, pending] = useActionState<FormState, FormData>(verstuur, null);
   if (state?.ok) return <Bedankt>Bedankt voor je bericht! We nemen zo snel mogelijk contact met je op.</Bedankt>;
   return (
     <form action={action} className="space-y-4">
@@ -27,6 +34,9 @@ export default function ContactForm() {
       </Field>
       <Field label="Bericht">
         <textarea className={fieldClass} name="message" rows={4} required maxLength={4000} />
+      </Field>
+      <Field label="Hoe heb je ons gevonden?">
+        <HerkomstSelect className={fieldClass} />
       </Field>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
       <TurnstileField resetKey={state?.error} />

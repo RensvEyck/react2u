@@ -4,11 +4,17 @@ import { submitPartner, type FormState } from "@/app/(site)/actions";
 import { PARTNER_OMVANG, PARTNER_SOORTEN } from "@/lib/partners";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
+import { metHerkomst } from "@/components/site/BronOnthouden";
 import { useTaal } from "@/components/site/Taal";
 import { NAVY, PINK, BODY, kop, Pijl } from "./Gedeeld";
 import { LOKVELD, PRIVACYVINKJE, WEBMCP } from "@/lib/webmcp";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/** Bron en landingspagina erbij (BronOnthouden, migratie 0047), dan naar de server. */
+async function verstuur(prev: FormState, fd: FormData): Promise<FormState> {
+  return submitPartner(prev, metHerkomst(fd));
+}
 
 /*
  * Aanmelden voor het partnerprogramma: een terugbelverzoek met wat we over
@@ -38,7 +44,7 @@ function Keuze({ name, opties, leeg }: { name: string; opties: readonly string[]
 
 export default function PartnerFormulier({ f }: { f: any }) {
   const { taal, t } = useTaal();
-  const [state, action, pending] = useActionState<FormState, FormData>(submitPartner, null);
+  const [state, action, pending] = useActionState<FormState, FormData>(verstuur, null);
   if (state?.ok) {
     return (
       <div role="status" className="flex flex-col gap-3">

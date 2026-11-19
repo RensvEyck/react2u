@@ -3,6 +3,7 @@ import type { supabaseServer } from "./supabase/server";
 import { catalogusStandaard, catalogusUit, type CatalogusGroep, type TarievenData } from "./offerteCatalogus";
 import { normaliseerRegels, normaliseerVervolg, OFFERTE_EMAIL, type Offerte } from "./offertes";
 import { alleSjablonen, type Sjabloon, type SjabloonRij } from "./offerteSjablonen";
+import { isHerkomst } from "./herkomst";
 import type { Brochure } from "./brochures";
 
 /*
@@ -78,9 +79,11 @@ export async function standaardAfzender(sb: Sb, userId: string, email: string) {
  * medewerkers en de gekozen aansluiting.
  */
 export async function uitAanvraag(sb: Sb, id: string) {
-  const { data } = await sb.from("contact_messages").select("name, email, phone, subject, message").eq("id", id).maybeSingle();
+  // Alle kolommen: `herkomst` (0047) ontbreekt vóór die migratie, en een
+  // uitdrukkelijke selectie zou dan de hele aanvraag onleesbaar maken.
+  const { data } = await sb.from("contact_messages").select("*").eq("id", id).maybeSingle();
   if (!data) return null;
-  const m = data as { name: string; email: string; phone: string | null; subject: string | null; message: string | null };
+  const m = data as { name: string; email: string; phone: string | null; subject: string | null; message: string | null; herkomst?: string | null };
   const tekst = m.message || "";
   const regel = (label: string) => tekst.match(new RegExp(`^${label}:\\s*(.+)$`, "mi"))?.[1]?.trim() || null;
   const aansluiting = regel("Aansluiting") || regel("Interesse") || "";
@@ -91,6 +94,8 @@ export async function uitAanvraag(sb: Sb, id: string) {
     email: m.email,
     telefoon: m.phone,
     medewerkers,
+    // Wat de aanvrager koos bij "hoe heb je ons gevonden": de offerte neemt het over, de kaart daarna ook.
+    herkomst: isHerkomst(m.herkomst) ? m.herkomst : null,
     startpunt: /compleet/i.test(aansluiting) ? "compleet" : /verrichtingen/i.test(aansluiting) ? "basis" : "keuze",
   };
 }

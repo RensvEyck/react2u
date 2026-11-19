@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { byKind, byPath, overallRate, pathFromReferer, type Conversion } from "./conversions";
+import {
+  aanvragen, byHerkomst, byKind, byLanding, byPath, isKlik, klikken, klikkenPerPagina, klikkenPerSoort, overallRate, pathFromReferer, type Conversion,
+} from "./conversions";
 import type { PageView } from "./types";
 
 const conv = (kind: Conversion["kind"], path: string, i: number): Conversion => ({
@@ -38,5 +40,52 @@ describe("conversies", () => {
   it("rondt het totale percentage op één decimaal af", () => {
     expect(overallRate([conv("contact", "/", 1)], 3)).toBe(33.3);
     expect(overallRate([], 0)).toBeNull();
+  });
+
+  it("houdt bel- en mailklikken buiten de aanvragen", () => {
+    const convs = [conv("contact", "/contact", 1), conv("bel", "/contact", 2), conv("mail", "/", 3), conv("bel", "/werkgevers", 4)];
+    expect(aanvragen(convs).map((c) => c.id)).toEqual(["c1"]);
+    expect(klikken(convs).map((c) => c.id)).toEqual(["c2", "c3", "c4"]);
+    expect(isKlik("bel") && isKlik("mail") && !isKlik("contact")).toBe(true);
+    // Per soort alleen de vier formulieren; de klikken apart.
+    expect(byKind(convs).map((r) => r.count)).toEqual([1, 0, 0, 0]);
+    expect(klikkenPerSoort(convs).map((r) => [r.kind, r.count])).toEqual([["bel", 2], ["mail", 1]]);
+    // Het percentage en de pagina's tellen alleen aanvragen; de klikken hebben hun eigen tabel.
+    expect(overallRate(convs, 10)).toBe(10);
+    expect(byPath(convs, [view("/contact", "h1")]).map((r) => r.path)).toEqual(["/contact"]);
+    expect(klikkenPerPagina(convs, [view("/contact", "h1"), view("/contact", "h2")])).toEqual([
+      { path: "/contact", visitors: 2, conversions: 1, rate: 50 },
+      { path: "/", visitors: 0, conversions: 1, rate: null },
+      { path: "/werkgevers", visitors: 0, conversions: 1, rate: null },
+    ]);
+  });
+
+  it("telt aanvragen per herkomst, zonder sollicitaties, en noemt een ontbrekend antwoord apart", () => {
+    const convs: Conversion[] = [
+      { ...conv("offerte", "/kennismaken", 1), herkomst: "google" },
+      { ...conv("contact", "/contact", 2), herkomst: "google" },
+      { ...conv("contact", "/contact", 3), herkomst: "verwijzing" },
+      { ...conv("terugbel", "/werkgevers", 4) },
+      { ...conv("sollicitatie", "/vacatures/x", 5), herkomst: "linkedin" },
+      { ...conv("bel", "/contact", 6), herkomst: "ai" },
+    ];
+    expect(byHerkomst(convs)).toEqual([
+      { herkomst: "google", label: "Google", count: 2 },
+      { herkomst: "", label: "Niet gevraagd", count: 1 },
+      { herkomst: "verwijzing", label: "Verwijzing", count: 1 },
+    ]);
+  });
+
+  it("telt per landingspagina de aanvragen en klikken die er later in het bezoek kwamen", () => {
+    const convs: Conversion[] = [
+      { ...conv("offerte", "/kennismaken", 1), landingspagina: "/arbodienst-lopik" },
+      { ...conv("bel", "/arbodienst-lopik", 2), landingspagina: "/arbodienst-lopik" },
+      { ...conv("bel", "/contact", 3), landingspagina: "/" },
+      { ...conv("contact", "/contact", 4) },
+    ];
+    expect(byLanding(convs)).toEqual([
+      { landingspagina: "/arbodienst-lopik", aanvragen: 1, klikken: 1 },
+      { landingspagina: "/", aanvragen: 0, klikken: 1 },
+    ]);
   });
 });

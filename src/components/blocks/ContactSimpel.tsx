@@ -4,6 +4,8 @@ import { submitContact, type FormState } from "@/app/(site)/actions";
 import { outfit } from "./HomeVerhaal";
 import { DOCUMENTEN } from "@/lib/documenten";
 import TurnstileField from "@/components/site/TurnstileField";
+import HerkomstSelect from "@/components/site/HerkomstSelect";
+import { metHerkomst } from "@/components/site/BronOnthouden";
 import { useTaal } from "@/components/site/Taal";
 import { LOKVELD, WEBMCP } from "@/lib/webmcp";
 
@@ -44,11 +46,16 @@ function Label({ children, optioneel, optioneelTekst }: { children: React.ReactN
   );
 }
 
+/** Bron en landingspagina erbij (BronOnthouden), dan naar de server. */
+async function verstuur(prev: FormState, fd: FormData): Promise<FormState> {
+  return submitContact(prev, metHerkomst(fd));
+}
+
 /** De teksten komen uit het woordenboek; `taal` gaat mee zodat de foutmelding in dezelfde taal terugkomt. */
 function Formulier({ heading, note }: { heading?: string; note?: string }) {
   const { taal, t } = useTaal();
   const f = t.formulier;
-  const [state, action, pending] = useActionState<FormState, FormData>(submitContact, null);
+  const [state, action, pending] = useActionState<FormState, FormData>(verstuur, null);
   if (state?.ok) {
     return (
       <div role="status" className="flex flex-col gap-3">
@@ -72,6 +79,8 @@ function Formulier({ heading, note }: { heading?: string; note?: string }) {
           <input className={veld} name="phone" type="tel" autoComplete="tel" required maxLength={40} placeholder={f.contact.telefoonPlaceholder} /></label>
         <label className="flex flex-col gap-2 sm:col-span-2"><Label>{f.bericht}</Label>
           <textarea className={`${veld} h-[160px] resize-none py-3.5 leading-[1.6]`} name="message" required maxLength={4000} placeholder={f.berichtPlaceholder} /></label>
+        <label className="flex flex-col gap-2 sm:col-span-2"><Label>{f.herkomst.label}</Label>
+          <HerkomstSelect className={veld} /></label>
       </div>
       <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...LOKVELD} />
       <TurnstileField resetKey={state?.error} />

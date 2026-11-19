@@ -171,6 +171,12 @@ export type ContactMessage = {
   partner_id?: string | null;
   /** Kantoor en code van die partner, als het Postvak IN hem meeleest. */
   partner?: { kantoor: string; code: string } | null;
+  /** Wat de afzender koos bij "hoe heb je ons gevonden" (sleutel uit lib/herkomst.ts, migratie 0047). */
+  herkomst?: string | null;
+  /** Wat de browser zag: "verwijzer: google.com" of "campagne: chatgpt.com" (migratie 0047). */
+  bron?: string | null;
+  /** De eerste pagina van het bezoek waarin het bericht werd verstuurd (migratie 0047). */
+  landingspagina?: string | null;
   created_at: string;
 };
 

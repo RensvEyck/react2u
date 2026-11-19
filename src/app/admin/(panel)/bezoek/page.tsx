@@ -6,7 +6,7 @@ import {
 } from "@/lib/analytics";
 import { fetchPageViews } from "@/lib/analyticsDb";
 import { fetchConversions } from "@/lib/conversionsDb";
-import { byKind, byPath, overallRate } from "@/lib/conversions";
+import { aanvragen, byHerkomst, byKind, byLanding, byPath, klikkenPerPagina, klikkenPerSoort, overallRate } from "@/lib/conversions";
 import { loadCompanies } from "@/lib/companiesDb";
 import { waited } from "@/lib/dashboard";
 import BezoekTabs from "@/components/admin/BezoekTabs";
@@ -64,9 +64,16 @@ export default async function BezoekAdmin({
     fetchConversions(sb, since),
   ]);
   const t = totals(views);
+  // Aanvragen zijn verstuurde formulieren; een klik op bellen of mailen (0047) telt apart.
+  const vragen = aanvragen(conversions);
   const perSoort = byKind(conversions);
   const perPagina = byPath(conversions, views).slice(0, 10);
   const conversie = overallRate(conversions, t.visitors);
+  const perHerkomst = byHerkomst(conversions);
+  const herkomstGevraagd = perHerkomst.some((h) => h.herkomst);
+  const klikSoorten = klikkenPerSoort(conversions);
+  const klikPaginas = klikkenPerPagina(conversions, views).slice(0, 10);
+  const perLanding = byLanding(conversions).slice(0, 12);
   const series = byDay(views, days);
   const companies = all.filter((c) => !c.ignored);
   const warm = companies.filter((c) => c.score.level === "warm").length;
@@ -80,7 +87,7 @@ export default async function BezoekAdmin({
     { label: "Herkende bedrijven", value: String(companies.length), icon: LuBuilding, tint: "bg-[#fdeef4] text-[#e0356b]" },
     {
       label: conversie === null ? "Aanvragen" : `Aanvragen · ${String(conversie).replace(".", ",")}% van de bezoekers`,
-      value: String(conversions.length),
+      value: String(vragen.length),
       icon: LuInbox,
       tint: "bg-[#fff4e5] text-[#c77700]",
     },
@@ -229,6 +236,86 @@ export default async function BezoekAdmin({
                   <td className="px-3 py-3 text-right tabular-nums text-black/55">{r.visitors}</td>
                   <td className="px-3 py-3 text-right font-semibold tabular-nums text-[#1c1a4e]">{r.conversions}</td>
                   <td className="px-6 py-3 text-right tabular-nums text-black/55">{r.rate === null ? "–" : `${String(r.rate).replace(".", ",")}%`}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Waar aanvragen vandaan komen (migratie 0047): wat de werkgever zelf zei,
+          welke pagina's tot bellen of mailen leiden, en op welke pagina het bezoek
+          begon dat later iets opleverde. Dat laatste is de vraag achter de
+          plaatspagina's: levert een binnenkomst op /arbodienst-<plaats> ooit iets op? */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <List
+          title="Hoe werkgevers ons vonden"
+          rows={herkomstGevraagd ? perHerkomst.map((h) => ({ label: h.label, count: h.count })) : []}
+          empty={conversiesKlaar ? "Nog geen aanvraag met een antwoord op \"hoe heb je ons gevonden\" in deze periode." : "Werkt na migratie 0047 in Supabase."}
+        />
+        <div className="acard overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.06] px-6 py-4">
+            <div>
+              <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Bellen en mailen per pagina</h2>
+              <p className="text-[12.5px] text-black/40">Een klik op het telefoonnummer of een mailadres, één per pagina per bezoek.</p>
+            </div>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-black/55">
+              {klikSoorten.map((k) => (
+                <li key={k.kind}><span className="font-semibold tabular-nums text-[#1c1a4e]">{k.count}</span> {k.label.toLowerCase()}</li>
+              ))}
+            </ul>
+          </div>
+          {klikPaginas.length === 0 ? (
+            <p className="px-6 py-8 text-center text-[13.5px] text-black/40">{conversiesKlaar ? "Nog geen klik op bellen of mailen in deze periode." : "Werkt na migratie 0047 in Supabase."}</p>
+          ) : (
+            <table className="w-full text-[14px]">
+              <thead>
+                <tr className="text-left text-[12px] uppercase tracking-wide text-black/40">
+                  <th scope="col" className="px-6 py-2.5 font-semibold">Pagina</th>
+                  <th scope="col" className="px-3 py-2.5 text-right font-semibold">Bezoekers</th>
+                  <th scope="col" className="px-3 py-2.5 text-right font-semibold">Klikken</th>
+                  <th scope="col" className="px-6 py-2.5 text-right font-semibold">Aandeel</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/[0.05]">
+                {klikPaginas.map((r) => (
+                  <tr key={r.path}>
+                    <td className="truncate px-6 py-3 text-[#1c1a4e]" title={r.path}>{r.path}</td>
+                    <td className="px-3 py-3 text-right tabular-nums text-black/55">{r.visitors}</td>
+                    <td className="px-3 py-3 text-right font-semibold tabular-nums text-[#1c1a4e]">{r.conversions}</td>
+                    <td className="px-6 py-3 text-right tabular-nums text-black/55">{r.rate === null ? "–" : `${String(r.rate).replace(".", ",")}%`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      <div className="acard overflow-hidden">
+        <div className="border-b border-black/[0.06] px-6 py-4">
+          <h2 className="font-heading text-[16px] font-bold text-[#312e82]">Waar het bezoek begon dat iets opleverde</h2>
+          <p className="text-[12.5px] text-black/40">
+            De eerste pagina van het bezoek waarin later een formulier werd verstuurd of op bellen of mailen werd geklikt. Zo zie je of een plaatspagina of een vacature ooit tot een aanvraag leidt.
+          </p>
+        </div>
+        {perLanding.length === 0 ? (
+          <p className="px-6 py-8 text-center text-[13.5px] text-black/40">{conversiesKlaar ? "Nog geen aanvraag of klik met een bekende landingspagina in deze periode." : "Werkt na migratie 0047 in Supabase."}</p>
+        ) : (
+          <table className="w-full text-[14px]">
+            <thead>
+              <tr className="text-left text-[12px] uppercase tracking-wide text-black/40">
+                <th scope="col" className="px-6 py-2.5 font-semibold">Landingspagina</th>
+                <th scope="col" className="px-3 py-2.5 text-right font-semibold">Aanvragen</th>
+                <th scope="col" className="px-6 py-2.5 text-right font-semibold">Bellen en mailen</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/[0.05]">
+              {perLanding.map((r) => (
+                <tr key={r.landingspagina}>
+                  <td className="truncate px-6 py-3 text-[#1c1a4e]" title={r.landingspagina}>{r.landingspagina}</td>
+                  <td className="px-3 py-3 text-right font-semibold tabular-nums text-[#1c1a4e]">{r.aanvragen}</td>
+                  <td className="px-6 py-3 text-right tabular-nums text-black/55">{r.klikken}</td>
                 </tr>
               ))}
             </tbody>

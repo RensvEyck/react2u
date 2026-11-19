@@ -4,6 +4,7 @@ import Footer from "./Footer";
 import HeaderR2u from "./HeaderR2u";
 import FooterR2u from "./FooterR2u";
 import VisitTracker from "./VisitTracker";
+import KlikTracker from "./KlikTracker";
 import CookieBanner from "./CookieBanner";
 import BelBalk from "./BelBalk";
 import Reveal from "./Reveal";
@@ -58,6 +59,8 @@ export default async function SiteShell({ children, taal = "nl" }: { children: R
         {/* Alleen op de publieke site: adminverkeer is jouw eigen verkeer en
             hoort niet in de statistieken. Daarom ook niet in de voorbeeldmodus. */}
         {!voorbeeld && <VisitTracker />}
+        {/* Een klik op bellen of mailen telt als aanvraag (migratie 0047). */}
+        {!voorbeeld && <KlikTracker />}
         {/* Hier en niet in de root-layout: wel op de 404, niet in het adminpaneel. */}
         <CookieBanner bedrijfsherkenning={bedrijfsherkenning} />
         <Reveal />

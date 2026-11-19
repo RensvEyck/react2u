@@ -7,7 +7,13 @@ import { toontBelbalk } from "@/lib/belbalk";
 import { TERUGBEL_MOMENTEN } from "@/lib/formulier";
 import { DOCUMENTEN } from "@/lib/documenten";
 import { submitTerugbel, type FormState } from "@/app/(site)/actions";
+import { metHerkomst } from "./BronOnthouden";
 import { Bedankt } from "./FormField";
+
+/** Bron en landingspagina erbij (BronOnthouden, migratie 0047), dan naar de server. */
+async function verstuur(prev: FormState, fd: FormData): Promise<FormState> {
+  return submitTerugbel(prev, metHerkomst(fd));
+}
 import TurnstileField from "./TurnstileField";
 import { useTaal } from "./Taal";
 import { telefoonInTaal, vul } from "@/lib/taal";
@@ -61,7 +67,7 @@ export default function BelBalk({ contact }: { contact: ContactInfo }) {
   const zichtbaar = toontBelbalk(path);
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  const [state, action, pending] = useActionState<FormState, FormData>(submitTerugbel, null);
+  const [state, action, pending] = useActionState<FormState, FormData>(verstuur, null);
 
   useEffect(() => {
     if (!zichtbaar) return;

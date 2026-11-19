@@ -17,6 +17,7 @@ async function maak(page, sjabloon, velden) {
   await page.goto(`${BASIS}/admin/offertes/nieuw?sjabloon=${sjabloon}`);
   await page.waitForSelector("#of-bedrijf");
   for (const [sel, waarde] of Object.entries(velden)) await page.fill(sel, waarde);
+  await page.selectOption("#of-herkomst", "google");
   await page.click("button:has-text('Offerte aanmaken')");
   await page.waitForURL(/\/admin\/offertes\/[0-9a-f-]{36}$/, { timeout: 30000 });
   return page.url();
@@ -91,6 +92,7 @@ async function teken(klant, naam) {
   await page.locator("#of-inhoud").evaluate((el) => el.closest("div").parentElement.scrollIntoView());
   await shot(page, "02-editor-rie-voorbeeld", { fullPage: false });
   await page.locator("[role=tab]:has-text('Bewerken')").first().click();
+  await page.selectOption("#of-herkomst", "verwijzing");
   await page.click("button:has-text('Offerte aanmaken')");
   await page.waitForURL(/\/admin\/offertes\/[0-9a-f-]{36}$/);
   const rieUrl = page.url();
@@ -178,6 +180,7 @@ async function teken(klant, naam) {
   await page.fill("#of-cp", "Joost Vermeer");
   await page.fill("#of-email", "joost@flexwerk.test");
   await page.fill("#of-mw", "120");
+  await page.selectOption("#of-herkomst", "linkedin");
   await page.click("button:has-text('Offerte aanmaken')");
   await page.waitForURL(/\/admin\/offertes\/[0-9a-f-]{36}$/, { timeout: 30000 });
   check(await page.locator("text=Reflex").count(), "vorm Reflex in de kop");
