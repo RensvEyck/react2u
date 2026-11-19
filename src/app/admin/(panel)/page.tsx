@@ -3,7 +3,7 @@ import type { IconType } from "react-icons";
 import {
   LuInbox, LuPhone, LuSearch, LuUsers, LuArrowRight, LuPlus, LuCircleCheck,
   LuMessageSquare, LuBuilding, LuFilePen, LuCalendarClock, LuTrendingUp, LuTrendingDown,
-  LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck, LuTriangleAlert,
+  LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck, LuTriangleAlert, LuGauge,
 } from "react-icons/lu";
 import { requireAdmin } from "@/lib/admin";
 import type { Permission } from "@/lib/permissions";
@@ -24,6 +24,8 @@ import VerkoopBlok from "@/components/admin/VerkoopBlok";
 import { datumOver } from "@/lib/offertes";
 import { kwartaalSleutel, kwartaalVanWeek, openWeken, schalenZin, sluitOp, weekBereikDag, weekKort } from "@/lib/weekevaluatie";
 import { haalSignalen } from "@/lib/weekevaluatieDb";
+import { haalPrognose } from "@/lib/prognoseDb";
+import { fteTekst, maandLang } from "@/lib/prognose";
 import { weekNummer } from "@/lib/uren";
 
 type InboxRow = { kind: "bericht" | "sollicitatie"; id: string; name: string; about: string; at: string };
@@ -46,6 +48,8 @@ export default async function AdminDashboard() {
   const verkoopRes = can("bellijst") ? haalVerkoop(sb, now) : Promise.resolve(null);
   // Twee zware weken bij een collega (0045): voor wie het kwartaaloverzicht van de weekevaluaties mag zien.
   const signalenRes = can("omzet") ? haalSignalen(sb, datumOver(0, now)) : Promise.resolve([]);
+  // De prognose (0049): alleen het advies, en alleen als er geworven moet worden. Een fout laat het dashboard staan.
+  const prognoseRes = can("omzet") ? haalPrognose(sb, undefined, null, now).then((p) => p.advies).catch(() => null) : Promise.resolve(null);
   // De eigen weekevaluatie (0044): welke van de twee open weken nog niet ingevuld is. Vóór de migratie: een fout, en dan niets.
   const openEvalWeken = openWeken(datumOver(0, now));
   const [msgsRes, appsRes, leadsRes, viewsRes, pagesRes, postsRes, vacanciesRes, missingRes, activityRes, profilesRes, evalRes] = await Promise.all([
@@ -171,11 +175,12 @@ export default async function AdminDashboard() {
   const evalIngevuld = new Set((((evalRes as { data?: { week: string }[] | null }).data) || []).map((r) => r.week));
   const evalOpen = can("weekevaluatie") && !(evalRes as { error?: unknown }).error ? openEvalWeken.filter((w) => !evalIngevuld.has(w)) : [];
   const zwareWeken = await signalenRes;
+  const werven = await prognoseRes;
 
   const attention =
     (unhandled > 0 ? 1 : 0) + (toCall.length > 0 ? 1 : 0) + (seoIssues > 0 ? 1 : 0) +
     (expiring.length > 0 ? 1 : 0) + (verkoop?.signalen.some((s) => s.toon !== "info") ? 1 : 0) + (evalOpen.length > 0 ? 1 : 0) +
-    (zwareWeken.length > 0 ? 1 : 0);
+    (zwareWeken.length > 0 ? 1 : 0) + (werven?.soort === "werven" ? 1 : 0);
 
   const name = firstName(admin.email);
 
@@ -213,6 +218,17 @@ export default async function AdminDashboard() {
             <span className="block text-[12.5px] text-black/45">Vijf cijfers en een paar zinnen. Week {weekNummer(evalOpen[0]).week} kun je nog aanpassen tot en met zondag {weekBereikDag(sluitOp(evalOpen[0]))}.</span>
           </span>
           <span className="abtn !py-2 text-[13.5px]">Invullen</span>
+        </Link>
+      )}
+
+      {werven?.soort === "werven" && (
+        <Link href="/admin/prognose" id="prognose-advies" className="acard flex flex-wrap items-center gap-4 border-l-[3px] border-l-[#e75387] px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fdeef4] text-[18px] text-[#e0356b]"><LuGauge /></span>
+          <span className="min-w-[200px] flex-1">
+            <span className="block text-[14.5px] font-semibold text-[#1c1a4e]">Begin uiterlijk in {maandLang(werven.uiterlijk)} met werven</span>
+            <span className="block text-[12.5px] text-black/45">Vanaf {maandLang(werven.maand)} is er {fteTekst(werven.tekort)} fte casemanagement te weinig{werven.zeker ? "" : ", als de pijplijn tekent zoals verwacht"}.</span>
+          </span>
+          <span className="abtn-ghost !py-2 text-[13.5px]">Prognose</span>
         </Link>
       )}
 

@@ -3,7 +3,7 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuGauge, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard } from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -46,6 +46,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Klantevaluaties", href: "/admin/documenten/evaluaties", icon: LuClipboardList, keywords: "klantevaluatie evaluatie jaarlijks bezoek checklist rie psa pmo preventiemedewerker dienstverlening wensen afspraken acties", paletteOnly: true },
   { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
   { label: "Omzet", href: "/admin/omzet", icon: LuEuro, keywords: "omzet abonnementen mrr arr maandomzet financieel declarabel uren klanten" },
+  { label: "Prognose", href: "/admin/prognose", icon: LuGauge, keywords: "prognose werkdruk capaciteit bezetting casemanagers fte werven personeel planning forecast komende maanden" },
   { label: "Uren", href: "/admin/omzet/uren", icon: LuClock, keywords: "declarabele uren medewerkers werknemers urenregistratie declarabiliteit norm week invullen", paletteOnly: true },
   { label: "Partners", href: "/admin/partners", icon: LuHandshake, keywords: "partnerprogramma accountants aanmeldlink partnercode vergoeding kwartaal" },
   { label: "Weekevaluatie", href: "/admin/weekevaluatie", icon: LuCalendarCheck, keywords: "weekevaluatie week evaluatie energie werkdruk cijfer invullen reflectie collega's werknemers" },
@@ -102,6 +103,6 @@ export const CRUMBS: Record<string, string> = {
   instellingen: "Instellingen", account: "Account",
   documenten: "Documenten", evaluaties: "Klantevaluaties",
   offertes: "Offertes", contracten: "Contracten", onboarding: "Onboarding", werknemers: "Werknemers", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
-  weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht",
+  weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht", prognose: "Prognose",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

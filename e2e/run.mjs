@@ -230,7 +230,7 @@ values ('Piet Peters', 'piet@peters.test', '0612345678', 'Offerteaanvraag verzui
   const testEnv = { ...env, E2E_BASIS: BASIS, E2E_UIT: UIT, E2E_DB_CONTAINER: DB };
   // dashboard en omzet als laatste: die maken de verkooptabellen leeg voor hun eigen vaste set;
   // weekevaluatie daarna, want die hangt aan de medewerkers die omzet leegmaakt.
-  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "klantenbord", "klanten", "evaluatie", "reseller", "partner", "dashboard", "omzet", "weekevaluatie"];
+  const tests = process.env.E2E_ALLEEN ? process.env.E2E_ALLEEN.split(",") : ["offerte", "vormen", "brochure", "contract", "onboarding", "klantenbord", "klanten", "evaluatie", "reseller", "partner", "dashboard", "omzet", "weekevaluatie", "prognose"];
   const mislukt = [];
   for (const t of tests) {
     stap(`Test: ${t}`);

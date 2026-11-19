@@ -66,6 +66,7 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
   const vorm = fd.get("vorm");
   const medewerkersRuw = Number(String(fd.get("medewerkers") || "").replace(/\D/g, ""));
   const geldig = String(fd.get("geldig_tot") || "");
+  const ingang = String(fd.get("ingangsdatum") || "");
   // Hoe de klant ons vond (migratie 0047): verplicht, zodat het klantenbord en
   // /admin/bezoek het kunnen optellen. De kaart neemt het over via de trigger.
   const herkomst = tekst(fd, "herkomst", 40);
@@ -87,6 +88,8 @@ export async function saveOfferte(_prev: OfferteFormState, fd: FormData): Promis
     vervolg: normaliseerVervolg(vervolg),
     regels: ruimModulesOp(normaliseerRegels(regels)),
     geldig_tot: /^\d{4}-\d{2}-\d{2}$/.test(geldig) ? geldig : null,
+    // Voor de prognose (0049); alleen als het formulier het veld kent, zodat een oudere editor hem niet wist.
+    ...(fd.has("ingangsdatum") ? { ingangsdatum: /^\d{4}-\d{2}-\d{2}$/.test(ingang) ? ingang : null } : {}),
     afzender_naam: tekst(fd, "afzender_naam"),
     afzender_functie: tekst(fd, "afzender_functie"),
     afzender_email: tekst(fd, "afzender_email", 254)?.toLowerCase() ?? null,
@@ -260,10 +263,18 @@ export async function nieuweOfferteLink(id: string) {
   redirect(`/admin/offertes/${id}?opgeslagen=offerte-link`);
 }
 
-/** De interne notitie: blijft bewerkbaar, ook na ondertekening. De klant ziet hem nooit. */
+/**
+ * De interne notitie en de ingangsdatum: blijven bewerkbaar, ook na
+ * ondertekening (offerte_bewaken laat ze vrij, 0049). De klant ziet ze nooit.
+ */
 export async function saveOfferteNotitie(id: string, fd: FormData) {
   const { sb } = await requirePerm("bellijst");
-  await sb.from("offertes").update({ notitie: tekst(fd, "notitie", 5000) }).eq("id", id);
+  const ingang = String(fd.get("ingangsdatum") || "");
+  const update: Record<string, unknown> = { notitie: tekst(fd, "notitie", 5000) };
+  if (fd.has("ingangsdatum")) update.ingangsdatum = /^\d{4}-\d{2}-\d{2}$/.test(ingang) ? ingang : null;
+  const { error } = await sb.from("offertes").update(update).eq("id", id);
+  // Vóór 0049 bestaat de kolom niet: dan alleen de notitie.
+  if (error && "ingangsdatum" in update) await sb.from("offertes").update({ notitie: update.notitie }).eq("id", id);
   ververs(id);
   redirect(`/admin/offertes/${id}?opgeslagen=notitie`);
 }
