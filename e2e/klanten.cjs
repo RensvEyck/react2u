@@ -55,24 +55,23 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.waitForURL((u) => !u.pathname.startsWith("/admin/login"), { timeout: 30000 });
 
   stap("Een klant die uit de modules ontstaat: getekende offerte, getekend contract, onboarding en losse opdracht");
+  // Een bedrijf dat geen andere test gebruikt: in CI draaien offerte, contract en klantenbord eerder en laten ze hun rijen staan
+  // (een getekende offerte mag niet eens weg), en op de stamkaart telt alles met dezelfde bedrijfsnaam mee.
   sql("delete from public.klanten");
-  // In CI draaiden de andere tests eerder en lieten ze een offerte en een lead voor dezelfde bakkerij achter; alleen wat deze test zelf neerzet telt.
-  for (const tabel of ["offertes", "contracten", "onboardings", "brochures", "evaluaties", "losse_opdrachten"]) {
-    sql(`delete from public.${tabel} where public.bedrijf_sleutel(bedrijf) = 'bakkerij de korenaar'`);
-  }
+  sql("delete from public.losse_opdrachten where bedrijf like 'Houthandel Verhoeven%'");
   const offerte = sql(`insert into public.offertes (vorm, bedrijf, contactpersoon, email, telefoon, medewerkers, regels, keuze, status, verstuurd_at, keuze_at, getekend_at, getekend_naam, getekend_functie, getekend_email, factuur, afzender_naam, afzender_email)
-    values ('verzuimbegeleiding', 'Bakkerij de Korenaar', 'Fatima El Amrani', 'fatima@korenaar.test', '040 123 45 67', 12, '[${RECOVER},${RIE},${ARTS}]', '["a","b"]', 'getekend', now() - interval '10 days', now() - interval '8 days', now() - interval '7 days', 'Fatima El Amrani', 'Eigenaar', 'fatima@korenaar.test', '{"adres":"Postbus 12","postcode":"5600AA","plaats":"Eindhoven","kvk":"12345678","email":"facturen@korenaar.test"}', 'Rens van Eyck', 'sales@react2u.nl')
+    values ('verzuimbegeleiding', 'Houthandel Verhoeven', 'Joris Verhoeven', 'joris@verhoeven.test', '040 123 45 67', 12, '[${RECOVER},${RIE},${ARTS}]', '["a","b"]', 'getekend', now() - interval '10 days', now() - interval '8 days', now() - interval '7 days', 'Joris Verhoeven', 'Eigenaar', 'joris@verhoeven.test', '{"adres":"Postbus 12","postcode":"5600AA","plaats":"Eindhoven","kvk":"12345678","email":"facturen@verhoeven.test"}', 'Rens van Eyck', 'sales@react2u.nl')
     returning id || ' ' || nummer`).split("\n")[0].split(" ");
   const contract = sql(`insert into public.contracten (bedrijf, contactpersoon, email, status, ingangsdatum, einddatum, tekst, verstuurd_at, getekend_at, getekend_naam, getekend_functie, getekend_email, getekend_plaats, opdrachtgever)
-    values ('Bakkerij De Korenaar B.V.', 'Fatima El Amrani', 'fatima@korenaar.test', 'getekend', current_date, current_date + 365, repeat('x', 120), now() - interval '6 days', now() - interval '5 days', 'Henk Bax', 'Directeur', 'henk@korenaar.test', 'Leende', '{"naam":"Bakkerij De Korenaar B.V.","adres":"Paaldijk 11","postcode":"5595XL","plaats":"Leende","kvk":"17061007"}')
+    values ('Houthandel Verhoeven B.V.', 'Joris Verhoeven', 'joris@verhoeven.test', 'getekend', current_date, current_date + 365, repeat('x', 120), now() - interval '6 days', now() - interval '5 days', 'Henk Bax', 'Directeur', 'henk@verhoeven.test', 'Leende', '{"naam":"Houthandel Verhoeven B.V.","adres":"Paaldijk 11","postcode":"5595XL","plaats":"Leende","kvk":"17061007"}')
     returning id || ' ' || nummer`).split("\n")[0].split(" ");
   const onboarding = sql(`insert into public.onboardings (bedrijf, contactpersoon, email, documenten, invullen, status, verstuurd_at, casemanager, antwoorden)
-    values ('Bakkerij De Korenaar B.V.', 'Fatima El Amrani', 'fatima@korenaar.test', '{welkom,verzuimprotocol,inrichting}', '{inrichting}', 'verstuurd', now() - interval '4 days', 'Iki Jansen',
-      '{"inrichting":{"data":{"bedrijfsnaam":"Bakkerij De Korenaar B.V.","kvk":"17061007","btw":"NL001234567B01","factuur_straat":"Fabriekslaan 3","factuur_postcode":"5611 NB","factuur_plaats":"Eindhoven","factuur_email":"facturatie@korenaar.test","contact_naam":"Fatima El Amrani","contact_functie":"HR-manager","contact_telefoon":"06 1234 5678","contact_email":"fatima@korenaar.test"},"at":"2026-11-15T10:00:00Z","door":"Fatima El Amrani"}}')
+    values ('Houthandel Verhoeven B.V.', 'Joris Verhoeven', 'joris@verhoeven.test', '{welkom,verzuimprotocol,inrichting}', '{inrichting}', 'verstuurd', now() - interval '4 days', 'Iki Jansen',
+      '{"inrichting":{"data":{"bedrijfsnaam":"Houthandel Verhoeven B.V.","kvk":"17061007","btw":"NL001234567B01","factuur_straat":"Fabriekslaan 3","factuur_postcode":"5611 NB","factuur_plaats":"Eindhoven","factuur_email":"facturatie@verhoeven.test","contact_naam":"Joris Verhoeven","contact_functie":"HR-manager","contact_telefoon":"06 1234 5678","contact_email":"joris@verhoeven.test"},"at":"2026-11-15T10:00:00Z","door":"Joris Verhoeven"}}')
     returning id || ' ' || nummer`).split("\n")[0].split(" ");
-  sql(`insert into public.losse_opdrachten (soort, bedrijf, omschrijving, vorm, bedrag, datum, verkoper) values ('eenmalig', 'Bakkerij De Korenaar', 'Werkplekonderzoek', 'rie', 450, current_date - 20, 'Cindy')`);
+  sql(`insert into public.losse_opdrachten (soort, bedrijf, omschrijving, vorm, bedrag, datum, verkoper) values ('eenmalig', 'Houthandel Verhoeven', 'Werkplekonderzoek', 'rie', 450, current_date - 20, 'Cindy')`);
   sql(`insert into public.klanten (bedrijf, status, contactpersoon, eigenaar) values ('Kapsalon Knip', 'lead', 'Sanne de Boer', 'Cindy'), ('Oud Bedrijf', 'inactief', null, null)`);
-  const klant = sql("select id from public.klanten where sleutel = 'bakkerij de korenaar'").trim();
+  const klant = sql("select id from public.klanten where sleutel = 'houthandel verhoeven'").trim();
   check(klant.length === 36, "één kaart voor de offerte, het contract, de onboarding en de opdracht");
   check(sql(`select status from public.klanten where id = '${klant}'`) === "klant", "de losse opdracht zette de kaart op Klant");
   check(sql("select count(*) from public.klanten") === "3", "drie kaarten: een klant, een lead en een inactieve");
@@ -90,10 +89,10 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   check(await page.locator(`tr[data-klant="${klant}"]`).count(), "de klant staat in de lijst");
   check(await page.locator("tr[data-klant]").count() === 2, "inactief staat er standaard niet bij");
   check(await page.locator("text=2 klanten").count(), "telling: 2 klanten");
-  check(await page.locator(`tr[data-klant="${klant}"] >> text=Fatima El Amrani`).count() && (await page.locator(`tr[data-klant="${klant}"] >> text=fatima@korenaar.test`).count()), "contactpersoon en mail uit de modules in de rij");
+  check(await page.locator(`tr[data-klant="${klant}"] >> text=Joris Verhoeven`).count() && (await page.locator(`tr[data-klant="${klant}"] >> text=joris@verhoeven.test`).count()), "contactpersoon en mail uit de modules in de rij");
   check(await page.locator(`tr[data-klant="${klant}"] >> text=3/8`).count(), "stamkaart 3 van 8: contactpersoon, telefoon en mail zijn al bekend");
   await shot(page, "01-lijst", { fullPage: false });
-  await page.fill("#kl-zoek", "korenaar");
+  await page.fill("#kl-zoek", "verhoeven");
   await wacht(200);
   check(await page.locator("tr[data-klant]").count() === 1 && (await page.locator("text=1 van 3").count()), "zoeken op bedrijfsnaam");
   await page.fill("#kl-zoek", "");
@@ -109,7 +108,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.waitForURL(new RegExp(`/admin/klanten/${klant}$`));
 
   stap("De stamkaart met het voorstel uit de modules");
-  await page.waitForSelector("h1:has-text('Bakkerij de Korenaar')");
+  await page.waitForSelector("h1:has-text('Houthandel Verhoeven')");
   const voorstel = Number(await page.getAttribute("[data-voorstel]", "data-voorstel"));
   check(voorstel >= 12, `${voorstel} gegevens al bekend uit de modules`);
   check((await page.locator('[data-veld="kvk"]').innerText()).includes("17061007") && (await page.locator('[data-veld="kvk"]').innerText()).includes(`contract ${contract[1]}`), "KvK uit het getekende contract, niet uit de offerte");
@@ -118,14 +117,14 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   check((await page.locator('[data-veld="medewerkers"]').innerText()).includes("12") && (await page.locator('[data-veld="medewerkers"]').innerText()).includes(`offerte ${offerte[1]}`), "aantal werknemers uit de offerte");
   check((await page.locator('[data-veld="casemanager"]').innerText()).includes("Iki Jansen"), "casemanager uit de onboarding");
   check((await page.locator('[data-veld="ondertekenaar"]').innerText()).includes("Henk Bax"), "bevoegd ondertekenaar: wie het contract tekende");
-  check((await page.locator('[data-veld="website"]').innerText()).includes("korenaar.test"), "website uit het e-mailadres");
+  check((await page.locator('[data-veld="website"]').innerText()).includes("verhoeven.test"), "website uit het e-mailadres");
   await shot(page, "02-stamkaart-voorstel");
   await page.click("button:has-text('Alles overnemen')");
   await page.waitForSelector("text=gegevens overgenomen uit de modules", { timeout: 20000 });
   check((await tot(`select kvk from public.klanten where id = '${klant}'`, "17061007")) === "17061007", "KvK overgenomen");
   const over = sql(`select bezoekadres || '|' || bezoek_postcode || '|' || bezoek_plaats || '|' || btw || '|' || factuur_email || '|' || medewerkers || '|' || casemanager || '|' || contact_functie || '|' || ondertekenaar || '|' || website || '|' || startdatum::text from public.klanten where id = '${klant}'`);
-  check(over === `Paaldijk 11|5595 XL|Leende|NL001234567B01|facturatie@korenaar.test|12|Iki Jansen|HR-manager|Henk Bax|https://korenaar.test|${sql("select current_date")}`, `alles overgenomen, netjes gemaakt (${over})`);
-  check(sql(`select contactpersoon || '|' || email from public.klanten where id = '${klant}'`) === "Fatima El Amrani|fatima@korenaar.test", "wat er al stond, bleef staan");
+  check(over === `Paaldijk 11|5595 XL|Leende|NL001234567B01|facturatie@verhoeven.test|12|Iki Jansen|HR-manager|Henk Bax|https://verhoeven.test|${sql("select current_date")}`, `alles overgenomen, netjes gemaakt (${over})`);
+  check(sql(`select contactpersoon || '|' || email from public.klanten where id = '${klant}'`) === "Joris Verhoeven|joris@verhoeven.test", "wat er al stond, bleef staan");
   const regel = sql(`select tekst || ' | ' || contact::text from public.klant_gesprekken where klant_id = '${klant}' and soort = 'stamkaart' order by created_at desc limit 1`);
   check(regel.startsWith(`Stamkaart aangevuld uit de modules: KvK-nummer (contract ${contract[1]}), `) && regel.endsWith(" | false"), `in de tijdlijn met de bron, geen contact (${regel.slice(0, 80)}…)`);
   check((await page.locator("[data-voorstel]").count()) === 0, "geen voorstel meer: alles is overgenomen");
@@ -138,7 +137,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.fill("#sk-kvk", "123");
   await page.fill("#sk-iban", "nl91 abna 0417 1643 00");
   await page.fill("#sk-rechtsvorm", "B.V.");
-  await page.fill("#sk-iban_naam", "Bakkerij De Korenaar B.V.");
+  await page.fill("#sk-iban_naam", "Houthandel Verhoeven B.V.");
   await shot(page, "04-bewerken");
   await page.click("button:has-text('Opslaan')");
   await page.waitForSelector("text=Een KvK-nummer heeft acht cijfers.");
@@ -150,7 +149,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.click("button:has-text('Opslaan')");
   await page.waitForSelector("text=Stamkaart opgeslagen.", { timeout: 20000 });
   check((await tot(`select iban from public.klanten where id = '${klant}'`, "NL91ABNA0417164300")) === "NL91ABNA0417164300", "IBAN opgeslagen zoals de bank hem schrijft");
-  check(sql(`select rechtsvorm || '|' || iban_naam from public.klanten where id = '${klant}'`) === "B.V.|Bakkerij De Korenaar B.V.", "rechtsvorm en tenaamstelling");
+  check(sql(`select rechtsvorm || '|' || iban_naam from public.klanten where id = '${klant}'`) === "B.V.|Houthandel Verhoeven B.V.", "rechtsvorm en tenaamstelling");
   check(sql(`select tekst from public.klant_gesprekken where klant_id = '${klant}' and soort = 'stamkaart' order by created_at desc limit 1`) === "Stamkaart bijgewerkt: Rechtsvorm, IBAN, Tenaamstelling", "alleen wat veranderde in de tijdlijn");
   check(await page.locator("text=NL91 ABNA 0417 1643 00").count(), "IBAN in groepjes van vier");
 
@@ -161,7 +160,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   const docs = async (soort) => page.locator(`tr[data-document="${soort}"]`).count();
   check((await docs("offerte")) === 1 && (await docs("contract")) === 1 && (await docs("checklist")) === 1 && (await docs("onboarding")) === 1, `offerte, basiscontract, checklist en onboarding in de lijst (${await docs("offerte")}, ${await docs("contract")}, ${await docs("checklist")}, ${await docs("onboarding")})`);
   check(await page.locator(`text=Offerte Recover ${offerte[1]}`).count(), "de offerte met zijn label en nummer");
-  check(await page.locator("text=getekend door Fatima El Amrani").count(), "wie de offerte tekende");
+  check(await page.locator("text=getekend door Joris Verhoeven").count(), "wie de offerte tekende");
   check(await page.locator("tr[data-document='checklist'] >> text=nog niet ingevuld").count(), "de checklist bij het contract, nog niet ingevuld");
   check(await page.locator(`a[href="/admin/offertevoorbeeld/${offerte[0]}/pdf?download=1"]`).count(), "pdf van de getekende offerte");
   check(await page.locator(`a[href="/admin/contractvoorbeeld/${contract[0]}/pdf?download=1"]`).count(), "pdf van het getekende contract");
@@ -173,7 +172,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await shot(page, "05-documenten");
 
   stap("Een eigen bestand uploaden, downloaden, en zonder sessie niet");
-  const pdfPad = path.join(SHOTS, "Contract Korenaar per post (getekend).pdf");
+  const pdfPad = path.join(SHOTS, "Contract Verhoeven per post (getekend).pdf");
   fs.writeFileSync(pdfPad, "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n");
   const txtPad = path.join(SHOTS, "notities.txt");
   fs.writeFileSync(txtPad, "niet toegestaan");
@@ -181,7 +180,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.fill("#kb-omschrijving", "per post ontvangen");
   await page.setInputFiles("#kb-bestand", [pdfPad, txtPad]);
   await page.waitForSelector("text=Bestand geüpload.", { timeout: 20000 });
-  await page.waitForSelector("a:has-text('Contract Korenaar per post (getekend).pdf')");
+  await page.waitForSelector("a:has-text('Contract Verhoeven per post (getekend).pdf')");
   check(await page.locator("text=notities.txt: alleen pdf, Word").count(), "een tekstbestand mag niet, de pdf wel");
   const rij = sql(`select id || '|' || soort || '|' || coalesce(omschrijving, '') || '|' || pad || '|' || type from public.klant_bestanden where klant_id = '${klant}'`).trim().split("|");
   check(rij[1] === "overeenkomst" && rij[2] === "per post ontvangen" && rij[3].startsWith(`${klant}/`) && rij[4] === "application/pdf", `in de database: ${rij.slice(1).join(" | ")}`);
@@ -247,7 +246,7 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   check(!(await teBreed(mp)), "de lijst maakt de pagina niet breder dan het scherm");
   await shot(mp, "09-telefoon-lijst", { fullPage: false });
   await mp.goto(`${BASIS}/admin/klanten/${klant}`);
-  await mp.waitForSelector("h1:has-text('Bakkerij de Korenaar')");
+  await mp.waitForSelector("h1:has-text('Houthandel Verhoeven')");
   check(!(await teBreed(mp)), "de stamkaart past op het scherm");
   await shot(mp, "10-telefoon-stamkaart");
   await mp.goto(`${BASIS}/admin/klanten/${klant}?tab=documenten`);
@@ -264,12 +263,12 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   await page.goto(`${BASIS}/admin/klanten/${klant}`);
   await page.click("a:has-text('Op het bord')");
   await page.waitForURL(/\/admin\/klantenbord#klant-/);
-  await page.waitForSelector("aside[role=dialog] h2:has-text('Bakkerij de Korenaar')");
+  await page.waitForSelector("aside[role=dialog] h2:has-text('Houthandel Verhoeven')");
   check(await page.locator(`aside[role=dialog] a[href="/admin/klanten/${klant}"]`).count(), "het paneel linkt terug naar de stamkaart");
   check(await page.locator("aside[role=dialog] >> text=Stamkaart bijgewerkt: Rechtsvorm, IBAN, Tenaamstelling").count(), "de wijziging van de stamkaart staat in de tijdlijn van het paneel");
 
   // De losse opdracht weer weg: e2e/dashboard.cjs verwacht later een lege verkoop.
-  sql("delete from public.losse_opdrachten where bedrijf = 'Bakkerij De Korenaar'");
+  sql("delete from public.losse_opdrachten where bedrijf = 'Houthandel Verhoeven'");
 
   check(paginafouten.length === 0, `geen fouten in de browser${paginafouten.length ? `: ${paginafouten.join(" | ")}` : ""}`);
 
