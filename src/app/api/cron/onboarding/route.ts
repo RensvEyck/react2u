@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   }
   const rijen = (data || []) as Onboarding[];
   const nu = new Date();
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   let verstuurd = 0;
   const mislukt: string[] = [];
   const kandidaten: { nummer: string; reden: string }[] = [];
@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
       herinnering: true,
       documenten: gekozen(o).map((d) => ({ titel: d.titel, kort: d.kort, kleur: d.kleur, actie: vultIn(o, d.sleutel) ? d.invullen! : d.lezen, klaar: documentKlaar(o, d.sleutel) })),
       contact,
+      certificaten,
     });
     if (!res.ok) {
       mislukt.push(o.nummer);

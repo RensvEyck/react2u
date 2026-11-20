@@ -95,7 +95,7 @@ describe("persoonlijke brief aan een kandidaat", () => {
   const brief = {
     to: "kandidaat@voorbeeld.nl", subject: "Je sollicitatie bij React2u",
     alineas: ["Hoi Yasmin,", "Bedankt voor je sollicitatie.", "", "Regel één\nregel twee & meer"], groet: ["Groet,", "Rens", "React2u · 085 - 620 58 00"],
-    replyTo: "rens@react2u.nl",
+    replyTo: "rens@react2u.nl", certificaten: [{ alt: "ISO 9001:2015", href: "", image: "" }],
   };
 
   it("gaat in de huisstijl van de klantmails, met antwoord naar de collega", async () => {
@@ -111,6 +111,8 @@ describe("persoonlijke brief aan een kandidaat", () => {
     expect(html).toContain('<html lang="nl"');
     expect(html).toContain("Hoi Yasmin,");
     expect(html).toContain("Stratumsedijk 29");
+    // De keurmerken onder de mail komen uit Instellingen, net als op de site.
+    expect(html).toContain("/beeld/keurmerken/iso9001.png");
   });
 
   it("escapet de tekst, maakt van een regeleinde een <br> en slaat lege alinea's over", async () => {

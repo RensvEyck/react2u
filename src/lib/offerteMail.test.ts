@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, offerteSamenvatting } from "./offerteMail";
 import { MERKEN } from "./offerteMerk";
 import { sendOfferte, sendOfferteCode } from "./mail";
+import type { Certificate } from "./nav";
 import type { Regel } from "./offertes";
 
 const regels: Regel[] = [
@@ -15,6 +16,11 @@ const offerte = { regels, keuze: null, medewerkers: 85, status: "verstuurd" as c
 const nu = new Date("2026-11-02T09:00:00+01:00");
 const afzender = { naam: "Cindy de Vries", functie: "Accountmanager", email: "sales@react2u.nl", telefoon: "085 620 58 00" };
 const basis = "https://react2u.nl";
+/** Twee certificaten zoals ze in Instellingen staan: één herkenbaar aan de omschrijving, één aan de bestandsnaam van de PDF. */
+const certificaten: Certificate[] = [
+  { alt: "Gecertificeerd volgens het certificatieschema", href: "https://voorbeeld.test/1786026544609-Certificatieschema_Arbodiensten.pdf", image: "" },
+  { alt: "ISO 9001:2015", href: "", image: "" },
+];
 
 describe("samenvatting voor de offertekaart", () => {
   it("bedragen eerst, dan de geldigheid; hooguit drie gegevens", () => {
@@ -59,7 +65,7 @@ describe("de offertemail", () => {
     offerteMailHtml({
       basis, merk: MERKEN.recover, aanhef: "Rens", bedrijf: "FlexHero Eindhoven B.V.", nummer: "2026-0003",
       titel: "Verzuimbegeleiding op maat", link: "https://react2u.nl/offerte/abc?x=1&y=2", bericht: "Bedankt voor het gesprek.\n\nTot snel!",
-      geldigTot: "1 december 2026", afzender, ...offerteSamenvatting(offerte, nu), ...extra,
+      geldigTot: "1 december 2026", afzender, certificaten, ...offerteSamenvatting(offerte, nu), ...extra,
     });
 
   it("het label bovenaan: woordmerk, kleur, dienst en tagline", () => {
@@ -115,9 +121,47 @@ describe("de offertemail", () => {
   });
 });
 
+describe("de keurmerken onder de mail volgen Instellingen", () => {
+  const voet = (lijst: Certificate[]) => offerteCodeHtml({ basis, code: "482913", nummer: "2026-0003", bedrijf: "FlexHero B.V.", afzender, certificaten: lijst });
+
+  it("geen certificaten: geen badges en geen lege rij; de voet met het adres blijft", () => {
+    const h = voet([]);
+    expect(h).not.toContain("/beeld/keurmerken/");
+    expect(h).not.toMatch(/<tr>\s*<\/tr>/);
+    expect(h).toContain("Jouw mensen,");
+    expect(h).toContain("Stratumsedijk 29");
+  });
+
+  it("een bekend certificaat krijgt het logo van de site, in de volgorde van Instellingen, met een korte alt", () => {
+    const h = voet([{ alt: "ISO/IEC 27001: informatiebeveiliging", href: "", image: "" }, ...certificaten]);
+    const iso27001 = h.indexOf(`${basis}/beeld/keurmerken/iso27001.png`);
+    const sbca = h.indexOf(`${basis}/beeld/keurmerken/sbca.jpg`);
+    const iso9001 = h.indexOf(`${basis}/beeld/keurmerken/iso9001.png`);
+    expect(iso27001).toBeGreaterThan(-1);
+    expect(iso27001).toBeLessThan(sbca);
+    expect(sbca).toBeLessThan(iso9001);
+    expect(h).toContain('alt="ISO 27001"');
+    expect(h).toContain('alt="SBCA"');
+    // Wat niet in Instellingen staat, staat er niet: de vaste vijf van vroeger zijn weg.
+    expect(h).not.toContain("/beeld/keurmerken/iso27701.png");
+    expect(h).not.toContain("/beeld/keurmerken/oval.png");
+  });
+
+  it("een onbekend certificaat staat er als tekst; een geüpload logo gaat niet als badge mee, ook niet bij een bekend keurmerk", () => {
+    const h = voet([
+      { alt: "ISO 45001 <veilig>", href: "", image: "https://voorbeeld.test/iso45001.png" },
+      { alt: "ISO 9001", href: "", image: "https://voorbeeld.test/eigen-logo.png" },
+    ]);
+    expect(h).toContain(">ISO 45001 &lt;veilig&gt;</td>");
+    expect(h).not.toContain("iso45001.png");
+    expect(h).toContain(`${basis}/beeld/keurmerken/iso9001.png`);
+    expect(h).not.toContain("eigen-logo.png");
+  });
+});
+
 describe("code en bevestiging", () => {
   it("de code groot in beeld en vooraan in de voorbeeldtekst", () => {
-    const h = offerteCodeHtml({ basis, merk: MERKEN.resist, code: "482913", nummer: "2026-0003", bedrijf: "FlexHero B.V.", afzender });
+    const h = offerteCodeHtml({ basis, merk: MERKEN.resist, code: "482913", nummer: "2026-0003", bedrijf: "FlexHero B.V.", afzender, certificaten });
     expect(h).toContain(">482913</p>");
     expect(h).toMatch(/<div style="display:none[^>]*>482913 is je code/);
     expect(h).toContain(MERKEN.resist.tint);
@@ -127,7 +171,7 @@ describe("code en bevestiging", () => {
     const h = offerteGetekendHtml({
       basis, merk: MERKEN.recover, naam: "Rens van Eyck", bedrijf: "FlexHero B.V.", nummer: "2026-0003", link: "https://react2u.nl/offerte/abc",
       hash: "abc123", moment: "2 november 2026 om 10.14 uur", regels: [{ naam: "Aansluiting", bedrag: "€100 per maand" }],
-      totalen: [{ label: "Per maand", bedrag: "€100" }], afzender, pdf: true,
+      totalen: [{ label: "Per maand", bedrag: "€100" }], afzender, pdf: true, certificaten,
       vervolg: [{ kop: "Je ondertekent online", tekst: "…" }, { kop: "We plannen de start", tekst: "We bellen je." }],
     });
     expect(h).toContain("Bedankt, Rens.");
@@ -159,7 +203,7 @@ describe("versturen", () => {
   it("een offerte voor een RI&E krijgt de branding van Resist; onderwerp en antwoordadres blijven", async () => {
     const r = await sendOfferte({
       to: "klant@flexhero.nl", aanhef: "Rens", bedrijf: "FlexHero B.V.", nummer: "2026-0004", link: "https://react2u.nl/offerte/abc",
-      bericht: null, geldigTot: "1 december 2026", afzender, vorm: "rie", samenvatting: offerteSamenvatting(offerte, nu),
+      bericht: null, geldigTot: "1 december 2026", afzender, vorm: "rie", samenvatting: offerteSamenvatting(offerte, nu), certificaten,
     });
     expect(r).toEqual({ ok: true });
     expect(body!.subject).toBe("Offerte 2026-0004 voor FlexHero B.V.");
@@ -167,11 +211,14 @@ describe("versturen", () => {
     expect(String(body!.html)).toContain(">Resist<sup");
     expect(String(body!.html)).toContain(MERKEN.resist.kleur);
     expect(String(body!.html)).toContain("https://react2u.nl/mail/logo-react2u.png");
+    expect(String(body!.html)).toContain("https://react2u.nl/beeld/keurmerken/sbca.jpg");
   });
 
   it("zonder vorm valt de mail terug op Recover", async () => {
-    await sendOfferteCode({ to: "klant@flexhero.nl", code: "000123", nummer: "2026-0004", bedrijf: "FlexHero B.V.", afzender });
+    await sendOfferteCode({ to: "klant@flexhero.nl", code: "000123", nummer: "2026-0004", bedrijf: "FlexHero B.V.", afzender, certificaten: [] });
     expect(body!.subject).toBe("000123 is je code voor offerte 2026-0004");
     expect(String(body!.html)).toContain(MERKEN.recover.tint);
+    // Zonder certificaten in Instellingen staat er ook onder de mail geen keurmerk.
+    expect(String(body!.html)).not.toContain("/beeld/keurmerken/");
   });
 });

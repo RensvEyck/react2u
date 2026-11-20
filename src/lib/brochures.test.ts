@@ -35,6 +35,7 @@ describe("brochures (migratie 0030)", () => {
       bericht: "Leuk dat we elkaar spraken.\n\nHier is de brochure.",
       afzender: { naam: "Rens van Eyck", functie: "Eigenaar", email: "sales@react2u.nl", telefoon: "085 620 58 00" },
       diensten,
+      certificaten: [],
     });
     expect(html).toContain('href="https://react2u.nl/brochure/abc"');
     expect(html).toContain("Beste Karin,");
@@ -47,6 +48,6 @@ describe("brochures (migratie 0030)", () => {
     expect(html).toContain("Rens van Eyck");
     expect(html).toContain("mailto:sales@react2u.nl");
     // Een herinnering zegt dat hij nog klaarstaat.
-    expect(brochureMailHtml({ basis: "https://react2u.nl", aanhef: null, bedrijf: "X", nummer: "B2026-0002", link: "https://react2u.nl/brochure/def", bericht: null, afzender: { naam: null, functie: null, email: null, telefoon: null }, herinnering: true, diensten })).toContain("staat nog voor je klaar");
+    expect(brochureMailHtml({ basis: "https://react2u.nl", aanhef: null, bedrijf: "X", nummer: "B2026-0002", link: "https://react2u.nl/brochure/def", bericht: null, afzender: { naam: null, functie: null, email: null, telefoon: null }, herinnering: true, diensten, certificaten: [] })).toContain("staat nog voor je klaar");
   });
 });

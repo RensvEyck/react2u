@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
     return a.email && (rol?.permissions || []).includes("bellijst");
   });
 
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const plannen: { aan: string; onderwerp: string; delen: number }[] = [];
   let verstuurd = 0;
   const mislukt: string[] = [];
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
     if (!m) continue;
     plannen.push({ aan: o.email, onderwerp: m.onderwerp, delen: m.delen.length });
     if (dry) continue;
-    const res = await sendOchtendmail({ to: o.email, onderwerp: m.onderwerp, aanhef: m.aanhef, delen: m.delen, link: `${basis}/admin/klantenbord/vandaag`, contact });
+    const res = await sendOchtendmail({ to: o.email, onderwerp: m.onderwerp, aanhef: m.aanhef, delen: m.delen, link: `${basis}/admin/klantenbord/vandaag`, contact, certificaten });
     if (res.ok) verstuurd++;
     else mislukt.push(`${o.email}: ${res.reden}${res.melding ? ` (${res.melding})` : ""}`);
   }

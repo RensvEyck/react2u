@@ -19,6 +19,7 @@
 import type { Taal } from "./taal";
 import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
 import type { Vorm } from "./offertes";
 import { merkVoorVorm } from "./offerteMerk";
 import { FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail, eyebrow, knop, linkAlsTekst } from "./offerteMail";
@@ -219,7 +220,7 @@ export async function sendMfaResetNotice(n: { to: string; door: string }): Promi
  * staat iets donkerder; de laatste regel van de groet (het bedrijf) gedempt,
  * zoals een handtekening.
  */
-function brief(b: { alineas: string[]; groet: string[]; onderwerp: string; taal?: Taal; contact?: ContactInfo }) {
+function brief(b: { alineas: string[]; groet: string[]; onderwerp: string; taal?: Taal; contact?: ContactInfo; certificaten: Certificate[] }) {
   const regel = (t: string) => esc(t).replace(/\n/g, "<br>");
   const alineas = b.alineas.filter((a) => a.trim());
   const isAanhef = (a: string, i: number) => i === 0 && a.length <= 60 && !a.includes("\n") && a.trimEnd().endsWith(",");
@@ -234,7 +235,7 @@ ${onder.map((r) => `<p style="margin:1px 0 0;font-family:${FONT};font-size:14px;
     // Naast het onderwerp in de inbox: de eerste echte zin, niet "Hoi Yasmin,".
     preheader: alineas.find((a, i) => !isAanhef(a, i)) || b.onderwerp,
     kaart,
-    contact: b.contact,
+    contact: b.contact, certificaten: b.certificaten,
     taal: b.taal,
   });
 }
@@ -245,9 +246,9 @@ ${onder.map((r) => `<p style="margin:1px 0 0;font-family:${FONT};font-size:14px;
  * uit bij de collega die hem stuurde, niet bij het noreply-adres.
  */
 export async function sendBrief(b: {
-  to: string; subject: string; alineas: string[]; groet: string[]; replyTo?: string; taal?: Taal; contact?: ContactInfo;
+  to: string; subject: string; alineas: string[]; groet: string[]; replyTo?: string; taal?: Taal; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
-  const html = brief({ alineas: b.alineas, groet: b.groet, onderwerp: b.subject, taal: b.taal, contact: b.contact });
+  const html = brief({ alineas: b.alineas, groet: b.groet, onderwerp: b.subject, taal: b.taal, contact: b.contact, certificaten: b.certificaten });
   return verstuur([b.to], b.subject, html, b.replyTo);
 }
 
@@ -255,7 +256,7 @@ export async function sendBrief(b: {
  * De ochtendmail van het klantenbord (api/cron/klantenbord, inhoud uit
  * lib/ochtendmail.ts): per deel een kop en regels met een link naar de kaart.
  */
-export async function sendOchtendmail(m: { to: string; onderwerp: string; aanhef: string; delen: { kop: string; regels: { bedrijf: string; tekst: string; sub: string | null; href: string }[] }[]; link: string; contact?: ContactInfo }): Promise<Verzonden> {
+export async function sendOchtendmail(m: { to: string; onderwerp: string; aanhef: string; delen: { kop: string; regels: { bedrijf: string; tekst: string; sub: string | null; href: string }[] }[]; link: string; contact?: ContactInfo; certificaten: Certificate[] }): Promise<Verzonden> {
   const regel = (r: { bedrijf: string; tekst: string; sub: string | null; href: string }) =>
     `<tr><td style="padding:9px 0;border-top:1px solid ${KLEUR.lijn}">
       <a href="${esc(r.href)}" style="font-family:${FONT_KOP};font-size:15px;line-height:1.4;font-weight:700;color:${KLEUR.inkt};text-decoration:none">${esc(r.bedrijf)}</a>
@@ -273,7 +274,7 @@ ${p(esc("Dit staat vandaag op het klantenbord. Klik op een bedrijf om naar de ka
 <div style="height:18px"></div>
 ${delen}
 ${knop("Open de werkrij van vandaag", m.link)}`);
-  const html = omhulsel({ basis: siteBasis(), titel: m.onderwerp, preheader: m.onderwerp, kaart, contact: m.contact });
+  const html = omhulsel({ basis: siteBasis(), titel: m.onderwerp, preheader: m.onderwerp, kaart, contact: m.contact, certificaten: m.certificaten });
   return verstuur([m.to], m.onderwerp, html);
 }
 
@@ -283,7 +284,7 @@ ${knop("Open de werkrij van vandaag", m.link)}`);
  * het eigen scherm. Antwoorden komt uit bij het meldingenadres.
  */
 export async function sendWeekevaluatieHerinnering(h: {
-  to: string; onderwerp: string; aanhef: string; alineas: string[]; knop: string; link: string; contact?: ContactInfo;
+  to: string; onderwerp: string; aanhef: string; alineas: string[]; knop: string; link: string; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const kaart = vak(`${p(esc(h.aanhef), `color:${KLEUR.inkt}`)}
 ${h.alineas.map((a) => p(esc(a))).join("\n")}
@@ -291,7 +292,7 @@ ${h.alineas.map((a) => p(esc(a))).join("\n")}
 ${knop(h.knop, h.link)}
 <div style="height:22px"></div>
 ${linkAlsTekst(h.link)}`);
-  const html = omhulsel({ basis: siteBasis(), titel: h.onderwerp, preheader: h.alineas[0] || h.onderwerp, kaart, contact: h.contact });
+  const html = omhulsel({ basis: siteBasis(), titel: h.onderwerp, preheader: h.alineas[0] || h.onderwerp, kaart, contact: h.contact, certificaten: h.certificaten });
   return verstuur([h.to], h.onderwerp, html, adressen(process.env.NOTIFY_TO)[0]);
 }
 
@@ -300,13 +301,13 @@ ${linkAlsTekst(h.link)}`);
  * weekevaluatie_signaal van 0045): een korte mail aan wie het kwartaaloverzicht
  * mag zien, zonder de antwoorden zelf, met een knop naar de collega in het overzicht.
  */
-export async function sendWeekevaluatieSignaal(s: { to: string; onderwerp: string; alineas: string[]; knop: string; link: string; contact?: ContactInfo }): Promise<Verzonden> {
+export async function sendWeekevaluatieSignaal(s: { to: string; onderwerp: string; alineas: string[]; knop: string; link: string; contact?: ContactInfo; certificaten: Certificate[] }): Promise<Verzonden> {
   const kaart = vak(`${s.alineas.map((a) => p(esc(a))).join("\n")}
 <div style="height:6px"></div>
 ${knop(s.knop, s.link, KLEUR.indigo)}
 <div style="height:22px"></div>
 ${linkAlsTekst(s.link)}`);
-  const html = omhulsel({ basis: siteBasis(), titel: s.onderwerp, preheader: s.alineas[0] || s.onderwerp, kaart, contact: s.contact });
+  const html = omhulsel({ basis: siteBasis(), titel: s.onderwerp, preheader: s.alineas[0] || s.onderwerp, kaart, contact: s.contact, certificaten: s.certificaten });
   return verstuur([s.to], s.onderwerp, html);
 }
 
@@ -316,7 +317,7 @@ ${linkAlsTekst(s.link)}`);
  * naar de collega in het kwartaaloverzicht. Beantwoorden gaat naar de collega.
  */
 export async function sendWeekevaluatieMelding(m: {
-  to: string; onderwerp: string; alineas: string[]; citaat: string; knop: string; link: string; replyTo: string; contact?: ContactInfo;
+  to: string; onderwerp: string; alineas: string[]; citaat: string; knop: string; link: string; replyTo: string; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const citaat = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 22px"><tr>
 <td style="border-left:3px solid ${KLEUR.roze};background:${KLEUR.zand};border-radius:0 14px 14px 0;padding:16px 20px;font-family:${FONT};font-size:16px;line-height:1.6;color:${KLEUR.inkt};white-space:pre-line">${esc(m.citaat)}</td>
@@ -328,7 +329,7 @@ ${m.alineas.slice(1).map((a) => p(esc(a))).join("\n")}
 ${knop(m.knop, m.link, KLEUR.indigo)}
 <div style="height:22px"></div>
 ${linkAlsTekst(m.link)}`);
-  const html = omhulsel({ basis: siteBasis(), titel: m.onderwerp, preheader: m.citaat.slice(0, 140), kaart, contact: m.contact });
+  const html = omhulsel({ basis: siteBasis(), titel: m.onderwerp, preheader: m.citaat.slice(0, 140), kaart, contact: m.contact, certificaten: m.certificaten });
   return verstuur([m.to], m.onderwerp, html, m.replyTo);
 }
 
@@ -553,7 +554,7 @@ export async function sendOfferte(o: {
   vorm?: Vorm | null;
   /** Bedrag, geldigheid en onderdelen voor de offertekaart (offerteSamenvatting). */
   samenvatting?: Pick<OfferteMail, "feiten" | "onderdelen" | "opties" | "kiezen">;
-  contact?: ContactInfo;
+  contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const html = offerteMailHtml({
     basis: siteBasis(),
@@ -567,7 +568,7 @@ export async function sendOfferte(o: {
     geldigTot: o.geldigTot,
     afzender: o.afzender,
     herinnering: o.herinnering,
-    contact: o.contact,
+    contact: o.contact, certificaten: o.certificaten,
     ...o.samenvatting,
   });
   const onderwerp = `${o.herinnering ? "Herinnering: o" : "O"}fferte ${o.nummer} voor ${o.bedrijf}`;
@@ -579,10 +580,10 @@ export async function sendOfferte(o: {
  * vooraan in het onderwerp, zodat hij al in de melding op de telefoon staat.
  */
 export async function sendOfferteCode(c: {
-  to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender; vorm?: Vorm | null; contact?: ContactInfo;
+  to: string; code: string; nummer: string; bedrijf: string; afzender: Afzender; vorm?: Vorm | null; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const html = offerteCodeHtml({
-    basis: siteBasis(), merk: merkVan(c.vorm), code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact,
+    basis: siteBasis(), merk: merkVan(c.vorm), code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact, certificaten: c.certificaten,
   });
   return verstuur([c.to], `${c.code} is je code voor offerte ${c.nummer}`, html, c.afzender.email || undefined);
 }
@@ -604,11 +605,11 @@ function factuurHtml(f: { email?: string; adres?: string; postcode?: string; pla
 export async function bevestigOfferteGetekend(b: {
   to: string; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
   regels: { naam: string; bedrag: string }[]; totalen: { label: string; bedrag: string }[]; afzender: Afzender; pdf?: Bijlage | null;
-  vorm?: Vorm | null; vervolg?: { kop: string; tekst: string }[] | null; contact?: ContactInfo;
+  vorm?: Vorm | null; vervolg?: { kop: string; tekst: string }[] | null; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const html = offerteGetekendHtml({
     basis: siteBasis(), merk: merkVan(b.vorm), naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash,
-    moment: b.moment, regels: b.regels, totalen: b.totalen, afzender: b.afzender, vervolg: b.vervolg, pdf: Boolean(b.pdf), contact: b.contact,
+    moment: b.moment, regels: b.regels, totalen: b.totalen, afzender: b.afzender, vervolg: b.vervolg, pdf: Boolean(b.pdf), contact: b.contact, certificaten: b.certificaten,
   });
   return verstuur([b.to], `Ondertekend: offerte ${b.nummer} voor ${b.bedrijf}`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
 }
@@ -692,7 +693,7 @@ export function offerteUrl(token: string) {
  */
 export async function sendBrochure(b: {
   to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; bericht: string | null;
-  afzender: Afzender; herinnering?: boolean; diensten: MailDienst[]; contact?: ContactInfo;
+  afzender: Afzender; herinnering?: boolean; diensten: MailDienst[]; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const { to, ...rest } = b;
   const html = brochureMailHtml({ basis: siteBasis(), ...rest });
@@ -724,7 +725,7 @@ export function brochureUrl(token: string) {
 
 export async function sendOnboarding(o: {
   to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; bericht: string | null;
-  afzender: Afzender; herinnering?: boolean; documenten: MailDocument[]; contact?: ContactInfo;
+  afzender: Afzender; herinnering?: boolean; documenten: MailDocument[]; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const { to, ...rest } = o;
   const html = onboardingMailHtml({ basis: siteBasis(), ...rest });
@@ -771,8 +772,8 @@ export async function sendMachtiging(m: Omit<MachtigingMail, "basis"> & { to: st
 }
 
 /** Aan de werknemer na het tekenen, met de getekende machtiging als pdf. */
-export async function bevestigMachtigingGetekend(b: { to: string; naam: string; bedrijf: string; arbodienst: string | null; moment: string; link: string; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo }): Promise<Verzonden> {
-  const html = machtigingGetekendHtml({ basis: siteBasis(), naam: b.naam, bedrijf: b.bedrijf, arbodienst: b.arbodienst, moment: b.moment, link: b.link, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact });
+export async function bevestigMachtigingGetekend(b: { to: string; naam: string; bedrijf: string; arbodienst: string | null; moment: string; link: string; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo; certificaten: Certificate[] }): Promise<Verzonden> {
+  const html = machtigingGetekendHtml({ basis: siteBasis(), naam: b.naam, bedrijf: b.bedrijf, arbodienst: b.arbodienst, moment: b.moment, link: b.link, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact, certificaten: b.certificaten });
   return verstuur([b.to], `Getekend: je machtiging voor de overdracht van je verzuimdossier`, html, b.afzender.email || undefined, b.pdf ? [b.pdf] : undefined);
 }
 
@@ -788,7 +789,7 @@ export async function sendOnboardingKlant(k: Omit<OnboardingKlantMail, "basis"> 
 }
 
 /** Aan een collega van de klant: een stap van de onboarding doorgestuurd. */
-export async function sendOnboardingDoorgestuurd(d: { to: string; naam: string; van: string; bedrijf: string; stap: string; actie: string; link: string; bericht: string | null; afzender: Afzender; contact?: ContactInfo }): Promise<Verzonden> {
+export async function sendOnboardingDoorgestuurd(d: { to: string; naam: string; van: string; bedrijf: string; stap: string; actie: string; link: string; bericht: string | null; afzender: Afzender; contact?: ContactInfo; certificaten: Certificate[] }): Promise<Verzonden> {
   const { to, ...rest } = d;
   const html = doorgestuurdHtml({ basis: siteBasis(), ...rest });
   return verstuur([to], `${d.van} stuurt je ${d.stap} door: onboarding ${d.bedrijf} bij React2u`, html, d.afzender.email || undefined);
@@ -801,9 +802,9 @@ export async function sendOnboardingDoorgestuurd(d: { to: string; naam: string; 
  */
 export async function sendOverdracht(b: {
   to: string; werkgeverEmail: string | null; bedrijf: string; contactpersoon: string | null; aantal: number; namen: { naam: string; geboortedatum: string }[];
-  arbodienst: string | null; alineas: string[]; pdf: Bijlage; contact?: ContactInfo;
+  arbodienst: string | null; alineas: string[]; pdf: Bijlage; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
-  const html = overdrachtMailHtml({ basis: siteBasis(), bedrijf: b.bedrijf, contactpersoon: b.contactpersoon, aantal: b.aantal, namen: b.namen, arbodienst: b.arbodienst, alineas: b.alineas, contact: b.contact });
+  const html = overdrachtMailHtml({ basis: siteBasis(), bedrijf: b.bedrijf, contactpersoon: b.contactpersoon, aantal: b.aantal, namen: b.namen, arbodienst: b.arbodienst, alineas: b.alineas, contact: b.contact, certificaten: b.certificaten });
   const aan = [b.to, ...(b.werkgeverEmail && b.werkgeverEmail !== b.to ? [b.werkgeverEmail] : []), REACT2U_MEDISCH];
   return verstuur([...new Set(aan)], `Opdracht overdracht verzuimdossiers ${b.bedrijf} naar React2u`, html, b.werkgeverEmail || undefined, [b.pdf]);
 }
@@ -874,22 +875,22 @@ export async function sendContract(c: Omit<ContractMail, "basis"> & { to: string
 }
 
 /** De code waarmee wie tekent zijn e-mailadres bevestigt; vooraan in het onderwerp, net als bij offertes. */
-export async function sendContractCode(c: { to: string; soort?: ContractSoort; code: string; nummer: string; bedrijf: string; afzender: Afzender; contact?: ContactInfo }): Promise<Verzonden> {
-  const html = contractCodeHtml({ basis: siteBasis(), soort: c.soort, code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact });
+export async function sendContractCode(c: { to: string; soort?: ContractSoort; code: string; nummer: string; bedrijf: string; afzender: Afzender; contact?: ContactInfo; certificaten: Certificate[] }): Promise<Verzonden> {
+  const html = contractCodeHtml({ basis: siteBasis(), soort: c.soort, code: c.code, nummer: c.nummer, bedrijf: c.bedrijf, afzender: c.afzender, contact: c.contact, certificaten: c.certificaten });
   return verstuur([c.to], `${c.code} is je code voor contract ${c.nummer}`, html, c.afzender.email || undefined);
 }
 
 /** Bevestiging aan wie tekende, met het getekende contract als pdf (met het ondertekeningscertificaat). */
 export async function bevestigContractGetekend(b: {
   to: string; soort?: ContractSoort; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
-  regels: { label: string; waarde: string }[]; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo;
+  regels: { label: string; waarde: string }[]; afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo; certificaten: Certificate[];
   /** Basiscontract (0042): de ingevulde checklist als tweede bijlage, of de regel dat hij nog openstaat. */
   checklist?: Bijlage | "open" | null;
 }): Promise<Verzonden> {
   const checklistPdf = b.checklist && b.checklist !== "open" ? b.checklist : null;
   const html = contractGetekendHtml({
     basis: siteBasis(), soort: b.soort, naam: b.naam, bedrijf: b.bedrijf, nummer: b.nummer, link: b.link, hash: b.hash, moment: b.moment,
-    regels: b.regels, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact,
+    regels: b.regels, afzender: b.afzender, pdf: Boolean(b.pdf), contact: b.contact, certificaten: b.certificaten,
     checklist: checklistPdf ? "bijgevoegd" : b.checklist === "open" ? "open" : undefined,
   });
   const bijlagen = [b.pdf, checklistPdf].filter((x): x is Bijlage => Boolean(x));
@@ -899,7 +900,7 @@ export async function bevestigContractGetekend(b: {
 /** De kopie aan de klant zodra hij de Checklist arbeidsomstandigheden invult of bijwerkt (0042), met de pdf. */
 export async function sendContractChecklistKopie(c: {
   to: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; beantwoord: number; totaal: number; opnieuw: boolean; door: string | null;
-  afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo;
+  afzender: Afzender; pdf?: Bijlage | null; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const html = contractChecklistHtml({ basis: siteBasis(), ...c, pdf: Boolean(c.pdf) });
   return verstuur([c.to], `${c.opnieuw ? "Bijgewerkt" : "Opgeslagen"}: ${CHECKLIST_NAAM.toLowerCase()} bij contract ${c.nummer}`, html, c.afzender.email || undefined, c.pdf ? [c.pdf] : undefined);

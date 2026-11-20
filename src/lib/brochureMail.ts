@@ -1,4 +1,5 @@
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
 import { MERKEN } from "./offerteMerk";
 import {
   afzenderKaart, alineasUit, esc, eyebrow, FONT, FONT_KOP, heldAchtergrond, KLEUR, knop, linkAlsTekst, metPunt, omhulsel, p, pil, scheiding, vak,
@@ -28,6 +29,8 @@ export type BrochureMail = {
   herinnering?: boolean;
   diensten: MailDienst[];
   contact?: ContactInfo;
+  /** De certificaten uit Instellingen, voor de keurmerken onder de mail. */
+  certificaten: Certificate[];
 };
 
 /** De indigo tint van React2u Ready als kleur van de kop: het label zonder eigen kleur. */
@@ -97,5 +100,6 @@ ${linkAlsTekst(b.link)}`);
       : `Alles wat React2u voor ${b.bedrijf} kan doen: zes specialismen, los af te nemen.`,
     kaart: kop + romp,
     contact: b.contact,
+    certificaten: b.certificaten,
   });
 }

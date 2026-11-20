@@ -62,7 +62,7 @@ export async function vraagContractCode(token: string, email: string): Promise<C
   }
   if (!uitkomst.ok) return fout(uitkomst.fout);
 
-  const [c, { contact }] = await Promise.all([lees(token), offerteHuisstijl()]);
+  const [c, { contact, certificaten }] = await Promise.all([lees(token), offerteHuisstijl()]);
   const verzonden = await sendContractCode({
     to: adres,
     soort: soortVan(c),
@@ -71,6 +71,7 @@ export async function vraagContractCode(token: string, email: string): Promise<C
     bedrijf: c?.bedrijf || "",
     afzender: { naam: c?.afzender_naam ?? null, functie: c?.afzender_functie ?? null, email: c?.afzender_email || CONTRACT_EMAIL, telefoon: c?.afzender_telefoon ?? null },
     contact,
+    certificaten,
   });
   if (!verzonden.ok) return fout("mail");
   return { ok: true };
@@ -129,7 +130,7 @@ export async function ondertekenContract(
       og2.naam || inhoud.bedrijf, og2.adres || "", [og2.postcode, og2.plaats].filter(Boolean).join(" "), og2.kvk ? `KvK ${og2.kvk}` : "", og2.email || "", og2.telefoon || "",
     ].filter(Boolean);
     const afzender = { naam: c.afzender_naam, functie: c.afzender_functie, email: c.afzender_email || CONTRACT_EMAIL, telefoon: c.afzender_telefoon };
-    const { contact } = await offerteHuisstijl();
+    const { contact, certificaten } = await offerteHuisstijl();
     await Promise.all([
       bevestigContractGetekend({
         to: inhoud.getekend_email,
@@ -153,6 +154,7 @@ export async function ondertekenContract(
         pdf,
         checklist,
         contact,
+        certificaten,
       }),
       notifyContractGetekend({
         soort,
@@ -216,7 +218,7 @@ export async function slaChecklistOp(token: string, invoer: Record<string, unkno
 async function checklistSeintje(token: string, opnieuw: boolean) {
   const c = await lees(token);
   if (!c || !heeftChecklist(c)) return;
-  const [stand, pdf, { contact }] = await Promise.all([
+  const [stand, pdf, { contact, certificaten }] = await Promise.all([
     checklistStand(token),
     checklistPdfViaToken(token, c).catch((e) => {
       console.error("[contract] checklist-pdf mislukt:", e);
@@ -236,7 +238,7 @@ async function checklistSeintje(token: string, opnieuw: boolean) {
       ? sendContractChecklistKopie({
           to: aan, aanhef: c.contactpersoon?.split(" ")[0] ?? null, bedrijf: c.bedrijf, nummer: c.nummer, link: checklistUrl(token),
           beantwoord: v.beantwoord, totaal: v.totaal, opnieuw, door,
-          afzender: { naam: c.afzender_naam, functie: c.afzender_functie, email: c.afzender_email || CONTRACT_EMAIL, telefoon: c.afzender_telefoon }, pdf, contact,
+          afzender: { naam: c.afzender_naam, functie: c.afzender_functie, email: c.afzender_email || CONTRACT_EMAIL, telefoon: c.afzender_telefoon }, pdf, contact, certificaten,
         })
       : Promise.resolve(),
   ]);

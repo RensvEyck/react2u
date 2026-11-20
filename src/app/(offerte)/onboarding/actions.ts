@@ -50,8 +50,8 @@ async function seintje(token: string, uitkomst: Uitkomst, document?: string) {
     else if (uitkomst.eerste && doc) await notifyOnboarding({ ...basis, to, soort: "ingevuld", document: doc.titel.toLowerCase() });
   }
   if (!uitkomst.email) return;
-  const { contact } = await offerteHuisstijl();
-  const klant = { to: uitkomst.email, aanhef: uitkomst.contactpersoon?.split(" ")[0] ?? null, bedrijf: o.bedrijf, nummer: o.nummer, link: onboardingUrl(token), afzender: afzenderVan(o), contact };
+  const { contact, certificaten } = await offerteHuisstijl();
+  const klant = { to: uitkomst.email, aanhef: uitkomst.contactpersoon?.split(" ")[0] ?? null, bedrijf: o.bedrijf, nummer: o.nummer, link: onboardingUrl(token), afzender: afzenderVan(o), contact, certificaten };
   if (uitkomst.eerste && doc) {
     const antwoord = o.antwoorden?.[doc.sleutel];
     const aantal = doc.sleutel === "werknemers" ? ((antwoord?.data as { rijen?: unknown[] } | undefined)?.rijen?.length ?? 0) : 0;
@@ -145,12 +145,12 @@ export async function stuurStapDoor(token: string, stap: string, invoer: { naam:
   }
   if (!uitkomst.ok) return uitkomst.fout === "limiet" ? { ok: false, fout: "Vandaag zijn er al veel stappen doorgestuurd. Probeer het morgen nog eens." } : fout(uitkomst.fout);
 
-  const [o, { contact }] = await Promise.all([lees(token), offerteHuisstijl()]);
+  const [o, { contact, certificaten }] = await Promise.all([lees(token), offerteHuisstijl()]);
   if (!o) return fout("onbekend");
   const d = documentInfo(stap);
   const verzonden = await sendOnboardingDoorgestuurd({
     to: email, naam, van, bedrijf: o.bedrijf, stap: d.titel, actie: o.invullen.includes(stap) && d.invullen ? d.invullen : d.lezen,
-    link: `${onboardingUrl(token)}/${stap}`, bericht, afzender: afzenderVan(o), contact,
+    link: `${onboardingUrl(token)}/${stap}`, bericht, afzender: afzenderVan(o), contact, certificaten,
   });
   return verzonden.ok ? { ok: true } : { ok: false, fout: "De mail kon niet worden verstuurd. Kopieer de link van deze pagina en stuur hem zelf." };
 }
