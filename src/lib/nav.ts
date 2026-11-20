@@ -258,16 +258,18 @@ export function isAfbeelding(url: string): boolean {
 }
 
 /**
- * Certificaten voor de footer.
+ * Certificaten uit Instellingen, de bron voor de keurmerken op de site
+ * (lib/keurmerken.ts).
  *
- * Een certificaat telt mee zodra er íets te tonen valt: een logo, of anders een
- * omschrijving met een link. Dat laatste is er bewust bij: certificaten worden
- * vaak als PDF aangeleverd, en een PDF kun je niet in een `<img>` zetten. Zonder
- * die uitzondering verdween zo'n regel spoorloos — hij werd wél opgeslagen, maar
- * verscheen nergens, wat niet te onderscheiden is van "opslaan werkt niet".
+ * Een certificaat telt mee zodra er íets te tonen valt: een logo, of een
+ * omschrijving. Een omschrijving is genoeg: een bekend keurmerk ("ISO 9001")
+ * krijgt daarmee het logo van de site, een ander staat er als tekst. Zonder
+ * die regel verdween zo'n certificaat spoorloos — wél opgeslagen, nergens te
+ * zien, wat niet te onderscheiden is van "opslaan werkt niet".
  *
- * Een niet-toonbaar bestand in `image` (zoals een PDF) schuift daarom door naar
- * `href`, zodat het als link bruikbaar blijft.
+ * Certificaten worden vaak als PDF aangeleverd, en een PDF kun je niet in een
+ * `<img>` zetten. Een niet-toonbaar bestand in `image` schuift daarom door naar
+ * `href`, zodat het als doorklik bruikbaar blijft.
  */
 export function normalizeCertificates(value: unknown): Certificate[] {
   if (!Array.isArray(value)) return [];
@@ -284,5 +286,5 @@ export function normalizeCertificates(value: unknown): Certificate[] {
         href: href || (!toonbaar && ruw ? ruw : ""),
       };
     })
-    .filter((c) => c.image || (c.alt && c.href));
+    .filter((c) => c.image || c.alt);
 }

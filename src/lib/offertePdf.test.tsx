@@ -6,6 +6,8 @@ vi.mock("server-only", () => ({}));
 
 const { offertePdf } = await import("./offertePdf");
 const { CONTACT_FALLBACK } = await import("./content");
+/** Twee certificaten zoals in Instellingen: een dat de site kent (logo), een dat ze niet kent (naam als tekst). */
+const CERTIFICATEN = [{ alt: "ISO 9001:2015", href: "https://react2u.nl/certificaten/iso-9001.pdf", image: "" }, { alt: "FD Certificaat", href: "", image: "" }];
 import type { CertificaatGegevens, GetekendeInhoud } from "./offertes";
 
 // Een echte PNG als handtekening: een golvende lijn, 300 × 90, gemaakt met zlib.
@@ -92,7 +94,7 @@ const certificaat: CertificaatGegevens = {
 describe("offertePdf", () => {
   it("maakt een pdf met de offerte en het certificaat", async () => {
     const pdf = await offertePdf({
-      inhoud, hash: "a".repeat(64), handtekening: PNG, certificaat, contact: CONTACT_FALLBACK,
+      inhoud, hash: "a".repeat(64), handtekening: PNG, certificaat, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN,
       link: "https://react2u.nl/offerte/" + "f".repeat(64),
     });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
@@ -108,7 +110,7 @@ describe("offertePdf", () => {
       ...inhoud, factuur: undefined, bevestiging: undefined, handtekening_hash: undefined,
       getekend_naam: "", getekend_functie: null, getekend_email: "", getekend_at: "",
     };
-    const pdf = await offertePdf({ inhoud: concept, hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, link: "https://react2u.nl/offerte/x", concept: true });
+    const pdf = await offertePdf({ inhoud: concept, hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link: "https://react2u.nl/offerte/x", concept: true });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     if (process.env.PDF_CONCEPT) writeFileSync(process.env.PDF_CONCEPT, pdf);
     // In de metadata: een concept, zonder ondertekeningscertificaat.
@@ -119,7 +121,7 @@ describe("offertePdf", () => {
 
   it("werkt ook voor een offerte van vóór de bevestigingscode", async () => {
     const oud: GetekendeInhoud = { ...inhoud, factuur: undefined, bevestiging: undefined, handtekening_hash: undefined };
-    const pdf = await offertePdf({ inhoud: oud, hash: "c".repeat(64), handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, link: "https://react2u.nl/offerte/x" });
+    const pdf = await offertePdf({ inhoud: oud, hash: "c".repeat(64), handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link: "https://react2u.nl/offerte/x" });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
   }, 30000);
 });

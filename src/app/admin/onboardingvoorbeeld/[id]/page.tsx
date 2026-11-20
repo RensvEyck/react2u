@@ -19,5 +19,5 @@ export default async function OnboardingVoorbeeld({ params }: { params: Promise<
   if (!data) notFound();
   const o = data as Onboarding;
   const publiek: OnboardingPubliek = o;
-  return <OnboardingPagina o={publiek} basis={`/admin/onboardingvoorbeeld/${o.id}`} contact={huis.contact} modus="voorbeeld" />;
+  return <OnboardingPagina o={publiek} basis={`/admin/onboardingvoorbeeld/${o.id}`} contact={huis.contact} certificaten={huis.certificaten} modus="voorbeeld" />;
 }

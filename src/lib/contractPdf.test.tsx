@@ -4,6 +4,8 @@ vi.mock("server-only", () => ({}));
 
 const { contractPdf } = await import("./contractPdf");
 const { CONTACT_FALLBACK } = await import("./content");
+/** Twee certificaten zoals in Instellingen: een dat de site kent (logo), een dat ze niet kent (naam als tekst). */
+const CERTIFICATEN = [{ alt: "ISO 9001:2015", href: "https://react2u.nl/certificaten/iso-9001.pdf", image: "" }, { alt: "FD Certificaat", href: "", image: "" }];
 const { CONTRACT_STANDAARD, CONTRACT_VERSIE, RESELLER_VERSIE, resellerTekst } = await import("./contractTekst");
 const { opdrachtnemerUit } = await import("./contracten");
 const { contractMailHtml, contractCodeHtml, contractGetekendHtml, contractChecklistHtml } = await import("./contractMail");
@@ -32,13 +34,13 @@ const certificaat: ContractCertificaat = {
 
 describe("contractPdf", () => {
   it("maakt de getekende pdf met certificaat, en het concept met watermerk", async () => {
-    const pdf = await contractPdf({ inhoud, hash: "b".repeat(64), handtekening: null, certificaat, contact: CONTACT_FALLBACK, link: "https://react2u.nl/contract/abc" });
+    const pdf = await contractPdf({ inhoud, hash: "b".repeat(64), handtekening: null, certificaat, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link: "https://react2u.nl/contract/abc" });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(pdf.toString("latin1")).toContain("ondertekeningscertificaat");
     // De hele tekst van acht artikelen, de handtekening van de bestuurder, lettertypen en logo.
     expect(pdf.length).toBeGreaterThan(30_000);
     const leeg = { ...inhoud, opdrachtgever: {}, getekend_naam: "", getekend_functie: "", getekend_email: "", getekend_plaats: "", getekend_at: "", bevestiging: undefined };
-    const concept = await contractPdf({ inhoud: leeg, hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, link: "https://react2u.nl/contract/abc", concept: true });
+    const concept = await contractPdf({ inhoud: leeg, hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link: "https://react2u.nl/contract/abc", concept: true });
     expect(concept.toString("latin1")).toContain("arbodienstverlening, concept");
   }, 60_000);
 });
@@ -50,12 +52,12 @@ describe("resellerovereenkomst als pdf", () => {
       opdrachtgever: { naam: "Jouw HR Partner B.V.", adres: "Kerkstraat 1", postcode: "5611 AA", plaats: "Eindhoven", kvk: "12345678", email: "info@jouwhr.test", telefoon: "040 123 45 67" },
       tekst: resellerTekst({ jaarEen: 50, vervolg: 50 }), tekst_versie: RESELLER_VERSIE, aanvullend: null,
     };
-    const pdf = await contractPdf({ inhoud: reseller, hash: "b".repeat(64), handtekening: null, certificaat, contact: CONTACT_FALLBACK, link: "https://react2u.nl/contract/abc" });
+    const pdf = await contractPdf({ inhoud: reseller, hash: "b".repeat(64), handtekening: null, certificaat, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link: "https://react2u.nl/contract/abc" });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(pdf.toString("latin1")).toContain("resellerovereenkomst, partner, arbodienstverlening, getekend");
     const concept = await contractPdf({
       inhoud: { ...reseller, ingangsdatum: "", opdrachtgever: {}, getekend_naam: "", getekend_functie: "", getekend_email: "", getekend_plaats: "", getekend_at: "", bevestiging: undefined },
-      hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, link: "https://react2u.nl/contract/abc", concept: true,
+      hash: "", handtekening: null, certificaat: null, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link: "https://react2u.nl/contract/abc", concept: true,
     });
     expect(concept.toString("latin1")).toContain("resellerovereenkomst, partner, arbodienstverlening, concept");
   }, 60_000);

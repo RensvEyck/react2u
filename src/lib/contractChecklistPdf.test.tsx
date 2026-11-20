@@ -5,6 +5,8 @@ vi.mock("server-only", () => ({}));
 
 const { contractChecklistPdf } = await import("./contractChecklistPdf");
 const { CONTACT_FALLBACK } = await import("./content");
+/** Twee certificaten zoals in Instellingen: een dat de site kent (logo), een dat ze niet kent (naam als tekst). */
+const CERTIFICATEN = [{ alt: "ISO 9001:2015", href: "https://react2u.nl/certificaten/iso-9001.pdf", image: "" }, { alt: "FD Certificaat", href: "", image: "" }];
 const { CHECKLIST_VRAGEN, actieSleutel, datumSleutel } = await import("./contractChecklist");
 
 describe("contractChecklistPdf", () => {
@@ -12,7 +14,7 @@ describe("contractChecklistPdf", () => {
   const link = "https://react2u.nl/contract/abc/checklist";
 
   it("maakt de lege checklist, om te printen of met de hand in te vullen", async () => {
-    const pdf = await contractChecklistPdf({ contract, stand: null, contact: CONTACT_FALLBACK, link });
+    const pdf = await contractChecklistPdf({ contract, stand: null, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(pdf.toString("latin1")).toContain("basiscontract, in te vullen");
     // Leeg heeft elk onderdeel schrijfruimte: dat zijn twee pagina's, niet meer.
@@ -27,7 +29,7 @@ describe("contractChecklistPdf", () => {
       if (i % 2 === 0) data[datumSleutel(q.id)] = `2026-12-${String(i + 1).padStart(2, "0")}`;
     });
     const pdf = await contractChecklistPdf({
-      contract, contact: CONTACT_FALLBACK, link,
+      contract, contact: CONTACT_FALLBACK, certificaten: CERTIFICATEN, link,
       stand: { data, door: "Marieke Jansen", ingevuld_at: "2026-11-17T10:00:00Z", bijgewerkt_at: "2026-11-18T09:00:00Z", versie: 2 },
     });
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");

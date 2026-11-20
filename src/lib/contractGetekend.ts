@@ -22,6 +22,7 @@ export async function getekendContractPdf(token: string, bekend?: ContractPublie
     handtekening: c.handtekening,
     certificaat: (certificaat as ContractCertificaat | null) ?? null,
     contact: huis.contact,
+    certificaten: huis.certificaten,
     link: contractUrl(token),
   });
   return { filename: contractPdfNaam(c.getekend_inhoud), content };
@@ -48,6 +49,6 @@ export async function conceptContractPdf(
     // Een concept is niet getekend; het document toont deze velden dan niet.
     getekend_naam: "", getekend_functie: "", getekend_email: "", getekend_plaats: "", getekend_at: "",
   };
-  const content = await contractPdf({ inhoud, hash: "", handtekening: null, certificaat: null, contact: huis.contact, link, concept: true });
+  const content = await contractPdf({ inhoud, hash: "", handtekening: null, certificaat: null, contact: huis.contact, certificaten: huis.certificaten, link, concept: true });
   return { filename: contractPdfNaam(c, "concept"), content };
 }

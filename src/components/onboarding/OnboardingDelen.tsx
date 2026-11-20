@@ -1,8 +1,10 @@
 import { Outfit } from "next/font/google";
 import Beeld from "@/components/site/Beeld";
 import Logo from "@/components/site/Logo";
-import { BODY, BREED, Eyebrow, KEURMERKEN, kop, LAV, LINE, NAVY, PINK, Pijl, SOFT, Vink } from "@/components/blocks/Gedeeld";
+import { BODY, BREED, Eyebrow, kop, LAV, LINE, NAVY, PINK, Pijl, SOFT, Vink } from "@/components/blocks/Gedeeld";
 import type { ContactInfo } from "@/lib/content";
+import { keurmerkenVoor } from "@/lib/keurmerken";
+import type { Certificate } from "@/lib/nav";
 import { DOCUMENTEN as SITE_DOCUMENTEN } from "@/lib/documenten";
 import { datumLang } from "@/lib/offertes";
 import {
@@ -364,18 +366,26 @@ export function VragenInhoud({ tint }: { tint: boolean }) {
 
 /* ---------- zekerheid bij jullie gegevens ---------- */
 
-/** Bij het aanleveren van gegevens: de keurmerken die daarover gaan, met wat ze voor de klant betekenen. */
-export function Zekerheid({ tint }: { tint: boolean }) {
+/**
+ * Bij het aanleveren van gegevens: de keurmerken die daarover gaan, met wat ze
+ * voor de klant betekenen. Alleen de keurmerken die in Instellingen staan
+ * (lib/keurmerken.ts); staat er geen van de drie, dan niets.
+ */
+export function Zekerheid({ tint, certificaten }: { tint: boolean; certificaten: Certificate[] }) {
+  const keurmerken = keurmerkenVoor(certificaten);
   const items = [
     { naam: "ISO 27001", kop: "Beveiligd", tekst: "Wat je hier invult gaat over een beveiligde verbinding naar een omgeving die jaarlijks wordt getoetst op informatiebeveiliging." },
     { naam: "ISO 27701", kop: "Privacy", tekst: "Burgerservicenummers gebruiken we alleen om je medewerkers in XpertSuite te zetten. Daarna wissen we ze hier." },
     { naam: "SBCA", kop: "Gecertificeerde arbodienst", tekst: "Onafhankelijke instellingen toetsen elk jaar hoe we werken en hoe we met gegevens omgaan." },
-  ].map((i) => ({ ...i, k: KEURMERKEN.find((k) => k.naam === i.naam) }));
+  ]
+    .map((i) => ({ ...i, k: keurmerken.find((k) => k.naam === i.naam) }))
+    .filter((i) => i.k);
+  if (items.length === 0) return null;
   return (
     <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3 md:gap-4" aria-label="Jullie gegevens in goede handen" data-reveal>
       {items.map((i) => (
         <li key={i.naam} className="flex items-start gap-4 rounded-[20px] p-5" style={tint ? { background: "#ffffff" } : { background: SOFT, border: `1px solid ${LINE}` }}>
-          {i.k && (
+          {i.k?.src && (
             <span className="flex h-12 w-14 shrink-0 items-center justify-center">
               <Beeld src={i.k.src} alt={i.k.alt} sizes="56px" className="max-h-12 w-auto max-w-[56px] object-contain" />
             </span>

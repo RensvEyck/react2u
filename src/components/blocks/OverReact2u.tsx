@@ -6,8 +6,9 @@ import {
   Eyebrow, Kruimels, Keurmerken, KlantenStrook, KlantenAanHetWoord,
 } from "./Gedeeld";
 import Beeld from "@/components/site/Beeld";
+import type { Certificate } from "@/lib/nav";
 
-/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /*
  * Over React2u (ontwerp "Over React2u" op het canvas): het motto als kop,
@@ -16,7 +17,7 @@ import Beeld from "@/components/site/Beeld";
  * Eén blok zodat de volgorde vastligt; alle tekst komt uit `data`.
  */
 
-export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { lang?: Taal } }) {
+export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { lang?: Taal; certificaten?: Certificate[] } }) {
   const taal: Taal = ctx?.lang ?? "nl";
   const t = woordenboek(taal);
   const H = asH1 ? "h1" : "h2";
@@ -140,7 +141,7 @@ export function OverReact2u({ d, asH1, ctx }: { d: any; asH1?: boolean; ctx?: { 
       )}
 
       {/* 6. Kwaliteit en klanten */}
-      <Keurmerken taal={taal} />
+      <Keurmerken taal={taal} certificaten={ctx?.certificaten} />
       <div className="border-t" style={{ borderColor: LINE }} />
       <KlantenStrook taal={taal} />
       <KlantenAanHetWoord taal={taal} />

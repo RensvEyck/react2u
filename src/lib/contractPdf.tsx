@@ -2,8 +2,9 @@ import "server-only";
 import path from "path";
 import { isValidElement } from "react";
 import { Document, Image, Link, Page, Path, StyleSheet, Svg, Text, View, renderToBuffer } from "@react-pdf/renderer";
-import { KEURMERKEN } from "@/components/blocks/Gedeeld";
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
+import { PdfKeurmerken } from "./pdfKeurmerken";
 import { resellerVergoeding } from "./contractTekst";
 import {
   CONTRACT_SOORT, comparities, contractInhoud, contractTijdlijn, plaatsUit, react2uPartij, soortVan, versieTekst,
@@ -110,12 +111,14 @@ export type ContractPdfInvoer = {
   handtekening: string | null;
   certificaat: ContractCertificaat | null;
   contact: ContactInfo;
+  /** De certificaten uit Instellingen, voor de keurmerken in de voet (lib/keurmerken.ts). */
+  certificaten: Certificate[];
   /** De persoonlijke link, waar dezelfde versie en hetzelfde kenmerk online staan. */
   link: string;
   concept?: boolean;
 };
 
-function ContractDocument({ inhoud, hash, handtekening, certificaat, contact, link, concept = false }: ContractPdfInvoer) {
+function ContractDocument({ inhoud, hash, handtekening, certificaat, contact, certificaten, link, concept = false }: ContractPdfInvoer) {
   const basis = new URL(link).origin;
   const soort = soortVan(inhoud);
   const reseller = soort === "reseller";
@@ -316,10 +319,7 @@ function ContractDocument({ inhoud, hash, handtekening, certificaat, contact, li
           )}
 
           <View style={{ flexDirection: "row", alignItems: "center", marginTop: 18, gap: 16 }}>
-            {KEURMERKEN.map((k) => (
-              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt
-              <Image key={k.naam} src={path.join(BEELD, k.src)} style={{ height: 24, objectFit: "contain" }} />
-            ))}
+            <PdfKeurmerken certificaten={certificaten} kleur={MUTE} />
             <Text style={{ fontSize: 7.5, color: MUTE, flex: 1, textAlign: "right" }}>Tekst {versieTekst(inhoud.tekst_versie, soort)}</Text>
           </View>
         </View>

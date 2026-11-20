@@ -22,11 +22,12 @@ export function checklistUrl(token: string) {
 
 /** De pdf voor een bekend contract en een bekende stand (het beheer leest beide met zijn eigen sessie). */
 export async function checklistPdfBijlage(c: Pick<Kern, "nummer" | "bedrijf" | "opdrachtgever" | "token">, stand: ChecklistStand | null): Promise<Bijlage> {
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const content = await contractChecklistPdf({
     contract: { nummer: c.nummer, bedrijf: c.bedrijf, opdrachtgever: normaliseerOpdrachtgever(c.opdrachtgever) },
     stand,
     contact,
+    certificaten,
     link: checklistUrl(c.token),
   });
   return { filename: checklistPdfNaam(c, Boolean(stand)), content };

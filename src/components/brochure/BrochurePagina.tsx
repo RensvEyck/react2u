@@ -386,7 +386,7 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
 
       <KlantenStrook />
       <KlantenAanHetWoord />
-      <Keurmerken />
+      <Keurmerken certificaten={huis.certificaten} />
 
       {/* De uitnodiging, in de indigo band van de site. */}
       <section aria-label="Kennismaken" className="px-[6px] pb-2 md:px-6 md:pb-6 xl:px-10">

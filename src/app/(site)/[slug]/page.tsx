@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedPages, getPublishedPosts, getSetting } from "@/lib/content";
-import BlockRenderer, { needsPosts, needsTarieven } from "@/components/blocks/BlockRenderer";
+import BlockRenderer, { needsKeurmerken, needsPosts, needsTarieven } from "@/components/blocks/BlockRenderer";
 import { normalizeTarieven } from "@/lib/tarieven";
-import { crumbsVoor } from "@/lib/nav";
+import { crumbsVoor, normalizeCertificates } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
 import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
@@ -106,16 +106,18 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
   const res = await inhoud(slug);
   if (!res) notFound();
   const path = `/${slug}`;
-  const [posts, tarieven] = await Promise.all([
+  const [posts, tarieven, certificaten] = await Promise.all([
     needsPosts(res.blocks) ? getPublishedPosts() : [],
     // Het tarievenjaar uit de instellingen, alleen voor pagina's met een tariefblok.
     needsTarieven(res.blocks) ? getSetting<unknown>("tarieven").then(normalizeTarieven) : undefined,
+    // De certificaten uit de instellingen, alleen voor pagina's met keurmerken (lib/keurmerken.ts).
+    needsKeurmerken(res.blocks) ? getSetting<unknown>("certificates").then(normalizeCertificates) : undefined,
   ]);
   const crumbs = crumbsVoor(path, res.page.title);
 
   return (
     <>
-      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven }} />
+      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven, certificaten }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
     </>
   );

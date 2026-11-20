@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { getPage, getPublishedPosts } from "@/lib/content";
-import BlockRenderer, { needsPosts } from "@/components/blocks/BlockRenderer";
+import { getPage, getPublishedPosts, getSetting } from "@/lib/content";
+import BlockRenderer, { needsKeurmerken, needsPosts } from "@/components/blocks/BlockRenderer";
+import { normalizeCertificates } from "@/lib/nav";
 import { jsonLd } from "@/lib/jsonld";
 import { organisatieGraphLd } from "@/lib/organisatie";
 import { concept } from "@/lib/concept";
@@ -28,10 +29,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const blocks = concept("home")?.blocks ?? (await getPage("home"))?.blocks;
   if (!blocks) return <div className="container-site py-20">Content wordt nog ingericht.</div>;
-  const posts = needsPosts(blocks) ? await getPublishedPosts() : [];
+  const [posts, certificaten] = await Promise.all([
+    needsPosts(blocks) ? getPublishedPosts() : [],
+    // De certificaten uit de instellingen, alleen voor pagina's met keurmerken (lib/keurmerken.ts).
+    needsKeurmerken(blocks) ? getSetting<unknown>("certificates").then(normalizeCertificates) : undefined,
+  ]);
   return (
     <>
-      <BlockRenderer blocks={blocks} ctx={{ posts }} />
+      <BlockRenderer blocks={blocks} ctx={{ posts, certificaten }} />
       {/* De organisatie en de website als één geheel (lib/organisatie.ts);
           artikelen en vacatures verwijzen met hetzelfde @id hiernaar. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisatieGraphLd()) }} />

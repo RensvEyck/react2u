@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import BlockRenderer, { needsTarieven } from "@/components/blocks/BlockRenderer";
+import BlockRenderer, { needsKeurmerken, needsTarieven } from "@/components/blocks/BlockRenderer";
 import { getSetting } from "@/lib/content";
 import { normalizeTarieven } from "@/lib/tarieven";
 import { alleConceptSlugsEn, conceptEn } from "@/lib/concept";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
-import { crumbsVoor } from "@/lib/nav";
+import { crumbsVoor, normalizeCertificates } from "@/lib/nav";
 import { openGraphVoor } from "@/lib/og";
 import { paginaBestaat } from "@/lib/pagina";
 import { metOmschrijving, omschrijving } from "@/lib/seo";
@@ -51,10 +51,14 @@ export default async function EnglishPage({ params }: { params: Promise<{ slug: 
   const path = `/en/${pad}`;
   const crumbs = crumbsVoor(path, c.title, "en");
   // Het tarievenjaar uit de instellingen, alleen voor /en/pricing (dgTarieven).
-  const tarieven = needsTarieven(c.blocks) ? normalizeTarieven(await getSetting<unknown>("tarieven")) : undefined;
+  const [tarieven, certificaten] = await Promise.all([
+    needsTarieven(c.blocks) ? getSetting<unknown>("tarieven").then(normalizeTarieven) : undefined,
+    // De certificaten uit de instellingen, voor de keurmerken op /en/about-us, de dienstpagina's en /en/certifications.
+    needsKeurmerken(c.blocks) ? getSetting<unknown>("certificates").then(normalizeCertificates) : undefined,
+  ]);
   return (
     <>
-      <BlockRenderer blocks={c.blocks} ctx={{ crumbs, lang: "en", tarieven }} />
+      <BlockRenderer blocks={c.blocks} ctx={{ crumbs, lang: "en", tarieven, certificaten }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs, "en")) }} />
     </>
   );

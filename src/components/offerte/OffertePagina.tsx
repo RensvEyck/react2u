@@ -5,7 +5,8 @@ import { Caveat, Outfit } from "next/font/google";
 import { LuCheck } from "react-icons/lu";
 import Logo from "@/components/site/Logo";
 import Beeld from "@/components/site/Beeld";
-import { BODY, BREED, Eyebrow, KEURMERKEN, KLANTEN, kop, LINE, NAVY, Pijl, SOFT } from "@/components/blocks/Gedeeld";
+import { BODY, BREED, Eyebrow, KLANTEN, kop, LINE, NAVY, Pijl, SOFT } from "@/components/blocks/Gedeeld";
+import { keurmerkenVoor } from "@/lib/keurmerken";
 import { CONTACT_FALLBACK, type ContactInfo } from "@/lib/content";
 import type { Certificate } from "@/lib/nav";
 import { woordenboek } from "@/lib/woordenboek";
@@ -72,18 +73,6 @@ const MerkContext = createContext<Merk>(MERKEN.recover);
 const useMerk = () => useContext(MerkContext);
 /** Een vlak in de labelkleur: wit erop, behalve bij Ready (indigo op indigo), dan omgekeerd. */
 const opKleur = (m: Merk) => (m.kleur.toLowerCase() === NAVY.toLowerCase() ? { background: "#ffffff", color: NAVY } : { background: m.kleur, color: "#ffffff" });
-
-/**
- * De keurmerken met hun echte logo's (Gedeeld.tsx, dezelfde als op de site).
- * Staat het certificaat als PDF in Instellingen, dan wordt dat de doorklik.
- */
-function keurmerken(certificaten: Certificate[]) {
-  const zoek: Record<string, RegExp> = { SBCA: /arbodienst|sbca|managementsysteem/i, "ISO 9001": /9001/, "ISO 27001": /27001/, "ISO 27701": /27701/, OVAL: /oval/i };
-  return KEURMERKEN.map((k) => {
-    const c = certificaten.find((x) => zoek[k.naam]?.test(`${x.alt} ${x.href} ${x.image}`));
-    return { ...k, href: c ? c.href || c.image : "" };
-  });
-}
 
 const telefoonTekst = (c: ContactInfo) => c.phoneDisplay.replace(/\s*-\s*/, " ");
 const telLink = (t: string | null) => (t ? `tel:${t.replace(/[^\d+]/g, "")}` : null);
@@ -1640,29 +1629,32 @@ function Vertrouwen({ huis }: { huis: Huis }) {
           ))}
         </ul>
       </div>
-      <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-        {keurmerken(huis.certificaten).map((k) => {
-          const inhoud = (
-            <>
-              <span className="flex h-12 w-14 shrink-0 items-center justify-center sm:h-[72px] sm:w-auto"><Beeld src={k.src} alt={k.alt} sizes="72px" className="max-h-full w-auto max-w-[56px] object-contain sm:max-w-[110px]" /></span>
-              <span className="flex flex-col gap-0.5">
-                <span className="text-[16px] font-bold" style={{ color: NAVY }}>{k.naam}</span>
-                <span className="text-[14px]" style={{ color: MUTE }}>{k.wat}</span>
-              </span>
-            </>
-          );
-          const cls = "flex h-full items-center gap-4 rounded-[18px] border bg-white px-4 py-3 sm:flex-col sm:rounded-[22px] sm:px-5 sm:py-7 sm:text-center";
-          return (
-            <li key={k.naam}>
-              {k.href ? (
-                <a href={k.href} target="_blank" rel="noopener" className={`${cls} transition-shadow hover:shadow-[0_18px_36px_-24px_rgba(50,46,131,0.45)]`} style={{ borderColor: LINE }}>{inhoud}</a>
-              ) : (
-                <span className={cls} style={{ borderColor: LINE }}>{inhoud}</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {/* De keurmerken uit Instellingen, dezelfde als op de site (lib/keurmerken.ts); het certificaat zelf als doorklik. */}
+      {huis.certificaten.length > 0 && (
+        <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+          {keurmerkenVoor(huis.certificaten).map((k, i) => {
+            const inhoud = (
+              <>
+                {k.src && <span className="flex h-12 w-14 shrink-0 items-center justify-center sm:h-[72px] sm:w-auto"><Beeld src={k.src} alt={k.alt} sizes="72px" className="max-h-full w-auto max-w-[56px] object-contain sm:max-w-[110px]" /></span>}
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-[16px] font-bold" style={{ color: NAVY }}>{k.naam}</span>
+                  {k.wat && <span className="text-[14px]" style={{ color: MUTE }}>{k.wat}</span>}
+                </span>
+              </>
+            );
+            const cls = "flex h-full items-center gap-4 rounded-[18px] border bg-white px-4 py-3 sm:flex-col sm:rounded-[22px] sm:px-5 sm:py-7 sm:text-center";
+            return (
+              <li key={i}>
+                {k.href ? (
+                  <a href={k.href} target="_blank" rel="noopener" className={`${cls} transition-shadow hover:shadow-[0_18px_36px_-24px_rgba(50,46,131,0.45)]`} style={{ borderColor: LINE }}>{inhoud}</a>
+                ) : (
+                  <span className={cls} style={{ borderColor: LINE }}>{inhoud}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </Band>
   );
 }
