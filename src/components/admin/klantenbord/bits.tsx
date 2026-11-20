@@ -2,7 +2,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
-  LuBookOpen, LuClipboardCheck, LuClipboardList, LuEuro, LuFilePenLine, LuGlobe, LuIdCard, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload, LuZap,
+  LuBookOpen, LuClipboardCheck, LuClipboardList, LuEuro, LuFilePenLine, LuGlobe, LuIdCard, LuMail, LuMapPin, LuMessageSquare, LuPhone, LuPhoneCall, LuScrollText, LuStickyNote, LuArrowRight, LuUpload, LuZap, LuHandshake,
 } from "react-icons/lu";
 import { CHECKLIST, initialen, statusInfo, type Bron, type GesprekSoort, type Klant, type KlantStatus, type Koppeling, type KoppelSoort } from "@/lib/klanten";
 
@@ -73,6 +73,7 @@ export const BRON_ICOON: Record<Bron, ComponentType<{ className?: string }>> = {
   onboarding: LuClipboardCheck,
   opdracht: LuEuro,
   evaluatie: LuClipboardList,
+  partner: LuHandshake,
 };
 
 export const BRON_LABEL: Record<Bron, string> = {
@@ -82,7 +83,25 @@ export const BRON_LABEL: Record<Bron, string> = {
   onboarding: "Onboarding",
   opdracht: "Losse klant of opdracht",
   evaluatie: "Klantevaluatie",
+  partner: "Partner",
 };
+
+/** Een partner of reseller op de kaart. */
+export type PartnerKort = { id: string; kantoor: string; model: "aanbreng" | "reseller"; actief: boolean };
+
+export function PartnerChip({ p, klein }: { p: PartnerKort; klein?: boolean }) {
+  return (
+    <Link
+      href={`/admin/partners/${p.id}`}
+      onClick={(e) => e.stopPropagation()}
+      className={`inline-flex max-w-full items-center gap-1 rounded-full bg-[#f1e9ff] font-semibold text-[#6b3fd1] hover:brightness-95 ${klein ? "px-2 py-0.5 text-[11.5px]" : "px-2.5 py-1 text-[12.5px]"}`}
+      title={`${p.model === "reseller" ? "Reseller" : "Partner"}: ${p.kantoor}`}
+    >
+      <LuHandshake className="shrink-0 text-[12px]" />
+      <span className="truncate">via {p.kantoor}</span>
+    </Link>
+  );
+}
 
 export const SiteIcoon = LuGlobe;
 

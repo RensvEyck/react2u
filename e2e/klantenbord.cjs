@@ -318,6 +318,34 @@ const vandaag = sql("select (now() at time zone 'Europe/Amsterdam')::date");
   await page.keyboard.press("Escape");
   await page.waitForSelector("aside[role=dialog]", { state: "detached" });
 
+  stap("Gekoppeld aan een reseller");
+  const partnerId = sql(`insert into public.partners (code, kantoor, naam, email, model) values ('NOORDTEST', 'Accountants Noord', 'Nora Noord', 'nora@noord.test', 'reseller') returning id`).split("\n")[0].trim();
+  sql(`insert into public.partner_klanten (partner_id, bedrijf, medewerkers, tarief, start) values ('${partnerId}', 'Tandartspraktijk Molenstraat', 6, 38.5, current_date - 10)`);
+  const molen = sql("select id || '|' || status || '|' || coalesce(partner_id::text, '-') from public.klanten where sleutel = 'tandartspraktijk molenstraat'").split("|");
+  check(molen[1] === "klant" && molen[2] === partnerId, `aangemeld bij een partner: kaart als klant met de partner erbij (${molen.slice(1).join(", ")})`);
+  check(sql(`select tekst from public.klant_gesprekken where klant_id = '${molen[0]}' and bron = 'partner'`).startsWith("Aangemeld via Accountants Noord: 6 medewerkers, start "), "de aanmelding in de tijdlijn");
+  await page.goto(`${BASIS}/admin/klantenbord`);
+  await page.waitForSelector(`#klant-${molen[0]}`);
+  check(await page.locator(`#klant-${molen[0]} a[href="/admin/partners/${partnerId}"]:has-text('via Accountants Noord')`).count(), "de partner als label op de kaart, met een link naar de partner");
+  await page.selectOption("select[aria-label='Reseller of partner']", partnerId);
+  await wacht(300);
+  check((await page.locator(".kb-kaart").count()) === 1, "filter op partner: één kaart");
+  await page.selectOption("select[aria-label='Reseller of partner']", "");
+  // Met de hand: de bakkerij aan dezelfde reseller koppelen.
+  await page.click(`#klant-${id} h3`);
+  await page.waitForSelector("#kb-g-partner");
+  await page.selectOption("#kb-g-partner", partnerId);
+  await page.click("aside[role=dialog] button:has-text('Gegevens opslaan')");
+  await page.waitForSelector("text=Gegevens opgeslagen.", { timeout: 20000 });
+  check((await tot(`select coalesce(partner_id::text, '-') from public.klanten where id = '${id}'`, partnerId)) === partnerId, "met de hand gekoppeld in het paneel");
+  check(await page.locator("aside[role=dialog] >> text=via Accountants Noord").count(), "de partner in de kop van het paneel");
+  await shot(page, "11b-partner");
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("aside[role=dialog]", { state: "detached" });
+  await page.reload();
+  await page.waitForSelector(`#klant-${id}`);
+  check(await page.locator(`#klant-${id} >> text=via Accountants Noord`).count(), "na herladen staat de partner op de kaart van de bakkerij");
+
   stap("De werkrij Vandaag, met het toetsenbord");
   const morgen = sql("select ((now() at time zone 'Europe/Amsterdam')::date + 1)::text");
   sql(`update public.klanten set volgende_actie = 'Offerte nabellen', volgende_actie_op = (now() at time zone 'Europe/Amsterdam')::date - 3 where id = '${id}'`);

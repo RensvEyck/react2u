@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LuCalendarClock, LuIdCard, LuMail, LuMessageSquare, LuPhone, LuUserRound } from "react-icons/lu";
 import { actieStand, KLANT_STATUS, relatief, relatiefMoment, type Bezoek, type Klant, type KlantStatus, type Koppeling } from "@/lib/klanten";
 import { noteerBel } from "@/lib/belAfloop";
-import { Checklist, Eigenaar, KoppelChip, SiteIcoon } from "./bits";
+import { Checklist, Eigenaar, KoppelChip, PartnerChip, SiteIcoon, type PartnerKort } from "./bits";
 
 /**
  * Eén kaart op het bord: het bedrijf, wie je daar spreekt, het laatste contact,
@@ -14,11 +14,13 @@ import { Checklist, Eigenaar, KoppelChip, SiteIcoon } from "./bits";
  * database zelf (0041).
  */
 export default function KlantKaart({
-  k, koppelingen, bezoek, vandaag, open, onOpen, onStatus, sleept, onSleep,
+  k, koppelingen, bezoek, partner, vandaag, open, onOpen, onStatus, sleept, onSleep,
 }: {
   k: Klant;
   koppelingen: Koppeling[];
   bezoek: Bezoek | null;
+  /** De reseller of partner die deze klant aanbracht (0052). */
+  partner: PartnerKort | null;
   vandaag: string;
   open: boolean;
   onOpen: () => void;
@@ -73,6 +75,8 @@ export default function KlantKaart({
           </Link>
         </span>
       </div>
+
+      {partner && <div className="mt-1.5"><PartnerChip p={partner} klein /></div>}
 
       {(k.contactpersoon || k.telefoon || k.email) && (
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-black/55">
