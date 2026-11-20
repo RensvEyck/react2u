@@ -39,6 +39,8 @@ export type KlantInvoer = {
   /** De casemanager (stamkaart, 0048); uit de klantlijst of met de hand. */
   casemanager?: string | null;
   bron?: string | null;
+  /** De reseller of partner (0052): het id uit de partnermodule, of null. */
+  partner_id?: string | null;
   /** Hoe de klant ons vond, een sleutel uit lib/herkomst.ts (migratie 0047); verplicht bij een nieuwe kaart. */
   herkomst?: string | null;
   herkomst_toelichting?: string | null;
@@ -95,6 +97,11 @@ function schoon(invoer: KlantInvoer): { velden: Partial<Klant>; fout?: string } 
   if ("eigenaar" in invoer) v.eigenaar = tekst(invoer.eigenaar, 80);
   if ("casemanager" in invoer) v.casemanager = tekst(invoer.casemanager, 120);
   if ("bron" in invoer) v.bron = tekst(invoer.bron, 120);
+  if ("partner_id" in invoer) {
+    const pid = tekst(invoer.partner_id, 36);
+    if (pid && !/^[0-9a-f-]{36}$/i.test(pid)) return { velden: v, fout: "Onbekende partner." };
+    v.partner_id = pid;
+  }
   if ("herkomst" in invoer) {
     const h = tekst(invoer.herkomst, 40);
     if (h && !isHerkomst(h)) return { velden: v, fout: "Onbekende herkomst." };

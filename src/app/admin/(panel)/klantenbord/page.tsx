@@ -6,6 +6,7 @@ import { fetchPageViews } from "@/lib/analyticsDb";
 import { summarize, type CompanyProfile } from "@/lib/companies";
 import type { PageView } from "@/lib/types";
 import Klantenbord from "@/components/admin/klantenbord/Klantenbord";
+import type { PartnerKort } from "@/components/admin/klantenbord/bits";
 import { mailReady } from "@/lib/mail";
 import { haalVerkoop, verkoopOverzicht } from "@/lib/opvolgenDb";
 import { werkrij } from "@/lib/werkrij";
@@ -33,7 +34,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
   const metBezoek = admin.permissions.includes("bezoek");
   const sinds = new Date(nu.getTime() - 14 * 86_400_000).toISOString();
 
-  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes, pvRes, prRes, verkoop, evRes] = await Promise.all([
+  const [kRes, gRes, oRes, bRes, cRes, obRes, lRes, pvRes, prRes, verkoop, evRes, paRes] = await Promise.all([
     sb.from("klanten").select("*").order("updated_at", { ascending: false }).limit(2000),
     sb.from("klant_gesprekken").select("*").order("op", { ascending: false }).order("created_at", { ascending: false }).limit(5000),
     sb.from("offertes").select("id, nummer, status, bedrijf, verstuurd_at, getekend_at, created_at").neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
@@ -48,6 +49,8 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
     haalVerkoop(sb, nu).catch(() => null),
     // Klantevaluaties (0043); vóór die migratie bestaat de tabel niet, dan gewoon geen koppelingen.
     sb.from("evaluaties").select("id, nummer, status, bedrijf, bekeken_at, verstuurd_at, ingevuld_at, created_at").neq("status", "ingetrokken").order("created_at", { ascending: false }).limit(1000),
+    // De partners en resellers (0022) voor de koppeling op de kaart (0052); zonder de tabel een lege lijst.
+    sb.from("partners").select("id, kantoor, model, actief").order("kantoor"),
   ]);
 
   const tabel = !kRes.error || !isMissingTable(kRes.error);
@@ -75,6 +78,8 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
   const signalen = verkoop ? verkoopOverzicht(verkoop, bedrijvenOpSite.map((c) => ({ naam: c.name, domein: c.domain, laatst: c.lastSeen, paginas: c.views })), nu).signalen : [];
   const teDoen = werkrij(klanten, signalen, bezoek, vandaag, nu).length;
 
+  const partners = (((paRes as { data: PartnerKort[] | null }).data) || []).map((x) => ({ ...x, model: x.model === "reseller" ? "reseller" as const : "aanbreng" as const }));
+
   return (
     <>
       {!tabel && (
@@ -85,7 +90,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
           </p>
         </div>
       )}
-      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} bezoek={bezoek} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} mailAan={mailReady()} ik={admin.email} teDoen={teDoen} />
+      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} bezoek={bezoek} partners={partners} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} mailAan={mailReady()} ik={admin.email} teDoen={teDoen} />
     </>
   );
 }

@@ -62,6 +62,7 @@ describe("statussen", () => {
     expect(bronHref("offerte", "o1")).toBe("/admin/offertes/o1");
     expect(bronHref("onboarding", "ob1")).toBe("/admin/onboarding/ob1");
     expect(bronHref("opdracht", "x")).toBe("/admin/verkoop/los");
+    expect(bronHref("partner", "p1")).toBe("/admin/partners/p1");
     expect(bronHref(null, "x")).toBeNull();
   });
 });

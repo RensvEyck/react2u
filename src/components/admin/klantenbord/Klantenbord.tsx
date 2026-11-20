@@ -12,6 +12,7 @@ import KlantPaneel from "./KlantPaneel";
 import KlantImport from "./KlantImport";
 import KlantLijst from "./KlantLijst";
 import BelAfloop from "./BelAfloop";
+import type { PartnerKort } from "./bits";
 
 /**
  * Het klantenbord: één scherm met alle leads en klanten. Kolommen per status,
@@ -26,7 +27,7 @@ type Weergave = "bord" | "lijst";
 type Filter = "alles" | "actie" | "zonder";
 
 export default function Klantenbord({
-  klanten: begin, gesprekken: beginGesprekken, koppelingen, bezoek, vandaag, weergave: beginWeergave, mailAan, ik, teDoen,
+  klanten: begin, gesprekken: beginGesprekken, koppelingen, bezoek, vandaag, weergave: beginWeergave, mailAan, ik, teDoen, partners,
 }: {
   klanten: Klant[];
   gesprekken: Gesprek[];
@@ -39,6 +40,8 @@ export default function Klantenbord({
   ik: string;
   /** Hoeveel rijen de werkrij van vandaag heeft (signalen, te laat, vandaag), voor de knop. */
   teDoen: number;
+  /** De partners en resellers (0022), voor de koppeling op een kaart (0052). */
+  partners: PartnerKort[];
 }) {
   const router = useRouter();
   const [, start] = useTransition();
@@ -56,6 +59,7 @@ export default function Klantenbord({
   const [weergave, setWeergave] = useState<Weergave>(beginWeergave);
   const [q, setQ] = useState("");
   const [eigenaar, setEigenaar] = useState("");
+  const [partnerFilter, setPartnerFilter] = useState("");
   const [filter, setFilter] = useState<Filter>("alles");
   const [toonInactief, setToonInactief] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
@@ -109,11 +113,15 @@ export default function Klantenbord({
   const gefilterd = useMemo(() => {
     let lijst = zoekKlanten(klanten, q);
     if (eigenaar) lijst = lijst.filter((k) => (k.eigenaar || "") === eigenaar);
+    if (partnerFilter) lijst = lijst.filter((k) => (k.partner_id || "") === partnerFilter);
     if (filter === "actie") lijst = lijst.filter((k) => ["te_laat", "vandaag"].includes(actieStand(k, vandaag)));
     if (filter === "zonder") lijst = lijst.filter((k) => k.status !== "inactief" && k.status !== "klant" && actieStand(k, vandaag) === "geen");
     return lijst;
-  }, [klanten, q, eigenaar, filter, vandaag]);
-  const actiefFilter = Boolean(q.trim() || eigenaar || filter !== "alles");
+  }, [klanten, q, eigenaar, partnerFilter, filter, vandaag]);
+  const actiefFilter = Boolean(q.trim() || eigenaar || partnerFilter || filter !== "alles");
+  const partnerVan = useMemo(() => new Map(partners.map((p) => [p.id, p])), [partners]);
+  // Alleen partners die op een kaart staan, in het filter.
+  const partnersOpBord = useMemo(() => partners.filter((p) => klanten.some((k) => k.partner_id === p.id)), [partners, klanten]);
 
   /* ---------- wijzigingen uit het paneel en de kaarten ---------- */
 
@@ -221,6 +229,7 @@ export default function Klantenbord({
               k={k}
               koppelingen={koppelingen[k.id] || []}
               bezoek={bezoek[k.id] || null}
+              partner={(k.partner_id && partnerVan.get(k.partner_id)) || null}
               vandaag={vandaag}
               open={open === k.id}
               onOpen={() => setOpen(k.id)}
@@ -297,6 +306,12 @@ export default function Klantenbord({
               {eigenaren.map((e) => <option key={e} value={e}>{e}</option>)}
             </select>
           )}
+          {partnersOpBord.length > 0 && (
+            <select value={partnerFilter} onChange={(e) => setPartnerFilter(e.target.value)} className="ainput !w-auto !py-2 !text-[13.5px]" aria-label="Reseller of partner">
+              <option value="">Alle partners</option>
+              {partnersOpBord.map((p) => <option key={p.id} value={p.id}>via {p.kantoor}</option>)}
+            </select>
+          )}
           <nav className="flex flex-wrap gap-1.5" aria-label="Filter">
             {([["alles", "Alles"], ["actie", "Actie vandaag of te laat"], ["zonder", "Zonder volgende stap"]] as const).map(([f, label]) => (
               <button key={f} type="button" onClick={() => setFilter(f)} className={`apill !py-1.5 text-[13px] ${filter === f ? "bg-[#312e82] text-white" : "bg-black/[0.04] text-black/60 hover:bg-black/[0.07]"}`} aria-pressed={filter === f}>
@@ -309,7 +324,7 @@ export default function Klantenbord({
 
         {weergave === "lijst" ? (
           gefilterd.length === 0 ? <Leeg klanten={klanten.length} actiefFilter={actiefFilter} onNieuw={() => setOpen("nieuw")} onImport={() => setImportOpen(true)} /> : (
-            <KlantLijst klanten={gefilterd} koppelingen={koppelingen} vandaag={vandaag} open={open} onOpen={setOpen} />
+            <KlantLijst klanten={gefilterd} koppelingen={koppelingen} partnerVan={partnerVan} vandaag={vandaag} open={open} onOpen={setOpen} />
           )
         ) : klanten.length === 0 ? (
           <Leeg klanten={0} actiefFilter={false} onNieuw={() => setOpen("nieuw")} onImport={() => setImportOpen(true)} />
@@ -332,6 +347,7 @@ export default function Klantenbord({
           eigenaren={eigenaren}
           mailAan={mailAan}
           ik={ik}
+          partners={partners}
           onClose={() => setOpen(null)}
           onKlant={(k, g) => {
             const nieuw = !klanten.some((x) => x.id === k.id);

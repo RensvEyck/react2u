@@ -11,7 +11,7 @@ import { MAIL_SJABLONEN, naamUitEmail, sjabloon, voornaamUit, vulIn } from "@/li
 import { noteerBel } from "@/lib/belAfloop";
 import { herkomstLabel, HERKOMST_UITLEG, HERKOMSTEN } from "@/lib/herkomst";
 import { maakKlant, mailKlant, verwijderGesprek, verwijderKlant, voegGesprekToe, wijzigKlant, zetKlantStatus, type KlantInvoer } from "@/app/admin/klantenActions";
-import { Checklist, Eigenaar, GesprekIcoon, KoppelChip, SiteIcoon } from "./bits";
+import { Checklist, Eigenaar, GesprekIcoon, KoppelChip, PartnerChip, SiteIcoon, type PartnerKort } from "./bits";
 import Tijdlijn from "./Tijdlijn";
 
 /**
@@ -33,6 +33,8 @@ type Props = {
   mailAan: boolean;
   /** Het e-mailadres van wie is ingelogd: de afzender van een mail. */
   ik: string;
+  /** De partners en resellers (0022) voor de keuzelijst (0052). */
+  partners: PartnerKort[];
   onClose: () => void;
   onKlant: (k: Klant, gesprek?: Gesprek | null) => void;
   onGesprekWeg: (klant: Klant, gesprekId: string) => void;
@@ -76,10 +78,10 @@ export default function KlantPaneel(p: Props) {
 
 /* ---------- een nieuwe kaart ---------- */
 
-function Nieuw({ vandaag, eigenaren, onClose, onKlant, meld }: Props) {
+function Nieuw({ vandaag, eigenaren, partners, onClose, onKlant, meld }: Props) {
   const [bezig, start] = useTransition();
   const [fout, setFout] = useState<string | null>(null);
-  const [v, setV] = useState<KlantInvoer>({ bedrijf: "", status: "lead", contactpersoon: "", telefoon: "", email: "", eigenaar: "", herkomst: "", herkomst_toelichting: "", startdatum: "", stand: "", volgende_actie: "", volgende_actie_op: "" });
+  const [v, setV] = useState<KlantInvoer>({ bedrijf: "", status: "lead", contactpersoon: "", telefoon: "", email: "", eigenaar: "", herkomst: "", herkomst_toelichting: "", partner_id: "", startdatum: "", stand: "", volgende_actie: "", volgende_actie_op: "" });
   const zet = (k: keyof KlantInvoer, w: string) => setV((x) => ({ ...x, [k]: w }));
 
   return (
@@ -141,6 +143,15 @@ function Nieuw({ vandaag, eigenaren, onClose, onKlant, meld }: Props) {
             <label className="alabel" htmlFor="kb-herkomst-toelichting">Toelichting</label>
             <input id="kb-herkomst-toelichting" className={veld} value={v.herkomst_toelichting || ""} onChange={(e) => zet("herkomst_toelichting", e.target.value)} maxLength={200} placeholder="Wie verwees door, welke beurs" />
           </div>
+          {partners.length > 0 && (
+            <div>
+              <label className="alabel" htmlFor="kb-partner">Via reseller of partner</label>
+              <select id="kb-partner" className={veld} value={v.partner_id || ""} onChange={(e) => zet("partner_id", e.target.value)}>
+                <option value="">Geen</option>
+                {partners.filter((p) => p.actief).map((p) => <option key={p.id} value={p.id}>{p.kantoor}{p.model === "reseller" ? " (reseller)" : ""}</option>)}
+              </select>
+            </div>
+          )}
           <div>
             <label className="alabel" htmlFor="kb-start">Startdatum</label>
             <input id="kb-start" className={veld} type="date" value={v.startdatum || ""} onChange={(e) => zet("startdatum", e.target.value)} />
@@ -197,7 +208,7 @@ function StatusKeuze({ huidig, onKies, bezig }: { huidig: KlantStatus; onKies: (
   );
 }
 
-function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenaren, mailAan, ik, onClose, onKlant, onGesprekWeg, onVerwijderd, meld }: Props & { klant: Klant }) {
+function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenaren, partners, mailAan, ik, onClose, onKlant, onGesprekWeg, onVerwijderd, meld }: Props & { klant: Klant }) {
   const [bezig, start] = useTransition();
   const [fout, setFout] = useState<string | null>(null);
   const actie = actieStand(k, vandaag);
@@ -263,10 +274,10 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
   const [g, setG] = useState<KlantInvoer>({
     bedrijf: k.bedrijf, contactpersoon: k.contactpersoon || "", telefoon: k.telefoon || "", email: k.email || "", eigenaar: k.eigenaar || "",
     herkomst: k.herkomst || "", herkomst_toelichting: k.herkomst_toelichting || "",
-    startdatum: k.startdatum || "", stand: k.stand || "", notitie: k.notitie || "",
+    startdatum: k.startdatum || "", stand: k.stand || "", notitie: k.notitie || "", partner_id: k.partner_id || "",
   });
   const zetG = (veld: keyof KlantInvoer, w: string) => setG((x) => ({ ...x, [veld]: w }));
-  const gegevensGewijzigd = (["bedrijf", "contactpersoon", "telefoon", "email", "eigenaar", "herkomst", "herkomst_toelichting", "startdatum", "stand", "notitie"] as const).some(
+  const gegevensGewijzigd = (["bedrijf", "contactpersoon", "telefoon", "email", "eigenaar", "herkomst", "herkomst_toelichting", "startdatum", "stand", "notitie", "partner_id"] as const).some(
     (f) => (g[f] || "") !== ((k[f] as string | null) || ""),
   );
 
@@ -376,6 +387,9 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
               {/* De herkomst uit de vaste lijst (0047); daarvóór de vrije tekst of de module die de kaart maakte. */}
               {k.herkomst ? ` · via ${herkomstLabel(k.herkomst)}${k.herkomst_toelichting ? ` (${k.herkomst_toelichting})` : ""}` : k.bron ? ` · via ${k.bron}` : ""}
             </p>
+            {k.partner_id && partners.find((p) => p.id === k.partner_id) && (
+              <p className="mt-1"><PartnerChip p={partners.find((p) => p.id === k.partner_id)!} /></p>
+            )}
             {!k.herkomst && (
               <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-[#fff4e5] px-2.5 py-0.5 text-[12px] font-semibold text-[#b86e00]">
                 Hoe vond deze klant ons? Vul de herkomst in bij Gegevens.
@@ -627,6 +641,13 @@ function Bestaand({ klant: k, gesprekken, koppelingen, bezoek, vandaag, eigenare
             <div>
               <label className="alabel" htmlFor="kb-g-herkomst-toelichting">Toelichting bij de herkomst</label>
               <input id="kb-g-herkomst-toelichting" className={veld} value={g.herkomst_toelichting || ""} onChange={(e) => zetG("herkomst_toelichting", e.target.value)} maxLength={200} placeholder="Wie verwees door, welke beurs" />
+            </div>
+            <div>
+              <label className="alabel" htmlFor="kb-g-partner">Via reseller of partner</label>
+              <select id="kb-g-partner" className={veld} value={g.partner_id || ""} onChange={(e) => zetG("partner_id", e.target.value)}>
+                <option value="">Geen</option>
+                {partners.filter((p) => p.actief || p.id === k.partner_id).map((p) => <option key={p.id} value={p.id}>{p.kantoor}{p.model === "reseller" ? " (reseller)" : ""}{p.actief ? "" : " (inactief)"}</option>)}
+              </select>
             </div>
             <div>
               <label className="alabel" htmlFor="kb-g-start">Startdatum</label>

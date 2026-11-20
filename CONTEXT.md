@@ -2334,6 +2334,20 @@ met de laatste stand en soms een contactpersoon.
     samen: "Vandaag 3 acties, 2 te laat, Korenaar bekeek de offerte". Niets te
     melden is geen mail; `?dry=1` toont de plannen, `?weekend=1` ook in het
     weekend. Service-role, zoals de andere crons.
+- **Reseller of partner op de kaart** (migratie
+  [0052](supabase/migrations/0052_klantenbord_reseller.sql), Rens, 20 nov 2026:
+  "zorg dat de klanten ook gelinked kunnen worden aan een reseller in het
+  klantenbord"): `klanten.partner_id` wijst naar de partnermodule (0022). Te
+  kiezen in het zijpaneel (bij een nieuwe kaart en onder *Gegevens*; inactieve
+  partners alleen als ze al gekoppeld zijn), op de kaart en in de lijst als
+  label *via <kantoor>* met een link naar de partner, en een filter op het bord
+  zodra een partner op een kaart staat. Vanzelf: een klant die bij een partner
+  wordt aangemeld (`partner_klanten`, de aanmeldlink van de partner of het
+  beheer) krijgt een kaart in *Klant* als die er nog niet is, de partner erbij
+  als er nog geen stond, herkomst *partner* met het kantoor als toelichting,
+  en een regel *Aangemeld via <kantoor>: 6 medewerkers, start …* in de
+  tijdlijn (bron `partner`, met link). De migratie leest wat er al in
+  `partner_klanten` staat één keer in.
 - **Database**: `klanten` en `klant_gesprekken`, RLS op `has_perm('bellijst')`,
   trigger `klant_laatste_contact` voor het laatste contact op de kaart. Geen
   automatische opschoning: een klant blijft staan tot iemand hem van het bord

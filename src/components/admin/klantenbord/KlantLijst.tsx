@@ -4,12 +4,12 @@ import Link from "next/link";
 import { LuChevronDown, LuChevronUp, LuIdCard } from "react-icons/lu";
 import { actieStand, relatief, statusInfo, STATUS_SLEUTELS, type Klant, type Koppeling } from "@/lib/klanten";
 import { datumLang } from "@/lib/offertes";
-import { Checklist, Eigenaar, KoppelChip, StatusPill } from "./bits";
+import { Checklist, Eigenaar, KoppelChip, PartnerChip, StatusPill, type PartnerKort } from "./bits";
 
 type Sorteer = "bedrijf" | "status" | "eigenaar" | "laatste" | "volgende" | "start";
 
 /** De lijstweergave: dezelfde kaarten als tabel, te sorteren per kolom. */
-export default function KlantLijst({ klanten, koppelingen, vandaag, open, onOpen }: { klanten: Klant[]; koppelingen: Record<string, Koppeling[]>; vandaag: string; open: string | null; onOpen: (id: string) => void }) {
+export default function KlantLijst({ klanten, koppelingen, partnerVan, vandaag, open, onOpen }: { klanten: Klant[]; koppelingen: Record<string, Koppeling[]>; partnerVan: Map<string, PartnerKort>; vandaag: string; open: string | null; onOpen: (id: string) => void }) {
   const [sorteer, setSorteer] = useState<Sorteer>("volgende");
   const [oplopend, setOplopend] = useState(true);
 
@@ -88,7 +88,10 @@ export default function KlantLijst({ klanten, koppelingen, vandaag, open, onOpen
                   {k.telefoon && <a href={`tel:${k.telefoon.replace(/\s/g, "")}`} onClick={(e) => e.stopPropagation()} className="block text-[12.5px] font-semibold text-[#e75387] hover:underline">{k.telefoon}</a>}
                   {k.email && <a href={`mailto:${k.email}`} onClick={(e) => e.stopPropagation()} className="block truncate text-[12.5px] text-[#e75387] hover:underline">{k.email}</a>}
                 </td>
-                <td className="px-4 py-3"><span className="inline-flex items-center gap-2 text-black/60"><Eigenaar naam={k.eigenaar} />{k.eigenaar}</span></td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center gap-2 text-black/60"><Eigenaar naam={k.eigenaar} />{k.eigenaar}</span>
+                  {k.partner_id && partnerVan.get(k.partner_id) && <span className="mt-1 block"><PartnerChip p={partnerVan.get(k.partner_id)!} klein /></span>}
+                </td>
                 <td className="px-4 py-3 text-black/60">
                   {k.laatste_contact_op ? (
                     <>

@@ -103,6 +103,8 @@ export type Klant = {
   laatste_contact: string | null;
   notitie: string | null;
   lead_id: string | null;
+  /** De reseller of partner die deze klant aanbracht (0052); leeg als er geen is. */
+  partner_id?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -143,7 +145,7 @@ export type StamkaartVelden = {
 export type GesprekSoort = "gesprek" | "mail" | "bezoek" | "notitie" | "status" | "import" | "systeem" | "stamkaart";
 
 /** Uit welke module een systeemregel komt (0041); `opdracht` is een los opgevoerde klant of opdracht, `evaluatie` de klantevaluatie (0043). */
-export type Bron = "offerte" | "brochure" | "contract" | "onboarding" | "opdracht" | "evaluatie";
+export type Bron = "offerte" | "brochure" | "contract" | "onboarding" | "opdracht" | "evaluatie" | "partner";
 
 export type Gesprek = {
   id: string;
@@ -185,6 +187,7 @@ export function bronHref(bron: Bron | null, id: string | null): string | null {
     case "onboarding": return `/admin/onboarding/${id}`;
     case "opdracht": return "/admin/verkoop/los";
     case "evaluatie": return `/admin/documenten/evaluaties/${id}`;
+    case "partner": return `/admin/partners/${id}`;
   }
 }
 
