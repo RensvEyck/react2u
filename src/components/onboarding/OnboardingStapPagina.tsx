@@ -42,7 +42,8 @@ export default function OnboardingStapPagina({
     ...hoofdstukken.map((x) => ({ id: `hoofdstuk-${x.id}`, label: x.label, href: `${basis}#hoofdstuk-${x.id}` })),
     { id: "verder", label: "Verder", href: `${basis}#verder` },
   ];
-  const knopNav = "inline-flex h-[52px] items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-bold";
+  // Een lange staptitel ("Volgende stap: Wat je wél mag vragen bij ziekteverzuim") wordt op de telefoon afgekort: anders loopt de pagina over.
+  const knopNav = "inline-flex h-[52px] min-w-0 max-w-full items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-bold";
 
   return (
     <div className={`hv ${outfit.variable} onboarding-doc min-h-screen bg-white`}>
@@ -111,9 +112,15 @@ export default function OnboardingStapPagina({
               <a href={basis} className={`${knop.rand} ${knopNav}`}>Overzicht</a>
             </div>
             {volgende ? (
-              <a href={`${basis}/${volgende.sleutel}`} className={`${knop.roze} ${knopNav}`}>Volgende stap: {volgende.titel} <Pijl size={14} /></a>
+              <a href={`${basis}/${volgende.sleutel}`} className={`${knop.roze} ${knopNav}`}>
+                <span className="truncate">Volgende stap: {volgende.titel}</span>
+                <span className="flex shrink-0"><Pijl size={14} /></span>
+              </a>
             ) : (
-              <a href={`${basis}#verder`} className={`${knop.roze} ${knopNav}`}>Zo gaat het verder <Pijl size={14} /></a>
+              <a href={`${basis}#verder`} className={`${knop.roze} ${knopNav}`}>
+                <span className="truncate">Zo gaat het verder</span>
+                <span className="flex shrink-0"><Pijl size={14} /></span>
+              </a>
             )}
           </div>
         </section>
