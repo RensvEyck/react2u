@@ -96,7 +96,7 @@ export async function verstuurBrochure(id: string, _prev: VersturenState, fd: Fo
   if (fouten.length) return { fout: fouten[0] };
 
   const herinnering = b.status === "verstuurd";
-  const [{ contact }, diensten] = await Promise.all([offerteHuisstijl(), brochureDiensten()]);
+  const [{ contact, certificaten }, diensten] = await Promise.all([offerteHuisstijl(), brochureDiensten()]);
   const res = await sendBrochure({
     to: aan,
     aanhef: tekst(fd, "aanhef", 120) ?? b.contactpersoon?.split(" ")[0] ?? null,
@@ -108,6 +108,7 @@ export async function verstuurBrochure(id: string, _prev: VersturenState, fd: Fo
     herinnering,
     diensten: diensten.map((d) => ({ naam: d.naam, kleur: d.kleur, tekst: d.omschrijving, dienst: d.dienst })),
     contact,
+    certificaten,
   });
   if (!res.ok) {
     return {

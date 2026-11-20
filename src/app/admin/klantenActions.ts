@@ -265,8 +265,8 @@ export async function mailKlant(id: string, invoer: MailInvoer): Promise<Gesprek
   const k = await laad(sb, id);
   if (!k) return { ok: false, fout: "Deze kaart bestaat niet meer." };
 
-  const { contact } = await offerteHuisstijl();
-  const res = await sendBrief({ to: aan, subject: onderwerp, alineas: inhoud, groet: ["Met vriendelijke groet,", afzender, "React2u"], replyTo: admin.email, contact });
+  const { contact, certificaten } = await offerteHuisstijl();
+  const res = await sendBrief({ to: aan, subject: onderwerp, alineas: inhoud, groet: ["Met vriendelijke groet,", afzender, "React2u"], replyTo: admin.email, contact, certificaten });
   if (!res.ok) {
     return {
       ok: false,

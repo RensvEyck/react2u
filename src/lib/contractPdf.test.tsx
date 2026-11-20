@@ -69,7 +69,7 @@ describe("contractmails", () => {
   it("de mail met het contract: knop, kerngegevens, in het kort, en alles ge-escaped", () => {
     const html = contractMailHtml({
       basis: "https://react2u.nl", aanhef: "Marieke", bedrijf: "Jansen & <Zn>", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc",
-      bericht: "Fijn dat we gaan samenwerken!", afzender, feiten: [{ label: "Ingangsdatum", waarde: "1 december 2026" }], kort: ["Looptijd 1 jaar"],
+      bericht: "Fijn dat we gaan samenwerken!", afzender, feiten: [{ label: "Ingangsdatum", waarde: "1 december 2026" }], kort: ["Looptijd 1 jaar"], certificaten: CERTIFICATEN,
     });
     expect(html).toContain("Bekijk en onderteken het contract");
     expect(html).toContain("https://react2u.nl/contract/abc");
@@ -83,53 +83,53 @@ describe("contractmails", () => {
   it("de resellerovereenkomst in zijn eigen woorden", () => {
     const html = contractMailHtml({
       basis: "https://react2u.nl", soort: "reseller", aanhef: "Sanne", bedrijf: "Jouw HR Partner", nummer: "C2026-0004", link: "https://react2u.nl/contract/abc",
-      bericht: null, afzender, feiten: [{ label: "Vergoeding", waarde: "50% en 25%" }], kort: ["Vrijblijvend en niet exclusief"],
+      bericht: null, afzender, feiten: [{ label: "Vergoeding", waarde: "50% en 25%" }], kort: ["Vrijblijvend en niet exclusief"], certificaten: CERTIFICATEN,
     });
     expect(html).toContain("Bekijk en onderteken de overeenkomst");
     expect(html).toContain(">Reseller<");
     expect(html).toContain("Overeenkomst arbodienstverlening.");
     expect(html).not.toContain("Arbowet");
-    const code = contractCodeHtml({ basis: "https://react2u.nl", soort: "reseller", code: "123456", nummer: "C2026-0004", bedrijf: "Jouw HR Partner", afzender });
+    const code = contractCodeHtml({ basis: "https://react2u.nl", soort: "reseller", code: "123456", nummer: "C2026-0004", bedrijf: "Jouw HR Partner", afzender, certificaten: CERTIFICATEN });
     expect(code).toContain("om de resellerovereenkomst voor Jouw HR Partner te ondertekenen.");
     const klaar = contractGetekendHtml({
       basis: "https://react2u.nl", soort: "reseller", naam: "Sanne de Vries", bedrijf: "Jouw HR Partner", nummer: "C2026-0004", link: "https://react2u.nl/contract/abc",
-      hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [], afzender, pdf: true,
+      hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [], afzender, pdf: true, certificaten: CERTIFICATEN,
     });
     expect(klaar).toContain("Welkom als partner.");
     expect(klaar).toContain("de resellerovereenkomst voor Jouw HR Partner");
   });
 
   it("de checklist arbeidsomstandigheden (0042): het blok in de contractmail, de regel in de bevestiging en de kopie", () => {
-    const basis = { basis: "https://react2u.nl", aanhef: "Marieke", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc", bericht: null, afzender, feiten: [], kort: [] };
+    const basis = { basis: "https://react2u.nl", aanhef: "Marieke", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc", bericht: null, afzender, feiten: [], kort: [], certificaten: CERTIFICATEN };
     expect(contractMailHtml({ ...basis, checklist: true })).toContain("Bij dit contract");
     expect(contractMailHtml({ ...basis, checklist: true })).toContain("Als pdf in de bijlage");
     expect(contractMailHtml(basis)).not.toContain("Bij dit contract");
     // Een resellerovereenkomst heeft geen checklist, ook niet als de vlag per ongeluk meekomt.
     expect(contractMailHtml({ ...basis, soort: "reseller", checklist: true })).not.toContain("Checklist arbeidsomstandigheden");
-    const b = { basis: "https://react2u.nl", naam: "Marieke Jansen", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc", hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [], afzender, pdf: true };
+    const b = { basis: "https://react2u.nl", naam: "Marieke Jansen", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc", hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [], afzender, pdf: true, certificaten: CERTIFICATEN };
     expect(contractGetekendHtml({ ...b, checklist: "bijgevoegd" })).toContain("ingevulde Checklist arbeidsomstandigheden zit er ook bij");
     expect(contractGetekendHtml({ ...b, checklist: "open" })).toContain("hoort ook de Checklist arbeidsomstandigheden");
     expect(contractGetekendHtml(b)).not.toContain("Checklist arbeidsomstandigheden");
     const kopie = contractChecklistHtml({
       basis: "https://react2u.nl", aanhef: "Marieke", bedrijf: "Jansen & <Zn>", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc/checklist",
-      beantwoord: 3, totaal: 8, opnieuw: false, door: "Marieke Jansen", afzender, pdf: true,
+      beantwoord: 3, totaal: 8, opnieuw: false, door: "Marieke Jansen", afzender, pdf: true, certificaten: CERTIFICATEN,
     });
     expect(kopie).toContain("Je checklist is opgeslagen");
     expect(kopie).toContain("3 van 8 onderdelen beantwoord");
     expect(kopie).toContain("Jansen &amp; &lt;Zn&gt;");
     expect(kopie).toContain("https://react2u.nl/contract/abc/checklist");
-    expect(contractChecklistHtml({ basis: "https://react2u.nl", aanhef: null, bedrijf: "Jansen", nummer: "C2026-0001", link: "x", beantwoord: 8, totaal: 8, opnieuw: true, door: null, afzender, pdf: false })).toContain("Je checklist is bijgewerkt");
+    expect(contractChecklistHtml({ basis: "https://react2u.nl", aanhef: null, bedrijf: "Jansen", nummer: "C2026-0001", link: "x", beantwoord: 8, totaal: 8, opnieuw: true, door: null, afzender, pdf: false, certificaten: CERTIFICATEN })).toContain("Je checklist is bijgewerkt");
   });
 
   it("de code en de bevestiging", () => {
-    const code = contractCodeHtml({ basis: "https://react2u.nl", code: "123456", nummer: "C2026-0001", bedrijf: "Jansen", afzender });
+    const code = contractCodeHtml({ basis: "https://react2u.nl", code: "123456", nummer: "C2026-0001", bedrijf: "Jansen", afzender, certificaten: CERTIFICATEN });
     expect(code).toContain("123456");
     expect(code).toContain("Een kwartier geldig");
     // Geen punt achter de naam midden in de zin.
     expect(code).toContain("om het basiscontract voor Jansen te ondertekenen.");
     const klaar = contractGetekendHtml({
       basis: "https://react2u.nl", naam: "Marieke Jansen", bedrijf: "Jansen", nummer: "C2026-0001", link: "https://react2u.nl/contract/abc",
-      hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [{ label: "Looptijd", waarde: "1 jaar" }], afzender, pdf: true,
+      hash: "c".repeat(64), moment: "4 november 2026 om 10.12 uur", regels: [{ label: "Looptijd", waarde: "1 jaar" }], afzender, pdf: true, certificaten: CERTIFICATEN,
     });
     expect(klaar).toContain("Bedankt, Marieke.");
     expect(klaar).toContain("In de bijlage zit het ondertekende contract");

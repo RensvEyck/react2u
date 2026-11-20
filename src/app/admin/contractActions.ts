@@ -176,7 +176,7 @@ export async function verstuurContract(id: string, _prev: VersturenState, fd: Fo
   if (fouten.length) return { fout: fouten[0] };
 
   const herinnering = c.status === "verstuurd";
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const checklist = heeftChecklist(c) ? await checklistBijlage(sb, c) : null;
   const res = await sendContract({
     to: aan,
@@ -193,6 +193,7 @@ export async function verstuurContract(id: string, _prev: VersturenState, fd: Fo
     checklist: Boolean(checklist),
     bijlagen: checklist ? [checklist] : undefined,
     contact,
+    certificaten,
   });
   if (!res.ok) {
     return {

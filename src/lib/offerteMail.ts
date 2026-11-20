@@ -1,15 +1,17 @@
 import { CONTACT_FALLBACK, type ContactInfo } from "./content";
+import { BEKENDE_KEURMERKEN, keurmerkenVoor } from "./keurmerken";
+import type { Certificate } from "./nav";
 import { MERKEN, type Merk } from "./offerteMerk";
 import { euro, normaliseerRegels, waardeVan, type Offerte } from "./offertes";
 
 /*
  * De mails die de klant over zijn offerte krijgt, in de vormgeving van de site:
  * de zandkleur als achtergrond, het logo erboven, een witte kaart en een voet
- * met de keurmerken, zoals de footer van react2u.nl. Bovenaan staat het label
- * van de offerte zoals op de labelpagina (/recover, /resist, /restart): de
- * pasteltint, "React2u" met de labelnaam groot in de labelkleur, de dienst en
- * de tagline (Rens, 2 nov 2026: "deze mail moet visueel echt veel mooier in de
- * stijl van React2u").
+ * met de keurmerken uit Instellingen, zoals de footer van react2u.nl (zie
+ * `mailKeurmerken()`). Bovenaan staat het label van de offerte zoals op de
+ * labelpagina (/recover, /resist, /restart): de pasteltint, "React2u" met de
+ * labelnaam groot in de labelkleur, de dienst en de tagline (Rens, 2 nov 2026:
+ * "deze mail moet visueel echt veel mooier in de stijl van React2u").
  *
  * Mailclients kunnen veel minder dan een browser. Daarom tabellen en inline
  * stijlen, een knop die in Outlook voor Windows als VML wordt getekend, en
@@ -155,14 +157,30 @@ export function afzenderKaart(a: MailAfzender, m: MailMerk) {
 
 export const scheiding = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${KLEUR.lijn};font-size:0;line-height:0;height:1px">&nbsp;</td></tr></table>`;
 
-/** De keurmerken uit de footer van de site, als ronde witte badges. */
-export const KEURMERKEN = [
-  { pad: "sbca.jpg", alt: "SBCA" },
-  { pad: "iso9001.png", alt: "ISO 9001" },
-  { pad: "iso27001.png", alt: "ISO 27001" },
-  { pad: "iso27701.png", alt: "ISO 27701" },
-  { pad: "oval.png", alt: "OVAL" },
-];
+/**
+ * De keurmerken onder de mail, als ronde witte badges: de certificaten uit
+ * Instellingen (`offerteHuisstijl()`), door `keurmerkenVoor()` net zo uitgelegd
+ * als in de voet van de site. Staat er niets in Instellingen, dan staat er ook
+ * geen badge. Als beeld gaat alleen het logo van de site zelf mee, van een
+ * keurmerk dat de site kent (`BEKENDE_KEURMERKEN`): een geüpload logo heeft
+ * zomaar een andere maat en past niet in een rondje van 46 pixels, en het beeld
+ * moet van dezelfde plek komen als het logo bovenaan. Een certificaat dat de
+ * site niet kent, staat er als korte tekst in een pil. Tot 20 november 2026
+ * stond hier een vaste lijst van vijf; zie CONTEXT.md, *Valkuilen*.
+ */
+export function mailKeurmerken(basis: string, certificaten: Certificate[]): string {
+  return keurmerkenVoor(certificaten)
+    .map((k) => {
+      const logo = k.bekend >= 0 ? BEKENDE_KEURMERKEN[k.bekend].src : "";
+      if (logo) {
+        return `<td style="padding:0 5px"><img src="${esc(`${basis}${logo}`)}" width="46" height="46" alt="${esc(k.naam)}" style="display:block;width:46px;height:46px;border-radius:999px;border:1px solid ${KLEUR.lijn};background:#ffffff"></td>`;
+      }
+      const naam = k.naam.trim();
+      if (!naam) return "";
+      return `<td style="padding:0 5px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" valign="middle" height="44" style="height:44px;padding:0 14px;border-radius:999px;border:1px solid ${KLEUR.lijn};background:#ffffff;font-family:${FONT};font-size:12px;line-height:1;font-weight:700;letter-spacing:0.02em;white-space:nowrap;color:${KLEUR.grijs}">${esc(naam)}</td></tr></table></td>`;
+    })
+    .join("");
+}
 
 /* ---------- het omhulsel ---------- */
 
@@ -176,15 +194,18 @@ export function preheader(tekst: string) {
 
 export function omhulsel(o: {
   basis: string; titel: string; preheader: string; kaart: string; voetnoot?: string; contact?: ContactInfo;
+  /**
+   * De certificaten uit Instellingen (`offerteHuisstijl()`), voor de keurmerken
+   * onder de mail. Verplicht, ook als lege lijst: zo toont geen enkele mail
+   * stilzwijgend een vaste rij logo's die de site allang niet meer heeft.
+   */
+  certificaten: Certificate[];
   /** De taal van de inhoud; alleen de kandidaatmails komen ook in het Engels. */
   taal?: "nl" | "en";
 }) {
   const c = { ...CONTACT_FALLBACK, ...(o.contact || {}) };
   const link = (href: string, tekst: string) => `<a href="${esc(href)}" style="color:${KLEUR.indigo};text-decoration:none">${esc(tekst)}</a>`;
-  const keurmerken = KEURMERKEN.map(
-    (k) =>
-      `<td style="padding:0 5px"><img src="${esc(`${o.basis}/beeld/keurmerken/${k.pad}`)}" width="46" height="46" alt="${esc(k.alt)}" style="display:block;width:46px;height:46px;border-radius:999px;border:1px solid ${KLEUR.lijn};background:#ffffff"></td>`
-  ).join("");
+  const keurmerken = mailKeurmerken(o.basis, o.certificaten);
   return `<!doctype html>
 <html lang="${o.taal === "en" ? "en" : "nl"}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -231,10 +252,10 @@ ${preheader(o.preheader)}
   <a href="${esc(o.basis)}" style="text-decoration:none"><img src="${esc(`${o.basis}/mail/logo-react2u.png`)}" width="120" height="74" alt="React2u" style="display:block;width:120px;height:auto;color:${KLEUR.indigo};font-family:${FONT_KOP};font-size:24px;font-weight:700"></a>
 </td></tr>
 <tr><td style="background:#ffffff;border:1px solid ${KLEUR.lijn};border-radius:28px;overflow:hidden">${o.kaart}</td></tr>
-<tr><td align="center" style="padding:30px 12px 0">
+${keurmerken ? `<tr><td align="center" style="padding:30px 12px 0">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>${keurmerken}</tr></table>
-</td></tr>
-<tr><td align="center" style="padding:20px 12px 0;font-family:${FONT};font-size:13px;line-height:1.7;color:${KLEUR.grijs}">
+</td></tr>` : ""}
+<tr><td align="center" style="padding:${keurmerken ? 20 : 30}px 12px 0;font-family:${FONT};font-size:13px;line-height:1.7;color:${KLEUR.grijs}">
   <p style="margin:0 0 4px;font-family:${FONT_KOP};font-size:15px;font-weight:700;color:${KLEUR.indigo}">Jouw mensen, <span style="color:${KLEUR.roze}">onze aandacht.</span></p>
   <p style="margin:0">React2u&nbsp;&nbsp;·&nbsp;&nbsp;${esc(c.addressLine1)}, ${esc(c.addressLine2)}</p>
   <p style="margin:0">${link(`tel:+31${c.phone.replace(/\D/g, "").replace(/^0/, "")}`, c.phoneDisplay)}&nbsp;&nbsp;·&nbsp;&nbsp;${link(`mailto:${c.email}`, c.email)}&nbsp;&nbsp;·&nbsp;&nbsp;${link(o.basis, o.basis.replace(/^https?:\/\//, ""))}</p>
@@ -355,6 +376,8 @@ export type OfferteMail = {
   /** Of de klant iets te kiezen heeft (opties of een keuze uit een groep). */
   kiezen?: boolean;
   contact?: ContactInfo;
+  /** De certificaten uit Instellingen, voor de keurmerken onder de mail. */
+  certificaten: Certificate[];
 };
 
 const MAX_ONDERDELEN = 6;
@@ -443,6 +466,7 @@ ${linkAlsTekst(o.link)}`);
     kaart: kop + romp,
     voetnoot: "Deze link is persoonlijk: stuur hem alleen door aan wie mag meebeslissen.",
     contact: o.contact,
+    certificaten: o.certificaten,
   });
 }
 
@@ -450,6 +474,7 @@ ${linkAlsTekst(o.link)}`);
 
 export function offerteCodeHtml(c: {
   basis: string; merk?: MailMerk | null; code: string; nummer: string; bedrijf: string; afzender: MailAfzender; contact?: ContactInfo;
+  certificaten: Certificate[];
 }): string {
   const m = merkOf(c.merk);
   const kaart = vak(`${pil(`Offerte ${esc(c.nummer)}`, m.kleur)}
@@ -470,6 +495,7 @@ ${afzenderKaart(c.afzender, m)}`);
     preheader: `${c.code} is je code om offerte ${c.nummer} te ondertekenen. Een kwartier geldig.`,
     kaart: kaart + romp,
     contact: c.contact,
+    certificaten: c.certificaten,
   });
 }
 
@@ -478,7 +504,7 @@ ${afzenderKaart(c.afzender, m)}`);
 export function offerteGetekendHtml(b: {
   basis: string; merk?: MailMerk | null; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
   regels: { naam: string; bedrag: string }[]; totalen: { label: string; bedrag: string }[]; afzender: MailAfzender;
-  vervolg?: { kop: string; tekst: string }[] | null; pdf: boolean; contact?: ContactInfo;
+  vervolg?: { kop: string; tekst: string }[] | null; pdf: boolean; contact?: ContactInfo; certificaten: Certificate[];
 }): string {
   const m = merkOf(b.merk);
   const voornaam = b.naam.trim().split(/\s+/)[0] || b.naam;
@@ -529,5 +555,6 @@ ${afzenderKaart(b.afzender, m)}`);
     kaart: kop + romp,
     voetnoot: `Kenmerk van de ondertekende versie: <span style="font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all">${esc(b.hash)}</span>`,
     contact: b.contact,
+    certificaten: b.certificaten,
   });
 }

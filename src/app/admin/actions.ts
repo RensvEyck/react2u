@@ -589,8 +589,8 @@ export async function sendKandidaatMail(id: string, _prev: KandidaatMailState, f
   const groet = groetVoor(taal, veld("afzender", 80) || voornaamUitEmail(admin.email));
 
   const [{ sendBrief }, { offerteHuisstijl }] = await Promise.all([import("@/lib/mail"), import("@/lib/offerteHuisstijl")]);
-  const { contact } = await offerteHuisstijl();
-  const r = await sendBrief({ to: a.email, subject: onderwerp, alineas, groet, replyTo: admin.email, taal, contact });
+  const { contact, certificaten } = await offerteHuisstijl();
+  const r = await sendBrief({ to: a.email, subject: onderwerp, alineas, groet, replyTo: admin.email, taal, contact, certificaten });
   if (!r.ok) return { status: "fout", melding: mailFout(r) };
 
   const regel: KandidaatMailLog = { sjabloon, onderwerp, at: new Date().toISOString(), door: admin.email };
