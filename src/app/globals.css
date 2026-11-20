@@ -557,21 +557,10 @@ p {
 .hn a:focus-visible { outline: 3px solid #C8306A; outline-offset: 3px; }
 
 /* Kop van de startpagina: alles schaalt mee met het scherm. */
-/* De kopregel met de h1 boven de tegels: één regel in Outfit, klein genoeg om
-   op een telefoon in twee regels te passen (56px hoog) en breed genoeg om op
-   een laptop te lezen. `.hn .hn-h1` wint van `.hn :is(h1)` hierboven, dat de
-   kopstijlen van de layout terugzet; een Tailwind-maat op de h1 zou verliezen. */
-.hn .hn-kopregel { padding-top: 10px; padding-bottom: 8px; }
-.hn .hn-h1 { font-size: 15px; line-height: 1.25; letter-spacing: -0.2px; font-weight: 600; }
-@media (min-width: 768px) {
-  .hn .hn-kopregel { padding-top: 18px; padding-bottom: 14px; }
-  .hn .hn-h1 { font-size: clamp(17px, 1.3vw, 22px); line-height: 1.3; letter-spacing: -0.3px; }
-}
 /* Op de telefoon passen beide helften samen in het eerste scherm: het scherm
-   min de twee kopbalken (108px), de kopregel (twee regels, 56px) en de naden
-   (18px), met een onder- en bovengrens. Gemeten op 390 × 844: de onderrand
-   van de tweede tegel staat 6px boven de vouw. */
-.hn-split { --h: clamp(300px, calc((100svh - 182px) / 2), 400px); }
+   min de twee kopbalken (108px) en de naden (18px), met een onder- en
+   bovengrens. De h1 staat als sr-only en neemt geen ruimte in. */
+.hn-split { --h: clamp(300px, calc((100svh - 126px) / 2), 400px); }
 .hn-orb { --o: 290px; width: var(--o); height: var(--o); bottom: calc(var(--o) * -0.24); gap: calc(var(--o) * 0.034); padding-bottom: calc(var(--o) * 0.17); }
 .hn-orb-l { left: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.28); }
 .hn-orb-r { right: calc(var(--o) * -0.17); padding-left: calc(var(--o) * 0.21); }
@@ -580,7 +569,7 @@ p {
 .hn-orb-e { font-size: clamp(12px, calc(var(--o) * 0.025), 16px); letter-spacing: 0.09em; }
 .hn-orb-go { height: clamp(44px, calc(var(--o) * 0.108), 72px); min-width: clamp(44px, calc(var(--o) * 0.108), 72px); padding: 0 clamp(14px, calc(var(--o) * 0.036), 24px); font-size: clamp(15px, calc(var(--o) * 0.031), 20px); }
 @media (min-width: 768px) {
-  .hn-split { --h: clamp(520px, min(calc(100svh - 192px), 46vw), 1040px); height: var(--h); }
+  .hn-split { --h: clamp(520px, min(calc(100svh - 132px), 46vw), 1040px); height: var(--h); }
   .hn-orb { --o: clamp(400px, min(30vw, calc(var(--h) * 0.68)), 780px); bottom: calc(var(--o) * -0.19); padding-bottom: calc(var(--o) * 0.135); }
   .hn-orb-l { left: calc(var(--o) * -0.154); padding-left: calc(var(--o) * 0.29); }
   .hn-orb-r { right: calc(var(--o) * -0.154); padding-left: calc(var(--o) * 0.22); }
