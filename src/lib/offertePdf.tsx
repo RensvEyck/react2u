@@ -3,9 +3,10 @@ import path from "path";
 import { isValidElement } from "react";
 import { Document, Font, Image, Link, Page, Path, StyleSheet, Svg, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { DOTS, WORD } from "@/components/site/Logo";
-import { KEURMERKEN } from "@/components/blocks/Gedeeld";
 import { blokkenUit } from "@/components/offerte/OfferteTekst";
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
+import { PdfKeurmerken } from "./pdfKeurmerken";
 import { DOCUMENTEN } from "./documenten";
 import { inlineDelen } from "./mdInline";
 import { ONDERTEKENAAR, ondertekeningRegel } from "./offerteOndertekenaar";
@@ -192,6 +193,8 @@ export type OffertePdfInvoer = {
   handtekening: string | null;
   certificaat: CertificaatGegevens | null;
   contact: ContactInfo;
+  /** De certificaten uit Instellingen, voor de keurmerken in de voet (lib/keurmerken.ts). */
+  certificaten: Certificate[];
   /** De persoonlijke link, waar dezelfde versie en hetzelfde kenmerk online staan. */
   link: string;
   /**
@@ -203,7 +206,7 @@ export type OffertePdfInvoer = {
   concept?: boolean;
 };
 
-function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, link, concept = false }: OffertePdfInvoer) {
+function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, certificaten, link, concept = false }: OffertePdfInvoer) {
   const regels = normaliseerRegels(inhoud.regels);
   const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
   const tarieven = regels.filter((r) => r.soort === "tarief");
@@ -448,10 +451,7 @@ function OfferteDocument({ inhoud, hash, handtekening, certificaat, contact, lin
           ) : null}
 
           <View style={{ flexDirection: "row", alignItems: "center", marginTop: 18, gap: 16 }}>
-            {KEURMERKEN.map((k) => (
-              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt
-              <Image key={k.naam} src={path.join(BEELD, k.src)} style={{ height: 24, objectFit: "contain" }} />
-            ))}
+            <PdfKeurmerken certificaten={certificaten} kleur={MUTE} />
             <Text style={{ fontSize: 7.5, color: MUTE, flex: 1, textAlign: "right" }}>Gecertificeerde arbodienst</Text>
           </View>
         </View>

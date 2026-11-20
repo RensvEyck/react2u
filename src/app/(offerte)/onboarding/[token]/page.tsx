@@ -36,7 +36,7 @@ export default async function OnboardingRoute({ params }: { params: Promise<{ to
   const { token } = await params;
   if (!/^[a-f0-9]{48,}$/.test(token)) notFound();
   const collega = await isCollega();
-  const [{ data }, { contact }] = await Promise.all([
+  const [{ data }, { contact, certificaten }] = await Promise.all([
     supabasePublic().rpc("onboarding_bekijken", { p_token: token, p_tel: !collega }),
     offerteHuisstijl(),
   ]);
@@ -57,5 +57,5 @@ export default async function OnboardingRoute({ params }: { params: Promise<{ to
   }
 
   const modus = o.status === "concept" ? "voorbeeld" : collega ? "collega" : "klant";
-  return <OnboardingPagina o={o} basis={`/onboarding/${token}`} contact={contact} modus={modus} vers={netAfgerond(o.afgerond_at)} />;
+  return <OnboardingPagina o={o} basis={`/onboarding/${token}`} contact={contact} certificaten={certificaten} modus={modus} vers={netAfgerond(o.afgerond_at)} />;
 }

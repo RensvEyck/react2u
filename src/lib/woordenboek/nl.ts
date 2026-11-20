@@ -124,7 +124,7 @@ export const nl = {
     /** De HTML-sitemap bestaat alleen in het Nederlands; in het Engels leeg, dan staat de link er niet. */
     sitemap: "Sitemap",
     keurmerken: "Certificeringen en keurmerken",
-    /** Alt-teksten van de vijf keurmerklogo's, in de volgorde van KEURMERKEN in FooterR2u. */
+    /** Alt-teksten van de vijf bekende keurmerken, in de volgorde van BEKENDE_KEURMERKEN in lib/keurmerken.ts. */
     keurmerkAlts: ["SBCA gecertificeerde arbodienst", "DNV ISO 9001 certificaat", "DNV ISO 27001 certificaat", "DNV ISO 27701 certificaat", "Lid van OVAL"],
     logoNaarHome: "React2u, naar de homepage",
   },
@@ -514,7 +514,7 @@ export const nl = {
     getoetst: "Getoetst en gecertificeerd",
     kwaliteitTekst: "Je werkt met gevoelige informatie. Daarom laten we onze kwaliteit, beveiliging en privacy onafhankelijk toetsen.",
     meerCertificeringen: "Meer over onze certificeringen",
-    /** Naam en omschrijving van de vijf keurmerken, in de volgorde van KEURMERKEN. */
+    /** Naam en omschrijving van de vijf bekende keurmerken, in de volgorde van BEKENDE_KEURMERKEN in lib/keurmerken.ts. */
     keurmerken: [
       { naam: "SBCA", wat: "Gecertificeerde arbodienst" },
       { naam: "ISO 9001", wat: "Kwaliteitsmanagement" },

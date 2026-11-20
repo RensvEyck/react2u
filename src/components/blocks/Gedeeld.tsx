@@ -2,6 +2,8 @@ import Link from "next/link";
 import Beeld from "@/components/site/Beeld";
 import { pad, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
+import type { Certificate } from "@/lib/nav";
+import { keurmerkenUit, keurmerkTekst } from "@/lib/keurmerken";
 
 /*
  * Bouwstenen die op meerdere pagina's uit het Design-canvas terugkomen:
@@ -47,14 +49,6 @@ export const KLANTEN = [
   { src: "/beeld/klanten/kester.png", alt: "Kester uitzendbureau" },
   { src: "/beeld/klanten/leebo.png", alt: "Leebo" },
   { src: "/beeld/klanten/zorg-verbindt.png", alt: "Zorg Verbindt" },
-];
-
-export const KEURMERKEN = [
-  { src: "/beeld/keurmerken/sbca.jpg", alt: "SBCA gecertificeerde arbodienst", naam: "SBCA", wat: "Gecertificeerde arbodienst" },
-  { src: "/beeld/keurmerken/iso9001.png", alt: "DNV ISO 9001 certificaat", naam: "ISO 9001", wat: "Kwaliteitsmanagement" },
-  { src: "/beeld/keurmerken/iso27001.png", alt: "DNV ISO 27001 certificaat", naam: "ISO 27001", wat: "Informatiebeveiliging" },
-  { src: "/beeld/keurmerken/iso27701.png", alt: "DNV ISO 27701 certificaat", naam: "ISO 27701", wat: "Privacy" },
-  { src: "/beeld/keurmerken/oval.png", alt: "Lid van OVAL", naam: "OVAL", wat: "Branchevereniging" },
 ];
 
 export function Pijl({ size = 16 }: { size?: number }) {
@@ -195,9 +189,18 @@ export function KlantenAanHetWoord({ bg = SOFT, eyebrow, heading, taal = "nl" }:
   );
 }
 
-export function Keurmerken({ taal = "nl" }: { taal?: Taal }) {
+/**
+ * Kwaliteit: de keurmerken als tegels met naam en omschrijving. Welke dat zijn
+ * bepaalt Instellingen (`certificaten`, door de pagina meegegeven via ctx);
+ * zonder die lijst, in de blokeditor, alle bekende (lib/keurmerken.ts). Geen
+ * enkel keurmerk, dan ook geen sectie: "getoetst en gecertificeerd" zonder
+ * keurmerk klopt niet.
+ */
+export function Keurmerken({ taal = "nl", certificaten }: { taal?: Taal; certificaten?: Certificate[] }) {
   const t = woordenboek(taal);
   const g = t.gedeeld;
+  const lijst = keurmerkenUit(certificaten);
+  if (lijst.length === 0) return null;
   return (
     <section aria-label={g.kwaliteit} className="bg-white">
       <div className={`${BREED} flex flex-col gap-10 pb-14 md:gap-12 md:pb-[112px]`}>
@@ -216,15 +219,27 @@ export function Keurmerken({ taal = "nl" }: { taal?: Taal }) {
         {/* Op de telefoon vijf rijen met het logo links (geen half gevulde
             laatste rij); vanaf 640px tegels. */}
         <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-          {KEURMERKEN.map((k, i) => (
-            <li key={k.src} className="flex items-center gap-4 rounded-[18px] border bg-white px-4 py-3 sm:flex-col sm:rounded-[22px] sm:px-5 sm:py-7 sm:text-center" style={{ borderColor: LINE }}>
-              <span className="flex h-12 w-14 shrink-0 items-center justify-center sm:h-[72px] sm:w-auto"><Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="72px" className="max-h-full w-auto max-w-[56px] object-contain sm:max-w-[110px]" /></span>
-              <span className="flex flex-col gap-0.5">
-                <span className="text-[16px] font-bold" style={{ color: NAVY }}>{g.keurmerken[i]?.naam || k.naam}</span>
-                <span className="text-[14px]" style={{ color: MUTE }}>{g.keurmerken[i]?.wat || k.wat}</span>
-              </span>
-            </li>
-          ))}
+          {lijst.map((k, i) => {
+            const { alt, naam, wat } = keurmerkTekst(k, t);
+            const inhoud = (
+              <>
+                {k.src && <span className="flex h-12 w-14 shrink-0 items-center justify-center sm:h-[72px] sm:w-auto"><Beeld src={k.src} alt={alt} sizes="72px" className="max-h-full w-auto max-w-[56px] object-contain sm:max-w-[110px]" /></span>}
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-[16px] font-bold" style={{ color: NAVY }}>{naam}</span>
+                  {wat && <span className="text-[14px]" style={{ color: MUTE }}>{wat}</span>}
+                </span>
+              </>
+            );
+            const cls = "flex h-full items-center gap-4 rounded-[18px] border bg-white px-4 py-3 sm:flex-col sm:rounded-[22px] sm:px-5 sm:py-7 sm:text-center";
+            // Staat het certificaat zelf (de PDF) in Instellingen, dan is de tegel de doorklik.
+            return (
+              <li key={i}>
+                {k.href
+                  ? <a href={k.href} target="_blank" rel="noopener" className={`${cls} transition-shadow hover:shadow-[0_18px_36px_-24px_rgba(50,46,131,0.45)]`} style={{ borderColor: LINE }}>{inhoud}</a>
+                  : <span className={cls} style={{ borderColor: LINE }}>{inhoud}</span>}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>

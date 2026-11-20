@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import BlockRenderer from "@/components/blocks/BlockRenderer";
+import BlockRenderer, { needsKeurmerken } from "@/components/blocks/BlockRenderer";
 import { conceptEn } from "@/lib/concept";
+import { getSetting } from "@/lib/content";
+import { normalizeCertificates } from "@/lib/nav";
 import { jsonLd } from "@/lib/jsonld";
 import { organisatieGraphLd } from "@/lib/organisatie";
 import { openGraphVoor } from "@/lib/og";
@@ -27,12 +29,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function EnglishHomePage() {
+export default async function EnglishHomePage() {
   const c = conceptEn("home");
   if (!c) notFound();
+  // De certificaten uit de instellingen, alleen als het startscherm keurmerken toont (lib/keurmerken.ts).
+  const certificaten = needsKeurmerken(c.blocks) ? normalizeCertificates(await getSetting<unknown>("certificates")) : undefined;
   return (
     <>
-      <BlockRenderer blocks={c.blocks} ctx={{ lang: "en" }} />
+      <BlockRenderer blocks={c.blocks} ctx={{ lang: "en", certificaten }} />
       {/* Dezelfde organisatie en website als op /, met hetzelfde @id. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisatieGraphLd()) }} />
     </>

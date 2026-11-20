@@ -32,7 +32,7 @@ import {
 import {
   WnSplit, WnInhoud, WnWatNu, WnTijdlijn, WnRechten, WnPrivacy, WnCasemanager, WnCoaching, WnVragen, WnContact,
 } from "./Werknemers";
-import { LABELS, CONTACT_FOTO, labelVoor, type Label } from "@/lib/nav";
+import { LABELS, CONTACT_FOTO, labelVoor, type Certificate, type Label } from "@/lib/nav";
 import { DIENST_REDIRECTS } from "@/lib/redirects";
 import { LuBadgeCheck, LuCheck, LuMail, LuMapPin, LuPhone } from "react-icons/lu";
 import type { TarievenSettings } from "@/lib/tarieven";
@@ -65,6 +65,11 @@ export type BlockCtx = {
   tarieven?: TarievenSettings;
   /** De taal van de pagina; de blokdata is al in die taal, dit is voor de paar vaste woorden in een blok. */
   lang?: Taal;
+  /**
+   * De certificaten uit Instellingen, voor de blokken met keurmerken
+   * (lib/keurmerken.ts). Ontbreekt in de blokeditor: dan tonen die alle bekende.
+   */
+  certificaten?: Certificate[];
 };
 
 type BlockProps = {
@@ -1161,7 +1166,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   ptAanmelden: PtAanmelden,
   klantenStrook: ({ d, ctx }: BlockProps) => <KlantenStrook label={d?.label} taal={ctx?.lang} />,
   klantenAanHetWoord: ({ d, ctx }: BlockProps) => <KlantenAanHetWoord eyebrow={d?.eyebrow} heading={d?.heading} bg={d?.bg} taal={ctx?.lang} />,
-  keurmerken: ({ ctx }: BlockProps) => <Keurmerken taal={ctx?.lang} />,
+  keurmerken: ({ ctx }: BlockProps) => <Keurmerken taal={ctx?.lang} certificaten={ctx?.certificaten} />,
   homeContact: HomeContact,
   wgSplit: WgSplit,
   wgWaarom: WgWaarom,
@@ -1245,6 +1250,11 @@ export function needsPosts(blocks: Block[]): boolean {
 /** Of een pagina een tariefblok heeft, en dus het tarievenjaar uit de instellingen nodig heeft. */
 export function needsTarieven(blocks: Block[]): boolean {
   return blocks.some((b) => b.type === "tarieven" || b.type === "dgTarieven" || b.type === "wgTarieven" || b.type === "ptRekenhulp");
+}
+
+/** Of een pagina keurmerken toont, en dus de certificaten uit de instellingen nodig heeft (lib/keurmerken.ts). */
+export function needsKeurmerken(blocks: Block[]): boolean {
+  return blocks.some((b) => b.type === "keurmerken" || b.type === "overReact2u" || b.type === "dienstLabel" || b.type === "dgCertificeringen");
 }
 
 export default function BlockRenderer({ blocks, ctx = {} }: { blocks: Block[]; ctx?: BlockCtx }) {

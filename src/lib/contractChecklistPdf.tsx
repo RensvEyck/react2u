@@ -1,8 +1,8 @@
 import "server-only";
-import path from "path";
-import { Document, Image, Link, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
-import { KEURMERKEN } from "@/components/blocks/Gedeeld";
+import { Document, Link, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
+import { PdfKeurmerken } from "./pdfKeurmerken";
 import {
   actieSleutel, CHECKLIST_KOLOMMEN, CHECKLIST_KOP, CHECKLIST_NAAM, CHECKLIST_ONDERTITEL, CHECKLIST_TITEL, CHECKLIST_VRAGEN, checklistVoortgang, datumSleutel,
   type ChecklistData, type ChecklistStand,
@@ -19,7 +19,6 @@ import { Logo, registreer } from "./offertePdf";
  * open vakken om met de hand in te vullen, en de link om het online te doen.
  */
 
-const BEELD = path.join(process.cwd(), "public");
 
 const NAVY = "#322E83";
 const INKT = "#1C1A4E";
@@ -45,6 +44,8 @@ export type ChecklistPdfInvoer = {
   contract: { nummer: string; bedrijf: string; opdrachtgever?: { naam?: string } | null };
   stand: ChecklistStand | null;
   contact: ContactInfo;
+  /** De certificaten uit Instellingen, voor de keurmerken in de voet (lib/keurmerken.ts). */
+  certificaten: Certificate[];
   /** De persoonlijke link naar de checklist, waar dezelfde antwoorden online staan. */
   link: string;
 };
@@ -134,7 +135,7 @@ function Tabel({ data, leeg }: { data: ChecklistData; leeg: boolean }) {
   );
 }
 
-function ChecklistDocument({ contract, stand, contact, link }: ChecklistPdfInvoer) {
+function ChecklistDocument({ contract, stand, contact, certificaten, link }: ChecklistPdfInvoer) {
   const data = stand?.data || {};
   const leeg = !stand;
   const klant = contract.opdrachtgever?.naam || contract.bedrijf;
@@ -199,10 +200,7 @@ function ChecklistDocument({ contract, stand, contact, link }: ChecklistPdfInvoe
             contractpagina; daar kun je ze aanvullen.
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", marginTop: 14, gap: 16 }}>
-            {KEURMERKEN.map((k) => (
-              // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf kent geen alt
-              <Image key={k.naam} src={path.join(BEELD, k.src)} style={{ height: 24, objectFit: "contain" }} />
-            ))}
+            <PdfKeurmerken certificaten={certificaten} kleur={MUTE} />
             <Link src={link} style={{ fontSize: 7.5, color: MUTE, flex: 1, textAlign: "right" }}>{link}</Link>
           </View>
         </View>

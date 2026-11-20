@@ -483,8 +483,11 @@ export async function saveSeoSettings(formData: FormData) {
 
 export async function saveCertificatesSettings(formData: FormData) {
   const { sb } = await requirePerm("instellingen");
-  // Zonder afbeelding valt er niets te tonen; alt en href mogen leeg blijven.
-  const value = collectRows(formData, ["image", "alt", "href"]).filter((r) => r.image);
+  // Een regel telt zodra er iets te tonen valt: een logo, of een omschrijving
+  // (een bekend keurmerk krijgt daarmee het logo van de site, zie
+  // lib/keurmerken.ts). Tot november 2026 viel een regel zonder logo hier weg,
+  // terwijl het beheer wél beloofde dat omschrijving plus link genoeg was.
+  const value = collectRows(formData, ["image", "alt", "href"]).filter((r) => r.image || r.alt);
   await sb.from("site_settings").upsert({ key: "certificates", value });
   revalidateSite();
   redirect("/admin/instellingen?opgeslagen=1");

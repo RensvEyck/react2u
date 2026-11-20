@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { ContactInfo } from "@/lib/content";
 import type { Certificate, FooterDoc } from "@/lib/nav";
+import { keurmerkenVoor, keurmerkTekst } from "@/lib/keurmerken";
 import { DOCUMENTEN } from "@/lib/documenten";
 import Logo from "./Logo";
 import { Telefoon, Mail } from "./HeaderR2u";
@@ -12,34 +13,16 @@ import { useTaal } from "./Taal";
 import { pad, vul, type Taal } from "@/lib/taal";
 import type { Woordenboek } from "@/lib/woordenboek";
 
-/* eslint-disable @next/next/no-img-element */
-
 /*
  * Footer uit het ontwerp (Design-canvas): een witte kaart op ivoor met het
  * logo en vier kolommen, daaronder de keurmerken als witte tegels en een
  * regel met KvK en de juridische documenten. Op staging en op de Engelse site;
  * de teksten komen uit het woordenboek, de adressen uit de koppeltabel.
+ *
+ * De keurmerken zijn de certificaten uit Instellingen (lib/keurmerken.ts):
+ * weghalen of toevoegen in het beheer is meteen zichtbaar. Geen certificaten,
+ * dan geen rij.
  */
-
-/**
- * De keurmerken in de footer zijn altijd de logo's uit het ontwerp. In de
- * instellingen staan de certificaten als PDF; die worden de doorklik achter
- * het bijbehorende logo (herkend aan de naam).
- */
-const KEURMERKEN: (Certificate & { zoek?: RegExp })[] = [
-  { image: "/beeld/keurmerken/sbca.jpg", alt: "SBCA gecertificeerde arbodienst", href: "", zoek: /arbodienst|sbca|managementsysteem/i },
-  { image: "/beeld/keurmerken/iso9001.png", alt: "DNV ISO 9001 certificaat", href: "", zoek: /9001/i },
-  { image: "/beeld/keurmerken/iso27001.png", alt: "DNV ISO 27001 certificaat", href: "", zoek: /27001/i },
-  { image: "/beeld/keurmerken/iso27701.png", alt: "DNV ISO 27701 certificaat", href: "", zoek: /27701/i },
-  { image: "/beeld/keurmerken/oval.png", alt: "Lid van OVAL", href: "", zoek: /oval/i },
-];
-
-function keurmerkenMetLinks(certificates: Certificate[], alts: string[]): Certificate[] {
-  return KEURMERKEN.map(({ zoek, ...k }, i) => {
-    const c = zoek && certificates.find((x) => zoek.test(`${x.alt} ${x.href} ${x.image}`));
-    return { ...k, alt: alts[i] || k.alt, href: c ? c.href || c.image : "" };
-  });
-}
 
 type Kolom = { kop: string; regels: (Link2 & { sterk?: boolean })[] };
 
@@ -101,7 +84,7 @@ export default function FooterR2u({ contact, docs, certificates }: {
 }) {
   const { taal, t } = useTaal();
   const docLinks = documenten(docs, t);
-  const keurmerken = keurmerkenMetLinks(certificates, t.footer.keurmerkAlts);
+  const keurmerken = keurmerkenVoor(certificates);
   const kols = kolommen(contact, taal, t);
   const jaar = new Date().getFullYear();
   return (
@@ -161,16 +144,18 @@ export default function FooterR2u({ contact, docs, certificates }: {
         {keurmerken.length > 0 && (
           <ul aria-label={t.footer.keurmerken} className="flex flex-wrap gap-2 md:gap-4">
             {keurmerken.map((c, i) => {
-              const tegel = c.image ? (
-                <Beeld src={c.image} alt={c.alt} sizes="(min-width: 768px) 76px, 50px" className="h-[50px] w-[50px] object-contain md:h-[76px] md:w-[76px]" />
+              const { alt, naam } = keurmerkTekst(c, t);
+              // Zonder logo (een certificaat dat de site niet kent) de naam als tekst.
+              const tegel = c.src ? (
+                <Beeld src={c.src} alt={alt} sizes="(min-width: 768px) 76px, 50px" className="h-[50px] w-[50px] object-contain md:h-[76px] md:w-[76px]" />
               ) : (
-                <span className="px-1 text-center text-[11px] font-bold leading-tight" style={{ color: K.indigo }}>{c.alt}</span>
+                <span className="px-1 text-center text-[11px] font-bold leading-tight" style={{ color: K.indigo }}>{naam}</span>
               );
               const cls = "grid h-[60px] w-[60px] place-items-center rounded-[12px] bg-white p-1.5 md:h-[92px] md:w-[92px] md:rounded-[16px] md:p-2";
               return (
                 <li key={i}>
                   {c.href
-                    ? <a href={c.href} target="_blank" rel="noopener noreferrer" className={`${cls} lift`} aria-label={c.alt || undefined}>{tegel}</a>
+                    ? <a href={c.href} target="_blank" rel="noopener noreferrer" className={`${cls} lift`} aria-label={alt || naam || undefined}>{tegel}</a>
                     : <span className={cls}>{tegel}</span>}
                 </li>
               );

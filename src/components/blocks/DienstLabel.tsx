@@ -5,9 +5,11 @@ import { Strook } from "./Gedeeld";
 import { pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 import { inkt } from "@/lib/kleur";
+import type { Certificate } from "@/lib/nav";
+import { keurmerkenUit, keurmerkTekst } from "@/lib/keurmerken";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal } };
+type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal; certificaten?: Certificate[] } };
 
 /*
  * Dienstpagina per label (ontwerp "Dienst: Resist/Recover/…" op het canvas):
@@ -28,14 +30,6 @@ const BODY = "#5E5C78";
 const MUTE = "#67657F";
 const LINE = "#E6E5EF";
 const SOFT = "#F6F5FB";
-
-const KEURMERKEN = [
-  { src: "/beeld/keurmerken/sbca.jpg", alt: "SBCA gecertificeerde arbodienst" },
-  { src: "/beeld/keurmerken/iso9001.png", alt: "DNV ISO 9001 certificaat" },
-  { src: "/beeld/keurmerken/iso27001.png", alt: "DNV ISO 27001 certificaat" },
-  { src: "/beeld/keurmerken/iso27701.png", alt: "DNV ISO 27701 certificaat" },
-  { src: "/beeld/keurmerken/oval.png", alt: "Lid van OVAL" },
-];
 
 function Pijl() {
   return (
@@ -61,6 +55,8 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
   const taal: Taal = ctx?.lang ?? "nl";
   const w = woordenboek(taal);
   const t2 = w.dienstLabel;
+  // De keurmerken uit Instellingen (lib/keurmerken.ts); in de blokeditor, zonder ctx, alle bekende.
+  const keurmerken = keurmerkenUit(ctx?.certificaten);
   const c: string = d.kleur || NAVY;
   const t: string = d.tint || SOFT;
   // Tekst in de labelkleur: de donkerdere tint uit lib/kleur.ts (oranje en
@@ -222,17 +218,24 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
                 </div>
               ))}
             </div>
-            <div className="relative flex flex-col gap-4 border-t pt-7 md:flex-row md:items-center md:justify-between md:gap-5 md:pt-9" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
-              <span className="text-[16px] font-bold">{titel("gecertificeerd", t2.gecertificeerd)}</span>
-              {/* Vijf tegels op één rij, ook op de telefoon (5 × 60 + 4 × 8 = 332px). */}
-              <div className="flex flex-wrap gap-2 md:gap-3">
-                {KEURMERKEN.map((k, i) => (
-                  <span key={k.src} className="grid h-[60px] w-[60px] place-items-center rounded-[14px] bg-white md:h-[84px] md:w-[84px] md:rounded-[18px]">
-                    <Beeld src={k.src} alt={w.footer.keurmerkAlts[i] || k.alt} sizes="(min-width: 768px) 64px, 46px" className="block max-h-[46px] max-w-[46px] md:max-h-[64px] md:max-w-[64px]" />
-                  </span>
-                ))}
+            {keurmerken.length > 0 && (
+              <div className="relative flex flex-col gap-4 border-t pt-7 md:flex-row md:items-center md:justify-between md:gap-5 md:pt-9" style={{ borderColor: "rgba(50,46,131,0.12)" }}>
+                <span className="text-[16px] font-bold">{titel("gecertificeerd", t2.gecertificeerd)}</span>
+                {/* Vijf tegels passen op één rij, ook op de telefoon (5 × 60 + 4 × 8 = 332px). */}
+                <div className="flex flex-wrap gap-2 md:gap-3">
+                  {keurmerken.map((k, i) => {
+                    const { alt, naam } = keurmerkTekst(k, w);
+                    const tegel = k.src
+                      ? <Beeld src={k.src} alt={alt} sizes="(min-width: 768px) 64px, 46px" className="block max-h-[46px] max-w-[46px] md:max-h-[64px] md:max-w-[64px]" />
+                      : <span className="px-1 text-center text-[11px] font-bold leading-tight" style={{ color: NAVY }}>{naam}</span>;
+                    const cls = "grid h-[60px] w-[60px] place-items-center rounded-[14px] bg-white md:h-[84px] md:w-[84px] md:rounded-[18px]";
+                    return k.href
+                      ? <a key={i} href={k.href} target="_blank" rel="noopener" className={cls} aria-label={alt || naam}>{tegel}</a>
+                      : <span key={i} className={cls}>{tegel}</span>;
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
       )}

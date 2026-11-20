@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { outfit } from "./HomeVerhaal";
-import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, BLEED, Eyebrow, Kruimels, Vink, Pijl, KEURMERKEN, Strook } from "./Gedeeld";
+import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, BLEED, Eyebrow, Kruimels, Vink, Pijl, Strook } from "./Gedeeld";
 import Beeld from "@/components/site/Beeld";
 import { inkt } from "@/lib/kleur";
+import { keurmerkBij, keurmerkenUit, keurmerkTekst } from "@/lib/keurmerken";
+import type { Certificate } from "@/lib/nav";
 import { geldigheidsregel, metJaar, type TarievenSettings } from "@/lib/tarieven";
 import { datumInTaal, pad, vul, type Taal } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 
-type Ctx = { lang?: Taal; tarieven?: TarievenSettings };
+type Ctx = { lang?: Taal; tarieven?: TarievenSettings; certificaten?: Certificate[] };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -459,6 +461,8 @@ export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ct
   const t = woordenboek(taal);
   const H = asH1 ? "h1" : "h2";
   const items: any[] = d.items || [];
+  // De keurmerken uit Instellingen (lib/keurmerken.ts); in de blokeditor, zonder ctx, alle bekende.
+  const keurmerken = keurmerkenUit(ctx?.certificaten);
   return (
     <div className={`hv ${outfit.variable}`}>
       <section aria-label={d.eyebrow || t.werkgevers.certificeringenKruimel} className="bg-white">
@@ -471,26 +475,34 @@ export function DgCertificeringen({ d, asH1, ctx }: { d: any; asH1?: boolean; ct
           {d.text && <p className="m-0 self-end text-[17px] leading-[1.7] lg:col-span-5 lg:col-start-8" style={{ color: BODY }}>{d.text}</p>}
         </div>
       </section>
-      <section aria-label={t.footer.keurmerken} style={{ background: SOFT }}>
-        {/* Altijd vijf op een rij: op de telefoon klein, zodat er geen halve rij overblijft. */}
-        <ul className={`${BREED} m-0 grid list-none grid-cols-5 gap-2 py-6 sm:gap-3 sm:py-8 lg:gap-4`}>
-          {KEURMERKEN.map((k, i) => (
-            <li key={k.src} className="grid h-[64px] place-items-center rounded-[14px] bg-white p-2 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)] sm:h-[110px] sm:rounded-[20px] sm:p-4">
-              <Beeld src={k.src} alt={t.footer.keurmerkAlts[i] || k.alt} sizes="(min-width: 640px) 70px, 48px" className="max-h-[46px] w-auto object-contain sm:max-h-[70px]" />
-            </li>
-          ))}
-        </ul>
-      </section>
+      {keurmerken.length > 0 && (
+        <section aria-label={t.footer.keurmerken} style={{ background: SOFT }}>
+          {/* Op één rij, tot vijf: op de telefoon klein, zodat er geen halve rij overblijft. */}
+          <ul className={`${BREED} m-0 grid list-none gap-2 py-6 sm:gap-3 sm:py-8 lg:gap-4`} style={{ gridTemplateColumns: `repeat(${Math.min(keurmerken.length, 5)}, minmax(0, 1fr))` }}>
+            {keurmerken.map((k, i) => {
+              const { alt, naam } = keurmerkTekst(k, t);
+              return (
+                <li key={i} className="grid h-[64px] place-items-center rounded-[14px] bg-white p-2 shadow-[0_20px_40px_-32px_rgba(50,46,131,0.35)] sm:h-[110px] sm:rounded-[20px] sm:p-4">
+                  {k.src
+                    ? <Beeld src={k.src} alt={alt} sizes="(min-width: 640px) 70px, 48px" className="max-h-[46px] w-auto object-contain sm:max-h-[70px]" />
+                    : <span className="text-center text-[12px] font-bold leading-tight sm:text-[14px]" style={{ color: NAVY }}>{naam}</span>}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
       <section aria-label={d.lijstKop || d.heading} className="bg-white">
         <div className={`${BREED} flex flex-col gap-8 py-14 md:gap-10 md:py-[104px]`}>
           <SectieKop d={{ eyebrow: d.lijstEyebrow, heading: d.lijstKop, text: d.lijstTekst }} />
           <div className="flex flex-col border-t" style={{ borderColor: LINE }}>
             {items.map((it, i) => {
-              const k = KEURMERKEN[i];
+              // Het logo bij deze regel, zolang het keurmerk in Instellingen staat; anders de tekst zonder logo.
+              const k = keurmerkBij(String(it.title || ""), keurmerken);
               return (
                 <div key={i} className="grid gap-4 border-b py-6 md:grid-cols-12 md:gap-6 md:py-8" style={{ borderColor: LINE }}>
                   <span className="grid h-[76px] w-[76px] place-items-center rounded-[18px] border bg-white p-2 md:col-span-2" style={{ borderColor: LINE }}>
-                    {k && <Beeld src={k.src} alt="" sizes="60px" className="max-h-full w-auto object-contain" />}
+                    {k?.src && <Beeld src={k.src} alt="" sizes="60px" className="max-h-full w-auto object-contain" />}
                   </span>
                   <span className={`${kop} text-[21px] leading-[1.25] md:col-span-4`} style={{ color: NAVY }}>{it.title}</span>
                   <span className="text-[16px] leading-[1.7] md:col-span-6" style={{ color: BODY }}>{it.text}</span>

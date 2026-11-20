@@ -1,4 +1,5 @@
 import type { ContactInfo } from "@/lib/content";
+import type { Certificate } from "@/lib/nav";
 import { kop, LAV, LINE, NAVY, PINK, Pijl, Vink } from "@/components/blocks/Gedeeld";
 import { BODY } from "@/components/blocks/Gedeeld";
 import { datumLang, momentLang, vulIn } from "@/lib/offertes";
@@ -36,12 +37,14 @@ import OnboardingReveal from "./OnboardingReveal";
  */
 
 export default function OnboardingPagina({
-  o, basis, contact, modus, vers = false,
+  o, basis, contact, certificaten, modus, vers = false,
 }: {
   o: OnboardingPubliek;
   /** De klantlink of het voorbeeld in het beheer: daaronder staan de stappen, de pdf's en het Excelbestand. */
   basis: string;
   contact: ContactInfo;
+  /** De certificaten uit Instellingen, voor de keurmerken bij Jullie gegevens (lib/keurmerken.ts). */
+  certificaten: Certificate[];
   modus: Modus;
   /** Net klaar (minder dan een kwartier geleden): dan de felicitatie met de stippen. */
   vers?: boolean;
@@ -224,7 +227,7 @@ export default function OnboardingPagina({
           return (
             <Band key={h.id} id={`hoofdstuk-${h.id}`} tint={tint} label={h.eyebrow}>
               <SectieKop eyebrow={`Hoofdstuk ${hi + 1} van ${hoofdstukken.length} · ${h.eyebrow}`} titel={h.titel} tekst={h.tekst} />
-              {h.id === "gegevens" && <Zekerheid tint={tint} />}
+              {h.id === "gegevens" && <Zekerheid tint={tint} certificaten={certificaten} />}
               <ol className={`m-0 grid list-none gap-4 p-0 md:grid-cols-2 ${h.docs.length >= 3 ? "xl:grid-cols-3" : ""}`}>
                 {h.docs.map((d, i) => <StapKaart key={d.sleutel} d={d} n={nummerVan(d)} o={o} basis={basis} tint={tint} i={i} />)}
               </ol>
