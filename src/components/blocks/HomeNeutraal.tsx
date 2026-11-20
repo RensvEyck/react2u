@@ -68,16 +68,11 @@ export function HomeSplit({ d, asH1 }: BlockProps) {
   const H = asH1 ? "h1" : "h2";
   return (
     <section className={`hn hn-type ${outfit.variable}`} style={{ background: IVOOR }}>
-      {/* De kopregel: één zichtbare regel met de h1 boven de twee tegels, op het
-          ivoor van de pagina. Tot november 2026 stond de h1 als sr-only; een
-          onzichtbare hoofdkop telt voor Google en schermlezers minder dan een
-          zichtbare. Smal gehouden (`.hn-kopregel` in globals.css), zodat op een
-          telefoon van 390 px beide tegels boven de vouw blijven. */}
-      <div className="hn-kopregel mx-auto flex max-w-[2400px] items-center justify-center px-5 md:px-8">
-        <H className="hn-h1 m-0 max-w-[960px] text-balance text-center" style={{ color: INDIGO }}>
-          {d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}
-        </H>
-      </div>
+      {/* De h1 staat er voor schermlezers en zoekmachines, maar niet in beeld:
+          de startpagina opent direct met de twee tegels. In november 2026 stond
+          de kop kort als zichtbare regel boven de tegels (HALO-scan); Rens wilde
+          die regel uit de header, dus terug naar sr-only. */}
+      <H className="sr-only">{d.heading || "React2u, persoonlijke arbodienst in Eindhoven"}</H>
       <div className="hn-split mx-auto flex max-w-[2400px] flex-col gap-[6px] px-[6px] pb-[6px] md:flex-row md:gap-2 md:px-2 md:pb-2">
         {choices.map((c, i) => {
           const links = i === 0;
