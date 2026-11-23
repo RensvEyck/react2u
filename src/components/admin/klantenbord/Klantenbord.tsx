@@ -7,6 +7,7 @@ import {
   KLANT_STATUS, sorteerKaarten, telling, zoekKlanten, actieStand, type Bezoek, type Gesprek, type Klant, type KlantStatus, type Koppeling,
 } from "@/lib/klanten";
 import { zetKlantStatus, type ImportResultaat } from "@/app/admin/klantenActions";
+import type { DekkingPil } from "@/lib/waarneming";
 import KlantKaart from "./KlantKaart";
 import KlantPaneel from "./KlantPaneel";
 import KlantImport from "./KlantImport";
@@ -27,7 +28,7 @@ type Weergave = "bord" | "lijst";
 type Filter = "alles" | "actie" | "zonder";
 
 export default function Klantenbord({
-  klanten: begin, gesprekken: beginGesprekken, koppelingen, bezoek, vandaag, weergave: beginWeergave, mailAan, ik, teDoen, partners,
+  klanten: begin, gesprekken: beginGesprekken, koppelingen, bezoek, vandaag, weergave: beginWeergave, mailAan, ik, teDoen, partners, waarnemingen,
 }: {
   klanten: Klant[];
   gesprekken: Gesprek[];
@@ -42,6 +43,8 @@ export default function Klantenbord({
   teDoen: number;
   /** De partners en resellers (0022), voor de koppeling op een kaart (0052). */
   partners: PartnerKort[];
+  /** Waarneming (0057): per klant wie er nu of straks voor de klant is, als de casemanager er niet is. */
+  waarnemingen: Record<string, DekkingPil>;
 }) {
   const router = useRouter();
   const [, start] = useTransition();
@@ -230,6 +233,7 @@ export default function Klantenbord({
               koppelingen={koppelingen[k.id] || []}
               bezoek={bezoek[k.id] || null}
               partner={(k.partner_id && partnerVan.get(k.partner_id)) || null}
+              waarneming={waarnemingen[k.id] || null}
               vandaag={vandaag}
               open={open === k.id}
               onOpen={() => setOpen(k.id)}

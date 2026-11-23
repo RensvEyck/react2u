@@ -17,6 +17,7 @@ import ConfirmButton from "@/components/admin/ConfirmButton";
 import StapVink from "@/components/admin/inwerk/StapVink";
 import { NotulenFormulier } from "@/components/admin/overleg/Notulen";
 import Verdeling from "@/components/admin/overleg/Verdeling";
+import WaarnemingBlok from "@/components/admin/waarneming/WaarnemingBlok";
 
 /**
  * CM-overleg (0053, 0054; Rens, 23 nov 2026, met het voorbeeld "CM overleg
@@ -431,6 +432,9 @@ export default async function CmOverleg() {
           )}
         </section>
       )}
+
+      {/* ---------- waarneming (0057): wie er de komende weken niet is ---------- */}
+      <WaarnemingBlok sb={sb} vandaag={vandaag} />
 
       {/* ---------- de kaart ---------- */}
       <section className="acard p-6" id="kaart" aria-labelledby="kaart-kop">

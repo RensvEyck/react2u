@@ -34,6 +34,8 @@ import OverlegKaart from "@/components/admin/overleg/OverlegKaart";
 import { haalOverlegKort } from "@/lib/overlegDb";
 import IdeeenKaart from "@/components/admin/ideeen/IdeeenKaart";
 import { haalIdeeenKort } from "@/lib/ideeenDb";
+import WaarnemingKaart from "@/components/admin/waarneming/WaarnemingKaart";
+import { haalWaarnemingKort } from "@/lib/waarnemingDb";
 import { teLaat } from "@/lib/overleg";
 import { haalSignalen } from "@/lib/weekevaluatieDb";
 import { haalPrognose } from "@/lib/prognoseDb";
@@ -73,6 +75,8 @@ export default async function AdminDashboard() {
   const overlegRes = can("overleg") ? haalOverlegKort(sb, admin.userId).catch(() => null) : Promise.resolve(null);
   // Het ideeënbord (0055): nieuw deze week, wat van jou is opgepakt, je ongelezen meldingen, en voor het beheer wat al twee weken wacht. Vóór de migratie: null.
   const ideeenRes = can("ideeen") ? haalIdeeenKort(sb, admin.userId, datumOver(0, now), can("omzet")).catch(() => null) : Promise.resolve(null);
+  // De waarneming (0057): waar jij voor waarneemt, wie er voor jou is, en voor het beheer wat nog zonder waarnemer is. Vóór de migratie: null.
+  const waarnemingRes = can("waarneming") ? haalWaarnemingKort(sb, admin.userId, datumOver(0, now), can("omzet")).catch(() => null) : Promise.resolve(null);
   // Mijn React2u (een werknemer): de eigen cijfers van dit kwartaal voor Mijn verloop.
   const verloopKwartaal = kwartaalVanWeek(openEvalWeken[1]);
   const verloopRes = mijn && can("weekevaluatie")
@@ -215,6 +219,10 @@ export default async function AdminDashboard() {
   const ideeen = await ideeenRes;
   // In Mijn React2u staat de kaart altijd (het is jouw bord); in Beheer alleen als er iets nieuw is.
   const toonIdeeen = Boolean(ideeen && (mijn || ideeen.meldingen.length > 0 || ideeen.nieuw > 0));
+  const waarneming = await waarnemingRes;
+  // Waarneming: in Mijn React2u altijd; in Beheer als jij waarneemt, iemand voor jou, of er nog iets te regelen is.
+  const toonWaarneming = Boolean(waarneming && (mijn || waarneming.ikNeemWaar.length > 0 || waarneming.voorMij.length > 0 || waarneming.teRegelen.length > 0));
+  const waarnemingOpen = Boolean(waarneming && (waarneming.teRegelen.some((w) => w.afwezige !== admin.userId) || waarneming.voorMij.some((w) => !w.waarnemer)));
 
   const attention =
     (unhandled > 0 ? 1 : 0) + (toCall.length > 0 ? 1 : 0) + (seoIssues > 0 ? 1 : 0) +
@@ -225,7 +233,9 @@ export default async function AdminDashboard() {
     // CM-overleg: een eigen actiepunt over de datum.
     (overlegTeLaat ? 1 : 0) +
     // Ideeënbord: iets nieuws over je eigen idee, of (beheer) ideeën die al twee weken wachten.
-    (ideeen && ideeen.meldingen.length > 0 ? 1 : 0) + (ideeen && ideeen.langOpen.length > 0 ? 1 : 0);
+    (ideeen && ideeen.meldingen.length > 0 ? 1 : 0) + (ideeen && ideeen.langOpen.length > 0 ? 1 : 0) +
+    // Waarneming: je eigen afwezigheid zonder waarnemer, of (beheer) die van een collega.
+    (waarnemingOpen ? 1 : 0);
 
   const name = firstName(admin.email);
 
@@ -272,6 +282,8 @@ export default async function AdminDashboard() {
       )}
 
       {toonIdeeen && ideeen && <IdeeenKaart kort={ideeen} />}
+
+      {toonWaarneming && waarneming && <WaarnemingKaart kort={waarneming} vandaag={datumOver(0, now)} userId={admin.userId} />}
 
       {mijnLijnen && <MijnVerloop kwartaal={verloopKwartaal} lijnen={mijnLijnen} />}
 

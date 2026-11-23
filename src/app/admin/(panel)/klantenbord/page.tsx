@@ -10,6 +10,8 @@ import type { PartnerKort } from "@/components/admin/klantenbord/bits";
 import { mailReady } from "@/lib/mail";
 import { haalVerkoop, verkoopOverzicht } from "@/lib/opvolgenDb";
 import { werkrij } from "@/lib/werkrij";
+import { alsWnKlant, dekkingPil, wieNeemtWaar, type DekkingPil } from "@/lib/waarneming";
+import { haalDekking } from "@/lib/waarnemingDb";
 import { LuDatabase } from "react-icons/lu";
 
 /**
@@ -79,6 +81,13 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
   const teDoen = werkrij(klanten, signalen, bezoek, vandaag, nu).length;
 
   const partners = (((paRes as { data: PartnerKort[] | null }).data) || []).map((x) => ({ ...x, model: x.model === "reseller" ? "reseller" as const : "aanbreng" as const }));
+  // Waarneming (0057): bij een klant van wie de casemanager er nu (of straks) niet is, staat op de kaart wie waarneemt. Vóór de migratie: niets.
+  const dekking = await haalDekking(sb, vandaag);
+  const waarnemingen: Record<string, DekkingPil> = {};
+  if (dekking) for (const k of klanten) {
+    const pil = dekkingPil(wieNeemtWaar(alsWnKlant(k), dekking.waarnemingen, vandaag, dekking.collegas), vandaag);
+    if (pil) waarnemingen[k.id] = pil;
+  }
 
   return (
     <>
@@ -90,7 +99,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
           </p>
         </div>
       )}
-      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} bezoek={bezoek} partners={partners} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} mailAan={mailReady()} ik={admin.email} teDoen={teDoen} />
+      <Klantenbord klanten={klanten} gesprekken={gesprekken} koppelingen={koppelingen} bezoek={bezoek} partners={partners} waarnemingen={waarnemingen} vandaag={vandaag} weergave={weergave === "lijst" ? "lijst" : "bord"} mailAan={mailReady()} ik={admin.email} teDoen={teDoen} />
     </>
   );
 }

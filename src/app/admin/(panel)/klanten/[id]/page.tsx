@@ -16,6 +16,8 @@ import {
 } from "@/lib/stamkaart";
 import { normalizeTarieven } from "@/lib/tarieven";
 import type { PageView } from "@/lib/types";
+import { alsWnKlant, dekkingPil, wieNeemtWaar } from "@/lib/waarneming";
+import { haalDekking } from "@/lib/waarnemingDb";
 import { MigratieNodig } from "@/components/admin/Kerncijfer";
 import Tabs from "@/components/admin/Tabs";
 import { Eigenaar, StatusPill } from "@/components/admin/klantenbord/bits";
@@ -23,6 +25,7 @@ import DocumentenTab from "@/components/admin/klanten/DocumentenTab";
 import StamkaartTab from "@/components/admin/klanten/StamkaartTab";
 import TarievenTab from "@/components/admin/klanten/TarievenTab";
 import TijdlijnTab from "@/components/admin/klanten/TijdlijnTab";
+import WaarnemingPil from "@/components/admin/waarneming/WaarnemingPil";
 
 /**
  * De stamkaart van één klant (migratie 0048), in vier tabbladen: de
@@ -121,6 +124,9 @@ export default async function KlantPagina({ params, searchParams }: { params: Pr
   const s = statusInfo(k.status);
   const plaats = k.bezoek_plaats || k.post_plaats;
   const basis = `/admin/klanten/${k.id}`;
+  // Waarneming (0057): is de casemanager van deze klant er nu niet, dan staat erbij wie waarneemt. Vóór de migratie: niets.
+  const dekking = await haalDekking(sb, vandaag);
+  const waarnemingPil = dekking ? dekkingPil(wieNeemtWaar(alsWnKlant(k), dekking.waarnemingen, vandaag, dekking.collegas), vandaag) : null;
 
   return (
     <div className="space-y-6">
@@ -134,6 +140,7 @@ export default async function KlantPagina({ params, searchParams }: { params: Pr
               <h1 className="font-heading text-[26px] font-bold leading-tight text-[#312e82]">{k.bedrijf}</h1>
               <StatusPill status={k.status} />
               <Eigenaar naam={k.eigenaar} groot />
+              {waarnemingPil && <WaarnemingPil pil={waarnemingPil} />}
             </div>
             <p className="mt-1 text-[14px] text-black/50">
               {s.uitleg}

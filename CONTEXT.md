@@ -268,8 +268,8 @@ als regel. Zo ging het menu van 25 naar 10 regels; een nieuw scherm hoort dus
 meestal in een groep, als tab, of alleen in het palet.
 
 **Mijn React2u** (Rens, 19 nov 2026: "een eigen plek"): wie alleen rechten
-heeft die over jezelf gaan (`EIGEN_RECHTEN`: `weekevaluatie`, `overleg` en
-`ideeen`; dus een werknemer), ziet het beheer als eigen plek. Bovenaan staat "Mijn React2u"
+heeft die over jezelf gaan (`EIGEN_RECHTEN`: `weekevaluatie`, `overleg`,
+`ideeen` en `waarneming`; dus een werknemer), ziet het beheer als eigen plek. Bovenaan staat "Mijn React2u"
 in plaats van "SYSTEEMBEHEER", en er is geen zoekveld, geen ⌘K-palet, geen
 Bekijk website (ook niet in het accountmenu) en geen tip over ⌘K
 (`isMijnReact2u`). Op het dashboard staat dan **Mijn verloop**: de eigen
@@ -434,6 +434,52 @@ regels in [`lib/ideeen.ts`](src/lib/ideeen.ts), ophalen in
   en zonder statusformulier.
 - Tests: `lib/ideeen.test.ts` en [`e2e/ideeen.cjs`](e2e/ideeen.cjs) (twee
   werknemers in eigen browsercontexten naast het beheer).
+
+**Waarneming** ([0057](supabase/migrations/0057_waarneming.sql); Rens, 23 nov
+2026, uit het portaalvoorstel: "wie neemt wie waar als iemand er niet is").
+[`/admin/waarneming`](src/app/admin/(panel)/waarneming/page.tsx), regels in
+[`lib/waarneming.ts`](src/lib/waarneming.ts), ophalen in
+[`lib/waarnemingDb.ts`](src/lib/waarnemingDb.ts), acties in
+[`waarnemingActions.ts`](src/app/admin/waarnemingActions.ts), bouwstenen in
+`src/components/admin/waarneming/`.
+- **Alleen de werkoverdracht.** Een collega zegt "ik ben er niet van X tot Y,
+  N neemt waar". Geen veld voor de reden (verlof en ziekte zijn Toeqan), niets
+  medisch (XpertSuite); de toelichting is wat de waarnemer moet weten over het
+  werk. Dat staat bij het invulveld (`NIETS_MEDISCH_WAARNEMING`, `TOEQAN_REGEL`).
+- **Eigen recht `waarneming`** (super admin, beheerder, werknemer; in
+  `EIGEN_RECHTEN`). Regelen voor een ander, en alles wijzigen of weghalen:
+  `omzet`. Lezen mag ook met `bellijst`: wie de stamkaart en het klantenbord
+  ziet, ziet wie er nu voor een klant is. In Mijn React2u kijkt een beheerder
+  als collega: zonder "Voor wie" en zonder het signaal.
+- **Tabel `waarnemingen`**: afwezige, van, tot, waarnemer (leeg = nog te
+  regelen; het beheer ziet dat als signaal op het dashboard en op het scherm),
+  `klant_ids` (leeg = alle klanten op naam van de afwezige), toelichting. De
+  trigger `waarnemingen_emails()` bewaart de e-mailadressen van toen, ook als
+  het beheer het voor een ander invult. Checks: tot ≥ van, hooguit 400 dagen,
+  de waarnemer is niet de afwezige.
+- **Klanten aan een collega** via het naamveld `casemanager` op de stamkaart
+  (0048, vrije tekst), geen nieuwe kolom: `collegaVanCasemanager` vergelijkt
+  met de naam uit de medewerkers (de hele naam, of de voornaam als die bij
+  precies één collega hoort). `wn_collegas()` (wie het recht heeft, met naam en
+  functie) en `wn_klanten()` (echte klanten met casemanager en plaats, zonder
+  adres- of factuurgegevens) geven alleen wat de waarneming nodig heeft.
+- **Zichtbaar** op het scherm (Nu, Komend, de knop *Ik ben er even niet*, per
+  collega, Geweest), op de kaart van één waarneming (klanten, toelichting;
+  aanpassen en weghalen door de afwezige zolang het loopt of komt, door het
+  beheer altijd, ook de klanten beperken en voor wie), op de stamkaart en de
+  bordkaart (`WaarnemingPil`: groen nu, blauw straks binnen `BINNENKORT_DAGEN`,
+  oranje zonder waarnemer), in het CM-overleg (`WaarnemingBlok`: de komende
+  vier weken) en op het dashboard (`WaarnemingKaart`: jij neemt waar, wie voor
+  jou, beheer: nog te regelen; een afwezigheid zonder waarnemer telt als
+  aandacht). Plannen is altijd "alle klanten op naam"; beperken tot een deel
+  gebeurt op de kaart.
+- **Mails** via `sendBrief` (`waarnemerBrief`, `afwezigeBrief`): de waarnemer
+  krijgt de klanten en de toelichting, met de afwezige als antwoordadres (tenzij
+  het beheer het regelde); de afwezige hoort het als het beheer het regelde of
+  de periode of de waarnemer veranderde. Geen naam van het beheer.
+- Tests: `lib/waarneming.test.ts` en [`e2e/waarneming.cjs`](e2e/waarneming.cjs).
+  Let op: een nieuw los menu-item raakt de menutelling in `e2e/evaluatie.cjs`
+  (nu dertien regels voor een beheerder).
 
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de
