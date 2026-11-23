@@ -29,6 +29,9 @@ import MijnVerloop from "@/components/admin/MijnVerloop";
 import { InwerkreisKaart } from "@/components/admin/inwerk/Reis";
 import { haalEigenReis } from "@/lib/inwerkreisDb";
 import { reisStand } from "@/lib/inwerkreis";
+import OverlegKaart from "@/components/admin/overleg/OverlegKaart";
+import { haalOverlegKort } from "@/lib/overlegDb";
+import { teLaat } from "@/lib/overleg";
 import { haalSignalen } from "@/lib/weekevaluatieDb";
 import { haalPrognose } from "@/lib/prognoseDb";
 import { fteTekst, maandLang } from "@/lib/prognose";
@@ -60,6 +63,8 @@ export default async function AdminDashboard() {
   const openEvalWeken = openWeken(datumOver(0, now));
   // De eigen inwerkreis (0050), voor wie er een heeft: waar je staat en wat aan de beurt is.
   const inwerkRes = haalEigenReis(sb, admin.userId);
+  // Het CM-overleg (0053): het volgende overleg en de eigen open actiepunten. Vóór de migratie: null, en dan niets.
+  const overlegRes = can("overleg") ? haalOverlegKort(sb, admin.userId).catch(() => null) : Promise.resolve(null);
   // Mijn React2u (een werknemer): de eigen cijfers van dit kwartaal voor Mijn verloop.
   const mijn = isMijnReact2u(admin.permissions);
   const verloopKwartaal = kwartaalVanWeek(openEvalWeken[1]);
@@ -193,6 +198,8 @@ export default async function AdminDashboard() {
   const inwerk = await inwerkRes;
   const eigenReis = inwerk.ok && inwerk.data && inwerk.data.reis.aan && !inwerk.data.reis.afgerond_at ? inwerk.data : null;
   const eigenStand = eigenReis ? reisStand(eigenReis.reis, eigenReis.stappen, eigenReis.voortgang, datumOver(0, now)) : null;
+  const overleg = await overlegRes;
+  const overlegTeLaat = overleg ? overleg.mijnActies.some((a) => teLaat(a, datumOver(0, now))) : false;
   const mijnRijen = await verloopRes;
   const mijnLijnen = mijnRijen
     ? verloop(mijnRijen.map((r) => ({ week: r.week, antwoorden: normaliseerAntwoorden(r.antwoorden) })), wekenInKwartaal(verloopKwartaal), VERLOOP_SCHALEN, datumOver(0, now))
@@ -204,7 +211,9 @@ export default async function AdminDashboard() {
     (expiring.length > 0 ? 1 : 0) + (verkoop?.signalen.some((s) => s.toon !== "info") ? 1 : 0) + (evalOpen.length > 0 ? 1 : 0) +
     (zwareWeken.length > 0 ? 1 : 0) + (werven?.soort === "werven" ? 1 : 0) +
     // Inwerkreis: pas aandacht als er stappen uit een eerdere fase openstaan.
-    (eigenStand && eigenStand.achter > 0 ? 1 : 0);
+    (eigenStand && eigenStand.achter > 0 ? 1 : 0) +
+    // CM-overleg: een eigen actiepunt over de datum.
+    (overlegTeLaat ? 1 : 0);
 
   const name = firstName(admin.email);
 
@@ -246,6 +255,9 @@ export default async function AdminDashboard() {
       )}
 
       {eigenReis && eigenStand && <InwerkreisKaart volledig={eigenReis} stand={eigenStand} />}
+      {overleg && (overleg.volgend || overleg.mijnActies.length > 0) && (
+        <OverlegKaart volgend={overleg.volgend} punten={overleg.punten} mijnActies={overleg.mijnActies} vandaag={datumOver(0, now)} />
+      )}
 
       {mijnLijnen && <MijnVerloop kwartaal={verloopKwartaal} lijnen={mijnLijnen} />}
 

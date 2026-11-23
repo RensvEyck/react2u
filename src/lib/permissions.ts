@@ -25,6 +25,7 @@ export const PERMISSIONS = [
   { key: "gebruikers", label: "Gebruikers", hint: "Collega's uitnodigen en rollen beheren" },
   { key: "omzet", label: "Omzet", hint: "Omzet, declarabele uren en medewerkers (sinds 0035)" },
   { key: "weekevaluatie", label: "Weekevaluatie", hint: "Je eigen weekevaluatie invullen en teruglezen (sinds 0044)" },
+  { key: "overleg", label: "CM-overleg", hint: "Het overleg van de casemanagers: agenda, actiepunten en de kaart met klanten (sinds 0053)" },
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number]["key"];
@@ -120,6 +121,7 @@ const PATH_PERMISSIONS: [string, Permission][] = [
   // Het kwartaaloverzicht vóór het eigen scherm: specifiek gaat voor algemeen.
   ["/admin/weekevaluatie/team", "omzet"],
   ["/admin/weekevaluatie", "weekevaluatie"],
+  ["/admin/overleg", "overleg"],
 ];
 
 export function permissionForPath(path: string): Permission | null {
@@ -140,13 +142,14 @@ export function firstAllowedPath(permissions: Permission[]): string {
 }
 
 /**
- * Rechten die alleen over jezelf gaan. Wie geen ander recht heeft, krijgt het
- * beheer als eigen plek, "Mijn React2u" (Rens, 19 nov 2026): zonder
- * "Systeembeheer" bovenaan, zonder Bekijk website en zonder het zoekpalet (⌘K),
- * dat voor twee schermen alleen in de weg zit. Dit is vormgeving, geen
+ * Rechten voor collega's zonder beheertaak: de eigen weekevaluatie en het
+ * CM-overleg (0053). Wie geen ander recht heeft, krijgt het beheer als eigen
+ * plek, "Mijn React2u" (Rens, 19 nov 2026): zonder "Systeembeheer" bovenaan,
+ * zonder Bekijk website en zonder het zoekpalet (⌘K), dat voor een paar
+ * schermen alleen in de weg zit. Dit is vormgeving, geen
  * beveiliging: die blijft in requirePerm() en de RLS-policies.
  */
-export const EIGEN_RECHTEN: readonly Permission[] = ["weekevaluatie"];
+export const EIGEN_RECHTEN: readonly Permission[] = ["weekevaluatie", "overleg"];
 
 export function isMijnReact2u(permissions: readonly Permission[]): boolean {
   return permissions.every((p) => EIGEN_RECHTEN.includes(p));
