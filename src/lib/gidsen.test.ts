@@ -5,6 +5,7 @@ import { GIDSEN, GIDS_VAN_ARTIKEL, gidsAnker, gidsVoor, gidsWoorden, gidsenBij }
 import { crumbsVoor, doelgroepVoorPad } from "./nav";
 import { GIDS_REDIRECTS, coveredByWordpress, createsLoop, VASTE_REDIRECTS } from "./redirects";
 import { DESC_MAX, TITLE_MAX } from "./seo";
+import { DIENSTEN } from "./organisatie";
 
 /*
  * De gidsen uit het HALO-herstelplan (november 2026, punt 4). Deze test bewaakt
@@ -40,8 +41,11 @@ describe("de vijf gidsen", () => {
     expect(gidsenBij("recover").map((g) => g.slug)).toEqual(["wet-verbetering-poortwachter", "bedrijfsarts"]);
     expect(gidsenBij("resist").map((g) => g.slug)).toEqual(["preventiemedewerker"]);
     for (const g of GIDSEN) {
-      const helpt = blok(concept(g.slug), "gidsHelpt")?.data as { dienst?: { href?: string }; kennismaken?: { href?: string } };
+      const helpt = blok(concept(g.slug), "gidsHelpt")?.data as { dienst?: { href?: string; naam?: string; wat?: string }; kennismaken?: { href?: string } };
       expect(helpt?.dienst?.href).toBe(`/${g.dienst}`);
+      // Dezelfde dienstnaam als overal op de site (DIENSTEN in lib/organisatie.ts, migratie 0059).
+      expect(helpt?.dienst?.naam).toBe(DIENSTEN[g.dienst].naam);
+      expect(helpt?.dienst?.wat).toBe(DIENSTEN[g.dienst].nl);
       expect(helpt?.kennismaken?.href).toBe("/kennismaken");
     }
   });

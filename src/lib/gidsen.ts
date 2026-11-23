@@ -46,12 +46,10 @@ export const DIENST_KLEUR: Record<GidsDienst, string> = {
   resist: "#00A098",
 };
 
-/** Hoe het label heet en wat het is, voor de kaart "Zo helpt React2u" en de chip op een gidskaart. */
-export const DIENST_NAAM: Record<GidsDienst, { naam: string; wat: string }> = {
-  recover: { naam: "Recover", wat: "Verzuimbegeleiding" },
-  restart: { naam: "Restart", wat: "Re-integratie en loopbaan" },
-  resist: { naam: "Resist", wat: "Preventie en vitaliteit" },
-};
+// De naam van een dienst ("Re-integratie eerste en tweede spoor") staat niet
+// hier maar in DIENSTEN in lib/organisatie.ts: één bron voor de hele site.
+// Dat bestand importeert nav.ts, dat weer dit bestand importeert; daarom
+// leest alleen de component (components/blocks/Gids.tsx) uit DIENSTEN.
 
 /**
  * De vijf gidsen, in de volgorde van het zoekvolume (re-integratie 6.600 per

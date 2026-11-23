@@ -3,7 +3,8 @@ import { outfit } from "./HomeVerhaal";
 import { NAVY, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Vink, Pijl, Strook } from "./Gedeeld";
 import { MiniMarkdown } from "@/lib/md";
 import { inkt } from "@/lib/kleur";
-import { DIENST_KLEUR, DIENST_NAAM, DIENST_TINT, GIDSEN, gidsAnker, gidsVoor, type Gids } from "@/lib/gidsen";
+import { DIENST_KLEUR, DIENST_TINT, GIDSEN, gidsAnker, gidsVoor, type Gids } from "@/lib/gidsen";
+import { DIENSTEN } from "@/lib/organisatie";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -75,7 +76,8 @@ export function GidsKop({ d, asH1, ctx }: Props) {
         <div className="relative grid gap-8 overflow-hidden rounded-[28px] px-6 py-10 md:rounded-[36px] md:p-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16 lg:p-16" style={{ background: t }}>
           <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[520px] md:w-[520px]" style={{ background: c, opacity: 0.12 }} />
           <div className="relative flex flex-col gap-5 md:gap-6">
-            <Kruimels items={[{ label: "Home", href: "/" }, { label: "Kennis", href: "/blog" }, { label: d.kruimel || d.heading }]} />
+            {/* Dezelfde reeks als de BreadcrumbList uit crumbsVoor() in lib/nav.ts: Werkgevers › Kennis › gids. */}
+            <Kruimels items={[{ label: "Home", href: "/" }, { label: "Werkgevers", href: "/werkgevers" }, { label: "Kennis", href: "/blog" }, { label: d.kruimel || d.heading }]} />
             {d.eyebrow && (
               <span className="inline-flex items-center gap-2.5 text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: tc }}>
                 <span className="h-2 w-2 rounded-full" style={{ background: c }} />{d.eyebrow}
@@ -354,7 +356,8 @@ export function GidsHelpt({ d }: Props) {
 export function GidsKaart({ gids, compact = false }: { gids: Gids; compact?: boolean }) {
   const c = DIENST_KLEUR[gids.dienst];
   const t = DIENST_TINT[gids.dienst];
-  const label = DIENST_NAAM[gids.dienst];
+  // De naam van de dienst zoals overal op de site (lib/organisatie.ts, één bron).
+  const label = DIENSTEN[gids.dienst];
   return (
     <Link href={`/${gids.slug}`} className={`hv-btn relative flex flex-col gap-3 overflow-hidden rounded-[24px] ${compact ? "p-5 sm:p-6" : "px-5 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7"}`} style={{ background: t, color: NAVY }}>
       <span aria-hidden className="absolute right-[-40px] top-[-40px] h-[120px] w-[120px] rounded-full" style={{ background: c, opacity: 0.16 }} />
