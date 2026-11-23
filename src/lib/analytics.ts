@@ -48,13 +48,54 @@ const CONSUMER_OR_HOSTING = [
   "youfone", "simpel", "lebara", "hollandsnieuwe", "ben nederland",
   // Buitenlandse consumentenproviders die vaak opduiken
   "telenet", "proximus", "orange", "deutsche telekom", "telefonica", "sky ",
-  // Datacenters, hosting en cloud: bots, crawlers, VPN's
-  "amazon", "aws", "google", "microsoft", "azure", "digitalocean", "hetzner", "ovh",
-  "linode", "cloudflare", "akamai", "fastly", "leaseweb", "scaleway", "vultr",
-  "oracle", "alibaba", "tencent", "contabo", "transip", "hostnet", "strato",
   // VPN's en proxies
   "nordvpn", "expressvpn", "surfshark", "private internet", "mullvad", "proton",
 ];
+
+/**
+ * Datacenters, cloud en hosting: daar zit geen bezoeker achter maar een bot,
+ * crawler of scraper. Zo'n bezoek telt niet mee (api/track), en wat er al
+ * stond blijft buiten de cijfers (lib/analyticsDb.ts). In november 2026 waren
+ * China Unicom en Huawei Cloud samen goed voor honderden "bezoekers" per dag
+ * en stonden ze bovenaan "Bedrijven die langskwamen" (HALO-herstelplan).
+ *
+ * Op woorddeel, net als hierboven: dezelfde partij heeft tientallen ASN-namen
+ * ("CHINA UNICOM China169 Backbone", "China Unicom Shanghai network").
+ */
+const DATACENTER_OR_BOT = [
+  // Cloud en hosting
+  "amazon", "aws", "google", "microsoft", "azure", "digitalocean", "hetzner", "ovh",
+  "linode", "cloudflare", "akamai", "fastly", "leaseweb", "scaleway", "vultr",
+  "oracle", "alibaba", "tencent", "contabo", "transip", "hostnet", "strato", "ionos",
+  "huawei", "datacamp", "m247", "choopa", "colocrossing", "hostinger", "serverius",
+  "worldstream", "i3d", "nforce", "zscaler",
+  // Chinese carriers: vanaf daar bekijkt niemand een Nederlandse arbodienst, scrapers wel
+  "china unicom", "china telecom", "china mobile", "chinanet", "unicom",
+  // Woorden die een netwerk als datacenter verraden
+  "backbone", "cloud", "datacenter", "data center", "hosting", "server",
+];
+
+/** Is dit netwerk een datacenter, cloud of hostingpartij, en het bezoek dus een bot? */
+export function isDatacenterOrg(org: string | null | undefined): boolean {
+  if (!org) return false;
+  const clean = org.trim().toLowerCase();
+  return DATACENTER_OR_BOT.some((needle) => clean.includes(needle));
+}
+
+// Wat een crawler, scraper of meetprogramma in zijn user-agent zet. Een gewone
+// browser noemt zichzelf nooit zo; een lege user-agent is ook geen browser.
+const BOT_UA = /bot|bot\/|crawl|spider|slurp|headless|phantomjs|puppeteer|playwright|selenium|python-requests|python\/|httpx|aiohttp|scrapy|curl\/|wget\/|go-http-client|java\/|okhttp|libwww|httpclient|node-fetch|axios\/|lighthouse|pagespeed|gtmetrix|pingdom|uptime|statuscake|site24x7|facebookexternalhit|whatsapp|telegram|discord|slackbot|linkedinbot|twitterbot|embedly|semrush|ahrefs|mj12|dotbot|petalbot|bytespider|gptbot|claudebot|anthropic|ccbot|perplexity|applebot|duckduckbot|yandex|baiduspider|sogou|exabot|ia_archiver|archive\.org/i;
+
+/**
+ * Is dit een bot? Een bot die JavaScript uitvoert meldt zich net als een
+ * bezoeker bij /api/track; met deze controle telt hij niet mee. De meeste
+ * crawlers voeren geen JavaScript uit en komen hier nooit.
+ */
+export function isBotUserAgent(userAgent: string | null | undefined): boolean {
+  const ua = (userAgent || "").trim();
+  if (!ua) return true;
+  return BOT_UA.test(ua);
+}
 
 /**
  * Is deze organisatienaam een bedrijf waar je iets aan hebt?
@@ -66,7 +107,7 @@ export function isCompanyOrg(org: string | null | undefined): boolean {
   if (!org) return false;
   const clean = org.trim().toLowerCase();
   if (clean.length < 2) return false;
-  return !CONSUMER_OR_HOSTING.some((needle) => clean.includes(needle));
+  return !CONSUMER_OR_HOSTING.some((needle) => clean.includes(needle)) && !isDatacenterOrg(clean);
 }
 
 /**

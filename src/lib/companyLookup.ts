@@ -1,5 +1,6 @@
 import "server-only";
 import { promises as dns } from "dns";
+import { cleanOrgName, isDatacenterOrg } from "./analytics";
 import { companyKey, identify, type Identified } from "./companies";
 import { supabasePublic } from "./supabase/public";
 
@@ -14,7 +15,10 @@ import { supabasePublic } from "./supabase/public";
 const TIMEOUT_MS = 1500;
 const CACHE_MS = 24 * 60 * 60_000;
 const CACHE_MAX = 5000;
-const cache = new Map<string, { at: number; result: Identified | null }>();
+/** Wat we over een netwerk weten: het bedrijf erachter, of dat het een datacenter is (dan is het bezoek een bot). */
+export type Netwerk = { company: Identified | null; datacenter: boolean };
+
+const cache = new Map<string, { at: number; result: Netwerk }>();
 
 function withTimeout<T>(p: Promise<T>, fallback: T): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -59,16 +63,17 @@ async function reverseName(ip: string): Promise<string | null> {
 }
 
 /**
- * Welk bedrijf zit achter dit IP-adres, als dat gratis te weten is?
+ * Welk bedrijf zit achter dit IP-adres, als dat gratis te weten is? En is het
+ * netwerk een datacenter (lib/analytics.ts), zodat het bezoek niet meetelt?
  * Beide lookups tegelijk; faalt er één, dan telt de ander. Nooit een fout:
  * een bezoek zonder bedrijf is beter dan geen bezoek.
  */
-export async function lookupCompany(ip: string): Promise<Identified | null> {
+export async function lookupNetwork(ip: string): Promise<Netwerk> {
   const hit = cache.get(ip);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.result;
 
   const [owner, ptr] = await Promise.all([withTimeout(networkOwner(ip), null), reverseName(ip)]);
-  const result = identify(owner, ptr, ip);
+  const result: Netwerk = { company: identify(owner, ptr, ip), datacenter: isDatacenterOrg(cleanOrgName(owner?.name)) };
 
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value!);
   cache.set(ip, { at: Date.now(), result });

@@ -14,7 +14,8 @@ import type { Vacancy } from "./types";
  * De cookie zelf geeft geen toegang. In de voorbeeldmodus lezen we met de
  * sessie van de bezoeker (supabaseServer), dus RLS beslist: een beheerder met
  * het recht `vacatures` ziet de concepten, een ander met dezelfde cookie ziet
- * alleen wat gepubliceerd is. Gesloten vacatures tonen we ook hier niet.
+ * alleen wat gepubliceerd is. Een gesloten vacature staat, net als op de
+ * gewone site, als "vervuld" op haar eigen pagina en nergens in een lijst.
  */
 export async function inVoorbeeld(): Promise<boolean> {
   try {
@@ -25,6 +26,9 @@ export async function inVoorbeeld(): Promise<boolean> {
 }
 
 const ZICHTBAAR = ["published", "draft"];
+// Eén vacature op haar eigen pagina: ook gesloten (vervuld), net als buiten
+// de voorbeeldmodus (getVacancy in lib/content.ts).
+const ZICHTBAAR_LOS = [...ZICHTBAAR, "closed"];
 
 /** De vacatures voor de pagina's: gepubliceerd, of in de voorbeeldmodus ook de concepten. */
 export async function getZichtbareVacatures(): Promise<Vacancy[]> {
@@ -42,7 +46,7 @@ export async function getZichtbareVacatures(): Promise<Vacancy[]> {
 export async function getZichtbareVacature(slug: string): Promise<Vacancy | null> {
   if (!(await inVoorbeeld())) return getVacancy(slug);
   const sb = await supabaseServer();
-  const { data, error } = await sb.from("vacancies").select("*").eq("slug", slug).in("status", ZICHTBAAR).maybeSingle();
+  const { data, error } = await sb.from("vacancies").select("*").eq("slug", slug).in("status", ZICHTBAAR_LOS).maybeSingle();
   if (error) throw new DatabaseFout(`vacature ${slug} (voorbeeld)`, error);
   return (data as Vacancy) || null;
 }

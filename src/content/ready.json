@@ -1,7 +1,7 @@
 {
   "slug": "ready",
   "title": "React2u Ready",
-  "seo_title": "React2u Ready: HR en arbeidsrecht • React2u",
+  "seo_title": "HR-advies en arbeidsrecht • React2u Ready",
   "seo_description": "Vragen over contracten, verlof of ontslag bij ziekte? Je krijgt helder advies van mensen die verzuim kennen.",
   "blocks": [
     {
@@ -12,7 +12,7 @@
         "naam": "Ready",
         "kleur": "#322E83",
         "tint": "#ECEBF5",
-        "label": "HR en arbeidsrecht.",
+        "label": "HR-advies en arbeidsrecht.",
         "tagline": "Helder advies, snel geregeld",
         "text": "Vragen over contracten, verlof of ontslag bij ziekte? Je krijgt helder advies van mensen die verzuim kennen.",
         "checks": [

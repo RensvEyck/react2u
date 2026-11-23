@@ -127,7 +127,7 @@ export function kernProvincies(): string[] {
  * zo'n wijziging. Geen `new Date()`: altijd "nu" melden leert een crawler dat
  * het veld niets zegt (zie sitemap.ts).
  */
-export const WERKGEBIED_BIJGEWERKT = "2026-11-19";
+export const WERKGEBIED_BIJGEWERKT = "2026-11-23";
 
 /** De adressen voor sitemap.xml: alle provincies en de geïndexeerde gemeenten. */
 export function werkgebiedPaden(): string[] {
