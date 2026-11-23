@@ -21,7 +21,7 @@ export type Agendapunt = {
   // Sinds 0054: notulen per punt, uit het vorige overleg, of ingebracht voor het volgende.
   notulen?: string | null; doorgeschoven?: boolean; voor_volgend?: boolean;
 };
-export type Aanwezige = { id: string; overleg_id: string; user_id: string | null; naam: string; checkin: string | null; sort: number };
+export type Aanwezige = { id: string; overleg_id: string; user_id: string | null; naam: string; checkin: string | null; /** Sinds 0056: wat deze aanwezige bij Dossiers vertelde (werkwijze, geen casus). */ dossiers?: string | null; sort: number };
 export type Collega = { user_id: string; email: string; naam: string };
 export type Actiepunt = { id: string; overleg_id: string; wat: string; wie: string | null; wie_naam: string; wanneer: string | null; gedaan_at: string | null; gedaan_door: string | null; created_at: string };
 
@@ -233,7 +233,9 @@ export function leesBezetting(f: FormData, collegas: Collega[]): { aanwezig: { u
   };
 }
 
-export type NotulenDeel = { titel: string; checkin: boolean; dossiers: boolean; toelichting: string | null; inbrenger: string | null; regels: { wie: string | null; tekst: string }[] };
+/** vast: structureel punt; vorig/nieuw: wat ter tafel komt (uit het vorige overleg, of nieuw ingebracht). */
+export type DeelSoort = "vast" | "vorig" | "nieuw";
+export type NotulenDeel = { titel: string; soort: DeelSoort; checkin: boolean; dossiers: boolean; toelichting: string | null; inbrenger: string | null; regels: { wie: string | null; tekst: string }[] };
 export type Notulen = {
   titel: string;
   gegevens: { datum: string; tijd: string; locatie: string | null; aanwezig: string[]; notulist: string | null };
@@ -247,14 +249,14 @@ export type Notulen = {
 
 /**
  * De notulen in de opbouw van het team: gegevens, agenda (structureel en wat
- * ter tafel komt), per punt wat er besproken is (de check-in per aanwezige),
- * actiepunten met wie en de status, en de punten voor het volgende overleg.
- * Eén bron voor het archief en de mail.
+ * ter tafel komt), per punt wat er besproken is (de check-in en de dossiers
+ * per aanwezige), actiepunten met wie en de status, en de punten voor het
+ * volgende overleg. Eén bron voor het archief en de mail.
  */
 export function notulenVan(
   overleg: Pick<Overleg, "datum" | "einde" | "locatie" | "notulist_naam">,
   agenda: Agendapunt[],
-  aanwezigen: Pick<Aanwezige, "naam" | "checkin" | "sort">[],
+  aanwezigen: (Pick<Aanwezige, "naam" | "checkin" | "dossiers" | "sort"> & { user_id?: string | null })[],
   acties: Pick<Actiepunt, "wat" | "wie_naam" | "wanneer" | "gedaan_at">[],
   inbrengerVan: (p: Agendapunt) => string | null,
 ): Notulen {
@@ -264,24 +266,57 @@ export function notulenVan(
   const nieuw = lijst.filter((p) => !p.vast && !p.doorgeschoven && !p.voor_volgend);
   const volgend = lijst.filter((p) => !p.vast && p.voor_volgend);
   const mensen = [...aanwezigen].sort((a, b) => a.sort - b.sort);
-  const deel = (p: Agendapunt): NotulenDeel => ({
-    titel: p.titel,
-    checkin: p.vast && isCheckIn(p.titel),
-    dossiers: isDossiers(p.titel),
-    toelichting: p.toelichting,
-    inbrenger: p.vast ? null : inbrengerVan(p),
-    regels: p.vast && isCheckIn(p.titel)
-      ? mensen.filter((m) => m.checkin?.trim()).map((m) => ({ wie: m.naam, tekst: m.checkin!.trim() }))
-      : p.notulen?.trim() ? [{ wie: null, tekst: p.notulen.trim() }] : [],
-  });
+  const wie = korteNamen(mensen.map((m) => m.naam), mensen.map((m) => Boolean(m.user_id)));
+  const perPersoon = (veld: "checkin" | "dossiers") =>
+    mensen.flatMap((m, i) => (m[veld]?.trim() ? [{ wie: wie[i], tekst: m[veld]!.trim() }] : []));
+  const algemeen = (p: Agendapunt) => (p.notulen?.trim() ? [{ wie: null, tekst: p.notulen.trim() }] : []);
+  const deel = (p: Agendapunt): NotulenDeel => {
+    const checkin = p.vast && isCheckIn(p.titel);
+    const dossiers = p.vast && isDossiers(p.titel);
+    return {
+      titel: p.titel,
+      soort: p.vast ? "vast" : p.doorgeschoven ? "vorig" : "nieuw",
+      checkin,
+      dossiers,
+      toelichting: p.toelichting,
+      inbrenger: p.vast ? null : inbrengerVan(p),
+      regels: checkin ? perPersoon("checkin") : dossiers ? [...perPersoon("dossiers"), ...algemeen(p)] : algemeen(p),
+    };
+  };
   return {
     titel: `CM-overleg ${overlegDag(overleg.datum).replace(/^\S+ /, "")}`,
     gegevens: { datum: overlegDag(overleg.datum), tijd: tijdVanTot(overleg), locatie: overleg.locatie, aanwezig: mensen.map((m) => m.naam), notulist: overleg.notulist_naam ?? null },
     structureel: vast.map((p) => p.titel),
     uitVorig: uitVorig.map((p) => ({ titel: p.titel, inbrenger: inbrengerVan(p) })),
     nieuw: nieuw.map((p) => ({ titel: p.titel, inbrenger: inbrengerVan(p) })),
-    delen: [...vast, ...uitVorig, ...nieuw].map(deel),
+    delen: notulenVolgorde(lijst).map(deel),
     acties: acties.map((a) => ({ wat: a.wat, door: a.wie_naam, wanneer: a.wanneer, status: a.gedaan_at ? "Gedaan" : "Lopend" })),
     volgend: volgend.map((p) => ({ titel: p.titel, inbrenger: inbrengerVan(p) })),
   };
+}
+
+/**
+ * De volgorde van de notulen zoals in de opzet van het team: eerst de check-in,
+ * dan wat ter tafel komt (uit het vorige overleg, dan nieuw), dan de overige
+ * vaste punten (Dossiers, Klanten …). Punten voor het volgende overleg staan
+ * er niet in; die hebben een eigen plek.
+ */
+export function notulenVolgorde<T extends Pick<Agendapunt, "vast" | "titel" | "doorgeschoven" | "voor_volgend" | "sort" | "created_at">>(agenda: T[]): T[] {
+  const lijst = sorteerAgenda(agenda).filter((p) => !p.voor_volgend);
+  const vooraf = lijst.filter((p) => p.vast && isCheckIn(p.titel));
+  const tafel = [...lijst.filter((p) => !p.vast && p.doorgeschoven), ...lijst.filter((p) => !p.vast && !p.doorgeschoven)];
+  const rest = lijst.filter((p) => p.vast && !isCheckIn(p.titel));
+  return [...vooraf, ...tafel, ...rest];
+}
+
+/**
+ * Korte namen voor de regels per persoon ("Fleur: …", zoals in de opzet): bij
+ * collega's de voornaam, of de hele naam als twee aanwezigen dezelfde voornaam
+ * hebben. Een gast zonder inlog (inlog false) houdt de naam zoals die is getypt.
+ */
+export function korteNamen(namen: string[], inlog: boolean[] = namen.map(() => true)): string[] {
+  const voornaam = (n: string) => (n.trim().split(/\s+/)[0] || n.trim()).toLowerCase();
+  const telling = new Map<string, number>();
+  for (const n of namen) telling.set(voornaam(n), (telling.get(voornaam(n)) ?? 0) + 1);
+  return namen.map((n, i) => (!inlog[i] || (telling.get(voornaam(n)) ?? 0) > 1 ? n.trim() : n.trim().split(/\s+/)[0]));
 }

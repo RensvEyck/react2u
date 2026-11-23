@@ -373,6 +373,24 @@ overleg 18-11"). Het overleg volgt nu hun eigen opzet:
 - Het archief toont de notulen in dezelfde opbouw (`notulenVan` is de bron
   voor scherm en mail), is af te drukken, en het beheer kan achteraf aanvullen.
 
+**De opzet van het team** (0056; Rens, 23 nov 2026, met de opzetten "CM overleg
+18-11" en "02-12"). Zo ziet een overleg er vooraf uit, en zo volgen scherm,
+formulier en mail het nu:
+- **Volgorde van de notulen** (`notulenVolgorde`): eerst de check-in, dan "Wat
+  ter tafel komt" als één blok (Punten uit vorig overleg, dan Nieuw), dan
+  Dossiers, Klanten en de andere vaste punten.
+- **Dossiers per aanwezige**, net als de check-in (`cm_aanwezigen.dossiers`), met
+  `DOSSIERS_REGEL` erboven. Wat er vóór 0056 als één tekst bij Dossiers stond,
+  blijft daaronder staan.
+- **Korte namen** (`korteNamen`): in de regels per persoon de voornaam van een
+  collega ("Fleur: …"), de hele naam als twee dezelfde voornaam hebben; een gast
+  zonder inlog houdt de getypte naam.
+- **Aanwezigen gaan mee**: een nieuw overleg (plannen of afronden) neemt de
+  aanwezigen met een inlog van het vorige over, zonder check-in of dossiers; de
+  notulist kiest het beheer per overleg.
+- Het ritme staat sinds 23 nov 2026 op woensdag om de week, 14:00 tot 15:00, in
+  Spreekkamer 29; het eerste overleg is op 2 december 2026.
+
 **Ideeënbord** ([0055](supabase/migrations/0055_ideeenbord.sql); Rens, 23 nov
 2026, uit het voorstel voor het portaal: "'Iets melden of delen' bestaat al;
 maak er een zichtbaar bord van met status (ingediend, bekeken, gedaan) zodat
