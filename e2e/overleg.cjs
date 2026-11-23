@@ -330,6 +330,7 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   await b.click("#weergave-wisselen");
   await b.waitForSelector("#weergave-wisselen:has-text('Naar Beheer')", { timeout: 20000 });
   check((await b.locator("aside").first().innerText()).includes("Mijn React2u") && !(await b.locator("aside").first().innerText()).includes("SYSTEEMBEHEER"), "de zijbalk zegt Mijn React2u");
+  check(await b.locator("aside svg[viewBox='0 0 125 76.303']").first().isVisible(), "met het logo boven Mijn React2u");
   const menuMijn = await b.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
   check(JSON.stringify(menuMijn) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/ideeen"]), `in Mijn React2u het menu van een werknemer (${menuMijn.join(", ")})`);
   check(!(await b.locator('button[aria-label="Zoeken (⌘K)"]').count()) && await b.locator("#cm-overleg").count(), "zonder zoekveld, met het overleg op het dashboard");
@@ -356,6 +357,14 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
     await page.addStyleTag({ content: ".sticky { position: static !important; }" });
     await page.screenshot({ path: path.join(SHOTS, `04-${naam}-390.png`), fullPage: true });
   }
+
+  stap("Telefoon: het menu van Mijn React2u");
+  await w.goto(`${BASIS}/admin`);
+  await w.click('button[aria-label="Menu"]');
+  const lade = w.locator("div.fixed.inset-0.z-50");
+  await lade.waitFor({ timeout: 10000 });
+  check(await lade.locator("svg[viewBox='0 0 125 76.303']").isVisible() && (await lade.innerText()).includes("Mijn React2u"), "het logo staat ook boven Mijn React2u in het menu op de telefoon");
+  await w.screenshot({ path: path.join(SHOTS, "04-menu-390.png") });
 
   sql(`delete from public.cm_overleggen;
 update public.cm_ritme set elke_weken = 2, weekdag = 2, tijd = '09:30', locatie = null;
