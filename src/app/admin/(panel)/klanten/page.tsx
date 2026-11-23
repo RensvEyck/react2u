@@ -6,7 +6,7 @@ import { vandaagNL, type Klant } from "@/lib/klanten";
 import { echteKlanten } from "@/lib/stamkaart";
 import { MigratieNodig } from "@/components/admin/Kerncijfer";
 import KlantenLijst from "@/components/admin/klanten/KlantenLijst";
-import KlantenGegevens from "@/components/admin/klanten/KlantenGegevens";
+import StamkaartenPaneel from "@/components/admin/klanten/StamkaartenPaneel";
 
 /**
  * Alle klanten onder elkaar (migratie 0048): de echte klanten van het
@@ -15,9 +15,8 @@ import KlantenGegevens from "@/components/admin/klanten/KlantenGegevens";
  * contactgegevens, wie de klant bij React2u heeft en hoe compleet de
  * stamkaart is. Een rij opent de stamkaart (/admin/klanten/<id>) met de
  * bedrijfsgegevens, alle documenten en de tariefafspraken. Zoeken, filteren
- * en sorteren gebeurt in de browser. Bovenaan: de klanten naar Excel en een
- * Excelbestand inlezen dat de stamkaarten in één keer aanvult
- * (KlantenGegevens).
+ * en sorteren gebeurt in de browser. Erboven het paneel Stamkaarten: hoe
+ * compleet ze zijn, en ze in één keer aanvullen uit Excel (StamkaartenPaneel).
  */
 export default async function KlantenPagina({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const { sb } = await requirePerm("bellijst");
@@ -40,14 +39,15 @@ export default async function KlantenPagina({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-6">
-      <Kop gegevens={stamkaartAan ? <KlantenGegevens klanten={klanten} alle={alle} vandaag={vandaagNL()} /> : null} />
+      <Kop />
+      {stamkaartAan && <StamkaartenPaneel klanten={klanten} alle={alle} vandaag={vandaagNL()} />}
       {!stamkaartAan && <MigratieNodig bestand="0048_stamkaart.sql" wat="De stamkaart, de documenten en de tariefafspraken per klant hebben nieuwe velden en tabellen nodig." />}
       <KlantenLijst klanten={klanten} vandaag={vandaagNL()} beginQ={q || ""} beginStatus={status || "alle"} opHetBord={opHetBord} />
     </div>
   );
 }
 
-function Kop({ gegevens }: { gegevens?: React.ReactNode }) {
+function Kop() {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
@@ -56,7 +56,6 @@ function Kop({ gegevens }: { gegevens?: React.ReactNode }) {
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Link href="/admin/klantenbord" className="abtn-ghost"><LuLayoutGrid /> Klantenbord</Link>
-        {gegevens}
         <Link href="/admin/klantenbord#nieuw" className="abtn"><LuPlus /> Nieuwe lead of klant</Link>
       </div>
     </div>

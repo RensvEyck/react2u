@@ -22,7 +22,8 @@ import { CONTRACT_WEERGAVE, contractWeergave } from "./contracten";
 import { EVALUATIE_WEERGAVE, evaluatieWeergave } from "./evaluatie";
 import { bestandSoortLabel } from "./klantBestanden";
 import {
-  bedrijfSleutel, isDatum, schoonBtw, schoonIban, schoonKvk, schoonPostcode, schoonWebsite, statusInfo, zoekKlanten, type Klant, type KlantStatus, type StamkaartVelden,
+  bedrijfSleutel, IMPORT_VELD_LABEL, isDatum, schoonBtw, schoonIban, schoonKvk, schoonPostcode, schoonWebsite, STAMKAART_IMPORT_VELDEN, statusInfo, zoekKlanten,
+  type Klant, type KlantStatus, type StamkaartImportVeld, type StamkaartVelden, type Voorstelregel,
 } from "./klanten";
 
 // De schoonmaak van KvK, IBAN, postcode, website en btw staat in klanten.ts (ook de import van de klantlijst gebruikt ze).
@@ -223,6 +224,109 @@ export function stamkaartVolledigheid(k: Klant): Volledigheid {
   const ontbreekt = kern.filter((v) => !veldWaarde(k, v.key)).map((v) => (v.key === "bezoek_postcode" || v.key === "bezoek_plaats" ? "" : v.label)).filter(Boolean);
   const ingevuld = kern.filter((v) => veldWaarde(k, v.key)).length;
   return { ingevuld, totaal: kern.length, ontbreekt: [...new Set(ontbreekt)] };
+}
+
+/**
+ * Hoe compleet de stamkaarten van een lijst klanten zijn, en welk kernveld het
+ * vaakst ontbreekt: het paneel Stamkaarten boven de klantenlijst.
+ */
+export function stamkaartOverzicht(klanten: Klant[]): { compleet: number; totaal: number; ontbreekt: { label: string; aantal: number }[] } {
+  const tel = new Map<string, number>();
+  let compleet = 0;
+  for (const k of klanten) {
+    const v = stamkaartVolledigheid(k);
+    if (v.ingevuld === v.totaal) compleet++;
+    for (const o of v.ontbreekt) tel.set(o, (tel.get(o) || 0) + 1);
+  }
+  const ontbreekt = [...tel.entries()].map(([label, aantal]) => ({ label, aantal })).sort((a, b) => b.aantal - a.aantal || a.label.localeCompare(b.label, "nl"));
+  return { compleet, totaal: klanten.length, ontbreekt };
+}
+
+/* ---------- wat de import per klant doet ---------- */
+
+/** Eén gegeven in het controlerapport: wat er op de stamkaart komt, wat er stond, en wat er gebeurt. */
+export type ImportGegeven = {
+  velden: StamkaartImportVeld[] | ("contactpersoon" | "telefoon" | "email" | "casemanager")[];
+  label: string;
+  nieuw: string;
+  oud: string | null;
+  soort: "aangevuld" | "overschreven" | "behouden";
+};
+
+/** Een waarde zoals een mens hem leest: IBAN in groepjes van vier, een website zonder https://. */
+export function toonWaarde(veld: string, w: unknown): string {
+  if (w === null || w === undefined || String(w).trim() === "") return "";
+  const t = String(w);
+  if (veld === "iban") return t.replace(/\s/g, "").replace(/(.{4})/g, "$1 ").trim();
+  if (veld === "website") return t.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  return t;
+}
+
+const CONTACT_VELDEN = ["contactpersoon", "telefoon", "email", "casemanager"] as const;
+const CONTACT_LABEL: Record<(typeof CONTACT_VELDEN)[number], string> = { contactpersoon: "Contactpersoon", telefoon: "Telefoon", email: "E-mail", casemanager: "Casemanager" };
+const ADRESSEN: { label: string; velden: [StamkaartImportVeld, StamkaartImportVeld, StamkaartImportVeld] }[] = [
+  { label: "Bezoekadres", velden: ["bezoekadres", "bezoek_postcode", "bezoek_plaats"] },
+  { label: "Postadres", velden: ["postadres", "post_postcode", "post_plaats"] },
+];
+
+/**
+ * Per klant in het controlerapport: welke gegevens er op de stamkaart komen,
+ * met de waarde uit het bestand en wat er stond. Straat, postcode en plaats
+ * worden samen één adres als ze hetzelfde doen. De contactpersoon, telefoon,
+ * e-mail en casemanager staan op de kaart én de stamkaart; daar wint een
+ * gevulde cel altijd (zoals de import op het bord altijd deed).
+ */
+export function importGegevens(r: Pick<Voorstelregel, "rij" | "stamkaart" | "actie">, b: Partial<Klant> | null): ImportGegeven[] {
+  if (r.actie === "overslaan") return [];
+  const uit: ImportGegeven[] = [];
+  const soortVan = (v: StamkaartImportVeld): ImportGegeven["soort"] | null =>
+    r.stamkaart.aangevuld.includes(v) ? "aangevuld" : r.stamkaart.overschreven.includes(v) ? "overschreven" : r.stamkaart.behouden.includes(v) ? "behouden" : null;
+  const gedaan = new Set<StamkaartImportVeld>();
+  for (const veld of STAMKAART_IMPORT_VELDEN) {
+    if (gedaan.has(veld)) continue;
+    const soort = soortVan(veld);
+    if (!soort) continue;
+    const adres = ADRESSEN.find((a) => a.velden.includes(veld));
+    if (adres) {
+      // De delen van het adres die hetzelfde doen, samen; een deel dat iets anders doet, apart.
+      const samen = adres.velden.filter((v) => soortVan(v) === soort);
+      if (samen.length > 1) {
+        const regel = (bron: Partial<Record<string, unknown>> | null | undefined) => {
+          const [straat, postcode, plaats] = adres.velden.map((v) => (samen.includes(v) ? toonWaarde(v, bron?.[v]) : ""));
+          return [straat, [postcode, plaats].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+        };
+        samen.forEach((v) => gedaan.add(v));
+        const oud = regel(b as Record<string, unknown> | null);
+        uit.push({ velden: samen, label: adres.label, nieuw: regel(r.rij.stamkaart), oud: oud || null, soort });
+        continue;
+      }
+    }
+    gedaan.add(veld);
+    uit.push({ velden: [veld], label: IMPORT_VELD_LABEL[veld], nieuw: toonWaarde(veld, r.rij.stamkaart?.[veld]), oud: toonWaarde(veld, b?.[veld]) || null, soort });
+  }
+  // Contactgegevens van de kaart: een gevulde cel wint.
+  const contact: ImportGegeven[] = [];
+  for (const veld of CONTACT_VELDEN) {
+    const w = r.rij[veld];
+    if (!w) continue;
+    const oud = b?.[veld] ? String(b[veld]) : null;
+    if (oud === w) continue;
+    contact.push({ velden: [veld], label: CONTACT_LABEL[veld], nieuw: w, oud, soort: oud ? "overschreven" : "aangevuld" });
+  }
+  return [...contact, ...uit];
+}
+
+/** De volledigheid van de stamkaart vóór de import (null bij een nieuwe klant) en erna. */
+export function volledigheidNaImport(r: Pick<Voorstelregel, "rij" | "stamkaart">, b: Klant | null): { voor: Volledigheid | null; na: Volledigheid } {
+  const na: Record<string, unknown> = { ...(b || {}) };
+  for (const veld of CONTACT_VELDEN) if (r.rij[veld]) na[veld] = r.rij[veld];
+  for (const veld of [...r.stamkaart.aangevuld, ...r.stamkaart.overschreven]) na[veld] = r.rij.stamkaart?.[veld];
+  return { voor: b ? stamkaartVolledigheid(b) : null, na: stamkaartVolledigheid(na as Klant) };
+}
+
+/** Het label van een importveld in een korte zin (voor de bevestiging). */
+export function importVeldLabel(v: StamkaartImportVeld): string {
+  return IMPORT_VELD_LABEL[v];
 }
 
 /* ---------- de lijst ---------- */

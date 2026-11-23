@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { bedrijfSleutel, herkenKolommen, importVoorstel, rijenUitKlantlijst, type Klant } from "./klanten";
 import {
-  afsprakenUitOffertes, documentenVoor, EXPORT_KOLOMMEN, klantenNaarRijen, stamkaartImportRegel, documentTelling, echteKlanten, filterKlantenlijst, isEchteKlant, KLANT_STATUSSEN, leesBedrag, losseAfspraken, merkUitLabel, schoonIban, schoonKvk, schoonPostcode,
+  afsprakenUitOffertes, documentenVoor, EXPORT_KOLOMMEN, importGegevens, klantenNaarRijen, stamkaartImportRegel, stamkaartOverzicht, toonWaarde, volledigheidNaImport, documentTelling, echteKlanten, filterKlantenlijst, isEchteKlant, KLANT_STATUSSEN, leesBedrag, losseAfspraken, merkUitLabel, schoonIban, schoonKvk, schoonPostcode,
   schoonStamkaart, schoonTarief, schoonWebsite, sorteerKlantenlijst, STAMKAART, STAMKAART_VELDEN, stamkaartRegel, stamkaartVolledigheid, tariefGeldt, tariefPeriode, tariefRegel,
   tariefTekst, veldWaarde, voorstelStamkaart, type DocumentBronnen, type StamkaartBronnen,
 } from "./stamkaart";
@@ -382,5 +382,45 @@ describe("de klantenlijst naar Excel en weer terug (Rens, 23 nov 2026)", () => {
     expect(stamkaartImportRegel(["kvk", "bezoek_postcode"], [], 4)).toBe("Stamkaart aangevuld uit de klantlijst (regel 4): KvK-nummer, postcode bezoekadres");
     expect(stamkaartImportRegel(["bezoekadres"], ["iban"], 7)).toBe("Stamkaart aangevuld uit de klantlijst (regel 7): Bezoekadres; overschreven: IBAN");
     expect(stamkaartImportRegel([], ["kvk"], 2)).toBe("Stamkaart bijgewerkt uit de klantlijst (regel 2): overschreven: KvK-nummer");
+  });
+});
+
+describe("het paneel en het rapport per klant", () => {
+  const compleet = { kvk: "17061007", bezoekadres: "Paaldijk 11", bezoek_postcode: "5595 XL", bezoek_plaats: "Leende", contactpersoon: "Joris", telefoon: "040 123 45 67", email: "j@v.test", factuur_email: "f@v.test" };
+
+  it("telt hoeveel stamkaarten compleet zijn en wat het vaakst ontbreekt", () => {
+    const o = stamkaartOverzicht([klant("Een", compleet), klant("Twee", { contactpersoon: "Piet" }), klant("Drie", { kvk: "12345678" })]);
+    expect(o.compleet).toBe(1);
+    expect(o.totaal).toBe(3);
+    expect(o.ontbreekt[0]).toEqual({ label: "Bezoekadres", aantal: 2 });
+    expect(o.ontbreekt.find((x) => x.label === "KvK-nummer")).toEqual({ label: "KvK-nummer", aantal: 1 });
+  });
+
+  it("laat per klant de waarden zien, met het adres als één regel", () => {
+    const b = klant("Garage Smits", { status: "akkoord", contactpersoon: "Piet Smits", kvk: "12345678" });
+    const r = { actie: "bijwerken" as const, rij: { contactpersoon: "Piet Smits", telefoon: "06 1234 5678", email: null, casemanager: null, stamkaart: { kvk: "17061008", bezoekadres: "Markt 3", bezoek_postcode: "5611 NB", bezoek_plaats: "Eindhoven", iban: "NL91ABNA0417164300", website: "https://smits.test" } }, stamkaart: { aangevuld: ["bezoekadres", "bezoek_postcode", "bezoek_plaats", "iban", "website"] as const, overschreven: [] as const, behouden: ["kvk"] as const } };
+    const g = importGegevens(r as never, b);
+    expect(g.map((x) => `${x.label}|${x.nieuw}|${x.oud ?? "-"}|${x.soort}`)).toEqual([
+      "Telefoon|06 1234 5678|-|aangevuld",
+      "KvK-nummer|17061008|12345678|behouden",
+      "Website|smits.test|-|aangevuld",
+      "Bezoekadres|Markt 3, 5611 NB Eindhoven|-|aangevuld",
+      "IBAN|NL91 ABNA 0417 1643 00|-|aangevuld",
+    ]);
+    const v = volledigheidNaImport(r as never, b);
+    expect(v.voor?.ingevuld).toBe(2);
+    expect(v.na.ingevuld).toBe(6);
+  });
+
+  it("een nieuwe klant heeft geen stand vooraf", () => {
+    const r = { actie: "nieuw" as const, rij: { contactpersoon: null, telefoon: null, email: null, casemanager: null, stamkaart: { kvk: "17061007" } }, stamkaart: { aangevuld: ["kvk"] as const, overschreven: [] as const, behouden: [] as const } };
+    expect(volledigheidNaImport(r as never, null)).toMatchObject({ voor: null, na: { ingevuld: 1 } });
+    expect(importGegevens({ ...r, actie: "overslaan" } as never, null)).toEqual([]);
+  });
+
+  it("toont een IBAN in groepjes en een website zonder https", () => {
+    expect(toonWaarde("iban", "NL91ABNA0417164300")).toBe("NL91 ABNA 0417 1643 00");
+    expect(toonWaarde("website", "https://korenaar.nl")).toBe("korenaar.nl");
+    expect(toonWaarde("kvk", null)).toBe("");
   });
 });

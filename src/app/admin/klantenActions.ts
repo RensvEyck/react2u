@@ -28,7 +28,11 @@ export type KlantResultaat = { ok: true; klant: Klant; gesprek?: Gesprek } | { o
 export type GesprekResultaat = { ok: true; gesprek: Gesprek | null; klant: Klant } | { ok: false; fout: string };
 export type Resultaat = { ok: true } | { ok: false; fout: string };
 export type ImportResultaat =
-  | { ok: true; nieuw: number; bijgewerkt: number; ongewijzigd: number; overgeslagen: number; stamkaarten: number }
+  | {
+      ok: true; nieuw: number; bijgewerkt: number; ongewijzigd: number; overgeslagen: number; stamkaarten: number;
+      /** Wat er met welke kaart gebeurde, voor de bevestiging in het importvenster (met een link naar de stamkaart). */
+      klanten: { id: string; bedrijf: string; nieuw: boolean; gegevens: number }[];
+    }
   | { ok: false; fout: string };
 
 /** Wat je aan een kaart kunt invullen. Alles mag leeg, behalve de bedrijfsnaam bij een nieuwe kaart. */
@@ -331,6 +335,7 @@ export async function importeerKlanten(rijen: ImportRij[], opties: ImportOpties 
   for (const k of (data as Klant[]) || []) bestaand.set(k.sleutel || bedrijfSleutel(k.bedrijf), k);
 
   const telling = { nieuw: 0, bijgewerkt: 0, ongewijzigd: 0, overgeslagen: 0, stamkaarten: 0 };
+  const gedaan: { id: string; bedrijf: string; nieuw: boolean; gegevens: number }[] = [];
   const gezien = new Set<string>();
   for (const ruw of rijen) {
     const bedrijf = tekst(ruw?.bedrijf, 200);
@@ -373,6 +378,7 @@ export async function importeerKlanten(rijen: ImportRij[], opties: ImportOpties 
         await log(sb, k.id, "stamkaart", stamkaartImportRegel(sk.aangevuld, [], ruw.regel), admin.email);
         telling.stamkaarten++;
       }
+      gedaan.push({ id: k.id, bedrijf: k.bedrijf, nieuw: true, gegevens: sk.aangevuld.length });
       telling.nieuw++;
       continue;
     }
@@ -406,9 +412,10 @@ export async function importeerKlanten(rijen: ImportRij[], opties: ImportOpties 
       await log(sb, b.id, "stamkaart", stamkaartImportRegel(sk.aangevuld, sk.overschreven, ruw.regel), admin.email);
       telling.stamkaarten++;
     }
+    gedaan.push({ id: b.id, bedrijf: b.bedrijf, nieuw: false, gegevens: sk.aangevuld.length + sk.overschreven.length });
     telling.bijgewerkt++;
   }
   ververs();
   revalidatePath("/admin/klanten");
-  return { ok: true, ...telling };
+  return { ok: true, ...telling, klanten: gedaan };
 }

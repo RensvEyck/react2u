@@ -2620,22 +2620,36 @@ Recht `bellijst`, zoals het bord. De regels staan in
   is blijft staan. Een resellerovereenkomst telt niet als bron.
 - **Alle stamkaarten in één keer** (Rens, 23 nov 2026: "is er een mogelijkheid
   dat deze in bulk worden gekopieerd en geplakt naar alle klanten en de
-  stamkaart wordt ingevuld"): bovenaan de lijst *Exporteer naar Excel* en
-  *Gegevens importeren* ([`KlantenGegevens.tsx`](src/components/admin/klanten/KlantenGegevens.tsx)).
-  De export (`klantenNaarRijen`, `EXPORT_KOLOMMEN`) zet de echte klanten met
-  de bedrijfsnaam en alle stamkaartvelden in een Excelbestand, gemaakt in de
-  browser (`lib/xlsx.ts`); de status staat er bewust niet in. De import is
-  dezelfde als op het bord (`KlantImport` met `nieuwAls="klant"`): een Excel
-  of een geplakt blok, eerst het controlerapport, dezelfde bedrijfsnaam is
-  dezelfde klant, en een bedrijf dat er nog niet is komt binnen als klant.
-  Wie downloadt, in Excel aanvult en hetzelfde bestand weer importeert, vult
-  alle stamkaarten zonder te typen; elke kop van de export leest de import
-  terug op hetzelfde veld (`stamkaart.test.ts`). **Standaard vult de import
-  op de stamkaart alleen lege velden**; wat er al anders staat blijft staan en
-  het rapport noemt het (*blijft staan: KvK-nummer*). Met *Overschrijf wat er
-  al op de stamkaart staat* wint het bestand. Elke stamkaart die verandert
-  krijgt een regel `stamkaart` in de tijdlijn ("Stamkaart aangevuld uit de
-  klantlijst (regel 4): KvK-nummer, Bezoekadres; overschreven: IBAN").
+  stamkaart wordt ingevuld"; daarna "design moet beter"). Boven de lijst staat
+  het paneel **Stamkaarten**
+  ([`StamkaartenPaneel.tsx`](src/components/admin/klanten/StamkaartenPaneel.tsx)):
+  hoeveel stamkaarten compleet zijn (een ring, `stamkaartOverzicht`), welk
+  kernveld het vaakst ontbreekt, en de twee acties *Vul aan uit Excel* en
+  *Exporteer naar Excel*. Gestopte klanten tellen niet mee; zijn alle
+  stamkaarten compleet, dan is het paneel één regel. De export
+  (`klantenNaarRijen`, `EXPORT_KOLOMMEN`) zet de klanten met de bedrijfsnaam en
+  alle stamkaartvelden in een Excelbestand, gemaakt in de browser
+  (`lib/xlsx.ts`); de status staat er bewust niet in. *Vul aan uit Excel* opent
+  dezelfde import als op het bord (`KlantImport` met `nieuwAls="klant"`), in
+  **drie stappen**: *Bestand* (slepen, kiezen of plakken, met ernaast *Zo werkt
+  het* en de lijst downloaden om in te vullen), *Controleren* (in één zin
+  "15 gegevens voor 3 stamkaarten", de telling, de keuze *Alleen lege velden*
+  of *Ook overschrijven*, de herkende kolommen ingeklapt, filters *Alles*,
+  *Stamkaart*, *Nieuw*, *Aandacht*, en per klant een kaart met de **waarden**
+  die erop komen (`importGegevens`: het adres als één regel, het IBAN in
+  groepjes van vier, wat er stond doorgestreept) en hoe compleet de stamkaart
+  vóór en na is (`volledigheidNaImport`)), en *Klaar* (wat er gebeurde, met
+  een link naar elke stamkaart). Een nieuw bedrijf komt binnen als klant.
+  Wie downloadt, in Excel aanvult en hetzelfde bestand weer inleest, vult alle
+  stamkaarten zonder te typen; elke kop van de export leest de import terug op
+  hetzelfde veld (`stamkaart.test.ts`). **Standaard vult de import op de
+  stamkaart alleen lege velden**; wat er al anders staat blijft staan en het
+  rapport laat beide waarden zien. Met *Ook overschrijven* wint het bestand.
+  Elke stamkaart die verandert krijgt een regel `stamkaart` in de tijdlijn
+  ("Stamkaart aangevuld uit de klantlijst (regel 4): KvK-nummer, Bezoekadres;
+  overschreven: IBAN"). Op het bord heeft de import dezelfde drie stappen; het
+  balkje met de volledigheid staat er alleen als het bestand iets voor de
+  stamkaart heeft.
 - **Documenten** (`documentenVoor`): alles van deze klant uit alle modules in
   één tabel, nieuwste eerst, gevonden op de bedrijfssleutel: brochures (pdf
   via de klantlink), offertes (getekend: de pdf met certificaat; anders de
