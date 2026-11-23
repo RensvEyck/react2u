@@ -3,7 +3,7 @@ import type { IconType } from "react-icons";
 import {
   LuInbox, LuPhone, LuSearch, LuUsers, LuArrowRight, LuPlus, LuCircleCheck,
   LuMessageSquare, LuBuilding, LuFilePen, LuCalendarClock, LuTrendingUp, LuTrendingDown,
-  LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck, LuTriangleAlert, LuGauge,
+  LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck, LuTriangleAlert, LuGauge, LuLightbulb,
 } from "react-icons/lu";
 import { requireAdmin } from "@/lib/admin";
 import { zichtbareRechten, type Permission } from "@/lib/permissions";
@@ -32,6 +32,8 @@ import { haalEigenReis } from "@/lib/inwerkreisDb";
 import { reisStand } from "@/lib/inwerkreis";
 import OverlegKaart from "@/components/admin/overleg/OverlegKaart";
 import { haalOverlegKort } from "@/lib/overlegDb";
+import IdeeenKaart from "@/components/admin/ideeen/IdeeenKaart";
+import { haalIdeeenKort } from "@/lib/ideeenDb";
 import { teLaat } from "@/lib/overleg";
 import { haalSignalen } from "@/lib/weekevaluatieDb";
 import { haalPrognose } from "@/lib/prognoseDb";
@@ -69,6 +71,8 @@ export default async function AdminDashboard() {
   const inwerkRes = haalEigenReis(sb, admin.userId);
   // Het CM-overleg (0053): het volgende overleg en de eigen open actiepunten. Vóór de migratie: null, en dan niets.
   const overlegRes = can("overleg") ? haalOverlegKort(sb, admin.userId).catch(() => null) : Promise.resolve(null);
+  // Het ideeënbord (0055): nieuw deze week, wat van jou is opgepakt, je ongelezen meldingen, en voor het beheer wat al twee weken wacht. Vóór de migratie: null.
+  const ideeenRes = can("ideeen") ? haalIdeeenKort(sb, admin.userId, datumOver(0, now), can("omzet")).catch(() => null) : Promise.resolve(null);
   // Mijn React2u (een werknemer): de eigen cijfers van dit kwartaal voor Mijn verloop.
   const verloopKwartaal = kwartaalVanWeek(openEvalWeken[1]);
   const verloopRes = mijn && can("weekevaluatie")
@@ -208,6 +212,9 @@ export default async function AdminDashboard() {
     ? verloop(mijnRijen.map((r) => ({ week: r.week, antwoorden: normaliseerAntwoorden(r.antwoorden) })), wekenInKwartaal(verloopKwartaal), VERLOOP_SCHALEN, datumOver(0, now))
     : null;
   const werven = await prognoseRes;
+  const ideeen = await ideeenRes;
+  // In Mijn React2u staat de kaart altijd (het is jouw bord); in Beheer alleen als er iets nieuw is.
+  const toonIdeeen = Boolean(ideeen && (mijn || ideeen.meldingen.length > 0 || ideeen.nieuw > 0));
 
   const attention =
     (unhandled > 0 ? 1 : 0) + (toCall.length > 0 ? 1 : 0) + (seoIssues > 0 ? 1 : 0) +
@@ -216,7 +223,9 @@ export default async function AdminDashboard() {
     // Inwerkreis: pas aandacht als er stappen uit een eerdere fase openstaan.
     (eigenStand && eigenStand.achter > 0 ? 1 : 0) +
     // CM-overleg: een eigen actiepunt over de datum.
-    (overlegTeLaat ? 1 : 0);
+    (overlegTeLaat ? 1 : 0) +
+    // Ideeënbord: iets nieuws over je eigen idee, of (beheer) ideeën die al twee weken wachten.
+    (ideeen && ideeen.meldingen.length > 0 ? 1 : 0) + (ideeen && ideeen.langOpen.length > 0 ? 1 : 0);
 
   const name = firstName(admin.email);
 
@@ -262,6 +271,8 @@ export default async function AdminDashboard() {
         <OverlegKaart volgend={overleg.volgend} punten={overleg.punten} mijnActies={overleg.mijnActies} vandaag={datumOver(0, now)} />
       )}
 
+      {toonIdeeen && ideeen && <IdeeenKaart kort={ideeen} />}
+
       {mijnLijnen && <MijnVerloop kwartaal={verloopKwartaal} lijnen={mijnLijnen} />}
 
       {werven?.soort === "werven" && (
@@ -290,6 +301,21 @@ export default async function AdminDashboard() {
             </ul>
           </div>
         </section>
+      )}
+
+      {ideeen && ideeen.langOpen.length > 0 && (
+        <Link href="/admin/ideeen?status=ingediend" id="ideeen-lang-open" className="acard flex flex-wrap items-center gap-4 border-l-[3px] border-l-[#c77700] px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff4e5] text-[18px] text-[#c77700]"><LuLightbulb /></span>
+          <span className="min-w-[200px] flex-1">
+            <span className="block text-[14.5px] font-semibold text-[#1c1a4e]">
+              {ideeen.langOpen.length === 1 ? "Eén idee wacht al langer dan twee weken op het beheer" : `${ideeen.langOpen.length} ideeën wachten al langer dan twee weken op het beheer`}
+            </span>
+            <span className="block text-[12.5px] text-black/45">
+              Nog op Ingediend: {ideeen.langOpen.slice(0, 3).map((i) => i.titel).join(", ")}{ideeen.langOpen.length > 3 ? ` en nog ${ideeen.langOpen.length - 3}` : ""}. Zet ze op Bekeken met een regel erbij.
+            </span>
+          </span>
+          <span className="abtn-ghost !py-2 text-[13.5px]">Naar het bord</span>
+        </Link>
       )}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">

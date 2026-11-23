@@ -126,7 +126,7 @@ export default function WeekevaluatieForm({
       </Laag>
 
       {(open || a.melding) && (
-        <Laag titel="Iets melden of delen" uitleg="Voor alles wat niet in de vragen past. Het komt in je kwartaalmeeting, of gaat meteen door als je dat aanvinkt." accent>
+        <Laag titel="Iets melden of delen" uitleg="Voor alles wat niet in de vragen past. Het komt op het ideeënbord voor je collega's en in je kwartaalmeeting; vink 'Stuur dit meteen door' aan als het alleen voor het beheer is." accent>
           <MeldRij nummer={volgende()} a={a} open={open} />
         </Laag>
       )}
@@ -327,7 +327,7 @@ function MeldRij({ nummer, a, open }: { nummer: number; a: Antwoorden; open: boo
               <input type="checkbox" name="melding_nu" value="aan" defaultChecked={Boolean(a.melding_nu)} className="mt-0.5 h-4 w-4 shrink-0 accent-[#e75387]" />
               <span>
                 <span className="inline-flex items-center gap-1.5 font-semibold"><LuSend className="text-[13px] text-[#e75387]" /> Stuur dit meteen door</span>
-                <span className="block text-[12.5px] text-black/50">Niet pas in de kwartaalmeeting. Hij kan je mail rechtstreeks beantwoorden.</span>
+                <span className="block text-[12.5px] text-black/50">Alleen voor het beheer, niet op het ideeënbord voor je collega&apos;s, en niet pas in de kwartaalmeeting. Je mail kan rechtstreeks beantwoord worden.</span>
               </span>
             </label>
             <p className="flex items-start gap-1.5 text-[12.5px] text-black/45">
