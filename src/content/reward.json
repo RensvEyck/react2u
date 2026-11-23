@@ -1,7 +1,7 @@
 {
   "slug": "reward",
   "title": "React2u Reward",
-  "seo_title": "React2u Reward: salaris en verloning • React2u",
+  "seo_title": "Salarisadministratie en verloning • React2u Reward",
   "seo_description": "Salarisadministratie door mensen die verzuim kennen. Een vaste prijs per werknemer per jaar, en de verloning van zieke medewerkers klopt.",
   "blocks": [
     {
@@ -12,7 +12,7 @@
         "naam": "Reward",
         "kleur": "#CA152A",
         "tint": "#FBEAEC",
-        "label": "Salaris en verloning.",
+        "label": "Salarisadministratie en verloning.",
         "tagline": "Loon dat klopt, ook bij ziekte",
         "text": "Salarisadministratie door mensen die verzuim kennen. Elke periode op tijd, en bij ziekte precies goed verwerkt.",
         "checks": [

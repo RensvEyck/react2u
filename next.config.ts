@@ -128,6 +128,11 @@ const nextConfig: NextConfig = {
     // 85 is voor de foto's (Beeld): de AI-serie heeft fijne details en werd bij
     // 75 na de her-encodering van de optimizer zichtbaar zacht.
     qualities: [75, 85],
+    // AVIF vóór WebP: zelfde kwaliteit, ongeveer de helft van de bytes. Het
+    // hoofdbeeld van de startpagina stond op een trage 4G-telefoon pas na
+    // 4 seconden in beeld (HALO-scan, november 2026); dit scheelt het meest
+    // zonder aan de kwaliteit te komen. Een browser zonder AVIF krijgt WebP.
+    formats: ["image/avif", "image/webp"],
   },
   // Next's eigen 308 van `/pad/` naar `/pad` liep vóór de lijst hieronder, en
   // maakte van elke oude URL met schuine streep een keten van twee stappen.

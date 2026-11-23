@@ -31,15 +31,16 @@ export default async function HomePage() {
   if (!blocks) return <div className="container-site py-20">Content wordt nog ingericht.</div>;
   const [posts, certificaten] = await Promise.all([
     needsPosts(blocks) ? getPublishedPosts() : [],
-    // De certificaten uit de instellingen, alleen voor pagina's met keurmerken (lib/keurmerken.ts).
-    needsKeurmerken(blocks) ? getSetting<unknown>("certificates").then(normalizeCertificates) : undefined,
+    // De certificaten uit de instellingen: voor de keurmerken op de pagina
+    // (lib/keurmerken.ts) en altijd voor de structured data van de organisatie.
+    getSetting<unknown>("certificates").then(normalizeCertificates),
   ]);
   return (
     <>
-      <BlockRenderer blocks={blocks} ctx={{ posts, certificaten }} />
-      {/* De organisatie en de website als één geheel (lib/organisatie.ts);
-          artikelen en vacatures verwijzen met hetzelfde @id hiernaar. */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisatieGraphLd()) }} />
+      <BlockRenderer blocks={blocks} ctx={{ posts, certificaten: needsKeurmerken(blocks) ? certificaten : undefined }} />
+      {/* De organisatie en de website als één geheel (lib/organisatie.ts), met
+          de certificaten; artikelen en vacatures verwijzen met hetzelfde @id hiernaar. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisatieGraphLd(certificaten)) }} />
     </>
   );
 }

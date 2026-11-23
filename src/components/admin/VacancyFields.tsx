@@ -168,8 +168,13 @@ export default function VacancyFields({ v, engels = true }: { v?: Vacancy | null
         <select className="ainput max-w-[320px]" name="status" defaultValue={v?.status || "draft"}>
           <option value="draft">Concept (niet zichtbaar)</option>
           <option value="published">Gepubliceerd (live)</option>
-          <option value="closed">Gesloten</option>
+          <option value="closed">Gesloten (vervuld: de pagina blijft bereikbaar, zonder Google for Jobs)</option>
         </select>
+        <p className="mt-2 text-[13px] text-black/50">
+          Een gesloten vacature verdwijnt uit het overzicht, de feeds en Google for Jobs, maar haar adres blijft werken: de pagina
+          zegt dat de vacature vervuld is en wijst naar een open sollicitatie. Zo raak je de plek in Google niet kwijt. Moet het adres
+          écht weg, zet dan een doorverwijzing naar het vakgebied onder Doorverwijzingen.
+        </p>
       </Section>
     </>
   );

@@ -351,7 +351,13 @@ export function WerkenBijPagina({ vacatures, taal = "nl" }: { vacatures: Vacancy
 
 /* ---------- Vacaturepagina (/vacatures/[slug], /en/jobs/[slug]) ---------- */
 
-export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere: Vacancy[]; taal?: Taal }) {
+/**
+ * De vacaturepagina. `vervuld`: de vacature is gesloten, maar de pagina blijft
+ * staan (lib/content.ts). Dan geen sollicitatieformulier en geen plek in de
+ * reeks vorige/volgende, wel de tekst, een open sollicitatie en de
+ * vergelijkbare vacatures; de JobPosting laat de route zelf weg.
+ */
+export function VacatureDetail({ v, andere, taal = "nl", vervuld = false }: { v: Vacancy; andere: Vacancy[]; taal?: Taal; vervuld?: boolean }) {
   const t = woordenboek(taal);
   const w = t.vacatures;
   const d = w.detail;
@@ -378,7 +384,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
   const stappen = opdracht ? ob.stappenOpdracht : ob.stappen;
   const vg = vakgebiedVan(v.vakgebied);
   // Dezelfde volgorde als het overzicht, voor "vorige / volgende" en vergelijkbare vacatures.
-  const alle = sorteer([v, ...andere.filter((x) => x.id !== v.id)], taal);
+  const alle = sorteer(vervuld ? andere.filter((x) => x.id !== v.id) : [v, ...andere.filter((x) => x.id !== v.id)], taal);
   const plek = alle.findIndex((x) => x.id === v.id);
   const vorige = plek > 0 ? alle[plek - 1] : null;
   const volgende = plek >= 0 && plek < alle.length - 1 ? alle[plek + 1] : null;
@@ -422,6 +428,11 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
                 <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: PINK }} />{w.inHetNederlands}
               </p>
             )}
+            {vervuld && (
+              <p className="m-0 inline-flex items-center gap-2.5 self-start rounded-full bg-white px-4 py-2 text-[14px] font-bold" style={{ color: NAVY }}>
+                <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: PINK }} />{d.vervuldLabel}
+              </p>
+            )}
             <div className="flex flex-col gap-3">
               {vg && <span className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: PINK }}>{vg[taal].kort}</span>}
               <h1 className={`${kop} m-0 max-w-[900px] text-[40px] leading-[1.02] tracking-[-1.3px] md:text-[60px] md:tracking-[-1.9px]`} lang={langAttr}>{tekst.title}</h1>
@@ -435,8 +446,17 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
               ))}
             </ul>
             <div className="flex flex-wrap items-center gap-5 pt-1">
-              <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>
-              <span className="text-[15px]" style={{ color: MUTE }}>{d.duurtMinuut}</span>
+              {vervuld ? (
+                <>
+                  <Knop href={p.open}>{d.openSollicitatie}</Knop>
+                  <Link href={p.vacatures} className="inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: NAVY }}>{d.bekijkAlleVacatures} <Pijl /></Link>
+                </>
+              ) : (
+                <>
+                  <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>
+                  <span className="text-[15px]" style={{ color: MUTE }}>{d.duurtMinuut}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -509,7 +529,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
                       </div>
                     ))}
                   </dl>
-                  <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>
+                  {vervuld ? <Knop href={p.open}>{d.openSollicitatie}</Knop> : <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>}
                   <div className="flex flex-col gap-3 border-t pt-5" style={{ borderColor: LINE }}>
                     <span className="text-[14px] font-bold" style={{ color: NAVY }}>{ob.contactKop}</span>
                     <ContactRegel taal={taal} />
@@ -542,7 +562,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
                   </div>
                 ))}
               </dl>
-              <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>
+              {vervuld ? <Knop href={p.open}>{d.openSollicitatie}</Knop> : <Knop href="#solliciteren">{d.solliciteerDirect}</Knop>}
               <Eigenaar taal={taal} />
             </div>
           </aside>
@@ -552,7 +572,8 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
         </>
       )}
 
-      {/* 3. Solliciteren, met hoe het daarna gaat */}
+      {/* 3. Solliciteren, met hoe het daarna gaat; vervuld: een open sollicitatie in plaats van het formulier */}
+      {vervuld ? <VervuldBlok titel={tekst.title} taal={taal} /> : (
       <section id="solliciteren" aria-label={w.solliciterenEyebrow} className="scroll-mt-28" style={{ background: SOFT }}>
         <div className={`${BREED} grid gap-10 py-12 md:py-[88px] lg:grid-cols-12 lg:items-start lg:gap-6`}>
           <div className="flex flex-col gap-7 lg:col-span-5">
@@ -584,6 +605,7 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
           </div>
         </div>
       </section>
+      )}
 
       {/* 4. Vergelijkbare vacatures */}
       {vergelijkbaar.length > 0 && (
@@ -599,8 +621,38 @@ export function VacatureDetail({ v, andere, taal = "nl" }: { v: Vacancy; andere:
           </div>
         </section>
       )}
-      <SolliciteerBalk titel={tekst.title} salaris={k.bedrag ? `${k.bedrag} ${k.eenheid}` : undefined} knop={d.solliciteerKort} />
+      {!vervuld && <SolliciteerBalk titel={tekst.title} salaris={k.bedrag ? `${k.bedrag} ${k.eenheid}` : undefined} knop={d.solliciteerKort} />}
     </div>
+  );
+}
+
+/**
+ * Het blok onder een vervulde vacature, op de plek van het formulier: we
+ * zoeken deze functie vaker, dus een open sollicitatie in plaats van een 404
+ * (HALO-herstelplan, november 2026).
+ */
+function VervuldBlok({ titel, taal }: { titel: string; taal: Taal }) {
+  const t = woordenboek(taal);
+  const d = t.vacatures.detail;
+  const ob = t.vacatures.opbouw;
+  const p = paden(taal);
+  return (
+    <section id="solliciteren" aria-label={d.vervuldKop} className="scroll-mt-28" style={{ background: SOFT }}>
+      <div className={`${BREED} flex flex-col gap-7 py-12 md:py-[88px]`}>
+        <div className="flex flex-col gap-3">
+          <h2 className={`${kop} m-0 text-[30px] leading-[1.1] tracking-[-0.8px] md:text-[38px]`}>{d.vervuldKop}</h2>
+          <p className="m-0 max-w-[640px] text-[17px] leading-[1.7]" style={{ color: BODY }}>{vul(d.vervuldTekst, { titel })}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-5">
+          <Knop href={p.open}>{d.openSollicitatie}</Knop>
+          <Link href={p.vacatures} className="inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: NAVY }}>{d.bekijkAlleVacatures} <Pijl /></Link>
+        </div>
+        <div className="flex max-w-[640px] flex-col gap-3 border-t pt-6" style={{ borderColor: "#DCDBEA" }}>
+          <span className="text-[14px] font-bold" style={{ color: NAVY }}>{ob.contactKop}</span>
+          <ContactRegel taal={taal} />
+        </div>
+      </div>
+    </section>
   );
 }
 

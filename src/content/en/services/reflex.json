@@ -2,7 +2,7 @@
   "_uitleg": "Engelse labelpagina React2u Reflex (/en/services/reflex): dezelfde blokken als reflex.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services/reflex",
   "title": "React2u Reflex",
-  "seo_title": "React2u Reflex: Sickness Benefits Act support • React2u",
+  "seo_title": "Sickness Benefits Act and absence in the staffing sector • React2u Reflex",
   "seo_description": "For staffing agencies and self-insurers under the Sickness Benefits Act (Ziektewet). We support sick temp workers, also after their contract ends.",
   "blocks": [
     {
@@ -13,7 +13,7 @@
         "naam": "Reflex",
         "kleur": "#3AA5DD",
         "tint": "#E9F5FC",
-        "label": "For the temporary staffing sector.",
+        "label": "Sickness Benefits Act and absence in the staffing sector.",
         "tagline": "The Sickness Benefits Act without worries",
         "text": "For staffing agencies and self-insurers (eigenrisicodragers) under the Sickness Benefits Act (Ziektewet). We support sick temp workers, also after their contract ends.",
         "checks": [

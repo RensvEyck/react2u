@@ -1,7 +1,7 @@
 {
   "slug": "resist",
   "title": "React2u Resist",
-  "seo_title": "React2u Resist: Preventie en vitaliteit • React2u",
+  "seo_title": "Preventie en preventiemedewerker • React2u Resist",
   "seo_description": "We brengen risico’s in kaart en helpen teams om gezond en met energie aan het werk te blijven.",
   "blocks": [
     {
@@ -12,7 +12,7 @@
         "naam": "Resist",
         "kleur": "#00A098",
         "tint": "#E5F5F4",
-        "label": "Preventie en vitaliteit.",
+        "label": "Preventie en preventiemedewerker.",
         "tagline": "Uitval voorkomen begint vóór de ziekmelding",
         "text": "We brengen risico’s in kaart en helpen teams om gezond en met energie aan het werk te blijven.",
         "checks": [

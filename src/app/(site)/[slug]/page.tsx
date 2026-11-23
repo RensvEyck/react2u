@@ -5,6 +5,7 @@ import BlockRenderer, { needsKeurmerken, needsPosts, needsTarieven } from "@/com
 import { normalizeTarieven } from "@/lib/tarieven";
 import { crumbsVoor, normalizeCertificates } from "@/lib/nav";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
+import { serviceLd } from "@/lib/organisatie";
 import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
 import { conceptSlugs, reserveSlugs } from "@/lib/concept";
@@ -53,7 +54,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (gebied) {
     // Kort: "Arbodienst Valkenburg aan de Geul • React2u" is 43 tekens; met
     // "Persoonlijke verzuimbegeleiding" ertussen kapte Google 336 titels af.
-    const title = `Arbodienst ${gebied.naam} • React2u`;
+    // Een provincie heet "in de provincie": Utrecht en Groningen zijn ook een
+    // gemeente, en die twee paren hadden precies dezelfde titel (HALO-scan).
+    const title = gebied.soort === "provincie" ? `Arbodienst in de provincie ${gebied.naam} • React2u` : `Arbodienst ${gebied.naam} • React2u`;
     // Alleen een gemeente met een eigen tekst (en de kern rond Eindhoven) hoort
     // in Google; de andere gemeentepagina's bestaan wel, maar met noindex
     // (lib/gemeenten.ts). De omschrijving komt uit die eigen tekst.
@@ -115,11 +118,14 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
     needsKeurmerken(res.blocks) ? getSetting<unknown>("certificates").then(normalizeCertificates) : undefined,
   ]);
   const crumbs = crumbsVoor(path, res.page.title);
+  // Een dienstpagina beschrijft haar dienst als Service van de organisatie (lib/organisatie.ts).
+  const dienst = serviceLd(slug, "nl");
 
   return (
     <>
       <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven, certificaten, pad: path }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
+      {dienst && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(dienst) }} />}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { KVK, ORGANISATIE_ID, organisatieGraphLd, organisatieLd, organisatieRef, webSiteLd } from "./organisatie";
+import { KVK, ORGANISATIE_ID, organisatieGraphLd, organisatieLd, organisatieRef, serviceLd, webSiteLd } from "./organisatie";
 
 describe("organisatie als één knoop", () => {
   it("heeft een vast @id waar de rest naar verwijst", () => {
@@ -31,5 +31,31 @@ describe("organisatie als één knoop", () => {
     const r = organisatieRef();
     expect(r.name).toBe("React2u");
     expect(r.logo["@type"]).toBe("ImageObject");
+  });
+
+  it("zet de certificaten uit Instellingen erbij, en OVAL als lidmaatschap", () => {
+    const o = organisatieLd([
+      { image: "", alt: "SBCA gecertificeerde arbodienst", href: "https://react2u.nl/docs/sbca.pdf" },
+      { image: "", alt: "ISO 9001", href: "" },
+      { image: "", alt: "Lid van OVAL", href: "https://www.oval.nl" },
+    ]);
+    expect(o.hasCredential).toEqual([
+      { "@type": "EducationalOccupationalCredential", name: "SBCA", credentialCategory: "certification", description: "Gecertificeerde arbodienst", url: "https://react2u.nl/docs/sbca.pdf" },
+      { "@type": "EducationalOccupationalCredential", name: "ISO 9001", credentialCategory: "certification", description: "Kwaliteitsmanagement" },
+    ]);
+    expect(o.memberOf).toEqual([{ "@type": "Organization", name: "OVAL", url: "https://www.oval.nl" }]);
+    // Zonder certificaten ontbreken de sleutels, in plaats van een lege lijst.
+    expect(organisatieLd()).not.toHaveProperty("hasCredential");
+    expect(organisatieLd([])).not.toHaveProperty("memberOf");
+  });
+
+  it("beschrijft een dienstpagina als Service van dezelfde organisatie", () => {
+    const s = serviceLd("recover", "nl")!;
+    expect(s["@type"]).toBe("Service");
+    expect(s.name).toBe("Verzuimbegeleiding voor werkgevers");
+    expect(s.provider).toEqual({ "@id": ORGANISATIE_ID });
+    expect(s.url).toMatch(/\/recover$/);
+    expect(serviceLd("recover", "en")!.url).toMatch(/\/en\/services\/recover$/);
+    expect(serviceLd("contact", "nl")).toBeNull();
   });
 });

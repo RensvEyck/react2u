@@ -2,7 +2,7 @@
   "_uitleg": "Engelse labelpagina React2u Reward (/en/services/reward): dezelfde blokken als reward.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services/reward",
   "title": "React2u Reward",
-  "seo_title": "React2u Reward: payroll and salary administration • React2u",
+  "seo_title": "Payroll and salary administration • React2u Reward",
   "seo_description": "Payroll by people who know sickness absence. A fixed price per employee per year, and the pay of employees on sick leave is always right.",
   "blocks": [
     {

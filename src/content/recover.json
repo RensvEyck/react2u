@@ -1,7 +1,7 @@
 {
   "slug": "recover",
   "title": "React2u Recover",
-  "seo_title": "React2u Recover: Verzuimbegeleiding • React2u",
+  "seo_title": "Verzuimbegeleiding voor werkgevers • React2u Recover",
   "seo_description": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.",
   "blocks": [
     {
@@ -12,7 +12,7 @@
         "naam": "Recover",
         "kleur": "#E61674",
         "tint": "#FDECF4",
-        "label": "Verzuimbegeleiding.",
+        "label": "Verzuimbegeleiding voor werkgevers.",
         "tagline": "Van ziekmelding tot herstel",
         "text": "Je vaste casemanager begeleidt elk verzuimdossier volgens de Wet verbetering poortwachter. Jij houdt grip, je werknemer krijgt aandacht.",
         "checks": [

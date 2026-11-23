@@ -5,6 +5,7 @@ import { getSetting } from "@/lib/content";
 import { normalizeTarieven } from "@/lib/tarieven";
 import { alleConceptSlugsEn, conceptEn } from "@/lib/concept";
 import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
+import { serviceLd } from "@/lib/organisatie";
 import { crumbsVoor, normalizeCertificates } from "@/lib/nav";
 import { openGraphVoor } from "@/lib/og";
 import { paginaBestaat } from "@/lib/pagina";
@@ -50,6 +51,8 @@ export default async function EnglishPage({ params }: { params: Promise<{ slug: 
   if (!c) notFound();
   const path = `/en/${pad}`;
   const crumbs = crumbsVoor(path, c.title, "en");
+  // /en/services/<label>: de dienst als Service van de organisatie, net als op de Nederlandse pagina.
+  const dienst = pad.startsWith("services/") ? serviceLd(pad.slice("services/".length), "en") : null;
   // Het tarievenjaar uit de instellingen, alleen voor /en/pricing (dgTarieven).
   const [tarieven, certificaten] = await Promise.all([
     needsTarieven(c.blocks) ? getSetting<unknown>("tarieven").then(normalizeTarieven) : undefined,
@@ -60,6 +63,7 @@ export default async function EnglishPage({ params }: { params: Promise<{ slug: 
     <>
       <BlockRenderer blocks={c.blocks} ctx={{ crumbs, lang: "en", tarieven, certificaten }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs, "en")) }} />
+      {dienst && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(dienst) }} />}
     </>
   );
 }

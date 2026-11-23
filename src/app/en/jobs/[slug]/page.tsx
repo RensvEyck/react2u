@@ -7,6 +7,7 @@ import { openGraphVoor } from "@/lib/og";
 import { hreflangVoor } from "@/lib/taal";
 import { vacatureInTaal } from "@/lib/vacatures";
 import { VacatureDetail } from "@/components/blocks/WerkenBij";
+import { woordenboek } from "@/lib/woordenboek";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -32,12 +33,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const v = await getZichtbareVacature(slug);
   if (!v) return {};
-  // Een concept zie je alleen in de voorbeeldmodus; nooit indexeren.
-  const concept = v.status !== "published" ? { robots: { index: false, follow: false } } : {};
+  // Een concept zie je alleen in de voorbeeldmodus; nooit indexeren. Een
+  // gesloten vacature blijft vindbaar als "vervuld" (lib/content.ts).
+  const concept = v.status === "draft" ? { robots: { index: false, follow: false } } : {};
   const tekst = vacatureInTaal(v, "en");
+  const vervuld = v.status === "closed";
   return {
     ...concept,
-    title: { absolute: paginaTitel(`${tekst.title} • Vacancy`) },
+    title: { absolute: paginaTitel(`${tekst.title} • ${vervuld ? woordenboek("en").vacatures.detail.vervuldTitel : "Vacancy"}`) },
     ...metOmschrijving(tekst.taal === "en" ? omschrijving(null, tekst.intro) : omschrijving(v.seo_description, v.intro)),
     alternates: { canonical: `/en/jobs/${slug}`, languages: hreflangVoor(`/vacatures/${slug}`) ?? undefined },
     openGraph: await openGraphVoor({ pad: `/en/jobs/${slug}`, taal: "en" }),
@@ -49,5 +52,5 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
   const v = await getZichtbareVacature(slug);
   if (!v) notFound();
   const andere = (await getZichtbareVacatures()).filter((x) => x.id !== v.id);
-  return <VacatureDetail v={v} andere={andere} taal="en" />;
+  return <VacatureDetail v={v} andere={andere} taal="en" vervuld={v.status === "closed"} />;
 }

@@ -376,6 +376,12 @@ export const nl = {
       openKaartTekst: "Zie je jouw functie er niet tussen? Vertel ons wie je bent en wat je zoekt.",
       altijdWelkom: "Altijd welkom",
       standaardLocatie: "Eindhoven",
+      /** Een gesloten vacature blijft staan als vervuld (lib/content.ts); nooit een 404. */
+      vervuldLabel: "Deze vacature is vervuld",
+      vervuldTitel: "Vacature vervuld",
+      vervuldKop: "Deze vacature is vervuld",
+      vervuldTekst: "We zoeken regelmatig een {titel}. Stuur een open sollicitatie, dan nemen we contact met je op zodra er weer plek is.",
+      openSollicitatie: "Stuur een open sollicitatie",
     },
     /** Vaste teksten van de nieuwe vacature-opbouw (migratie 0017). */
     opbouw: {

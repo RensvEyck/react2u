@@ -47,6 +47,11 @@ describe("netwerkeigenaar", () => {
     expect(companyFromAsn("AS8315 Eurofiber Nederland B.V.", "eurofiber.com")).toBeNull();
     expect(companyFromAsn("AS8220 Colt Technology Services", "colt.net")).toBeNull();
     expect(companyFromAsn("AS16509 Amazon.com, Inc.", "amazon.com")).toBeNull();
+    // Datacenters en Chinese carriers: bots, geen bedrijven (HALO-herstelplan, november 2026).
+    expect(companyFromAsn("AS4837 CHINA UNICOM China169 Backbone", null)).toBeNull();
+    expect(companyFromAsn("AS136907 HUAWEI CLOUDS", "huaweicloud.com")).toBeNull();
+    expect(companyFromAsn("Huawei Cloud Service data center", null)).toBeNull();
+    expect(companyFromAsn("AS8075 Microsoft Corporation", "microsoft.com")).toBeNull();
   });
 
   it("matcht providernamen op woordbegin", () => {
