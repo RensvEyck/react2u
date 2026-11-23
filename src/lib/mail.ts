@@ -302,7 +302,7 @@ ${linkAlsTekst(h.link)}`);
  * eigen open actiepunten, en één knop naar het overleg.
  */
 export async function sendOverlegHerinnering(h: {
-  to: string; onderwerp: string; aanhef: string; intro: string; agenda: string[]; acties: string[]; link: string; contact?: ContactInfo;
+  to: string; onderwerp: string; aanhef: string; intro: string; agenda: string[]; acties: string[]; link: string; contact?: ContactInfo; certificaten: Certificate[];
 }): Promise<Verzonden> {
   const lijst = (items: string[]) =>
     `<ol style="margin:6px 0 20px;padding-left:22px;font-family:${FONT};font-size:15px;line-height:1.65;color:${KLEUR.tekst}">${items.map((i) => `<li style="margin:2px 0">${esc(i)}</li>`).join("")}</ol>`;
@@ -315,7 +315,7 @@ ${lijst(h.acties)}` : ""}
 ${knop("Naar het CM-overleg", h.link)}
 <div style="height:22px"></div>
 ${linkAlsTekst(h.link)}`);
-  const html = omhulsel({ basis: siteBasis(), titel: h.onderwerp, preheader: h.intro, kaart, contact: h.contact });
+  const html = omhulsel({ basis: siteBasis(), titel: h.onderwerp, preheader: h.intro, kaart, contact: h.contact, certificaten: h.certificaten });
   return verstuur([h.to], h.onderwerp, html, adressen(process.env.NOTIFY_TO)[0]);
 }
 
