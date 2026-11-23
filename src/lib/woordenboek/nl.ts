@@ -107,6 +107,7 @@ export const nl = {
       { label: "Tarieven", slug: "verzuimabonnementen" },
       { label: "Kennismaken", slug: "kennismaken" },
       { label: "Partnerprogramma", slug: "partners" },
+      { label: "Gidsen en blog", slug: "blog" },
     ] as { label: string; slug: string; anker?: string }[],
     werknemerLinks: [
       { label: "Ziek, wat nu?", slug: "verzuimprotocol" },

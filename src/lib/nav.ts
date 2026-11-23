@@ -1,5 +1,6 @@
 import { nlPadVoor, pad, type Taal } from "./taal";
 import { woordenboek } from "./woordenboek";
+import { GIDS_PADEN, gidsVoor } from "./gidsen";
 
 // Foto's uit de mediabibliotheek. Hier en niet onderaan het bestand: LABELS
 // hieronder gebruikt ze al bij het laden.
@@ -87,7 +88,9 @@ const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol", "/je-rechten-en-priv
  * "werknemer" koos het werknemersmenu boven een werkgeverspagina (HALO-scan,
  * november 2026). De labelpagina's (Resist, Recover, …) komen via labelVoor().
  */
-const WERKGEVER_PADEN = ["/werkgevers", "/diensten", "/verzuimabonnementen", "/kennismaken"];
+const WERKGEVER_PADEN = ["/werkgevers", "/diensten", "/verzuimabonnementen", "/kennismaken",
+  // De gidsen (lib/gidsen.ts) zijn voor werkgevers geschreven.
+  ...GIDS_PADEN];
 /**
  * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
  * gedeelde pagina's (contact, blog, over ons, vacatures): daar geldt de
@@ -176,9 +179,12 @@ export function crumbsVoor(path: string, title: string, taal: Taal = "nl"): NavL
     ? STARTPAGINA[groep]
     : { label: groep === "werkgever" ? t.werkgevers : t.werknemers, href: pad(taal, groep === "werkgever" ? "werkgevers" : "werknemers") };
   if (path === start.href) return [start];
+  // Een labelpagina hangt onder Diensten, een gids onder Kennis (de blog).
   const tussen = labelVoor(nlPadVoor(path))
     ? [{ label: woordenboek(taal).dienstLabel.kruimelDiensten, href: pad(taal, "diensten") }]
-    : [];
+    : gidsVoor(path)
+      ? [{ label: "Kennis", href: "/blog" }]
+      : [];
   return [start, ...tussen, { label: title, href: path }];
 }
 

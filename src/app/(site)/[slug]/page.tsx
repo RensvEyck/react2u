@@ -8,7 +8,7 @@ import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
 import { serviceLd } from "@/lib/organisatie";
 import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
-import { conceptSlugs } from "@/lib/concept";
+import { conceptSlugs, reserveSlugs } from "@/lib/concept";
 import { inhoud } from "@/lib/pagina";
 import { isGeindexeerd, plaatsVoorSlug, provincieHref, provincieVoorSlug } from "@/lib/gemeenten";
 import { plaatsTekst } from "@/lib/plaatsteksten";
@@ -40,7 +40,8 @@ export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const pages = await getPublishedPages();
-  const slugs = new Set([...pages.map((p) => p.slug), ...conceptSlugs()]);
+  // Reserve-inhoud (een nieuw concept vóór de SQL, lib/concept.ts) hoort ook voorgebouwd.
+  const slugs = new Set([...pages.map((p) => p.slug), ...conceptSlugs(), ...reserveSlugs()]);
   slugs.delete("home");
   // Een pagina met een vaste doorverwijzing (zoals de oude dienstpagina's,
   // nu een label) bereikt niemand: de redirect gaat voor. Niet bouwen.
@@ -122,7 +123,7 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven, certificaten }} />
+      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven, certificaten, pad: path }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
       {dienst && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(dienst) }} />}
     </>

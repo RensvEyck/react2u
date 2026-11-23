@@ -7,6 +7,7 @@ import { woordenboek } from "@/lib/woordenboek";
 import { inkt } from "@/lib/kleur";
 import type { Certificate } from "@/lib/nav";
 import { keurmerkenUit, keurmerkTekst } from "@/lib/keurmerken";
+import { GidsenStrook } from "./Gids";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type BlockProps = { d: any; asH1?: boolean; ctx?: { lang?: Taal; certificaten?: Certificate[] } };
@@ -240,6 +241,9 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
           </div>
         </section>
       )}
+
+      {/* 5b. Verdieping: de gidsen bij dit label (lib/gidsen.ts), alleen in het Nederlands. */}
+      {taal === "nl" && Array.isArray(d.gidsen) && d.gidsen.length > 0 && <GidsenStrook slugs={d.gidsen} kleur={c} />}
 
       {/* 6. De andere labels */}
       {ook.length > 0 && (

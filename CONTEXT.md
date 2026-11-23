@@ -943,8 +943,11 @@ publieke sleutel ziet een verborgen pagina niet, dus "verborgen" en "bestaat
 niet" zijn voor de code hetzelfde. Daarom is de **publicatiestatus leidend**:
 `reserveActief` in [`src/lib/concept.ts`](src/lib/concept.ts) staat op
 `false`, een verborgen pagina is een 404 en staat niet in de sitemap. Komt er
-een nieuw concept bij, zet de reserve dan aan in dezelfde commit en weer uit
-zodra de SQL gedraaid is. Welke inhoud een pagina toont (staging het concept,
+een nieuw concept bij, zet dan zijn slug in `MIGRATIE_RESERVE` in dezelfde
+commit en haal hem weg zodra de SQL gedraaid is: alleen die pagina toont dan
+in productie zijn concept, een verborgen pagina komt nog steeds niet terug
+(sinds de gidsen van november 2026; `reserveActief` voor álle concepten blijft
+uit). Welke inhoud een pagina toont (staging het concept,
 anders de database, anders de reserve) staat op één plek,
 [`src/lib/pagina.ts`](src/lib/pagina.ts); de Engelse route gebruikt dezelfde
 regel om alleen een hreflang naar een Nederlandse pagina te zetten die echt
@@ -3206,9 +3209,34 @@ die bron weg. Nieuwe doorverwijzingen horen niet meer in de code maar in de
 admin, tenzij ze bij een codewijziging horen (zoals `DIENST_REDIRECTS`); zie
 *Doorverwijzingen en 404's*.
 
-FAQ-blokken (`faqAccordion` en `contactFaq`) leveren samen één
+FAQ-blokken (`faqAccordion`, `contactFaq`, de vragenblokken van de doelgroeppagina's en `gidsVragen`) leveren samen één
 `FAQPage`-structured-data per pagina, samengesteld in `BlockRenderer`. Google
 wil er één per pagina, niet één per blok.
+
+**De gidsen** (HALO-herstelplan, november 2026, punt 4): vijf pagina's op het
+hoofdniveau die één vraag van een werkgever volledig beantwoorden, op de
+zoekwoorden waar React2u net buiten de eerste pagina stond: `/re-integratie`,
+`/wet-verbetering-poortwachter`, `/bedrijfsarts`, `/arbeidsdeskundig-onderzoek`
+en `/preventiemedewerker`. Elke gids heeft dezelfde opbouw, in eigen blokken
+([`src/components/blocks/Gids.tsx`](src/components/blocks/Gids.tsx)): de vraag
+als H1 met twee zinnen direct antwoord en de auteur (`gidsKop`), hoofdstukken
+(`gidsTekst`), een tijdlijn of stappenplan (`gidsTijdlijn`), een tabel met
+termijnen of kosten (`gidsTabel`), vijf tot acht vragen (`gidsVragen`, in de
+`FAQPage`) en "Zo helpt React2u" met de dienst en kennismaken (`gidsHelpt`).
+`BlockRenderer` rekent de inhoudsopgave en de leestijd uit en stuurt de gids als
+`Article` met de auteur als `Person` uit (`gidsLd`). Wat de rest van de site
+over een gids weet (vraag, korte tekst, zoekwoord, dienst) staat in
+[`src/lib/gidsen.ts`](src/lib/gidsen.ts); daaruit komen de kaarten op de
+homepage, `/diensten` en de blog (`gidsenKaarten`, `GidsenRij`), de strook
+"Verdieping" op een dienstpagina (`gidsen` in de `dienstLabel`-data), het
+kruimelpad (Werkgevers › Kennis › gids) en de sectie Gidsen in `/llms.txt`.
+Het oude Poortwachter-artikel gaat met een 301 naar de gids (`GIDS_REDIRECTS`);
+`getPublishedPosts()` laat een artikel met een vaste doorverwijzing uit elke
+lijst. `src/lib/gidsen.test.ts` bewaakt de opbouw, de omvang (1.500 tot 2.000
+woorden) en de maten van titel en omschrijving. Tot migratie 0060 gedraaid is,
+staan de vijf slugs in `MIGRATIE_RESERVE` (`lib/concept.ts`): alleen die
+pagina's tonen in productie hun concept. Zie
+[docs/adr/0002](docs/adr/0002-gidsen-als-vaste-paginas.md).
 
 `sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld

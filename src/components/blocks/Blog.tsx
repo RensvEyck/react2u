@@ -7,6 +7,8 @@ import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
 import { inkt } from "@/lib/kleur";
 import Beeld from "@/components/site/Beeld";
+import { GIDSEN } from "@/lib/gidsen";
+import { GidsenRij } from "./Gids";
 
 /*
  * Blog en blogartikel (canvas: "Blog" en "Blogartikel"). De artikelen komen
@@ -110,6 +112,17 @@ export function BlogOverzicht({ posts }: { posts: Post[] }) {
             </div>
           </div>
         )}
+      </section>
+      {/* De gidsen (lib/gidsen.ts): de basis per onderwerp, vóór de losse artikelen. */}
+      <section aria-label="Gidsen" className={`${BREED} flex flex-col gap-8 border-t pb-14 pt-10 md:pb-20 md:pt-14`} style={{ borderColor: LINE }}>
+        <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
+          <div className="flex flex-col gap-3 lg:col-span-7">
+            <Eyebrow>Gidsen</Eyebrow>
+            <h2 className={`${kop} m-0 text-[28px] leading-[1.12] tracking-[-0.7px] md:text-[36px]`} style={{ color: NAVY }}>Eén vraag, volledig beantwoord</h2>
+          </div>
+          <p className="m-0 text-[16px] leading-[1.7] lg:col-span-4 lg:col-start-9" style={{ color: BODY }}>De onderwerpen waar werkgevers het vaakst naar zoeken, met stappen, termijnen en antwoorden op de vragen die erbij horen.</p>
+        </div>
+        <GidsenRij lijst={GIDSEN} label="Gidsen" />
       </section>
       {rest.length > 0 && (
         <section aria-label="Artikelen" className={`${BREED} flex flex-col gap-8 border-t pb-14 pt-10 md:pb-24`} style={{ borderColor: LINE }}>

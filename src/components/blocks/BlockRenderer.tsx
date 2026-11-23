@@ -24,6 +24,9 @@ import { SitemapOverzicht } from "./Werkgebied";
 import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen, DgSituaties } from "./Doelgroep";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
+import { GidsKop, GidsTekst, GidsTijdlijn, GidsTabel, GidsVragen, GidsHelpt, GidsenKaarten, type GidsCtx } from "./Gids";
+import { gidsAnker, gidsWoorden } from "@/lib/gidsen";
+import { organisatieRef, WEBSITE_ID } from "@/lib/organisatie";
 import { PtKop, PtRekenhulp, PtQuotes, PtAanmelden } from "./Partners";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
 import {
@@ -70,6 +73,10 @@ export type BlockCtx = {
    * (lib/keurmerken.ts). Ontbreekt in de blokeditor: dan tonen die alle bekende.
    */
   certificaten?: Certificate[];
+  /** Het pad van de pagina (/re-integratie), voor structured data die een adres nodig heeft (de gidsen). */
+  pad?: string;
+  /** De inhoudsopgave en leestijd van een gids; BlockRenderer rekent ze uit, de kop toont ze. */
+  gids?: GidsCtx;
 };
 
 type BlockProps = {
@@ -1160,6 +1167,13 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   inloggen: Inloggen,
   juridischeDocumenten: JuridischeDocumenten,
   kennismaken: Kennismaken,
+  gidsKop: GidsKop,
+  gidsTekst: GidsTekst,
+  gidsTijdlijn: GidsTijdlijn,
+  gidsTabel: GidsTabel,
+  gidsVragen: GidsVragen,
+  gidsHelpt: GidsHelpt,
+  gidsenKaarten: GidsenKaarten,
   ptKop: PtKop,
   ptRekenhulp: PtRekenhulp,
   ptQuotes: PtQuotes,
@@ -1205,7 +1219,7 @@ const HEADING_BLOCKS = new Set([
   "hero", "intro", "imageText", "ctaBanner", "subSections",
   "twoColumnLists", "contactFaq", "faqAccordion", "richText", "contactDetails",
   "heroStatement", "audienceChoice", "steps", "pillars", "method", "values", "valueCards", "tarieven",
-  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen", "ptKop",
+  "homeSplit", "wgSplit", "wnSplit", "contactSimpel", "dienstLabel", "overReact2u", "kennismaken", "wnKop", "inloggen", "juridischeDocumenten", "sitemapOverzicht", "dgKop", "dgTarieven", "dgCertificeringen", "ptKop", "gidsKop",
 ]);
 
 // `latestPosts` staat er bewust niet in: dat blok verdwijnt zonder artikelen,
@@ -1225,7 +1239,7 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
   const out: { question: string; answer: string }[] = [];
   for (const b of blocks) {
     const d = b.data as { items?: unknown; faq?: unknown };
-    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" || b.type === "wnVragenLijst" || b.type === "dgVragen" ? d.items : b.type === "contactFaq" ? d.faq : null;
+    const raw = b.type === "faqAccordion" || b.type === "wgVragen" || b.type === "wnVragen" || b.type === "wnVragenLijst" || b.type === "dgVragen" || b.type === "gidsVragen" ? d.items : b.type === "contactFaq" ? d.faq : null;
     if (!Array.isArray(raw)) continue;
     for (const item of raw) {
       const q = String((item as { question?: string })?.question ?? "").trim();
@@ -1240,6 +1254,57 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
     }
   }
   return out;
+}
+
+/* ---------- Gidsen (components/blocks/Gids.tsx) ---------- */
+
+const GIDS_HOOFDSTUKKEN = new Set(["gidsTekst", "gidsTijdlijn", "gidsTabel", "gidsVragen", "gidsHelpt"]);
+
+/**
+ * De inhoudsopgave ("In deze gids") en de leestijd van een gids: de koppen
+ * van de hoofdstukken na de kop, met hetzelfde anker als de kop zelf krijgt.
+ * Alleen voor een pagina met een gidsKop; anders undefined.
+ */
+function gidsCtx(blocks: Block[]): GidsCtx | undefined {
+  if (!blocks.some((b) => b.type === "gidsKop")) return undefined;
+  const inhoud = blocks
+    .filter((b) => GIDS_HOOFDSTUKKEN.has(b.type))
+    .map((b) => String((b.data as { heading?: string })?.heading ?? "").trim())
+    .filter(Boolean)
+    .map((label) => ({ label, id: gidsAnker(label) }));
+  return { inhoud, leestijd: Math.max(1, Math.round(gidsWoorden(blocks) / 200)) };
+}
+
+/**
+ * De gids als `Article` met de auteur als `Person` (naam en functie) en
+ * React2u als uitgever, met hetzelfde @id als op de homepage. Google en de
+ * AI-zoekmachines zien dan wie het schreef en wanneer het is bijgewerkt
+ * (HALO-herstelplan, punt 4). Null zonder gidsKop of zonder pad.
+ */
+export function gidsLd(blocks: Pick<Block, "type" | "data">[], pad: string | undefined) {
+  const kop = blocks.find((b) => b.type === "gidsKop")?.data as
+    | { heading?: string; antwoord?: string; auteur?: { naam?: string; functie?: string }; gepubliceerd?: string; bijgewerkt?: string }
+    | undefined;
+  if (!kop || !pad) return null;
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
+  const url = `${site}${pad}`;
+  const auteur = kop.auteur?.naam
+    ? { "@type": "Person", name: kop.auteur.naam, ...(kop.auteur.functie ? { jobTitle: kop.auteur.functie } : {}), worksFor: organisatieRef() }
+    : organisatieRef();
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}#article`,
+    headline: kop.heading,
+    ...(kop.antwoord ? { description: kop.antwoord } : {}),
+    inLanguage: "nl",
+    ...(kop.gepubliceerd ? { datePublished: kop.gepubliceerd } : {}),
+    ...(kop.bijgewerkt ? { dateModified: kop.bijgewerkt } : {}),
+    author: auteur,
+    publisher: organisatieRef(),
+    isPartOf: { "@id": WEBSITE_ID },
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+  };
 }
 
 /** Of een pagina met deze blokken de nieuwste artikelen nodig heeft. */
@@ -1263,13 +1328,17 @@ export default function BlockRenderer({ blocks, ctx = {} }: { blocks: Block[]; c
   // een pagina zonder hero stilletjes verdwijnen.
   const h1Index = blocks.findIndex(rendersPageHeading);
   const faq = collectFaq(blocks);
+  const gids = gidsCtx(blocks);
+  const gidsArtikel = gids ? gidsLd(blocks, ctx.pad) : null;
+  const ctxMetGids = gids ? { ...ctx, gids } : ctx;
   return (
     <>
       {blocks.map((b, i) => {
         const Cmp = REGISTRY[b.type];
         if (!Cmp) return null;
-        return <Cmp key={b.id} d={b.data} asH1={i === h1Index} first={i === 0} ctx={ctx} />;
+        return <Cmp key={b.id} d={b.data} asH1={i === h1Index} first={i === 0} ctx={ctxMetGids} />;
       })}
+      {gidsArtikel && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(gidsArtikel) }} />}
       {faq.length > 0 && (
         <script
           type="application/ld+json"

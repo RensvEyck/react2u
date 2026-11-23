@@ -1,0 +1,235 @@
+{
+  "_uitleg": "Gids over de preventiemedewerker (HALO-herstelplan, punt 4; zoekwoord preventiemedewerker, 1.600 per maand). Blokken: zie components/blocks/Gids.tsx; wat de site over de gids weet: lib/gidsen.ts.",
+  "slug": "preventiemedewerker",
+  "title": "Preventiemedewerker",
+  "seo_title": "Preventiemedewerker: taken, plicht en aanstelling • React2u",
+  "seo_description": "Elke werkgever moet een preventiemedewerker hebben, zegt de Arbowet. De drie wettelijke taken, wie het mag zijn, de rol van de OR en hoe je het regelt.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Gids · Preventiemedewerker",
+        "kruimel": "Preventiemedewerker",
+        "heading": "Wat is een preventiemedewerker en is die verplicht?",
+        "antwoord": "Een preventiemedewerker is een eigen medewerker die binnen je organisatie helpt om gezond en veilig werken te regelen: meewerken aan de risico-inventarisatie en -evaluatie (RI&E), adviseren aan de ondernemingsraad en de bedrijfsarts, en arbomaatregelen uitvoeren. Ja, de Arbowet verplicht elke werkgever om er minstens één aan te wijzen; heb je 25 werknemers of minder, dan mag je die taak zelf vervullen.",
+        "text": "Deze gids legt uit wat de wet precies vraagt, wat de drie taken inhouden, wie de preventiemedewerker mag zijn, hoe je het aanstellen regelt en hoe de preventiemedewerker samenwerkt met de bedrijfsarts en de arbodienst.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-23",
+        "bijgewerkt": "2026-11-23"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat de wet vraagt",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "heading": "Wat de Arbowet van je vraagt",
+        "tekst": "Artikel 13 van de Arbowet zegt dat elke werkgever zich laat bijstaan door een of meer deskundige werknemers: de preventiemedewerker. De gedachte is eenvoudig. De bedrijfsarts en de arbodienst komen van buiten en zien je organisatie af en toe; de preventiemedewerker is er elke dag, kent de werkvloer en ziet wat er misgaat voordat iemand uitvalt.\n\nDe wet stelt drie eisen:\n\n- **Je wijst minstens één preventiemedewerker aan**, uit je eigen personeel. Alleen als dat echt niet kan, mag je de taak uitbesteden.\n- **De preventiemedewerker is deskundig genoeg** voor de risico’s in jouw organisatie. Wat ‘genoeg’ is, volgt uit de RI&E: een kantoor vraagt andere kennis dan een productiebedrijf of een zorginstelling.\n- **De preventiemedewerker krijgt tijd en middelen** om het werk te doen, en mag er niet op worden afgerekend.\n\nHeb je **25 werknemers of minder**, dan mag je als werkgever of directeur zelf de preventiemedewerker zijn. Heb je er meer, dan wijs je een medewerker aan. Sinds de wetswijziging van 2017 heeft de ondernemingsraad of personeelsvertegenwoordiging **instemmingsrecht** over wie het wordt en wat de positie in de organisatie is.\n\nGeen preventiemedewerker, of een preventiemedewerker zonder tijd of kennis, is een overtreding van de Arbowet. De Nederlandse Arbeidsinspectie controleert daarop, meestal samen met de RI&E, en kan een boete opleggen. Belangrijker: zonder preventiemedewerker mist je organisatie de persoon die uitval ziet aankomen.",
+        "kader": {
+          "eyebrow": "Goed om te weten",
+          "titel": "Geen diploma vereist",
+          "tekst": "De wet schrijft geen opleiding voor. Wel moet de kennis passen bij de risico’s uit je RI&E. Een training van een of twee dagen is voor de meeste organisaties voldoende; bij grote risico’s kiest een organisatie vaak voor een gecertificeerde veiligheidskundige of arbeidshygiënist erbij."
+        }
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "De drie taken",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "heading": "De drie wettelijke taken",
+        "tekst": "### 1. Meewerken aan de RI&E\n\nDe risico-inventarisatie en -evaluatie is de basis van al je arbobeleid: welke risico’s zijn er, hoe groot zijn ze en wat doe je eraan. De preventiemedewerker helpt de RI&E op te stellen, houdt het plan van aanpak bij en zorgt dat de maatregelen daadwerkelijk worden uitgevoerd. Verandert er iets in de organisatie, een verbouwing, nieuwe machines, thuiswerken, dan signaleert de preventiemedewerker dat de RI&E moet worden bijgewerkt.\n\n### 2. Adviseren aan en samenwerken met de OR en de bedrijfsarts\n\nDe preventiemedewerker is het vaste aanspreekpunt voor de ondernemingsraad of personeelsvertegenwoordiging over arbeidsomstandigheden, en overlegt met de bedrijfsarts en de arbodienst. Dat overleg is sinds 2017 verplicht onderdeel van het basiscontract: de bedrijfsarts moet met de preventiemedewerker kunnen afstemmen over wat er op de werkvloer speelt. Zo komen signalen uit het open spreekuur en uit de verzuimbegeleiding terug in de preventie, zonder dat er medische informatie wordt gedeeld.\n\n### 3. Arbomaatregelen uitvoeren of eraan meewerken\n\nVan een werkplekinstructie tot een voorlichting over tillen, van het regelen van een ergonomische stoel tot het organiseren van een preventief medisch onderzoek. De preventiemedewerker voert maatregelen zelf uit of zorgt dat ze gebeuren, en houdt bij wat is gedaan.\n\nIn de praktijk komt daar een vierde taak bij die niet in de wet staat maar wel het verschil maakt: **signaleren**. De preventiemedewerker hoort het eerst dat de werkdruk op een afdeling oploopt, dat een team vastloopt of dat een machine onveilig is. Een korte lijn naar de bedrijfsarts en de casemanager maakt dat signaal bruikbaar vóórdat het verzuim wordt."
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Stappenplan",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Stappenplan",
+        "heading": "Zo stel je een preventiemedewerker aan",
+        "text": "In zeven stappen van niets naar een preventiemedewerker die werkt. Voor een kleine organisatie is dit een dag werk, verspreid over een paar weken.",
+        "items": [
+          {
+            "wanneer": "Stap 1",
+            "titel": "Kijk naar de RI&E",
+            "wie": "Werkgever",
+            "tekst": "Welke risico’s staan erin, en welke kennis vraagt dat? Is er nog geen RI&E, dan begin je daar: de preventiemedewerker is er juist om die te maken en bij te houden."
+          },
+          {
+            "wanneer": "Stap 2",
+            "titel": "Kies de persoon",
+            "wie": "Werkgever",
+            "tekst": "Iemand die de werkvloer kent, aanspreekbaar is en het leuk vindt. Tot 25 werknemers mag je het zelf zijn; daarboven wijs je een medewerker aan. Bij meerdere vestigingen of ploegen vaak meer dan één."
+          },
+          {
+            "wanneer": "Stap 3",
+            "titel": "Vraag instemming van de OR of PVT",
+            "wie": "Werkgever en OR",
+            "tekst": "De ondernemingsraad of personeelsvertegenwoordiging stemt in met de keuze van de persoon en met de positie in de organisatie. Zonder OR of PVT bespreek je het met het personeel, bijvoorbeeld in een werkoverleg."
+          },
+          {
+            "wanneer": "Stap 4",
+            "titel": "Leg taken, tijd en bevoegdheden vast",
+            "wie": "Werkgever",
+            "tekst": "Hoeveel uur per week, welke taken, aan wie rapporteert de preventiemedewerker en wat mag hij of zij zelf beslissen? Zet het in een korte taakomschrijving en in het plan van aanpak van de RI&E."
+          },
+          {
+            "wanneer": "Stap 5",
+            "titel": "Zorg voor kennis",
+            "wie": "Preventiemedewerker",
+            "tekst": "Een basistraining preventiemedewerker, aangevuld met wat jouw risico’s vragen: bijvoorbeeld fysieke belasting, werkdruk of gevaarlijke stoffen. Herhaal of verdiep als de RI&E verandert."
+          },
+          {
+            "wanneer": "Stap 6",
+            "titel": "Koppel aan de bedrijfsarts en de arbodienst",
+            "wie": "Preventiemedewerker en bedrijfsarts",
+            "tekst": "Maak kennis, spreek af hoe vaak jullie overleggen en wat jullie delen: signalen over werkdruk, uitkomsten van het open spreekuur in algemene zin, aandachtspunten uit de RI&E. Nooit medische informatie over personen."
+          },
+          {
+            "wanneer": "Stap 7",
+            "titel": "Evalueer elk jaar",
+            "wie": "Werkgever en preventiemedewerker",
+            "tekst": "Is het plan van aanpak uitgevoerd? Klopt de tijd nog? Zijn er nieuwe risico’s? Een jaarlijks gesprek, met de OR erbij, houdt de rol levend."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Verplichtingen",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Op een rij",
+        "heading": "De preventieverplichtingen uit de Arbowet",
+        "text": "De preventiemedewerker is er één van. Dit zijn de verplichtingen die elke werkgever met personeel heeft, met de wettelijke basis en wie je erbij helpt.",
+        "kolommen": ["Verplichting", "Wat het is", "Wettelijke basis", "Wie helpt"],
+        "rijen": [
+          ["Preventiemedewerker", "Minstens één deskundige eigen medewerker; tot 25 werknemers mag de werkgever het zelf zijn", "Arbowet, artikel 13", "Training en begeleiding via React2u Resist"],
+          ["RI&E met plan van aanpak", "Alle risico’s in kaart, met maatregelen en termijnen; getoetst door een gecertificeerde deskundige, behalve bij 25 werknemers of minder met een erkend branche-instrument", "Arbowet, artikel 5", "Arbeids- en organisatiedeskundige of veiligheidskundige"],
+          ["Basiscontract arbodienst", "Toegang tot een bedrijfsarts, open spreekuur, second opinion, klachtenprocedure, overleg met de preventiemedewerker", "Arbowet, artikel 14 en 14a", "Arbodienst"],
+          ["Preventief medisch onderzoek (PMO)", "Periodiek onderzoek aanbieden naar gezondheidsrisico’s van het werk; deelname is vrijwillig", "Arbowet, artikel 18", "Bedrijfsarts"],
+          ["Bedrijfshulpverlening (BHV)", "Genoeg opgeleide bedrijfshulpverleners voor eerste hulp, brand en ontruiming", "Arbowet, artikel 15", "BHV-opleider"],
+          ["Voorlichting en instructie", "Werknemers weten welke risico’s er zijn en hoe ze veilig werken", "Arbowet, artikel 8", "Preventiemedewerker"],
+          ["Beleid tegen psychosociale arbeidsbelasting", "Maatregelen tegen werkdruk, agressie, pesten en ongewenst gedrag; vaak met een vertrouwenspersoon", "Arbowet, artikel 3 en Arbobesluit 2.15", "Externe vertrouwenspersoon via React2u Resist"]
+        ],
+        "noot": "De Nederlandse Arbeidsinspectie controleert deze punten samen. Een ontbrekende RI&E en een ontbrekende preventiemedewerker worden vaak in één bezoek vastgesteld."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wie doet wat",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "heading": "Preventiemedewerker, bedrijfsarts en arbodienst: wie doet wat",
+        "tekst": "De drie rollen vullen elkaar aan en vervangen elkaar niet.\n\n- **De preventiemedewerker** zit binnen. Kent de werkvloer, houdt de RI&E bij, voert maatregelen uit en signaleert vroeg. Heeft geen medische rol en krijgt geen medische informatie.\n- **De bedrijfsarts** komt van buiten. Beoordeelt de belastbaarheid van zieke medewerkers, houdt het open spreekuur, adviseert bij de RI&E en het PMO, en bezoekt werkplekken. Heeft een beroepsgeheim.\n- **De arbodienst** organiseert het geheel: casemanagement bij verzuim, de bedrijfsarts, specialisten voor de RI&E, het PMO, werkplekonderzoek en trainingen. Werkt samen met de preventiemedewerker, maar neemt diens wettelijke rol niet over.\n\nHet overleg tussen preventiemedewerker en bedrijfsarts is de plek waar preventie en verzuim bij elkaar komen. Een bedrijfsarts die ziet dat drie mensen van dezelfde afdeling met klachten op het spreekuur komen, mag dat in algemene zin doorgeven. De preventiemedewerker kan dan kijken wat er op die afdeling speelt. Zo wordt verzuim een signaal voor preventie, zonder dat er iets over een persoon wordt gedeeld.\n\n### Hoeveel tijd kost het?\n\nDe wet noemt geen aantal uren; het moet ‘voldoende’ zijn voor de taken uit de RI&E. Als richting: in een kantoororganisatie met twintig mensen is een paar uur per maand vaak genoeg, in een productiebedrijf met honderd mensen eerder een dag per week. Leg het vast en evalueer het jaarlijks: een preventiemedewerker die geen tijd krijgt, bestaat voor de Arbeidsinspectie niet.",
+        "kader": {
+          "eyebrow": "React2u Resist",
+          "titel": "Training preventiemedewerker",
+          "tekst": "Een praktische training van één dag over de drie taken, de RI&E en het overleg met de bedrijfsarts, toegespitst op de risico’s in jouw organisatie. Daarna blijft je preventiemedewerker een vast aanspreekpunt voor je casemanager.",
+          "href": "/resist",
+          "label": "Meer over React2u Resist"
+        }
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over de preventiemedewerker",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Is een preventiemedewerker verplicht voor een klein bedrijf?",
+            "answer": "Ja, voor elke werkgever met personeel. Heb je 25 werknemers of minder, dan mag je als werkgever of directeur de rol zelf vervullen; je hoeft dus niemand extra aan te wijzen, maar de taken moeten wel worden gedaan en vastgelegd."
+          },
+          {
+            "question": "Mag ik de preventiemedewerker uitbesteden aan de arbodienst?",
+            "answer": "Alleen als er binnen je organisatie echt niemand geschikt is, en dat is zelden het geval. De wet wil juist iemand van binnen. Wat wel kan: de arbodienst ondersteunt je preventiemedewerker met training, de RI&E en de specialisten die je zelf niet in huis hebt."
+          },
+          {
+            "question": "Welke opleiding heeft een preventiemedewerker nodig?",
+            "answer": "Geen wettelijk voorgeschreven diploma. De kennis moet passen bij de risico’s uit je RI&E. Een basistraining van een of twee dagen is meestal voldoende; organisaties met grote risico’s kiezen daarnaast voor een gecertificeerde deskundige, zoals een veiligheidskundige."
+          },
+          {
+            "question": "Wat is het verschil met een bedrijfshulpverlener (BHV)?",
+            "answer": "De bedrijfshulpverlener treedt op bij een incident: eerste hulp, brand, ontruiming. De preventiemedewerker werkt aan het voorkomen van incidenten en gezondheidsklachten. Het mag dezelfde persoon zijn, maar het zijn twee aparte verplichtingen met elk hun eigen kennis."
+          },
+          {
+            "question": "Moet de ondernemingsraad instemmen?",
+            "answer": "Ja. Sinds 2017 heeft de OR of personeelsvertegenwoordiging instemmingsrecht over de keuze van de preventiemedewerker en over de positie in de organisatie. Zonder OR of PVT bespreek je het met het personeel."
+          },
+          {
+            "question": "Mag de preventiemedewerker ontslagen worden vanwege zijn of haar adviezen?",
+            "answer": "Nee. De preventiemedewerker heeft dezelfde ontslagbescherming als een OR-lid en mag niet worden benadeeld vanwege het werk als preventiemedewerker. Dat beschermt de onafhankelijkheid van de rol."
+          },
+          {
+            "question": "Krijgt de preventiemedewerker medische informatie van de bedrijfsarts?",
+            "answer": "Nee. De bedrijfsarts deelt alleen signalen in algemene zin, bijvoorbeeld dat er op een afdeling vaker klachten over werkdruk zijn. Niets over individuele medewerkers; daarvoor geldt het beroepsgeheim."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Een preventiemedewerker die weet wat te doen, en een arbodienst die meedenkt",
+        "tekst": "Met React2u Resist regel je preventie in één keer goed. We trainen je preventiemedewerker, maken of toetsen de RI&E, zetten het PMO en werkplekonderzoek op en zorgen dat de bedrijfsarts en je casemanager korte lijnen hebben met de werkvloer. Zo wordt een wettelijke verplichting een manier om uitval te voorkomen.",
+        "punten": [
+          "Training preventiemedewerker, toegespitst op jouw risico’s",
+          "RI&E opstellen of toetsen, met een plan van aanpak dat je kunt uitvoeren",
+          "Vast overleg tussen preventiemedewerker, bedrijfsarts en casemanager",
+          "PMO, werkplekonderzoek en externe vertrouwenspersoon onder hetzelfde label"
+        ],
+        "dienst": {
+          "naam": "Resist",
+          "wat": "Preventie en preventiemedewerker",
+          "tekst": "RI&E, PMO, training voor leidinggevenden, vertrouwenspersoon en vitaliteit.",
+          "href": "/resist",
+          "label": "Meer over React2u Resist"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: de bedrijfsarts", "href": "/bedrijfsarts" },
+          { "label": "Gids: Wet verbetering poortwachter", "href": "/wet-verbetering-poortwachter" },
+          { "label": "Verzuimkosten verlagen: 6 knoppen", "href": "/blog/verzuimkosten-verlagen" },
+          { "label": "Certificeringen van React2u", "href": "/certificeringen" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

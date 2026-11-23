@@ -1,4 +1,5 @@
 import { supabasePublic } from "./supabase/public";
+import { coveredByWordpress } from "./redirects";
 import type { Block, Page, Post, Vacancy } from "./types";
 
 /**
@@ -88,7 +89,10 @@ export async function getPublishedPosts(): Promise<Post[]> {
     await sb.from("posts").select("*").eq("status", "published").order("published_at", { ascending: false }),
     "gepubliceerde artikelen",
   );
-  return (data as Post[]) || [];
+  // Een artikel met een vaste doorverwijzing (uitgewerkt tot een gids,
+  // GIDS_REDIRECTS in lib/redirects.ts) is onbereikbaar en hoort in geen
+  // lijst, sitemap of llms.txt, ook niet zolang de rij nog gepubliceerd staat.
+  return ((data as Post[]) || []).filter((p) => !coveredByWordpress(`/blog/${p.slug}`));
 }
 
 export async function getPost(slug: string): Promise<Post | null> {

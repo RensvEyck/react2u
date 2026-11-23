@@ -87,6 +87,31 @@
             ]
           },
           {
+            "title": "Gidsen",
+            "links": [
+              {
+                "label": "Re-integratie",
+                "href": "/re-integratie"
+              },
+              {
+                "label": "Wet verbetering poortwachter",
+                "href": "/wet-verbetering-poortwachter"
+              },
+              {
+                "label": "Bedrijfsarts",
+                "href": "/bedrijfsarts"
+              },
+              {
+                "label": "Arbeidsdeskundig onderzoek",
+                "href": "/arbeidsdeskundig-onderzoek"
+              },
+              {
+                "label": "Preventiemedewerker",
+                "href": "/preventiemedewerker"
+              }
+            ]
+          },
+          {
             "title": "Voor werknemers",
             "links": [
               {

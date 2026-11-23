@@ -1,0 +1,236 @@
+{
+  "_uitleg": "Gids over het arbeidsdeskundig onderzoek (HALO-herstelplan, punt 4; zoekwoord arbeidsdeskundig onderzoek, 2.400 per maand). Blokken: zie components/blocks/Gids.tsx; wat de site over de gids weet: lib/gidsen.ts. De prijs komt uit de prijslijst (src/content/tarieven.json): een vast bedrag, niet afleiden.",
+  "slug": "arbeidsdeskundig-onderzoek",
+  "title": "Arbeidsdeskundig onderzoek",
+  "seo_title": "Arbeidsdeskundig onderzoek: wat, wanneer en kosten • React2u",
+  "seo_description": "Arbeidsdeskundig onderzoek: vier vragen over eigen werk, aangepast werk, ander werk bij jou of werk elders. Wanneer je het laat doen en wat het kost.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Gids · Arbeidsdeskundig onderzoek",
+        "kruimel": "Arbeidsdeskundig onderzoek",
+        "heading": "Wat is een arbeidsdeskundig onderzoek en wanneer laat je het doen?",
+        "antwoord": "Een arbeidsdeskundig onderzoek is een onderzoek door een geregistreerde arbeidsdeskundige naar wat een zieke werknemer nog kan en welk werk daarbij past: het eigen werk, het eigen werk met aanpassingen, ander werk bij jou of werk bij een andere werkgever. Je laat het doen zodra de bedrijfsarts aangeeft dat terugkeer in het eigen werk onzeker is, meestal rond week 42 en uiterlijk vóór de eerstejaarsevaluatie in week 52.",
+        "text": "Deze gids legt uit wat de arbeidsdeskundige precies onderzoekt, hoe het onderzoek verloopt, wanneer het beste moment is, wat het kost en wat je met het rapport doet.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-23",
+        "bijgewerkt": "2026-11-23"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat wordt onderzocht",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "heading": "Wat de arbeidsdeskundige onderzoekt",
+        "tekst": "De bedrijfsarts zegt wat je medewerker medisch gezien kan: zitten, staan, tillen, concentreren, omgaan met werkdruk. De arbeidsdeskundige vertaalt dat naar werk. Een arbeidsdeskundige is geen arts, maar een specialist in de combinatie van mens, werk en inkomen, geregistreerd bij de Stichting Register Arbeidsdeskundigen (SRA) en gebonden aan een gedragscode.\n\nHet onderzoek beantwoordt altijd dezelfde vier vragen, in deze volgorde:\n\n1. **Kan je medewerker het eigen werk nog doen?** De arbeidsdeskundige vergelijkt de belasting van de functie met de belastbaarheid van je medewerker.\n2. **Zo niet: is het eigen werk passend te maken?** Met aanpassingen in taken, werktijden, werkplek of hulpmiddelen.\n3. **Zo niet: is er ander passend werk bij jou?** In een andere functie, op een andere afdeling of door taken te herschikken.\n4. **Zo niet: welk werk past bij een andere werkgever?** Een zoekprofiel voor het tweede spoor, met functies, opleidingsniveau en zoekgebied.\n\nHet antwoord op die vragen bepaalt het spoor van de re-integratie. Is het antwoord op vraag 1, 2 of 3 ja, dan blijft het eerste spoor het doel. Is het antwoord drie keer nee, dan start je het tweede spoor, en heb je het rapport als onderbouwing voor UWV.\n\nDe arbeidsdeskundige kijkt ook naar de voorzieningen die een terugkeer mogelijk maken: een aangepaste werkplek, een hulpmiddel, een jobcoach, scholing. Daarvoor bestaan subsidies en vergoedingen van UWV; het rapport noemt ze als ze van toepassing zijn.",
+        "kader": {
+          "eyebrow": "Begrip",
+          "titel": "Belastbaarheidsprofiel",
+          "tekst": "De bedrijfsarts beschrijft de belastbaarheid in een vast formulier, de functionele mogelijkhedenlijst (FML) of het inzetbaarheidsprofiel (IZP). Zonder dat profiel kan een arbeidsdeskundige niet werken: het onderzoek begint dus altijd bij de bedrijfsarts.",
+          "href": "/bedrijfsarts",
+          "label": "Lees de gids over de bedrijfsarts"
+        }
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Stappenplan",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Stappenplan",
+        "heading": "Zo verloopt een arbeidsdeskundig onderzoek",
+        "text": "Van aanvraag tot rapport duurt een onderzoek meestal twee tot drie weken. Zo ziet dat eruit.",
+        "items": [
+          {
+            "wanneer": "Dag 1",
+            "titel": "Aanvraag",
+            "wie": "Werkgever",
+            "tekst": "Je vraagt het onderzoek aan via je casemanager, met de vraag die je beantwoord wilt hebben: terugkeer in het eigen werk, ander werk bij jou, of het tweede spoor. Je medewerker weet dat het onderzoek komt en waarom."
+          },
+          {
+            "wanneer": "Week 1",
+            "titel": "Belastbaarheidsprofiel van de bedrijfsarts",
+            "wie": "Bedrijfsarts",
+            "tekst": "De bedrijfsarts stelt het belastbaarheidsprofiel op, of werkt het bij als het er al ligt. De arbeidsdeskundige krijgt het profiel en de relevante stukken uit het dossier."
+          },
+          {
+            "wanneer": "Week 1 tot 2",
+            "titel": "Gesprek met je medewerker",
+            "wie": "Arbeidsdeskundige",
+            "tekst": "Een gesprek over opleiding, werkervaring, de huidige functie, wat je medewerker zelf ziet als mogelijkheden en wat hij of zij wil. Het gesprek is geen keuring; het gaat over werk, niet over de ziekte."
+          },
+          {
+            "wanneer": "Week 1 tot 2",
+            "titel": "Gesprek met jou en werkplekbezoek",
+            "wie": "Arbeidsdeskundige",
+            "tekst": "De arbeidsdeskundige bespreekt met jou de functie, de organisatie en de mogelijkheden voor ander werk, en bekijkt de werkplek. Zo wordt de belasting van het werk concreet: hoeveel tillen, hoeveel schermwerk, hoeveel klantcontact."
+          },
+          {
+            "wanneer": "Week 2",
+            "titel": "Analyse",
+            "wie": "Arbeidsdeskundige",
+            "tekst": "Belasting en belastbaarheid worden naast elkaar gelegd, per functie die in beeld is. Waar het niet past, onderzoekt de arbeidsdeskundige of een aanpassing of voorziening het verschil maakt."
+          },
+          {
+            "wanneer": "Week 2 tot 3",
+            "titel": "Rapport",
+            "wie": "Arbeidsdeskundige",
+            "tekst": "Het rapport beantwoordt de vier vragen met een onderbouwing en een advies: welk spoor, welke stappen, welke voorzieningen. Jij en je medewerker krijgen allebei het rapport; je medewerker mag er een reactie aan toevoegen."
+          },
+          {
+            "wanneer": "Daarna",
+            "titel": "Advies in het plan van aanpak",
+            "wie": "Werkgever en werknemer",
+            "tekst": "Jullie verwerken het advies in het plan van aanpak: een opbouwschema, een aanpassing, een andere functie of de start van het tweede spoor. Je casemanager bewaakt dat het gebeurt en dat het rapport in het poortwachterdossier komt."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wanneer",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "heading": "Wanneer laat je een arbeidsdeskundig onderzoek doen?",
+        "tekst": "De wet noemt geen vaste week, maar UWV verwacht wel dat je het onderzoek laat doen zodra er reden voor is. In de praktijk zijn er drie momenten:\n\n- **Zodra de bedrijfsarts aangeeft dat het eigen werk onzeker is.** Dat kan al in week 10 zijn bij een ernstige aandoening, of pas rond week 40 als het herstel stagneert.\n- **Rond week 42.** Veel arbodiensten adviseren het onderzoek standaard rond de 42e-weeksmelding, zodat het rapport er ligt vóór de eerstejaarsevaluatie en je op tijd kunt kiezen voor het tweede spoor.\n- **Vóór week 52.** Is het onderzoek er niet bij de eerstejaarsevaluatie, dan kun je de vraag ‘is er concreet zicht op terugkeer bij jou?’ niet onderbouwd beantwoorden. Dat is precies het moment waarop UWV later terugkijkt.\n\nTe vroeg bestaat ook: zolang de medische situatie nog sterk verandert, is een belastbaarheidsprofiel niet stabiel en verliest het rapport zijn waarde. Je bedrijfsarts en casemanager zien dat aankomen en adviseren het moment.\n\nEen arbeidsdeskundig onderzoek is ook nuttig buiten de poortwachtertermijnen: bij frequent kort verzuim met een patroon, bij een medewerker die structureel vastloopt in de functie, of als je wilt weten welke aanpassingen een werkplek weer passend maken. En na een onderzoek kan een **aanvullend onderzoek** volgen, bijvoorbeeld als de belastbaarheid verandert of als het tweede spoor een nieuw zoekprofiel vraagt.",
+        "kader": {
+          "eyebrow": "Vuistregel",
+          "titel": "Twijfel je? Dan is het tijd.",
+          "tekst": "Elke keer dat je je afvraagt of het eigen werk nog wel gaat lukken, is een signaal. Een onderzoek dat te vroeg blijkt, kost een rapport. Een onderzoek dat te laat komt, kost een loonsanctie.",
+          "href": "/re-integratie",
+          "label": "Lees de gids over re-integratie"
+        }
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Kosten en doorlooptijd",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Kosten en termijnen",
+        "heading": "Wat het kost en hoe lang het duurt",
+        "text": "De tarieven van React2u staan op de prijslijst en gelden voor het hele jaar. De kosten van UWV zijn de vaste bedragen van UWV zelf.",
+        "kolommen": ["Onderdeel", "Doorlooptijd", "Kosten", "Wie betaalt"],
+        "rijen": [
+          ["Arbeidsdeskundig onderzoek", "2 tot 3 weken", "1.450 euro, vaste prijs", "Werkgever"],
+          ["Aanvullend arbeidsdeskundig onderzoek", "1 tot 2 weken", "Op aanvraag", "Werkgever"],
+          ["Belastbaarheidsprofiel bedrijfsarts", "Binnen het lopende spreekuur", "Uurtarief bedrijfsarts, 240 euro per uur", "Werkgever"],
+          ["Deskundigenoordeel UWV", "Enkele weken", "400 euro voor een werkgever, 100 euro voor een werknemer", "De aanvrager"],
+          ["Tweedespoortraject", "6 tot 12 maanden", "Op offerte, afhankelijk van de inhoud", "Werkgever"],
+          ["Werkplekaanpassing of hulpmiddel", "Wisselend", "Vaak vergoed door UWV als voorziening", "UWV of werkgever"]
+        ],
+        "noot": "Alle bedragen exclusief btw. Een verzuimverzekering vergoedt een arbeidsdeskundig onderzoek vaak geheel of gedeeltelijk; kijk in je polis of vraag het je verzekeraar."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat je met het rapport doet",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "heading": "Wat je met het rapport doet",
+        "tekst": "Het rapport is geen eindpunt, maar de onderbouwing van de volgende stap. Drie dingen doe je er altijd mee:\n\n- **Het plan van aanpak bijstellen.** Het advies wordt een concrete afspraak: een opbouwschema in de eigen functie, een aanpassing van de werkplek, een overstap naar een andere functie of de start van het tweede spoor. Jij en je medewerker ondertekenen de bijstelling.\n- **Het rapport in het dossier zetten.** Bij de WIA-aanvraag leest UWV het rapport als bewijs dat je het eerste spoor serieus hebt onderzocht en het tweede spoor op tijd bent gestart. Zonder rapport is dat bewijs lastig te leveren.\n- **Voorzieningen aanvragen.** Adviseert de arbeidsdeskundige een aangepaste werkplek, een hulpmiddel of een jobcoach, dan kun je daarvoor een voorziening aanvragen bij UWV. Het rapport is de onderbouwing van die aanvraag.\n\nIs je medewerker het niet eens met de conclusie? Dan kan hij of zij een reactie aan het rapport toevoegen en, als jullie er samen niet uitkomen, een deskundigenoordeel aanvragen bij UWV over de vraag of het aangeboden werk passend is. Ook jij kunt dat oordeel aanvragen. Een helder rapport voorkomt meestal die discussie: het laat zien waarom een functie wel of niet past, in termen die voor iedereen te volgen zijn.\n\nLees ook de [gids over re-integratie](/re-integratie) voor wat er na het rapport gebeurt in het eerste en het tweede spoor."
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over het arbeidsdeskundig onderzoek",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Is een arbeidsdeskundig onderzoek verplicht?",
+            "answer": "Niet letterlijk, maar UWV verwacht dat je onderbouwt waarom je medewerker wel of niet terug kan in het eigen werk en waarom je het tweede spoor start. Een arbeidsdeskundig rapport is daarvoor de gangbare onderbouwing; zonder rapport loop je bij de WIA-aanvraag een groter risico op een loonsanctie."
+          },
+          {
+            "question": "Wat is het verschil tussen de bedrijfsarts en de arbeidsdeskundige?",
+            "answer": "De bedrijfsarts is een arts en beoordeelt de belastbaarheid: wat kan je medewerker lichamelijk en mentaal aan. De arbeidsdeskundige is geen arts en vertaalt die belastbaarheid naar werk: welke functie past daarbij. Het een kan niet zonder het ander."
+          },
+          {
+            "question": "Moet mijn medewerker meewerken aan het onderzoek?",
+            "answer": "Ja. Meewerken aan de re-integratie hoort bij de verplichtingen van je medewerker, en het onderzoek is daar onderdeel van. Het is in zijn of haar eigen belang: het rapport beschermt ook de medewerker tegen werk dat niet past."
+          },
+          {
+            "question": "Krijgt mijn medewerker het rapport ook?",
+            "answer": "Ja, altijd. Je medewerker mag een eigen reactie toevoegen, en die reactie gaat mee in het dossier. Medische informatie staat niet in het rapport; de arbeidsdeskundige werkt met de belastbaarheid zoals de bedrijfsarts die heeft beschreven."
+          },
+          {
+            "question": "Wat kost een arbeidsdeskundig onderzoek bij React2u?",
+            "answer": "1.450 euro, een vaste prijs volgens de prijslijst, inclusief de gesprekken, het werkplekbezoek en het rapport. Een aanvullend onderzoek is op aanvraag."
+          },
+          {
+            "question": "Hoe lang duurt het voordat het rapport er is?",
+            "answer": "Meestal twee tot drie weken na de aanvraag, als het belastbaarheidsprofiel van de bedrijfsarts er ligt. Ontbreekt dat nog, dan komt er een spreekuur bij de bedrijfsarts bij."
+          },
+          {
+            "question": "Kan ik het onderzoek ook laten doen zonder lopend verzuim?",
+            "answer": "Ja. Bijvoorbeeld bij een medewerker die structureel vastloopt, bij een functie die te zwaar lijkt te worden of om te weten welke aanpassingen een werkplek passend maken. Preventief ingezet voorkomt het vaak dat het tot een ziekmelding komt."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Een helder rapport, en daarna een plan dat werkt",
+        "tekst": "Bij React2u Restart werken de arbeidsdeskundige, de bedrijfsarts en je casemanager vanuit hetzelfde dossier. Het onderzoek sluit aan op het belastbaarheidsprofiel, het rapport ligt binnen drie weken op tafel en het advies wordt meteen verwerkt in het plan van aanpak. Blijkt het tweede spoor nodig, dan start dat zonder wachttijd met een vaste begeleider.",
+        "punten": [
+          "Geregistreerde arbeidsdeskundige, gesprek en werkplekbezoek op locatie",
+          "Rapport binnen twee tot drie weken, vaste prijs van 1.450 euro",
+          "Advies direct verwerkt in het plan van aanpak en het poortwachterdossier",
+          "Tweede spoor, loopbaancoaching en hulp bij de WIA-aanvraag onder hetzelfde label"
+        ],
+        "dienst": {
+          "naam": "Restart",
+          "wat": "Re-integratie eerste en tweede spoor",
+          "tekst": "Arbeidsdeskundig onderzoek, tweede spoor, loopbaanbegeleiding en coaching.",
+          "href": "/restart",
+          "label": "Meer over React2u Restart"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: re-integratie", "href": "/re-integratie" },
+          { "label": "Gids: de bedrijfsarts", "href": "/bedrijfsarts" },
+          { "label": "Gids: Wet verbetering poortwachter", "href": "/wet-verbetering-poortwachter" },
+          { "label": "Prijslijst", "href": "/verzuimabonnementen" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

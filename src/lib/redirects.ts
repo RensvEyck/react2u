@@ -16,6 +16,7 @@
  */
 
 import { DOCUMENTEN } from "./documenten";
+import { GIDS_VAN_ARTIKEL } from "./gidsen";
 
 export type Redirect = {
   id: string;
@@ -362,8 +363,22 @@ export const INDEX_REDIRECTS: { source: string; destination: string }[] = [
   { source: "/en/index", destination: "/en" },
 ];
 
+/**
+ * Een blogartikel dat is uitgewerkt tot een gids (lib/gidsen.ts): het
+ * Poortwachter-artikel kreeg 1.589 vertoningen en 2 klikken op positie 32
+ * (HALO, november 2026), de gids op /wet-verbetering-poortwachter neemt het
+ * over. Een echte 301, zodat Google de positie aan de gids geeft; de
+ * artikelrij blijft in de database maar wordt niet meer gepubliceerd
+ * (migratie 0060), en lib/content.ts laat een artikel met een vaste
+ * doorverwijzing uit elke lijst.
+ */
+export const GIDS_REDIRECTS: { source: string; destination: string }[] = GIDS_VAN_ARTIKEL.map((g) => ({
+  source: `/blog/${g.artikel}`,
+  destination: `/${g.gids}`,
+}));
+
 /** Alle vaste regels uit de code, in de volgorde waarin next.config.ts ze toepast. */
-export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS, ...INDEX_REDIRECTS];
+export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS, ...INDEX_REDIRECTS, ...GIDS_REDIRECTS];
 
 /**
  * De bron zoals next.config.ts hem aan Next geeft: mét een optionele

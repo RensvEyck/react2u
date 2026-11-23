@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { DIENST_REDIRECTS, DOCUMENT_REDIRECTS, INDEX_REDIRECTS, WORDPRESS_REDIRECTS, metSlash } from "./src/lib/redirects";
+import { DIENST_REDIRECTS, DOCUMENT_REDIRECTS, GIDS_REDIRECTS, INDEX_REDIRECTS, WORDPRESS_REDIRECTS, metSlash } from "./src/lib/redirects";
 
 // Uit de omgeving, zodat een lokale stack (`supabase start`) ook door de CSP
 // komt; op Vercel is dat de vaste project-URL. Als origin geparst, zodat een
@@ -153,6 +153,8 @@ const nextConfig: NextConfig = {
       ...DIENST_REDIRECTS.map((r) => ({ ...r, source: metSlash(r.source), statusCode: 301 })),
       // /index is de homepage onder een tweede adres: een 301 naar /.
       ...INDEX_REDIRECTS.map((r) => ({ ...r, source: metSlash(r.source), statusCode: 301 })),
+      // Een blogartikel dat een gids is geworden: een 301 naar de gids.
+      ...GIDS_REDIRECTS.map((r) => ({ ...r, source: metSlash(r.source), statusCode: 301 })),
     ];
   },
   async headers() {
