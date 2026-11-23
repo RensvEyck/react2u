@@ -80,7 +80,8 @@ Daaruit volgt:
   op de homepage, `/diensten` en de blog, de strook op de dienstpagina
   (`gidsen` in de `dienstLabel`-data), het kruimelpad en `/llms.txt` volgen
   vanzelf uit `GIDSEN`.
-- De auteur per gids is een beslissing van React2u, niet van de code: de
-  concepten hebben een placeholder tot de naam en functie bekend zijn.
+- De auteur per gids is een beslissing van React2u, niet van de code. Rens van
+  Eyck (bestuurder) staat op alle vijf de gidsen (zijn keuze, 23 november 2026);
+  een andere auteur is één veld in de kop van de pagina.
 - `/admin/seo` toont een gids pas als de pagina in de database staat; de
   concepten tellen niet mee in de aandachtspunten.

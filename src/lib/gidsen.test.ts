@@ -95,9 +95,11 @@ describe("de vijf gidsen", () => {
         expect(c.seo_description.toLowerCase()).toContain(g.zoekwoord.split(" ")[0]);
       });
 
-      it("noemt geen collega bij naam in de tekst en linkt naar kennismaken en de dienst", () => {
-        const tekst = alleTekst(c.blocks.map((b) => b.data));
+      it("noemt geen collega bij naam in de lopende tekst en linkt naar kennismaken en de dienst", () => {
+        // De auteur (naam en functie) is de enige plek met een naam: Rens koos zichzelf (23 nov 2026).
+        const tekst = alleTekst(c.blocks.map((b) => (b.type === "gidsKop" ? { ...b.data, auteur: undefined } : b.data)));
         expect(tekst).not.toMatch(/\bRens\b/);
+        expect(kop.auteur).toEqual({ naam: "Rens van Eyck", functie: "Bestuurder van React2u" });
         expect(tekst).toContain("/kennismaken");
         expect(tekst).toContain(`/${g.dienst}`);
       });
