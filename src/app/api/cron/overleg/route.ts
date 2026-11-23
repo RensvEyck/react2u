@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
   const agenda = sorteerAgenda((pRes.data as Agendapunt[] | null) || []).map((p) => p.titel);
   const acties = (acRes.data as Actiepunt[] | null) || [];
   const basis = siteBasis();
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
 
   const plannen: { aan: string; onderwerp: string; acties: number }[] = [];
   let verstuurd = 0;
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
     const h = overlegHerinnering(firstName(o.email), overleg, agenda, eigen, vandaag);
     plannen.push({ aan: o.email, onderwerp: h.onderwerp, acties: eigen.length });
     if (dry) continue;
-    const res = await sendOverlegHerinnering({ to: o.email, ...h, link: `${basis}/admin/overleg`, contact });
+    const res = await sendOverlegHerinnering({ to: o.email, ...h, link: `${basis}/admin/overleg`, contact, certificaten });
     if (res.ok) verstuurd++;
     else mislukt.push(`${o.email}: ${res.reden}${res.melding ? ` (${res.melding})` : ""}`);
   }
