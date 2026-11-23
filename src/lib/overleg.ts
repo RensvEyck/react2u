@@ -10,9 +10,19 @@
  * Hier de rekenregels; de schermen staan onder /admin/overleg.
  */
 
-export type Ritme = { elke_weken: number; weekdag: number; tijd: string; locatie: string | null; vaste_punten: string[] };
-export type Overleg = { id: string; datum: string; locatie: string | null; notulen: string | null; afgerond_at: string | null; herinnerd_at: string | null; created_at: string };
-export type Agendapunt = { id: string; overleg_id: string; titel: string; toelichting: string | null; vast: boolean; door: string | null; door_email: string | null; besproken: boolean; sort: number; created_at: string };
+export type Ritme = { elke_weken: number; weekdag: number; tijd: string; locatie: string | null; vaste_punten: string[]; /** Sinds 0054; ervoor een uur. */ duur_minuten?: number };
+export type Overleg = {
+  id: string; datum: string; locatie: string | null; notulen: string | null; afgerond_at: string | null; herinnerd_at: string | null; created_at: string;
+  // Sinds 0054: eindtijd, notulist, en wanneer de notulen gemaild zijn.
+  einde?: string | null; notulist?: string | null; notulist_naam?: string | null; gemaild_at?: string | null;
+};
+export type Agendapunt = {
+  id: string; overleg_id: string; titel: string; toelichting: string | null; vast: boolean; door: string | null; door_email: string | null; besproken: boolean; sort: number; created_at: string;
+  // Sinds 0054: notulen per punt, uit het vorige overleg, of ingebracht voor het volgende.
+  notulen?: string | null; doorgeschoven?: boolean; voor_volgend?: boolean;
+};
+export type Aanwezige = { id: string; overleg_id: string; user_id: string | null; naam: string; checkin: string | null; sort: number };
+export type Collega = { user_id: string; email: string; naam: string };
 export type Actiepunt = { id: string; overleg_id: string; wat: string; wie: string | null; wie_naam: string; wanneer: string | null; gedaan_at: string | null; gedaan_door: string | null; created_at: string };
 
 export const WEEKDAGEN = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag"] as const;
@@ -138,12 +148,14 @@ export function leesActiepunt(f: FormData): { wat: string; wie: string; wanneer:
   return { wat, wie, wanneer: wanneer || null };
 }
 
-export function leesMoment(f: FormData): { datum: string; tijd: string; locatie: string | null } | { fout: string } {
+export function leesMoment(f: FormData): { datum: string; tijd: string; eind: string | null; locatie: string | null } | { fout: string } {
   const datum = tekst(f, "datum");
   const tijd = tekst(f, "tijd");
+  const eind = tekst(f, "eind");
   const locatie = tekst(f, "locatie");
   if (!DATUM.test(datum) || !TIJD.test(tijd) || locatie.length > 120) return { fout: "overleg-moment" };
-  return { datum, tijd, locatie: locatie || null };
+  if (eind && (!TIJD.test(eind) || eind <= tijd)) return { fout: "overleg-moment" };
+  return { datum, tijd, eind: eind || null, locatie: locatie || null };
 }
 
 export function leesRitme(f: FormData): Omit<Ritme, "tijd"> & { tijd: string } | { fout: string } {
@@ -153,8 +165,10 @@ export function leesRitme(f: FormData): Omit<Ritme, "tijd"> & { tijd: string } |
   const locatie = tekst(f, "locatie");
   const vaste = tekst(f, "vaste_punten").split("\n").map((r) => r.trim()).filter(Boolean);
   if (!Number.isInteger(elke) || elke < 1 || elke > 8 || !Number.isInteger(weekdag) || weekdag < 1 || weekdag > 5 || !TIJD.test(tijd)) return { fout: "overleg-ritme" };
+  const duur = Number(tekst(f, "duur_minuten") || 60);
+  if (!Number.isInteger(duur) || duur < 15 || duur > 240) return { fout: "overleg-ritme" };
   if (locatie.length > 120 || vaste.length > 12 || vaste.some((v) => v.length > 200)) return { fout: "overleg-te-lang" };
-  return { elke_weken: elke, weekdag, tijd, locatie: locatie || null, vaste_punten: vaste };
+  return { elke_weken: elke, weekdag, tijd, locatie: locatie || null, vaste_punten: vaste, duur_minuten: duur };
 }
 
 /* ---------- de herinnering (api/cron/overleg) ---------- */
@@ -174,5 +188,100 @@ export function overlegHerinnering(voornaam: string | null, overleg: Pick<Overle
     intro: `${dag.charAt(0).toUpperCase()}${dag.slice(1)} om ${tijd} is het CM-overleg${overleg.locatie ? `, ${overleg.locatie}` : ""}. Wil je nog iets bespreken? Breng het vandaag nog in.`,
     agenda: agenda.length ? agenda : ["Nog geen punten"],
     acties: acties.map((a) => (a.wanneer ? `${a.wat} (af op ${a.wanneer.split("-").reverse().join("-")})` : a.wat)),
+  };
+}
+
+/* ---------- het format van het team (0054; voorbeeld "CM overleg 18-11") ---------- */
+
+const DAG_LANG = new Intl.DateTimeFormat("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Amsterdam" });
+
+/** "Dinsdag 24 november 2026". */
+export function overlegDag(iso: string): string {
+  const s = DAG_LANG.format(new Date(iso));
+  return `${s.charAt(0).toUpperCase()}${s.slice(1)}`;
+}
+
+/** "14:15 tot 15:15", of alleen de begintijd als er geen eind is. */
+export function tijdVanTot(o: Pick<Overleg, "datum" | "einde">): string {
+  const van = nlDelen(o.datum).tijd;
+  return o.einde ? `${van} tot ${nlDelen(o.einde).tijd}` : van;
+}
+
+/** Het einde: de eindtijd uit het formulier, of de begintijd plus de duur uit het ritme. */
+export function eindeVan(datum: string, tijd: string, eind: string | null, duurMinuten = 60): string {
+  if (eind) return nlNaarIso(datum, eind);
+  return new Date(Date.parse(nlNaarIso(datum, tijd)) + duurMinuten * 60_000).toISOString();
+}
+
+export const isCheckIn = (titel: string) => /^check[\s-]?in\b/i.test(titel.trim());
+export const isDossiers = (titel: string) => /^dossiers?\b/i.test(titel.trim());
+export const DOSSIERS_REGEL = "Alleen werkwijze en afspraken, geen casus: geen namen, geen diagnoses. De casus zelf staat in XpertSuite.";
+
+/** Besproken: afgevinkt, of er staat iets in de notulen. */
+export const isBesproken = (p: Pick<Agendapunt, "besproken" | "notulen">) => p.besproken || Boolean(p.notulen?.trim());
+
+/** Wie er bij is en wie notuleert, uit het formulier; alleen collega's uit de lijst, plus losse namen. */
+export function leesBezetting(f: FormData, collegas: Collega[]): { aanwezig: { user_id: string | null; naam: string }[]; notulist: string | null } | { fout: string } {
+  const ids = [...new Set(f.getAll("aanwezig").map(String))].filter((id) => collegas.some((c) => c.user_id === id));
+  const extra = tekst(f, "extra").split(/[,\n]/).map((n) => n.trim()).filter(Boolean);
+  const notulist = tekst(f, "notulist") || null;
+  if (extra.length > 12 || extra.some((n) => n.length > 120)) return { fout: "overleg-te-lang" };
+  if (notulist && !ids.includes(notulist)) return { fout: "overleg-notulist" };
+  return {
+    aanwezig: [...ids.map((id) => ({ user_id: id as string | null, naam: collegas.find((c) => c.user_id === id)!.naam })), ...extra.map((naam) => ({ user_id: null, naam }))],
+    notulist,
+  };
+}
+
+export type NotulenDeel = { titel: string; checkin: boolean; dossiers: boolean; toelichting: string | null; inbrenger: string | null; regels: { wie: string | null; tekst: string }[] };
+export type Notulen = {
+  titel: string;
+  gegevens: { datum: string; tijd: string; locatie: string | null; aanwezig: string[]; notulist: string | null };
+  structureel: string[];
+  uitVorig: { titel: string; inbrenger: string | null }[];
+  nieuw: { titel: string; inbrenger: string | null }[];
+  delen: NotulenDeel[];
+  acties: { wat: string; door: string; wanneer: string | null; status: "Lopend" | "Gedaan" }[];
+  volgend: { titel: string; inbrenger: string | null }[];
+};
+
+/**
+ * De notulen in de opbouw van het team: gegevens, agenda (structureel en wat
+ * ter tafel komt), per punt wat er besproken is (de check-in per aanwezige),
+ * actiepunten met wie en de status, en de punten voor het volgende overleg.
+ * Eén bron voor het archief en de mail.
+ */
+export function notulenVan(
+  overleg: Pick<Overleg, "datum" | "einde" | "locatie" | "notulist_naam">,
+  agenda: Agendapunt[],
+  aanwezigen: Pick<Aanwezige, "naam" | "checkin" | "sort">[],
+  acties: Pick<Actiepunt, "wat" | "wie_naam" | "wanneer" | "gedaan_at">[],
+  inbrengerVan: (p: Agendapunt) => string | null,
+): Notulen {
+  const lijst = sorteerAgenda(agenda);
+  const vast = lijst.filter((p) => p.vast);
+  const uitVorig = lijst.filter((p) => !p.vast && p.doorgeschoven && !p.voor_volgend);
+  const nieuw = lijst.filter((p) => !p.vast && !p.doorgeschoven && !p.voor_volgend);
+  const volgend = lijst.filter((p) => !p.vast && p.voor_volgend);
+  const mensen = [...aanwezigen].sort((a, b) => a.sort - b.sort);
+  const deel = (p: Agendapunt): NotulenDeel => ({
+    titel: p.titel,
+    checkin: p.vast && isCheckIn(p.titel),
+    dossiers: isDossiers(p.titel),
+    toelichting: p.toelichting,
+    inbrenger: p.vast ? null : inbrengerVan(p),
+    regels: p.vast && isCheckIn(p.titel)
+      ? mensen.filter((m) => m.checkin?.trim()).map((m) => ({ wie: m.naam, tekst: m.checkin!.trim() }))
+      : p.notulen?.trim() ? [{ wie: null, tekst: p.notulen.trim() }] : [],
+  });
+  return {
+    titel: `CM-overleg ${overlegDag(overleg.datum).replace(/^\S+ /, "")}`,
+    gegevens: { datum: overlegDag(overleg.datum), tijd: tijdVanTot(overleg), locatie: overleg.locatie, aanwezig: mensen.map((m) => m.naam), notulist: overleg.notulist_naam ?? null },
+    structureel: vast.map((p) => p.titel),
+    uitVorig: uitVorig.map((p) => ({ titel: p.titel, inbrenger: inbrengerVan(p) })),
+    nieuw: nieuw.map((p) => ({ titel: p.titel, inbrenger: inbrengerVan(p) })),
+    delen: [...vast, ...uitVorig, ...nieuw].map(deel),
+    acties: acties.map((a) => ({ wat: a.wat, door: a.wie_naam, wanneer: a.wanneer, status: a.gedaan_at ? "Gedaan" : "Lopend" })),
+    volgend: volgend.map((p) => ({ titel: p.titel, inbrenger: inbrengerVan(p) })),
   };
 }

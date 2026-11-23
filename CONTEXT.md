@@ -352,6 +352,27 @@ dus een werknemer blijft in Mijn React2u). Op `/admin/overleg`:
 - Niets medisch: geen namen van werknemers of dossiers in agenda of notulen
   (`NIETS_MEDISCH` staat bij de invulvelden).
 
+**Het format van het team** (0054; Rens, 23 nov 2026, met het voorbeeld "CM
+overleg 18-11"). Het overleg volgt nu hun eigen opzet:
+- **Gegevens**: datum, tijd van tot (eindtijd, of de duur uit het ritme),
+  aanwezigen (collega's met het recht overleg via `cm_collegas()`, plus losse
+  namen) en een **notulist**, die het beheer kiest.
+- **Agenda**: structureel (standaard Check in, Dossiers, Klanten, Punten voor het
+  MT-overleg, Behoeftes, Vakantie en verlof) en wat ter tafel komt: uit vorig
+  overleg (doorgeschoven punten en lopende actiepunten) en nieuw.
+- **Notulen per agendapunt**, en bij de check-in een veld per aanwezige. De
+  notulist schrijft ze, en de actiepunten (`cm_is_notulist()` in de policies);
+  wie geen notulist is, kan dat niet. Bij Dossiers staat `DOSSIERS_REGEL`:
+  alleen werkwijze en afspraken, geen casus (Rens koos dit expliciet).
+- **Actie en gemaakte afspraken**: actie, door, status (Lopend of Gedaan).
+- **Punten voor het volgende overleg**, met de inbrenger (`voor_volgend`).
+- **Afronden** (beheer): naar het archief; niet besproken en niet genotuleerde
+  punten schuiven door als "uit vorig overleg", en de punten voor het volgende
+  overleg blijven bij deze notulen en komen als kopie op de nieuwe agenda; de aanwezigen met een inlog krijgen de notulen per mail
+  (`sendOverlegNotulen`, met hun eigen lopende actiepunten bovenaan).
+- Het archief toont de notulen in dezelfde opbouw (`notulenVan` is de bron
+  voor scherm en mail), is af te drukken, en het beheer kan achteraf aanvullen.
+
 **Ideeënbord** ([0055](supabase/migrations/0055_ideeenbord.sql); Rens, 23 nov
 2026, uit het voorstel voor het portaal: "'Iets melden of delen' bestaat al;
 maak er een zichtbaar bord van met status (ingediend, bekeken, gedaan) zodat

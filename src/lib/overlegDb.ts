@@ -1,7 +1,8 @@
 import type { requireAdmin } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
 import type { KaartKlant } from "@/lib/kaart";
-import type { Actiepunt, Agendapunt, Overleg, Ritme } from "@/lib/overleg";
+import type { Aanwezige, Actiepunt, Agendapunt, Collega, Overleg, Ritme } from "@/lib/overleg";
+import { firstName } from "@/lib/dashboard";
 
 /**
  * Het CM-overleg uit de database (0053), met de sessie van de ingelogde
@@ -16,6 +17,9 @@ export type OverlegStand = {
   ritme: Ritme | null;
   /** Het eerstvolgende overleg dat nog niet afgerond is. */
   volgend: Overleg | null;
+  aanwezigen: Aanwezige[];
+  /** Collega's met het recht overleg (cm_collegas in 0054), voor de keuzelijsten. */
+  collegas: Collega[];
   agenda: Agendapunt[];
   /** Open actiepunten, en wat de laatste twee weken gedaan is. */
   acties: Actiepunt[];
@@ -27,7 +31,7 @@ export type OverlegStand = {
 export async function haalOverleg(sb: Sb, nu = new Date()): Promise<Uitkomst<OverlegStand>> {
   const tweeWeken = new Date(nu.getTime() - 14 * 86_400_000).toISOString();
   const [ritme, open, archief, laatste, acties] = await Promise.all([
-    sb.from("cm_ritme").select("elke_weken, weekdag, tijd, locatie, vaste_punten").maybeSingle(),
+    sb.from("cm_ritme").select("*").maybeSingle(),
     sb.from("cm_overleggen").select("*").is("afgerond_at", null).order("datum").limit(1),
     sb.from("cm_overleggen").select("*").not("afgerond_at", "is", null).order("datum", { ascending: false }).limit(30),
     sb.from("cm_overleggen").select("datum").order("datum", { ascending: false }).limit(1),
@@ -46,6 +50,10 @@ export async function haalOverleg(sb: Sb, nu = new Date()): Promise<Uitkomst<Ove
       ])
     : [{ data: [] }, { data: [] }];
   const allePunten = (punten.data as Agendapunt[] | null) || [];
+  const [aanw, col] = await Promise.all([
+    volgend ? sb.from("cm_aanwezigen").select("*").eq("overleg_id", volgend.id).order("sort") : Promise.resolve({ data: [] }),
+    haalCollegas(sb),
+  ]);
   const telActies = (alleActies.data as Pick<Actiepunt, "id" | "overleg_id" | "gedaan_at">[] | null) || [];
 
   return {
@@ -54,6 +62,8 @@ export async function haalOverleg(sb: Sb, nu = new Date()): Promise<Uitkomst<Ove
       ritme: (ritme.data as Ritme | null) ?? null,
       volgend,
       agenda: volgend ? allePunten.filter((p) => p.overleg_id === volgend.id) : [],
+      aanwezigen: ((aanw as { data: unknown }).data as Aanwezige[] | null) || [],
+      collegas: col,
       acties: (acties.data as Actiepunt[] | null) || [],
       archief: oud.map((o) => ({
         ...o,
@@ -67,16 +77,18 @@ export async function haalOverleg(sb: Sb, nu = new Date()): Promise<Uitkomst<Ove
 }
 
 /** Eén overleg met agenda en actiepunten, voor het archief. */
-export async function haalEenOverleg(sb: Sb, id: string): Promise<Uitkomst<{ overleg: Overleg; agenda: Agendapunt[]; acties: Actiepunt[] } | null>> {
-  const [o, p, a] = await Promise.all([
+export async function haalEenOverleg(sb: Sb, id: string): Promise<Uitkomst<{ overleg: Overleg; agenda: Agendapunt[]; acties: Actiepunt[]; aanwezigen: Aanwezige[]; collegas: Collega[] } | null>> {
+  const [o, p, a, w, collegas] = await Promise.all([
     sb.from("cm_overleggen").select("*").eq("id", id).maybeSingle(),
     sb.from("cm_agendapunten").select("*").eq("overleg_id", id),
     sb.from("cm_actiepunten").select("*").eq("overleg_id", id).order("created_at"),
+    sb.from("cm_aanwezigen").select("*").eq("overleg_id", id).order("sort"),
+    haalCollegas(sb),
   ]);
   const fout = o.error || p.error || a.error;
   if (fout) return { ok: false, fout: isMissingTable(fout) ? "migratie" : "laden" };
   if (!o.data) return { ok: true, data: null };
-  return { ok: true, data: { overleg: o.data as Overleg, agenda: (p.data as Agendapunt[]) || [], acties: (a.data as Actiepunt[]) || [] } };
+  return { ok: true, data: { overleg: o.data as Overleg, agenda: (p.data as Agendapunt[]) || [], acties: (a.data as Actiepunt[]) || [], aanwezigen: (w.data as Aanwezige[] | null) || [], collegas } };
 }
 
 /** De klanten voor de kaart (cm_kaart in 0053). */
@@ -98,4 +110,18 @@ export async function haalOverlegKort(sb: Sb, userId: string): Promise<{ volgend
     ? (await sb.from("cm_agendapunten").select("id", { count: "exact", head: true }).eq("overleg_id", volgend.id)).count ?? 0
     : 0;
   return { volgend, punten, mijnActies: (acties.data as Actiepunt[] | null) || [] };
+}
+
+/** De collega's met het recht overleg (cm_collegas in 0054), met de naam uit de medewerkers of anders uit het e-mailadres. */
+export async function haalCollegas(sb: Sb): Promise<Collega[]> {
+  const { data, error } = await sb.rpc("cm_collegas");
+  if (error) return [];
+  return ((data as { user_id: string; email: string; naam: string | null }[] | null) || []).map((c) => ({
+    user_id: c.user_id, email: c.email, naam: c.naam || firstName(c.email) || c.email,
+  }));
+}
+
+/** Wie een punt inbracht: de naam van de collega, of de voornaam uit het e-mailadres. */
+export function inbrengerNaam(collegas: Collega[]) {
+  return (p: Agendapunt): string | null => (p.door && collegas.find((c) => c.user_id === p.door)?.naam) || (p.door_email ? firstName(p.door_email) || p.door_email : null);
 }

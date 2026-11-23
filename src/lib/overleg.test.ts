@@ -79,9 +79,9 @@ describe("agenda en actiepunten", () => {
     expect(leesAgendapunt(form({ titel: "" }))).toEqual({ fout: "overleg-titel" });
     expect(leesActiepunt(form({ wat: "Klant bellen over de evaluatie", wie: "11111111-2222-4333-8444-555555555555", wanneer: "2026-12-04" }))).toEqual({ wat: "Klant bellen over de evaluatie", wie: "11111111-2222-4333-8444-555555555555", wanneer: "2026-12-04" });
     expect(leesActiepunt(form({ wat: "x", wie: "niemand" }))).toEqual({ fout: "overleg-actie" });
-    expect(leesMoment(form({ datum: "2026-12-01", tijd: "09:30", locatie: "Kantoor Eindhoven" }))).toEqual({ datum: "2026-12-01", tijd: "09:30", locatie: "Kantoor Eindhoven" });
+    expect(leesMoment(form({ datum: "2026-12-01", tijd: "09:30", locatie: "Kantoor Eindhoven" }))).toEqual({ datum: "2026-12-01", tijd: "09:30", eind: null, locatie: "Kantoor Eindhoven" });
     expect(leesMoment(form({ datum: "1 december", tijd: "9.30" }))).toEqual({ fout: "overleg-moment" });
-    expect(leesRitme(form({ elke_weken: "2", weekdag: "2", tijd: "09:30", locatie: "", vaste_punten: "Opening\n\n Rondvraag " }))).toEqual({ elke_weken: 2, weekdag: 2, tijd: "09:30", locatie: null, vaste_punten: ["Opening", "Rondvraag"] });
+    expect(leesRitme(form({ elke_weken: "2", weekdag: "2", tijd: "09:30", locatie: "", vaste_punten: "Opening\n\n Rondvraag " }))).toEqual({ elke_weken: 2, weekdag: 2, tijd: "09:30", locatie: null, vaste_punten: ["Opening", "Rondvraag"], duur_minuten: 60 });
     expect(leesRitme(form({ elke_weken: "0", weekdag: "2", tijd: "09:30" }))).toEqual({ fout: "overleg-ritme" });
   });
 });
@@ -96,5 +96,60 @@ describe("de herinnering", () => {
     expect(h.acties).toEqual(["Klant bellen (af op 30-11-2026)"]);
     // Op vrijdag voor maandag.
     expect(overlegHerinnering(null, { datum: "2026-11-30T08:30:00Z", locatie: null }, [], [], "2026-11-27").onderwerp).toBe("CM-overleg maandag om 09:30");
+  });
+});
+
+describe("het format van het team", () => {
+  it("geeft tijd van tot en rekent het einde uit het ritme", async () => {
+    const { tijdVanTot, eindeVan, overlegDag } = await import("./overleg");
+    expect(tijdVanTot({ datum: "2026-11-18T13:15:00Z", einde: "2026-11-18T14:15:00Z" })).toBe("14:15 tot 15:15");
+    expect(tijdVanTot({ datum: "2026-11-18T13:15:00Z", einde: null })).toBe("14:15");
+    expect(eindeVan("2026-11-18", "14:15", null, 60)).toBe("2026-11-18T14:15:00.000Z");
+    expect(eindeVan("2026-11-18", "14:15", "15:30")).toBe("2026-11-18T14:30:00.000Z");
+    expect(overlegDag("2026-11-18T13:15:00Z")).toBe("Woensdag 18 november 2026");
+  });
+
+  it("leest wie er is en wie notuleert, alleen collega's uit de lijst", async () => {
+    const { leesBezetting } = await import("./overleg");
+    const collegas = [{ user_id: "11111111-1111-4111-8111-111111111111", email: "a@x.nl", naam: "Fleur" }, { user_id: "22222222-2222-4222-8222-222222222222", email: "b@x.nl", naam: "Jasper" }];
+    const f = new FormData();
+    f.append("aanwezig", collegas[0].user_id);
+    f.append("aanwezig", "33333333-3333-4333-8333-333333333333");
+    f.set("extra", "Sanne, Bram");
+    f.set("notulist", collegas[0].user_id);
+    expect(leesBezetting(f, collegas)).toEqual({ aanwezig: [{ user_id: collegas[0].user_id, naam: "Fleur" }, { user_id: null, naam: "Sanne" }, { user_id: null, naam: "Bram" }], notulist: collegas[0].user_id });
+    f.set("notulist", collegas[1].user_id);
+    expect(leesBezetting(f, collegas)).toEqual({ fout: "overleg-notulist" });
+  });
+
+  it("bouwt de notulen zoals het voorbeeld: check-in per persoon, punten, acties en volgend overleg", async () => {
+    const { notulenVan, isBesproken, isDossiers } = await import("./overleg");
+    const p = (o: Partial<Agendapunt>): Agendapunt => ({ id: o.titel || "p", overleg_id: "o", titel: "t", toelichting: null, vast: false, door: null, door_email: null, besproken: false, sort: 0, created_at: "2026-11-17T10:00:00Z", notulen: null, doorgeschoven: false, voor_volgend: false, ...o });
+    const n = notulenVan(
+      { datum: "2026-11-18T13:15:00Z", einde: "2026-11-18T14:15:00Z", locatie: "Kantoor", notulist_naam: "Fleur" },
+      [
+        p({ titel: "Check in", vast: true, sort: 1 }),
+        p({ titel: "Dossiers", vast: true, sort: 2, notulen: "Bij een vraag over een VSO verwijzen we naar een jurist." }),
+        p({ titel: "Caseload", doorgeschoven: true, notulen: "Definitieve verdeling in januari." }),
+        p({ titel: "Spoor 2 op tijd aanmelden", door_email: "jasper@x.nl" }),
+        p({ titel: "Wie doet de aanmeldingen?", voor_volgend: true, door_email: "fleur@x.nl" }),
+      ],
+      [{ naam: "Jasper", checkin: "Ervaart werkdruk.", sort: 2 }, { naam: "Fleur", checkin: "Gaat goed.", sort: 1 }, { naam: "Sanne", checkin: null, sort: 3 }],
+      [{ wat: "Overleg plannen", wie_naam: "Fleur", wanneer: null, gedaan_at: null }, { wat: "Mailen", wie_naam: "Jasper", wanneer: "2026-11-25", gedaan_at: "2026-11-20T10:00:00Z" }],
+      (x) => (x.door_email ? x.door_email.split("@")[0] : null),
+    );
+    expect(n.titel).toBe("CM-overleg 18 november 2026");
+    expect(n.gegevens).toEqual({ datum: "Woensdag 18 november 2026", tijd: "14:15 tot 15:15", locatie: "Kantoor", aanwezig: ["Fleur", "Jasper", "Sanne"], notulist: "Fleur" });
+    expect(n.structureel).toEqual(["Check in", "Dossiers"]);
+    expect(n.uitVorig.map((x) => x.titel)).toEqual(["Caseload"]);
+    expect(n.nieuw).toEqual([{ titel: "Spoor 2 op tijd aanmelden", inbrenger: "jasper" }]);
+    expect(n.delen.map((d) => d.titel)).toEqual(["Check in", "Dossiers", "Caseload", "Spoor 2 op tijd aanmelden"]);
+    expect(n.delen[0]).toMatchObject({ checkin: true, regels: [{ wie: "Fleur", tekst: "Gaat goed." }, { wie: "Jasper", tekst: "Ervaart werkdruk." }] });
+    expect(n.delen[1].dossiers).toBe(true);
+    expect(n.acties.map((a) => `${a.wat}:${a.door}:${a.status}`)).toEqual(["Overleg plannen:Fleur:Lopend", "Mailen:Jasper:Gedaan"]);
+    expect(n.volgend).toEqual([{ titel: "Wie doet de aanmeldingen?", inbrenger: "fleur" }]);
+    expect(isBesproken({ besproken: false, notulen: " " })).toBe(false);
+    expect(isBesproken({ besproken: false, notulen: "iets" })).toBe(true);
+    expect(isDossiers("Dossier")).toBe(true);
   });
 });
