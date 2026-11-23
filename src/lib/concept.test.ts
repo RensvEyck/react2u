@@ -13,12 +13,11 @@ describe("reserve-inhoud", () => {
     expect(MIGRATIE_RESERVE).not.toContain("contact");
   });
 
-  it("houdt de nieuwe gidsen bereikbaar tot de SQL gedraaid is (migratie 0060)", () => {
-    // De 301 van /blog/wet-verbetering-poortwachter-stappen mag niet op een 404 uitkomen.
-    for (const g of GIDSEN) {
-      expect(MIGRATIE_RESERVE).toContain(g.slug);
-      expect(reserveConcept(g.slug)?.slug).toBe(g.slug);
-    }
+  it("is leeg sinds migratie 0060 op productie draaide: ook de gidsen komen weer uit de database", () => {
+    // Tussen de merge van PR #115 en de SQL stonden de vijf gidsen hier, zodat
+    // de 301 van /blog/wet-verbetering-poortwachter-stappen niet op een 404 uitkwam.
+    expect(MIGRATIE_RESERVE).toEqual([]);
+    for (const g of GIDSEN) expect(reserveConcept(g.slug)).toBeNull();
   });
 
   it("laat de concepten zelf met rust: lokaal (zonder VERCEL_ENV=preview) zijn ze uit, Engels is er altijd", () => {
