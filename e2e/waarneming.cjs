@@ -106,7 +106,9 @@ const TOELICHTING = "Bakkerij Bos verwacht dinsdag een terugbelletje over het ve
   const BOS = klantId("Bakkerij Bos"), SMITS = klantId("Garage Smits"), KNIP = klantId("Kapsalon Knip");
   check(!mag(() => sql("set role anon; select count(*) from public.waarnemingen")), "anon leest geen waarnemingen");
   check(sql("select has_function_privilege('anon', 'public.wn_klanten()', 'execute')") === "f" && sql("select has_function_privilege('authenticated', 'public.wn_collegas()', 'execute')") === "t", "anon kan de hulpfuncties niet aanroepen, een ingelogde collega wel");
-  check(alsCollega(FENNA, "select count(*) from public.wn_klanten()") === "3", "een werknemer krijgt de drie echte klanten, niet de lead");
+  // Alleen onze eigen klanten tellen: in de volledige run laten eerdere tests klanten achter.
+  const eigenKlanten = alsCollega(FENNA, `select count(*) from public.wn_klanten() where bedrijf in (${KLANTEN.map((k) => lit(k[0])).join(", ")})`);
+  check(eigenKlanten === "3", `een werknemer krijgt de drie echte klanten, niet de lead (${eigenKlanten})`);
   check(alsCollega(FENNA, "select string_agg(email, ',' order by email) from public.wn_collegas()").includes("bram@react2u.test") && alsCollega(FENNA, "select naam from public.wn_collegas() where user_id = '" + BRAM.id + "'") === BRAM.naam, "en de collega's die kunnen waarnemen, met hun naam uit de medewerkers");
   check(!mag(() => alsCollega(FENNA, `insert into public.waarnemingen (afwezige, van, tot) values ('${BRAM.id}', current_date, current_date)`)), "een collega plant geen afwezigheid voor een ander");
   check(!mag(() => alsCollega(FENNA, `insert into public.waarnemingen (van, tot, waarnemer) values (current_date, current_date, '${FENNA.id}')`)), "en kan niet voor zichzelf waarnemen (check)");
