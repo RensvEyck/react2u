@@ -113,7 +113,7 @@ async function vulExtra(page, week) {
   if (fs.existsSync(MAILS)) fs.unlinkSync(MAILS);
 
   stap("Database: het recht, de rol werknemer, de testcollega en een doel uit de vorige kwartaalmeeting");
-  check(sql("select permissions::text from public.roles where key = 'werknemer'") === "{weekevaluatie,overleg,ideeen}", "de rol werknemer heeft de rechten weekevaluatie, CM-overleg (0053) en ideeënbord (0055)");
+  check(sql("select permissions::text from public.roles where key = 'werknemer'") === "{weekevaluatie,overleg,ideeen,waarneming}", "de rol werknemer heeft de rechten weekevaluatie, CM-overleg (0053) en ideeënbord (0055)");
   check(sql("select is_system from public.roles where key = 'werknemer'") === "f", "en is geen systeemrol");
   check(sql("select 'weekevaluatie' = any(permissions) from public.roles where key = 'superadmin'") === "t", "de super admin heeft het recht ook");
   check(sql("select coalesce('weekevaluatie' = any(permissions), false) from public.roles where key = 'redacteur'") === "f", "de redacteur niet");
@@ -151,7 +151,7 @@ insert into public.weekevaluatie_doelen (id, user_id, jaar, kwartaal, titel, toe
   await inloggen(w, WERKNEMER.email, WERKNEMER.wachtwoord, geheimWerknemer);
   await w.goto(`${BASIS}/admin`);
   const menu = await w.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  check(JSON.stringify(menu) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/ideeen"]), `menu: alleen Dashboard, Weekevaluatie, CM-overleg en Ideeënbord (${menu.join(", ")})`);
+  check(JSON.stringify(menu) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/ideeen", "/admin/waarneming"]), `menu: alleen Dashboard, Weekevaluatie, CM-overleg en Ideeënbord (${menu.join(", ")})`);
   check(await w.locator('aside a[href="/admin/account"]').count(), "Account via je naam onder in de zijbalk");
   const signaal = await w.locator("#weekevaluatie-open").innerText();
   check(/weekevaluaties van week \d+ en \d+ staan nog open/.test(signaal), `dashboard: beide weken staan nog open (${signaal.split("\n")[0]})`);

@@ -3,7 +3,8 @@ import {
   LuSettings, LuUserRound, LuMessageSquare, LuNewspaper, LuSearch, LuPhone,
   LuChartNoAxesColumn, LuUserCog, LuPlus, LuConstruction, LuExternalLink, LuUserPlus, LuUpload,
   LuShieldCheck, LuSignpost, LuTrash2, LuBuilding, LuLogOut, LuMail, LuHandshake, LuFilePenLine, LuBookOpen, LuScrollText,
-  LuTrendingUp, LuEuro, LuClock, LuGauge, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard, LuGlobe, LuSlidersHorizontal, LuRoute, LuMap, LuMessagesSquare, LuLightbulb } from "react-icons/lu";
+  LuTrendingUp, LuEuro, LuClock, LuGauge, LuClipboardCheck, LuLayoutGrid, LuFiles, LuClipboardList, LuCalendarCheck, LuChartColumn, LuIdCard, LuGlobe, LuSlidersHorizontal, LuRoute, LuMap, LuMessagesSquare, LuLightbulb, LuUserRoundCheck
+} from "react-icons/lu";
 import type { IconType } from "react-icons";
 
 /**
@@ -73,6 +74,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Weekevaluatie", href: "/admin/weekevaluatie", icon: LuCalendarCheck, keywords: "weekevaluatie week evaluatie energie werkdruk cijfer invullen reflectie collega's werknemers" },
   { label: "CM-overleg", href: "/admin/overleg", icon: LuMessagesSquare, keywords: "overleg casemanagers agenda notulen actiepunten kaart nederland verdeling klanten werkgebied" },
   { label: "Ideeënbord", href: "/admin/ideeen", icon: LuLightbulb, keywords: "ideeen ideeënbord idee melden delen verbetering compliment stemmen reageren status ingediend opgepakt gedaan" },
+  { label: "Waarneming", href: "/admin/waarneming", icon: LuUserRoundCheck, keywords: "waarneming waarnemen afwezig vakantie vrij er niet overnemen klanten collega vervanging wie neemt waar" },
   { label: "Inwerkreis", href: "/admin/inwerkreis", icon: LuRoute, keywords: "inwerken nieuwe collega eerste 90 dagen buddy taken oefencasussen mijlpalen", alleenMet: "inwerkreis" },
   { label: "Kwartaaloverzicht weekevaluaties", href: "/admin/weekevaluatie/team", icon: LuChartColumn, keywords: "kwartaalmeeting kwartaal team gemiddelden trend gemist export excel weekevaluaties", paletteOnly: true },
   { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen", groep: "cijfers" },
@@ -122,6 +124,7 @@ export const ADMIN_ACTIONS: PaletteAction[] = [
   { label: "E-mail en testmail", href: "/admin/instellingen#email", icon: LuMail, keywords: "mail resend meldingen uitnodigingen afzender testmail notificaties" },
   { label: "Collega uitnodigen", href: "/admin/gebruikers", icon: LuUserPlus, keywords: "gebruiker toevoegen uitnodiging" },
   { label: "Idee indienen", href: "/admin/ideeen#nieuw", icon: LuLightbulb, keywords: "idee melden delen verbetering compliment ideeënbord" },
+  { label: "Ik ben er even niet", href: "/admin/waarneming#nieuw", icon: LuUserRoundCheck, keywords: "waarneming afwezig vakantie vrij plannen waarnemer" },
   { label: "Tweestapsverificatie", href: "/admin/account", icon: LuShieldCheck, keywords: "2fa beveiliging authenticator" },
   { label: "Bekijk website", href: "/", icon: LuExternalLink, external: true, keywords: "site openen live" },
   { label: "Uitloggen", href: SIGN_OUT_HREF, icon: LuLogOut, keywords: "afmelden log out logout weg stoppen account" },
@@ -134,6 +137,6 @@ export const CRUMBS: Record<string, string> = {
   instellingen: "Instellingen", account: "Account",
   documenten: "Documenten", evaluaties: "Klantevaluaties",
   offertes: "Offertes", contracten: "Contracten", onboarding: "Onboarding", werknemers: "Werknemers", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
-  weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht", prognose: "Prognose", inwerkreis: "Inwerkreis", inwerken: "Inwerken", sjabloon: "Sjabloon", overleg: "CM-overleg", ideeen: "Ideeënbord",
+  weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht", prognose: "Prognose", inwerkreis: "Inwerkreis", inwerken: "Inwerken", sjabloon: "Sjabloon", overleg: "CM-overleg", ideeen: "Ideeënbord", waarneming: "Waarneming",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

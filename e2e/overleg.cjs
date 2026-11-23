@@ -89,7 +89,7 @@ insert into public.admins (user_id, email, role_id, invited_at) select '${LOTTE.
 insert into public.medewerkers (naam, functie, user_id) values ('${LOTTE.naam}', 'Casemanager Verzuim', '${LOTTE.id}');
 insert into public.klanten (bedrijf, status, casemanager, medewerkers, bezoek_postcode, bezoek_plaats) values
 ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
-  check(sql("select permissions::text from public.roles where key = 'werknemer'") === "{weekevaluatie,overleg,ideeen}", "de rol werknemer heeft het recht overleg (en sinds 0055 het ideeënbord)");
+  check(sql("select permissions::text from public.roles where key = 'werknemer'") === "{weekevaluatie,overleg,ideeen,waarneming}", "de rol werknemer heeft het recht overleg (en sinds 0055 het ideeënbord, sinds 0060 de waarneming)");
   check(sql("select 'overleg' = any(permissions) from public.roles where key = 'superadmin'") === "t" && sql("select 'overleg' = any(permissions) from public.roles where key = 'beheerder'") === "t", "de super admin en de beheerder ook");
   check(sql("select coalesce('overleg' = any(permissions), false) from public.roles where key = 'redacteur'") === "f", "de redacteur niet");
   check(!mag(() => sql("set role anon; select count(*) from public.cm_overleggen")), "anon leest geen overleggen");
@@ -152,7 +152,9 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   check(/Lotte( Visser)? Nog geen klanten op de stamkaart/.test(legenda), "wie in het team zit maar nog geen klanten heeft, staat in de lijst");
   check(/Fleur 2 klanten[^]*Niet bij Medewerkers als casemanager/.test(legenda), "een naam die alleen op de stamkaart staat, krijgt een opmerking");
   const legendaNamen = await b.locator("#kaart-legenda button[data-cm-naam]").evaluateAll((bs) => bs.map((x) => x.getAttribute("data-cm-naam")));
-  check(legendaNamen[0].startsWith("Lotte"), `het team staat bovenaan, de namen van alleen stamkaarten erna (${legendaNamen.join(", ")})`);
+  // Andere tests kunnen eigen casemanagers in het team achterlaten; het gaat om de volgorde team → alleen stamkaart.
+  const lotte = legendaNamen.findIndex((n) => n.startsWith("Lotte"));
+  check(lotte >= 0 && ["Fleur", "Jasper", "Sanne"].every((n) => legendaNamen.indexOf(n) > lotte), `het team staat bovenaan, de namen van alleen stamkaarten erna (${legendaNamen.join(", ")})`);
   const vormen = await kaart.locator(".kaart-punt").evaluateAll((ps) => ps.map((x) => `${x.getAttribute("data-cm")}:${x.getAttribute("data-vorm")}:${x.tagName}`));
   check(vormen.every((v) => (v.startsWith("3:") ? v.endsWith(":ruit:path") : v.includes(":stip:"))), "de vierde casemanager staat als ruit op de kaart, de rest als stip");
   if (legendaNamen[3] === "Sanne") {
@@ -179,7 +181,7 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   await inloggen(w, LOTTE.email, LOTTE.wachtwoord, geheimLotte);
   await w.goto(`${BASIS}/admin`);
   const menu = await w.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  check(JSON.stringify(menu) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/ideeen"]), `menu: Dashboard, Weekevaluatie, CM-overleg, Ideeënbord (${menu.join(", ")})`);
+  check(JSON.stringify(menu) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/ideeen", "/admin/waarneming"]), `menu: Dashboard, Weekevaluatie, CM-overleg, Ideeënbord, Waarneming (${menu.join(", ")})`);
   check((await w.locator("aside").first().innerText()).includes("Mijn React2u"), "nog steeds Mijn React2u");
   const kaartje = (await w.locator("#cm-overleg").innerText()).replace(/\s+/g, " ");
   check(kaartje.includes("6 punten op de agenda") && /dinsdag/i.test(kaartje), `het dashboard toont het volgende overleg (${kaartje.slice(0, 120)})`);
@@ -332,7 +334,7 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   check((await b.locator("aside").first().innerText()).includes("Mijn React2u") && !(await b.locator("aside").first().innerText()).includes("SYSTEEMBEHEER"), "de zijbalk zegt Mijn React2u");
   check(await b.locator("aside svg[viewBox='0 0 125 76.303']").first().isVisible(), "met het logo boven Mijn React2u");
   const menuMijn = await b.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  check(JSON.stringify(menuMijn) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/ideeen"]), `in Mijn React2u het menu van een werknemer (${menuMijn.join(", ")})`);
+  check(JSON.stringify(menuMijn) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/ideeen", "/admin/waarneming"]), `in Mijn React2u het menu van een werknemer (${menuMijn.join(", ")})`);
   check(!(await b.locator('button[aria-label="Zoeken (⌘K)"]').count()) && await b.locator("#cm-overleg").count(), "zonder zoekveld, met het overleg op het dashboard");
   check(!(await b.locator('main a[href="/admin/postvak-in"], main a[href="/admin/bellijst"]').count()), "zonder de beheeronderdelen op het dashboard");
   await b.goto(`${BASIS}/admin/overleg`);

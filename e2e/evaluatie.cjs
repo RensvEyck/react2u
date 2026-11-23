@@ -75,9 +75,9 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   const soorten = await page.locator("article[data-soort]").evaluateAll((els) => els.map((e) => e.getAttribute("data-soort")));
   check(soorten.join(",") === "brochure,offerte,contract,onboarding,evaluatie,reseller", `alle documentsoorten als tegel (${soorten.join(",")})`);
   check(await page.locator("#bij-de-klant-lijst h2:has-text('Ligt bij de klant')").count(), "bovenaan wat bij de klant ligt");
-  // Het zijmenu kort: losse ingangen (waaronder de drie van Mijn React2u: Weekevaluatie, CM-overleg, Ideeënbord) plus drie inklapbare groepen; de documentsoorten zelf niet los.
+  // Het zijmenu kort: losse ingangen (waaronder de vier van Mijn React2u: Weekevaluatie, CM-overleg, Ideeënbord, Waarneming) plus drie inklapbare groepen; de documentsoorten zelf niet los.
   const regels = await page.locator("aside nav > *").count();
-  check(regels <= 12, `het zijmenu heeft ${regels} regels (was 25)`);
+  check(regels <= 13, `het zijmenu heeft ${regels} regels (was 25)`);
   for (const h of ["/admin/offertes", "/admin/contracten", "/admin/onboarding", "/admin/brochures"]) {
     check((await page.locator(`aside nav a[href="${h}"]`).count()) === 0, `${h} staat niet meer los in het menu`);
   }
@@ -183,7 +183,7 @@ const kies = (pagina, punt, label) => pagina.click(`#ev-checklist-${punt} label:
   await tdp.click("button[aria-label='Menu']");
   // Op een telefoon is de zijbalk een la; de vaste zijbalk van de laptop staat er verborgen naast.
   await tdp.waitForSelector("div.fixed.inset-0 aside nav");
-  check((await tdp.locator("div.fixed.inset-0 aside nav > *").count()) <= 12, "ook het telefoonmenu is kort");
+  check((await tdp.locator("div.fixed.inset-0 aside nav > *").count()) <= 13, "ook het telefoonmenu is kort");
   await shot(tdp, "03d-menu-390", { fullPage: false });
   await telDoc.close();
   await page.goto(adminUrl);
