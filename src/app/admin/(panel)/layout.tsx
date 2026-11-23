@@ -1,17 +1,23 @@
 import { Suspense } from "react";
 import { requireAdmin } from "@/lib/admin";
 import { signOutAction } from "@/app/admin/actions";
+import { wisselWeergave } from "@/app/admin/weergaveActions";
 import AdminShell from "@/components/admin/AdminShell";
 import Toast from "@/components/admin/Toast";
 import { needsCall, today } from "@/lib/leads";
 import { normalizeMaintenance } from "@/lib/maintenance";
 import type { Lead } from "@/lib/types";
+import { kanWisselen, zichtbareRechten } from "@/lib/permissions";
+import { inMijnReact2u } from "@/lib/weergave";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { sb, user, admin } = await requireAdmin();
-  const can = (p: string) => admin.permissions.includes(p as never);
+  // Mijn React2u (het werknemersportaal) of Beheer: in Mijn React2u gedraagt alles zich naar de rechten van het portaal.
+  const mijn = await inMijnReact2u(admin.permissions);
+  const rechten = zichtbareRechten(admin.permissions, mijn);
+  const can = (p: string) => rechten.includes(p as never);
 
   // Zonder het bijbehorende recht blokkeert RLS deze query's toch al — dan zou
   // de teller altijd 0 zijn. Ze overslaan scheelt drie query's per paginaladen
@@ -48,11 +54,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <AdminShell
       email={admin.email || user.email || ""}
       roleLabel={admin.roleLabel}
-      permissions={admin.permissions}
+      permissions={rechten}
       counts={{ apps: appCount, msgs: msgCount, inbox: appCount + msgCount, leads: leadCount }}
       vlaggen={{ inwerkreis: Boolean(inwerkreis.data) }}
       maintenance={normalizeMaintenance(maintenance.data?.value).enabled}
       signOut={signOutAction}
+      wissel={kanWisselen(admin.permissions) ? (mijn ? "beheer" : "mijn") : null}
+      wisselWeergave={wisselWeergave}
     >
       {children}
       <Suspense>

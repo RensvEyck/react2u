@@ -6,7 +6,8 @@ import {
   LuCircleAlert, LuCheck, LuPhoneCall, LuServer, LuHistory, LuCalendarCheck, LuTriangleAlert, LuGauge,
 } from "react-icons/lu";
 import { requireAdmin } from "@/lib/admin";
-import { isMijnReact2u, type Permission } from "@/lib/permissions";
+import { zichtbareRechten, type Permission } from "@/lib/permissions";
+import { inMijnReact2u } from "@/lib/weergave";
 import type { Lead, Page, PageView, Post, Vacancy } from "@/lib/types";
 import { needsCall, sortLeads, today, LEAD_STATUS } from "@/lib/leads";
 import { byDay, lastDays, totals } from "@/lib/analytics";
@@ -45,7 +46,10 @@ const none = Promise.resolve({ data: null, count: 0 });
 
 export default async function AdminDashboard() {
   const { sb, admin } = await requireAdmin();
-  const can = (p: Permission) => admin.permissions.includes(p);
+  // In Mijn React2u (een werknemer, of een beheerder die daarheen wisselde) telt alleen wat bij het portaal hoort.
+  const mijn = await inMijnReact2u(admin.permissions);
+  const rechten = zichtbareRechten(admin.permissions, mijn);
+  const can = (p: Permission) => rechten.includes(p);
   const now = new Date();
   const day = today(now);
   const days14 = lastDays(14, now);
@@ -66,7 +70,6 @@ export default async function AdminDashboard() {
   // Het CM-overleg (0053): het volgende overleg en de eigen open actiepunten. Vóór de migratie: null, en dan niets.
   const overlegRes = can("overleg") ? haalOverlegKort(sb, admin.userId).catch(() => null) : Promise.resolve(null);
   // Mijn React2u (een werknemer): de eigen cijfers van dit kwartaal voor Mijn verloop.
-  const mijn = isMijnReact2u(admin.permissions);
   const verloopKwartaal = kwartaalVanWeek(openEvalWeken[1]);
   const verloopRes = mijn && can("weekevaluatie")
     ? sb.from("weekevaluaties").select("week, antwoorden").eq("user_id", admin.userId).in("week", wekenInKwartaal(verloopKwartaal))

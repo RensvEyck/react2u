@@ -9,6 +9,7 @@ import {
   SCHALEN, TEKSTVRAGEN, WAARVOOR, weekKort, weekStand, weekTitel, type Doel, type Evaluatie,
 } from "@/lib/weekevaluatie";
 import { MigratieNodig } from "@/components/admin/Kerncijfer";
+import { inMijnReact2u } from "@/lib/weergave";
 import { KLEUR, Staven } from "@/components/admin/Grafiek";
 import WeekevaluatieForm, { type UrenVanWeek } from "@/components/admin/WeekevaluatieForm";
 
@@ -27,6 +28,8 @@ const MOMENT = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short"
 
 export default async function Weekevaluatie({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
   const { sb, admin } = await requirePerm("weekevaluatie");
+  // In Mijn React2u geen link naar het kwartaaloverzicht: dat hoort bij het beheer.
+  const kanOverzicht = admin.permissions.includes("omzet") && !(await inMijnReact2u(admin.permissions));
   const vandaag = datumOver(0);
   const [vorige, deze] = openWeken(vandaag);
   const ruw = (await searchParams).week;
@@ -83,7 +86,7 @@ export default async function Weekevaluatie({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-6">
-      <Kop kanOverzicht={admin.permissions.includes("omzet")} />
+      <Kop kanOverzicht={kanOverzicht} />
 
       <p className="flex items-start gap-2.5 rounded-2xl bg-[#eef0ff] px-4 py-3 text-[13.5px] leading-relaxed text-[#312e82]">
         <LuShieldCheck className="mt-0.5 shrink-0 text-[15px]" /> {WAARVOOR}

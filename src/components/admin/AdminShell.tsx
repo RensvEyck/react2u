@@ -2,14 +2,14 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LuExternalLink, LuMenu, LuX, LuConstruction, LuSearch, LuChevronDown } from "react-icons/lu";
+import { LuExternalLink, LuMenu, LuX, LuConstruction, LuSearch, LuChevronDown, LuArrowLeftRight } from "react-icons/lu";
 import { isMijnReact2u, permissionForPath, type Permission } from "@/lib/permissions";
 import { ADMIN_NAV, CRUMBS, NAV_GROEPEN, type Counts, type NavGroepKey, type NavItem, type NavVlaggen } from "@/lib/adminNav";
 import CommandPalette from "./CommandPalette";
 import AccountMenu, { Avatar, UitlogForm } from "./AccountMenu";
 
 export default function AdminShell({
-  email, roleLabel, permissions, counts, vlaggen, maintenance, signOut, children,
+  email, roleLabel, permissions, counts, vlaggen, maintenance, signOut, wissel = null, wisselWeergave, children,
 }: {
   email: string;
   roleLabel: string;
@@ -18,6 +18,9 @@ export default function AdminShell({
   vlaggen: NavVlaggen;
   maintenance: boolean;
   signOut: () => Promise<void>;
+  /** Wie kan wisselen: naar welke weergave de knop onderaan gaat (Mijn React2u of Beheer). */
+  wissel?: "mijn" | "beheer" | null;
+  wisselWeergave?: (naar: "mijn" | "beheer") => Promise<void>;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -177,6 +180,19 @@ export default function AdminShell({
             <span className="block truncate text-[11.5px] text-white/40">{roleLabel}</span>
           </span>
         </Link>
+        {/* Wie beheerrechten heeft, bekijkt Mijn React2u zoals een casemanager het ziet, en wisselt terug. */}
+        {wissel && wisselWeergave && (
+          <form action={wisselWeergave.bind(null, wissel)}>
+            <button
+              type="submit"
+              id="weergave-wisselen"
+              className="mt-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[14.5px] font-medium text-white/65 transition-colors hover:bg-white/[0.07] hover:text-white"
+            >
+              <LuArrowLeftRight className="text-[16px] text-[#ff8ab5]" />
+              {wissel === "mijn" ? "Naar Mijn React2u" : "Naar Beheer"}
+            </button>
+          </form>
+        )}
         <UitlogForm
           signOut={signOut}
           className="mt-1 flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[14.5px] font-medium text-white/65 transition-colors hover:bg-white/[0.07] hover:text-white disabled:opacity-60"

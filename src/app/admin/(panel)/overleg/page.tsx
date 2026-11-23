@@ -8,6 +8,7 @@ import {
   actiesPerPersoon, NIETS_MEDISCH, nlDelen, overlegTitel, sorteerAgenda, teLaat, volgendeDatum, wanneerTekst, WEEKDAGEN,
 } from "@/lib/overleg";
 import { haalKaart, haalOverleg } from "@/lib/overlegDb";
+import { inMijnReact2u } from "@/lib/weergave";
 import {
   actiepuntMaken, actiepuntWeg, actiepuntZetten, agendapuntBesproken, agendapuntInbrengen, agendapuntWeg, overlegAfronden,
   overlegNotulen, overlegPlannen, overlegVerwijderen, overlegVerzetten, ritmeOpslaan,
@@ -29,8 +30,10 @@ const deadline = (d: string) => DATUM_KORT.format(new Date(`${d}T00:00:00Z`)).re
 
 export default async function CmOverleg() {
   const { sb, admin } = await requirePerm("overleg");
-  const beheer = admin.permissions.includes("omzet");
-  const magStamkaart = admin.permissions.includes("bellijst");
+  // In Mijn React2u zie je het overleg zoals een casemanager: zonder plannen, notulen en ritme.
+  const mijn = await inMijnReact2u(admin.permissions);
+  const beheer = admin.permissions.includes("omzet") && !mijn;
+  const magStamkaart = admin.permissions.includes("bellijst") && !mijn;
   const vandaag = datumOver(0);
   const [uit, kaart, collegas] = await Promise.all([haalOverleg(sb), haalKaart(sb), beheer ? haalCollegas(sb) : Promise.resolve([])]);
 
