@@ -254,6 +254,30 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   await b.waitForURL(/opgeslagen=overleg-ritme/, { timeout: 20000 });
   check(sql("select elke_weken || '|' || weekdag || '|' || to_char(tijd, 'HH24:MI') from public.cm_ritme") === "1|4|14:00", "elke week op donderdag om 14:00");
 
+  stap("Wisselen tussen Beheer en Mijn React2u");
+  await w.goto(`${BASIS}/admin`);
+  check(!(await w.locator("#weergave-wisselen").count()), "een werknemer heeft geen wisselknop: die zit altijd in Mijn React2u");
+  await b.goto(`${BASIS}/admin`);
+  check((await b.locator("#weergave-wisselen").innerText()).includes("Naar Mijn React2u"), "het beheer heeft onderaan een knop naar Mijn React2u");
+  await b.click("#weergave-wisselen");
+  await b.waitForSelector("#weergave-wisselen:has-text('Naar Beheer')", { timeout: 20000 });
+  check((await b.locator("aside").first().innerText()).includes("Mijn React2u") && !(await b.locator("aside").first().innerText()).includes("SYSTEEMBEHEER"), "de zijbalk zegt Mijn React2u");
+  const menuMijn = await b.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+  check(JSON.stringify(menuMijn) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg"]), `in Mijn React2u het menu van een werknemer (${menuMijn.join(", ")})`);
+  check(!(await b.locator('button[aria-label="Zoeken (⌘K)"]').count()) && await b.locator("#cm-overleg").count(), "zonder zoekveld, met het overleg op het dashboard");
+  check(!(await b.locator('main a[href="/admin/postvak-in"], main a[href="/admin/bellijst"]').count()), "zonder de beheeronderdelen op het dashboard");
+  await b.goto(`${BASIS}/admin/overleg`);
+  check(!(await b.locator("#plannen, #notulen, #ritme, #actie-maken").count()) && await b.locator("#inbrengen").count(), "het overleg zoals een casemanager het ziet: inbrengen wel, plannen en notulen niet");
+  await b.goto(`${BASIS}/admin/weekevaluatie`);
+  check(!(await b.locator('a[href="/admin/weekevaluatie/team"]').count()), "geen link naar het kwartaaloverzicht");
+  await b.screenshot({ path: path.join(SHOTS, "05-beheer-in-mijn-react2u-1440.png"), fullPage: true });
+  check((await b.locator("#weergave-wisselen").innerText()).includes("Naar Beheer"), "de knop gaat nu terug naar Beheer");
+  await b.click("#weergave-wisselen");
+  await b.waitForSelector("#weergave-wisselen:has-text('Naar Mijn React2u')", { timeout: 20000 });
+  check(await b.locator('aside nav a[href="/admin/klantenbord"]').count(), "terug in Beheer, met het volledige menu");
+  await b.goto(`${BASIS}/admin/overleg`);
+  check(await b.locator("#notulen").count(), "en weer de notulen en het afronden");
+
   for (const [page, url, naam] of [[w, "/admin", "dashboard"], [w, "/admin/overleg", "overleg-werknemer"], [b, "/admin/overleg", "overleg-beheer"], [w, `/admin/overleg/${OVERLEG}`, "archief"]]) {
     stap(`Telefoon: ${naam}`);
     await page.setViewportSize({ width: 390, height: 844 });

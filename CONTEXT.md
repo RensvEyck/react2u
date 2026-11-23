@@ -279,6 +279,16 @@ Grafiek.tsx). Een week zonder evaluatie is een gat in de lijn. Er staat bij
 dat je hetzelfde verloop in de kwartaalmeeting bespreekt: het is niet geheim
 voor het beheer. Teksten voor werknemers noemen geen namen.
 
+**Wisselen tussen Beheer en Mijn React2u** (Rens, 23 nov 2026: "het moet ook in
+het werknemersportaal komen"). Wie beheerrechten heeft én een recht uit het
+portaal (`kanWisselen`), heeft onderaan de zijbalk een knop "Naar Mijn
+React2u" en terug "Naar Beheer". De keuze staat in een cookie
+(`r2u_weergave`, alleen voor /admin, een jaar). In Mijn React2u rekent alles met
+de rechten van het portaal (`zichtbareRechten`): het menu, het dashboard, het
+overleg zonder plannen en notulen, de weekevaluatie zonder link naar het
+kwartaaloverzicht. Zo zie je precies wat een casemanager ziet. Het is weergave,
+geen beveiliging: wie een adres intikt, komt er met de echte rechten in.
+
 **De inwerkreis** (Rens, 19 nov 2026: "30, 60 en 90 dagen per functie, met
 een buddy, oefencasussen en mijlpalen"; gekozen: lege sjablonen, de buddy
 alleen een naam). Het beheer vult onder Beheer → Inwerken (`/admin/inwerken`,

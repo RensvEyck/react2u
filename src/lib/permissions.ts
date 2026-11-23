@@ -154,3 +154,22 @@ export const EIGEN_RECHTEN: readonly Permission[] = ["weekevaluatie", "overleg"]
 export function isMijnReact2u(permissions: readonly Permission[]): boolean {
   return permissions.every((p) => EIGEN_RECHTEN.includes(p));
 }
+
+/**
+ * Wisselen tussen Beheer en Mijn React2u (Rens, 23 nov 2026: "het moet ook in
+ * het werknemersportaal komen"): wie beheerrechten heeft én minstens één recht
+ * uit het portaal, kan Mijn React2u bekijken zoals een casemanager het ziet.
+ */
+export function kanWisselen(permissions: readonly Permission[]): boolean {
+  return !isMijnReact2u(permissions) && permissions.some((p) => EIGEN_RECHTEN.includes(p));
+}
+
+/**
+ * De rechten zoals de weergave ze toont: in Mijn React2u alleen die van het
+ * portaal, zodat menu, dashboard en schermen zich gedragen als bij een
+ * werknemer. Weergave, geen beveiliging: de pagina's en de database kijken
+ * naar de echte rechten.
+ */
+export function zichtbareRechten(permissions: readonly Permission[], mijn: boolean): Permission[] {
+  return mijn ? permissions.filter((p) => EIGEN_RECHTEN.includes(p)) : [...permissions];
+}
