@@ -1,0 +1,231 @@
+{
+  "_uitleg": "Gids over eigenrisicodragerschap voor de Ziektewet (kennisbank, tweede reeks; het label Reflex). Blokken: zie components/blocks/Gids.tsx; registratie in lib/gidsen.ts.",
+  "slug": "eigenrisicodrager-ziektewet",
+  "title": "Eigenrisicodrager Ziektewet",
+  "seo_title": "Eigenrisicodrager Ziektewet: wat, voor wie, hoe • React2u",
+  "seo_description": "Eigenrisicodrager Ziektewet: zelf de uitkering en re-integratie van zieke flexwerkers regelen in plaats van UWV. Voor wie het loont, aanvraag en plichten.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "eyebrow": "Gids · Eigenrisicodrager Ziektewet",
+        "kruimel": "Eigenrisicodrager Ziektewet",
+        "heading": "Wat betekent eigenrisicodrager Ziektewet zijn?",
+        "antwoord": "Als eigenrisicodrager voor de Ziektewet betaal je zelf de Ziektewet-uitkering van werknemers die ziek uit dienst gaan, zoals uitzendkrachten en mensen met een aflopend contract, en regel je zelf hun re-integratie, in plaats van UWV. In ruil daarvoor betaal je geen Ziektewet-premie aan UWV. Het loont voor werkgevers met veel flexkrachten die het verzuim goed begeleiden.",
+        "text": "Deze gids legt uit voor wie de Ziektewet geldt, wat je als eigenrisicodrager zelf doet, voor wie het loont, hoe de aanvraag werkt en welke verplichtingen eraan vastzitten.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-24",
+        "bijgewerkt": "2026-11-24"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Ziektewet",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "heading": "Voor wie de Ziektewet geldt",
+        "tekst": "Een werknemer met een vast contract die ziek wordt, krijgt loon van zijn werkgever, twee jaar lang. Maar niet iedereen heeft een werkgever die kan doorbetalen. Voor die mensen is er de Ziektewet: een uitkering van UWV van 70 procent van het dagloon, maximaal twee jaar. Het gaat om:\n\n- **uitzendkrachten** met een uitzendbeding, van wie de uitzendovereenkomst bij ziekte eindigt\n- werknemers van wie het **tijdelijke contract afloopt** tijdens de ziekte\n- werknemers die **binnen vier weken na het einde van hun dienstverband** ziek worden, de nawerking\n- werknemers met een **no-riskpolis**, bijvoorbeeld met een arbeidsbeperking, ook met een vast contract\n- zwangere werknemers en orgaandonoren, met een vast of tijdelijk contract\n\nDe eerste drie groepen zijn de flexwerkers: mensen die ziek uit dienst gaan. Hun uitkering wordt betaald uit de Werkhervattingskas, en die wordt gevuld met een premie die elke werkgever betaalt, de gedifferentieerde premie Whk. Het deel Ziektewet-flex van die premie hangt af van hoeveel van jouw ex-werknemers in de Ziektewet terechtkwamen. Veel flexkrachten die ziek uit dienst gaan, betekent dus een hoge premie, jarenlang.\n\nDaar komt het eigenrisicodragerschap vandaan: in plaats van de premie te betalen en UWV het te laten regelen, betaal je de uitkeringen zelf en doe je de re-integratie zelf. Wie dat goed doet, is goedkoper uit én krijgt mensen sneller weer aan het werk.",
+        "kader": {
+          "eyebrow": "Begrip",
+          "titel": "Ziektewet en WGA",
+          "tekst": "Je kunt eigenrisicodrager zijn voor de Ziektewet (de eerste twee jaar van zieke flexwerkers), voor de WGA (de WIA-uitkering van je ex-werknemers, tot tien jaar) of voor beide. Deze gids gaat over de Ziektewet; voor de WGA gelden een garantstelling en andere afwegingen.",
+          "href": "/reflex",
+          "label": "React2u Reflex voor de flexbranche"
+        }
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat je zelf doet",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "heading": "Wat je als eigenrisicodrager zelf doet",
+        "tekst": "Als eigenrisicodrager neem je de rol van UWV over voor je zieke ex-werknemers. Dat betekent concreet:\n\n- **De ziekmelding en de beoordeling**: je stelt vast of iemand recht heeft op een Ziektewet-uitkering en hoe hoog die is, 70 procent van het dagloon.\n- **De uitkering betalen**, maximaal 104 weken, met de inhoudingen en de aangifte loonheffingen erbij.\n- **De verzuimbegeleiding en re-integratie**, volgens dezelfde stappen als bij een werknemer in dienst: contact, bedrijfsarts, plan van aanpak, evaluaties, passend werk zoeken, ook bij andere werkgevers.\n- **De eerstejaars Ziektewet-beoordeling**: na een jaar beoordeelt UWV of je ex-werknemer nog ten minste 35 procent arbeidsongeschikt is voor algemeen geaccepteerde arbeid. Zo niet, dan stopt de uitkering. Jij levert daarvoor het re-integratieverslag aan.\n- **Beslissingen nemen en bezwaar afhandelen**: je neemt formele besluiten over de uitkering, waar je ex-werknemer bezwaar tegen kan maken. UWV blijft toezicht houden.\n- **De WIA-aanvraag na twee jaar**, met een compleet re-integratieverslag, net als bij een gewone werknemer.\n\nDat is veel werk en vraagt kennis van de Ziektewet, de Wet verbetering poortwachter en de loonadministratie. Daarom besteden de meeste eigenrisicodragers de uitvoering uit aan een gecertificeerde arbodienst of een gespecialiseerd bureau, dat de begeleiding, de administratie en de besluiten voor je doet. Jij blijft verantwoordelijk en betaalt de uitkeringen; de uitvoerder zorgt dat het klopt.",
+        "kader": {
+          "eyebrow": "Goed om te weten",
+          "titel": "Ook na het dienstverband",
+          "tekst": "Je ex-werknemer heeft geen werkgever meer, maar wel verplichtingen: meewerken aan herstel, naar de bedrijfsarts, passend werk accepteren. Werkt hij of zij niet mee, dan mag je als eigenrisicodrager de uitkering korten of stoppen, met dezelfde zorgvuldigheid als UWV."
+        }
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Aanvraag",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "eyebrow": "Stappenplan",
+        "heading": "Zo word je eigenrisicodrager voor de Ziektewet",
+        "text": "Eigenrisicodrager worden kan twee keer per jaar, per 1 januari en per 1 juli. De aanvraag moet dertien weken daarvoor binnen zijn bij de Belastingdienst.",
+        "items": [
+          {
+            "wanneer": "Stap 1",
+            "titel": "Reken het uit",
+            "wie": "Werkgever, met adviseur",
+            "tekst": "Vergelijk de premie Ziektewet-flex die je nu betaalt met de uitkeringen die je zelf zou betalen, op basis van je ziek-uit-dienstmeldingen van de afgelopen jaren, plus de kosten van de uitvoering."
+          },
+          {
+            "wanneer": "Stap 2",
+            "titel": "Regel de verzuimbegeleiding",
+            "wie": "Werkgever en arbodienst",
+            "tekst": "Je moet een schriftelijke overeenkomst hebben met een gecertificeerde arbodienst of een geregistreerde bedrijfsarts voor de begeleiding van je zieke ex-werknemers. Zonder die overeenkomst wijst de Belastingdienst de aanvraag af."
+          },
+          {
+            "wanneer": "Stap 3",
+            "titel": "Kies de uitvoerder",
+            "wie": "Werkgever",
+            "tekst": "Doe je de uitkeringen, de besluiten en de administratie zelf, of besteed je het uit? Een arbodienst die de Ziektewet uitvoert, doet beide: de begeleiding en de administratie."
+          },
+          {
+            "wanneer": "Stap 4",
+            "titel": "Dien de aanvraag in",
+            "wie": "Werkgever",
+            "tekst": "Bij de Belastingdienst, uiterlijk dertien weken vóór 1 januari of 1 juli, met de overeenkomst met de arbodienst erbij. Voor de Ziektewet is geen garantstelling van een bank of verzekeraar nodig."
+          },
+          {
+            "wanneer": "Stap 5",
+            "titel": "Richt het proces in",
+            "wie": "Werkgever en uitvoerder",
+            "tekst": "Wie ontvangt de ziekmeldingen, wie belt, wie beslist, wie betaalt? Leg het vast in een reglement en informeer je flexkrachten: zij melden zich bij jou of je uitvoerder, niet bij UWV."
+          },
+          {
+            "wanneer": "Stap 6",
+            "titel": "Start en meet",
+            "wie": "Werkgever",
+            "tekst": "Vanaf de ingangsdatum vallen nieuwe ziek-uit-dienstgevallen onder jou; lopende gevallen van vóór die datum blijven bij UWV. Volg de instroom, de duur en de kosten per kwartaal."
+          }
+        ],
+        "noot": "Stoppen kan ook, per 1 januari of 1 juli, met dezelfde aanvraagtermijn. De gevallen die tijdens je eigenrisicodragerschap zijn begonnen, blijven dan wel voor jouw rekening tot ze zijn afgerond."
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Afweging",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "eyebrow": "Op een rij",
+        "heading": "Eigenrisicodrager of bij UWV blijven",
+        "text": "De verschillen naast elkaar, op de punten die de keuze bepalen.",
+        "kolommen": ["Onderwerp", "Bij UWV (publiek verzekerd)", "Eigenrisicodrager"],
+        "rijen": [
+          ["Kosten", "Premie Ziektewet-flex als deel van de gedifferentieerde premie Whk, gebaseerd op je instroom van eerdere jaren", "Geen premie Ziektewet-flex; wel de uitkeringen zelf en de kosten van de uitvoering"],
+          ["Uitkering", "UWV stelt vast en betaalt", "Jij stelt vast en betaalt, 70 procent van het dagloon, maximaal 104 weken"],
+          ["Re-integratie", "UWV begeleidt, op afstand en met beperkte capaciteit", "Jij of je arbodienst begeleidt, met dezelfde aandacht als voor werknemers in dienst"],
+          ["Invloed op de duur", "Weinig: je ziet de gevallen niet", "Groot: snel contact en passend werk verkorten de uitkering"],
+          ["Risico", "Voorspelbaar: de premie", "Een langdurig geval kost tot twee jaar uitkering; bij veel instroom loopt dat op"],
+          ["Administratie", "Geen", "Besluiten, betalingen, aangiften en bezwaar; meestal uitbesteed"],
+          ["Voorwaarden", "Geen", "Overeenkomst met een gecertificeerde arbodienst; aanvraag per 1 januari of 1 juli"],
+          ["Doorwerking naar de WGA", "Instroom in de WGA na twee jaar verhoogt je WGA-premie", "Idem, maar betere re-integratie betekent minder instroom in de WGA"]
+        ],
+        "noot": "De gedifferentieerde premie Whk staat elk jaar op de beschikking van de Belastingdienst; de hoogte hangt af van je loonsom en je instroom. Een adviseur rekent het verschil voor je uit."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Voor wie",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "heading": "Voor wie het loont, en voor wie niet",
+        "tekst": "Eigenrisicodragerschap loont als je veel mensen hebt die ziek uit dienst kunnen gaan én je in staat bent hun verzuim kort te houden. In de praktijk:\n\n- **Uitzendbureaus en payrollbedrijven**: de grootste groep eigenrisicodragers. Veel uitzendkrachten, veel kortdurend verzuim, en een premie Ziektewet-flex die snel oploopt. Met goede begeleiding is de winst groot.\n- **Werkgevers met veel tijdelijke contracten**: horeca, logistiek, zorg, detailhandel, seizoenswerk. Een paar langdurig zieke ex-werknemers per jaar drukken jarenlang op de premie.\n- **Grotere werkgevers**: hoe hoger de loonsom, hoe meer de premie Ziektewet-flex uitmaakt en hoe meer er te winnen is met eigen regie.\n\nVoor wie het meestal niet loont:\n\n- **Kleine werkgevers** met vooral vaste contracten: de premie is laag, de instroom nihil, en de administratie van één geval weegt niet op tegen de besparing.\n- **Werkgevers zonder verzuimbeleid**: eigenrisicodrager zijn zonder snelle begeleiding betekent de volle twee jaar uitkering betalen, zonder de premie die het risico spreidde.\n- **Werkgevers met veel lopende gevallen**: die blijven bij UWV, en de nieuwe komen bij jou; de eerste jaren betaal je dubbel.\n\nDe rekensom is per werkgever anders. Vraag de beschikking Whk van de Belastingdienst erbij, tel de ziek-uit-dienstmeldingen van de afgelopen drie jaar, en laat een adviseur of een arbodienst de vergelijking maken. En kijk verder dan de premie: eigenrisicodrager zijn betekent vooral dat je zieke flexkrachten dezelfde aandacht geeft als je vaste mensen. Dat is uiteindelijk waar de besparing vandaan komt."
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over eigenrisicodragerschap Ziektewet",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Voor wie betaal ik als eigenrisicodrager de Ziektewet-uitkering?",
+            "answer": "Voor je ex-werknemers die ziek uit dienst gingen: uitzendkrachten met een uitzendbeding, werknemers met een afgelopen tijdelijk contract en werknemers die binnen vier weken na het einde van het dienstverband ziek werden. Niet voor zwangere werknemers of werknemers met een no-riskpolis; die blijven bij UWV."
+          },
+          {
+            "question": "Wanneer kan ik eigenrisicodrager worden?",
+            "answer": "Per 1 januari of per 1 juli. De aanvraag moet dertien weken daarvoor bij de Belastingdienst binnen zijn, met de overeenkomst met een gecertificeerde arbodienst of een bedrijfsarts erbij."
+          },
+          {
+            "question": "Heb ik een garantstelling nodig?",
+            "answer": "Nee, voor de Ziektewet niet. Voor eigenrisicodragerschap WGA wel: een garantie van een bank of verzekeraar. Dat is een van de redenen waarom de Ziektewet de eerste stap is."
+          },
+          {
+            "question": "Mag ik de uitvoering uitbesteden?",
+            "answer": "Ja. De meeste eigenrisicodragers laten de begeleiding, de administratie en de besluiten doen door een gecertificeerde arbodienst of een gespecialiseerd bureau. Jij blijft verantwoordelijk en betaalt de uitkeringen."
+          },
+          {
+            "question": "Wat gebeurt er na een jaar?",
+            "answer": "UWV doet de eerstejaars Ziektewet-beoordeling: kan je ex-werknemer met algemeen geaccepteerde arbeid nog ten minste 65 procent van het oude loon verdienen? Dan stopt de uitkering. Zo niet, dan loopt hij door tot maximaal twee jaar, en volgt de WIA-beoordeling."
+          },
+          {
+            "question": "Wat als ik wil stoppen als eigenrisicodrager?",
+            "answer": "Dat kan per 1 januari of 1 juli, met dezelfde aanvraagtermijn van dertien weken. De gevallen die tijdens je eigenrisicodragerschap zijn begonnen, blijven voor jouw rekening tot ze zijn afgerond. Na het stoppen kun je drie jaar niet opnieuw eigenrisicodrager worden."
+          },
+          {
+            "question": "Kan React2u de Ziektewet voor mij uitvoeren?",
+            "answer": "Ja. Met React2u Reflex begeleiden we zieke flexkrachten, ook na het einde van het dienstverband, en verzorgen we de administratie en de besluiten voor eigenrisicodragers. Met een vaste casemanager, net als bij werknemers in dienst."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#3AA5DD",
+        "tint": "#E9F5FC",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Zieke flexkrachten dezelfde aandacht als je vaste mensen",
+        "tekst": "React2u Reflex is gemaakt voor uitzendbureaus en eigenrisicodragers Ziektewet. We begeleiden zieke flexkrachten vanaf dag één, ook na het einde van het dienstverband, verzorgen de uitkeringen en de besluiten en zorgen dat de dossiers klaar zijn voor de eerstejaarsbeoordeling en de WIA. Gericht op passend werk, want dat verkort de uitkering.",
+        "punten": [
+          "Gecertificeerde arbodienst: de overeenkomst die de Belastingdienst vraagt",
+          "Begeleiding ook na einde dienstverband, met een vaste casemanager",
+          "Uitkeringen, besluiten en administratie voor eigenrisicodragers",
+          "Rekensom vooraf: loont het voor jouw loonsom en instroom?"
+        ],
+        "dienst": {
+          "naam": "Reflex",
+          "wat": "Ziektewet en verzuim in de flexbranche",
+          "tekst": "Begeleiding van zieke flexkrachten, eigenrisicodragerschap Ziektewet, ook na einde dienstverband.",
+          "href": "/reflex",
+          "label": "Meer over React2u Reflex"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: Wet verbetering poortwachter", "href": "/wet-verbetering-poortwachter" },
+          { "label": "Gids: twee jaar ziek", "href": "/twee-jaar-ziek" },
+          { "label": "Gids: de arbodienst", "href": "/arbodienst" },
+          { "label": "Gids: re-integratie", "href": "/re-integratie" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { kort, omschrijving } from "@/lib/seo";
 import type { Page, Post, Vacancy } from "@/lib/types";
 import { VAKGEBIEDEN } from "@/lib/vakgebieden";
 import { GIDSEN } from "@/lib/gidsen";
+import { HULPMIDDELEN, ONDERWERPEN } from "@/lib/kennis";
 
 /**
  * De tekst van /llms.txt (https://llmstxt.org): een Markdown-overzicht van de
@@ -93,15 +94,12 @@ export function llmsTekst({ base, pages, posts, vacancies, contact }: LlmsBron):
     "- De site is Nederlandstalig; de Engelse versie staat onder Optional.",
     "",
     ...SECTIES.flatMap((s) => sectie(s.kop, s.slugs.flatMap(pagina))),
-    ...sectie(
-      "Kennisbank",
-      posts.length
-        ? [
-            item("Blog", `${base}/blog`, "Artikelen over verzuim, de Wet verbetering poortwachter en preventie, voor werkgevers en werknemers."),
-            ...posts.map((p) => item(p.title, `${base}/blog/${p.slug}`, omschrijving(p.seo_description, p.excerpt))),
-          ]
-        : [],
-    ),
+    ...sectie("Kennisbank", [
+      item("Kennisbank", `${base}/kennis`, "Gidsen, hulpmiddelen en artikelen over verzuim, re-integratie, preventie en de wet, per onderwerp."),
+      ...ONDERWERPEN.map((o) => item(o.naam, `${base}/kennis/${o.slug}`, o.seo_description)),
+      ...HULPMIDDELEN.map((h) => item(h.naam, `${base}/kennis/${h.slug}`, h.seo_description)),
+      ...posts.map((p) => item(p.title, `${base}/blog/${p.slug}`, omschrijving(p.seo_description, p.excerpt))),
+    ]),
     ...sectie("Werken bij React2u", [
       item("Vacatures", `${base}/vacatures`, "Alle openstaande vacatures en zzp-opdrachten, te filteren op vakgebied."),
       ...VAKGEBIEDEN.map((v) => item(v.nl.titel, `${base}/vacatures/vakgebied/${v.slug}`, kort(v.nl.intro))),

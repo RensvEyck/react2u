@@ -77,7 +77,7 @@ export function GidsKop({ d, asH1, ctx }: Props) {
           <span aria-hidden className="absolute right-[-160px] top-[-180px] h-[420px] w-[420px] rounded-full md:h-[520px] md:w-[520px]" style={{ background: c, opacity: 0.12 }} />
           <div className="relative flex flex-col gap-5 md:gap-6">
             {/* Dezelfde reeks als de BreadcrumbList uit crumbsVoor() in lib/nav.ts: Werkgevers › Kennis › gids. */}
-            <Kruimels items={[{ label: "Home", href: "/" }, { label: "Werkgevers", href: "/werkgevers" }, { label: "Kennis", href: "/blog" }, { label: d.kruimel || d.heading }]} />
+            <Kruimels items={[{ label: "Home", href: "/" }, { label: "Werkgevers", href: "/werkgevers" }, { label: "Kennis", href: "/kennis" }, { label: d.kruimel || d.heading }]} />
             {d.eyebrow && (
               <span className="inline-flex items-center gap-2.5 text-[13px] font-bold uppercase tracking-[1.6px]" style={{ color: tc }}>
                 <span className="h-2 w-2 rounded-full" style={{ background: c }} />{d.eyebrow}
@@ -376,13 +376,14 @@ export function GidsKaart({ gids, compact = false }: { gids: Gids; compact?: boo
 }
 
 /**
- * Het blok met de kaarten naar de gidsen, op de homepage, /diensten en in de
- * blog. Zonder `slugs` alle vijf, in de volgorde van lib/gidsen.ts; op de
- * telefoon een strook om te swipen, breed drie en twee of vijf op een rij.
+ * Het blok met de kaarten naar de gidsen, op de homepage en /diensten. Zonder
+ * `slugs` de eerste vijf uit lib/gidsen.ts; op de telefoon een strook om te
+ * swipen, breed drie en twee of vijf op een rij.
  */
 export function GidsenKaarten({ d }: Props) {
+  // Zonder `slugs` de eerste vijf (de reeks uit het HALO-herstelplan); dertien kaarten is een muur.
   const slugs: string[] | undefined = Array.isArray(d.slugs) && d.slugs.length ? d.slugs : undefined;
-  const lijst = slugs ? slugs.map((s) => gidsVoor(s)).filter((g): g is Gids => Boolean(g)) : GIDSEN;
+  const lijst = slugs ? slugs.map((s) => gidsVoor(s)).filter((g): g is Gids => Boolean(g)) : GIDSEN.slice(0, 5);
   if (!lijst.length) return null;
   return (
     <section aria-label={d.heading || "Gidsen"} className={`hv ${outfit.variable}`} style={{ background: d.bg || "#ffffff" }}>
@@ -422,8 +423,10 @@ export function GidsenRij({ lijst, label }: { lijst: Gids[]; label: string }) {
 
 /** De strook "Verdieping" onderaan een dienstpagina: de gidsen bij dat label (DienstLabel, `gidsen` in de data). */
 export function GidsenStrook({ slugs, kleur }: { slugs: string[]; kleur?: string }) {
-  const lijst = slugs.map((s) => gidsVoor(s)).filter((g): g is Gids => Boolean(g));
+  // Hooguit vier kaarten; de rest staat op het onderwerp in de kennisbank.
+  const lijst = slugs.map((s) => gidsVoor(s)).filter((g): g is Gids => Boolean(g)).slice(0, 4);
   if (!lijst.length) return null;
+  const onderwerp = lijst[0].onderwerp;
   return (
     <section aria-label="Verdieping" className="flex flex-col gap-6 px-5 pt-14 md:px-10 md:pt-[104px] xl:mx-auto xl:max-w-[1200px] xl:px-0">
       <div className="flex flex-col gap-3">
@@ -432,14 +435,17 @@ export function GidsenStrook({ slugs, kleur }: { slugs: string[]; kleur?: string
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         {lijst.map((g) => <GidsKaart key={g.slug} gids={g} compact />)}
-        {lijst.length === 1 && (
+        {lijst.length % 2 === 1 && (
           <div className="flex flex-col justify-center gap-2 rounded-[24px] p-6" style={{ background: LAV }}>
-            <span className={`${kop} text-[19px] leading-[1.25]`} style={{ color: NAVY }}>Meer uitleg over verzuim</span>
-            <span className="text-[15px] leading-[1.55]" style={{ color: BODY }}>Alle gidsen en artikelen staan bij elkaar op de kennispagina.</span>
-            <Link href="/blog" className="mt-1 inline-flex items-center gap-2 text-[14.5px] font-bold" style={{ color: NAVY }}>Naar kennis en blog<Pijl size={14} /></Link>
+            <span className={`${kop} text-[19px] leading-[1.25]`} style={{ color: NAVY }}>Meer uitleg in de kennisbank</span>
+            <span className="text-[15px] leading-[1.55]" style={{ color: BODY }}>Alle gidsen, hulpmiddelen en artikelen staan bij elkaar, per onderwerp.</span>
+            <Link href={`/kennis/${onderwerp}`} className="mt-1 inline-flex items-center gap-2 text-[14.5px] font-bold" style={{ color: NAVY }}>Naar de kennisbank<Pijl size={14} /></Link>
           </div>
         )}
       </div>
+      {lijst.length % 2 === 0 && (
+        <Link href={`/kennis/${onderwerp}`} className="inline-flex items-center gap-2 self-start text-[15px] font-bold underline underline-offset-[5px]" style={{ color: NAVY, textDecorationColor: "rgba(50,46,131,0.35)" }}>Alle gidsen in de kennisbank<Pijl size={14} /></Link>
+      )}
     </section>
   );
 }

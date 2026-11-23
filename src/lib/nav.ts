@@ -89,8 +89,8 @@ const WERKNEMER_PADEN = ["/werknemers", "/verzuimprotocol", "/je-rechten-en-priv
  * november 2026). De labelpagina's (Resist, Recover, …) komen via labelVoor().
  */
 const WERKGEVER_PADEN = ["/werkgevers", "/diensten", "/verzuimabonnementen", "/kennismaken",
-  // De gidsen (lib/gidsen.ts) zijn voor werkgevers geschreven.
-  ...GIDS_PADEN];
+  // De kennisbank en de gidsen (lib/gidsen.ts) zijn voor werkgevers geschreven.
+  "/kennis", ...GIDS_PADEN];
 /**
  * Bij welke doelgroep hoort dit pad? `null` voor het startscherm en voor
  * gedeelde pagina's (contact, blog, over ons, vacatures): daar geldt de
@@ -132,7 +132,7 @@ export const NAV: Record<Doelgroep | "algemeen", NavItem[]> = {
     { label: "Diensten", href: "/diensten", mega: true },
     { label: "Verzuimabonnementen", href: "/verzuimabonnementen" },
     OVER_ONS,
-    { label: "Blog", href: "/blog" },
+    { label: "Kennis", href: "/kennis" },
     { label: "Contact", href: "/contact" },
   ],
   werknemer: [
@@ -147,7 +147,7 @@ export const NAV: Record<Doelgroep | "algemeen", NavItem[]> = {
     { label: "Diensten", href: "/diensten", mega: true },
     { label: "Verzuimabonnementen", href: "/verzuimabonnementen" },
     OVER_ONS,
-    { label: "Blog", href: "/blog" },
+    { label: "Kennis", href: "/kennis" },
     { label: "Contact", href: "/contact" },
   ],
 };
@@ -179,11 +179,11 @@ export function crumbsVoor(path: string, title: string, taal: Taal = "nl"): NavL
     ? STARTPAGINA[groep]
     : { label: groep === "werkgever" ? t.werkgevers : t.werknemers, href: pad(taal, groep === "werkgever" ? "werkgevers" : "werknemers") };
   if (path === start.href) return [start];
-  // Een labelpagina hangt onder Diensten, een gids onder Kennis (de blog).
+  // Een labelpagina hangt onder Diensten, een gids onder Kennis (de kennisbank).
   const tussen = labelVoor(nlPadVoor(path))
     ? [{ label: woordenboek(taal).dienstLabel.kruimelDiensten, href: pad(taal, "diensten") }]
     : gidsVoor(path)
-      ? [{ label: "Kennis", href: "/blog" }]
+      ? [{ label: "Kennis", href: "/kennis" }]
       : [];
   return [start, ...tussen, { label: title, href: path }];
 }

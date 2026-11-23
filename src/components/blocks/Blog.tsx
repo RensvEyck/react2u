@@ -7,7 +7,8 @@ import { outfit } from "./HomeVerhaal";
 import { NAVY, PINK, TEAL, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Pijl } from "./Gedeeld";
 import { inkt } from "@/lib/kleur";
 import Beeld from "@/components/site/Beeld";
-import { GIDSEN } from "@/lib/gidsen";
+import { GIDSEN, gidsenBijOnderwerp } from "@/lib/gidsen";
+import { onderwerpVanArtikel, onderwerpVoor } from "@/lib/kennis";
 import { GidsenRij } from "./Gids";
 
 /*
@@ -33,7 +34,8 @@ function datum(d: string | null) {
   return d ? new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" }) : null;
 }
 
-function Kaart({ p }: { p: Post }) {
+/** Een artikelkaart, ook voor de kennisbank (components/kennis). */
+export function ArtikelKaart({ p }: { p: Post }) {
   return (
     <article className="group relative flex flex-col gap-3">
       <div className="aspect-[16/10] overflow-hidden rounded-[18px]" style={{ background: LAV }}>
@@ -128,7 +130,7 @@ export function BlogOverzicht({ posts }: { posts: Post[] }) {
         <section aria-label="Artikelen" className={`${BREED} flex flex-col gap-8 border-t pb-14 pt-10 md:pb-24`} style={{ borderColor: LINE }}>
           <h2 className={`${kop} m-0 text-[28px]`} style={{ color: NAVY }}>Alle artikelen</h2>
           <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-            {rest.map((p) => <Kaart key={p.id} p={p} />)}
+            {rest.map((p) => <ArtikelKaart key={p.id} p={p} />)}
           </div>
         </section>
       )}
@@ -158,11 +160,14 @@ function secties(md: string) {
 export function BlogArtikel({ p, andere }: { p: Post; andere: Post[] }) {
   const delen = secties(p.body_md || "");
   const inhoud = delen.filter((d) => d.kop);
+  // Het onderwerp in de kennisbank (lib/kennis.ts): voor het kruimelpad en de gidsen onder "Lees ook".
+  const onderwerp = onderwerpVoor(onderwerpVanArtikel(p)) ?? { slug: "verzuim", naam: "Verzuim" };
+  const gidsen = gidsenBijOnderwerp(onderwerp.slug as Parameters<typeof gidsenBijOnderwerp>[0]).slice(0, 3);
   return (
     <div className={`hv ${outfit.variable} bg-white`}>
       <section aria-label="Artikel" className="pb-12 pt-10 md:pb-14 md:pt-14" style={{ background: "linear-gradient(180deg, #F6F5FB 0%, #ffffff 100%)" }}>
         <div className={`${BREED} flex flex-col gap-5`}>
-          <Kruimels items={[{ label: "Home", href: "/" }, { label: "Blog", href: "/blog" }, { label: p.title }]} />
+          <Kruimels items={[{ label: "Home", href: "/" }, { label: "Kennis", href: "/kennis" }, { label: onderwerp.naam, href: `/kennis/${onderwerp.slug}` }, { label: p.title }]} />
           <h1 className={`${kop} m-0 max-w-[900px] text-[38px] leading-[1.05] tracking-[-1.2px] md:text-[56px] md:tracking-[-1.6px]`} style={{ color: NAVY }}>{p.title}</h1>
           <span className="flex flex-wrap gap-x-4 gap-y-1 text-[14.5px]" style={{ color: MUTE }}>
             <strong style={{ color: NAVY }}>{p.author || "Team React2u"}</strong>
@@ -204,19 +209,23 @@ export function BlogArtikel({ p, andere }: { p: Post; andere: Post[] }) {
           </div>
         </article>
       </section>
-      {andere.length > 0 && (
-        <section aria-label="Lees ook" style={{ background: SOFT }}>
-          <div className={`${BREED} flex flex-col gap-8 py-14 md:py-24`}>
-            <div className="flex flex-col gap-4">
+      <section aria-label="Lees ook" style={{ background: SOFT }}>
+        <div className={`${BREED} flex flex-col gap-8 py-14 md:py-24`}>
+          <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
+            <div className="flex flex-col gap-4 lg:col-span-7">
               <Eyebrow kleur={TEAL}>Lees ook</Eyebrow>
-              <h2 className={`${kop} m-0 text-[32px] tracking-[-0.9px] md:text-[40px]`} style={{ color: NAVY }}>Meer over verzuim</h2>
+              <h2 className={`${kop} m-0 text-[32px] tracking-[-0.9px] md:text-[40px]`} style={{ color: NAVY }}>De gidsen over {onderwerp.naam.toLowerCase()}</h2>
             </div>
-            <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-              {andere.slice(0, 3).map((a) => <Kaart key={a.id} p={a} />)}
-            </div>
+            <Link href={`/kennis/${onderwerp.slug}`} className="inline-flex items-center gap-2 text-[16px] font-bold underline underline-offset-[5px] lg:col-span-4 lg:col-start-9 lg:justify-self-end" style={{ color: NAVY, textDecorationColor: "rgba(50,46,131,0.35)" }}>Alles over {onderwerp.naam.toLowerCase()}<Pijl /></Link>
           </div>
-        </section>
-      )}
+          {gidsen.length > 0 && <GidsenRij lijst={gidsen} label={`Gidsen over ${onderwerp.naam}`} />}
+          {andere.length > 0 && (
+            <div className="grid gap-x-5 gap-y-10 border-t pt-10 sm:grid-cols-2 lg:grid-cols-3" style={{ borderColor: LINE }}>
+              {andere.slice(0, 3).map((a) => <ArtikelKaart key={a.id} p={a} />)}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

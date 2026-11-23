@@ -296,22 +296,22 @@ export const WORDPRESS_REDIRECTS: { source: string; destination: string }[] = [
   // inhoud, maar een 404 is een 404 — die vangen we af op de dichtstbijzijnde
   // pagina die wél bestaat.
   { source: "/team/:slug*", destination: "/over-react2u" },
-  { source: "/category/:slug*", destination: "/blog" },
+  { source: "/category/:slug*", destination: "/kennis" },
   { source: "/author/:slug*", destination: "/" },
-  { source: "/the-importance-of-self-care-for-coaches-strategies-for-success", destination: "/blog" },
-  { source: "/coaching-for-leadership-building-stronger-teams-and-organizations", destination: "/blog" },
-  { source: "/the-role-of-business-coach-education-training-experience", destination: "/blog" },
-  { source: "/the-power-of-mindset-helping-clients-achieve-their-goals", destination: "/blog" },
-  { source: "/mastering-communication-skills-key-to-effective-coaching", destination: "/blog" },
-  { source: "/building-trust-with-business-coaching-clients", destination: "/blog" },
-  { source: "/effective-goal-setting-for-business-coaching-clients", destination: "/blog" },
-  { source: "/managing-difficult-business-coaching-clients", destination: "/blog" },
+  { source: "/the-importance-of-self-care-for-coaches-strategies-for-success", destination: "/kennis" },
+  { source: "/coaching-for-leadership-building-stronger-teams-and-organizations", destination: "/kennis" },
+  { source: "/the-role-of-business-coach-education-training-experience", destination: "/kennis" },
+  { source: "/the-power-of-mindset-helping-clients-achieve-their-goals", destination: "/kennis" },
+  { source: "/mastering-communication-skills-key-to-effective-coaching", destination: "/kennis" },
+  { source: "/building-trust-with-business-coaching-clients", destination: "/kennis" },
+  { source: "/effective-goal-setting-for-business-coaching-clients", destination: "/kennis" },
+  { source: "/managing-difficult-business-coaching-clients", destination: "/kennis" },
 
   // WordPress-restanten die crawlers nog jaren blijven proberen
   { source: "/wp-content/:path*", destination: "/" },
   { source: "/wp-includes/:path*", destination: "/" },
-  { source: "/feed", destination: "/blog" },
-  { source: "/comments/feed", destination: "/blog" },
+  { source: "/feed", destination: "/kennis" },
+  { source: "/comments/feed", destination: "/kennis" },
 ];
 
 /**
@@ -377,8 +377,16 @@ export const GIDS_REDIRECTS: { source: string; destination: string }[] = GIDS_VA
   destination: `/${g.gids}`,
 }));
 
+/**
+ * Het blogoverzicht is sinds november 2026 de kennisbank (/kennis): de
+ * gidsen, hulpmiddelen en artikelen per onderwerp. Een echte 301; de
+ * artikelen zelf blijven op /blog/<slug>. De WordPress-regels hierboven die
+ * naar /blog wezen, wijzen nu rechtstreeks naar /kennis (geen keten).
+ */
+export const KENNIS_REDIRECTS: { source: string; destination: string }[] = [{ source: "/blog", destination: "/kennis" }];
+
 /** Alle vaste regels uit de code, in de volgorde waarin next.config.ts ze toepast. */
-export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS, ...INDEX_REDIRECTS, ...GIDS_REDIRECTS];
+export const VASTE_REDIRECTS = [...WORDPRESS_REDIRECTS, ...DOCUMENT_REDIRECTS, ...DIENST_REDIRECTS, ...INDEX_REDIRECTS, ...GIDS_REDIRECTS, ...KENNIS_REDIRECTS];
 
 /**
  * De bron zoals next.config.ts hem aan Next geeft: mét een optionele

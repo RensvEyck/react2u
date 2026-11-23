@@ -36,8 +36,8 @@
                 "href": "/vacatures"
               },
               {
-                "label": "Blog",
-                "href": "/blog"
+                "label": "Kennisbank",
+                "href": "/kennis"
               },
               {
                 "label": "Contact",
@@ -108,6 +108,50 @@
               {
                 "label": "Preventiemedewerker",
                 "href": "/preventiemedewerker"
+              },
+              {
+                "label": "Arbodienst",
+                "href": "/arbodienst"
+              },
+              {
+                "label": "Zieke werknemer",
+                "href": "/zieke-werknemer"
+              },
+              {
+                "label": "Verzuimverzekering",
+                "href": "/verzuimverzekering"
+              },
+              {
+                "label": "Casemanager verzuim",
+                "href": "/casemanager-verzuim"
+              },
+              {
+                "label": "Loonsanctie",
+                "href": "/loonsanctie"
+              },
+              {
+                "label": "RI&E",
+                "href": "/rie"
+              },
+              {
+                "label": "Eigenrisicodrager Ziektewet",
+                "href": "/eigenrisicodrager-ziektewet"
+              },
+              {
+                "label": "Twee jaar ziek",
+                "href": "/twee-jaar-ziek"
+              },
+              {
+                "label": "Poortwachter-planner",
+                "href": "/kennis/poortwachter-planner"
+              },
+              {
+                "label": "Loonsanctie-check",
+                "href": "/kennis/loonsanctie-check"
+              },
+              {
+                "label": "Checklist poortwachterdossier",
+                "href": "/kennis/checklist-poortwachterdossier"
               }
             ]
           },

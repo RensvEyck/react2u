@@ -3238,6 +3238,33 @@ staan de vijf slugs in `MIGRATIE_RESERVE` (`lib/concept.ts`): alleen die
 pagina's tonen in productie hun concept. Zie
 [docs/adr/0002](docs/adr/0002-gidsen-als-vaste-paginas.md).
 
+**De kennisbank** (`/kennis`, sinds november 2026 in plaats van de blog, die
+met een 301 naar `/kennis` gaat; de artikelen blijven op `/blog/<slug>`).
+[`src/lib/kennis.ts`](src/lib/kennis.ts) kent vier onderwerpen (Verzuim,
+Re-integratie, Preventie, Wet en regels) met elk een pagina
+`/kennis/<onderwerp>` die de gidsen, hulpmiddelen en artikelen van dat
+onderwerp bundelt en terug linkt naar de dienst; elke gids draagt een
+`onderwerp`, een artikel krijgt het zijne uit een vaste lijst of zijn titel.
+De hub zoekt in de browser (`KennisZoeker`, `zoekKennis`: op woordbegin,
+zonder accenten, gidsen eerst). Drie hulpmiddelen, puur en getest: de
+Poortwachter-planner ([`lib/poortwachter.ts`](src/lib/poortwachter.ts): de
+weken uit de wet als datums, de 42e-weeksmelding op de eerste werkdag erna,
+een iCalendar-bestand via `/kennis/poortwachter-planner/agenda.ics?datum=`),
+de loonsanctie-check ([`lib/loonsanctieCheck.ts`](src/lib/loonsanctieCheck.ts):
+twaalf vragen met gewicht, onbekend telt als ontbrekend) en de checklist
+poortwachterdossier ([`lib/checklistPoortwachter.ts`](src/lib/checklistPoortwachter.ts):
+24 punten in vijf fasen, als pagina en als pdf via `lib/checklistPdf.tsx`).
+De checklist is het enige hulpmiddel met een formulier (`submitChecklist`):
+de aanvraag komt als bericht in het Postvak IN, de pdf gaat per mail als
+Resend is ingericht en staat altijd als download op de pagina. De tweede
+reeks gidsen (arbodienst, zieke werknemer, verzuimverzekering, casemanager
+verzuim, loonsanctie, RI&E, eigenrisicodrager Ziektewet, twee jaar ziek) volgt
+dezelfde opbouw; het loonsanctie-artikel is in de gids opgegaan (301). De
+strook op een dienstpagina toont hooguit vier gidsen met een link naar het
+onderwerp. Migratie 0061 zet de tweede reeks in de database; tot die tijd
+staan de acht slugs in `MIGRATIE_RESERVE`. Zie
+[docs/adr/0003](docs/adr/0003-kennisbank.md).
+
 `sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld
 niets zegt. Pagina's zonder item in de database hebben sinds november 2026 ook

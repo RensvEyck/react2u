@@ -59,7 +59,7 @@ export const nl = {
       { label: "Over React2u", slug: "over-react2u" },
       { label: "Werken bij", slug: "vacatures" },
       { label: "Certificeringen", slug: "certificeringen" },
-      { label: "Blog", slug: "blog" },
+      { label: "Kennisbank", slug: "kennis" },
     ],
     overOnsKop: "Over React2u",
     /** De zes labels in het uitklapmenu Diensten. */
@@ -107,7 +107,7 @@ export const nl = {
       { label: "Tarieven", slug: "verzuimabonnementen" },
       { label: "Kennismaken", slug: "kennismaken" },
       { label: "Partnerprogramma", slug: "partners" },
-      { label: "Gidsen en blog", slug: "blog" },
+      { label: "Kennisbank", slug: "kennis" },
     ] as { label: string; slug: string; anker?: string }[],
     werknemerLinks: [
       { label: "Ziek, wat nu?", slug: "verzuimprotocol" },
@@ -238,6 +238,8 @@ export const nl = {
       telefoonOngeldig: "Controleer je telefoonnummer.",
       terugbelAlgemeen: "Er ging iets mis. Bel ons gerust direct.",
       contactVerplicht: "Vul naam, e-mailadres, telefoonnummer en bericht in.",
+      /** Het checklistformulier in de kennisbank (components/kennis/ChecklistAanvraag.tsx). */
+      checklistVerplicht: "Vul je naam en e-mailadres in.",
       herkomstVerplicht: "Kies hoe je ons gevonden hebt.",
       algemeen: "Er ging iets mis. Probeer het later opnieuw.",
       sollicitatieVerplicht: "Vul in ieder geval je naam en e-mailadres in.",

@@ -54,7 +54,8 @@ describe("llmsTekst", () => {
   it("laat een kopje zonder gepubliceerde pagina's weg, en de blog zonder artikelen", () => {
     const t = tekst();
     expect(t).not.toContain("## Voor werknemers");
-    expect(t).not.toContain("## Kennisbank");
+    // De kennisbank staat er altijd: de hub, de onderwerpen en de hulpmiddelen zijn vaste pagina's.
+    expect(t).toContain("## Kennisbank\n\n- [Kennisbank](https://react2u.nl/kennis)");
     expect(t).toContain("## Optional\n\n- [Sitemap](https://react2u.nl/sitemap)");
   });
 

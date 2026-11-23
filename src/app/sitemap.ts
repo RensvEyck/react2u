@@ -5,6 +5,7 @@ import { WERKGEBIED_BIJGEWERKT, werkgebiedPaden } from "@/lib/gemeenten";
 import { coveredByWordpress } from "@/lib/redirects";
 import { VAKGEBIEDEN, vakgebiedVan } from "@/lib/vakgebieden";
 import { OPEN_SOLLICITATIE, heeftVertaling, vertaalPad } from "@/lib/taal";
+import { HULPMIDDELEN, ONDERWERPEN } from "@/lib/kennis";
 
 export const revalidate = 3600;
 
@@ -78,11 +79,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...losseEn.map((enPath) => ({ url: `${base}${enPath}`, priority: 0.6 })),
     // Werkgebied: een pagina per provincie en per gemeente. Alleen Nederlands.
     ...werkgebiedPaden().map((p) => ({ url: `${base}${p}`, lastModified: werkgebiedDatum, priority: 0.5 })),
-    // Zonder artikelen staat de blog op noindex (blog/page.tsx) en hoort hij
-    // hier niet; met het eerste artikel komt hij vanzelf terug. Alleen Nederlands.
-    ...(posts.length > 0
-      ? [{ url: `${base}/blog`, lastModified: newest(posts.map((p) => p.updated_at)), priority: 0.7 }]
-      : []),
+    // De kennisbank (lib/kennis.ts): zo vers als de nieuwste pagina of het
+    // nieuwste artikel; de onderwerpen en hulpmiddelen volgen. Alleen Nederlands.
+    { url: `${base}/kennis`, lastModified: newest([...pages.map((p) => p.updated_at), ...posts.map((p) => p.updated_at)]), priority: 0.8 },
+    ...ONDERWERPEN.map((o) => ({ url: `${base}/kennis/${o.slug}`, lastModified: newest([...pages.map((p) => p.updated_at), ...posts.map((p) => p.updated_at)]), priority: 0.7 })),
+    ...HULPMIDDELEN.map((h) => ({ url: `${base}/kennis/${h.slug}`, lastModified: newest(pages.map((p) => p.updated_at)), priority: 0.7 })),
     ...posts.map((p) => ({
       url: `${base}/blog/${p.slug}`,
       lastModified: new Date(p.updated_at),

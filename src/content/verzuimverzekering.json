@@ -1,0 +1,225 @@
+{
+  "_uitleg": "Gids over de verzuimverzekering (kennisbank, tweede reeks; zoekwoord verzuimverzekering, 880 per maand). Informatief: React2u verkoopt geen verzekeringen; de gids legt uit hoe de verzekering en de arbodienst zich tot elkaar verhouden. Blokken: zie components/blocks/Gids.tsx; registratie in lib/gidsen.ts.",
+  "slug": "verzuimverzekering",
+  "title": "Verzuimverzekering",
+  "seo_title": "Verzuimverzekering: dekking, kosten en nut • React2u",
+  "seo_description": "Hoe een verzuimverzekering werkt: conventioneel of stop-loss, wachtdagen, de premie, de mkb verzuim-ontzorgverzekering en de rol van de arbodienst.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Gids · Verzuimverzekering",
+        "kruimel": "Verzuimverzekering",
+        "heading": "Wat is een verzuimverzekering en heb je die nodig?",
+        "antwoord": "Een verzuimverzekering vergoedt het loon dat je doorbetaalt aan een zieke werknemer, na een eigen risico van een aantal wachtdagen en tot maximaal twee jaar. Verplicht is hij niet; voor een klein of middelgroot bedrijf, waar één langdurig zieke medewerker al een flinke kostenpost is, is hij vaak wel verstandig.",
+        "text": "Deze gids legt uit hoe de verzekering werkt, welke vormen er zijn, wat hij kost, wat de verzekeraar van je verwacht en hoe de verzekering en de arbodienst zich tot elkaar verhouden.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-24",
+        "bijgewerkt": "2026-11-24"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Hoe het werkt",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "Hoe een verzuimverzekering werkt",
+        "tekst": "Wordt een werknemer ziek, dan betaal je maximaal 104 weken loon door: minimaal 70 procent, en meestal meer volgens je cao. Voor een bedrijf met tien medewerkers is één langdurig zieke collega al snel tien procent van de loonsom, een jaar lang, bovenop de kosten van vervanging. De verzuimverzekering vangt dat op: de verzekeraar vergoedt het doorbetaalde loon, na een eigen risico en volgens het percentage dat je verzekert.\n\nDrie begrippen bepalen de polis:\n\n- **Het eigen risico in wachtdagen**: de eerste tien, twintig, dertig of meer werkdagen van elke ziekmelding betaal je zelf. Hoe meer wachtdagen, hoe lager de premie. Kort verzuim valt er zo buiten; dat is ook de bedoeling, want dat kun je dragen.\n- **Het dekkingspercentage**: 70 of 100 procent van het loon, vaak in het tweede jaar lager, in lijn met wat je cao voorschrijft.\n- **De premie**: een percentage van je totale loonsom, afhankelijk van je branche, het verzuim van de afgelopen jaren, de wachtdagen en het dekkingspercentage.\n\nDaarnaast bieden de meeste verzekeraars dekking voor de werkgeverslasten (de premies die je over het loon betaalt) en een vergoeding voor re-integratiekosten, zoals een arbeidsdeskundig onderzoek of een tweedespoortraject. Kijk daar goed naar: dat zijn precies de kosten die je bij een langdurig dossier maakt.",
+        "kader": {
+          "eyebrow": "Goed om te weten",
+          "titel": "Geen verzekering voor grote werkgevers",
+          "tekst": "Vanaf enkele honderden medewerkers is het verzuim statistisch voorspelbaar en dragen de meeste werkgevers het risico zelf. De verzekering is bedoeld voor het mkb, waar één ziekmelding de begroting raakt.",
+          "href": "/blog/verzuim-mkb",
+          "label": "Waarom één zieke medewerker zo hard aankomt"
+        }
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Vormen",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Op een rij",
+        "heading": "De drie vormen van de verzuimverzekering",
+        "text": "Welke vorm past, hangt af van je omvang en van hoeveel schommeling je zelf kunt dragen.",
+        "kolommen": ["Vorm", "Hoe het werkt", "Voor wie", "Let op"],
+        "rijen": [
+          ["Conventioneel", "Per zieke werknemer vergoedt de verzekeraar het loon na het eigen risico in wachtdagen", "Kleine werkgevers tot ongeveer 25 medewerkers", "Hoe minder wachtdagen, hoe hoger de premie; kort verzuim telt elke keer opnieuw"],
+          ["Stop-loss", "Je draagt het verzuim zelf tot een afgesproken bedrag per jaar (het eigen behoud); daarboven betaalt de verzekeraar", "Middelgrote werkgevers vanaf ongeveer 25 tot 50 medewerkers", "Het eigen behoud wordt berekend op je verzuimcijfers; een goed jaar verlaagt het niet meteen"],
+          ["Mkb verzuim-ontzorgverzekering", "Een conventionele verzekering met de arbodienstverlening en de poortwachterbegeleiding erin, waarbij de verzekeraar het loonsanctierisico overneemt als je het advies volgt", "Kleine werkgevers die alles bij één partij willen", "Je bent gebonden aan de arbodienst van de verzekeraar; vergelijk die zoals elke arbodienst"]
+        ],
+        "noot": "De mkb verzuim-ontzorgverzekering bestaat sinds 2020 uit een convenant tussen de overheid, werkgevers en verzekeraars; de verzekeraar draagt de loonsanctie als de werkgever de adviezen van de arbodienst heeft gevolgd."
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Stappenplan",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Stappenplan",
+        "heading": "Zo kies je een verzuimverzekering",
+        "text": "In zes stappen van de vraag of je er een nodig hebt naar een polis die bij je past.",
+        "items": [
+          {
+            "wanneer": "Stap 1",
+            "titel": "Reken je risico uit",
+            "wie": "Werkgever",
+            "tekst": "Wat kost één medewerker die een jaar ziek is, inclusief werkgeverslasten en vervanging? Kun je dat dragen zonder de bedrijfsvoering te raken? Zo niet, dan is verzekeren verstandig."
+          },
+          {
+            "wanneer": "Stap 2",
+            "titel": "Kijk naar je verzuimcijfers",
+            "wie": "Werkgever",
+            "tekst": "De verzekeraar vraagt het verzuim van de afgelopen drie jaar. Laag en stabiel verzuim geeft een lagere premie; een hoog percentage vraagt om uitleg en soms om een hoger eigen risico."
+          },
+          {
+            "wanneer": "Stap 3",
+            "titel": "Kies de wachtdagen",
+            "wie": "Werkgever",
+            "tekst": "Hoeveel dagen per ziekmelding draag je zelf? Dertig wachtdagen scheelt veel premie en laat de verzekering doen waarvoor hij is: langdurig verzuim opvangen."
+          },
+          {
+            "wanneer": "Stap 4",
+            "titel": "Vergelijk de dekkingen",
+            "wie": "Werkgever en adviseur",
+            "tekst": "Werkgeverslasten, re-integratiekosten, dekking in het tweede jaar, en de voorwaarden rond de arbodienst. Een assurantieadviseur vergelijkt meerdere verzekeraars."
+          },
+          {
+            "wanneer": "Stap 5",
+            "titel": "Regel de arbodienst los of samen",
+            "wie": "Werkgever",
+            "tekst": "Bij een gewone verzuimverzekering kies je je arbodienst zelf; bij de ontzorgverzekering hoort de arbodienst erbij. Kies op kwaliteit, niet alleen op de combinatie."
+          },
+          {
+            "wanneer": "Stap 6",
+            "titel": "Meld ziekmeldingen op tijd bij de verzekeraar",
+            "wie": "Werkgever of arbodienst",
+            "tekst": "De polis eist een melding binnen een vaste termijn, vaak binnen een week of twee. Veel arbodiensten geven de ziek- en herstelmeldingen door aan de verzekeraar; spreek dat af."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Verzekering en arbodienst",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "De verzekeraar en de arbodienst: wie doet wat",
+        "tekst": "De verzuimverzekering betaalt; de arbodienst begeleidt. Dat zijn twee verschillende rollen, ook als ze bij elkaar in één pakket zitten.\n\n- **De verzekeraar** vergoedt het loon na het eigen risico, vraagt om de ziek- en herstelmeldingen, en wil zien dat de re-integratie volgens de Wet verbetering poortwachter verloopt. Veel polissen eisen een gecertificeerde arbodienst.\n- **De arbodienst** doet de begeleiding: de casemanager, de bedrijfsarts, de termijnen, het dossier. Of je verzekerd bent, verandert daar niets aan; de verplichtingen van de wet gelden sowieso.\n\nWat je moet weten:\n\n- **Je mag je arbodienst zelf kiezen**, tenzij je voor een ontzorgverzekering kiest. Een verzekeraar die een arbodienst aanbiedt, biedt gemak; dat hoeft niet de beste begeleiding te zijn.\n- **Een loonsanctie is meestal niet gedekt**, behalve bij de ontzorgverzekering en dan alleen als je het advies van de arbodienst hebt gevolgd. Een goed dossier is dus ook voor de verzekering je beste bescherming.\n- **Re-integratiekosten zijn vaak wél gedekt**: een arbeidsdeskundig onderzoek, een tweedespoortraject, een werkplekaanpassing. Vraag het na vóór je de opdracht geeft; de verzekeraar wil meestal vooraf akkoord geven.\n- **Meld op tijd**. Een te late ziekmelding bij de verzekeraar kan de uitkering voor die periode kosten. Laat je arbodienst de meldingen doorgeven, dan vergeet je het niet.\n\nReact2u werkt samen met de arbodienstverlening van de meeste verzekeraars en geeft ziek- en herstelmeldingen door als je dat wilt. Je houdt je eigen casemanager en je eigen bedrijfsarts.",
+        "kader": {
+          "eyebrow": "Goed om te weten",
+          "titel": "React2u verkoopt geen verzekeringen",
+          "tekst": "We zijn een arbodienst, geen tussenpersoon. Deze gids is onafhankelijke uitleg; voor een polis ga je naar een assurantieadviseur of rechtstreeks naar een verzekeraar."
+        }
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat het kost",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "Wat kost een verzuimverzekering, en wanneer is hij het waard?",
+        "tekst": "De premie is een percentage van je bruto loonsom en ligt in de praktijk ergens tussen een paar en een kleine tien procent, afhankelijk van je branche, je verzuimcijfers, de wachtdagen en het dekkingspercentage. Een kantoororganisatie met laag verzuim en dertig wachtdagen zit aan de onderkant; een bouwbedrijf met hoog verzuim en tien wachtdagen aan de bovenkant. De premie wordt jaarlijks opnieuw vastgesteld op je verzuim, dus goed verzuimbeleid betaalt zich hier dubbel uit.\n\nWanneer is hij het waard? Een vuistregel:\n\n- **Tot ongeveer 25 medewerkers**: bijna altijd. Eén langdurig zieke collega kost een jaar lang een vol salaris plus vervanging; dat is voor de meeste kleine bedrijven niet te dragen zonder verzekering.\n- **Tussen 25 en 100 medewerkers**: afhankelijk van je buffer en je verzuim. Een stop-lossverzekering dekt dan de uitschieters, terwijl je het gewone verzuim zelf draagt.\n- **Boven de paar honderd medewerkers**: meestal niet. Het verzuim is dan voorspelbaar en de premie is hoger dan de verwachte schade.\n\nWat je in elk geval niet moet doen: bezuinigen op de begeleiding omdat je verzekerd bent. De verzekering betaalt het loon, maar niet de loonsanctie, de vervanging of de onrust in het team. Een werknemer die drie maanden eerder terug is, is voor jou én voor de premie van volgend jaar meer waard dan welke polis ook."
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over de verzuimverzekering",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Is een verzuimverzekering verplicht?",
+            "answer": "Nee. De loondoorbetaling bij ziekte is verplicht, de verzekering ervoor niet. Wel kan een cao of een financier er om vragen, en voor een klein bedrijf is hij vaak verstandig."
+          },
+          {
+            "question": "Wat zijn wachtdagen?",
+            "answer": "Het eigen risico per ziekmelding: de eerste werkdagen waarin je het loon zelf betaalt. Gebruikelijk zijn tien tot dertig wachtdagen; meer wachtdagen betekent een lagere premie en minder administratie bij kort verzuim."
+          },
+          {
+            "question": "Dekt de verzekering ook een loonsanctie?",
+            "answer": "Meestal niet. Alleen de mkb verzuim-ontzorgverzekering neemt het loonsanctierisico over, en dan alleen als je de adviezen van de arbodienst hebt opgevolgd. Een compleet poortwachterdossier blijft je beste bescherming."
+          },
+          {
+            "question": "Moet ik de arbodienst van de verzekeraar nemen?",
+            "answer": "Bij een gewone verzuimverzekering niet: je kiest je arbodienst zelf, zolang die gecertificeerd is. Bij een ontzorgverzekering hoort de arbodienst bij de polis. Vergelijk die arbodienst zoals elke andere."
+          },
+          {
+            "question": "Worden re-integratiekosten vergoed?",
+            "answer": "Vaak wel, geheel of gedeeltelijk: een arbeidsdeskundig onderzoek, een tweedespoortraject of een werkplekaanpassing. Vraag vooraf akkoord aan de verzekeraar en bewaar de nota’s."
+          },
+          {
+            "question": "Wat gebeurt er met de premie als ik veel verzuim heb?",
+            "answer": "De premie wordt jaarlijks herzien op je verzuimcijfers van de afgelopen jaren. Hoog verzuim verhoogt de premie; bij heel hoog verzuim kan de verzekeraar het eigen risico verhogen of de polis beëindigen. Goede begeleiding verdient zich zo terug."
+          },
+          {
+            "question": "Kan ik de verzekering combineren met React2u als arbodienst?",
+            "answer": "Ja. React2u is SBCA-gecertificeerd en werkt samen met de verzuimverzekeringen van de meeste verzekeraars. We geven ziek- en herstelmeldingen door als je dat wilt, en je houdt je eigen casemanager en bedrijfsarts."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Verzekerd of niet: het verzuim zelf moet goed begeleid worden",
+        "tekst": "De verzekering vangt de kosten op; React2u Recover zorgt dat het verzuim kort blijft en het dossier klopt. Een vaste casemanager die je mensen kent, een bedrijfsarts die snel beschikbaar is en meldingen die op tijd bij de verzekeraar liggen. Zo houd je grip op het verzuim én op de premie van volgend jaar.",
+        "punten": [
+          "Gecertificeerde arbodienst, geaccepteerd door verzekeraars",
+          "Ziek- en herstelmeldingen doorgegeven aan je verzekeraar als je dat wilt",
+          "Poortwachterdossier compleet, ook voor de loonsanctiedekking",
+          "Eén vaste casemanager en een bedrijfsarts binnen een paar dagen"
+        ],
+        "dienst": {
+          "naam": "Recover",
+          "wat": "Verzuimbegeleiding voor werkgevers",
+          "tekst": "Casemanagement, bedrijfsarts en taakdelegatie, poortwachterdossier en UWV.",
+          "href": "/recover",
+          "label": "Meer over React2u Recover"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: de arbodienst", "href": "/arbodienst" },
+          { "label": "Gids: de loonsanctie", "href": "/loonsanctie" },
+          { "label": "Wat kost een zieke werknemer écht?", "href": "/blog/kosten-zieke-werknemer" },
+          { "label": "Verzuimkosten verlagen: 6 knoppen", "href": "/blog/verzuimkosten-verlagen" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

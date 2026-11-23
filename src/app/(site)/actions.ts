@@ -1,7 +1,9 @@
 "use server";
 import { headers } from "next/headers";
 import { supabasePublic } from "@/lib/supabase/public";
-import { notifyContactMessage, notifyApplication, bevestigSollicitatie, notifyOfferte, notifyTerugbel, notifyPartner } from "@/lib/mail";
+import { notifyContactMessage, notifyApplication, bevestigSollicitatie, notifyOfferte, notifyTerugbel, notifyPartner, mailChecklist, mailReady, notifyChecklist } from "@/lib/mail";
+import { checklistPoortwachterPdf } from "@/lib/checklistPdf";
+import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 import { normaliseerPartnercode, PARTNER_OMVANG, PARTNER_SOORTEN } from "@/lib/partners";
 import { withinLimit, requestIp, type Throttle } from "@/lib/rateLimit";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -88,7 +90,8 @@ type Fouten = Woordenboek["formulier"]["fouten"];
  * 3. Turnstile, als dat aan staat (src/lib/turnstile.ts).
  * Geeft null terug als de inzending door mag.
  */
-async function poort(fd: FormData, kind: ConversionKind, fout: Fouten, perIp?: Throttle): Promise<FormState> {
+// `kind` is de sleutel van de limiet; een conversiesoort of een eigen naam (checklist).
+async function poort(fd: FormData, kind: ConversionKind | "checklist", fout: Fouten, perIp?: Throttle): Promise<FormState> {
   if (String(fd.get("website") || "")) return { ok: true };
   if (!(await withinLimit(kind, perIp))) return { ok: false, error: fout.limiet };
   if (!(await verifyTurnstile(veld(fd, "cf-turnstile-response") || null, await requestIp()))) {
@@ -327,6 +330,45 @@ export async function submitTerugbel(_prev: FormState, formData: FormData): Prom
     recordConversion("terugbel", path, h.conversie),
     notifyTerugbel({ name, phone, company: company || null, moment, path }),
   ]);
+  return { ok: true };
+}
+
+/**
+ * De checklist poortwachterdossier (/kennis/checklist-poortwachterdossier):
+ * naam en e-mail, dan de pdf per mail en meteen als download. De aanvraag
+ * komt als bericht in het Postvak IN, zodat een collega kan bellen; een eigen
+ * limietsleutel, zodat het contactformulier er geen last van heeft. Geen
+ * conversie: de tabel kent alleen de vier aanvraagsoorten (migratie 0047).
+ */
+export async function submitChecklist(_prev: FormState, formData: FormData): Promise<FormState> {
+  const fout = woordenboek("nl").formulier.fouten;
+  const stop = await poort(formData, "checklist", fout);
+  if (stop) return stop;
+  const name = veld(formData, "name");
+  const email = veld(formData, "email");
+  const company = veld(formData, "company").slice(0, 120);
+  if (!name || !email) return { ok: false, error: fout.checklistVerplicht };
+  if (!geldigEmail(email)) return { ok: false, error: fout.emailOngeldig };
+
+  const path = await paginaPad();
+  const h = await herkomstVoor(formData);
+  const message = ["Vraagt de checklist poortwachterdossier aan (pdf per mail).", company ? `Bedrijf: ${company}` : "", `Pagina: ${path}`].filter(Boolean).join("\n");
+  const error = await insertMetExtra("contact_messages", { name, email, subject: "Checklist poortwachterdossier", message }, { lang: "nl", ...h.bericht });
+  if (error) return { ok: false, error: fout.algemeen };
+
+  // De pdf mailen als dat kan; lukt het niet, dan blijft de download op de pagina.
+  let gemaild = false;
+  if (mailReady()) {
+    try {
+      const site = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
+      const { contact } = await offerteHuisstijl();
+      const pdf = await checklistPoortwachterPdf({ contact, site });
+      gemaild = (await mailChecklist({ to: email, naam: name, pdf, site })).ok;
+    } catch (err) {
+      console.error("[checklist] pdf of mail mislukt:", err);
+    }
+  }
+  await notifyChecklist({ name, email, company: company || null, path, gemaild });
   return { ok: true };
 }
 

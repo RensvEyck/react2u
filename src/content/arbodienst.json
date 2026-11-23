@@ -1,0 +1,239 @@
+{
+  "_uitleg": "Gids over de arbodienst (kennisbank, tweede reeks; zoekwoord arbodienst, 5.400 per maand). Informatief: wat een arbodienst is en hoe je kiest; /diensten blijft de commerciële ingang. Blokken: zie components/blocks/Gids.tsx; registratie in lib/gidsen.ts.",
+  "slug": "arbodienst",
+  "title": "Arbodienst",
+  "seo_title": "Arbodienst: wat doet hij en hoe kies je er een • React2u",
+  "seo_description": "Wat een arbodienst regelt, wat de Arbowet verplicht, vangnet- of maatwerkregeling, waar je op let bij het kiezen en hoe overstappen werkt.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Gids · Arbodienst",
+        "kruimel": "Arbodienst",
+        "heading": "Wat doet een arbodienst en hoe kies je de juiste?",
+        "antwoord": "Een arbodienst helpt werkgevers bij ziekteverzuim, re-integratie en gezond en veilig werken: de bedrijfsarts, de casemanager, de verplichte stappen van de Wet verbetering poortwachter en de preventie uit de Arbowet. Elke werkgever met personeel moet die hulp geregeld hebben, in een basiscontract met een gecertificeerde arbodienst of een zelfstandige bedrijfsarts.",
+        "text": "Deze gids legt uit wat een arbodienst doet, wat verplicht is, welke vormen er zijn, waar je op let bij het kiezen en hoe overstappen in de praktijk gaat.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-24",
+        "bijgewerkt": "2026-11-24"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat doet een arbodienst",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "Wat een arbodienst voor je doet",
+        "tekst": "Het woord zegt het al: arbo staat voor arbeidsomstandigheden. Een arbodienst is de deskundige partij die de Arbowet van elke werkgever verlangt, voor twee dingen: zieke werknemers begeleiden en uitval voorkomen. In de praktijk merk je een arbodienst het eerst als een medewerker zich ziek meldt. Dan komt dit op gang:\n\n- **Casemanagement**: een vast aanspreekpunt dat contact houdt met jou en je medewerker, de termijnen van de Wet verbetering poortwachter bewaakt en het dossier bijhoudt.\n- **De bedrijfsarts**: de enige die een medisch oordeel mag geven over wat je medewerker nog kan. Maakt de probleemanalyse, houdt spreekuren en geeft het actueel oordeel voor UWV.\n- **Re-integratie**: advies over passend werk, een arbeidsdeskundig onderzoek als terugkeer onzeker is en de begeleiding van het tweede spoor.\n- **Het dossier**: alle documenten die UWV na twee jaar wil zien, op datum en compleet.\n\nDaarnaast de preventieve kant, die je minder ziet maar die net zo verplicht is:\n\n- het **open spreekuur** bij de bedrijfsarts, voor elke medewerker, ook zonder ziekmelding\n- advies bij de **risico-inventarisatie en -evaluatie (RI&E)** en het **preventief medisch onderzoek (PMO)**\n- een **werkplekbezoek** als de bedrijfsarts dat nodig vindt\n- overleg met je **preventiemedewerker** en de ondernemingsraad\n\nEen goede arbodienst doet meer dan uitvoeren: hij ziet patronen. Drie ziekmeldingen van dezelfde afdeling, een leidinggevende die moeite heeft met het verzuimgesprek, een functie die steeds te zwaar blijkt. Dat terugkoppelen, zonder medische details, is waar preventie begint.",
+        "kader": {
+          "eyebrow": "Begrip",
+          "titel": "Arbodienst of bedrijfsarts?",
+          "tekst": "De bedrijfsarts is een arts; de arbodienst is de organisatie eromheen, met casemanagers, arbeidsdeskundigen en andere specialisten. Je mag ook een zelfstandige bedrijfsarts contracteren (de maatwerkregeling), maar dan regel je het casemanagement en de rest zelf.",
+          "href": "/bedrijfsarts",
+          "label": "Lees de gids over de bedrijfsarts"
+        }
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Verplicht",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "Is een arbodienst verplicht?",
+        "tekst": "Ja. De Arbowet verplicht elke werkgever met personeel om zich te laten bijstaan door deskundigen. Dat kan op twee manieren:\n\n- **De vangnetregeling**: een contract met een gecertificeerde arbodienst, die alle wettelijke taken levert. Dit is de standaard en voor de meeste werkgevers de eenvoudigste route.\n- **De maatwerkregeling**: je regelt de deskundigheid zelf, met in elk geval een geregistreerde bedrijfsarts, en legt dat vast met instemming van de ondernemingsraad of personeelsvertegenwoordiging. Vooral grote organisaties met een eigen arbodienst kiezen hiervoor.\n\nIn beide gevallen moet er een **basiscontract** zijn, sinds 1 juli 2017. Daarin staat minimaal: toegang tot de bedrijfsarts voor elke medewerker, verzuimbegeleiding, het recht op een second opinion, een klachtenprocedure, de mogelijkheid van een werkplekbezoek, overleg met de preventiemedewerker en de OR, het melden van beroepsziekten en advies over preventie. Ontbreekt het contract of is het onvolledig, dan kan de Nederlandse Arbeidsinspectie een boete opleggen.\n\nGecertificeerd betekent: de arbodienst voldoet aan de certificatieregeling van de SBCA, de Stichting Beheer Certificatie Arbodiensten, die eisen stelt aan de deskundigen, de werkwijze en de privacy. Kijk daar altijd naar: een verzuimbureau zonder certificaat mag de wettelijke taken niet zelfstandig uitvoeren."
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Overstappen",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Stappenplan",
+        "heading": "Zo kies je een arbodienst, of stap je over",
+        "text": "Van de eerste vergelijking tot de eerste ziekmelding bij de nieuwe arbodienst. Overstappen kost in de praktijk een paar weken, zonder dat een lopend dossier een termijn mist.",
+        "items": [
+          {
+            "wanneer": "Stap 1",
+            "titel": "Weet wat je nodig hebt",
+            "wie": "Werkgever",
+            "tekst": "Hoeveel medewerkers, hoeveel verzuim, welke risico’s uit de RI&E, en wat je nu mist: snelheid, een vast gezicht, overzicht, preventie. Die lijst is je meetlat."
+          },
+          {
+            "wanneer": "Stap 2",
+            "titel": "Vergelijk op wat telt",
+            "wie": "Werkgever",
+            "tekst": "Certificering, de bereikbaarheid van de bedrijfsarts, een vaste casemanager of een wisselend team, de tarieven per onderdeel en wat er niet in het abonnement zit."
+          },
+          {
+            "wanneer": "Stap 3",
+            "titel": "Kijk naar de opzegtermijn van je huidige contract",
+            "wie": "Werkgever",
+            "tekst": "Veel contracten lopen per kalenderjaar met een opzegtermijn van een tot drie maanden. Zeg op tijd op, en spreek met de nieuwe arbodienst een startdatum af die daarop aansluit."
+          },
+          {
+            "wanneer": "Stap 4",
+            "titel": "Teken het basiscontract",
+            "wie": "Werkgever en arbodienst",
+            "tekst": "Controleer of alle wettelijke onderdelen erin staan. Heb je een OR of PVT, dan heeft die instemmingsrecht bij de keuze van de arbodienst."
+          },
+          {
+            "wanneer": "Stap 5",
+            "titel": "Draag de lopende dossiers over",
+            "wie": "Oude en nieuwe arbodienst",
+            "tekst": "Je oude arbodienst draagt de medische dossiers over aan de nieuwe bedrijfsarts, met toestemming van de medewerker; de nieuwe casemanager neemt de termijnen over zodat er niets wordt gemist."
+          },
+          {
+            "wanneer": "Stap 6",
+            "titel": "Informeer je medewerkers",
+            "wie": "Werkgever",
+            "tekst": "Wie is de nieuwe arbodienst, hoe meld je je ziek, waar is het open spreekuur. Zet het in het verzuimprotocol en op intranet."
+          },
+          {
+            "wanneer": "Stap 7",
+            "titel": "Evalueer na drie maanden",
+            "wie": "Werkgever en arbodienst",
+            "tekst": "Wordt er gebeld zoals afgesproken? Klopt de rapportage? Zijn de termijnen gehaald? Een arbodienst die dit zelf voorstelt, neemt je serieus."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Waar je op let",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Op een rij",
+        "heading": "Waar je op let bij het kiezen van een arbodienst",
+        "text": "Vragen die je elke arbodienst kunt stellen, en wat het antwoord je vertelt.",
+        "kolommen": ["Vraag", "Waarom het telt", "Een goed antwoord"],
+        "rijen": [
+          ["Is de arbodienst gecertificeerd?", "Zonder certificaat mag hij de wettelijke taken niet zelfstandig uitvoeren", "Ja, SBCA-gecertificeerd, met het certificaat op de website"],
+          ["Wie is mijn aanspreekpunt?", "Een wisselend team betekent elke keer opnieuw uitleggen", "Eén vaste casemanager die je organisatie kent"],
+          ["Hoe snel is er contact na een ziekmelding?", "De eerste dagen bepalen vaak de duur van het verzuim", "Binnen één werkdag met werkgever én werknemer"],
+          ["Hoe snel kan iemand bij de bedrijfsarts?", "Een wachttijd van weken kost de probleemanalyse van week 6", "Binnen een paar dagen, in de regio of online"],
+          ["Wat kost het, per onderdeel?", "Een laag abonnement met hoge uurtarieven is niet goedkoop", "Een open prijslijst: abonnement, bedrijfsarts per uur, onderzoeken per stuk"],
+          ["Wat zit er niet in?", "De bedrijfsarts, het tweede spoor en onderzoeken zijn vaak apart", "Een eerlijke lijst van wat extra kost"],
+          ["Hoe zie ik de stand van een dossier?", "Zonder overzicht mis je termijnen", "Een online dossier met de termijnen en de documenten"],
+          ["Wat doen jullie aan preventie?", "Verzuim voorkomen is goedkoper dan begeleiden", "RI&E, PMO, trainingen en de koppeling met wat het verzuim laat zien"],
+          ["Kunnen we lopende dossiers overdragen?", "Een overstap mag geen termijn kosten", "Ja, de casemanager neemt ze over zonder gat"]
+        ],
+        "noot": "React2u: SBCA-gecertificeerd, ISO 9001, 27001 en 27701, één vaste casemanager, contact binnen één werkdag en een open prijslijst."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Kosten",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "Wat kost een arbodienst?",
+        "tekst": "De meeste arbodiensten werken met een **abonnement per werknemer per jaar** voor het casemanagement en de verzuimadministratie, en rekenen de **bedrijfsarts per uur**. Onderzoeken, trainingen en het tweede spoor komen daar per stuk of op offerte bij. Let bij het vergelijken daarom op drie dingen:\n\n- **Wat zit in het abonnement?** Casemanagement, de poortwachterdocumenten en het online dossier horen erin. De bedrijfsarts meestal niet.\n- **Het uurtarief van de bedrijfsarts** en of er een ondersteuner onder taakdelegatie werkt tegen een lager tarief.\n- **De vaste prijzen van onderzoeken**, zoals het arbeidsdeskundig onderzoek, zodat je vooraf weet wat een traject kost.\n\nBij React2u staan de tarieven open op de [prijslijst](/verzuimabonnementen): het verzuimabonnement per werknemer per jaar, de bedrijfsarts per uur en de onderzoeken per stuk, geldig voor het hele jaar. Wil je weten wat het voor jouw organisatie betekent, vraag dan een [offerte](/kennismaken) aan; je krijgt binnen twee werkdagen antwoord.\n\nEn zet de kosten af tegen wat verzuim kost: een zieke medewerker kost al snel een paar honderd euro per dag aan loon, vervanging en productie. Lees [Wat kost een zieke werknemer écht?](/blog/kosten-zieke-werknemer)",
+        "kader": {
+          "eyebrow": "Tarieven",
+          "titel": "Vaste prijzen, geen verrassingen",
+          "tekst": "Alle tarieven staan op de prijslijst en gelden voor het hele jaar. Je weet dus vooraf wat een spreekuur, een probleemanalyse of een arbeidsdeskundig onderzoek kost.",
+          "href": "/verzuimabonnementen",
+          "label": "Bekijk de prijslijst"
+        }
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over de arbodienst",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Moet ik een arbodienst hebben als ik één medewerker heb?",
+            "answer": "Ja. De Arbowet geldt vanaf de eerste medewerker. Je moet een basiscontract hebben met een gecertificeerde arbodienst of een zelfstandige bedrijfsarts, en een RI&E, ook met één werknemer."
+          },
+          {
+            "question": "Wat is het verschil tussen een arbodienst en een verzuimverzekeraar?",
+            "answer": "De verzekeraar vergoedt het loon van een zieke medewerker; de arbodienst begeleidt het verzuim. Veel verzekeraars stellen een arbodienst als voorwaarde en bieden er een aan, maar je mag zelf kiezen. Lees de gids over de verzuimverzekering."
+          },
+          {
+            "question": "Mag ik tussentijds overstappen naar een andere arbodienst?",
+            "answer": "Dat hangt af van je contract: de meeste lopen per jaar met een opzegtermijn. Lopende dossiers kunnen altijd worden overgedragen; bij React2u nemen we ze over zonder dat een termijn wordt gemist."
+          },
+          {
+            "question": "Krijgt de arbodienst medische informatie over mijn medewerkers?",
+            "answer": "De bedrijfsarts wel, jij niet. Medische gegevens blijven bij de bedrijfsarts en de arbodienst, onder het beroepsgeheim. Jij krijgt alleen de beperkingen, mogelijkheden en het advies voor werk."
+          },
+          {
+            "question": "Wat als mijn medewerker niet tevreden is over de bedrijfsarts?",
+            "answer": "Dan heeft hij of zij recht op een second opinion bij een andere bedrijfsarts, op jouw kosten, en op de klachtenprocedure van de arbodienst. Beide zijn verplicht onderdeel van het basiscontract."
+          },
+          {
+            "question": "Heeft de ondernemingsraad iets te zeggen over de keuze?",
+            "answer": "Ja. De OR of personeelsvertegenwoordiging heeft instemmingsrecht bij de keuze van de arbodienst en de inhoud van het basiscontract, en bij de keuze voor de maatwerkregeling."
+          },
+          {
+            "question": "Werkt een arbodienst ook voor werkgevers buiten de regio?",
+            "answer": "Ja. Spreekuren kunnen online, en de bedrijfsarts komt op locatie als dat nodig is. React2u werkt vanuit Eindhoven voor werkgevers in heel Nederland, met de meeste klanten in Brabant en Limburg."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Een arbodienst die je mensen kent",
+        "tekst": "React2u is een gecertificeerde arbodienst uit Eindhoven. Je krijgt één vaste casemanager die je organisatie kent, een bedrijfsarts die snel beschikbaar is en een dossier dat altijd compleet is voor UWV. Overstappen regelen we zonder dat een lopend dossier een termijn mist.",
+        "punten": [
+          "SBCA gecertificeerd en ISO 9001, 27001 en 27701",
+          "Eén vaste casemanager, contact binnen één werkdag",
+          "Open prijslijst: abonnement, bedrijfsarts per uur, onderzoeken per stuk",
+          "Lopende dossiers nemen we over, zonder gat"
+        ],
+        "dienst": {
+          "naam": "Recover",
+          "wat": "Verzuimbegeleiding voor werkgevers",
+          "tekst": "Casemanagement, bedrijfsarts en taakdelegatie, poortwachterdossier en UWV.",
+          "href": "/recover",
+          "label": "Meer over React2u Recover"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: de bedrijfsarts", "href": "/bedrijfsarts" },
+          { "label": "Gids: de casemanager verzuim", "href": "/casemanager-verzuim" },
+          { "label": "Gids: de verzuimverzekering", "href": "/verzuimverzekering" },
+          { "label": "Alle diensten", "href": "/diensten" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

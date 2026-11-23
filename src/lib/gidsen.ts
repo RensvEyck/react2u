@@ -15,7 +15,10 @@
  * kruimelpad en /llms.txt. Zie CONTEXT.md, *SEO* en docs/adr/0002.
  */
 
-export type GidsDienst = "recover" | "restart" | "resist";
+export type GidsDienst = "recover" | "restart" | "resist" | "reflex" | "ready";
+
+/** Het onderwerp in de kennisbank waar een gids onder hangt (lib/kennis.ts). */
+export type OnderwerpSlug = "verzuim" | "re-integratie" | "preventie" | "wet-en-regels";
 
 export type Gids = {
   /** Het adres: /<slug>. */
@@ -30,6 +33,8 @@ export type Gids = {
   zoekwoord: string;
   /** Het label waar de gids naar verwijst in "Zo helpt React2u". */
   dienst: GidsDienst;
+  /** Het onderwerp in de kennisbank (/kennis/<onderwerp>). */
+  onderwerp: OnderwerpSlug;
 };
 
 /** De labeltint per dienst, dezelfde als op de dienstpagina (src/content/<label>.json). */
@@ -37,6 +42,8 @@ export const DIENST_TINT: Record<GidsDienst, string> = {
   recover: "#FDECF4",
   restart: "#FEF3E3",
   resist: "#E5F5F4",
+  reflex: "#E9F5FC",
+  ready: "#ECEBF5",
 };
 
 /** De labelkleur per dienst, dezelfde als in het woordenboek (header.diensten). */
@@ -44,6 +51,8 @@ export const DIENST_KLEUR: Record<GidsDienst, string> = {
   recover: "#E61674",
   restart: "#F19001",
   resist: "#00A098",
+  reflex: "#3AA5DD",
+  ready: "#322E83",
 };
 
 // De naam van een dienst ("Re-integratie eerste en tweede spoor") staat niet
@@ -52,9 +61,13 @@ export const DIENST_KLEUR: Record<GidsDienst, string> = {
 // leest alleen de component (components/blocks/Gids.tsx) uit DIENSTEN.
 
 /**
- * De vijf gidsen, in de volgorde van het zoekvolume (re-integratie 6.600 per
+ * De gidsen, in de volgorde van het zoekvolume (DataForSEO, november 2026).
+ * De eerste vijf komen uit het HALO-herstelplan (re-integratie 6.600 per
  * maand, Wet verbetering poortwachter 3.600, bedrijfsarts 2.900,
- * arbeidsdeskundig onderzoek 2.400, preventiemedewerker 1.600).
+ * arbeidsdeskundig onderzoek 2.400, preventiemedewerker 1.600); de tweede
+ * reeks dekt de kanswoorden erna (arbodienst 5.400, verzuimverzekering 880,
+ * casemanager verzuim 720, loonsanctie 260 maar met hoge intentie) en de
+ * vragen die daar in de praktijk bij horen.
  */
 export const GIDSEN: Gids[] = [
   {
@@ -64,6 +77,16 @@ export const GIDSEN: Gids[] = [
     kort: "Eerste en tweede spoor, wie wat moet doen en wanneer het tweede spoor moet beginnen.",
     zoekwoord: "re-integratie",
     dienst: "restart",
+    onderwerp: "re-integratie",
+  },
+  {
+    slug: "arbodienst",
+    naam: "Arbodienst",
+    vraag: "Wat doet een arbodienst en hoe kies je de juiste?",
+    kort: "Wat een arbodienst voor je regelt, wat verplicht is, waar je op let bij het kiezen en hoe overstappen werkt.",
+    zoekwoord: "arbodienst",
+    dienst: "recover",
+    onderwerp: "verzuim",
   },
   {
     slug: "wet-verbetering-poortwachter",
@@ -72,6 +95,7 @@ export const GIDSEN: Gids[] = [
     kort: "Alle stappen en termijnen van week 1 tot week 104, en hoe je een loonsanctie voorkomt.",
     zoekwoord: "wet verbetering poortwachter",
     dienst: "recover",
+    onderwerp: "wet-en-regels",
   },
   {
     slug: "bedrijfsarts",
@@ -80,6 +104,7 @@ export const GIDSEN: Gids[] = [
     kort: "De taken van de bedrijfsarts, wat jij wel en niet te horen krijgt en wat het basiscontract eist.",
     zoekwoord: "bedrijfsarts",
     dienst: "recover",
+    onderwerp: "verzuim",
   },
   {
     slug: "arbeidsdeskundig-onderzoek",
@@ -88,6 +113,7 @@ export const GIDSEN: Gids[] = [
     kort: "De vier vragen die de arbeidsdeskundige beantwoordt, het beste moment en wat het kost.",
     zoekwoord: "arbeidsdeskundig onderzoek",
     dienst: "restart",
+    onderwerp: "re-integratie",
   },
   {
     slug: "preventiemedewerker",
@@ -96,8 +122,75 @@ export const GIDSEN: Gids[] = [
     kort: "De drie wettelijke taken uit de Arbowet, wie het mag zijn en hoe je het regelt.",
     zoekwoord: "preventiemedewerker",
     dienst: "resist",
+    onderwerp: "preventie",
+  },
+  {
+    slug: "zieke-werknemer",
+    naam: "Zieke werknemer",
+    vraag: "Zieke werknemer: wat moet je als werkgever doen?",
+    kort: "De eerste dag, de eerste week en de eerste zes weken: wat je regelt, wat je mag vragen en wat niet.",
+    zoekwoord: "zieke werknemer",
+    dienst: "recover",
+    onderwerp: "verzuim",
+  },
+  {
+    slug: "verzuimverzekering",
+    naam: "Verzuimverzekering",
+    vraag: "Wat is een verzuimverzekering en heb je die nodig?",
+    kort: "Hoe een verzuimverzekering werkt, wat hij dekt, wat hij kost en wanneer hij verstandig is.",
+    zoekwoord: "verzuimverzekering",
+    dienst: "recover",
+    onderwerp: "verzuim",
+  },
+  {
+    slug: "casemanager-verzuim",
+    naam: "Casemanager verzuim",
+    vraag: "Wat doet een casemanager verzuim?",
+    kort: "De taken van de casemanager, het verschil met de bedrijfsarts, taakdelegatie en wat jij ervan merkt.",
+    zoekwoord: "casemanager verzuim",
+    dienst: "recover",
+    onderwerp: "verzuim",
+  },
+  {
+    slug: "loonsanctie",
+    naam: "Loonsanctie",
+    vraag: "Wat is een loonsanctie en hoe voorkom je die?",
+    kort: "Wanneer UWV een loonsanctie oplegt, wat het kost, hoe je hem voorkomt en hoe je hem bekort.",
+    zoekwoord: "loonsanctie",
+    dienst: "recover",
+    onderwerp: "wet-en-regels",
+  },
+  {
+    slug: "rie",
+    naam: "RI&E",
+    vraag: "Is een RI&E verplicht en hoe maak je er een?",
+    kort: "Wat de risico-inventarisatie en -evaluatie is, voor wie hij verplicht is, de toetsing en het plan van aanpak.",
+    zoekwoord: "ri&e",
+    dienst: "resist",
+    onderwerp: "preventie",
+  },
+  {
+    slug: "eigenrisicodrager-ziektewet",
+    naam: "Eigenrisicodrager Ziektewet",
+    vraag: "Wat betekent eigenrisicodrager Ziektewet zijn?",
+    kort: "Wat je zelf doet in plaats van UWV, voor wie het loont, de aanvraag en de verplichtingen.",
+    zoekwoord: "eigenrisicodrager ziektewet",
+    dienst: "reflex",
+    onderwerp: "wet-en-regels",
+  },
+  {
+    slug: "twee-jaar-ziek",
+    naam: "Twee jaar ziek",
+    vraag: "Wat gebeurt er als een werknemer twee jaar ziek is?",
+    kort: "De WIA-beoordeling, het einde van de loondoorbetaling, ontslag, de transitievergoeding en de compensatie van UWV.",
+    zoekwoord: "twee jaar ziek",
+    dienst: "ready",
+    onderwerp: "wet-en-regels",
   },
 ];
+
+/** De gidsen uit het HALO-herstelplan (de eerste reeks, migratie 0060). */
+export const EERSTE_REEKS = ["re-integratie", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker"];
 
 /** De gids achter een pad of slug, of null als het geen gids is. */
 export function gidsVoor(padOfSlug: string): Gids | null {
@@ -119,7 +212,15 @@ export const GIDS_PADEN = GIDSEN.map((g) => `/${g.slug}`);
  */
 export const GIDS_VAN_ARTIKEL: { artikel: string; gids: string }[] = [
   { artikel: "wet-verbetering-poortwachter-stappen", gids: "wet-verbetering-poortwachter" },
+  // "Wat is een loonsanctie en wanneer krijg je die?" is opgegaan in de gids; de
+  // artikelen over voorkomen en bekorten blijven als verdieping eronder hangen.
+  { artikel: "loonsanctie-uwv", gids: "loonsanctie" },
 ];
+
+/** De gidsen bij een onderwerp van de kennisbank, in de volgorde van GIDSEN. */
+export function gidsenBijOnderwerp(onderwerp: OnderwerpSlug): Gids[] {
+  return GIDSEN.filter((g) => g.onderwerp === onderwerp);
+}
 
 /* ---------- rekenhulpen, ook voor de test die de gidsen bewaakt ---------- */
 

@@ -1,0 +1,223 @@
+{
+  "_uitleg": "Gids over wat er na twee jaar ziekte gebeurt: WIA, einde loondoorbetaling, ontslag, transitievergoeding en compensatie (kennisbank, tweede reeks; het label Ready, HR en arbeidsrecht). Blokken: zie components/blocks/Gids.tsx; registratie in lib/gidsen.ts.",
+  "slug": "twee-jaar-ziek",
+  "title": "Twee jaar ziek",
+  "seo_title": "Twee jaar ziek: WIA, ontslag en vergoeding • React2u",
+  "seo_description": "Na twee jaar ziekte: de WIA-beoordeling, het einde van de loondoorbetaling, ontslag via UWV of in overleg, de transitievergoeding en de compensatie.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "eyebrow": "Gids · Twee jaar ziek",
+        "kruimel": "Twee jaar ziek",
+        "heading": "Wat gebeurt er als een werknemer twee jaar ziek is?",
+        "antwoord": "Na 104 weken ziekte stopt je loondoorbetaling en beoordeelt UWV de WIA-aanvraag van je werknemer: eerst of jullie genoeg aan re-integratie hebben gedaan, dan de mate van arbeidsongeschiktheid. Het opzegverbod vervalt, je mag het dienstverband beëindigen met een ontslagvergunning of in overleg, je betaalt de transitievergoeding en kunt die laten compenseren door UWV.",
+        "text": "Deze gids legt uit hoe de WIA-beoordeling werkt, wat de uitkomsten betekenen, hoe je het dienstverband netjes beëindigt, wat de transitievergoeding en de compensatie inhouden en wanneer je iemand beter in dienst houdt.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-24",
+        "bijgewerkt": "2026-11-24"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "De WIA-beoordeling",
+      "data": {
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "heading": "De WIA-beoordeling: wat UWV doet",
+        "tekst": "Rond week 88 krijgt je werknemer van UWV een brief over de WIA-aanvraag; uiterlijk in week 93 dient hij of zij die in, met het re-integratieverslag dat jullie samen hebben opgesteld. Dan beoordeelt UWV, in deze volgorde:\n\n1. **De re-integratie-inspanningen.** Hebben werkgever en werknemer genoeg gedaan? Zo niet, dan volgt een loonsanctie: tot 52 weken langer loon doorbetalen en de WIA-beoordeling wordt uitgesteld. Lees de [gids over de loonsanctie](/loonsanctie).\n2. **De arbeidsongeschiktheid.** Een verzekeringsarts van UWV beoordeelt de belastbaarheid, en een arbeidsdeskundige van UWV berekent wat je werknemer met die belastbaarheid nog kan verdienen in algemeen geaccepteerde functies. Het verschil met het oude loon is het arbeidsongeschiktheidspercentage.\n\nDe uitkomst bepaalt alles wat daarna komt:\n\n- **Minder dan 35 procent arbeidsongeschikt**: geen WIA-uitkering. Je werknemer wordt geacht grotendeels te kunnen werken. UWV verwacht van jou dat je kijkt of je hem of haar in dienst kunt houden, in de eigen of een aangepaste functie.\n- **35 tot 80 procent, of 80 tot 100 procent maar niet duurzaam**: een **WGA**-uitkering (Werkhervatting gedeeltelijk arbeidsgeschikten). Werken loont, en de uitkering vult aan. Jouw ex-werknemer telt tien jaar mee in je WGA-premie.\n- **80 tot 100 procent en duurzaam**: een **IVA**-uitkering (Inkomensvoorziening volledig arbeidsongeschikten), 75 procent van het laatste loon, zonder re-integratieplicht. De IVA drukt niet op je premie.\n\nDe beslissing van UWV krijgen jij en je werknemer allebei. Ben je het er niet mee eens, bijvoorbeeld omdat je vindt dat je werknemer meer kan, dan kun je binnen zes weken bezwaar maken; als werkgever heb je daar belang bij vanwege de WGA-premie.",
+        "kader": {
+          "eyebrow": "Begrip",
+          "titel": "Algemeen geaccepteerde arbeid",
+          "tekst": "UWV kijkt niet naar de eigen functie maar naar alle functies die iemand met deze belastbaarheid nog zou kunnen doen, ongeacht opleiding of ervaring, zolang ze bestaan op de arbeidsmarkt. Daarom kan iemand die zijn eigen werk niet meer kan, toch minder dan 35 procent arbeidsongeschikt zijn.",
+          "href": "/wet-verbetering-poortwachter",
+          "label": "De stappen tot de WIA-aanvraag"
+        }
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Tijdlijn",
+      "data": {
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "eyebrow": "Van week 88 tot na de beslissing",
+        "heading": "Van de WIA-aanvraag tot het einde van het dienstverband",
+        "text": "Wat er wanneer gebeurt rond het einde van de twee jaar. De weken tellen vanaf de eerste ziektedag.",
+        "items": [
+          {
+            "wanneer": "Week 88",
+            "titel": "Brief van UWV",
+            "wie": "UWV",
+            "tekst": "Je werknemer krijgt de brief over de WIA-aanvraag. Jullie beginnen aan het re-integratieverslag: alle documenten van de afgelopen twee jaar, met de reactie van je werknemer."
+          },
+          {
+            "wanneer": "Week 91",
+            "titel": "Eindevaluatie en actueel oordeel",
+            "wie": "Werkgever, werknemer en bedrijfsarts",
+            "tekst": "Jullie leggen vast hoe het traject is verlopen; de bedrijfsarts beschrijft de huidige belastbaarheid. Loop de checklist poortwachterdossier na."
+          },
+          {
+            "wanneer": "Week 93",
+            "titel": "WIA-aanvraag",
+            "wie": "Werknemer",
+            "tekst": "Uiterlijk in week 93 dient je werknemer de aanvraag in. Te laat aanvragen betekent dat je loondoorbetaling doorloopt tot de aanvraag er is; herinner je werknemer dus op tijd."
+          },
+          {
+            "wanneer": "Week 93 tot 104",
+            "titel": "Beoordeling door UWV",
+            "wie": "UWV",
+            "tekst": "Eerst de re-integratie-inspanningen, dan het spreekuur bij de verzekeringsarts en het onderzoek van de arbeidsdeskundige. UWV streeft ernaar vóór het einde van de 104 weken te beslissen, maar haalt dat niet altijd."
+          },
+          {
+            "wanneer": "Week 104",
+            "titel": "Einde loondoorbetaling",
+            "wie": "Werkgever",
+            "tekst": "Zonder loonsanctie stopt je loondoorbetaling. Is de beslissing van UWV er nog niet, dan krijgt je werknemer een voorschot op de uitkering; jij hoeft niet door te betalen."
+          },
+          {
+            "wanneer": "Na de beslissing",
+            "titel": "In dienst houden of beëindigen",
+            "wie": "Werkgever en werknemer",
+            "tekst": "Kan je werknemer passend werk bij jou doen, dan blijft hij of zij in dienst, eventueel met een aangepast contract. Zo niet, dan beëindig je het dienstverband met een ontslagvergunning van UWV of een vaststellingsovereenkomst."
+          },
+          {
+            "wanneer": "Binnen 6 maanden na betaling",
+            "titel": "Compensatie transitievergoeding",
+            "wie": "Werkgever",
+            "tekst": "Je betaalt de transitievergoeding en vraagt binnen zes maanden na de volledige betaling de compensatie aan bij UWV, met het bewijs van de ziekte, het einde van het dienstverband en de betaling."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Uitkomsten",
+      "data": {
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "eyebrow": "Op een rij",
+        "heading": "De uitkomsten van de WIA-beoordeling en wat ze voor jou betekenen",
+        "text": "Per uitkomst: de uitkering van je werknemer, de gevolgen voor het dienstverband en voor je premie.",
+        "kolommen": ["Uitkomst", "Uitkering", "Dienstverband", "Gevolg voor de werkgever"],
+        "rijen": [
+          ["Minder dan 35 procent arbeidsongeschikt", "Geen WIA; eventueel WW na ontslag", "UWV verwacht dat je passend werk bij jou zoekt; lukt dat niet, dan ontslag via UWV", "Transitievergoeding, met compensatie; geen WGA-premie"],
+          ["35 tot 80 procent (WGA)", "WGA-loongerelateerde uitkering, daarna loonaanvulling of vervolguitkering, afhankelijk van wat iemand verdient", "Vaak beëindigd; werken naast de uitkering loont voor de werknemer", "Transitievergoeding met compensatie; de WGA-uitkering telt tien jaar mee in je premie Whk of je eigen risico"],
+          ["80 tot 100 procent, niet duurzaam (WGA)", "WGA, 70 procent van het laatste loon na de loongerelateerde fase", "Meestal beëindigd; herbeoordeling mogelijk bij verbetering", "Als hierboven: tien jaar WGA-lasten"],
+          ["80 tot 100 procent, duurzaam (IVA)", "IVA, 75 procent van het laatste loon", "Beëindigd; geen re-integratieplicht meer", "Transitievergoeding met compensatie; geen gevolg voor de premie"],
+          ["Loonsanctie", "Nog geen uitkering", "Loopt door, met loondoorbetaling tot maximaal 52 weken", "Loon doorbetalen; herstellen en bekorten"]
+        ],
+        "noot": "Ben je eigenrisicodrager voor de WGA, dan betaal je de WGA-uitkering tien jaar zelf en blijf je verantwoordelijk voor de re-integratie in het derde spoor. Ook daar helpt React2u Restart bij."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Ontslag en transitievergoeding",
+      "data": {
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "heading": "Ontslag na twee jaar ziekte, de transitievergoeding en de compensatie",
+        "tekst": "Na 104 weken vervalt het opzegverbod bij ziekte, tenzij er een loonsanctie loopt. Je kunt het dienstverband dan op twee manieren beëindigen:\n\n- **Met een ontslagvergunning van UWV**, op grond van langdurige arbeidsongeschiktheid. UWV toetst of je werknemer twee jaar ziek is, of herstel binnen 26 weken niet te verwachten is en of er geen passend werk bij jou is, ook niet met aanpassingen of scholing. Daarna zeg je op met de opzegtermijn.\n- **Met een vaststellingsovereenkomst**, in overleg met je werknemer. Sneller en zonder procedure, en je werknemer houdt het recht op een uitkering als de overeenkomst goed is opgesteld. Laat hem altijd controleren.\n\nIn beide gevallen betaal je de **transitievergoeding**: een derde maandsalaris per gewerkt jaar, berekend over de hele diensttijd, ook de twee ziektejaren. Dat voelt oneerlijk na twee jaar loondoorbetaling, en daarom bestaat sinds 2020 de **compensatieregeling**: UWV vergoedt de transitievergoeding aan de werkgever, tot maximaal het bedrag dat verschuldigd was op de dag na de 104 weken. Je vraagt de compensatie aan binnen zes maanden na de volledige betaling, met de arbeidsovereenkomst, het bewijs van de ziekte en het einde van het dienstverband, de berekening en het betaalbewijs.\n\n### Slapend dienstverband\n\nSommige werkgevers lieten het dienstverband na twee jaar doorlopen zonder loon, om de transitievergoeding te ontlopen. Sinds de uitspraak van de Hoge Raad van november 2019 moet een werkgever meewerken aan beëindiging met transitievergoeding als de werknemer daarom vraagt, en dankzij de compensatieregeling kost dat je per saldo weinig. Een slapend dienstverband heeft dus geen zin meer, en het houdt je werknemer in onzekerheid.\n\n### Of toch in dienst houden\n\nNiet elk traject eindigt in ontslag. Is je werknemer minder dan 35 procent arbeidsongeschikt, of gedeeltelijk inzetbaar, dan verwacht UWV dat je kijkt naar passend werk bij jou, en vaak is dat ook de beste uitkomst: iemand die het bedrijf kent, in een functie die past, met een aangepast contract en de no-riskpolis als vangnet als hij of zij opnieuw uitvalt. Een arbeidsdeskundig advies helpt om dat goed vast te leggen.",
+        "kader": {
+          "eyebrow": "Goed om te weten",
+          "titel": "No-riskpolis",
+          "tekst": "Neem je een werknemer met een WIA-uitkering in dienst, of houd je hem in dienst na een WIA-beoordeling, dan betaalt UWV bij nieuwe ziekte de Ziektewet-uitkering, vijf jaar lang. Dat haalt het risico uit het doorwerken."
+        }
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over twee jaar ziekte",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Moet ik na twee jaar nog loon doorbetalen?",
+            "answer": "Nee, de loondoorbetalingsplicht stopt na 104 weken, tenzij UWV een loonsanctie oplegt of je werknemer de WIA te laat aanvraagt. Is de beslissing van UWV er nog niet, dan krijgt je werknemer een voorschot op de uitkering."
+          },
+          {
+            "question": "Mag ik mijn werknemer na twee jaar ontslaan?",
+            "answer": "Ja, het opzegverbod vervalt na 104 weken. Je hebt een ontslagvergunning van UWV nodig, of je sluit een vaststellingsovereenkomst. Is er passend werk bij jou, dan verwacht UWV dat je dat eerst aanbiedt."
+          },
+          {
+            "question": "Krijg ik de transitievergoeding vergoed?",
+            "answer": "Ja, via de compensatieregeling van UWV, tot het bedrag dat verschuldigd was aan het einde van de 104 weken. Aanvragen binnen zes maanden na de volledige betaling, met de bewijsstukken."
+          },
+          {
+            "question": "Wat betekent een WGA-uitkering voor mijn premie?",
+            "answer": "De WGA-uitkering van je ex-werknemer telt tien jaar mee in je gedifferentieerde premie Whk, of je betaalt hem zelf als eigenrisicodrager. Een IVA-uitkering telt niet mee. Daarom loont het om bezwaar te maken als je vindt dat de beoordeling niet klopt."
+          },
+          {
+            "question": "Wat als mijn werknemer minder dan 35 procent arbeidsongeschikt is?",
+            "answer": "Dan is er geen WIA-uitkering en verwacht UWV dat je kijkt of je hem of haar in dienst kunt houden, in de eigen of een aangepaste functie. Lukt dat niet, dan kun je ontslag aanvragen; je werknemer kan dan WW krijgen."
+          },
+          {
+            "question": "Wat is een slapend dienstverband?",
+            "answer": "Een dienstverband dat na twee jaar ziekte doorloopt zonder loon en zonder werk. Sinds 2019 moet je meewerken aan beëindiging met transitievergoeding als je werknemer daarom vraagt; met de compensatieregeling kost dat je per saldo weinig."
+          },
+          {
+            "question": "Kan ik bezwaar maken tegen de WIA-beslissing?",
+            "answer": "Ja, binnen zes weken na de beslissing, zowel tegen een loonsanctie als tegen de mate van arbeidsongeschiktheid. Als werkgever heb je belang bij een juiste beoordeling vanwege de WGA-premie; laat je adviseren voor je bezwaar maakt."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#322E83",
+        "tint": "#ECEBF5",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Het einde van twee jaar goed afronden",
+        "tekst": "Met React2u Ready krijg je HR-advies en arbeidsrechtelijke ondersteuning van mensen die verzuim kennen: het re-integratieverslag compleet, de keuze tussen in dienst houden en beëindigen onderbouwd, de vaststellingsovereenkomst of de ontslagaanvraag goed opgesteld en de compensatie van de transitievergoeding aangevraagd. En als je werknemer blijft, de afspraken die daarbij horen.",
+        "punten": [
+          "Dossiercheck vóór de WIA-aanvraag",
+          "Advies over in dienst houden, aangepast contract en no-riskpolis",
+          "Vaststellingsovereenkomst of ontslagaanvraag bij UWV",
+          "Aanvraag compensatie transitievergoeding"
+        ],
+        "dienst": {
+          "naam": "Ready",
+          "wat": "HR-advies en arbeidsrecht",
+          "tekst": "HR-advies rond verzuim, arbeidsrechtelijke ondersteuning en advies bij conflicten.",
+          "href": "/ready",
+          "label": "Meer over React2u Ready"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: de loonsanctie", "href": "/loonsanctie" },
+          { "label": "Gids: re-integratie", "href": "/re-integratie" },
+          { "label": "Checklist poortwachterdossier", "href": "/kennis/checklist-poortwachterdossier" },
+          { "label": "Gids: eigenrisicodrager Ziektewet", "href": "/eigenrisicodrager-ziektewet" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}
