@@ -82,7 +82,8 @@ export function GidsKop({ d, asH1, ctx }: Props) {
               </span>
             )}
             {/* De vraag is de H1: zo ziet Google precies waar de pagina over gaat. */}
-            <H className={`${kop} m-0 max-w-[820px] text-[36px] leading-[1.04] tracking-[-1.2px] md:text-[52px] md:tracking-[-1.6px]`} style={{ color: NAVY }}>{d.heading}</H>
+            {/* "preventiemedewerker" vult op 390px precies de breedte: afbreken als een woord echt niet past. */}
+            <H lang="nl" className={`${kop} m-0 max-w-[820px] text-[36px] leading-[1.04] tracking-[-1.2px] hyphens-auto [overflow-wrap:anywhere] md:text-[52px] md:tracking-[-1.6px]`} style={{ color: NAVY }}>{d.heading}</H>
             {/* Het directe antwoord, meteen onder de vraag: het stukje dat Google en een AI-zoekmachine citeren. */}
             {d.antwoord && <p className="m-0 max-w-[760px] text-[19px] font-semibold leading-[1.55] md:text-[22px]" style={{ color: NAVY }}>{d.antwoord}</p>}
             {d.text && <p className="m-0 max-w-[720px] text-[16px] leading-[1.7] md:text-[17px]" style={{ color: BODY }}>{d.text}</p>}
