@@ -3233,9 +3233,10 @@ kruimelpad (Werkgevers › Kennis › gids) en de sectie Gidsen in `/llms.txt`.
 Het oude Poortwachter-artikel gaat met een 301 naar de gids (`GIDS_REDIRECTS`);
 `getPublishedPosts()` laat een artikel met een vaste doorverwijzing uit elke
 lijst. `src/lib/gidsen.test.ts` bewaakt de opbouw, de omvang (1.500 tot 2.000
-woorden) en de maten van titel en omschrijving. Tot migratie 0060 gedraaid is,
-staan de vijf slugs in `MIGRATIE_RESERVE` (`lib/concept.ts`): alleen die
-pagina's tonen in productie hun concept. Zie
+woorden) en de maten van titel en omschrijving. Tussen de merge van PR #115 en
+migratie 0060 op productie (beide 23 november 2026) stonden de vijf slugs in
+`MIGRATIE_RESERVE` (`lib/concept.ts`), zodat de 301 niet op een 404 uitkwam;
+sindsdien is die lijst leeg en komt elke gids uit de database. Zie
 [docs/adr/0002](docs/adr/0002-gidsen-als-vaste-paginas.md).
 
 **De kennisbank** (`/kennis`, sinds november 2026 in plaats van de blog, die

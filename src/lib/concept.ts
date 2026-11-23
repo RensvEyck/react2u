@@ -130,13 +130,14 @@ export const reserveActief = false;
  * gedraaid is. Alleen déze pagina's tonen in productie hun concept zolang de
  * database ze niet gepubliceerd heeft; een pagina die een beheerder verborg
  * komt zo niet terug. Haal een slug hier weg zodra de SQL gedraaid is (en de
- * pagina dus uit de database komt). De gidsen staan erin sinds november 2026
- * (migratie 0060): de 301 van het oude blogartikel naar
- * /wet-verbetering-poortwachter mag niet op een 404 uitkomen.
+ * pagina dus uit de database komt). De vijf gidsen stonden hier van de merge
+ * van PR #115 tot migratie 0060 op productie draaide (23 november 2026): de
+ * 301 van het oude blogartikel naar /wet-verbetering-poortwachter mocht niet
+ * op een 404 uitkomen. De tweede reeks gidsen (de kennisbank, migratie 0061)
+ * staat er nu in, om dezelfde reden: /blog/loonsanctie-uwv gaat met een 301
+ * naar /loonsanctie. Leeg maken zodra 0061 op productie gedraaid is.
  */
 export const MIGRATIE_RESERVE: string[] = [
-  "re-integratie", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker",
-  // De tweede reeks gidsen, tot migratie 0061 gedraaid is.
   "arbodienst", "zieke-werknemer", "verzuimverzekering", "casemanager-verzuim", "loonsanctie", "rie", "eigenrisicodrager-ziektewet", "twee-jaar-ziek",
 ];
 
