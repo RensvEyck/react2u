@@ -42,6 +42,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Melding** (in de weekevaluatie) | Iets wat een collega wil melden of delen: een zorg, een idee, een compliment, een vraag. Komt in de kwartaalmeeting, of meteen per mail bij de super admin als de collega dat aanvinkt (0046). |
 | **Twee zware weken** | Twee weken achter elkaar een 4 of lager voor energie of voor "werk paste in de tijd". Geeft meteen een mail aan wie het kwartaaloverzicht mag zien, en een melding op diens dashboard. |
 | **Inwerkreis** (`inwerkreizen`) | De eerste negentig dagen van een nieuwe collega (0050): een sjabloon per functie (`inwerk_sjablonen`: Casemanager Verzuim, Backoffice, Sales / accountmanager, begonnen leeg) met stappen in drie fasen (tot dag 30, 60 en 90), elk een taak, een oefencasus of een mijlpaal. Eén reis per collega, met een eerste werkdag (dag 1) en de naam van een buddy. Per collega aan of uit te zetten (0051): uit verbergt de reis voor de collega, alles blijft bewaard. De collega vinkt taken en oefencasussen af; een mijlpaal tekent het beheer (recht `omzet`) af. |
+| **CM-overleg** (`cm_overleggen`) | Het overleg van de casemanagers (0053): een agenda met vaste punten en punten die collega's inbrengen, notulen, actiepunten met wie en wanneer, een vast ritme met een herinnering de werkdag ervoor, een archief, en de kaart van Nederland met de klanten per casemanager. Recht `overleg`; plannen en notulen met het recht `omzet`. |
 | **Prognose** | Hoeveel werknemers React2u de komende twaalf maanden begeleidt en hoeveel fte casemanagement dat vraagt, tegenover de bezetting, met de weekevaluaties als controle (`/admin/prognose`, 0049). Zie *Prognose*. |
 | **Ingangsdatum** (`offertes.ingangsdatum`) | Wanneer de dienstverlening van een offerte start. Voor de prognose; ook na tekenen nog te verschuiven. |
 | **Recht** | Toegang tot één onderdeel van het paneel, bv. `bellijst` of `paginas`. De sleutels staan in [`src/lib/permissions.ts`](src/lib/permissions.ts) én in de RLS-policies — hernoemen vraagt dus een migratie. |
@@ -306,6 +307,40 @@ stappen, niet bij de functie). De schakelaar staat ook bovenaan de pagina van
 de reis. Uit (`inwerkreizen.aan`): geen menu-item, geen dashboardkaart, op het
 eigen scherm alleen dat hij uit staat, en `eigen_inwerkreis()` telt een reis
 die uit staat niet mee, dus afvinken weigert de database dan.
+
+**CM-overleg** (0053; Rens, 23 nov 2026: "CM Overleg toevoegen en daarbij de
+landkaart van nederland met verdeling per casemanager op de kaart"). Een eigen
+recht `overleg` (super admin, beheerder, werknemer; staat in `EIGEN_RECHTEN`,
+dus een werknemer blijft in Mijn React2u). Op `/admin/overleg`:
+- **Het volgende overleg** met datum, tijd en plek. Het ritme (`cm_ritme`: elke
+  n weken, weekdag, tijd, plek, vaste punten) stelt de datum voor; plannen zet
+  de vaste punten op de agenda. Tijden zijn Nederlandse tijd (`nlNaarIso`).
+- **Agenda**: vaste punten en wat collega's vooraf inbrengen. Eigen punten haal
+  je zelf weg, vaste niet; het beheer vinkt tijdens het overleg af wat besproken
+  is.
+- **Actiepunten**: wat, wie (een collega met inlog) en wanneer. De collega vinkt
+  het eigen actiepunt af (`cm_actiepunt_zetten`) en ziet het op het dashboard;
+  een actiepunt over de datum telt daar als aandacht.
+- **Notulen en afronden**: afronden zet het overleg in het archief, plant het
+  volgende volgens het ritme, en schuift ingebrachte punten die niet besproken
+  zijn door.
+- **De herinnering** (`/api/cron/overleg`, werkdagen 07:00 UTC): de werkdag
+  ervoor (op vrijdag voor maandag) een mail aan iedereen met het recht overleg,
+  met de agenda en de eigen open actiepunten. Eén keer per overleg
+  (`herinnerd_at`); verzetten zet dat terug.
+- **De kaart**: de echte klanten (akkoord, inrichten, klant) via `cm_kaart()`, ook
+  voor wie de klantenlijst niet mag zien. Elke klant als stip op de postcode van
+  de stamkaart (bezoekadres, anders postadres), of zonder postcode op de
+  gemeente als de plaats een gemeentenaam is. Kleur per casemanager (de eerste
+  drie plekken van het geteste palet; meer casemanagers delen de kleur
+  "overige"), groter bij meer werknemers. De laag werkgebied kleurt elke
+  gemeente naar wie er de meeste klanten heeft. Wie nog niet op de kaart staat
+  of geen casemanager heeft, staat eronder. De kaart zelf (342 gemeenten,
+  4071 postcodes) komt uit open CBS-data via PDOK en staat in
+  `src/lib/kaart/`; bij een herindeling opnieuw maken met
+  `scripts/kaartdata.mjs`. Er gaat niets naar een externe dienst.
+- Niets medisch: geen namen van werknemers of dossiers in agenda of notulen
+  (`NIETS_MEDISCH` staat bij de invulvelden).
 
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de

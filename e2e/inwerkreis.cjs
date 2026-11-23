@@ -164,7 +164,7 @@ insert into public.medewerkers (naam, functie, user_id) values ('${NIEUW.naam}',
   await inloggen(n, NIEUW.email, NIEUW.wachtwoord, geheimNieuw);
   await n.goto(`${BASIS}/admin`);
   const menu = await n.locator("aside nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  check(JSON.stringify(menu) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/inwerkreis"]), `menu: Dashboard, Weekevaluatie, Inwerkreis (${menu.join(", ")})`);
+  check(JSON.stringify(menu) === JSON.stringify(["/admin", "/admin/weekevaluatie", "/admin/overleg", "/admin/inwerkreis"]), `menu: Dashboard, Weekevaluatie, CM-overleg, Inwerkreis (${menu.join(", ")})`);
   check((await n.locator("aside").first().innerText()).includes("Mijn React2u"), "Mijn React2u bovenaan");
   const kaart = (await n.locator("#mijn-inwerkreis").innerText()).replace(/\s+/g, " ");
   check(kaart.includes("Casemanager Verzuim") && kaart.includes("Dag 41 van 90") && kaart.includes("0 van 5 stappen") && kaart.includes("buddy Lotte Bakker"), `dashboard: functie, dag, stappen en buddy (${kaart.slice(0, 120)})`);

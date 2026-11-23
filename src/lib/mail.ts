@@ -296,6 +296,29 @@ ${linkAlsTekst(h.link)}`);
 }
 
 /**
+ * De herinnering voor het CM-overleg (api/cron/overleg, tekst uit
+ * lib/overleg.ts): de werkdag ervoor, met wanneer en waar, de agenda en de
+ * eigen open actiepunten, en één knop naar het overleg.
+ */
+export async function sendOverlegHerinnering(h: {
+  to: string; onderwerp: string; aanhef: string; intro: string; agenda: string[]; acties: string[]; link: string; contact?: ContactInfo;
+}): Promise<Verzonden> {
+  const lijst = (items: string[]) =>
+    `<ol style="margin:6px 0 20px;padding-left:22px;font-family:${FONT};font-size:15px;line-height:1.65;color:${KLEUR.tekst}">${items.map((i) => `<li style="margin:2px 0">${esc(i)}</li>`).join("")}</ol>`;
+  const kaart = vak(`${p(esc(h.aanhef), `color:${KLEUR.inkt}`)}
+${p(esc(h.intro))}
+${eyebrow("Agenda", KLEUR.indigo)}
+${lijst(h.agenda)}
+${h.acties.length ? `${eyebrow("Jouw actiepunten", KLEUR.indigo)}
+${lijst(h.acties)}` : ""}
+${knop("Naar het CM-overleg", h.link)}
+<div style="height:22px"></div>
+${linkAlsTekst(h.link)}`);
+  const html = omhulsel({ basis: siteBasis(), titel: h.onderwerp, preheader: h.intro, kaart, contact: h.contact });
+  return verstuur([h.to], h.onderwerp, html, adressen(process.env.NOTIFY_TO)[0]);
+}
+
+/**
  * Twee zware weken bij een collega (weekevaluatieActions, regel in
  * weekevaluatie_signaal van 0045): een korte mail aan wie het kwartaaloverzicht
  * mag zien, zonder de antwoorden zelf, met een knop naar de collega in het overzicht.
