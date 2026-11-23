@@ -481,9 +481,53 @@ export function bezoekPerKlant<T extends Pick<Klant, "id" | "bedrijf" | "sleutel
 
 /* ---------- import van de klantlijst ---------- */
 
+/**
+ * De velden van de stamkaart (0048) die de import kent, naast contactpersoon,
+ * telefoon, e-mail en casemanager (die had de import al). Zo vult één
+ * Excelbestand de stamkaart van alle klanten in één keer (Rens, 23 nov 2026:
+ * "is er een mogelijkheid dat deze in bulk worden gekopieerd en geplakt naar
+ * alle klanten en de stamkaart wordt ingevuld").
+ */
+export type StamkaartImportVeld = Exclude<keyof StamkaartVelden, "casemanager">;
+
+/** De stamkaartvelden in de volgorde van de stamkaart, met de grens van de database. */
+export const STAMKAART_IMPORT: { veld: StamkaartImportVeld; label: string; max: number }[] = [
+  { veld: "kvk", label: "KvK-nummer", max: 8 },
+  { veld: "rechtsvorm", label: "Rechtsvorm", max: 60 },
+  { veld: "branche", label: "Branche", max: 120 },
+  { veld: "sbi", label: "SBI-code", max: 60 },
+  { veld: "website", label: "Website", max: 200 },
+  { veld: "medewerkers", label: "Aantal werknemers", max: 6 },
+  { veld: "algemeen_telefoon", label: "Algemeen telefoonnummer", max: 40 },
+  { veld: "algemeen_email", label: "Algemeen e-mailadres", max: 254 },
+  { veld: "bezoekadres", label: "Bezoekadres", max: 200 },
+  { veld: "bezoek_postcode", label: "Postcode", max: 12 },
+  { veld: "bezoek_plaats", label: "Plaats", max: 100 },
+  { veld: "postadres", label: "Postadres", max: 200 },
+  { veld: "post_postcode", label: "Postcode postadres", max: 12 },
+  { veld: "post_plaats", label: "Plaats postadres", max: 100 },
+  { veld: "contact_functie", label: "Functie contactpersoon", max: 120 },
+  { veld: "factuur_email", label: "Factuur-e-mail", max: 254 },
+  { veld: "btw", label: "Btw-nummer", max: 30 },
+  { veld: "iban", label: "IBAN", max: 40 },
+  { veld: "iban_naam", label: "Tenaamstelling", max: 120 },
+  { veld: "debiteurnummer", label: "Debiteurnummer", max: 40 },
+  { veld: "ondertekenaar", label: "Bevoegd ondertekenaar", max: 200 },
+  { veld: "ondertekenaar_functie", label: "Functie ondertekenaar", max: 120 },
+];
+
+export const STAMKAART_IMPORT_VELDEN = STAMKAART_IMPORT.map((x) => x.veld);
+
+export function isStamkaartImportVeld(s: unknown): s is StamkaartImportVeld {
+  return typeof s === "string" && (STAMKAART_IMPORT_VELDEN as string[]).includes(s);
+}
+
 export type ImportVeld =
   | "bedrijf" | "startdatum" | "offerte_retour" | "contract_retour" | "formulieren_retour" | "koppeling" | "facturatie"
-  | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron";
+  | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron"
+  // Een losse kolom huisnummer komt achter de straat in het bezoekadres.
+  | "huisnummer"
+  | StamkaartImportVeld;
 
 export const IMPORT_VELD_LABEL: Record<ImportVeld, string> = {
   bedrijf: "Bedrijf",
@@ -501,7 +545,14 @@ export const IMPORT_VELD_LABEL: Record<ImportVeld, string> = {
   casemanager: "Casemanager",
   volgende_actie: "Volgende actie",
   bron: "Bron",
+  huisnummer: "Huisnummer (bij het adres)",
+  ...(Object.fromEntries(STAMKAART_IMPORT.map((x) => [x.veld, x.label])) as Record<StamkaartImportVeld, string>),
 };
+
+/** Of een kolom naar de stamkaart gaat (en niet naar de kaart op het bord). */
+export function naarStamkaart(v: ImportVeld | null): boolean {
+  return v === "huisnummer" || isStamkaartImportVeld(v);
+}
 
 export type Kolom = {
   /** Kolomletter, A, B, …, voor het rapport. */
@@ -531,6 +582,8 @@ export type ImportRij = {
   casemanager: string | null;
   volgende_actie: string | null;
   bron: string | null;
+  /** De stamkaartvelden uit het bestand, al gecontroleerd en netjes gemaakt; een cel die niet klopt staat bij de waarschuwingen. */
+  stamkaart?: Partial<Record<StamkaartImportVeld, string | number>>;
   waarschuwingen: string[];
 };
 
@@ -540,17 +593,50 @@ export function kolomLetter(i: number): string {
   return s;
 }
 
-/** Een kop herkennen aan een paar woorden; "naar excact/facturatie verzonden" is ook facturatie. */
+/**
+ * Een kop herkennen aan een paar woorden; "naar excact/facturatie verzonden" is ook facturatie.
+ *
+ * De stamkaart staat vooraan, en de volgorde telt: "KvK-nummer", "Debiteurnummer" en
+ * "Rekeningnummer" zijn geen telefoon, "Factuur e-mail" is geen vinkje facturatie en geen
+ * e-mail van de contactpersoon, "Tenaamstelling" en "Naam ondertekenaar" zijn geen bedrijf,
+ * "Functie ondertekenaar" gaat vóór "Functie", "Postcode postadres" vóór "Postcode".
+ * Een kop die op de export van de klantenlijst staat (lib/stamkaart.ts) moet hier terugkomen
+ * op hetzelfde veld; stamkaart.test.ts controleert dat.
+ */
 const KOPPEN: [RegExp, ImportVeld][] = [
+  [/kvk|kamer van koophandel|\bcoc\b|handelsregister/, "kvk"],
+  [/debiteur|klantnummer|relatienummer/, "debiteurnummer"],
+  [/tenaamstelling|t\.?n\.?v\b|ten name van|rekeninghouder/, "iban_naam"],
+  [/iban|rekeningnummer|bankrekening|^rekening$|^bank$/, "iban"],
+  [/\bbtw|\bvat\b|omzetbelasting/, "btw"],
+  [/\bsbi\b/, "sbi"],
+  [/branche|sector|bedrijfstak/, "branche"],
+  [/rechtsvorm/, "rechtsvorm"],
+  [/website|webadres|webpagina|^web$|\burl\b|internet|\bwww\b/, "website"],
+  [/aantal (werknemers|medewerkers|personeel|mensen)|^(werknemers|medewerkers|personeel|fte)$|personeelsomvang/, "medewerkers"],
+  [/factu\w*.*mail|mail.*factu|invoice/, "factuur_email"],
+  [/algeme\w*.*mail|info ?mail|bedrijfs ?e?-?mail|mail.*algeme/, "algemeen_email"],
+  [/algeme\w*.*(tel|nummer)|hoofdnummer|receptie|bedrijfs ?tel|tel\w*.*algeme/, "algemeen_telefoon"],
+  [/functie.*(onderteken|teken|bevoegd)|(onderteken|tekenbevoegd|bevoegd).*functie/, "ondertekenaar_functie"],
+  [/onderteken|tekenbevoegd|bevoegd|handtekening|directeur/, "ondertekenaar"],
+  [/functie/, "contact_functie"],
+  [/post\w*.*postcode|postcode.*post/, "post_postcode"],
+  [/post\w*.*(plaats|woonplaats)|plaats.*post/, "post_plaats"],
+  [/postadres|postbus|correspondentieadres/, "postadres"],
+  [/huisnummer|huisnr/, "huisnummer"],
+  [/postcode/, "bezoek_postcode"],
+  [/bezoekadres|vestigingsadres|^adres|straat|\badres\b/, "bezoekadres"],
+  [/(vestigings|woon)?plaats|^stad$|gemeente/, "bezoek_plaats"],
   [/start|ingang|begin/, "startdatum"],
   [/offerte/, "offerte_retour"],
   [/contract/, "contract_retour"],
   [/formulier/, "formulieren_retour"],
   [/koppel/, "koppeling"],
   [/exa?c+t|factur/, "facturatie"],
-  [/contactpersoon|^contact$|aanspreek/, "contactpersoon"],
+  // Mail en telefoon vóór de contactpersoon: "E-mail contactpersoon" is een e-mailadres, geen naam.
   [/mail/, "email"],
   [/telefoon|^tel\b|mobiel|nummer/, "telefoon"],
+  [/contactpersoon|^contact$|aanspreek/, "contactpersoon"],
   // Casemanager vóór eigenaar: de klantlijst van november 2026 had de casemanagers in een kolom die als eigenaar werd gelezen (Rens, 19 nov 2026: "Robin Roos, Nadja en Ida zijn casemanagers").
   [/case ?manager|\bcm\b|arbo ?contact/, "casemanager"],
   [/eigenaar|accountmanager|verkoper|sales|van react2u|wie/, "eigenaar"],
@@ -610,8 +696,10 @@ export function herkenKolommen(cellen: string[][]): { kolommen: Kolom[]; koprege
     let via: Kolom["via"] = "onbekend";
     if (kop) {
       const k = kop.toLowerCase();
-      const treffer = KOPPEN.find(([re, v]) => re.test(k) && !bezet.has(v));
-      if (treffer) {
+      // Alleen de eerste kop die past: is dat veld al bezet, dan niet doorschuiven naar een minder precieze kop
+      // ("E-mail contactpersoon" naast "E-mailadres" is geen naam); dan beslist de inhoud.
+      const treffer = KOPPEN.find(([re]) => re.test(k));
+      if (treffer && !bezet.has(treffer[1])) {
         veld = treffer[1];
         via = "kop";
       }
@@ -624,6 +712,12 @@ export function herkenKolommen(cellen: string[][]): { kolommen: Kolom[]; koprege
       const namen = waarden.filter(lijktNaam).length;
       const mails = waarden.filter((w) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(w)).length;
       const nummers = waarden.filter((w) => /^[\d\s()+-]{8,}$/.test(w)).length;
+      // De stamkaart aan de inhoud: een KvK-nummer (acht cijfers) zou anders als telefoonnummer gelezen worden.
+      const ibans = waarden.filter((w) => schoonIban(w) !== null).length;
+      const btws = waarden.filter((w) => /^NL\d{9}B\d{2}$/.test(schoonBtw(w))).length;
+      const kvks = waarden.filter((w) => schoonKvk(w) !== null).length;
+      const postcodes = waarden.filter((w) => /^\d{4}\s?[a-z]{2}$/i.test(w)).length;
+      const sites = waarden.filter((w) => !w.includes("@") && /^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}(\/\S*)?$/i.test(w)).length;
       const lang = waarden.filter((w) => w.length > 25 || w.split(/\s+/).length > 3).length;
       const kies = (v: ImportVeld) => {
         if (!bezet.has(v)) {
@@ -632,7 +726,12 @@ export function herkenKolommen(cellen: string[][]): { kolommen: Kolom[]; koprege
         }
       };
       if (datums >= n * 0.8) kies("startdatum");
-      else if (mails >= n * 0.8) kies("email");
+      else if (mails >= n * 0.8) kies(bezet.has("email") ? "factuur_email" : "email");
+      else if (ibans >= n * 0.8) kies("iban");
+      else if (btws >= n * 0.8) kies("btw");
+      else if (kvks >= n * 0.8) kies("kvk");
+      else if (postcodes >= n * 0.8) kies(bezet.has("bezoek_postcode") ? "post_postcode" : "bezoek_postcode");
+      else if (sites >= n * 0.8) kies("website");
       else if (nummers >= n * 0.8) kies("telefoon");
       else if (jaNee >= n * 0.8) { /* een ja/nee-kolom zonder kop: we weten niet welk vinkje */ }
       else if (!kopregel && !bezet.has("bedrijf")) kies("bedrijf");
@@ -644,6 +743,93 @@ export function herkenKolommen(cellen: string[][]): { kolommen: Kolom[]; koprege
     kolommen.push({ letter: kolomLetter(i), kop, veld, via });
   }
   return { kolommen, kopregel };
+}
+
+/** "12 34 56 78" → "12345678"; null als het geen acht cijfers zijn. */
+export function schoonKvk(w: string): string | null {
+  const t = w.replace(/[\s.-]/g, "");
+  return /^\d{8}$/.test(t) ? t : null;
+}
+
+/** Zoals de bank hem schrijft: hoofdletters zonder spaties; null als de controle (mod 97) niet klopt. */
+export function schoonIban(w: string): string | null {
+  const t = w.replace(/\s/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(t)) return null;
+  const herschikt = (t.slice(4) + t.slice(0, 4)).replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
+  let rest = 0;
+  for (const c of herschikt) rest = (rest * 10 + Number(c)) % 97;
+  return rest === 1 ? t : null;
+}
+
+/** "5611nb" → "5611 NB"; een buitenlandse postcode blijft zoals getypt. */
+export function schoonPostcode(w: string): string {
+  const t = w.trim().replace(/\s+/g, " ");
+  const m = t.match(/^(\d{4})\s?([a-zA-Z]{2})$/);
+  return m ? `${m[1]} ${m[2].toUpperCase()}` : t;
+}
+
+/** "react2u.nl" → "https://react2u.nl"; null als het geen adres van een site is. */
+export function schoonWebsite(w: string): string | null {
+  let t = w.trim().replace(/\s/g, "");
+  if (!t) return null;
+  if (!/^https?:\/\//i.test(t)) t = `https://${t}`;
+  try {
+    const u = new URL(t);
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(u.hostname)) return null;
+    return u.toString().replace(/\/$/, "");
+  } catch {
+    return null;
+  }
+}
+
+/** "nl 1234.56.789.b01" → "NL123456789B01". */
+export function schoonBtw(w: string): string {
+  return w.replace(/[\s.]/g, "").toUpperCase();
+}
+
+const EMAIL_IMPORT = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+/**
+ * Eén cel voor de stamkaart, gecontroleerd en netjes gemaakt zoals de
+ * stamkaart dat met de hand doet (schoonStamkaart in lib/stamkaart.ts), of in
+ * woorden wat er niet klopt. Een cel die niet klopt laat het veld leeg; de
+ * rest van de rij gaat gewoon door.
+ */
+export function leesStamkaartCel(veld: StamkaartImportVeld, w: string): { waarde: string | number } | { fout: string } {
+  const t = w.trim().replace(/\s+/g, " ");
+  const max = STAMKAART_IMPORT.find((x) => x.veld === veld)?.max ?? 200;
+  switch (veld) {
+    case "kvk": {
+      const k = schoonKvk(t);
+      return k ? { waarde: k } : { fout: `KvK-nummer "${t}" heeft geen acht cijfers` };
+    }
+    case "iban": {
+      const i = schoonIban(t);
+      return i ? { waarde: i } : { fout: `IBAN "${t}" klopt niet` };
+    }
+    case "website": {
+      const site = schoonWebsite(t);
+      return site ? { waarde: site.slice(0, max) } : { fout: `Website "${t}" klopt niet` };
+    }
+    case "btw":
+      return { waarde: schoonBtw(t).slice(0, max) };
+    case "bezoek_postcode":
+    case "post_postcode":
+      return { waarde: schoonPostcode(t).slice(0, max) };
+    case "algemeen_email":
+    case "factuur_email": {
+      const e = t.toLowerCase();
+      return EMAIL_IMPORT.test(e) ? { waarde: e.slice(0, max) } : { fout: `${IMPORT_VELD_LABEL[veld]} "${t}" klopt niet` };
+    }
+    case "medewerkers": {
+      // "25", "1.250", "12,5 fte": een heel getal, afgerond.
+      const m = t.replace(/\./g, "").match(/^(\d+)(?:,(\d+))?(\s*(fte|medewerkers|werknemers|mensen))?$/i);
+      const n = m ? Math.round(Number(`${m[1]}.${m[2] || "0"}`)) : NaN;
+      return Number.isInteger(n) && n >= 0 && n <= 100000 ? { waarde: n } : { fout: `Aantal werknemers "${t}" is geen getal` };
+    }
+    default:
+      return { waarde: t.slice(0, max) };
+  }
 }
 
 const knip = (s: string | undefined, max: number) => {
@@ -663,6 +849,7 @@ export function rijenUitKlantlijst(cellen: string[][], vandaag: string): { rijen
       regel, bedrijf: "", startdatum: null, offerte_retour: null, contract_retour: null, formulieren_retour: null, koppeling: null, facturatie: null,
       stand: null, contactpersoon: null, email: null, telefoon: null, eigenaar: null, casemanager: null, volgende_actie: null, bron: null, waarschuwingen: [],
     };
+    let huisnummer: string | null = null;
     kolommen.forEach((k, i) => {
       const w = (cel[i] || "").trim();
       if (!k.veld || !w) return;
@@ -693,8 +880,21 @@ export function rijenUitKlantlijst(cellen: string[][], vandaag: string): { rijen
         case "casemanager": rij.casemanager = knip(w, 120); break;
         case "volgende_actie": rij.volgende_actie = knip(w, 500); break;
         case "bron": rij.bron = knip(w, 120); break;
+        case "huisnummer": huisnummer = knip(w, 20); break;
+        default: {
+          const c = leesStamkaartCel(k.veld, w);
+          if ("fout" in c) rij.waarschuwingen.push(c.fout);
+          else (rij.stamkaart ??= {})[k.veld] = c.waarde;
+        }
       }
     });
+    // Straat en huisnummer in twee kolommen: samen het bezoekadres ("Paaldijk" en "11" wordt "Paaldijk 11").
+    if (huisnummer) {
+      const straat = rij.stamkaart?.bezoekadres;
+      // Staat er al een nummer in de straat, dan niet nog een keer.
+      if (typeof straat === "string" && !/\d/.test(straat)) rij.stamkaart!.bezoekadres = `${straat} ${huisnummer}`.slice(0, 200);
+      else if (typeof straat !== "string") rij.waarschuwingen.push(`Huisnummer "${huisnummer}" zonder straat`);
+    }
     if (!rij.bedrijf) rij.waarschuwingen.unshift("Geen bedrijfsnaam");
     rijen.push(rij);
   });
@@ -734,15 +934,51 @@ export type Voorstelregel = {
   status: KlantStatus;
   /** Wat er aan een bestaande kaart verandert, in woorden. */
   wijzigingen: string[];
+  /**
+   * Wat er op de stamkaart gebeurt: een leeg veld dat gevuld wordt, een gevuld
+   * veld dat een andere waarde krijgt (alleen als je overschrijven aanzet), en
+   * een gevuld veld dat anders is in het bestand maar blijft staan.
+   */
+  stamkaart: { aangevuld: StamkaartImportVeld[]; overschreven: StamkaartImportVeld[]; behouden: StamkaartImportVeld[] };
   waarschuwingen: string[];
 };
+
+/**
+ * Hoe de import met de stamkaart omgaat. Standaard vult hij alleen lege
+ * velden: wat iemand op de stamkaart controleerde, gaat niet zomaar weg.
+ * Vanaf de klantenlijst komt een nieuw bedrijf meteen als klant binnen (de
+ * lijst is de administratie van wie klant is, niet de trechter).
+ */
+export type ImportOpties = { stamkaartOverschrijven?: boolean; nieuwAls?: KlantStatus };
 
 export type Voorstel = {
   regels: Voorstelregel[];
   telling: Record<VoorstelActie, number>;
 };
 
-type Bestaand = Pick<Klant, "id" | "bedrijf" | "sleutel" | "status" | "startdatum" | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron" | ChecklistSleutel>;
+type Bestaand = Pick<Klant, "id" | "bedrijf" | "sleutel" | "status" | "startdatum" | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron" | ChecklistSleutel>
+  & Partial<Pick<StamkaartVelden, StamkaartImportVeld>>;
+
+const leegVeld = (w: unknown) => w === null || w === undefined || String(w).trim() === "";
+
+/**
+ * Wat de stamkaartcellen van een rij met een bestaande kaart doen: aanvullen
+ * (het veld was leeg), overschrijven (anders, en overschrijven staat aan) of
+ * behouden (anders, en overschrijven staat uit). Gelijke waarden doen niets.
+ */
+export function stamkaartUitRij(rij: Pick<ImportRij, "stamkaart">, b: Partial<Pick<StamkaartVelden, StamkaartImportVeld>> | null, overschrijven = false): Voorstelregel["stamkaart"] {
+  const uit: Voorstelregel["stamkaart"] = { aangevuld: [], overschreven: [], behouden: [] };
+  for (const veld of STAMKAART_IMPORT_VELDEN) {
+    const w = rij.stamkaart?.[veld];
+    if (leegVeld(w)) continue;
+    const oud = b?.[veld];
+    if (leegVeld(oud)) uit.aangevuld.push(veld);
+    else if (String(oud) === String(w)) continue;
+    else if (overschrijven) uit.overschreven.push(veld);
+    else uit.behouden.push(veld);
+  }
+  return uit;
+}
 
 /** De velden uit het bestand die een bestaande kaart kunnen wijzigen, met de tekst voor het rapport. */
 const TEKSTVELDEN: { veld: "startdatum" | "stand" | "contactpersoon" | "email" | "telefoon" | "eigenaar" | "casemanager" | "volgende_actie" | "bron"; label: string }[] = [
@@ -767,7 +1003,7 @@ const TEKSTVELDEN: { veld: "startdatum" | "stand" | "contactpersoon" | "email" |
  * een opmerking: in de klantlijst van november 2026 stond "1-1" voor januari,
  * en Excel maakte daar het lopende jaar van.
  */
-export function importVoorstel(rijen: ImportRij[], bestaande: Bestaand[], vandaag: string): Voorstel {
+export function importVoorstel(rijen: ImportRij[], bestaande: Bestaand[], vandaag: string, opties: ImportOpties = {}): Voorstel {
   const perSleutel = new Map(bestaande.map((b) => [b.sleutel || bedrijfSleutel(b.bedrijf), b]));
   const gezien = new Set<string>();
   const regels: Voorstelregel[] = rijen.map((rij) => {
@@ -776,20 +1012,22 @@ export function importVoorstel(rijen: ImportRij[], bestaande: Bestaand[], vandaa
     const afgeleid = statusUitRij(rij);
     if (!sleutel) {
       if (!waarschuwingen.includes("Geen bedrijfsnaam")) waarschuwingen.unshift("Geen bedrijfsnaam");
-      return { rij, actie: "overslaan", bestaand: null, status: afgeleid, wijzigingen: [], waarschuwingen };
+      return { rij, actie: "overslaan", bestaand: null, status: afgeleid, wijzigingen: [], stamkaart: stamkaartUitRij({}, null), waarschuwingen };
     }
     if (gezien.has(sleutel)) {
       waarschuwingen.push("Staat al eerder in het bestand");
-      return { rij, actie: "overslaan", bestaand: null, status: afgeleid, wijzigingen: [], waarschuwingen };
+      return { rij, actie: "overslaan", bestaand: null, status: afgeleid, wijzigingen: [], stamkaart: stamkaartUitRij({}, null), waarschuwingen };
     }
     gezien.add(sleutel);
     const b = perSleutel.get(sleutel) || null;
-    const status = b ? (statusVerder(afgeleid, b.status) ? afgeleid : b.status) : afgeleid;
+    // Een nieuw bedrijf vanaf de klantenlijst is minstens klant; een bestaande kaart volgt de gewone regels.
+    const nieuwStatus = opties.nieuwAls && statusVerder(opties.nieuwAls, afgeleid) ? opties.nieuwAls : afgeleid;
+    const status = b ? (statusVerder(afgeleid, b.status) ? afgeleid : b.status) : nieuwStatus;
     // Meer dan een maand terug bij wie nog geen klant is: in de klantlijst stond "1-1" voor januari, en Excel maakte er het lopende jaar van.
     if (rij.startdatum && dagenTussen(rij.startdatum, vandaag) > 31 && status !== "klant" && status !== "inrichten" && status !== "inactief") {
       waarschuwingen.push(`Startdatum ${datumLang(rij.startdatum)} ligt in het verleden; bedoel je ${Number(rij.startdatum.slice(0, 4)) + 1}?`);
     }
-    if (!b) return { rij, actie: "nieuw", bestaand: null, status, wijzigingen: [], waarschuwingen };
+    if (!b) return { rij, actie: "nieuw", bestaand: null, status, wijzigingen: [], stamkaart: stamkaartUitRij(rij, null), waarschuwingen };
     const wijzigingen: string[] = [];
     for (const c of CHECKLIST) {
       const w = rij[c.key];
@@ -800,11 +1038,24 @@ export function importVoorstel(rijen: ImportRij[], bestaande: Bestaand[], vandaa
       if (w && w !== (b[t.veld] || null)) wijzigingen.push(t.label);
     }
     if (status !== b.status) wijzigingen.push(`status ${statusInfo(b.status).label} → ${statusInfo(status).label}`);
-    return { rij, actie: wijzigingen.length ? "bijwerken" : "ongewijzigd", bestaand: { id: b.id, bedrijf: b.bedrijf, status: b.status }, status, wijzigingen, waarschuwingen };
+    const stamkaart = stamkaartUitRij(rij, b, opties.stamkaartOverschrijven);
+    const sk = [...stamkaart.aangevuld, ...stamkaart.overschreven];
+    if (sk.length) wijzigingen.push(`stamkaart: ${sk.map((v) => IMPORT_VELD_LABEL[v].toLowerCase()).join(", ")}`);
+    return { rij, actie: wijzigingen.length ? "bijwerken" : "ongewijzigd", bestaand: { id: b.id, bedrijf: b.bedrijf, status: b.status }, status, wijzigingen, stamkaart, waarschuwingen };
   });
   const telling = { nieuw: 0, bijwerken: 0, ongewijzigd: 0, overslaan: 0 };
   for (const r of regels) telling[r.actie]++;
   return { regels, telling };
+}
+
+/** Hoeveel stamkaarten de import aanvult of wijzigt (nieuwe kaarten met stamkaartgegevens tellen mee). */
+export function stamkaartTelling(v: Voorstel): { kaarten: number; velden: number; behouden: number } {
+  const doen = v.regels.filter((r) => (r.actie === "nieuw" || r.actie === "bijwerken") && r.stamkaart.aangevuld.length + r.stamkaart.overschreven.length > 0);
+  return {
+    kaarten: doen.length,
+    velden: doen.reduce((n, r) => n + r.stamkaart.aangevuld.length + r.stamkaart.overschreven.length, 0),
+    behouden: v.regels.reduce((n, r) => n + r.stamkaart.behouden.length, 0),
+  };
 }
 
 /** Een rij uit het bestand zoals hij in de database komt (zonder lege waarden; een bestaande kaart houdt dan wat er stond). */
@@ -821,6 +1072,16 @@ export function rijNaarVelden(rij: ImportRij): Partial<Klant> {
   if (rij.bron) uit.bron = rij.bron;
   for (const c of CHECKLIST) if (rij[c.key] !== null) uit[c.key] = rij[c.key]!;
   return uit;
+}
+
+/** De stamkaartcellen van een rij als velden voor de database (alleen gevulde). */
+export function rijNaarStamkaart(rij: Pick<ImportRij, "stamkaart">): Partial<Klant> {
+  const uit: Record<string, string | number> = {};
+  for (const veld of STAMKAART_IMPORT_VELDEN) {
+    const w = rij.stamkaart?.[veld];
+    if (!leegVeld(w)) uit[veld] = w!;
+  }
+  return uit as Partial<Klant>;
 }
 
 /**

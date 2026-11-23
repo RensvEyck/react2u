@@ -4,7 +4,8 @@
 // modules (en alles in één keer overnemen, met de bron in de tijdlijn), bewerken met controle van KvK en IBAN;
 // de documenten uit alle modules met de pdf; een eigen bestand uploaden, downloaden en zonder sessie niet; de
 // tariefafspraken uit de offerte en de losse opdracht en een afwijkende afspraak erbij; de tijdlijn met een
-// gesprek vastleggen; en alles op een telefoon zonder horizontaal scrollen van de pagina.
+// gesprek vastleggen; alles op een telefoon zonder horizontaal scrollen van de pagina; en de klanten naar Excel en de
+// stamkaarten in één keer aanvullen met een geplakt Excelblok (alleen lege velden, of overschrijven als je dat aanzet).
 // Draaien via e2e/run.mjs (E2E_ALLEEN=klanten).
 const { chromium } = require("playwright");
 const fs = require("fs");
@@ -17,6 +18,7 @@ const GEHEIM = geheim();
 const stap = (s) => console.log(`\n▶ ${s}`);
 const fout = [];
 const check = (cond, s) => (cond ? console.log(`  ✓ ${s}`) : (fout.push(s), console.log(`  ✗ ${s}`)));
+const ok = (s) => console.log(`  ✓ ${s}`);
 const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS, `${naam}.png`), fullPage: true, ...opts });
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 /** Wacht tot een SQL-vraag het verwachte antwoord geeft (de server action is net klaar als de browser het zegt). */
@@ -261,6 +263,102 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   check(!(await teBreed(mp)), "de tarieven passen op het scherm");
   await shot(mp, "12-telefoon-tarieven");
   await tel.close();
+
+  stap("Alle klanten naar Excel, en de stamkaarten in één keer aanvullen (Rens, 23 nov 2026)");
+  await page.goto(`${BASIS}/admin/klanten`);
+  await page.waitForSelector("tr[data-klant]");
+  const paneel = page.locator("section[aria-label='Stamkaarten']");
+  check((await paneel.locator("[data-stamkaarten-compleet]").getAttribute("data-stamkaarten-compleet")) === "1/2", "het paneel: 1 van de 2 stamkaarten compleet");
+  check(await paneel.locator("text=Ontbreekt het vaakst").count() && (await paneel.locator("li:has-text('KvK-nummer')").count()), "wat het vaakst ontbreekt");
+  check(await paneel.locator("button:has-text('Vul aan uit Excel')").count() && (await paneel.locator("button:has-text('Exporteer naar Excel')").count()), "de twee acties in het paneel");
+  await paneel.screenshot({ path: path.join(SHOTS, "13a-paneel.png") });
+  const [download] = await Promise.all([page.waitForEvent("download"), paneel.locator("button:has-text('Exporteer naar Excel')").click()]);
+  const exportPad = path.join(SHOTS, "export-klanten.xlsx");
+  await download.saveAs(exportPad);
+  const exportTekst = fs.readFileSync(exportPad).toString("latin1");
+  check(/^Klanten React2u \d{4}-\d{2}-\d{2}\.xlsx$/.test(download.suggestedFilename()), `bestandsnaam ${download.suggestedFilename()}`);
+  check(exportTekst.startsWith("PK") && exportTekst.includes("KvK-nummer") && exportTekst.includes("Houthandel Verhoeven") && exportTekst.includes("17061007"), "het Excelbestand met de stamkaart als kolommen");
+  check(!exportTekst.includes("Kapsalon Knip"), "alleen echte klanten in de export, geen leads");
+
+  // Wat een werknemer in Excel bijhield: straat en huisnummer apart, een KvK die niet klopt, en een bedrijf dat er nog niet is.
+  const plak = [
+    ["Klant", "KvK-nummer", "Straat", "Huisnummer", "Postcode", "Plaats", "Factuur e-mail", "IBAN", "Aantal werknemers", "Branche", "Debiteurnummer"],
+    ["Houthandel Verhoeven B.V.", "12345678", "Paaldijk", "11", "5595XL", "Leende", "nieuw@verhoeven.test", "NL91 ABNA 0417 1643 00", "14", "Houthandel", "D-1042"],
+    ["Garage Smits", "17061008", "Markt", "3", "5611 nb", "Eindhoven", "admin@smits.test", "NL91ABNA0417164300", "8", "Garage", "D-2001"],
+    ["Drukkerij Van Dam", "12", "Industrieweg", "40", "5612 AB", "Eindhoven", "", "", "", "Drukkerij", ""],
+  ].map((r) => r.join("\t")).join("\n");
+  await paneel.locator("button:has-text('Vul aan uit Excel')").click();
+  await page.waitForSelector("div[role=dialog] h2:has-text('Stamkaarten aanvullen')");
+  check(await page.locator("div[role=dialog] [aria-current=step]:has-text('Bestand')").count(), "stap 1: bestand");
+  check(await page.locator("div[role=dialog] button:has-text('Download Excel (2 klanten)')").count(), "in stap 1 de lijst downloaden om in te vullen");
+  check(await page.locator("div[role=dialog] li:has-text('KvK-nummer')").count(), "de stamkaartkolommen die we herkennen");
+  await shot(page, "13b-import-bestand", { fullPage: false });
+  await page.click("div[role=dialog] summary:has-text('Of plak de rijen uit Excel')");
+  await page.fill("#kb-plak", plak);
+  await page.click("div[role=dialog] button:has-text('Rijen lezen')");
+  await page.waitForSelector("div[role=dialog] [aria-label='Stamkaart']", { timeout: 20000 });
+  check(await page.locator("div[role=dialog] [aria-current=step]:has-text('Controleren')").count(), "stap 2: controleren");
+  check(await page.locator("div[role=dialog] >> text=15 gegevens").count() && (await page.locator("div[role=dialog] >> text=voor 3 stamkaarten").count()), "in één zin: 15 gegevens voor 3 stamkaarten");
+  check((await page.locator("div[role=dialog] li[data-kolom='kvk']").count()) === 1 && (await page.locator("div[role=dialog] li[data-kolom='huisnummer']").count()) === 1 && (await page.locator("div[role=dialog] li[data-kolom='debiteurnummer']").count()) === 1, "KvK, huisnummer en debiteurnummer herkend");
+  const velden = async (bedrijf, soort) => (await page.locator(`div[role=dialog] [data-wat="${bedrijf}"] [data-gegeven="${soort}"]`).evaluateAll((els) => els.map((e) => e.getAttribute("data-velden")))).join(",");
+  check((await velden("Houthandel Verhoeven B.V.", "aangevuld")) === "branche,debiteurnummer", `Verhoeven: alleen wat leeg is (${await velden("Houthandel Verhoeven B.V.", "aangevuld")})`);
+  check((await velden("Houthandel Verhoeven B.V.", "behouden")) === "kvk,medewerkers,factuur_email", `Verhoeven: wat anders is, blijft staan (${await velden("Houthandel Verhoeven B.V.", "behouden")})`);
+  check((await page.locator('div[role=dialog] [data-wat="Houthandel Verhoeven B.V."] [data-velden="kvk"]').innerText()).includes("in het bestand: 12345678"), "bij wat blijft staan: wat er in het bestand stond");
+  check((await velden("Garage Smits", "aangevuld")) === "kvk,branche,medewerkers,bezoekadres,bezoek_postcode,bezoek_plaats,factuur_email,iban,debiteurnummer", "Garage Smits: de hele stamkaart");
+  check((await page.locator('div[role=dialog] [data-wat="Garage Smits"] [data-velden="bezoekadres,bezoek_postcode,bezoek_plaats"]').innerText()).includes("Markt 3, 5611 NB Eindhoven"), "het adres als één regel, netjes gemaakt");
+  check((await page.locator('div[role=dialog] [data-wat="Garage Smits"] [data-velden="iban"]').innerText()).includes("NL91 ABNA 0417 1643 00"), "het IBAN zoals de bank hem schrijft");
+  check((await page.locator("div[role=dialog] li[data-regel='3'] [data-volledig]").getAttribute("data-volledig")) === "1-6", "de stamkaart van Garage Smits gaat van 1 naar 6 van 8");
+  check(await page.locator("div[role=dialog] li[data-regel]:has-text('Drukkerij Van Dam') >> text=KvK-nummer \"12\" heeft geen acht cijfers").count(), "een KvK die niet klopt, staat erbij en laat de rest door");
+  check(await page.locator("div[role=dialog] li[data-regel]:has-text('Drukkerij Van Dam') >> text=Klant").count(), "een nieuw bedrijf komt als klant binnen");
+  check(await page.locator("div[role=dialog] >> text=3 gegevens staan al anders op de stamkaart").count(), "het rapport telt wat blijft staan");
+  await shot(page, "13-import-rapport");
+  await page.click("div[role=dialog] button[role=tab]:has-text('Aandacht')");
+  check((await page.locator("div[role=dialog] li[data-regel]").count()) === 1, "filter Aandacht: alleen de drukkerij");
+  await page.click("div[role=dialog] button[role=tab]:has-text('Alles')");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await wacht(300);
+  check(!(await teBreed(page)), "het rapport past op een telefoon");
+  await shot(page, "14-import-rapport-telefoon", { fullPage: false });
+  await page.locator("div[role=dialog] li[data-regel='3']").scrollIntoViewIfNeeded();
+  await shot(page, "14b-import-rij-telefoon", { fullPage: false });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.click("div[role=dialog] button:has-text('Importeer 3 rijen')");
+  await page.waitForSelector("div[role=dialog] [data-klaar]", { timeout: 30000 });
+  check(await page.locator("div[role=dialog] [data-klaar] h3:has-text('3 stamkaarten aangevuld')").count() && (await page.locator("div[role=dialog] [data-klaar] >> text=15 gegevens · 1 nieuwe klant · 2 bijgewerkt").count()), "stap 3: 3 stamkaarten aangevuld, 15 gegevens, 1 nieuwe klant");
+  check((await page.locator("div[role=dialog] [data-klaar] a[href^='/admin/klanten/']").count()) === 3, "met een link naar elke stamkaart");
+  await shot(page, "13c-import-klaar", { fullPage: false });
+  await page.click("div[role=dialog] button:has-text('Sluiten')");
+  await page.waitForSelector("section[aria-label='Stamkaarten'] [role=status]:has-text('3 stamkaarten aangevuld en 1 nieuwe klant.')", { timeout: 20000 });
+  ok("na Sluiten: de melding in het paneel");
+  const smits = sql("select id from public.klanten where sleutel = 'garage smits'");
+  check(sql(`select concat_ws('|', kvk, bezoekadres, bezoek_postcode, bezoek_plaats, factuur_email, iban, medewerkers, branche, debiteurnummer, status) from public.klanten where id = '${smits}'`) === "17061008|Markt 3|5611 NB|Eindhoven|admin@smits.test|NL91ABNA0417164300|8|Garage|D-2001|akkoord", "Garage Smits: de stamkaart gevuld, netjes gemaakt, de status ongemoeid");
+  check(sql(`select concat_ws('|', kvk, factuur_email, medewerkers, branche, debiteurnummer) from public.klanten where id = '${klant}'`) === "17061007|facturatie@verhoeven.test|12|Houthandel|D-1042", "Verhoeven: alleen de lege velden aangevuld");
+  check(sql("select concat_ws('|', status, coalesce(kvk, '-'), bezoekadres, branche) from public.klanten where sleutel = 'drukkerij van dam'") === "klant|-|Industrieweg 40|Drukkerij", "Drukkerij Van Dam: nieuw als klant, zonder de KvK die niet klopte");
+  check(sql(`select tekst from public.klant_gesprekken where klant_id = '${smits}' and soort = 'stamkaart' order by created_at desc limit 1`).startsWith("Stamkaart aangevuld uit de klantlijst (regel 3): KvK-nummer, Branche"), "in de tijdlijn van Garage Smits");
+  check(sql(`select count(*) from public.klant_gesprekken where klant_id = '${klant}' and soort = 'import' and created_at > now() - interval '1 minute'`) === "0", "geen lege importregel als alleen de stamkaart veranderde");
+  await page.waitForSelector("tr[data-klant] >> text=Drukkerij Van Dam");
+  ok("de nieuwe klant staat in de lijst");
+  check((await page.locator("section[aria-label='Stamkaarten'] [data-stamkaarten-compleet]").getAttribute("data-stamkaarten-compleet")) === "1/3", "het paneel telt mee: nu 3 klanten");
+
+  stap("Overschrijven, als je dat aanzet");
+  await page.click("section[aria-label='Stamkaarten'] button:has-text('Vul aan uit Excel')");
+  await page.click("div[role=dialog] summary:has-text('Of plak de rijen uit Excel')");
+  await page.fill("#kb-plak", "Klant\tKvK-nummer\nHouthandel Verhoeven\t12345678");
+  await page.click("div[role=dialog] button:has-text('Rijen lezen')");
+  await page.waitForSelector("div[role=dialog] [data-gegeven='behouden']", { timeout: 20000 });
+  check(await page.locator("div[role=dialog] button:has-text('Niets te importeren')").count(), "zonder overschrijven: niets te doen");
+  await page.click("#kb-overschrijven");
+  await page.waitForSelector("div[role=dialog] [data-gegeven='overschreven']");
+  const vervangt = await page.locator("div[role=dialog] [data-gegeven='overschreven']").innerText();
+  check(vervangt.includes("12345678") && vervangt.includes("was 17061007"), `met overschrijven: de nieuwe KvK en wat er stond (${vervangt.replace(/\n/g, " ")})`);
+  await shot(page, "15-import-overschrijven", { fullPage: false });
+  await page.click("div[role=dialog] button:has-text('Importeer 1 rij')");
+  await page.waitForSelector("div[role=dialog] [data-klaar] h3:has-text('1 stamkaart aangevuld')", { timeout: 30000 });
+  await page.click("div[role=dialog] button:has-text('Sluiten')");
+  check((await tot(`select kvk from public.klanten where id = '${klant}'`, "12345678")) === "12345678", "de KvK overschreven");
+  check(sql(`select tekst from public.klant_gesprekken where klant_id = '${klant}' and soort = 'stamkaart' order by created_at desc limit 1`) === "Stamkaart bijgewerkt uit de klantlijst (regel 2): overschreven: KvK-nummer", "overschreven in de tijdlijn");
+  sql(`update public.klanten set kvk = '17061007' where id = '${klant}'`);
+  sql("delete from public.klanten where sleutel = 'drukkerij van dam'");
 
   stap("Weer terug op het bord");
   await page.goto(`${BASIS}/admin/klanten/${klant}`);

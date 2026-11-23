@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { LuLayoutGrid, LuPlus, LuUpload } from "react-icons/lu";
+import { LuLayoutGrid, LuPlus } from "react-icons/lu";
 import { requirePerm } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
 import { vandaagNL, type Klant } from "@/lib/klanten";
 import { echteKlanten } from "@/lib/stamkaart";
 import { MigratieNodig } from "@/components/admin/Kerncijfer";
 import KlantenLijst from "@/components/admin/klanten/KlantenLijst";
+import StamkaartenPaneel from "@/components/admin/klanten/StamkaartenPaneel";
 
 /**
  * Alle klanten onder elkaar (migratie 0048): de echte klanten van het
@@ -14,7 +15,8 @@ import KlantenLijst from "@/components/admin/klanten/KlantenLijst";
  * contactgegevens, wie de klant bij React2u heeft en hoe compleet de
  * stamkaart is. Een rij opent de stamkaart (/admin/klanten/<id>) met de
  * bedrijfsgegevens, alle documenten en de tariefafspraken. Zoeken, filteren
- * en sorteren gebeurt in de browser.
+ * en sorteren gebeurt in de browser. Erboven het paneel Stamkaarten: hoe
+ * compleet ze zijn, en ze in één keer aanvullen uit Excel (StamkaartenPaneel).
  */
 export default async function KlantenPagina({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const { sb } = await requirePerm("bellijst");
@@ -38,6 +40,7 @@ export default async function KlantenPagina({ searchParams }: { searchParams: Pr
   return (
     <div className="space-y-6">
       <Kop />
+      {stamkaartAan && <StamkaartenPaneel klanten={klanten} alle={alle} vandaag={vandaagNL()} />}
       {!stamkaartAan && <MigratieNodig bestand="0048_stamkaart.sql" wat="De stamkaart, de documenten en de tariefafspraken per klant hebben nieuwe velden en tabellen nodig." />}
       <KlantenLijst klanten={klanten} vandaag={vandaagNL()} beginQ={q || ""} beginStatus={status || "alle"} opHetBord={opHetBord} />
     </div>
@@ -53,7 +56,6 @@ function Kop() {
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Link href="/admin/klantenbord" className="abtn-ghost"><LuLayoutGrid /> Klantenbord</Link>
-        <Link href="/admin/klantenbord#import" className="abtn-ghost"><LuUpload /> Klantlijst importeren</Link>
         <Link href="/admin/klantenbord#nieuw" className="abtn"><LuPlus /> Nieuwe lead of klant</Link>
       </div>
     </div>

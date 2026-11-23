@@ -2,9 +2,10 @@
 import { revalidatePath } from "next/cache";
 import { requirePerm } from "@/lib/admin";
 import {
-  bedrijfSleutel, CHECKLIST, isDatum, isGesprekSoort, isKlantStatus, rijNaarVelden, statusInfo, statusUitRij, statusVerder, type Gesprek, type GesprekSoort,
-  type ImportRij, type Klant, type KlantStatus,
+  bedrijfSleutel, CHECKLIST, isDatum, isGesprekSoort, isKlantStatus, rijNaarStamkaart, rijNaarVelden, stamkaartUitRij, statusInfo, statusUitRij, statusVerder,
+  type Gesprek, type GesprekSoort, type ImportOpties, type ImportRij, type Klant, type KlantStatus, type StamkaartImportVeld,
 } from "@/lib/klanten";
+import { schoonStamkaart, stamkaartImportRegel, type StamkaartInvoer } from "@/lib/stamkaart";
 import { alineas, mailSamenvatting } from "@/lib/klantMail";
 import { isHerkomst, type Herkomst } from "@/lib/herkomst";
 import { sendBrief } from "@/lib/mail";
@@ -26,7 +27,13 @@ type Sb = Awaited<ReturnType<typeof requirePerm>>["sb"];
 export type KlantResultaat = { ok: true; klant: Klant; gesprek?: Gesprek } | { ok: false; fout: string };
 export type GesprekResultaat = { ok: true; gesprek: Gesprek | null; klant: Klant } | { ok: false; fout: string };
 export type Resultaat = { ok: true } | { ok: false; fout: string };
-export type ImportResultaat = { ok: true; nieuw: number; bijgewerkt: number; ongewijzigd: number; overgeslagen: number } | { ok: false; fout: string };
+export type ImportResultaat =
+  | {
+      ok: true; nieuw: number; bijgewerkt: number; ongewijzigd: number; overgeslagen: number; stamkaarten: number;
+      /** Wat er met welke kaart gebeurde, voor de bevestiging in het importvenster (met een link naar de stamkaart). */
+      klanten: { id: string; bedrijf: string; nieuw: boolean; gegevens: number }[];
+    }
+  | { ok: false; fout: string };
 
 /** Wat je aan een kaart kunt invullen. Alles mag leeg, behalve de bedrijfsnaam bij een nieuwe kaart. */
 export type KlantInvoer = {
@@ -317,15 +324,18 @@ export async function verwijderKlant(id: string): Promise<Resultaat> {
  * inactief. Een rij zonder naam of een tweede rij met dezelfde naam slaan we
  * over. Hooguit duizend rijen per keer.
  */
-export async function importeerKlanten(rijen: ImportRij[]): Promise<ImportResultaat> {
+export async function importeerKlanten(rijen: ImportRij[], opties: ImportOpties = {}): Promise<ImportResultaat> {
   const { sb, user, admin } = await requirePerm("bellijst");
+  const overschrijven = opties?.stamkaartOverschrijven === true;
+  const nieuwAls = opties?.nieuwAls && isKlantStatus(opties.nieuwAls) ? opties.nieuwAls : null;
   if (!Array.isArray(rijen) || rijen.length > 1000) return { ok: false, fout: "Te veel rijen in één keer (hooguit duizend)." };
   const { data, error } = await sb.from("klanten").select("*").limit(5000);
   if (error) return { ok: false, fout: foutUit(error) };
   const bestaand = new Map<string, Klant>();
   for (const k of (data as Klant[]) || []) bestaand.set(k.sleutel || bedrijfSleutel(k.bedrijf), k);
 
-  const telling = { nieuw: 0, bijgewerkt: 0, ongewijzigd: 0, overgeslagen: 0 };
+  const telling = { nieuw: 0, bijgewerkt: 0, ongewijzigd: 0, overgeslagen: 0, stamkaarten: 0 };
+  const gedaan: { id: string; bedrijf: string; nieuw: boolean; gegevens: number }[] = [];
   const gezien = new Set<string>();
   for (const ruw of rijen) {
     const bedrijf = tekst(ruw?.bedrijf, 200);
@@ -344,17 +354,31 @@ export async function importeerKlanten(rijen: ImportRij[]): Promise<ImportResult
       delete zonder.startdatum;
       Object.assign(velden, schoon(zonder).velden);
     }
+    // De stamkaart: opnieuw gecontroleerd, veld voor veld, zodat één rare cel de rest niet tegenhoudt.
+    const stamkaart: Partial<Klant> = {};
+    for (const [veld, waarde] of Object.entries(rijNaarStamkaart(ruw))) {
+      const { velden: sk, fout: skFout } = schoonStamkaart({ [veld]: waarde } as StamkaartInvoer);
+      if (!skFout) Object.assign(stamkaart, sk);
+    }
+    const schoneRij = { stamkaart: stamkaart as ImportRij["stamkaart"] };
     const afgeleid = statusUitRij(ruw);
     const b = bestaand.get(sleutel);
     if (!b) {
-      const { data: nieuw, error: e } = await sb.from("klanten").insert({ ...velden, status: afgeleid, created_by: user.id }).select("*").single();
+      const status = nieuwAls && statusVerder(nieuwAls, afgeleid) ? nieuwAls : afgeleid;
+      const { data: nieuw, error: e } = await sb.from("klanten").insert({ ...velden, ...stamkaart, status, created_by: user.id }).select("*").single();
       if (e || !nieuw) {
         telling.overgeslagen++;
         continue;
       }
       const k = nieuw as Klant;
       bestaand.set(sleutel, k);
-      await log(sb, k.id, "import", `Uit de klantlijst (regel ${ruw.regel}) als ${statusInfo(afgeleid).label.toLowerCase()}${velden.stand ? `: ${velden.stand}` : ""}`, admin.email);
+      await log(sb, k.id, "import", `Uit de klantlijst (regel ${ruw.regel}) als ${statusInfo(status).label.toLowerCase()}${velden.stand ? `: ${velden.stand}` : ""}`, admin.email);
+      const sk = stamkaartUitRij(schoneRij, null);
+      if (sk.aangevuld.length) {
+        await log(sb, k.id, "stamkaart", stamkaartImportRegel(sk.aangevuld, [], ruw.regel), admin.email);
+        telling.stamkaarten++;
+      }
+      gedaan.push({ id: k.id, bedrijf: k.bedrijf, nieuw: true, gegevens: sk.aangevuld.length });
       telling.nieuw++;
       continue;
     }
@@ -364,6 +388,9 @@ export async function importeerKlanten(rijen: ImportRij[]): Promise<ImportResult
       if (waarde !== null && waarde !== undefined && waarde !== b[veld]) (update as Record<string, unknown>)[veld] = waarde;
     }
     if (statusVerder(afgeleid, b.status)) update.status = afgeleid;
+    // Standaard alleen lege velden van de stamkaart; overschrijven alleen als het in het controlerapport aanstond.
+    const sk = stamkaartUitRij(schoneRij, b, overschrijven);
+    for (const veld of [...sk.aangevuld, ...sk.overschreven] as StamkaartImportVeld[]) (update as Record<string, unknown>)[veld] = stamkaart[veld];
     if (!Object.keys(update).length) {
       telling.ongewijzigd++;
       continue;
@@ -379,9 +406,16 @@ export async function importeerKlanten(rijen: ImportRij[]): Promise<ImportResult
       ...CHECKLIST.filter((c) => c.key in update).map((c) => `${c.label.toLowerCase()} ${update[c.key] ? "ja" : "nee"}`),
       ...(update.startdatum ? [`startdatum ${update.startdatum}`] : []),
     ];
-    await log(sb, b.id, "import", `Bijgewerkt uit de klantlijst (regel ${ruw.regel})${wat.length ? `: ${wat.join(", ")}` : ""}`, admin.email);
+    const alleenStamkaart = Object.keys(update).every((veld) => (sk.aangevuld as string[]).includes(veld) || (sk.overschreven as string[]).includes(veld));
+    if (!alleenStamkaart) await log(sb, b.id, "import", `Bijgewerkt uit de klantlijst (regel ${ruw.regel})${wat.length ? `: ${wat.join(", ")}` : ""}`, admin.email);
+    if (sk.aangevuld.length || sk.overschreven.length) {
+      await log(sb, b.id, "stamkaart", stamkaartImportRegel(sk.aangevuld, sk.overschreven, ruw.regel), admin.email);
+      telling.stamkaarten++;
+    }
+    gedaan.push({ id: b.id, bedrijf: b.bedrijf, nieuw: false, gegevens: sk.aangevuld.length + sk.overschreven.length });
     telling.bijgewerkt++;
   }
   ververs();
-  return { ok: true, ...telling };
+  revalidatePath("/admin/klanten");
+  return { ok: true, ...telling, klanten: gedaan };
 }
