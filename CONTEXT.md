@@ -268,8 +268,8 @@ als regel. Zo ging het menu van 25 naar 10 regels; een nieuw scherm hoort dus
 meestal in een groep, als tab, of alleen in het palet.
 
 **Mijn React2u** (Rens, 19 nov 2026: "een eigen plek"): wie alleen rechten
-heeft die over jezelf gaan (`EIGEN_RECHTEN`, nu alleen `weekevaluatie`; dus
-een werknemer), ziet het beheer als eigen plek. Bovenaan staat "Mijn React2u"
+heeft die over jezelf gaan (`EIGEN_RECHTEN`: `weekevaluatie`, `overleg` en
+`ideeen`; dus een werknemer), ziet het beheer als eigen plek. Bovenaan staat "Mijn React2u"
 in plaats van "SYSTEEMBEHEER", en er is geen zoekveld, geen ⌘K-palet, geen
 Bekijk website (ook niet in het accountmenu) en geen tip over ⌘K
 (`isMijnReact2u`). Op het dashboard staat dan **Mijn verloop**: de eigen
@@ -372,6 +372,68 @@ overleg 18-11"). Het overleg volgt nu hun eigen opzet:
   (`sendOverlegNotulen`, met hun eigen lopende actiepunten bovenaan).
 - Het archief toont de notulen in dezelfde opbouw (`notulenVan` is de bron
   voor scherm en mail), is af te drukken, en het beheer kan achteraf aanvullen.
+
+**Ideeënbord** ([0055](supabase/migrations/0055_ideeenbord.sql); Rens, 23 nov
+2026, uit het voorstel voor het portaal: "'Iets melden of delen' bestaat al;
+maak er een zichtbaar bord van met status (ingediend, bekeken, gedaan) zodat
+iedereen ziet wat ermee gebeurt"). [`/admin/ideeen`](src/app/admin/(panel)/ideeen/page.tsx),
+regels in [`lib/ideeen.ts`](src/lib/ideeen.ts), ophalen in
+[`lib/ideeenDb.ts`](src/lib/ideeenDb.ts), acties in
+[`ideeenActions.ts`](src/app/admin/ideeenActions.ts), bouwstenen in
+`src/components/admin/ideeen/`.
+- **Eigen recht `ideeen`** (super admin, beheerder, werknemer; in
+  `EIGEN_RECHTEN`, dus een werknemer blijft in Mijn React2u). Niet onder
+  `weekevaluatie`: het bord is van het team en de weekevaluatie van één
+  persoon; wie het bord mag zien hoeft geen weekevaluatie in te vullen
+  (backoffice) en andersom. Zoals bij `overleg`: een nieuw portaalscherm
+  krijgt een eigen recht. **Beheren** (status en reden zetten, alles
+  verwijderen) gaat met `omzet`, net als het kwartaaloverzicht, de inwerkreis
+  en het CM-overleg; `gebruikers` gaat over accounts.
+- **Eén bron, eigen tabel.** `ideeen` (titel, tekst, soort, wie, vertrouwelijk,
+  status, reden, waar het vandaan komt), `idee_stemmen`, `idee_reacties` en
+  `idee_meldingen`. Geen uitbreiding van `weekevaluaties`: een weekevaluatie is
+  één rij per collega per week die alleen hijzelf en het beheer lezen, een
+  idee moet door iedereen gelezen, gestemd en van een reactie voorzien kunnen
+  worden, en er passen meer ideeën in een week dan één. Wat een collega bij
+  *Iets melden of delen* schrijft, zet de trigger `weekevaluatie_naar_bord()`
+  op het bord: één idee per collega per week (`unique (door, bron_week)`), de
+  titel uit de eerste regel (`idee_titel()` in SQL, `titelUit()` in code,
+  dezelfde regel), de soort uit `melding_soort` (dezelfde vijf sleutels als
+  `MELDING_SOORTEN`; het bord zet "idee" voorop), en het vinkje "Stuur dit
+  meteen door" maakt het **vertrouwelijk**: alleen voor het beheer. Een
+  aangepaste melding gaat mee zolang het idee op ingediend of bekeken staat;
+  vertrouwelijk volgt altijd de collega; een weggehaalde melding haalt een
+  idee dat nog op ingediend staat weer van het bord. De migratie zet wat er al
+  gemeld was één keer op het bord. Het bord heeft ook een eigen knop *Idee
+  indienen* met een vinkje *Alleen voor het beheer*.
+- **Status**: *Ingediend*, *Bekeken*, *Opgepakt*, *Gedaan* en *Niet nu*
+  (`IDEE_STATUS`, met uitleg voor de collega); bij Niet nu is een reden
+  verplicht (check-constraint én `leesStatus`). De trigger
+  `ideeen_status_bijhouden` zet `status_at` en `status_door`. Collega's zien
+  "Het beheer schreef erbij", nooit een naam. Filteren per status en sorteren
+  op nieuwste of meeste stemmen gebeurt in de URL (`?status=`, `?sorteer=`).
+- **Stemmen en reageren**: één stem per collega per idee (primaire sleutel),
+  niet op het eigen idee en niet op wat afgerond is (`magStemmen`, en de
+  policy), intrekbaar (`StemKnop`, optimistisch zoals `StapVink`). Reacties
+  kort (1000 tekens); je eigen reactie haal je weg, het beheer elke.
+- **Terugkoppeling**: de triggers `ideeen_meld_status` en `ideeen_meld_reactie`
+  (security definer) schrijven een rij in `idee_meldingen` voor de inbrenger
+  (niet als hij het zelf deed); het dashboard toont wat ongelezen is
+  (`IdeeenKaart`: nieuw deze week, wat van jou is opgepakt, *Nieuw voor jou*),
+  het bord ook, en zet het na het bekijken op gelezen (`MeldingenGezien`). De
+  server action mailt de inbrenger via `sendBrief` (`statusBrief`,
+  `reactieBrief`; bij een reactie met de collega als antwoordadres). Voor het
+  beheer een signaal op het dashboard en op het bord zodra ideeën langer dan
+  twee weken op Ingediend staan (`langOpen`, `LANG_OPEN_DAGEN`).
+- **Policies**: eigen ideeën altijd leesbaar; de rest met `ideeen` of `omzet`,
+  vertrouwelijke alleen met `omzet`; indienen alleen je eigen idee op
+  ingediend zonder reden vanaf het bord (de weekevaluatie gaat via de trigger);
+  je eigen idee aanpassen of weghalen zolang het op ingediend staat; het
+  beheer alles. In Mijn React2u kijkt een beheerder bewust als collega
+  (`zichtbaarVoor`): zonder vertrouwelijke ideeën van anderen, zonder signaal
+  en zonder statusformulier.
+- Tests: `lib/ideeen.test.ts` en [`e2e/ideeen.cjs`](e2e/ideeen.cjs) (twee
+  werknemers in eigen browsercontexten naast het beheer).
 
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de
@@ -3178,7 +3240,7 @@ regels waar het op aankomt; de schermen eromheen zijn dun.
 
 **Browsertests** (`npm run e2e`, sinds 30 okt 2026): de offertemodule van begin tot
 eind in een echte browser (`e2e/offerte.cjs`, `e2e/vormen.cjs`), en sindsdien per
-module een test (brochure, contract, onboarding, klantenbord, klanten, evaluatie, reseller, partner, dashboard, omzet, weekevaluatie). `e2e/run.mjs`
+module een test (brochure, contract, onboarding, klantenbord, klanten, evaluatie, reseller, partner, dashboard, omzet, weekevaluatie, prognose, inwerkreis, overleg, ideeen). `e2e/run.mjs`
 bouwt een lokale Supabase-stack met alle migraties (doorgenummerd, met de
 testbeheerder, lege versies van twee productiefuncties en pg_cron uit
 `e2e/supabase/extra`), bouwt en start de site met de juiste omgevingsvariabelen
