@@ -7,6 +7,7 @@ import { isMijnReact2u, permissionForPath, type Permission } from "@/lib/permiss
 import { ADMIN_NAV, CRUMBS, NAV_GROEPEN, type Counts, type NavGroepKey, type NavItem, type NavVlaggen } from "@/lib/adminNav";
 import CommandPalette from "./CommandPalette";
 import AccountMenu, { Avatar, UitlogForm } from "./AccountMenu";
+import Logo from "@/components/site/Logo";
 
 export default function AdminShell({
   email, roleLabel, permissions, counts, vlaggen, maintenance, signOut, wissel = null, wisselWeergave, children,
@@ -158,7 +159,11 @@ export default function AdminShell({
     <>
       <div className="shrink-0 border-b border-white/10 px-6 py-5">
         {mijn ? (
-          <p className="font-heading text-[19px] font-bold text-white"><span className="text-[#ff8ab5]">Mijn</span> React2u</p>
+          <>
+            {/* Het logo in de lichte versie (wit woordmerk) op het donkere menu; de naam eronder is de tekst. */}
+            <Logo tone="light" title="" className="mb-3 h-[38px] w-auto" />
+            <p className="font-heading text-[19px] font-bold text-white"><span className="text-[#ff8ab5]">Mijn</span> React2u</p>
+          </>
         ) : (
           <>
             <p className="font-heading text-[19px] font-bold text-white">React2u</p>
