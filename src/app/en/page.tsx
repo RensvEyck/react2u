@@ -32,13 +32,14 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function EnglishHomePage() {
   const c = conceptEn("home");
   if (!c) notFound();
-  // De certificaten uit de instellingen, alleen als het startscherm keurmerken toont (lib/keurmerken.ts).
-  const certificaten = needsKeurmerken(c.blocks) ? normalizeCertificates(await getSetting<unknown>("certificates")) : undefined;
+  // De certificaten uit de instellingen: voor de keurmerken op het startscherm
+  // (lib/keurmerken.ts) en altijd voor de structured data van de organisatie.
+  const certificaten = normalizeCertificates(await getSetting<unknown>("certificates"));
   return (
     <>
-      <BlockRenderer blocks={c.blocks} ctx={{ lang: "en", certificaten }} />
-      {/* Dezelfde organisatie en website als op /, met hetzelfde @id. */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisatieGraphLd()) }} />
+      <BlockRenderer blocks={c.blocks} ctx={{ lang: "en", certificaten: needsKeurmerken(c.blocks) ? certificaten : undefined }} />
+      {/* Dezelfde organisatie en website als op /, met hetzelfde @id en dezelfde certificaten. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organisatieGraphLd(certificaten)) }} />
     </>
   );
 }

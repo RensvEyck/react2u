@@ -127,7 +127,8 @@ export function analysePost(p: Post): SeoRow {
 
 /** Spiegelt app/(site)/vacatures/[slug]/page.tsx — inclusief de titelsjabloon. */
 export function analyseVacancy(v: Vacancy): SeoRow {
-  const base = v.seo_title || `${v.title} • Vacature`;
+  // Een gesloten vacature blijft bereikbaar als "vervuld", met dat in de titel.
+  const base = v.status === "closed" ? `${v.title} • Vacature vervuld` : v.seo_title || `${v.title} • Vacature`;
   const description = omschrijving(v.seo_description, v.intro) || "";
   return row({
     kind: "Vacature",

@@ -2,7 +2,7 @@
   "_uitleg": "Engelse labelpagina React2u Resist (/en/services/resist): dezelfde blokken als resist.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services/resist",
   "title": "React2u Resist",
-  "seo_title": "React2u Resist: prevention and vitality • React2u",
+  "seo_title": "Prevention and the prevention officer • React2u Resist",
   "seo_description": "We map the risks and help teams stay healthy at work: risk assessment (RI&E), preventive medical examination (PMO), training and a confidential adviser.",
   "blocks": [
     {
@@ -13,7 +13,7 @@
         "naam": "Resist",
         "kleur": "#00A098",
         "tint": "#E5F5F4",
-        "label": "Prevention and vitality.",
+        "label": "Prevention and the prevention officer.",
         "tagline": "Preventing absence starts before the sick report",
         "text": "We map the risks and help teams stay healthy and energised at work.",
         "checks": [

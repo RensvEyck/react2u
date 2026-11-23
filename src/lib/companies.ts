@@ -1,4 +1,4 @@
-import { cleanOrgName, isCompanyOrg } from "./analytics";
+import { cleanOrgName, isCompanyOrg, isDatacenterOrg } from "./analytics";
 import type { Lead, PageView } from "./types";
 
 /**
@@ -364,6 +364,9 @@ export function summarize(
   const groups = new Map<string, CompanyView[]>();
   for (const v of views) {
     if (!v.company && !v.company_domain) continue;
+    // Een datacenter is een bot, geen bedrijf dat langskwam (lib/analytics.ts);
+    // bezoek van vóór november 2026 staat nog met zo'n naam in de database.
+    if (isDatacenterOrg(v.company)) continue;
     const key = companyKey(v.company, v.company_domain ?? null);
     (groups.get(key) ?? groups.set(key, []).get(key)!).push(v);
   }

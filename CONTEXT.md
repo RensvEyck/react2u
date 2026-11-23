@@ -2863,6 +2863,19 @@ Werkt vóór migratie 0010 al met herkenning (de tracker valt terug op een inser
 zonder de nieuwe kolommen); niet volgen en koppelen aan de bellijst pas daarna.
 Zonder `ANALYTICS_SALT` wordt er niets geregistreerd.
 
+**Bots tellen niet mee.** In november 2026 stonden China Unicom en Huawei
+Cloud bovenaan "Bedrijven die langskwamen" en kwam het bezoekscherm op
+honderden "bezoekers" per dag die Google nooit zag (HALO-herstelplan). Een
+bot die JavaScript uitvoert meldt zich net als een bezoeker bij `/api/track`;
+daar valt hij nu af op zijn user-agent (`isBotUserAgent()`), en een bezoek
+vanuit een datacenter, cloud of hostingnetwerk (`isDatacenterOrg()` in
+`lib/analytics.ts`, op de ASN-naam) wordt helemaal niet opgeslagen. Dat laatste
+kan alleen als het IP-adres opgezocht mag worden (de grond in
+`site_settings.tracking`; op productie "altijd"): zonder die grond gaat het
+IP-adres nergens heen en telt zo'n bezoek dus wel, zonder bedrijf. Rijen van
+vóór die datum staan nog in `page_views`, maar `fetchPageViews()` en
+`summarize()` laten ze buiten elk cijfer en elke lijst.
+
 ## Versies en prullenbak
 
 Een trigger (`record_revision()`, migratie 0008) bewaart bij elke opslag van
@@ -3024,8 +3037,38 @@ weg; Next vult die zelf uit de pagina.
 `X-Robots-Tag` in `next.config.ts`; `robots.txt` laat `/admin` bewust open,
 anders ziet een crawler die noindex nooit) en de 404-pagina's (eigen
 `robots: noindex` naast de tag die Next zelf zet, zodat er niet ook een
-"index, follow" uit de layout in staat). De hoofdkop van een labelpagina
-(`DienstLabel`) noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
+"index, follow" uit de layout in staat).
+
+**Zoekwoord vóór merknaam.** Een werkgever zoekt op "verzuimbegeleiding" of
+"re-integratie tweede spoor", niet op "React2u Recover" (HALO-scan, 23 november
+2026). De zes dienstpagina's heten daarom "Verzuimbegeleiding voor werkgevers
+• React2u Recover" en de hoofdkop (`DienstLabel`, het veld `label`) is die
+dienst; de merknaam staat er groot boven als gewone tekst. Productie leest
+titel en label uit de database (migratie 0059), de previews uit
+`src/content/<label>.json`; houd die gelijk. Dezelfde woorden zijn de
+linktekst naar de dienst op de werkgebiedpagina's (`SPECIALISMEN` in
+`PlaatsPagina.tsx`, `LABEL_INFO` in `plaatsteksten.ts`), niet "Lees meer".
+Elke dienstpagina heeft daarnaast een `Service` in de structured data
+(`serviceLd()` in `lib/organisatie.ts`, in beide talen) met de organisatie
+als `provider`, en de organisatie noemt de certificaten uit Instellingen →
+Certificaten als `hasCredential` (OVAL als `memberOf`), zodat Google en
+AI-zoekmachines de SBCA- en ISO-certificering kunnen controleren.
+
+**Een gesloten vacature geeft nooit een 404.** Rond 20 november 2026 gingen
+achttien vacatures in het beheer op "gesloten"; de site gaf ze een 404 en
+Google haalde ze binnen een dag weg, ook uit Google for Jobs: van ±25 naar 4
+klikken per dag (HALO-herstelplan). Sindsdien blijft het adres werken: de
+pagina toont de vacature als vervuld (`vervuld` in `VacatureDetail`), zonder
+sollicitatieformulier, zonder `JobPosting` en met een open sollicitatie en de
+vergelijkbare vacatures; de titel eindigt op "Vacature vervuld" (`lib/seo.ts`
+spiegelt dat). Daarvoor leest de publieke sleutel ook gesloten vacatures
+(migratie 0058, `getVacancy()`); overzichten, feeds en sitemap vragen zelf om
+`published` en tonen ze niet. Moet een adres écht weg, dan een doorverwijzing
+naar het vakgebied in de admin. Of een gesloten vacature weer open moet, is
+een keuze in het beheer, niet in de code.
+
+De provinciepagina's heten "Arbodienst in de provincie Utrecht": Utrecht en
+Groningen zijn ook een gemeente, en die paren hadden dezelfde titel en kop.
 
 **Voor AI-agents.** [`/llms.txt`](src/app/llms.txt/route.ts) is een
 Markdown-overzicht van de site (llmstxt.org): kopjes met links naar de

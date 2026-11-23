@@ -64,10 +64,19 @@ export async function getPublishedVacancies(): Promise<Vacancy[]> {
   return (data as Vacancy[]) || [];
 }
 
+/**
+ * Eén vacature voor haar eigen pagina: gepubliceerd óf gesloten. Een gesloten
+ * vacature blijft bereikbaar als "vervuld" (zonder JobPosting, met een open
+ * sollicitatie) in plaats van een 404: toen in november 2026 achttien
+ * vacatures dichtgingen, haalde Google ze binnen een dag weg en zakte het
+ * verkeer van ±25 naar 4 klikken per dag (HALO-herstelplan). De overzichten,
+ * feeds en sitemap gebruiken getPublishedVacancies en tonen alleen open
+ * vacatures. Een concept blijft een 404 (voorbeeldmodus: lib/voorbeeld.ts).
+ */
 export async function getVacancy(slug: string): Promise<Vacancy | null> {
   const sb = supabasePublic();
   const data = gelukt(
-    await sb.from("vacancies").select("*").eq("slug", slug).eq("status", "published").maybeSingle(),
+    await sb.from("vacancies").select("*").eq("slug", slug).in("status", ["published", "closed"]).maybeSingle(),
     `vacature ${slug}`,
   );
   return (data as Vacancy) || null;

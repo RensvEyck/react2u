@@ -357,6 +357,11 @@ export const en: Woordenboek = {
       openKaartTekst: "Can't see your role? Tell us who you are and what you are looking for.",
       altijdWelkom: "Always welcome",
       standaardLocatie: "Eindhoven",
+      vervuldLabel: "This vacancy has been filled",
+      vervuldTitel: "Vacancy filled",
+      vervuldKop: "This vacancy has been filled",
+      vervuldTekst: "We regularly look for a {titel}. Send an open application and we will get in touch as soon as there is room again.",
+      openSollicitatie: "Send an open application",
     },
     opbouw: {
       inHetKort: "At a glance",
