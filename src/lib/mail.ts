@@ -21,6 +21,7 @@ import { SAMENVATTING_LABELS, type CvSamenvatting } from "./cvSamenvatting";
 import type { ContactInfo } from "./content";
 import type { Certificate } from "./nav";
 import type { Vorm } from "./offertes";
+import type { Notulen } from "./overleg";
 import { merkVoorVorm } from "./offerteMerk";
 import { FONT, FONT_KOP, KLEUR, offerteCodeHtml, offerteGetekendHtml, offerteMailHtml, omhulsel, p, vak, type MailAfzender, type OfferteMail, eyebrow, knop, linkAlsTekst } from "./offerteMail";
 import { brochureMailHtml, type MailDienst } from "./brochureMail";
@@ -317,6 +318,48 @@ ${knop("Naar het CM-overleg", h.link)}
 ${linkAlsTekst(h.link)}`);
   const html = omhulsel({ basis: siteBasis(), titel: h.onderwerp, preheader: h.intro, kaart, contact: h.contact, certificaten: h.certificaten });
   return verstuur([h.to], h.onderwerp, html, adressen(process.env.NOTIFY_TO)[0]);
+}
+
+/**
+ * De notulen van het CM-overleg (overlegActions, bij afronden; opbouw uit
+ * notulenVan in lib/overleg.ts), in de vorm van het team: gegevens, de eigen
+ * actiepunten bovenaan, per agendapunt wat er besproken is, alle actiepunten
+ * met wie en de status, en de punten voor het volgende overleg.
+ */
+export async function sendOverlegNotulen(m: {
+  to: string; voornaam: string | null; notulen: Notulen; mijnActies: string[]; link: string; contact?: ContactInfo; certificaten: Certificate[];
+}): Promise<Verzonden> {
+  const n = m.notulen;
+  const klein = (s: string) => `<div style="font-family:${FONT};font-size:13px;line-height:1.5;color:${KLEUR.grijs}">${s}</div>`;
+  const tekst = (s: string) => `<div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${KLEUR.tekst};white-space:pre-line">${esc(s)}</div>`;
+  const rij = (links: string, rechts: string) =>
+    `<tr><td style="padding:5px 14px 5px 0;font-family:${FONT};font-size:14px;color:${KLEUR.grijs};white-space:nowrap;vertical-align:top">${esc(links)}</td><td style="padding:5px 0;font-family:${FONT};font-size:14px;color:${KLEUR.inkt}">${esc(rechts)}</td></tr>`;
+  const gegevens = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">
+${rij("Datum", n.gegevens.datum)}${rij("Tijd", n.gegevens.tijd)}${n.gegevens.locatie ? rij("Waar", n.gegevens.locatie) : ""}${rij("Aanwezig", n.gegevens.aanwezig.join(", ") || "\u2013")}${rij("Notulist", n.gegevens.notulist || "\u2013")}</table>`;
+  const deel = (d: Notulen["delen"][number]) => `<tr><td style="padding:12px 0;border-top:1px solid ${KLEUR.lijn}">
+  <div style="font-family:${FONT_KOP};font-size:15.5px;font-weight:700;color:${KLEUR.inkt}">${esc(d.titel)}</div>
+  ${d.inbrenger ? klein(`Ingebracht door ${esc(d.inbrenger)}`) : ""}
+  ${d.regels.length ? d.regels.map((r) => r.wie ? `<div style="margin-top:6px;font-family:${FONT};font-size:15px;line-height:1.6;color:${KLEUR.tekst}"><strong style="color:${KLEUR.inkt}">${esc(r.wie)}:</strong> ${esc(r.tekst)}</div>` : `<div style="margin-top:6px">${tekst(r.tekst)}</div>`).join("") : klein("Niets genoteerd.")}
+</td></tr>`;
+  const acties = n.acties.length
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">${n.acties.map((a) => `<tr><td style="padding:8px 12px 8px 0;border-top:1px solid ${KLEUR.lijn};font-family:${FONT};font-size:14.5px;color:${KLEUR.inkt}">${esc(a.wat)}</td><td style="padding:8px 12px 8px 0;border-top:1px solid ${KLEUR.lijn};font-family:${FONT};font-size:14px;color:${KLEUR.tekst};white-space:nowrap">${esc(a.door)}</td><td style="padding:8px 0;border-top:1px solid ${KLEUR.lijn};font-family:${FONT};font-size:13.5px;color:${KLEUR.grijs};white-space:nowrap">${a.status}</td></tr>`).join("")}</table>`
+    : klein("Geen actiepunten.");
+  const lijst = (items: string[]) => `<ul style="margin:6px 0 20px;padding-left:20px;font-family:${FONT};font-size:15px;line-height:1.6;color:${KLEUR.tekst}">${items.map((i) => `<li style="margin:2px 0">${esc(i)}</li>`).join("")}</ul>`;
+  const kaart = vak(`${p(esc(`Hoi${m.voornaam ? ` ${m.voornaam}` : ""},`), `color:${KLEUR.inkt}`)}
+${p(esc(`Hier zijn de notulen van het CM-overleg van ${n.gegevens.datum.toLowerCase()}.`))}
+${gegevens}
+${m.mijnActies.length ? `${eyebrow("Jouw actiepunten", KLEUR.roze)}${lijst(m.mijnActies)}` : ""}
+${eyebrow("Notulen", KLEUR.indigo)}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">${n.delen.map(deel).join("")}</table>
+${eyebrow("Actie en gemaakte afspraken", KLEUR.indigo)}
+${acties}
+${n.volgend.length ? `${eyebrow("Punten voor het volgende overleg", KLEUR.indigo)}${lijst(n.volgend.map((v) => (v.inbrenger ? `${v.titel} (${v.inbrenger})` : v.titel)))}` : ""}
+${knop("Notulen in Mijn React2u", m.link)}
+<div style="height:22px"></div>
+${linkAlsTekst(m.link)}`);
+  const onderwerp = `Notulen ${n.titel}`;
+  const html = omhulsel({ basis: siteBasis(), titel: onderwerp, preheader: `Aanwezig: ${n.gegevens.aanwezig.join(", ")}`, kaart, contact: m.contact, certificaten: m.certificaten });
+  return verstuur([m.to], onderwerp, html, adressen(process.env.NOTIFY_TO)[0]);
 }
 
 /**
