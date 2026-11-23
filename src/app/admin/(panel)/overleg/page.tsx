@@ -7,7 +7,7 @@ import { datumOver } from "@/lib/offertes";
 import {
   NIETS_MEDISCH, nlDelen, overlegDag, overlegTitel, sorteerAgenda, teLaat, tijdVanTot, volgendeDatum, wanneerTekst, WEEKDAGEN, type Agendapunt,
 } from "@/lib/overleg";
-import { haalKaart, haalOverleg, inbrengerNaam } from "@/lib/overlegDb";
+import { haalKaart, haalOverleg, haalTeam, inbrengerNaam } from "@/lib/overlegDb";
 import { inMijnReact2u } from "@/lib/weergave";
 import {
   actiepuntMaken, actiepuntWeg, actiepuntZetten, agendapuntBesproken, agendapuntInbrengen, agendapuntWeg, overlegAfronden,
@@ -41,7 +41,7 @@ export default async function CmOverleg() {
   const beheer = admin.permissions.includes("omzet") && !mijn;
   const magStamkaart = admin.permissions.includes("bellijst") && !mijn;
   const vandaag = datumOver(0);
-  const [uit, kaart] = await Promise.all([haalOverleg(sb), haalKaart(sb)]);
+  const [uit, kaart, team] = await Promise.all([haalOverleg(sb), haalKaart(sb), haalTeam(sb)]);
 
   if (!uit.ok) {
     return (
@@ -438,7 +438,7 @@ export default async function CmOverleg() {
           <h2 id="kaart-kop" className={sectieKop}><LuMapPin /> Verdeling van de klanten</h2>
           <p className="mt-0.5 text-[12.5px] text-black/45">Elke klant op zijn vestigingsplaats in de kleur van de casemanager; de vlakken tonen wie in een gemeente de meeste klanten heeft. Klik op een naam om die casemanager uit te lichten.</p>
         </div>
-        {kaart === null ? <p className="text-[13.5px] text-black/45">De kaart kon niet geladen worden.</p> : <Verdeling klanten={kaart} magStamkaart={magStamkaart} />}
+        {kaart === null ? <p className="text-[13.5px] text-black/45">De kaart kon niet geladen worden.</p> : <Verdeling klanten={kaart} team={team} magStamkaart={magStamkaart} />}
       </section>
 
       {/* ---------- afronden (beheer) ---------- */}

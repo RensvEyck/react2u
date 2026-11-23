@@ -141,12 +141,25 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   stap("De kaart van Nederland");
   const kaart = b.locator("#verdeling-kaart");
   check((await kaart.locator("path").count()) >= 342, "alle gemeenten staan op de kaart");
-  const punten = await kaart.locator("circle.kaart-punt").evaluateAll((cs) => cs.map((c) => c.getAttribute("data-klant")).filter((n) => n !== null));
+  const punten = await kaart.locator(".kaart-punt").evaluateAll((cs) => cs.map((c) => c.getAttribute("data-klant")).filter((n) => n !== null));
   const testPunten = punten.filter((n) => KLANTEN.some((k) => k[0] === n));
   check(testPunten.length === 6 && !testPunten.includes("Alleen Een Lead BV") && !testPunten.includes("Zonder Adres BV"), `zes klanten als stip, zonder de lead en zonder wie geen plek heeft (${testPunten.join(", ")})`);
   check(testPunten.includes("Kantoor Hofstad"), "een klant zonder postcode maar met Den Haag als plaats staat op de kaart");
-  const legenda = (await b.locator("#kaart-legenda").innerText()).replace(/\s+/g, " ");
+  // Zonder de tekst voor schermlezers bij de vierde ("ruit op de kaart"), die apart gecontroleerd wordt.
+  const legenda = (await b.locator("#kaart-legenda").innerText()).replace(/ ?\(ruit op de kaart\)/g, "").replace(/\s+/g, " ");
   check(legenda.includes("Fleur 2 klanten · 42 werknemers · 1 gemeente") && legenda.includes("Jasper 2 klanten · 58 werknemers · 1 gemeente") && legenda.includes("Sanne 2 klanten · 100 werknemers · 2 gemeenten"), `per casemanager klanten, werknemers en gemeenten (${legenda.slice(0, 200)})`);
+  // Het team uit Medewerkers (0057): Lotte is casemanager maar heeft nog geen klanten, en staat er toch.
+  check(/Lotte( Visser)? Nog geen klanten op de stamkaart/.test(legenda), "wie in het team zit maar nog geen klanten heeft, staat in de lijst");
+  check(/Fleur 2 klanten[^]*Niet bij Medewerkers als casemanager/.test(legenda), "een naam die alleen op de stamkaart staat, krijgt een opmerking");
+  const legendaNamen = await b.locator("#kaart-legenda button[data-cm-naam]").evaluateAll((bs) => bs.map((x) => x.getAttribute("data-cm-naam")));
+  check(legendaNamen[0].startsWith("Lotte"), `het team staat bovenaan, de namen van alleen stamkaarten erna (${legendaNamen.join(", ")})`);
+  const vormen = await kaart.locator(".kaart-punt").evaluateAll((ps) => ps.map((x) => `${x.getAttribute("data-cm")}:${x.getAttribute("data-vorm")}:${x.tagName}`));
+  check(vormen.every((v) => (v.startsWith("3:") ? v.endsWith(":ruit:path") : v.includes(":stip:"))), "de vierde casemanager staat als ruit op de kaart, de rest als stip");
+  if (legendaNamen[3] === "Sanne") {
+    check(await kaart.locator(".kaart-punt[data-klant='Haven Logistiek'][data-vorm='ruit']").count() === 1, "Sanne is de vierde: haar klanten als ruit");
+    check((await b.locator("#kaart-legenda button[data-cm-naam='Sanne']").innerText()).includes("ruit op de kaart"), "en dat staat er ook voor wie een schermlezer gebruikt");
+    check((await b.locator("#verdeling-kaart + p").innerText()).includes("Ruit: een klant van Sanne"), "de uitleg onder de kaart noemt de ruit");
+  }
   const vlakken = await kaart.locator(".laag-werkgebied path.kaart-vlak title").allTextContents();
   check(["Eindhoven: Fleur", "Tilburg: Jasper", "Rotterdam: Sanne", "'s-Gravenhage: Sanne"].every((v) => vlakken.includes(v)), `het werkgebied kleurt de gemeenten per casemanager (${vlakken.join(", ")})`);
   check((await b.locator("#zonder-plek").innerText()).includes("Zonder Adres BV") && (await b.locator("#zonder-cm").innerText()).includes("Nog Te Verdelen BV"), "wie nog geen plek of casemanager heeft, staat eronder");
@@ -156,8 +169,8 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   await b.click("label[for='laag-werkgebied']");
   await b.click("#kaart-legenda button[data-cm-naam='Sanne']");
   await wacht(500);
-  const dim = await kaart.locator("circle.kaart-punt[data-klant='Bakkerij De Korenaar']").evaluate((c) => Number(getComputedStyle(c).opacity));
-  const fel = await kaart.locator("circle.kaart-punt[data-klant='Haven Logistiek']").evaluate((c) => Number(getComputedStyle(c).opacity));
+  const dim = await kaart.locator(".kaart-punt[data-klant='Bakkerij De Korenaar']").evaluate((c) => Number(getComputedStyle(c).opacity));
+  const fel = await kaart.locator(".kaart-punt[data-klant='Haven Logistiek']").evaluate((c) => Number(getComputedStyle(c).opacity));
   check(dim < 0.5 && fel === 1, `Sanne uitlichten verbleekt de rest (${dim} tegen ${fel})`);
   await b.screenshot({ path: path.join(SHOTS, "01-overleg-beheer-1440.png"), fullPage: true });
   await b.click("#kaart-legenda button[data-cm-naam='Sanne']");
@@ -175,7 +188,7 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   check(await w.locator("#notulen-formulier").count() && await w.locator("#actie-maken").count() && await w.locator("#bezetting-formulier").count(), "maar als notulist wel de notulen, actiepunten en aanwezigen");
   check((await w.locator("#agenda-structureel li[data-punt]").count()) === 6, "de zes structurele punten");
   check(!(await w.locator('#agenda form button:has(.sr-only)').count()), "vaste punten haalt een werknemer niet weg");
-  check(!(await w.locator('#zonder-plek a').count()) && await w.locator("#verdeling-kaart circle.kaart-punt").count(), "de kaart staat er ook voor de werknemer, zonder links naar de stamkaart");
+  check(!(await w.locator('#zonder-plek a').count()) && await w.locator("#verdeling-kaart .kaart-punt").count(), "de kaart staat er ook voor de werknemer, zonder links naar de stamkaart");
   await w.fill("#punt-titel", "Even weg");
   await w.click("button:has-text('Op de agenda')");
   await w.waitForURL(/opgeslagen=agendapunt/, { timeout: 20000 });
