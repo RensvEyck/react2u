@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LuMapPin } from "react-icons/lu";
-import { KAART, kaartStand, ZONDER_KLEUR, type KaartKlant } from "@/lib/kaart";
+import { KAART, kaartStand, ZONDER_KLEUR, type KaartKlant, type KaartPunt, type TeamLid } from "@/lib/kaart";
 import KaartLagen from "@/components/admin/overleg/KaartLagen";
 
 /**
@@ -9,9 +9,32 @@ import KaartLagen from "@/components/admin/overleg/KaartLagen";
  * de casemanager, groter bij meer werknemers) en het werkgebied (elke gemeente
  * in de kleur van wie er de meeste klanten heeft). De plaats komt van de
  * stamkaart; wie geen postcode of herkenbare plaats heeft, staat eronder.
+ * Het team komt uit Medewerkers (0057), zodat ook wie nog geen klanten heeft
+ * in de lijst staat; de vierde casemanager staat als ruit op de kaart.
  */
-export default function Verdeling({ klanten, magStamkaart }: { klanten: KaartKlant[]; magStamkaart: boolean }) {
-  const stand = kaartStand(klanten);
+
+/** Een klant op de kaart: een stip, of een ruit voor de vierde casemanager. */
+function Punt({ p }: { p: KaartPunt }) {
+  const titel = [p.klant.bedrijf, p.klant.casemanager || "nog geen casemanager", p.klant.medewerkers ? `${p.klant.medewerkers} werknemers` : null, p.klant.plaats].filter(Boolean).join(" · ");
+  const gedeeld = { className: "kaart-punt", "data-cm": p.cm >= 0 ? p.cm : "geen", "data-klant": p.klant.bedrijf, "data-vorm": p.vorm, fill: p.kleur, stroke: "#fff", strokeWidth: 12 };
+  if (p.vorm === "ruit") {
+    // Even veel oppervlak als een stip met dezelfde straal: halve diagonaal r·√(π/2).
+    const h = Math.round(p.r * 1.2533);
+    return (
+      <path {...gedeeld} strokeLinejoin="round" d={`M${p.x} ${p.y - h}L${p.x + h} ${p.y}L${p.x} ${p.y + h}L${p.x - h} ${p.y}Z`}>
+        <title>{titel}</title>
+      </path>
+    );
+  }
+  return (
+    <circle {...gedeeld} cx={p.x} cy={p.y} r={p.r}>
+      <title>{titel}</title>
+    </circle>
+  );
+}
+
+export default function Verdeling({ klanten, team = [], magStamkaart }: { klanten: KaartKlant[]; team?: TeamLid[]; magStamkaart: boolean }) {
+  const stand = kaartStand(klanten, team);
   const naam = (k: KaartKlant) =>
     magStamkaart ? (
       <Link href={`/admin/klanten/${k.id}`} className="font-semibold text-[#312e82] hover:underline">{k.bedrijf}</Link>
@@ -32,7 +55,7 @@ export default function Verdeling({ klanten, magStamkaart }: { klanten: KaartKla
           >
             <title id="kaart-titel">Kaart van Nederland met de klanten per casemanager</title>
             <desc id="kaart-uitleg">
-              {stand.casemanagers.map((c) => `${c.naam}: ${c.opKaart} van ${c.klanten} klanten op de kaart`).join(". ")}. De lijst ernaast en eronder geeft dezelfde verdeling in tekst.
+              {stand.casemanagers.map((c) => `${c.naam}: ${c.opKaart} van ${c.klanten} klanten op de kaart${c.vorm === "ruit" ? ", als ruit" : ""}`).join(". ")}. De lijst ernaast en eronder geeft dezelfde verdeling in tekst.
             </desc>
             <g aria-hidden>
               {KAART.gemeenten.map((g) => (
@@ -47,26 +70,14 @@ export default function Verdeling({ klanten, magStamkaart }: { klanten: KaartKla
               ))}
             </g>
             <g className="laag-klanten">
-              {stand.punten.map((p) => (
-                <circle
-                  key={p.klant.id}
-                  className="kaart-punt"
-                  data-cm={p.cm >= 0 ? p.cm : "geen"}
-                  data-klant={p.klant.bedrijf}
-                  cx={p.x}
-                  cy={p.y}
-                  r={p.r}
-                  fill={p.kleur}
-                  stroke="#fff"
-                  strokeWidth={12}
-                >
-                  <title>{[p.klant.bedrijf, p.klant.casemanager || "nog geen casemanager", p.klant.medewerkers ? `${p.klant.medewerkers} werknemers` : null, p.klant.plaats].filter(Boolean).join(" · ")}</title>
-                </circle>
-              ))}
+              {stand.punten.map((p) => <Punt key={p.klant.id} p={p} />)}
             </g>
           </svg>
           <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-[12px] text-black/45">
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-black/30" /> Stip: een klant, groter bij meer werknemers</span>
+            {stand.casemanagers.some((c) => c.vorm === "ruit" && c.klanten > 0) && (
+              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rotate-45 rounded-[1px] bg-black/30" /> Ruit: een klant van {stand.casemanagers.find((c) => c.vorm === "ruit")!.naam}</span>
+            )}
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-black/15" /> Vlak: wie in die gemeente de meeste klanten heeft</span>
             {stand.zonderCm.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: ZONDER_KLEUR }} /> Nog geen casemanager</span>}
           </p>

@@ -341,9 +341,17 @@ dus een werknemer blijft in Mijn React2u). Op `/admin/overleg`:
 - **De kaart**: de echte klanten (akkoord, inrichten, klant) via `cm_kaart()`, ook
   voor wie de klantenlijst niet mag zien. Elke klant als stip op de postcode van
   de stamkaart (bezoekadres, anders postadres), of zonder postcode op de
-  gemeente als de plaats een gemeentenaam is. Kleur per casemanager (de eerste
-  drie plekken van het geteste palet; meer casemanagers delen de kleur
-  "overige"), groter bij meer werknemers. De laag werkgebied kleurt elke
+  gemeente als de plaats een gemeentenaam is. Kleur per casemanager, groter bij
+  meer werknemers. **Wie er in de lijst staat** (0057, `cm_team()`): het team
+  uit Medewerkers (functie met "casemanag", actief, in hun volgorde), ook wie
+  nog geen klanten heeft, en daarna elke andere naam die op een stamkaart staat
+  ("Niet bij Medewerkers als casemanager"). Een stamkaart met een voornaam of
+  een deel van de naam hoort bij de collega met die voornaam, als die in het
+  team uniek is (`casemanagersVan`). **Kleuren**: de eerste drie plekken van het
+  palet halen samen de toets voor een kaart (`validate_palette.js --pairs
+  all`); geen vier kleuren halen die samen. De vierde casemanager krijgt geel
+  én een ruit in plaats van een stip (`vormVan`), en elke casemanager is uit
+  te lichten; een vijfde en verder delen de kleur "overige". De laag werkgebied kleurt elke
   gemeente naar wie er de meeste klanten heeft. Wie nog niet op de kaart staat
   of geen casemanager heeft, staat eronder. De kaart zelf (342 gemeenten,
   4071 postcodes) komt uit open CBS-data via PDOK en staat in

@@ -1,6 +1,6 @@
 import type { requireAdmin } from "@/lib/admin";
 import { isMissingTable } from "@/lib/dbErrors";
-import type { KaartKlant } from "@/lib/kaart";
+import type { KaartKlant, TeamLid } from "@/lib/kaart";
 import type { Aanwezige, Actiepunt, Agendapunt, Collega, Overleg, Ritme } from "@/lib/overleg";
 import { firstName } from "@/lib/dashboard";
 
@@ -96,6 +96,13 @@ export async function haalKaart(sb: Sb): Promise<KaartKlant[] | null> {
   const { data, error } = await sb.rpc("cm_kaart");
   if (error) return null;
   return (data as KaartKlant[] | null) || [];
+}
+
+/** De casemanagers uit Medewerkers voor de kaart (0057); zonder die migratie een lege lijst, dan blijft de kaart zoals hij was. */
+export async function haalTeam(sb: Sb): Promise<TeamLid[]> {
+  const { data, error } = await sb.rpc("cm_team");
+  if (error) return [];
+  return (data as TeamLid[] | null) || [];
 }
 
 /** Voor het dashboard: het volgende overleg met het aantal agendapunten, en de eigen open actiepunten. */

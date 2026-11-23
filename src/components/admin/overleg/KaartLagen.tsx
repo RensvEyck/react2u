@@ -10,7 +10,7 @@ import { useState } from "react";
 export default function KaartLagen({
   casemanagers, children,
 }: {
-  casemanagers: { naam: string; kleur: string; klanten: number; werknemers: number; gemeenten: number }[];
+  casemanagers: { naam: string; volledig: string; kleur: string; vorm: "stip" | "ruit"; inTeam: boolean; klanten: number; werknemers: number; gemeenten: number }[];
   children: React.ReactNode;
 }) {
   const [klanten, setKlanten] = useState(true);
@@ -50,7 +50,7 @@ export default function KaartLagen({
       <div className="min-w-0">
         <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-black/40">Per casemanager</p>
         {casemanagers.length === 0 ? (
-          <p className="text-[13.5px] text-black/45">Nog geen klant heeft een casemanager op de stamkaart.</p>
+          <p className="text-[13.5px] text-black/45">Nog geen casemanagers: zet ze bij Medewerkers (functie casemanager) of op de stamkaart van een klant.</p>
         ) : (
           <ul className="space-y-1.5" id="kaart-legenda">
             {casemanagers.map((c, i) => {
@@ -64,11 +64,23 @@ export default function KaartLagen({
                     className={`flex w-full items-start gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors ${aan ? "bg-[#eef0ff] ring-1 ring-[#312e82]/20" : "hover:bg-black/[0.03]"}`}
                     data-cm-naam={c.naam}
                   >
-                    <span className="mt-1 h-3 w-3 shrink-0 rounded-full ring-2 ring-white" style={{ background: c.kleur }} aria-hidden />
+                    {c.vorm === "ruit" ? (
+                      <span className="mt-1 h-3 w-3 shrink-0 p-[1.5px]" aria-hidden>
+                        <span className="block h-full w-full rotate-45 rounded-[1.5px] ring-2 ring-white" style={{ background: c.kleur }} />
+                      </span>
+                    ) : (
+                      <span className="mt-1 h-3 w-3 shrink-0 rounded-full ring-2 ring-white" style={{ background: c.kleur }} aria-hidden />
+                    )}
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[14px] font-semibold text-[#1c1a4e]">{c.naam}</span>
+                      <span className="block truncate text-[14px] font-semibold text-[#1c1a4e]" title={c.volledig !== c.naam ? c.volledig : undefined}>
+                        {c.naam}
+                        {c.vorm === "ruit" && <span className="sr-only"> (ruit op de kaart)</span>}
+                      </span>
                       <span className="block text-[12.5px] tabular-nums text-black/50">
-                        {c.klanten} {c.klanten === 1 ? "klant" : "klanten"} · {c.werknemers} werknemers · {c.gemeenten} {c.gemeenten === 1 ? "gemeente" : "gemeenten"}
+                        {c.klanten === 0
+                          ? "Nog geen klanten op de stamkaart"
+                          : `${c.klanten} ${c.klanten === 1 ? "klant" : "klanten"} · ${c.werknemers} werknemers · ${c.gemeenten} ${c.gemeenten === 1 ? "gemeente" : "gemeenten"}`}
+                        {!c.inTeam && <span className="block text-black/40">Niet bij Medewerkers als casemanager</span>}
                       </span>
                     </span>
                   </button>
