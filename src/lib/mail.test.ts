@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { domeinStatus, mailStatus, sendBrief, sendInvite, sendMfaResetNotice, sendTestMail } from "./mail";
+import { domeinStatus, mailStatus, sendBrief, sendInvite, sendMfaResetNotice, sendOverlegHerinnering, sendTestMail } from "./mail";
 
 type Aanroep = { url: string; body: Record<string, unknown> | null };
 let aanroepen: Aanroep[] = [];
@@ -135,6 +135,36 @@ describe("persoonlijke brief aan een kandidaat", () => {
     nepFetch(() => new Response("{}", { status: 200 }));
     await sendBrief({ ...brief, alineas: ["Hi Yasmin,", "Thank you."], taal: "en" });
     expect(String(aanroepen[0].body!.html)).toContain('<html lang="en"');
+  });
+});
+
+describe("herinnering voor het CM-overleg", () => {
+  const herinnering = {
+    to: "collega@voorbeeld.nl", onderwerp: "Morgen CM-overleg om 09:30", aanhef: "Hoi Nadja,",
+    intro: "Morgen is het CM-overleg, om 09:30 op kantoor.", agenda: ["Opening", "Rondje klanten"], acties: ["Postcodes aanvullen"],
+    link: "https://react2u.nl/admin/overleg",
+  };
+
+  it("toont de keurmerken uit Instellingen onder de mail, zoals elke klantmail", async () => {
+    nepFetch(() => new Response("{}", { status: 200 }));
+    const r = await sendOverlegHerinnering({ ...herinnering, certificaten: [{ alt: "ISO 9001:2015", href: "", image: "" }] });
+    expect(r).toEqual({ ok: true });
+    const b = aanroepen[0].body!;
+    expect(b.to).toEqual(["collega@voorbeeld.nl"]);
+    expect(b.reply_to).toBe("info@react2u.nl");
+    const html = String(b.html);
+    expect(html).toContain("Hoi Nadja,");
+    expect(html).toContain("Rondje klanten");
+    expect(html).toContain("Postcodes aanvullen");
+    expect(html).toContain("/beeld/keurmerken/iso9001.png");
+  });
+
+  it("zonder certificaten in Instellingen staat er geen enkel keurmerk", async () => {
+    nepFetch(() => new Response("{}", { status: 200 }));
+    await sendOverlegHerinnering({ ...herinnering, certificaten: [] });
+    const html = String(aanroepen[0].body!.html);
+    expect(html).not.toContain("/beeld/keurmerken/");
+    expect(html).toContain("Rondje klanten");
   });
 });
 
