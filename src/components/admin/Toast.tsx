@@ -78,6 +78,7 @@ const FOUT_TEKST: Record<string, string> = {
   "migratie-0050": "De inwerkreis staat nog niet aan: migratie 0050 moet eerst in Supabase worden uitgevoerd.",
   "migratie-0053": "Het CM-overleg staat nog niet aan: migratie 0053 moet eerst in Supabase worden uitgevoerd.",
   "migratie-0054": "Het nieuwe format van het CM-overleg staat nog niet aan: migratie 0054 moet eerst in Supabase worden uitgevoerd.",
+  "migratie-0056": "Dossiers per persoon staat nog niet aan: migratie 0056 moet eerst in Supabase worden uitgevoerd.",
   "overleg-notulist": "De notulist moet ook aanwezig zijn. Vink die persoon aan bij Aanwezig.",
   "overleg-geen-notulist": "Alleen de notulist van dit overleg (of het beheer) schrijft de notulen en actiepunten.",
   "overleg-titel": "Geef het agendapunt een titel.",

@@ -392,7 +392,7 @@ export default async function CmOverleg() {
           <h2 id="notulen-kop" className={sectieKop}><LuNotebookPen /> Notulen</h2>
           {notuleert ? (
             <>
-              <p className="mb-4 mt-0.5 text-[12.5px] text-black/45">Per agendapunt wat er besproken is; bij de check-in hoe iedereen erbij zit. {NIETS_MEDISCH}</p>
+              <p className="mb-4 mt-0.5 text-[12.5px] text-black/45">Per agendapunt wat er besproken is; bij de check-in en bij Dossiers per persoon. {NIETS_MEDISCH}</p>
               <NotulenFormulier overlegId={volgend.id} agenda={agenda} aanwezigen={aanwezigen} />
             </>
           ) : (
