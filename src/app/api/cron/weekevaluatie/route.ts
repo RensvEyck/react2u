@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
   const ontvangers = wieHerinneren(deelnemers, alle, week);
   const vorigeWeekOpen = new Set(recent.filter((e) => e.week === plusWeken(week, -1)).map((e) => e.user_id));
   const basis = siteBasis();
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const plannen: { aan: string; onderwerp: string }[] = [];
   let verstuurd = 0;
   const mislukt: string[] = [];
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
     const h = herinnering(firstName(d.email), week, { vorigeWeekOok: !vorigeWeekOpen.has(d.user_id) });
     plannen.push({ aan: d.email, onderwerp: h.onderwerp });
     if (dry) continue;
-    const res = await sendWeekevaluatieHerinnering({ to: d.email, ...h, link: `${basis}/admin/weekevaluatie`, contact });
+    const res = await sendWeekevaluatieHerinnering({ to: d.email, ...h, link: `${basis}/admin/weekevaluatie`, contact, certificaten });
     if (res.ok) verstuurd++;
     else mislukt.push(`${d.email}: ${res.reden}${res.melding ? ` (${res.melding})` : ""}`);
   }

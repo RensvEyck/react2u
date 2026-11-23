@@ -69,7 +69,7 @@ export async function vraagCode(token: string, email: string): Promise<CodeState
   }
   if (!uitkomst.ok) return { ok: false, fout: ONDERTEKEN_FOUT[uitkomst.fout || ""] || ONDERTEKEN_FOUT.storing };
 
-  const o = await lees(token);
+  const [o, { contact, certificaten }] = await Promise.all([lees(token), offerteHuisstijl()]);
   const verzonden = await sendOfferteCode({
     to: adres,
     code,
@@ -77,6 +77,8 @@ export async function vraagCode(token: string, email: string): Promise<CodeState
     bedrijf: o?.bedrijf || "",
     afzender: { naam: o?.afzender_naam ?? null, functie: o?.afzender_functie ?? null, email: o?.afzender_email || OFFERTE_EMAIL, telefoon: o?.afzender_telefoon ?? null },
     vorm: o?.vorm,
+    contact,
+    certificaten,
   });
   if (!verzonden.ok) return { ok: false, fout: ONDERTEKEN_FOUT.mail };
   return { ok: true };
@@ -137,7 +139,7 @@ export async function ondertekenOfferte(
     const afzender = { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || OFFERTE_EMAIL, telefoon: o.afzender_telefoon };
     // Dezelfde stappen als onder "Zo gaat het verder" op de offertepagina.
     const vervolg = normaliseerVervolg(inhoud.vervolg ?? o.vervolg);
-    const { contact } = await offerteHuisstijl();
+    const { contact, certificaten } = await offerteHuisstijl();
     await Promise.all([
       bevestigOfferteGetekend({
         to: inhoud.getekend_email,
@@ -157,6 +159,7 @@ export async function ondertekenOfferte(
         vorm: inhoud.vorm ?? o.vorm,
         vervolg: vervolg.length ? vervolg : VERVOLG_STANDAARD,
         contact,
+        certificaten,
       }),
       notifyOfferteGetekend({
         nummer: inhoud.nummer,

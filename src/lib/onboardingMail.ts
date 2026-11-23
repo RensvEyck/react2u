@@ -1,4 +1,5 @@
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
 import { MERKEN } from "./offerteMerk";
 import {
   afzenderKaart, alineasUit, esc, eyebrow, FONT, FONT_KOP, heldAchtergrond, KLEUR, knop, linkAlsTekst, metPunt, omhulsel, p, pil, scheiding, vak,
@@ -25,6 +26,7 @@ export type OnboardingMail = {
   herinnering?: boolean;
   documenten: MailDocument[];
   contact?: ContactInfo;
+  certificaten: Certificate[];
 };
 
 const HUIS = MERKEN.ready;
@@ -97,6 +99,7 @@ ${linkAlsTekst(o.link)}`);
     preheader: o.herinnering ? `Je onboarding voor ${metPunt(o.bedrijf)} staat nog open.` : `Alles om goed te starten met React2u, op één plek.`,
     kaart: kop + romp,
     contact: o.contact,
+    certificaten: o.certificaten,
   });
 }
 
@@ -140,6 +143,7 @@ export type MachtigingMail = {
   afzender: MailAfzender;
   opnieuw?: boolean;
   contact?: ContactInfo;
+  certificaten: Certificate[];
 };
 
 /** Aan de werknemer: je werkgever vraagt je de machtiging te tekenen. Kort en op de telefoon te lezen. */
@@ -172,11 +176,12 @@ ${linkAlsTekst(m.link)}`);
     preheader: `${metPunt(m.bedrijf)} vraagt je toestemming om je verzuimdossier over te dragen aan React2u. Tekenen duurt twee minuten.`,
     kaart: held2(m.basis, m.opnieuw ? "Je machtiging staat nog open" : "Even tekenen, op je telefoon", KLEUR.roze, kaart) + romp,
     contact: m.contact,
+    certificaten: m.certificaten,
   });
 }
 
 /** Aan de werknemer na het tekenen: de bevestiging, met de getekende machtiging als pdf. */
-export function machtigingGetekendHtml(m: { basis: string; naam: string; bedrijf: string; arbodienst: string | null; moment: string; link: string; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo }): string {
+export function machtigingGetekendHtml(m: { basis: string; naam: string; bedrijf: string; arbodienst: string | null; moment: string; link: string; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo; certificaten: Certificate[] }): string {
   const kaart = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td style="background:#ffffff;border-radius:20px;padding:26px 28px 28px" class="binnen">
   ${eyebrow(`Machtiging · ${esc(m.bedrijf)}`, HUIS.tekst)}
@@ -201,6 +206,7 @@ ${linkAlsTekst(m.link)}`);
     preheader: `Je tekende op ${m.moment} de machtiging voor de overdracht van je verzuimdossier aan React2u.`,
     kaart: held2(m.basis, "Getekend", KLEUR.roze, kaart, "&#10003;") + romp,
     contact: m.contact,
+    certificaten: m.certificaten,
   });
 }
 
@@ -215,6 +221,7 @@ export type OnboardingKlantMail = {
   link: string;
   afzender: MailAfzender;
   contact?: ContactInfo;
+  certificaten: Certificate[];
   /** ontvangen: welk document, wanneer, door wie, en of de kopie als pdf meegaat. */
   document?: string;
   moment?: string;
@@ -283,11 +290,11 @@ ${ruimte(28)}
 ${afzenderKaart(o.afzender, HUIS)}
 ${ruimte(30)}
 ${linkAlsTekst(o.link)}`);
-  return omhulsel({ basis: o.basis, titel, preheader, kaart: held2(o.basis, pilTekst, KLEUR.roze, kaart, o.soort === "ontvangen" ? "&#10003;" : undefined) + romp, contact: o.contact });
+  return omhulsel({ basis: o.basis, titel, preheader, kaart: held2(o.basis, pilTekst, KLEUR.roze, kaart, o.soort === "ontvangen" ? "&#10003;" : undefined) + romp, contact: o.contact, certificaten: o.certificaten });
 }
 
 /** Aan een collega van de klant: iemand stuurt je een stap van de onboarding door. */
-export function doorgestuurdHtml(d: { basis: string; naam: string; van: string; bedrijf: string; stap: string; actie: string; link: string; bericht: string | null; afzender: MailAfzender; contact?: ContactInfo }): string {
+export function doorgestuurdHtml(d: { basis: string; naam: string; van: string; bedrijf: string; stap: string; actie: string; link: string; bericht: string | null; afzender: MailAfzender; contact?: ContactInfo; certificaten: Certificate[] }): string {
   const kaart = kopKaart(`Onboarding · ${esc(d.bedrijf)}`, `Hallo ${esc(eerste(d.naam) || d.naam)}`, `${esc(d.van)} vraagt je om <strong>${esc(d.stap)}</strong> op te pakken: ${esc(d.actie.toLowerCase())}.`, `Open ${esc(d.stap)}`, d.link, KLEUR.indigo);
   const brief = [
     `Beste ${esc(d.naam)},`,
@@ -307,11 +314,12 @@ ${linkAlsTekst(d.link)}`);
     preheader: `${d.van} vraagt je om ${d.stap} op te pakken voor de onboarding van ${metPunt(d.bedrijf)} bij React2u.`,
     kaart: held2(d.basis, "Een stap voor jou", KLEUR.indigo, kaart) + romp,
     contact: d.contact,
+    certificaten: d.certificaten,
   });
 }
 
 /** Aan de vorige arbodienst, namens de werkgever: de opdracht tot overdracht, met de getekende machtigingen als pdf. Zakelijk en kort. */
-export function overdrachtMailHtml(b: { basis: string; bedrijf: string; contactpersoon: string | null; aantal: number; namen: { naam: string; geboortedatum: string }[]; arbodienst: string | null; alineas: string[]; contact?: ContactInfo }): string {
+export function overdrachtMailHtml(b: { basis: string; bedrijf: string; contactpersoon: string | null; aantal: number; namen: { naam: string; geboortedatum: string }[]; arbodienst: string | null; alineas: string[]; contact?: ContactInfo; certificaten: Certificate[] }): string {
   const lijst = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${b.namen
     .map(
       (n, i) => `<tr><td style="padding:8px 12px 8px 0;font-family:${FONT};font-size:15px;line-height:1.45;font-weight:600;color:${KLEUR.inkt};${i < b.namen.length - 1 ? `border-bottom:1px solid ${KLEUR.lijn};` : ""}">${esc(n.naam)}</td><td align="right" style="padding:8px 0;font-family:${FONT};font-size:14px;line-height:1.45;color:${KLEUR.grijs};${i < b.namen.length - 1 ? `border-bottom:1px solid ${KLEUR.lijn};` : ""}">geboren ${esc(n.geboortedatum)}</td></tr>`,
@@ -340,5 +348,6 @@ ${p(`Deze opdracht is verstuurd via de onboardingomgeving van React2u, in opdrac
     preheader: `${metPunt(b.bedrijf)} verzoekt u ${b.aantal === 1 ? "het lopende verzuimdossier" : `${b.aantal} lopende verzuimdossiers`} over te dragen aan React2u. De getekende machtigingen zitten in de bijlage.`,
     kaart: held2(b.basis, "Namens de werkgever", KLEUR.indigo, kaart) + romp,
     contact: b.contact,
+    certificaten: b.certificaten,
   });
 }

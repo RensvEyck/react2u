@@ -1,4 +1,5 @@
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
 import { MERKEN } from "./offerteMerk";
 import { afzenderKaart, alineasUit, esc, eyebrow, FONT, FONT_KOP, heldAchtergrond, KLEUR, knop, linkAlsTekst, metPunt, omhulsel, p, pil, scheiding, vak, type MailAfzender } from "./offerteMail";
 import { MINUTEN, VRIJE_VELDEN } from "./evaluatie";
@@ -27,6 +28,7 @@ export type EvaluatieMail = {
   /** De dag van het bezoek, al in woorden ("20 november 2026"), als die er is. */
   bezoek?: string | null;
   contact?: ContactInfo;
+  certificaten: Certificate[];
 };
 
 /** De onderdelen van de evaluatie, als lijstje in de mail. */
@@ -111,6 +113,7 @@ ${linkAlsTekst(e.link)}`);
     preheader: e.herinnering ? `De evaluatie voor ${metPunt(e.bedrijf)} staat nog open.` : `Samen kijken hoe het gaat: de jaarlijkse evaluatie van React2u, in ongeveer ${MINUTEN} minuten in te vullen.`,
     kaart: held(e.basis, e.herinnering ? "Je evaluatie staat nog open" : "Jouw mening telt", KLEUR.roze, kaart) + romp,
     contact: e.contact,
+    certificaten: e.certificaten,
   });
 }
 
@@ -127,6 +130,7 @@ export type EvaluatieIngevuldMail = {
   afzender: MailAfzender;
   pdf: boolean;
   contact?: ContactInfo;
+  certificaten: Certificate[];
 };
 
 /** Aan de klant na het invullen: dank je wel, de kopie als pdf, en wat er nu gebeurt. */
@@ -161,5 +165,6 @@ ${linkAlsTekst(m.link)}`);
     preheader: `We hebben je evaluatie ontvangen op ${m.moment}. ${m.pdf ? "De kopie zit in de bijlage." : ""}`.trim(),
     kaart: held(m.basis, "Ontvangen", KLEUR.roze, kaart, "&#10003;") + romp,
     contact: m.contact,
+    certificaten: m.certificaten,
   });
 }

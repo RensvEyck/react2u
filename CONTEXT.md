@@ -25,7 +25,7 @@ Gebruik deze termen; de code doet dat ook.
 | **Instelling** (`site_settings`) | Key/value (jsonb). In gebruik: `contact`, `documents`, `certificates`, `seo`, `maintenance`, `tracking` (grondslag bedrijfsherkenning) en `tarieven` (tarievenjaar). |
 | **Onderhoudsmodus** (`maintenance`) | Instelling `{enabled, message}`. Aan: bezoekers krijgen op elke publieke URL een onderhoudspagina (503), ingelogde beheerders zien de site gewoon. Schakelaar op `/admin/instellingen`. Zie *Onderhoudsmodus*. |
 | **Footerdocument** (`documents`) | Link onderaan elke pagina, vrije lijst van `{label, href}`. |
-| **Certificaat** (`certificates`) | Keurmerk op de site, vrije lijst van `{image, alt, href}`. De lijst bepaalt welke keurmerken er staan (voet, dienstpagina's, Over React2u, Certificeringen, offerte, brochure, onboarding, pdf's); SBCA, ISO 9001, ISO 27001, ISO 27701 en OVAL krijgen het logo van de site ([`lib/keurmerken.ts`](src/lib/keurmerken.ts)). `href` mag leeg — dan geen doorklik. |
+| **Certificaat** (`certificates`) | Keurmerk op de site, vrije lijst van `{image, alt, href}`. De lijst bepaalt welke keurmerken er staan (voet, dienstpagina's, Over React2u, Certificeringen, offerte, brochure, onboarding, pdf's, de voet van de klantmails); SBCA, ISO 9001, ISO 27001, ISO 27701 en OVAL krijgen het logo van de site ([`lib/keurmerken.ts`](src/lib/keurmerken.ts)). `href` mag leeg — dan geen doorklik. |
 | **Lead** (`leads`) | Iemand die gebeld moet worden, met belstatus, notities en een terugbeldatum. Staat op `/admin/bellijst`. Handmatig toe te voegen of vanuit het Postvak IN — zie *Van Postvak IN naar bellijst*. Interne data, zie de RLS-uitzondering hieronder. |
 | **Te bellen** | Wat vandaag op de bellijst staat: status `te_bellen`, of `terugbellen` waarvan de datum is bereikt of ontbreekt. Bepaald door `needsCall()` in [`src/lib/leads.ts`](src/lib/leads.ts). |
 | **Bezoek** (`page_views`) | Eén paginaweergave. Bevat géén IP-adres: alleen de afgeleide organisatie en een bezoekershash die dagelijks roteert. Zie `/admin/bezoek`. |
@@ -417,8 +417,13 @@ in de blokeditor, zonder ctx, tonen ze alle bekende (`keurmerkenUit()`). Lege
 lijst = nergens een keurmerk, ook geen sectie "Getoetst en gecertificeerd".
 Zet dus nooit meer een vaste `KEURMERKEN`-lijst in een component; de pdf's
 gebruiken `PdfKeurmerken` in [`lib/pdfKeurmerken.tsx`](src/lib/pdfKeurmerken.tsx).
-De voet van de klantmails (`omhulsel()` in `offerteMail.ts`) heeft nog wel een
-vaste lijst; zie *Openstaand*.
+De voet van de klantmails volgt dezelfde instelling: `omhulsel()` in
+[`lib/offerteMail.ts`](src/lib/offerteMail.ts) krijgt `certificaten` mee
+(verplicht, uit `offerteHuisstijl()` in elke verzendactie, ook de cronroutes en
+de weekevaluatie) en bouwt de badges met `mailKeurmerken()`. Als beeld gaat
+alleen het logo van de site van een bekend keurmerk mee, want een geüpload logo
+past niet in een rondje van 46 pixels; een onbekend certificaat staat er als
+tekst, en een lege lijst geeft geen badgerij.
 
 **`.gitignore` geldt niet voor Vercel-uploads.** Een `vercel --prod` vanaf je
 laptop stuurt alles mee wat niet in `.vercelignore` staat — inclusief `.env`.
@@ -939,8 +944,9 @@ het noreply-adres.
   de kaart **Nog geen afwijzing gemaild**, met één klik naar het juiste sjabloon
   (`mailVoorstel`).
 - De mail is een gewone brief in het omhulsel van de klantmails
-  (`omhulsel()` in `offerteMail.ts`): logo, witte kaart op zand, voet met
-  keurmerken. Geen label, geen knop: het is een bericht van een collega.
+  (`omhulsel()` in `offerteMail.ts`): logo, witte kaart op zand, voet met de
+  keurmerken uit Instellingen. Geen label, geen knop: het is een bericht van
+  een collega.
 - De tekst van een afwijzing noemt de bewaartermijn: een jaar als de kandidaat
   daar toestemming voor gaf (`retain_longer`), anders "na afloop van de
   procedure".
@@ -2777,14 +2783,6 @@ een link én bij navigeren via het commandopalet
 
 ## Openstaand
 
-- **De voet van de klantmails toont nog de vaste vijf keurmerken.** `omhulsel()` in
-  [`lib/offerteMail.ts`](src/lib/offerteMail.ts) heeft een eigen `KEURMERKEN`-lijst
-  (de badges onder elke mail aan klanten en kandidaten). De site en de pdf's
-  volgen sinds 20 november 2026 Instellingen → Certificaten (zie *Valkuilen*);
-  de mails nog niet, omdat `omhulsel()` op 21 plekken wordt aangeroepen zonder
-  de certificaten bij de hand. Oplossing: `certificaten` meegeven aan
-  `omhulsel()` vanuit elke verzendactie (die halen `offerteHuisstijl()` al op
-  voor `contact`) en daar `keurmerkenVoor()` op loslaten.
 - **DNS is omgezet (29 september 2026)**, door Theiner ICT, die het
   Hostnet-account beheert. Twee restpunten, zie *Na de omzetting* in
   [`docs/dns-omzetting.md`](docs/dns-omzetting.md): het TXT-record

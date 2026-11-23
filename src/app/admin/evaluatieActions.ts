@@ -99,7 +99,7 @@ export async function verstuurEvaluatie(id: string, _prev: VersturenState, fd: F
   if (fouten.length) return { fout: fouten[0] };
 
   const herinnering = e.status !== "concept";
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const res = await sendEvaluatie({
     to: aan,
     aanhef: tekst(fd, "aanhef", 120) ?? e.contactpersoon?.split(" ")[0] ?? null,
@@ -111,6 +111,7 @@ export async function verstuurEvaluatie(id: string, _prev: VersturenState, fd: F
     herinnering,
     bezoek: e.bezoek_datum ? datumLang(e.bezoek_datum) : null,
     contact,
+    certificaten,
   });
   if (!res.ok) {
     return {

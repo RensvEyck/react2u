@@ -1,4 +1,5 @@
 import type { ContactInfo } from "./content";
+import type { Certificate } from "./nav";
 import { CHECKLIST_NAAM, CHECKLIST_UITLEG } from "./contractChecklist";
 import { CONTRACT_SOORT, soortVan, type ContractSoort } from "./contracten";
 import { MERKEN } from "./offerteMerk";
@@ -65,6 +66,8 @@ export type ContractMail = {
   /** De Checklist arbeidsomstandigheden gaat mee (basiscontract, 0042): het blok "Bij dit contract" en de pdf in de bijlage. */
   checklist?: boolean;
   contact?: ContactInfo;
+  /** De certificaten uit Instellingen, voor de keurmerken onder de mail. */
+  certificaten: Certificate[];
 };
 
 /** Het blok over de checklist in de contractmail: wat het is, en dat hij online in te vullen is. */
@@ -148,13 +151,14 @@ ${linkAlsTekst(c.link)}`);
     kaart: kop + romp,
     voetnoot: "Deze link is persoonlijk: stuur hem alleen door aan wie mag meebeslissen of tekenen.",
     contact: c.contact,
+    certificaten: c.certificaten,
   });
 }
 
 /* ---------- de code om te ondertekenen ---------- */
 
 export function contractCodeHtml(c: {
-  basis: string; soort?: ContractSoort; code: string; nummer: string; bedrijf: string; afzender: MailAfzender; contact?: ContactInfo;
+  basis: string; soort?: ContractSoort; code: string; nummer: string; bedrijf: string; afzender: MailAfzender; contact?: ContactInfo; certificaten: Certificate[];
 }): string {
   const zin = CONTRACT_SOORT[soortVan(c)].zin;
   const kaart = vak(`${pil(`Contract ${esc(c.nummer)}`, KLEUR.roze)}
@@ -175,6 +179,7 @@ ${afzenderKaart(c.afzender, HUIS)}`);
     preheader: `${c.code} is je code om ${zin} te ondertekenen. Een kwartier geldig.`,
     kaart: kaart + romp,
     contact: c.contact,
+    certificaten: c.certificaten,
   });
 }
 
@@ -182,7 +187,7 @@ ${afzenderKaart(c.afzender, HUIS)}`);
 
 export function contractGetekendHtml(b: {
   basis: string; soort?: ContractSoort; naam: string; bedrijf: string; nummer: string; link: string; hash: string; moment: string;
-  regels: { label: string; waarde: string }[]; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo;
+  regels: { label: string; waarde: string }[]; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo; certificaten: Certificate[];
   /** Basiscontract (0042): de ingevulde checklist zit erbij, of staat nog open. */
   checklist?: "bijgevoegd" | "open";
 }): string {
@@ -237,6 +242,7 @@ ${afzenderKaart(b.afzender, HUIS)}`);
     kaart: kop + romp,
     voetnoot: `Kenmerk van de ondertekende versie: <span style="font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all">${esc(b.hash)}</span>`,
     contact: b.contact,
+    certificaten: b.certificaten,
   });
 }
 
@@ -245,7 +251,7 @@ ${afzenderKaart(b.afzender, HUIS)}`);
 /** Aan de klant, zodra hij de Checklist arbeidsomstandigheden invult of bijwerkt: wat er staat, en de pdf in de bijlage. */
 export function contractChecklistHtml(c: {
   basis: string; aanhef: string | null; bedrijf: string; nummer: string; link: string; beantwoord: number; totaal: number; opnieuw: boolean;
-  door: string | null; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo;
+  door: string | null; afzender: MailAfzender; pdf: boolean; contact?: ContactInfo; certificaten: Certificate[];
 }): string {
   const kaart = vak(`${pil(`Contract ${esc(c.nummer)}`, KLEUR.roze)}
 ${ruimte(22)}
@@ -267,5 +273,6 @@ ${linkAlsTekst(c.link)}`);
     preheader: `${c.beantwoord} van ${c.totaal} onderdelen beantwoord. ${c.pdf ? "De checklist zit als pdf in de bijlage." : ""}`.trim(),
     kaart: kaart + romp,
     contact: c.contact,
+    certificaten: c.certificaten,
   });
 }

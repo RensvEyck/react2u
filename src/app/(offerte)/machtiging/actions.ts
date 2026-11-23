@@ -45,7 +45,7 @@ export async function tekenMachtiging(token: string, invoer: { gegevens: Record<
 
   after(async () => {
     const sb = supabasePublic();
-    const [{ data: g }, { data: p }, { contact }] = await Promise.all([
+    const [{ data: g }, { data: p }, { contact, certificaten }] = await Promise.all([
       sb.rpc("onboarding_machtiging_getekend", { p_token: token }),
       sb.rpc("onboarding_machtiging_bekijken", { p_token: token, p_tel: false }),
       offerteHuisstijl(),
@@ -59,7 +59,7 @@ export async function tekenMachtiging(token: string, invoer: { gegevens: Record<
     await Promise.all([
       bevestigMachtigingGetekend({
         to: m.email, naam: m.gegevens.naam, bedrijf: getekend.bedrijf, arbodienst: getekend.arbodienst.arbodienst || null, moment: momentLang(m.getekend_at),
-        link: machtigingUrl(token), afzender, pdf: pdf ? { filename: `Machtiging overdracht verzuimdossier ${m.gegevens.naam}.pdf`, content: pdf } : null, contact,
+        link: machtigingUrl(token), afzender, pdf: pdf ? { filename: `Machtiging overdracht verzuimdossier ${m.gegevens.naam}.pdf`, content: pdf } : null, contact, certificaten,
       }),
       pagina.afzender_email && uitkomst.onboarding_id
         ? notifyOnboarding({ to: pagina.afzender_email, nummer: getekend.nummer, bedrijf: getekend.bedrijf, adminLink: onboardingAdminUrl(uitkomst.onboarding_id), soort: "getekend", naam: m.gegevens.naam })

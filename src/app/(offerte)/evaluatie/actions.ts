@@ -40,7 +40,7 @@ async function seintje(token: string, uitkomst: Uitkomst) {
     await notifyEvaluatie({ to: e.afzender_email, nummer: e.nummer, bedrijf: e.bedrijf, adminLink: evaluatieAdminUrl(e.id), soort: "ingevuld", opnieuw: !uitkomst.eerste, door: e.ingevuld_door, aandachtspunten: punten });
   }
   if (!uitkomst.eerste || !uitkomst.email) return;
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const bijlage = await evaluatiePdf({ e, contact })
     .then((b) => ({ filename: `Klantevaluatie ${e.bedrijf}.pdf`, content: b }))
     .catch((err) => { console.error("[evaluatie] kopie-pdf mislukt:", err); return null; });
@@ -48,7 +48,7 @@ async function seintje(token: string, uitkomst: Uitkomst) {
     to: uitkomst.email, aanhef: uitkomst.contactpersoon?.split(" ")[0] ?? null, bedrijf: e.bedrijf, nummer: e.nummer, link: evaluatieUrl(token),
     moment: momentLang(e.ingevuld_at), door: e.ingevuld_door, aandachtspunten: punten,
     afzender: { naam: e.afzender_naam, functie: e.afzender_functie, email: e.afzender_email || EVALUATIE_EMAIL, telefoon: e.afzender_telefoon },
-    bijlage, contact,
+    bijlage, contact, certificaten,
   });
 }
 

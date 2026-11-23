@@ -100,11 +100,12 @@ async function stuurMelding(sb: Awaited<ReturnType<typeof requirePerm>>["sb"], u
   }
   const naam = await naamVan(sb, userId, email);
   const m = meldingMail(naam, week, a.melding_soort?.[0] ?? null, a.melding!);
-  const { sendWeekevaluatieMelding, siteBasis } = await import("@/lib/mail");
+  const [{ sendWeekevaluatieMelding, siteBasis }, { offerteHuisstijl }] = await Promise.all([import("@/lib/mail"), import("@/lib/offerteHuisstijl")]);
+  const { contact, certificaten } = await offerteHuisstijl();
   const link = `${siteBasis()}/admin/weekevaluatie/team?kwartaal=${kwartaalSleutel(kwartaalVanWeek(week))}#collega-${userId}`;
   let gelukt = false;
   for (const aan of ontvangers) {
-    const res = await sendWeekevaluatieMelding({ to: aan, ...m, link, replyTo: email });
+    const res = await sendWeekevaluatieMelding({ to: aan, ...m, link, replyTo: email, contact, certificaten });
     if (res.ok) gelukt = true;
     else console.error("[weekevaluatie] melding aan %s mislukt: %s", aan, res.reden);
   }
@@ -121,12 +122,13 @@ async function meldZwareWeken(sb: Awaited<ReturnType<typeof requirePerm>>["sb"],
   const { data, error } = await sb.rpc("weekevaluatie_signaal", { p_week: week });
   if (error || !Array.isArray(data) || !data.length) return;
   const naam = await naamVan(sb, userId, email);
-  const { sendWeekevaluatieSignaal, siteBasis } = await import("@/lib/mail");
+  const [{ sendWeekevaluatieSignaal, siteBasis }, { offerteHuisstijl }] = await Promise.all([import("@/lib/mail"), import("@/lib/offerteHuisstijl")]);
+  const { contact, certificaten } = await offerteHuisstijl();
   for (const rij of data as { signaal_week: string; signaal_schalen: string[]; signaal_ontvangers: string[] }[]) {
     const m = signaalMail(naam, rij.signaal_week, rij.signaal_schalen as Schaal[]);
     const link = `${siteBasis()}/admin/weekevaluatie/team?kwartaal=${kwartaalSleutel(kwartaalVanWeek(rij.signaal_week))}#collega-${userId}`;
     for (const aan of rij.signaal_ontvangers || []) {
-      const res = await sendWeekevaluatieSignaal({ to: aan, ...m, link });
+      const res = await sendWeekevaluatieSignaal({ to: aan, ...m, link, contact, certificaten });
       if (!res.ok) console.error("[weekevaluatie] signaal aan %s mislukt: %s", aan, res.reden);
     }
   }

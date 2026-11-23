@@ -100,7 +100,7 @@ export async function verstuurOnboarding(id: string, _prev: VersturenState, fd: 
   if (fouten.length) return { fout: fouten[0] };
 
   const herinnering = o.status !== "concept";
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const res = await sendOnboarding({
     to: aan,
     aanhef: tekst(fd, "aanhef", 120) ?? o.contactpersoon?.split(" ")[0] ?? null,
@@ -118,6 +118,7 @@ export async function verstuurOnboarding(id: string, _prev: VersturenState, fd: 
       klaar: herinnering && documentKlaar(o, d.sleutel),
     })),
     contact,
+    certificaten,
   });
   if (!res.ok) {
     return {
@@ -226,11 +227,11 @@ export async function wisselTaak(id: string, taak: string) {
   if (!wasKlaar && o.status === "afgerond" && t.klaar === t.totaal && o.email) {
     const { count } = await sb.from("onboarding_gebeurtenissen").select("id", { count: "exact", head: true }).eq("onboarding_id", id).eq("soort", "live");
     if (!count) {
-      const { contact } = await offerteHuisstijl();
+      const { contact, certificaten } = await offerteHuisstijl();
       const res = await sendOnboardingKlant({
         to: o.email, soort: "live", aanhef: o.contactpersoon?.split(" ")[0] ?? null, bedrijf: o.bedrijf, nummer: o.nummer, link: onboardingUrl(o.token),
         afzender: { naam: o.afzender_naam, functie: o.afzender_functie, email: o.afzender_email || ONBOARDING_EMAIL, telefoon: o.afzender_telefoon },
-        casemanager: o.casemanager, contact,
+        casemanager: o.casemanager, contact, certificaten,
       });
       if (res.ok) {
         await log(sb, id, "live", admin.email, { aan: o.email, casemanager: o.casemanager ?? "" });
@@ -318,10 +319,10 @@ export async function nodigMachtigingUitBeheer(id: string, invoer: { naam: strin
     return mfout("storing");
   }
   if (!uitkomst.ok) return mfout(uitkomst.fout);
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const verzonden = await sendMachtiging({
     to: email, naam, bedrijf: o.bedrijf, arbodienst: o.vorige_arbodienst.arbodienst || null, link: machtigingUrl(uitkomst.mtoken!),
-    afzender: afzenderVan(o), opnieuw: Boolean(uitkomst.opnieuw), contact,
+    afzender: afzenderVan(o), opnieuw: Boolean(uitkomst.opnieuw), contact, certificaten,
   });
   if (!verzonden.ok) {
     if (!uitkomst.opnieuw && uitkomst.id) await sb.rpc("onboarding_machtiging_verwijderen", { p_token: o.token, p_id: uitkomst.id });
@@ -369,14 +370,14 @@ export async function verstuurOverdrachtBeheer(id: string, aan?: string): Promis
   }
   if (!uitkomst.ok) return mfout(uitkomst.fout);
 
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const pdf = await overdrachtPdf(getekend, contact).catch((e) => { console.error("[onboarding] opdracht-pdf mislukt:", e); return null; });
   if (!pdf) return mfout("storing");
   const verzonden = await sendOverdracht({
     to: email, werkgeverEmail: o.email, bedrijf: o.bedrijf, contactpersoon: o.contactpersoon,
     aantal: getekend.machtigingen.length, namen: getekend.machtigingen.map((m) => ({ naam: m.gegevens.naam, geboortedatum: datumNl(m.gegevens.geboortedatum) })),
     arbodienst: o.vorige_arbodienst.arbodienst || null, alineas: OVERDRACHT_BRIEF.alineas(o.bedrijf, getekend.machtigingen.length),
-    pdf: { filename: `${OVERDRACHT_BRIEF.onderwerp(o.bedrijf)}.pdf`, content: pdf }, contact,
+    pdf: { filename: `${OVERDRACHT_BRIEF.onderwerp(o.bedrijf)}.pdf`, content: pdf }, contact, certificaten,
   });
   if (!verzonden.ok) return { ok: false, fout: "De mail aan de arbodienst kon niet worden verstuurd. Download de opdracht en stuur hem zelf." };
   if (o.afzender_email && o.afzender_email !== admin.email) {

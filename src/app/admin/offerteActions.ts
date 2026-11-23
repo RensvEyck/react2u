@@ -148,7 +148,7 @@ export async function verstuurOfferte(id: string, _prev: VersturenState, fd: For
   if (fouten.length) return { fout: fouten[0] };
 
   const herinnering = o.status === "verstuurd";
-  const { contact } = await offerteHuisstijl();
+  const { contact, certificaten } = await offerteHuisstijl();
   const res = await sendOfferte({
     to: aan,
     aanhef: tekst(fd, "aanhef", 120) ?? o.contactpersoon?.split(" ")[0] ?? null,
@@ -163,6 +163,7 @@ export async function verstuurOfferte(id: string, _prev: VersturenState, fd: For
     vorm: o.vorm,
     samenvatting: offerteSamenvatting(o),
     contact,
+    certificaten,
   });
   if (!res.ok) {
     return {
