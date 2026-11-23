@@ -87,19 +87,20 @@ export function DienstLabel({ d, asH1, ctx }: BlockProps) {
               <Link href={pad(taal, "diensten")} style={{ color: MUTE }}>{t2.kruimelDiensten}</Link><span>/</span>
               <span aria-current="page" style={{ color: NAVY }}>{naam}</span>
             </nav>
-            {/* De hoofdkop noemt merk én dienst: "React2u Recover® Verzuimbegeleiding."
-                Alleen de merknaam als H1 zei Google niet waar de pagina over gaat;
-                de dienst stond er als losse alinea onder. De weergave is gelijk
-                gebleven: de dienst staat in de kop, maar in de bodyletter. */}
+            {/* De hoofdkop is de dienst, met het zoekwoord vooraan ("Verzuimbegeleiding
+                voor werkgevers."); de merknaam staat er groot boven, als gewone tekst.
+                Tot november 2026 was de merknaam de kop en stond de dienst erin als
+                regel eronder; een werkgever zoekt op de dienst, niet op het merk
+                (HALO-scan). De weergave is gelijk gebleven. */}
             <div>
-              <H className={`${kop} m-0 text-[26px] leading-[1.05] tracking-[-0.4px] md:text-[34px]`} style={{ color: NAVY }}>
+              <p className={`${kop} m-0 text-[26px] leading-[1.05] tracking-[-0.4px] md:text-[34px]`} style={{ color: NAVY }}>
                 React2u<br />
                 <span className="mt-1 inline-block text-[56px] tracking-[-1.6px] md:text-[76px] md:tracking-[-2px]">
                   <span style={{ color: tc }}>{naam}</span>
                   <span className="ml-1 align-super text-[22px] md:text-[28px]" style={{ color: NAVY }}>®</span>
                 </span>
-                <span className="hv-dienst mt-5 block text-[18px] font-bold leading-[1.5] tracking-normal md:mt-[22px] md:text-[21px]">{d.label}</span>
-              </H>
+              </p>
+              <H className="hv-dienst m-0 mt-5 text-[18px] font-bold leading-[1.5] tracking-normal md:mt-[22px] md:text-[21px]" style={{ color: NAVY }}>{d.label}</H>
               <p className="m-0 text-[18px] leading-[1.5] md:text-[21px]" style={{ color: NAVY }}>
                 <em>{d.tagline}</em>
               </p>

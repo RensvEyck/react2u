@@ -2,7 +2,7 @@
   "_uitleg": "Engelse labelpagina React2u Restart (/en/services/restart): dezelfde blokken als restart.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services/restart",
   "title": "React2u Restart",
-  "seo_title": "React2u Restart: reintegration and careers • React2u",
+  "seo_title": "Reintegration, first and second track • React2u Restart",
   "seo_description": "Return to the current job not possible? We look for new perspective together, inside or outside the organisation: second track, career scan and labour expert.",
   "blocks": [
     {
@@ -13,7 +13,7 @@
         "naam": "Restart",
         "kleur": "#F19001",
         "tint": "#FEF3E3",
-        "label": "Reintegration and careers.",
+        "label": "Reintegration, first and second track.",
         "tagline": "Moving forward together",
         "text": "Is a return to the current job not possible? Then we look for new perspective together, inside or outside the organisation.",
         "checks": [

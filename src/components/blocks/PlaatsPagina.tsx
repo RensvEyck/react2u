@@ -24,13 +24,16 @@ import { LABEL_INFO, REISTIJD_TEKST, SOORT_TEKST, plaatsTekst, type PlaatsTekst 
 
 /* ---------- Gemeente en provincie ---------- */
 
+// De linktekst naar een dienst is het zoekwoord (`sub`, `meer`), dezelfde
+// woorden als de titel en kop van die pagina (lib/organisatie.ts DIENSTEN).
+// Niet "Lees meer": dat zegt Google niets (HALO-scan, november 2026).
 const SPECIALISMEN = [
-  { naam: "Resist", href: "/resist", kleur: TEAL, sub: "Preventie en vitaliteit", tekst: "Uitval voorkomen begint vóór de ziekmelding." },
-  { naam: "Recover", href: "/recover", kleur: PINK, sub: "Verzuimbegeleiding", tekst: "Van ziekmelding tot herstel, volgens de Wet verbetering poortwachter." },
-  { naam: "Restart", href: "/restart", kleur: "#F19001", sub: "Re-integratie en loopbaan", tekst: "Samen weer vooruit, binnen of buiten de organisatie." },
-  { naam: "Reflex", href: "/reflex", kleur: "#3AA5DD", sub: "Voor de flexbranche", tekst: "Ziektewet zonder zorgen voor uitzendbureaus en eigenrisicodragers." },
-  { naam: "Ready", href: "/ready", kleur: NAVY, sub: "HR en arbeidsrecht", tekst: "Helder advies over contracten, verlof en ontslag bij ziekte." },
-  { naam: "Reward", href: "/reward", kleur: "#CA152A", sub: "Salaris en verloning", tekst: "Salarisadministratie door mensen die verzuim kennen, ook bij ziekte." },
+  { naam: "Resist", href: "/resist", kleur: TEAL, sub: "Preventie en preventiemedewerker", meer: "Meer over preventie", tekst: "Uitval voorkomen begint vóór de ziekmelding." },
+  { naam: "Recover", href: "/recover", kleur: PINK, sub: "Verzuimbegeleiding voor werkgevers", meer: "Meer over verzuimbegeleiding", tekst: "Van ziekmelding tot herstel, volgens de Wet verbetering poortwachter." },
+  { naam: "Restart", href: "/restart", kleur: "#F19001", sub: "Re-integratie eerste en tweede spoor", meer: "Meer over re-integratie", tekst: "Samen weer vooruit, binnen of buiten de organisatie." },
+  { naam: "Reflex", href: "/reflex", kleur: "#3AA5DD", sub: "Ziektewet en verzuim in de flexbranche", meer: "Meer over de Ziektewet", tekst: "Ziektewet zonder zorgen voor uitzendbureaus en eigenrisicodragers." },
+  { naam: "Ready", href: "/ready", kleur: NAVY, sub: "HR-advies en arbeidsrecht", meer: "Meer over HR-advies", tekst: "Helder advies over contracten, verlof en ontslag bij ziekte." },
+  { naam: "Reward", href: "/reward", kleur: "#CA152A", sub: "Salarisadministratie en verloning", meer: "Meer over salarisadministratie", tekst: "Salarisadministratie door mensen die verzuim kennen, ook bij ziekte." },
 ];
 
 function Kop({ crumbs, titel, intro, kaart }: { crumbs: { label: string; href?: string }[]; titel: string; intro: string; kaart?: React.ReactNode }) {
@@ -74,7 +77,7 @@ function Specialismen() {
               <span className={`${kop} text-[21px]`} style={{ color: NAVY }}>React2u {s.naam}</span>
               <span className="text-[14px] font-bold" style={{ color: inkt(s.kleur) }}>{s.sub}</span>
               <span className="text-[15px] leading-[1.6]" style={{ color: BODY }}>{s.tekst}</span>
-              <span className="mt-auto inline-flex items-center gap-2 pt-1.5 text-[14.5px] font-bold" style={{ color: NAVY }}>Lees meer<Pijl size={14} /></span>
+              <span className="mt-auto inline-flex items-center gap-2 pt-1.5 text-[14.5px] font-bold" style={{ color: NAVY }}>{s.meer}<Pijl size={14} /></span>
             </Link>
           ))}
         </Strook>
@@ -222,7 +225,7 @@ export function ProvinciePagina({ provincie, regio }: { provincie: Provincie; re
     <div className={`hv ${outfit.variable} bg-white`}>
       <Kop
         crumbs={[{ label: "Home", href: "/" }, { label: "Werkgebied", href: "/sitemap#werkgebied" }, { label: provincie.naam }]}
-        titel={`Arbodienst in ${provincie.naam}`}
+        titel={`Arbodienst in de provincie ${provincie.naam}`}
         intro={`Persoonlijke verzuimbegeleiding voor werkgevers in alle ${provincie.gemeenten.length} gemeenten van ${provincie.naam}. Eén vaste casemanager, korte lijnen en alles in één online dossier.`}
       />
       <Specialismen />

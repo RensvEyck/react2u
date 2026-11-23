@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabasePublic } from "@/lib/supabase/public";
-import { clientIp, visitorHash, referrerHost, isTrackablePath, normalizePath } from "@/lib/analytics";
-import { isIgnored, lookupCompany } from "@/lib/companyLookup";
+import { clientIp, visitorHash, referrerHost, isTrackablePath, normalizePath, isBotUserAgent } from "@/lib/analytics";
+import { isIgnored, lookupNetwork } from "@/lib/companyLookup";
 import { missingReferrer } from "@/lib/redirects";
 import { mayIdentify, normalizeTracking, TRACKING_DEFAULT, type TrackingSettings } from "@/lib/tracking";
 import { isKlik } from "@/lib/conversions";
@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
   // bezoeker mag hier nooit iets van merken, en een mislukte registratie is
   // geen fout die de site aangaat.
   const ok = () => new NextResponse(null, { status: 204 });
+
+  // Een bot is geen bezoek, geen klik en geen 404 (lib/analytics.ts).
+  if (isBotUserAgent(req.headers.get("user-agent"))) return ok();
 
   try {
     const body = (await req.json()) as {
@@ -100,7 +103,12 @@ export async function POST(req: NextRequest) {
     // reverse DNS. Het bezoek zelf wordt wel geteld, zonder bedrijf.
     const consent = typeof body.consent === "boolean" ? body.consent : null;
     const identify = mayIdentify(await trackingSettings(), consent);
-    const found = identify ? await lookupCompany(ip) : null;
+    const netwerk = identify ? await lookupNetwork(ip) : null;
+    // Een datacenter is een bot: dat bezoek telt helemaal niet mee. Alleen te
+    // zien als het IP-adres opgezocht mag worden; zonder die grond telt het
+    // bezoek wel, zonder bedrijf, net als voorheen.
+    if (netwerk?.datacenter) return ok();
+    const found = netwerk?.company ?? null;
     const company = found && !(await isIgnored(found)) ? found : null;
 
     const row = {

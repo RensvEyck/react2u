@@ -2,7 +2,7 @@
   "_uitleg": "Engelse labelpagina React2u Recover (/en/services/recover): dezelfde blokken als recover.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services/recover",
   "title": "React2u Recover",
-  "seo_title": "React2u Recover: sickness absence support • React2u",
+  "seo_title": "Sickness absence support for employers • React2u Recover",
   "seo_description": "Your regular case manager guides every absence case in line with the Gatekeeper Improvement Act. You keep control, your employee gets attention.",
   "blocks": [
     {
@@ -13,7 +13,7 @@
         "naam": "Recover",
         "kleur": "#E61674",
         "tint": "#FDECF4",
-        "label": "Sickness absence support.",
+        "label": "Sickness absence support for employers.",
         "tagline": "From sick report to recovery",
         "text": "Your regular case manager guides every absence case in line with the Gatekeeper Improvement Act (Wet verbetering poortwachter), the Dutch law that sets the steps and deadlines for employer and employee. You keep control, your employee gets attention.",
         "checks": [

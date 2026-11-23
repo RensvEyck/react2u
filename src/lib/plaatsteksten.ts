@@ -45,13 +45,15 @@ export const REISTIJDEN: readonly Reistijd[] = ["dichtbij", "regio", "verder", "
 export const SOORTEN: readonly Soort[] = ["stad", "dorp", "gemeente"];
 
 /** Naam, kleur en adres per label, zoals in het menu (r2uStijl.ts). */
+// `wat` is de linktekst naar de dienst: het zoekwoord, dezelfde woorden als de
+// titel en kop van die pagina (lib/organisatie.ts DIENSTEN).
 export const LABEL_INFO: Record<Label, { naam: string; wat: string; href: string; kleur: string }> = {
-  resist: { naam: "Resist", wat: "Preventie en vitaliteit", href: "/resist", kleur: "#00A098" },
-  recover: { naam: "Recover", wat: "Verzuimbegeleiding", href: "/recover", kleur: "#E61674" },
-  restart: { naam: "Restart", wat: "Re-integratie en loopbaan", href: "/restart", kleur: "#F19001" },
-  reflex: { naam: "Reflex", wat: "Flexbranche en Ziektewet", href: "/reflex", kleur: "#3AA5DD" },
-  ready: { naam: "Ready", wat: "HR en arbeidsrecht", href: "/ready", kleur: "#322E83" },
-  reward: { naam: "Reward", wat: "Salaris en verloning", href: "/reward", kleur: "#CA152A" },
+  resist: { naam: "Resist", wat: "Preventie en preventiemedewerker", href: "/resist", kleur: "#00A098" },
+  recover: { naam: "Recover", wat: "Verzuimbegeleiding voor werkgevers", href: "/recover", kleur: "#E61674" },
+  restart: { naam: "Restart", wat: "Re-integratie eerste en tweede spoor", href: "/restart", kleur: "#F19001" },
+  reflex: { naam: "Reflex", wat: "Ziektewet en verzuim in de flexbranche", href: "/reflex", kleur: "#3AA5DD" },
+  ready: { naam: "Ready", wat: "HR-advies en arbeidsrecht", href: "/ready", kleur: "#322E83" },
+  reward: { naam: "Reward", wat: "Salarisadministratie en verloning", href: "/reward", kleur: "#CA152A" },
 };
 
 /** De afstand in woorden, voor het kaartje op de pagina. */

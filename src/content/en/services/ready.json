@@ -2,7 +2,7 @@
   "_uitleg": "Engelse labelpagina React2u Ready (/en/services/ready): dezelfde blokken als ready.json. Zie docs/adr/0001-tweetalig-nl-en.md.",
   "slug": "services/ready",
   "title": "React2u Ready",
-  "seo_title": "React2u Ready: HR and employment law • React2u",
+  "seo_title": "HR advice and employment law • React2u Ready",
   "seo_description": "Questions about contracts, leave or dismissal during illness? You get clear advice from people who know sickness absence.",
   "blocks": [
     {
@@ -13,7 +13,7 @@
         "naam": "Ready",
         "kleur": "#322E83",
         "tint": "#ECEBF5",
-        "label": "HR and employment law.",
+        "label": "HR advice and employment law.",
         "tagline": "Clear advice, quickly arranged",
         "text": "Questions about contracts, leave or dismissal during illness? You get clear advice from people who know sickness absence.",
         "checks": [

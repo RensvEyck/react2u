@@ -336,11 +336,28 @@ export async function sendOverlegNotulen(m: {
     `<tr><td style="padding:5px 14px 5px 0;font-family:${FONT};font-size:14px;color:${KLEUR.grijs};white-space:nowrap;vertical-align:top">${esc(links)}</td><td style="padding:5px 0;font-family:${FONT};font-size:14px;color:${KLEUR.inkt}">${esc(rechts)}</td></tr>`;
   const gegevens = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">
 ${rij("Datum", n.gegevens.datum)}${rij("Tijd", n.gegevens.tijd)}${n.gegevens.locatie ? rij("Waar", n.gegevens.locatie) : ""}${rij("Aanwezig", n.gegevens.aanwezig.join(", ") || "\u2013")}${rij("Notulist", n.gegevens.notulist || "\u2013")}</table>`;
+  const inhoud = (d: Notulen["delen"][number]) => `${d.inbrenger ? klein(`Ingebracht door ${esc(d.inbrenger)}`) : ""}
+  ${d.regels.length ? d.regels.map((r) => r.wie ? `<div style="margin-top:6px;font-family:${FONT};font-size:15px;line-height:1.6;color:${KLEUR.tekst}"><strong style="color:${KLEUR.inkt}">${esc(r.wie)}:</strong> ${esc(r.tekst)}</div>` : `<div style="margin-top:6px">${tekst(r.tekst)}</div>`).join("") : klein("Niets genoteerd.")}`;
   const deel = (d: Notulen["delen"][number]) => `<tr><td style="padding:12px 0;border-top:1px solid ${KLEUR.lijn}">
   <div style="font-family:${FONT_KOP};font-size:15.5px;font-weight:700;color:${KLEUR.inkt}">${esc(d.titel)}</div>
-  ${d.inbrenger ? klein(`Ingebracht door ${esc(d.inbrenger)}`) : ""}
-  ${d.regels.length ? d.regels.map((r) => r.wie ? `<div style="margin-top:6px;font-family:${FONT};font-size:15px;line-height:1.6;color:${KLEUR.tekst}"><strong style="color:${KLEUR.inkt}">${esc(r.wie)}:</strong> ${esc(r.tekst)}</div>` : `<div style="margin-top:6px">${tekst(r.tekst)}</div>`).join("") : klein("Niets genoteerd.")}
+  ${inhoud(d)}
 </td></tr>`;
+  // Wat ter tafel komt als één blok, zoals in de opzet: uit het vorige overleg, dan nieuw.
+  const binnen = (d: Notulen["delen"][number]) => `<div style="margin-top:12px"><div style="font-family:${FONT};font-size:15px;font-weight:700;color:${KLEUR.inkt}">${esc(d.titel)}</div>${inhoud(d)}</div>`;
+  const sub = (t: string) => `<div style="margin-top:14px;font-family:${FONT};font-size:11.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${KLEUR.roze}">${t}</div>`;
+  const vorig = n.delen.filter((d) => d.soort === "vorig");
+  const nieuw = n.delen.filter((d) => d.soort === "nieuw");
+  const tafel = vorig.length + nieuw.length
+    ? `<tr><td style="padding:12px 0;border-top:1px solid ${KLEUR.lijn}">
+  <div style="font-family:${FONT_KOP};font-size:15.5px;font-weight:700;color:${KLEUR.inkt}">Wat ter tafel komt</div>
+  <div style="margin-top:4px;padding-left:14px;border-left:2px solid ${KLEUR.lijn}">${vorig.length ? sub("Punten uit vorig overleg") + vorig.map(binnen).join("") : ""}${nieuw.length ? sub("Nieuw") + nieuw.map(binnen).join("") : ""}</div>
+</td></tr>`
+    : "";
+  const delen = [
+    ...n.delen.filter((d) => d.soort === "vast" && d.checkin).map(deel),
+    tafel,
+    ...n.delen.filter((d) => d.soort === "vast" && !d.checkin).map(deel),
+  ].join("");
   const acties = n.acties.length
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">${n.acties.map((a) => `<tr><td style="padding:8px 12px 8px 0;border-top:1px solid ${KLEUR.lijn};font-family:${FONT};font-size:14.5px;color:${KLEUR.inkt}">${esc(a.wat)}</td><td style="padding:8px 12px 8px 0;border-top:1px solid ${KLEUR.lijn};font-family:${FONT};font-size:14px;color:${KLEUR.tekst};white-space:nowrap">${esc(a.door)}</td><td style="padding:8px 0;border-top:1px solid ${KLEUR.lijn};font-family:${FONT};font-size:13.5px;color:${KLEUR.grijs};white-space:nowrap">${a.status}</td></tr>`).join("")}</table>`
     : klein("Geen actiepunten.");
@@ -350,7 +367,7 @@ ${p(esc(`Hier zijn de notulen van het CM-overleg van ${n.gegevens.datum.toLowerC
 ${gegevens}
 ${m.mijnActies.length ? `${eyebrow("Jouw actiepunten", KLEUR.roze)}${lijst(m.mijnActies)}` : ""}
 ${eyebrow("Notulen", KLEUR.indigo)}
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">${n.delen.map(deel).join("")}</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 22px">${delen}</table>
 ${eyebrow("Actie en gemaakte afspraken", KLEUR.indigo)}
 ${acties}
 ${n.volgend.length ? `${eyebrow("Punten voor het volgende overleg", KLEUR.indigo)}${lijst(n.volgend.map((v) => (v.inbrenger ? `${v.titel} (${v.inbrenger})` : v.titel)))}` : ""}

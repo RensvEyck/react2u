@@ -1,5 +1,6 @@
 import type { supabaseServer } from "./supabase/server";
 import type { PageView } from "./types";
+import { isDatacenterOrg } from "./analytics";
 
 type Sb = Awaited<ReturnType<typeof supabaseServer>>;
 
@@ -39,5 +40,8 @@ export async function fetchPageViews(
     out.push(...(data as unknown as PageView[]));
     if (data.length < PAGE) break;
   }
-  return out;
+  // Bezoek vanuit een datacenter is een bot (lib/analytics.ts). Sinds november
+  // 2026 slaat de tracker dat niet meer op; wat er al stond blijft hier buiten
+  // elk cijfer en elke lijst, zonder de rijen weg te gooien.
+  return out.filter((v) => !("company" in v) || !isDatacenterOrg(v.company));
 }

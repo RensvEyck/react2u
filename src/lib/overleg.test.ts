@@ -134,22 +134,46 @@ describe("het format van het team", () => {
         p({ titel: "Spoor 2 op tijd aanmelden", door_email: "jasper@x.nl" }),
         p({ titel: "Wie doet de aanmeldingen?", voor_volgend: true, door_email: "fleur@x.nl" }),
       ],
-      [{ naam: "Jasper", checkin: "Ervaart werkdruk.", sort: 2 }, { naam: "Fleur", checkin: "Gaat goed.", sort: 1 }, { naam: "Sanne", checkin: null, sort: 3 }],
+      [
+        { naam: "Jasper de Wit", user_id: "u-jasper", checkin: "Ervaart werkdruk.", dossiers: "Bij twijfel over spoor 2 eerst de werkgever bellen.", sort: 2 },
+        { naam: "Fleur", user_id: "u-fleur", checkin: "Gaat goed.", dossiers: null, sort: 1 },
+        { naam: "Sanne", checkin: null, sort: 3 },
+        { naam: "Gast van een partner", user_id: null, checkin: "Even meegekeken.", sort: 4 },
+      ],
       [{ wat: "Overleg plannen", wie_naam: "Fleur", wanneer: null, gedaan_at: null }, { wat: "Mailen", wie_naam: "Jasper", wanneer: "2026-11-25", gedaan_at: "2026-11-20T10:00:00Z" }],
       (x) => (x.door_email ? x.door_email.split("@")[0] : null),
     );
     expect(n.titel).toBe("CM-overleg 18 november 2026");
-    expect(n.gegevens).toEqual({ datum: "Woensdag 18 november 2026", tijd: "14:15 tot 15:15", locatie: "Kantoor", aanwezig: ["Fleur", "Jasper", "Sanne"], notulist: "Fleur" });
+    expect(n.gegevens).toEqual({ datum: "Woensdag 18 november 2026", tijd: "14:15 tot 15:15", locatie: "Kantoor", aanwezig: ["Fleur", "Jasper de Wit", "Sanne", "Gast van een partner"], notulist: "Fleur" });
     expect(n.structureel).toEqual(["Check in", "Dossiers"]);
     expect(n.uitVorig.map((x) => x.titel)).toEqual(["Caseload"]);
     expect(n.nieuw).toEqual([{ titel: "Spoor 2 op tijd aanmelden", inbrenger: "jasper" }]);
-    expect(n.delen.map((d) => d.titel)).toEqual(["Check in", "Dossiers", "Caseload", "Spoor 2 op tijd aanmelden"]);
-    expect(n.delen[0]).toMatchObject({ checkin: true, regels: [{ wie: "Fleur", tekst: "Gaat goed." }, { wie: "Jasper", tekst: "Ervaart werkdruk." }] });
-    expect(n.delen[1].dossiers).toBe(true);
+    // De volgorde van de opzet: check-in, wat ter tafel komt (vorig, nieuw), dan de overige vaste punten.
+    expect(n.delen.map((d) => `${d.soort}:${d.titel}`)).toEqual(["vast:Check in", "vorig:Caseload", "nieuw:Spoor 2 op tijd aanmelden", "vast:Dossiers"]);
+    // Per persoon met de voornaam, zoals "Fleur: …" in de opzet.
+    expect(n.delen[0]).toMatchObject({ checkin: true, regels: [{ wie: "Fleur", tekst: "Gaat goed." }, { wie: "Jasper", tekst: "Ervaart werkdruk." }, { wie: "Gast van een partner", tekst: "Even meegekeken." }] });
+    // Dossiers per persoon, en wat er als één tekst stond erachter.
+    expect(n.delen[3]).toMatchObject({
+      dossiers: true,
+      regels: [{ wie: "Jasper", tekst: "Bij twijfel over spoor 2 eerst de werkgever bellen." }, { wie: null, tekst: "Bij een vraag over een VSO verwijzen we naar een jurist." }],
+    });
     expect(n.acties.map((a) => `${a.wat}:${a.door}:${a.status}`)).toEqual(["Overleg plannen:Fleur:Lopend", "Mailen:Jasper:Gedaan"]);
     expect(n.volgend).toEqual([{ titel: "Wie doet de aanmeldingen?", inbrenger: "fleur" }]);
     expect(isBesproken({ besproken: false, notulen: " " })).toBe(false);
     expect(isBesproken({ besproken: false, notulen: "iets" })).toBe(true);
     expect(isDossiers("Dossier")).toBe(true);
+  });
+  it("korte namen: de voornaam, of de hele naam als twee dezelfde voornaam hebben", async () => {
+    const { korteNamen } = await import("./overleg");
+    expect(korteNamen(["Fleur Jansen", "Jasper", "Fleur de Vries", " Sanne  Bos "])).toEqual(["Fleur Jansen", "Jasper", "Fleur de Vries", "Sanne"]);
+    expect(korteNamen(["Sanne Bos", "Gast van een partner"], [true, false])).toEqual(["Sanne", "Gast van een partner"]);
+  });
+
+  it("notulenvolgorde zonder check-in: eerst wat ter tafel komt, dan de vaste punten", async () => {
+    const { notulenVolgorde } = await import("./overleg");
+    const q = (titel: string, o: { vast?: boolean; doorgeschoven?: boolean; voor_volgend?: boolean; sort?: number } = {}) =>
+      ({ titel, vast: false, doorgeschoven: false, voor_volgend: false, sort: 0, created_at: "2026-11-17T10:00:00Z", ...o });
+    const lijst = notulenVolgorde([q("Klanten", { vast: true, sort: 1 }), q("Nieuw punt"), q("Oud punt", { doorgeschoven: true }), q("Later", { voor_volgend: true })]);
+    expect(lijst.map((x) => x.titel)).toEqual(["Oud punt", "Nieuw punt", "Klanten"]);
   });
 });

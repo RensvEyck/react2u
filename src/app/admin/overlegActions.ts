@@ -20,8 +20,11 @@ import { haalCollegas, haalEenOverleg, inbrengerNaam } from "@/lib/overlegDb";
  */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** Hoe lang een veld van de notulen mag zijn (de checks in 0054 en 0056). */
+const MAX_NOTULEN = { punt: 8000, checkin: 2000, dossiers: 4000 } as const;
 const terug = (q: string, anker = "") => `/admin/overleg?${q}${anker ? `#${anker}` : ""}`;
-const foutSleutel = (error: { code?: string; message: string }) => (isMissingTable(error) ? "migratie-0054" : "opslaan");
+const foutSleutel = (error: { code?: string; message: string }) =>
+  isMissingTable(error) ? "migratie-0054" : /dossiers/.test(error.message) && (error.code === "42703" || error.code === "PGRST204") ? "migratie-0056" : "opslaan";
 
 export type ZetUitkomst = { ok: true } | { ok: false; fout: string };
 
@@ -45,7 +48,29 @@ async function maakOverleg(sb: Sb, datum: string, tijd: string, eind: string | n
   const id = (data as { id: string }).id;
   const vaste = (ritme?.vaste_punten || []).map((titel, i) => ({ overleg_id: id, titel, vast: true, sort: i + 1 }));
   if (vaste.length) await sb.from("cm_agendapunten").insert(vaste);
+  await aanwezigenOvernemen(sb, id);
   return { error: null, id };
+}
+
+/**
+ * Wie er bij het vorige overleg was, staat ook bij het nieuwe klaar (zoals de
+ * opzet van het team de vaste namen al heeft): alleen collega's die nog bij het
+ * overleg horen, zonder check-in en dossiers. De notulist kiest het beheer per
+ * overleg opnieuw; gasten zonder inlog komen niet vanzelf mee.
+ */
+async function aanwezigenOvernemen(sb: Sb, id: string) {
+  const { data: vorige } = await sb.from("cm_overleggen").select("id").neq("id", id).order("datum", { ascending: false }).limit(1);
+  const vorigId = (vorige as { id: string }[] | null)?.[0]?.id;
+  if (!vorigId) return;
+  const [{ data: rijen }, collegas] = await Promise.all([
+    sb.from("cm_aanwezigen").select("user_id, naam, sort").eq("overleg_id", vorigId).not("user_id", "is", null).order("sort"),
+    haalCollegas(sb),
+  ]);
+  const nog = new Set(collegas.map((c) => c.user_id));
+  const mee = ((rijen as { user_id: string; naam: string; sort: number }[] | null) || [])
+    .filter((a) => nog.has(a.user_id))
+    .map((a, i) => ({ overleg_id: id, user_id: a.user_id, naam: a.naam, sort: i + 1 }));
+  if (mee.length) await sb.from("cm_aanwezigen").insert(mee);
 }
 
 /* ---------- plannen en afronden (omzet) ---------- */
@@ -125,9 +150,10 @@ export async function overlegBezetting(formData: FormData) {
 }
 
 /**
- * De notulen in één keer bewaren: per agendapunt (punt:<id>) en de check-in
- * per aanwezige (checkin:<id>). Alleen de notulist van een lopend overleg of
- * het beheer; de policies weigeren de rest, en dan zegt de melding dat.
+ * De notulen in één keer bewaren: per agendapunt (punt:<id>) en per aanwezige
+ * de check-in (checkin:<id>) en de dossiers (dossiers:<id>, sinds 0056). Alleen
+ * de notulist van een lopend overleg of het beheer; de policies weigeren de
+ * rest, en dan zegt de melding dat.
  */
 export async function overlegNotulenBewaren(formData: FormData) {
   const { sb } = await requirePerm("overleg");
@@ -140,13 +166,14 @@ export async function overlegNotulenBewaren(formData: FormData) {
   for (const [sleutel, waarde] of formData.entries()) {
     if (typeof waarde !== "string") continue;
     const [soort, rij] = sleutel.split(":");
-    if (!UUID.test(rij || "") || (soort !== "punt" && soort !== "checkin")) continue;
+    if (!UUID.test(rij || "") || (soort !== "punt" && soort !== "checkin" && soort !== "dossiers")) continue;
     const tekst = waarde.trim();
-    if (tekst.length > (soort === "punt" ? 8000 : 2000)) redirect(terugNaar("fout=overleg-te-lang"));
+    if (tekst.length > MAX_NOTULEN[soort]) redirect(terugNaar("fout=overleg-te-lang"));
     gezien++;
-    const { data } = soort === "punt"
+    const { data, error } = soort === "punt"
       ? await sb.from("cm_agendapunten").update({ notulen: tekst || null }).eq("id", rij).eq("overleg_id", id).select("id")
-      : await sb.from("cm_aanwezigen").update({ checkin: tekst || null }).eq("id", rij).eq("overleg_id", id).select("id");
+      : await sb.from("cm_aanwezigen").update({ [soort]: tekst || null }).eq("id", rij).eq("overleg_id", id).select("id");
+    if (error && foutSleutel(error) !== "opslaan") redirect(terugNaar(`fout=${foutSleutel(error)}`));
     if (data?.length) bewaard++;
   }
   if (gezien && !bewaard) redirect(terugNaar("fout=overleg-geen-notulist"));
