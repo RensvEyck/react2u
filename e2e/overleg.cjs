@@ -152,7 +152,9 @@ ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
   check(/Lotte( Visser)? Nog geen klanten op de stamkaart/.test(legenda), "wie in het team zit maar nog geen klanten heeft, staat in de lijst");
   check(/Fleur 2 klanten[^]*Niet bij Medewerkers als casemanager/.test(legenda), "een naam die alleen op de stamkaart staat, krijgt een opmerking");
   const legendaNamen = await b.locator("#kaart-legenda button[data-cm-naam]").evaluateAll((bs) => bs.map((x) => x.getAttribute("data-cm-naam")));
-  check(legendaNamen[0].startsWith("Lotte"), `het team staat bovenaan, de namen van alleen stamkaarten erna (${legendaNamen.join(", ")})`);
+  // Andere tests kunnen eigen casemanagers in het team achterlaten; het gaat om de volgorde team → alleen stamkaart.
+  const lotte = legendaNamen.findIndex((n) => n.startsWith("Lotte"));
+  check(lotte >= 0 && ["Fleur", "Jasper", "Sanne"].every((n) => legendaNamen.indexOf(n) > lotte), `het team staat bovenaan, de namen van alleen stamkaarten erna (${legendaNamen.join(", ")})`);
   const vormen = await kaart.locator(".kaart-punt").evaluateAll((ps) => ps.map((x) => `${x.getAttribute("data-cm")}:${x.getAttribute("data-vorm")}:${x.tagName}`));
   check(vormen.every((v) => (v.startsWith("3:") ? v.endsWith(":ruit:path") : v.includes(":stip:"))), "de vierde casemanager staat als ruit op de kaart, de rest als stip");
   if (legendaNamen[3] === "Sanne") {
