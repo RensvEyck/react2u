@@ -89,7 +89,7 @@ insert into public.admins (user_id, email, role_id, invited_at) select '${LOTTE.
 insert into public.medewerkers (naam, functie, user_id) values ('${LOTTE.naam}', 'Casemanager Verzuim', '${LOTTE.id}');
 insert into public.klanten (bedrijf, status, casemanager, medewerkers, bezoek_postcode, bezoek_plaats) values
 ${KLANTEN.map((k) => `(${k.map(lit).join(", ")})`).join(",\n")};`);
-  check(sql("select permissions::text from public.roles where key = 'werknemer'") === "{weekevaluatie,overleg,ideeen,waarneming}", "de rol werknemer heeft het recht overleg (en sinds 0055 het ideeënbord, sinds 0057 de waarneming)");
+  check(sql("select permissions::text from public.roles where key = 'werknemer'") === "{weekevaluatie,overleg,ideeen,waarneming}", "de rol werknemer heeft het recht overleg (en sinds 0055 het ideeënbord, sinds 0060 de waarneming)");
   check(sql("select 'overleg' = any(permissions) from public.roles where key = 'superadmin'") === "t" && sql("select 'overleg' = any(permissions) from public.roles where key = 'beheerder'") === "t", "de super admin en de beheerder ook");
   check(sql("select coalesce('overleg' = any(permissions), false) from public.roles where key = 'redacteur'") === "f", "de redacteur niet");
   check(!mag(() => sql("set role anon; select count(*) from public.cm_overleggen")), "anon leest geen overleggen");

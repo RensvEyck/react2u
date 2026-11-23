@@ -4,7 +4,7 @@ import { LuUserRoundCheck } from "react-icons/lu";
 import type { DekkingPil } from "@/lib/waarneming";
 
 /**
- * Op de klantkaart en de bordkaart (0057): wie er nu, of straks, voor deze
+ * Op de klantkaart en de bordkaart (0060): wie er nu, of straks, voor deze
  * klant is zolang de eigen casemanager er niet is. Oranje als er nog geen
  * waarnemer is. Op het bord stopt de klik, anders opent de kaart het paneel.
  */

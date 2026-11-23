@@ -435,7 +435,7 @@ regels in [`lib/ideeen.ts`](src/lib/ideeen.ts), ophalen in
 - Tests: `lib/ideeen.test.ts` en [`e2e/ideeen.cjs`](e2e/ideeen.cjs) (twee
   werknemers in eigen browsercontexten naast het beheer).
 
-**Waarneming** ([0057](supabase/migrations/0057_waarneming.sql); Rens, 23 nov
+**Waarneming** ([0060](supabase/migrations/0060_waarneming.sql); Rens, 23 nov
 2026, uit het portaalvoorstel: "wie neemt wie waar als iemand er niet is").
 [`/admin/waarneming`](src/app/admin/(panel)/waarneming/page.tsx), regels in
 [`lib/waarneming.ts`](src/lib/waarneming.ts), ophalen in

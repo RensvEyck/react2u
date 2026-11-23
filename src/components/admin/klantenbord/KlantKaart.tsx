@@ -23,7 +23,7 @@ export default function KlantKaart({
   bezoek: Bezoek | null;
   /** De reseller of partner die deze klant aanbracht (0052). */
   partner: PartnerKort | null;
-  /** Waarneming (0057): wie er nu of straks voor deze klant is; null als de casemanager er gewoon is. */
+  /** Waarneming (0060): wie er nu of straks voor deze klant is; null als de casemanager er gewoon is. */
   waarneming: DekkingPil | null;
   vandaag: string;
   open: boolean;

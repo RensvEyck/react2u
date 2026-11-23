@@ -1,7 +1,7 @@
 import { firstName } from "@/lib/dashboard";
 
 /**
- * Waarneming (0057; Rens, 23 nov 2026): wie neemt wie waar als iemand er niet
+ * Waarneming (0060; Rens, 23 nov 2026): wie neemt wie waar als iemand er niet
  * is. Een collega plant "ik ben er niet van X tot Y, N neemt waar"; het beheer
  * regelt het voor wie dat zelf niet kan of nog geen waarnemer heeft. De
  * klantenkaart, het klantenbord, het CM-overleg en het dashboard laten zien

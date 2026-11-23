@@ -35,7 +35,7 @@
 --
 -- VOLGORDE: na 0048 (stamkaart met casemanager) en 0044 (medewerkers.user_id).
 -- 0056 is van het CM-overleg (dossiers per persoon).
--- Registreren: via apply_migration (naam 0057_waarneming) vanzelf.
+-- Registreren: via apply_migration (naam 0060_waarneming) vanzelf.
 
 /* ---------- recht ---------- */
 

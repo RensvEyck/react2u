@@ -1,4 +1,4 @@
-// Waarneming (0057) van begin tot eind: het recht waarneming en de policies, twee werknemers met klanten op naam op
+// Waarneming (0060) van begin tot eind: het recht waarneming en de policies, twee werknemers met klanten op naam op
 // de stamkaart, een collega die zegt "ik ben er niet, Bram neemt waar" (mail aan de waarnemer met de klanten), de
 // waarnemer die het op zijn dashboard ziet maar niets aanpast, het beheer dat voor een ander plant zonder waarnemer
 // (signaal, mail aan de afwezige), de waarnemer erbij zet en de klanten beperkt, de pil op de stamkaart en de

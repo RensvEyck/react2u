@@ -8,7 +8,7 @@ import { afwezigeBrief, collegaBij, gedekteKlanten, isUuid, leesWaarneming, naam
 import { haalCollegas, haalKlanten } from "@/lib/waarnemingDb";
 
 /**
- * Waarneming (0057). Je eigen afwezigheid plannen, aanpassen en weghalen:
+ * Waarneming (0060). Je eigen afwezigheid plannen, aanpassen en weghalen:
  * iedereen met het recht waarneming. Voor een ander regelen: het recht omzet.
  * De database controleert hetzelfde (de policies); dit geeft een nette
  * melding en mailt de waarnemer (en de afwezige, als het beheer het regelde).
@@ -17,7 +17,7 @@ import { haalCollegas, haalKlanten } from "@/lib/waarnemingDb";
 const lijst = (q = "", anker = "") => `/admin/waarneming${q ? `?${q}` : ""}${anker ? `#${anker}` : ""}`;
 const kaart = (id: string, q = "", anker = "") => `/admin/waarneming/${id}${q ? `?${q}` : ""}${anker ? `#${anker}` : ""}`;
 const foutSleutel = (error: { code?: string; message: string }) =>
-  isMissingTable(error) ? "migratie-0057" : /row-level security|policy/i.test(error.message) ? "waarneming-niet-van-jou" : error.code === "23514" ? "waarneming-datum" : "opslaan";
+  isMissingTable(error) ? "migratie-0060" : /row-level security|policy/i.test(error.message) ? "waarneming-niet-van-jou" : error.code === "23514" ? "waarneming-datum" : "opslaan";
 
 function ververs(id?: string) {
   revalidatePath("/admin/waarneming", "layout");

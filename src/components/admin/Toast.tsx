@@ -95,7 +95,7 @@ const FOUT_TEKST: Record<string, string> = {
   "idee-status": "Kies een status.",
   "idee-reden": "Bij Niet nu hoort een reden, zodat de collega weet waarom.",
   "idee-niet-van-jou": "Dit idee is niet van jou, of het beheer heeft het al bekeken. Dan verandert alleen het beheer het nog.",
-  "migratie-0057": "De waarneming staat nog niet aan: migratie 0057 moet eerst in Supabase worden uitgevoerd.",
+  "migratie-0060": "De waarneming staat nog niet aan: migratie 0060 moet eerst in Supabase worden uitgevoerd.",
   "waarneming-datum": "Vul een begin- en een einddatum in.",
   "waarneming-volgorde": "De einddatum ligt vóór de begindatum.",
   "waarneming-voorbij": "Die periode is al voorbij.",

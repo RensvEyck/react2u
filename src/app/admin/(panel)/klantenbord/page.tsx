@@ -81,7 +81,7 @@ export default async function KlantenbordPagina({ searchParams }: { searchParams
   const teDoen = werkrij(klanten, signalen, bezoek, vandaag, nu).length;
 
   const partners = (((paRes as { data: PartnerKort[] | null }).data) || []).map((x) => ({ ...x, model: x.model === "reseller" ? "reseller" as const : "aanbreng" as const }));
-  // Waarneming (0057): bij een klant van wie de casemanager er nu (of straks) niet is, staat op de kaart wie waarneemt. Vóór de migratie: niets.
+  // Waarneming (0060): bij een klant van wie de casemanager er nu (of straks) niet is, staat op de kaart wie waarneemt. Vóór de migratie: niets.
   const dekking = await haalDekking(sb, vandaag);
   const waarnemingen: Record<string, DekkingPil> = {};
   if (dekking) for (const k of klanten) {

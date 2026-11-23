@@ -12,7 +12,7 @@ import { MigratieNodig } from "@/components/admin/Kerncijfer";
 import { FasePil, WaarnemingVelden, Wie } from "@/components/admin/waarneming/WaarnemingBits";
 
 /**
- * De kaart van één waarneming (0057): wie er niet is, wie waarneemt, welke
+ * De kaart van één waarneming (0060): wie er niet is, wie waarneemt, welke
  * klanten en wat de waarnemer moet weten. De afwezige collega past het aan
  * zolang het nog loopt of komt; het beheer altijd, ook de klanten en voor wie.
  */
@@ -26,7 +26,7 @@ export default async function WaarnemingKaart({ params }: { params: Promise<{ id
   const uit = await haalWaarneming(sb, id, vandaag);
   if (!uit.ok) {
     return uit.fout === "migratie"
-      ? <MigratieNodig bestand="0057_waarneming.sql" wat="De waarneming heeft een nieuwe tabel en een nieuw recht nodig." />
+      ? <MigratieNodig bestand="0060_waarneming.sql" wat="De waarneming heeft een nieuwe tabel en een nieuw recht nodig." />
       : <p className="acard px-6 py-5 text-[14px] text-black/55">De waarneming kon niet geladen worden. Probeer het straks nog eens.</p>;
   }
   if (!uit.data.waarneming) notFound();

@@ -11,7 +11,7 @@ import Uitklap from "@/components/admin/Uitklap";
 import { PerCollega, WaarnemingKaartje, WaarnemingVelden } from "@/components/admin/waarneming/WaarnemingBits";
 
 /**
- * Waarneming (0057; Rens, 23 nov 2026): wie neemt wie waar als iemand er niet
+ * Waarneming (0060; Rens, 23 nov 2026): wie neemt wie waar als iemand er niet
  * is. Wat nu loopt, wat komt, een eigen knop "Ik ben er even niet", de stand
  * per collega en wat geweest is. Het beheer (recht omzet, in Beheer) ziet wat
  * nog te regelen is en plant ook voor een ander. In Mijn React2u kijkt een
@@ -29,7 +29,7 @@ export default async function Waarneming() {
       <div className="space-y-6">
         <Kop />
         {uit.fout === "migratie" ? (
-          <MigratieNodig bestand="0057_waarneming.sql" wat="De waarneming heeft een nieuwe tabel en een nieuw recht nodig." />
+          <MigratieNodig bestand="0060_waarneming.sql" wat="De waarneming heeft een nieuwe tabel en een nieuw recht nodig." />
         ) : (
           <p className="acard px-6 py-5 text-[14px] text-black/55">De waarneming kon niet geladen worden. Probeer het straks nog eens.</p>
         )}

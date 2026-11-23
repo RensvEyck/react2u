@@ -43,7 +43,7 @@ export default function Klantenbord({
   teDoen: number;
   /** De partners en resellers (0022), voor de koppeling op een kaart (0052). */
   partners: PartnerKort[];
-  /** Waarneming (0057): per klant wie er nu of straks voor de klant is, als de casemanager er niet is. */
+  /** Waarneming (0060): per klant wie er nu of straks voor de klant is, als de casemanager er niet is. */
   waarnemingen: Record<string, DekkingPil>;
 }) {
   const router = useRouter();

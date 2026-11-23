@@ -6,7 +6,7 @@ import {
   MAX_TOELICHTING, NIETS_MEDISCH_WAARNEMING, TOEQAN_REGEL, type Collega, type Fase, type Waarneming, type WnKlant,
 } from "@/lib/waarneming";
 
-/** Bouwstenen van de waarneming (0057): pillen, de kaart van één waarneming, het formulier en de rij per collega. */
+/** Bouwstenen van de waarneming (0060): pillen, de kaart van één waarneming, het formulier en de rij per collega. */
 
 const FASE: Record<Fase, { label: string; kleur: string; stip: string }> = {
   actief: { label: "Nu", kleur: "bg-[#e6f6ee] text-[#1b7f4b]", stip: "bg-[#2fa66f]" },

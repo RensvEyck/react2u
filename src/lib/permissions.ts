@@ -27,7 +27,7 @@ export const PERMISSIONS = [
   { key: "weekevaluatie", label: "Weekevaluatie", hint: "Je eigen weekevaluatie invullen en teruglezen (sinds 0044)" },
   { key: "overleg", label: "CM-overleg", hint: "Het overleg van de casemanagers: agenda, actiepunten en de kaart met klanten (sinds 0053)" },
   { key: "ideeen", label: "Ideeënbord", hint: "Ideeën en meldingen van collega's lezen, indienen, erop stemmen en reageren (sinds 0055)" },
-  { key: "waarneming", label: "Waarneming", hint: "Zien wie wie waarneemt en je eigen afwezigheid plannen met een waarnemer (sinds 0057)" },
+  { key: "waarneming", label: "Waarneming", hint: "Zien wie wie waarneemt en je eigen afwezigheid plannen met een waarnemer (sinds 0060)" },
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number]["key"];
@@ -147,7 +147,7 @@ export function firstAllowedPath(permissions: Permission[]): string {
 
 /**
  * Rechten voor collega's zonder beheertaak: de eigen weekevaluatie, het
- * CM-overleg (0053), het ideeënbord (0055) en de waarneming (0057). Wie geen ander recht heeft, krijgt het beheer als eigen
+ * CM-overleg (0053), het ideeënbord (0055) en de waarneming (0060). Wie geen ander recht heeft, krijgt het beheer als eigen
  * plek, "Mijn React2u" (Rens, 19 nov 2026): zonder "Systeembeheer" bovenaan,
  * zonder Bekijk website en zonder het zoekpalet (⌘K), dat voor een paar
  * schermen alleen in de weg zit. Dit is vormgeving, geen

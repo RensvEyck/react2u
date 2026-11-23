@@ -4,7 +4,7 @@ import { collegaBij, standTekst, voornaamVan, type Waarneming } from "@/lib/waar
 import type { WaarnemingKort } from "@/lib/waarnemingDb";
 
 /**
- * Op het dashboard (0057): waar jij nu of binnenkort voor waarneemt, wie er
+ * Op het dashboard (0060): waar jij nu of binnenkort voor waarneemt, wie er
  * voor jou is als je er niet bent, en voor het beheer wat nog te regelen is.
  * In Mijn React2u staat de kaart altijd; in Beheer alleen als er iets speelt.
  */

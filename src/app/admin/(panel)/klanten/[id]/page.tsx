@@ -124,7 +124,7 @@ export default async function KlantPagina({ params, searchParams }: { params: Pr
   const s = statusInfo(k.status);
   const plaats = k.bezoek_plaats || k.post_plaats;
   const basis = `/admin/klanten/${k.id}`;
-  // Waarneming (0057): is de casemanager van deze klant er nu niet, dan staat erbij wie waarneemt. Vóór de migratie: niets.
+  // Waarneming (0060): is de casemanager van deze klant er nu niet, dan staat erbij wie waarneemt. Vóór de migratie: niets.
   const dekking = await haalDekking(sb, vandaag);
   const waarnemingPil = dekking ? dekkingPil(wieNeemtWaar(alsWnKlant(k), dekking.waarnemingen, vandaag, dekking.collegas), vandaag) : null;
 

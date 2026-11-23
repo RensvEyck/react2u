@@ -433,7 +433,7 @@ export default async function CmOverleg() {
         </section>
       )}
 
-      {/* ---------- waarneming (0057): wie er de komende weken niet is ---------- */}
+      {/* ---------- waarneming (0060): wie er de komende weken niet is ---------- */}
       <WaarnemingBlok sb={sb} vandaag={vandaag} />
 
       {/* ---------- de kaart ---------- */}

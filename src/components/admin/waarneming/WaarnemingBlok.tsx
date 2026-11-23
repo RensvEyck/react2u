@@ -9,7 +9,7 @@ type Sb = Awaited<ReturnType<typeof requirePerm>>["sb"];
 const WEKEN_VOORUIT = 28;
 
 /**
- * In het CM-overleg (0057): wie er de komende vier weken niet is en wie dan
+ * In het CM-overleg (0060): wie er de komende vier weken niet is en wie dan
  * waarneemt, zodat het team het meeneemt bij de verdeling. Niets te melden,
  * dan staat het blok er niet. Vóór de migratie ook niet.
  */

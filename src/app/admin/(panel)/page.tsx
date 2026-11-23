@@ -75,7 +75,7 @@ export default async function AdminDashboard() {
   const overlegRes = can("overleg") ? haalOverlegKort(sb, admin.userId).catch(() => null) : Promise.resolve(null);
   // Het ideeënbord (0055): nieuw deze week, wat van jou is opgepakt, je ongelezen meldingen, en voor het beheer wat al twee weken wacht. Vóór de migratie: null.
   const ideeenRes = can("ideeen") ? haalIdeeenKort(sb, admin.userId, datumOver(0, now), can("omzet")).catch(() => null) : Promise.resolve(null);
-  // De waarneming (0057): waar jij voor waarneemt, wie er voor jou is, en voor het beheer wat nog zonder waarnemer is. Vóór de migratie: null.
+  // De waarneming (0060): waar jij voor waarneemt, wie er voor jou is, en voor het beheer wat nog zonder waarnemer is. Vóór de migratie: null.
   const waarnemingRes = can("waarneming") ? haalWaarnemingKort(sb, admin.userId, datumOver(0, now), can("omzet")).catch(() => null) : Promise.resolve(null);
   // Mijn React2u (een werknemer): de eigen cijfers van dit kwartaal voor Mijn verloop.
   const verloopKwartaal = kwartaalVanWeek(openEvalWeken[1]);

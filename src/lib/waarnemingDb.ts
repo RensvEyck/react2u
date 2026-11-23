@@ -3,7 +3,7 @@ import { isMissingTable } from "@/lib/dbErrors";
 import { kort, type Collega, type Kort, type Waarneming, type WnKlant } from "@/lib/waarneming";
 
 /**
- * De waarneming uit de database (0057), met de sessie van de ingelogde collega:
+ * De waarneming uit de database (0060), met de sessie van de ingelogde collega:
  * de policies bepalen wat terugkomt. De collega's en de klanten komen uit de
  * hulpfuncties wn_collegas() en wn_klanten(), die alleen geven wat de
  * waarneming nodig heeft (geen adres-, bank- of contactgegevens van klanten).
