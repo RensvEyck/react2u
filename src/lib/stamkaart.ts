@@ -21,7 +21,12 @@ import { isProviderDomain, registrableDomain } from "./companies";
 import { CONTRACT_WEERGAVE, contractWeergave } from "./contracten";
 import { EVALUATIE_WEERGAVE, evaluatieWeergave } from "./evaluatie";
 import { bestandSoortLabel } from "./klantBestanden";
-import { bedrijfSleutel, isDatum, statusInfo, zoekKlanten, type Klant, type KlantStatus, type StamkaartVelden } from "./klanten";
+import {
+  bedrijfSleutel, isDatum, schoonBtw, schoonIban, schoonKvk, schoonPostcode, schoonWebsite, statusInfo, zoekKlanten, type Klant, type KlantStatus, type StamkaartVelden,
+} from "./klanten";
+
+// De schoonmaak van KvK, IBAN, postcode, website en btw staat in klanten.ts (ook de import van de klantlijst gebruikt ze).
+export { schoonBtw, schoonIban, schoonKvk, schoonPostcode, schoonWebsite } from "./klanten";
 import { losLabel } from "./losseOpdrachten";
 import { MERKEN, type Merk } from "./offerteMerk";
 import {
@@ -141,48 +146,6 @@ export function veldWaarde(k: Klant, veld: StamkaartVeld): string {
 /* ---------- controle ---------- */
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-
-/** "12 34 56 78" → "12345678"; null als het geen acht cijfers zijn. */
-export function schoonKvk(w: string): string | null {
-  const t = w.replace(/[\s.-]/g, "");
-  return /^\d{8}$/.test(t) ? t : null;
-}
-
-/** Zoals de bank hem schrijft: hoofdletters zonder spaties; null als de controle (mod 97) niet klopt. */
-export function schoonIban(w: string): string | null {
-  const t = w.replace(/\s/g, "").toUpperCase();
-  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(t)) return null;
-  const herschikt = (t.slice(4) + t.slice(0, 4)).replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
-  let rest = 0;
-  for (const c of herschikt) rest = (rest * 10 + Number(c)) % 97;
-  return rest === 1 ? t : null;
-}
-
-/** "5611nb" → "5611 NB"; een buitenlandse postcode blijft zoals getypt. */
-export function schoonPostcode(w: string): string {
-  const t = w.trim().replace(/\s+/g, " ");
-  const m = t.match(/^(\d{4})\s?([a-zA-Z]{2})$/);
-  return m ? `${m[1]} ${m[2].toUpperCase()}` : t;
-}
-
-/** "react2u.nl" → "https://react2u.nl"; null als het geen adres van een site is. */
-export function schoonWebsite(w: string): string | null {
-  let t = w.trim().replace(/\s/g, "");
-  if (!t) return null;
-  if (!/^https?:\/\//i.test(t)) t = `https://${t}`;
-  try {
-    const u = new URL(t);
-    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(u.hostname)) return null;
-    return u.toString().replace(/\/$/, "");
-  } catch {
-    return null;
-  }
-}
-
-/** "nl 1234.56.789.b01" → "NL123456789B01". */
-export function schoonBtw(w: string): string {
-  return w.replace(/[\s.]/g, "").toUpperCase();
-}
 
 /**
  * De invoer van de stamkaart schoon en binnen de grenzen van de database; een
@@ -834,16 +797,90 @@ export function schoonTarief(invoer: TariefInvoer): { ok: true; rij: Omit<KlantT
 
 /* ---------- de tijdlijnregel bij een wijziging ---------- */
 
+/** De naam van een veld in een tijdlijnregel: "postcode bezoekadres" in plaats van alleen "Postcode". */
+function veldNaam(v: StamkaartVeld): string {
+  const def = veldDef(v);
+  const groep = STAMKAART.find((g) => g.velden.some((x) => x.key === v));
+  return groep?.key === "adres" && (v === "bezoek_postcode" || v === "bezoek_plaats" || v === "post_postcode" || v === "post_plaats") ? `${def.label.toLowerCase()} ${v.startsWith("post") ? "postadres" : "bezoekadres"}` : def.label;
+}
+
 /** "Stamkaart bijgewerkt: KvK-nummer, IBAN" of "Stamkaart aangevuld uit de modules: KvK-nummer (contract C2026-0003), …". */
 export function stamkaartRegel(velden: StamkaartVeld[], bronnen?: Partial<Record<StamkaartVeld, string>>): string {
   const namen = velden.map((v) => {
-    const def = veldDef(v);
-    const groep = STAMKAART.find((g) => g.velden.some((x) => x.key === v));
-    const naam = groep?.key === "adres" && (v === "bezoek_postcode" || v === "bezoek_plaats" || v === "post_postcode" || v === "post_plaats") ? `${def.label.toLowerCase()} ${v.startsWith("post") ? "postadres" : "bezoekadres"}` : def.label;
+    const naam = veldNaam(v);
     return bronnen?.[v] ? `${naam} (${bronnen[v]})` : naam;
   });
   if (!namen.length) return "Stamkaart bijgewerkt";
   return `${bronnen ? "Stamkaart aangevuld uit de modules" : "Stamkaart bijgewerkt"}: ${namen.join(", ")}`;
+}
+
+/**
+ * De regel in de tijdlijn als de import een stamkaart aanvult:
+ * "Stamkaart aangevuld uit de klantlijst (regel 4): KvK-nummer, Bezoekadres;
+ * overschreven: IBAN". Geen contact, zoals elke stamkaartregel.
+ */
+export function stamkaartImportRegel(aangevuld: StamkaartVeld[], overschreven: StamkaartVeld[], regel: number): string {
+  const delen = [aangevuld.map(veldNaam).join(", "), overschreven.length ? `overschreven: ${overschreven.map(veldNaam).join(", ")}` : ""].filter(Boolean);
+  return `Stamkaart ${aangevuld.length ? "aangevuld" : "bijgewerkt"} uit de klantlijst (regel ${regel})${delen.length ? `: ${delen.join("; ")}` : ""}`;
+}
+
+/* ---------- de klantenlijst naar Excel ---------- */
+
+/**
+ * De kolommen van de export: de bedrijfsnaam, dan de stamkaart in de volgorde
+ * van het scherm. De koppen zijn zo gekozen dat de import ze weer op hetzelfde
+ * veld leest (stamkaart.test.ts): downloaden, in Excel aanvullen, en dezelfde
+ * lijst weer importeren vult de stamkaarten in één keer. De status staat er
+ * bewust niet in: die hoort bij het bord, en een kolom "Status" leest de
+ * import als laatste stand.
+ */
+export const EXPORT_KOLOMMEN: { kop: string; veld: StamkaartVeld | "bedrijf" }[] = [
+  { kop: "Klant", veld: "bedrijf" },
+  { kop: "KvK-nummer", veld: "kvk" },
+  { kop: "Rechtsvorm", veld: "rechtsvorm" },
+  { kop: "Branche", veld: "branche" },
+  { kop: "SBI-code", veld: "sbi" },
+  { kop: "Website", veld: "website" },
+  { kop: "Aantal werknemers", veld: "medewerkers" },
+  { kop: "Algemeen telefoonnummer", veld: "algemeen_telefoon" },
+  { kop: "Algemeen e-mailadres", veld: "algemeen_email" },
+  { kop: "Bezoekadres", veld: "bezoekadres" },
+  { kop: "Postcode", veld: "bezoek_postcode" },
+  { kop: "Plaats", veld: "bezoek_plaats" },
+  { kop: "Postadres", veld: "postadres" },
+  { kop: "Postcode postadres", veld: "post_postcode" },
+  { kop: "Plaats postadres", veld: "post_plaats" },
+  { kop: "Contactpersoon", veld: "contactpersoon" },
+  { kop: "Functie contactpersoon", veld: "contact_functie" },
+  { kop: "Telefoon", veld: "telefoon" },
+  { kop: "E-mail", veld: "email" },
+  { kop: "Factuur e-mail", veld: "factuur_email" },
+  { kop: "Btw-nummer", veld: "btw" },
+  { kop: "IBAN", veld: "iban" },
+  { kop: "Tenaamstelling", veld: "iban_naam" },
+  { kop: "Debiteurnummer", veld: "debiteurnummer" },
+  { kop: "Bevoegd ondertekenaar", veld: "ondertekenaar" },
+  { kop: "Functie ondertekenaar", veld: "ondertekenaar_functie" },
+  { kop: "Eigenaar", veld: "eigenaar" },
+  { kop: "Casemanager", veld: "casemanager" },
+  { kop: "Startdatum", veld: "startdatum" },
+];
+
+/** De klanten als rijen voor Excel: de kopregel en per klant één rij; een datum als 1-9-2026, zoals de import hem weer leest. */
+export function klantenNaarRijen(klanten: Klant[]): string[][] {
+  const datum = (iso: string) => {
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${Number(m[3])}-${Number(m[2])}-${m[1]}` : iso;
+  };
+  return [
+    EXPORT_KOLOMMEN.map((k) => k.kop),
+    ...[...klanten]
+      .sort((a, b) => a.bedrijf.localeCompare(b.bedrijf, "nl"))
+      .map((k) => EXPORT_KOLOMMEN.map((c) => {
+        const w = c.veld === "bedrijf" ? k.bedrijf : veldWaarde(k, c.veld);
+        return c.veld === "startdatum" && w ? datum(w) : w;
+      })),
+  ];
 }
 
 /** De status op het bord, voor de stamkaart. */

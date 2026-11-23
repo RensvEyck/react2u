@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   actieStand, bedrijfSleutel, bezoekPerKlant, bronHref, herkenKolommen, importVoorstel, isGesprekSoort, koppelingenVoor, leesDatum, leesJaNee, relatief, relatiefMoment,
-  rijenUitKlantlijst, rijNaarVelden, sorteerKaarten, statusUitRij, statusVerder, telling, tijdlijnRegels, zoekKlanten, type Bronnen, type Gesprek, type ImportRij, type Klant,
+  leesStamkaartCel, rijenUitKlantlijst, rijNaarStamkaart, rijNaarVelden, sorteerKaarten, stamkaartTelling, stamkaartUitRij, statusUitRij, statusVerder, telling, tijdlijnRegels,
+  zoekKlanten, type Bronnen, type Gesprek, type ImportRij, type Klant,
 } from "./klanten";
 
 const VANDAAG = "2026-11-16";
@@ -328,5 +329,100 @@ describe("casemanager uit de klantlijst (Rens, 19 nov 2026: Robin Roos, Nadja en
     const v = importVoorstel([rij({ bedrijf: "Bakkerij De Korenaar", casemanager: "Robin Roos" })], [klant("Bakkerij De Korenaar", { status: "klant" })], VANDAAG);
     expect(v.regels[0].actie).toBe("bijwerken");
     expect(v.regels[0].wijzigingen).toEqual(["casemanager"]);
+  });
+});
+
+describe("de stamkaart uit de klantlijst (Rens, 23 nov 2026: in bulk naar alle klanten)", () => {
+  it("herkent de stamkaartkoppen, ook waar een gewoon woord iets anders zou zeggen", () => {
+    const koppen = [
+      "Klant", "KvK-nummer", "Debiteurnummer", "Rekeningnummer", "Tenaamstelling", "BTW-nummer", "Factuur e-mail", "E-mailadres", "E-mail contactpersoon",
+      "Algemeen telefoonnummer", "Telefoon", "Functie ondertekenaar", "Naam ondertekenaar", "Functie", "Postcode postadres", "Plaats postadres", "Postadres",
+      "Straat", "Huisnummer", "Postcode", "Vestigingsplaats", "Website", "Aantal medewerkers", "Branche", "Rechtsvorm", "SBI",
+    ];
+    const { kolommen } = herkenKolommen([koppen, koppen.map(() => "")]);
+    expect(Object.fromEntries(kolommen.map((k) => [k.kop, k.veld]))).toEqual({
+      Klant: "bedrijf", "KvK-nummer": "kvk", Debiteurnummer: "debiteurnummer", Rekeningnummer: "iban", Tenaamstelling: "iban_naam", "BTW-nummer": "btw",
+      "Factuur e-mail": "factuur_email", "E-mailadres": "email",
+      // De tweede e-mailkolom is bezet; een kop die nergens meer heen kan, blijft ongebruikt in plaats van een veld te overschrijven.
+      "E-mail contactpersoon": null,
+      "Algemeen telefoonnummer": "algemeen_telefoon", Telefoon: "telefoon", "Functie ondertekenaar": "ondertekenaar_functie", "Naam ondertekenaar": "ondertekenaar",
+      Functie: "contact_functie", "Postcode postadres": "post_postcode", "Plaats postadres": "post_plaats", Postadres: "postadres", Straat: "bezoekadres",
+      Huisnummer: "huisnummer", Postcode: "bezoek_postcode", Vestigingsplaats: "bezoek_plaats", Website: "website", "Aantal medewerkers": "medewerkers",
+      Branche: "branche", Rechtsvorm: "rechtsvorm", SBI: "sbi",
+    });
+  });
+
+  it("een e-mail van de contactpersoon is een e-mailadres, geen naam", () => {
+    expect(herkenKolommen([["Bedrijf", "E-mail contactpersoon", "Contactpersoon"], ["X", "a@b.nl", "Jan Jansen"]]).kolommen.map((k) => k.veld)).toEqual(["bedrijf", "email", "contactpersoon"]);
+  });
+
+  it("zonder kop: een KvK-nummer is geen telefoonnummer, en IBAN en postcode aan hun vorm", () => {
+    const { kolommen } = herkenKolommen([
+      ["Klant", "", "", ""],
+      ["Bakkerij De Korenaar", "17061007", "NL91 ABNA 0417 1643 00", "5611 NB"],
+      ["Garage Smits", "12345678", "NL91ABNA0417164300", "5595xl"],
+    ]);
+    expect(kolommen.map((k) => `${k.veld}:${k.via}`)).toEqual(["bedrijf:kop", "kvk:inhoud", "iban:inhoud", "bezoek_postcode:inhoud"]);
+  });
+
+  it("maakt de cellen netjes zoals de stamkaart en meldt wat niet klopt, zonder de rij te laten vallen", () => {
+    const { rijen } = rijenUitKlantlijst([
+      ["Klant", "KvK", "IBAN", "Postcode", "Website", "Factuur e-mail", "Aantal werknemers", "Btw-nummer", "Straat", "Huisnummer"],
+      ["Bakkerij De Korenaar", "17 06 10 07", "nl91 abna 0417 1643 00", "5611nb", "korenaar.nl", "Facturen@Korenaar.nl", "1.250", "nl 0012.34.567.b01", "Paaldijk", "11"],
+      ["Garage Smits", "123", "NL00ABNA0000000000", "5595 XL", "geen site", "geen mail", "veel", "", "Markt 3", "3"],
+    ], VANDAAG);
+    expect(rijen[0].stamkaart).toEqual({
+      kvk: "17061007", iban: "NL91ABNA0417164300", bezoek_postcode: "5611 NB", website: "https://korenaar.nl", factuur_email: "facturen@korenaar.nl",
+      medewerkers: 1250, btw: "NL001234567B01", bezoekadres: "Paaldijk 11",
+    });
+    expect(rijen[0].waarschuwingen).toEqual([]);
+    // Een nummer dat al in de straat staat, komt er niet twee keer achter.
+    expect(rijen[1].stamkaart).toEqual({ bezoek_postcode: "5595 XL", bezoekadres: "Markt 3" });
+    expect(rijen[1].waarschuwingen).toEqual([
+      'KvK-nummer "123" heeft geen acht cijfers', 'IBAN "NL00ABNA0000000000" klopt niet', 'Website "geen site" klopt niet',
+      'Factuur-e-mail "geen mail" klopt niet', 'Aantal werknemers "veel" is geen getal',
+    ]);
+    expect(rijen[1].bedrijf).toBe("Garage Smits");
+  });
+
+  it("vult standaard alleen lege velden aan; wat anders is, blijft staan tenzij je overschrijft", () => {
+    const r = rij({ bedrijf: "Bakkerij De Korenaar", stamkaart: { kvk: "17061007", iban: "NL91ABNA0417164300", bezoekadres: "Paaldijk 11" } });
+    const bestaand = klant("Bakkerij De Korenaar", { status: "klant", kvk: "12345678", iban: "NL91ABNA0417164300" });
+    const v = importVoorstel([r], [bestaand], VANDAAG);
+    expect(v.regels[0].actie).toBe("bijwerken");
+    expect(v.regels[0].stamkaart).toEqual({ aangevuld: ["bezoekadres"], overschreven: [], behouden: ["kvk"] });
+    expect(v.regels[0].wijzigingen).toEqual(["stamkaart: bezoekadres"]);
+    const over = importVoorstel([r], [bestaand], VANDAAG, { stamkaartOverschrijven: true });
+    expect(over.regels[0].stamkaart).toEqual({ aangevuld: ["bezoekadres"], overschreven: ["kvk"], behouden: [] });
+    expect(over.regels[0].wijzigingen).toEqual(["stamkaart: bezoekadres, kvk-nummer"]);
+    expect(stamkaartTelling(over)).toEqual({ kaarten: 1, velden: 2, behouden: 0 });
+  });
+
+  it("alleen een verschil dat blijft staan is geen wijziging", () => {
+    const v = importVoorstel([rij({ bedrijf: "Garage Smits", stamkaart: { kvk: "17061007" } })], [klant("Garage Smits", { status: "klant", kvk: "12345678" })], VANDAAG);
+    expect(v.regels[0].actie).toBe("ongewijzigd");
+    expect(stamkaartTelling(v)).toEqual({ kaarten: 0, velden: 0, behouden: 1 });
+  });
+
+  it("vanaf de klantenlijst komt een nieuw bedrijf als klant binnen; een bestaande kaart volgt de gewone regels", () => {
+    const v = importVoorstel([rij({ bedrijf: "Nieuw Bedrijf" }), rij({ bedrijf: "Kapsalon Knip", regel: 3 })], [klant("Kapsalon Knip", { status: "lead" })], VANDAAG, { nieuwAls: "klant" });
+    expect(v.regels.map((r) => `${r.actie}:${r.status}`)).toEqual(["nieuw:klant", "ongewijzigd:lead"]);
+    // Op het bord blijft het zoals het was: zonder vinkjes of stand een lead.
+    expect(importVoorstel([rij({ bedrijf: "Nieuw Bedrijf" })], [], VANDAAG).regels[0].status).toBe("lead");
+  });
+
+  it("de stamkaart gaat los van de kaart naar de database", () => {
+    const r = rij({ contactpersoon: "Joris", stamkaart: { kvk: "17061007", medewerkers: 12, iban: "" } });
+    expect(rijNaarVelden(r)).toEqual({ contactpersoon: "Joris" });
+    expect(rijNaarStamkaart(r)).toEqual({ kvk: "17061007", medewerkers: 12 });
+    expect(stamkaartUitRij(r, null).aangevuld).toEqual(["kvk", "medewerkers"]);
+  });
+
+  it("leest een cel voor de stamkaart", () => {
+    expect(leesStamkaartCel("medewerkers", "12,5 fte")).toEqual({ waarde: 13 });
+    expect(leesStamkaartCel("rechtsvorm", "  B.V.  ")).toEqual({ waarde: "B.V." });
+    expect(leesStamkaartCel("algemeen_email", "INFO@Korenaar.nl")).toEqual({ waarde: "info@korenaar.nl" });
+    expect(leesStamkaartCel("kvk", "1234 5678")).toEqual({ waarde: "12345678" });
+    expect("fout" in leesStamkaartCel("iban", "NL12")).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { bedrijfSleutel, type Klant } from "./klanten";
+import { bedrijfSleutel, herkenKolommen, importVoorstel, rijenUitKlantlijst, type Klant } from "./klanten";
 import {
-  afsprakenUitOffertes, documentenVoor, documentTelling, echteKlanten, filterKlantenlijst, isEchteKlant, KLANT_STATUSSEN, leesBedrag, losseAfspraken, merkUitLabel, schoonIban, schoonKvk, schoonPostcode,
+  afsprakenUitOffertes, documentenVoor, EXPORT_KOLOMMEN, klantenNaarRijen, stamkaartImportRegel, documentTelling, echteKlanten, filterKlantenlijst, isEchteKlant, KLANT_STATUSSEN, leesBedrag, losseAfspraken, merkUitLabel, schoonIban, schoonKvk, schoonPostcode,
   schoonStamkaart, schoonTarief, schoonWebsite, sorteerKlantenlijst, STAMKAART, STAMKAART_VELDEN, stamkaartRegel, stamkaartVolledigheid, tariefGeldt, tariefPeriode, tariefRegel,
   tariefTekst, veldWaarde, voorstelStamkaart, type DocumentBronnen, type StamkaartBronnen,
 } from "./stamkaart";
@@ -351,5 +351,36 @@ describe("tariefafspraken", () => {
     expect(tariefGeldt({ ingangsdatum: "2026-11-01", einddatum: null }, VANDAAG)).toBe(true);
     expect(tariefGeldt({ ingangsdatum: "2026-12-01", einddatum: null }, VANDAAG)).toBe(false);
     expect(tariefGeldt({ ingangsdatum: null, einddatum: "2026-11-18" }, VANDAAG)).toBe(false);
+  });
+});
+
+describe("de klantenlijst naar Excel en weer terug (Rens, 23 nov 2026)", () => {
+  it("elke kop van de export leest de import weer op hetzelfde veld", () => {
+    const rijen = klantenNaarRijen([]);
+    const { kolommen } = herkenKolommen([rijen[0], rijen[0].map(() => "")]);
+    expect(kolommen.map((k) => k.veld)).toEqual(EXPORT_KOLOMMEN.map((k) => k.veld));
+  });
+
+  it("downloaden, aanvullen en importeren vult de stamkaart, zonder iets anders te raken", () => {
+    const k = klant("Houthandel Verhoeven", { status: "klant", contactpersoon: "Joris Verhoeven", kvk: "17061007", startdatum: "2026-09-01", medewerkers: 12 });
+    const rijen = klantenNaarRijen([k]);
+    expect(rijen[1][0]).toBe("Houthandel Verhoeven");
+    expect(rijen[1][EXPORT_KOLOMMEN.findIndex((c) => c.veld === "startdatum")]).toBe("1-9-2026");
+    expect(rijen[1][EXPORT_KOLOMMEN.findIndex((c) => c.veld === "medewerkers")]).toBe("12");
+    // In Excel: het IBAN en het bezoekadres erbij.
+    rijen[1][EXPORT_KOLOMMEN.findIndex((c) => c.veld === "iban")] = "NL91 ABNA 0417 1643 00";
+    rijen[1][EXPORT_KOLOMMEN.findIndex((c) => c.veld === "bezoekadres")] = "Paaldijk 11";
+    const { rijen: gelezen } = rijenUitKlantlijst(rijen, "2026-11-23");
+    expect(gelezen[0].startdatum).toBe("2026-09-01");
+    const v = importVoorstel(gelezen, [k], "2026-11-23");
+    expect(v.regels[0].actie).toBe("bijwerken");
+    expect(v.regels[0].stamkaart.aangevuld.sort()).toEqual(["bezoekadres", "iban"]);
+    expect(v.regels[0].wijzigingen).toEqual(["stamkaart: bezoekadres, iban"]);
+  });
+
+  it("de regel in de tijdlijn", () => {
+    expect(stamkaartImportRegel(["kvk", "bezoek_postcode"], [], 4)).toBe("Stamkaart aangevuld uit de klantlijst (regel 4): KvK-nummer, postcode bezoekadres");
+    expect(stamkaartImportRegel(["bezoekadres"], ["iban"], 7)).toBe("Stamkaart aangevuld uit de klantlijst (regel 7): Bezoekadres; overschreven: IBAN");
+    expect(stamkaartImportRegel([], ["kvk"], 2)).toBe("Stamkaart bijgewerkt uit de klantlijst (regel 2): overschreven: KvK-nummer");
   });
 });

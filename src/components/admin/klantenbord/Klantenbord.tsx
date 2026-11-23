@@ -154,6 +154,7 @@ export default function Klantenbord({
       r.bijgewerkt ? `${r.bijgewerkt} bijgewerkt` : "",
       r.ongewijzigd ? `${r.ongewijzigd} ongewijzigd` : "",
       r.overgeslagen ? `${r.overgeslagen} overgeslagen` : "",
+      r.stamkaarten ? `${r.stamkaarten} ${r.stamkaarten === 1 ? "stamkaart" : "stamkaarten"} aangevuld` : "",
     ].filter(Boolean);
     meld(true, `Klantlijst geïmporteerd: ${delen.join(", ") || "niets te doen"}.`);
     router.refresh();

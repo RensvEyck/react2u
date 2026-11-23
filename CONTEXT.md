@@ -2410,7 +2410,19 @@ met de laatste stand en soms een contactpersoon.
   (`lib/xlsxLezen.ts`), of een csv, of geplakte rijen. `herkenKolommen` kijkt
   eerst naar de kopregel en daarna naar de inhoud van kolommen zonder (of met
   een onbekende) kop: datums, ja/nee, namen van mensen, en anders vrije tekst
-  als laatste stand. Een kop *casemanager* (of *case manager*, *CM*) is de
+  als laatste stand. Sinds 23 november 2026 kent de import ook **de
+  stamkaart** (`STAMKAART_IMPORT`, `leesStamkaartCel`): KvK-nummer,
+  rechtsvorm, branche, SBI, website, aantal werknemers, algemeen telefoon en
+  e-mail, bezoekadres (straat en huisnummer in twee kolommen worden samen het
+  adres), postcode, plaats, postadres, functie contactpersoon, factuur
+  e-mail, btw, IBAN, tenaamstelling, debiteurnummer en bevoegd ondertekenaar.
+  De stamkaartkoppen staan vooraan in `KOPPEN` en de volgorde telt
+  ("KvK-nummer" en "Debiteurnummer" zijn geen telefoon, "Factuur e-mail" geen
+  vinkje facturatie, "Tenaamstelling" geen bedrijf); alleen de eerste kop die
+  past telt, zodat een tweede e-mailkolom niet als naam eindigt. Zonder kop
+  herkent hij KvK, IBAN, btw, postcode en website aan de inhoud. Elke cel
+  wordt gecontroleerd zoals op de stamkaart; wat niet klopt staat in het
+  rapport en laat de rest van de rij door. Een kop *casemanager* (of *case manager*, *CM*) is de
   casemanager op de stamkaart, geen eigenaar: de klantlijst van november 2026
   had Robin Roos, Nadja en Ida in zo'n kolom en die kwamen als eigenaar op het
   bord (Rens, 19 nov 2026: "zijn casemanagers"; op productie met de hand
@@ -2606,6 +2618,24 @@ Recht `bellijst`, zoals het bord. De regels staan in
   tijdlijn zegt dan waar het vandaan kwam ("Stamkaart aangevuld uit de
   modules: KvK-nummer (contract C2026-0003), …"). Een veld dat intussen gevuld
   is blijft staan. Een resellerovereenkomst telt niet als bron.
+- **Alle stamkaarten in één keer** (Rens, 23 nov 2026: "is er een mogelijkheid
+  dat deze in bulk worden gekopieerd en geplakt naar alle klanten en de
+  stamkaart wordt ingevuld"): bovenaan de lijst *Exporteer naar Excel* en
+  *Gegevens importeren* ([`KlantenGegevens.tsx`](src/components/admin/klanten/KlantenGegevens.tsx)).
+  De export (`klantenNaarRijen`, `EXPORT_KOLOMMEN`) zet de echte klanten met
+  de bedrijfsnaam en alle stamkaartvelden in een Excelbestand, gemaakt in de
+  browser (`lib/xlsx.ts`); de status staat er bewust niet in. De import is
+  dezelfde als op het bord (`KlantImport` met `nieuwAls="klant"`): een Excel
+  of een geplakt blok, eerst het controlerapport, dezelfde bedrijfsnaam is
+  dezelfde klant, en een bedrijf dat er nog niet is komt binnen als klant.
+  Wie downloadt, in Excel aanvult en hetzelfde bestand weer importeert, vult
+  alle stamkaarten zonder te typen; elke kop van de export leest de import
+  terug op hetzelfde veld (`stamkaart.test.ts`). **Standaard vult de import
+  op de stamkaart alleen lege velden**; wat er al anders staat blijft staan en
+  het rapport noemt het (*blijft staan: KvK-nummer*). Met *Overschrijf wat er
+  al op de stamkaart staat* wint het bestand. Elke stamkaart die verandert
+  krijgt een regel `stamkaart` in de tijdlijn ("Stamkaart aangevuld uit de
+  klantlijst (regel 4): KvK-nummer, Bezoekadres; overschreven: IBAN").
 - **Documenten** (`documentenVoor`): alles van deze klant uit alle modules in
   één tabel, nieuwste eerst, gevonden op de bedrijfssleutel: brochures (pdf
   via de klantlink), offertes (getekend: de pdf met certificaat; anders de

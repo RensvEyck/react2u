@@ -4,7 +4,8 @@
 // modules (en alles in één keer overnemen, met de bron in de tijdlijn), bewerken met controle van KvK en IBAN;
 // de documenten uit alle modules met de pdf; een eigen bestand uploaden, downloaden en zonder sessie niet; de
 // tariefafspraken uit de offerte en de losse opdracht en een afwijkende afspraak erbij; de tijdlijn met een
-// gesprek vastleggen; en alles op een telefoon zonder horizontaal scrollen van de pagina.
+// gesprek vastleggen; alles op een telefoon zonder horizontaal scrollen van de pagina; en de klanten naar Excel en de
+// stamkaarten in één keer aanvullen met een geplakt Excelblok (alleen lege velden, of overschrijven als je dat aanzet).
 // Draaien via e2e/run.mjs (E2E_ALLEEN=klanten).
 const { chromium } = require("playwright");
 const fs = require("fs");
@@ -17,6 +18,7 @@ const GEHEIM = geheim();
 const stap = (s) => console.log(`\n▶ ${s}`);
 const fout = [];
 const check = (cond, s) => (cond ? console.log(`  ✓ ${s}`) : (fout.push(s), console.log(`  ✗ ${s}`)));
+const ok = (s) => console.log(`  ✓ ${s}`);
 const shot = (page, naam, opts = {}) => page.screenshot({ path: path.join(SHOTS, `${naam}.png`), fullPage: true, ...opts });
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
 /** Wacht tot een SQL-vraag het verwachte antwoord geeft (de server action is net klaar als de browser het zegt). */
@@ -261,6 +263,75 @@ const ARTS = `{"id":"c","sectie":"Tarieven","label":"React2u Recover","kleur":"#
   check(!(await teBreed(mp)), "de tarieven passen op het scherm");
   await shot(mp, "12-telefoon-tarieven");
   await tel.close();
+
+  stap("Alle klanten naar Excel, en de stamkaarten in één keer aanvullen (Rens, 23 nov 2026)");
+  await page.goto(`${BASIS}/admin/klanten`);
+  await page.waitForSelector("tr[data-klant]");
+  check(await page.locator("button:has-text('Exporteer naar Excel')").count() && (await page.locator("button:has-text('Gegevens importeren')").count()), "op de klantenlijst: exporteren en importeren");
+  const [download] = await Promise.all([page.waitForEvent("download"), page.click("button:has-text('Exporteer naar Excel')")]);
+  const exportPad = path.join(SHOTS, "export-klanten.xlsx");
+  await download.saveAs(exportPad);
+  const exportTekst = fs.readFileSync(exportPad).toString("latin1");
+  check(/^Klanten React2u \d{4}-\d{2}-\d{2}\.xlsx$/.test(download.suggestedFilename()), `bestandsnaam ${download.suggestedFilename()}`);
+  check(exportTekst.startsWith("PK") && exportTekst.includes("KvK-nummer") && exportTekst.includes("Houthandel Verhoeven") && exportTekst.includes("17061007"), "het Excelbestand met de stamkaart als kolommen");
+  check(!exportTekst.includes("Kapsalon Knip"), "alleen echte klanten in de export, geen leads");
+
+  // Wat een werknemer in Excel bijhield: straat en huisnummer apart, een KvK die niet klopt, en een bedrijf dat er nog niet is.
+  const plak = [
+    ["Klant", "KvK-nummer", "Straat", "Huisnummer", "Postcode", "Plaats", "Factuur e-mail", "IBAN", "Aantal werknemers", "Branche", "Debiteurnummer"],
+    ["Houthandel Verhoeven B.V.", "12345678", "Paaldijk", "11", "5595XL", "Leende", "nieuw@verhoeven.test", "NL91 ABNA 0417 1643 00", "14", "Houthandel", "D-1042"],
+    ["Garage Smits", "17061008", "Markt", "3", "5611 nb", "Eindhoven", "admin@smits.test", "NL91ABNA0417164300", "8", "Garage", "D-2001"],
+    ["Drukkerij Van Dam", "12", "Industrieweg", "40", "5612 AB", "Eindhoven", "", "", "", "Drukkerij", ""],
+  ].map((r) => r.join("\t")).join("\n");
+  await page.click("button:has-text('Gegevens importeren')");
+  await page.waitForSelector("div[role=dialog] h2:has-text('Klantgegevens importeren')");
+  check(await page.locator("div[role=dialog] >> text=Voor de stamkaart").count(), "de uitleg noemt de stamkaartkolommen");
+  await page.click("div[role=dialog] summary:has-text('Of plak de rijen uit Excel')");
+  await page.fill("#kb-plak", plak);
+  await page.click("div[role=dialog] button:has-text('Rijen lezen')");
+  await page.waitForSelector("div[role=dialog] [aria-label='Stamkaart']", { timeout: 20000 });
+  check((await page.locator("div[role=dialog] li[data-kolom='kvk']").count()) === 1 && (await page.locator("div[role=dialog] li[data-kolom='huisnummer']").count()) === 1 && (await page.locator("div[role=dialog] li[data-kolom='debiteurnummer']").count()) === 1, "KvK, huisnummer en debiteurnummer herkend");
+  const wat = (bedrijf) => page.locator(`div[role=dialog] td[data-wat="${bedrijf}"]`).innerText();
+  check((await wat("Houthandel Verhoeven B.V.")).includes("stamkaart: branche, debiteurnummer") && (await wat("Houthandel Verhoeven B.V.")).includes("blijft staan: kvk-nummer, aantal werknemers, factuur-e-mail"), `Verhoeven: aanvullen wat leeg is, de rest blijft staan (${(await wat("Houthandel Verhoeven B.V.")).replace(/\n/g, " ")})`);
+  check((await wat("Garage Smits")).includes("stamkaart: kvk-nummer, branche, aantal werknemers, bezoekadres, postcode, plaats, factuur-e-mail, iban, debiteurnummer"), "Garage Smits: de hele stamkaart");
+  check((await wat("Drukkerij Van Dam")).includes('KvK-nummer "12" heeft geen acht cijfers'), "een KvK die niet klopt, staat erbij en laat de rest door");
+  check(await page.locator("div[role=dialog] tr:has-text('Drukkerij Van Dam') >> text=Klant").count(), "een nieuw bedrijf komt als klant binnen");
+  check(await page.locator("div[role=dialog] >> text=3 gegevens verschillen van wat er al op de stamkaart staat").count(), "het rapport telt wat blijft staan");
+  await shot(page, "13-import-rapport");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await wacht(300);
+  check(!(await teBreed(page)), "het rapport past op een telefoon");
+  await shot(page, "14-import-rapport-telefoon", { fullPage: false });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.click("div[role=dialog] button:has-text('Importeer 3 rijen')");
+  await page.waitForSelector("[role=status]:has-text('Geïmporteerd:')", { timeout: 30000 });
+  check(await page.locator("[role=status]:has-text('3 stamkaarten aangevuld')").count() && (await page.locator("[role=status]:has-text('1 nieuwe klant')").count()), "de melding: drie stamkaarten aangevuld, één nieuwe klant");
+  const smits = sql("select id from public.klanten where sleutel = 'garage smits'");
+  check(sql(`select concat_ws('|', kvk, bezoekadres, bezoek_postcode, bezoek_plaats, factuur_email, iban, medewerkers, branche, debiteurnummer, status) from public.klanten where id = '${smits}'`) === "17061008|Markt 3|5611 NB|Eindhoven|admin@smits.test|NL91ABNA0417164300|8|Garage|D-2001|akkoord", "Garage Smits: de stamkaart gevuld, netjes gemaakt, de status ongemoeid");
+  check(sql(`select concat_ws('|', kvk, factuur_email, medewerkers, branche, debiteurnummer) from public.klanten where id = '${klant}'`) === "17061007|facturatie@verhoeven.test|12|Houthandel|D-1042", "Verhoeven: alleen de lege velden aangevuld");
+  check(sql("select concat_ws('|', status, coalesce(kvk, '-'), bezoekadres, branche) from public.klanten where sleutel = 'drukkerij van dam'") === "klant|-|Industrieweg 40|Drukkerij", "Drukkerij Van Dam: nieuw als klant, zonder de KvK die niet klopte");
+  check(sql(`select tekst from public.klant_gesprekken where klant_id = '${smits}' and soort = 'stamkaart' order by created_at desc limit 1`).startsWith("Stamkaart aangevuld uit de klantlijst (regel 3): KvK-nummer, Branche"), "in de tijdlijn van Garage Smits");
+  check(sql(`select count(*) from public.klant_gesprekken where klant_id = '${klant}' and soort = 'import' and created_at > now() - interval '1 minute'`) === "0", "geen lege importregel als alleen de stamkaart veranderde");
+  await page.waitForSelector("tr[data-klant] >> text=Drukkerij Van Dam");
+  ok("de nieuwe klant staat in de lijst");
+
+  stap("Overschrijven, als je dat aanzet");
+  await page.click("button:has-text('Gegevens importeren')");
+  await page.click("div[role=dialog] summary:has-text('Of plak de rijen uit Excel')");
+  await page.fill("#kb-plak", "Klant\tKvK-nummer\nHouthandel Verhoeven\t12345678");
+  await page.click("div[role=dialog] button:has-text('Rijen lezen')");
+  await page.waitForSelector("div[role=dialog] [data-stamkaart='behouden']", { timeout: 20000 });
+  check(await page.locator("div[role=dialog] button:has-text('Niets te importeren')").count(), "zonder overschrijven: niets te doen");
+  await page.check("#kb-overschrijven");
+  await page.waitForSelector("div[role=dialog] [data-stamkaart='overschreven']");
+  check((await page.locator("div[role=dialog] [data-stamkaart='overschreven']").innerText()) === "overschrijft: kvk-nummer", "met overschrijven: de KvK wordt vervangen");
+  await shot(page, "15-import-overschrijven", { fullPage: false });
+  await page.click("div[role=dialog] button:has-text('Importeer 1 rij')");
+  await page.waitForSelector("[role=status]:has-text('1 stamkaart aangevuld')", { timeout: 30000 });
+  check((await tot(`select kvk from public.klanten where id = '${klant}'`, "12345678")) === "12345678", "de KvK overschreven");
+  check(sql(`select tekst from public.klant_gesprekken where klant_id = '${klant}' and soort = 'stamkaart' order by created_at desc limit 1`) === "Stamkaart bijgewerkt uit de klantlijst (regel 2): overschreven: KvK-nummer", "overschreven in de tijdlijn");
+  sql(`update public.klanten set kvk = '17061007' where id = '${klant}'`);
+  sql("delete from public.klanten where sleutel = 'drukkerij van dam'");
 
   stap("Weer terug op het bord");
   await page.goto(`${BASIS}/admin/klanten/${klant}`);
