@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  apparaatUit, berekenTotalen, controleer, datumLang, DIENSTLABEL, euro, factuurFout, factuurRegels, geldigeKeuze, herstelKeuze, isNaam, maandprijs, momentPrecies, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, pdfNaam, prijsLabel, regelbedrag, secties, standaardKeuze, tijdlijnRegels, VORM_GROEPEN, VORMEN, vulIn, waardeVan, weergaveVan, wissel, type Regel,
+  apparaatUit, berekenTotalen, controleer, datumLang, DIENSTLABEL, euro, factuurFout, factuurRegels, geldigeKeuze, herstelKeuze, isNaam, maandprijs, momentPrecies, nieuweVoorstellen, normaliseerFactuur, normaliseerRegels, normaliseerVervolg, pdfNaam, prijsLabel, regelbedrag, secties, standaardKeuze, tijdlijnRegels, VORM_GROEPEN, VORMEN, vulIn, waardeVan, weergaveVan, wissel, type Regel,
 } from "./offertes";
 import { alleSjablonen, sjabloonVoorStart, sleutelUit } from "./offerteSjablonen";
 import { blokkenUit } from "@/components/offerte/OfferteTekst";
@@ -60,6 +60,22 @@ describe("rekenen", () => {
   it("een eigen aantal wint van het aantal medewerkers", () => {
     const regels = [R({ id: "x", soort: "vast", prijs: 100, eenheid: "medewerker_jaar", aantal: 3 })];
     expect(berekenTotalen(regels, [], 50).perJaar).toBe(300);
+  });
+
+  it("een voorstel is nieuw als de klant een optie op aanvraag zelf aanzet", () => {
+    const regels = [
+      R({ id: "basis", soort: "vast", prijs: 38.5, eenheid: "medewerker_jaar" }),
+      R({ id: "hb", soort: "optie", prijs: null, eenheid: "op_aanvraag" }),
+      R({ id: "ao", soort: "optie", prijs: null, eenheid: "op_aanvraag" }),
+      R({ id: "loon", soort: "optie", prijs: 126, eenheid: "medewerker_jaar" }),
+      R({ id: "uur", soort: "optie", prijs: 142.5, eenheid: "uur", bijGebruik: true }),
+    ];
+    expect(nieuweVoorstellen(regels, null, ["hb", "loon", "uur"], 10).map((r) => r.id)).toEqual(["hb"]);
+    expect(nieuweVoorstellen(regels, ["hb"], ["hb", "ao"], 10).map((r) => r.id)).toEqual(["ao"]);
+    expect(nieuweVoorstellen(regels, ["hb", "ao"], ["hb"], 10)).toEqual([]);
+    // Wat sales standaard aanzette, vroeg de klant niet zelf.
+    const metStandaard = regels.map((r) => (r.id === "hb" ? { ...r, aan: true } : r));
+    expect(nieuweVoorstellen(metStandaard, null, ["hb"], 10)).toEqual([]);
   });
 
   it("op aanvraag doet mee zonder bedrag", () => {
