@@ -4,6 +4,7 @@ import { coveredByWordpress } from "@/lib/redirects";
 import { kort, omschrijving } from "@/lib/seo";
 import type { Page, Post, Vacancy } from "@/lib/types";
 import { VAKGEBIEDEN } from "@/lib/vakgebieden";
+import { GIDSEN } from "@/lib/gidsen";
 
 /**
  * De tekst van /llms.txt (https://llmstxt.org): een Markdown-overzicht van de
@@ -24,6 +25,8 @@ const SECTIES: { kop: string; slugs: string[] }[] = [
     slugs: ["diensten", "resist", "recover", "restart", "reflex", "ready", "reward", "verzuimabonnementen"],
   },
   { kop: "Voor werkgevers", slugs: ["werkgevers", "kennismaken", "partners"] },
+  // De gidsen (lib/gidsen.ts): één vraag van een werkgever, volledig beantwoord.
+  { kop: "Gidsen", slugs: GIDSEN.map((g) => g.slug) },
   { kop: "Voor werknemers", slugs: ["werknemers", "verzuimprotocol", "je-casemanager", "je-rechten-en-privacy"] },
   { kop: "Over React2u", slugs: ["over-react2u", "certificeringen", "contact"] },
 ];

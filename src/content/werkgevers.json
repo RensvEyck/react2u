@@ -231,8 +231,8 @@
         "alert": {
           "title": "Let op de loonsanctie",
           "text": "Vindt UWV dat er te weinig aan re-integratie is gedaan, dan kan het een loonsanctie opleggen: tot een jaar extra loon doorbetalen. Daarom bewaken wij elke termijn.",
-          "label": "Meer over React2u Recover",
-          "href": "/recover"
+          "label": "Lees de gids: alle stappen van de wet",
+          "href": "/wet-verbetering-poortwachter"
         }
       }
     },

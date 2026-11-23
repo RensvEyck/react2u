@@ -22,6 +22,11 @@ import juridisch from "@/content/juridische-documenten.json";
 import sitemap from "@/content/sitemap.json";
 import certificeringen from "@/content/certificeringen.json";
 import partners from "@/content/partners.json";
+import reIntegratie from "@/content/re-integratie.json";
+import wetVerbeteringPoortwachter from "@/content/wet-verbetering-poortwachter.json";
+import bedrijfsarts from "@/content/bedrijfsarts.json";
+import arbeidsdeskundigOnderzoek from "@/content/arbeidsdeskundig-onderzoek.json";
+import preventiemedewerker from "@/content/preventiemedewerker.json";
 import enHome from "@/content/en/home.json";
 import enEmployees from "@/content/en/employees.json";
 import enSickWhatNow from "@/content/en/sick-what-now.json";
@@ -54,7 +59,11 @@ type ConceptBestand = {
   blocks: { type: string; label?: string | null; data: unknown }[];
 };
 
-const CONCEPTEN: ConceptBestand[] = [home, werkgevers, werknemers, verzuimprotocol, diensten, tarieven, contact, resist, recover, restart, reflex, ready, reward, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen, partners];
+const CONCEPTEN: ConceptBestand[] = [
+  home, werkgevers, werknemers, verzuimprotocol, diensten, tarieven, contact, resist, recover, restart, reflex, ready, reward, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen, partners,
+  // De gidsen (HALO-herstelplan, november 2026; lib/gidsen.ts).
+  reIntegratie, wetVerbeteringPoortwachter, bedrijfsarts, arbeidsdeskundigOnderzoek, preventiemedewerker,
+];
 
 /**
  * De Engelse pagina's (src/content/en/), met dezelfde blokstructuur als het
@@ -107,9 +116,22 @@ export function concept(slug: string): Concept | null {
  */
 export const reserveActief = false;
 
-/** Het concept als reserve voor een pagina die niet gepubliceerd is; null zolang de reserve uit staat. */
+/**
+ * Reserve per pagina: de slugs van nieuwe concepten waarvan de SQL nog niet
+ * gedraaid is. Alleen déze pagina's tonen in productie hun concept zolang de
+ * database ze niet gepubliceerd heeft; een pagina die een beheerder verborg
+ * komt zo niet terug. Haal een slug hier weg zodra de SQL gedraaid is (en de
+ * pagina dus uit de database komt). De gidsen staan erin sinds november 2026
+ * (migratie 0060): de 301 van het oude blogartikel naar
+ * /wet-verbetering-poortwachter mag niet op een 404 uitkomen.
+ */
+export const MIGRATIE_RESERVE: string[] = [
+  "re-integratie", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker",
+];
+
+/** Het concept als reserve voor een pagina die niet gepubliceerd is; null zolang de reserve voor die pagina uit staat. */
 export function reserveConcept(slug: string): Concept | null {
-  if (!reserveActief) return null;
+  if (!reserveActief && !MIGRATIE_RESERVE.includes(slug)) return null;
   return uitBestand(slug, CONCEPTEN);
 }
 
@@ -139,9 +161,10 @@ function uitBestand(slug: string, lijst: ConceptBestand[], taal: Taal = "nl"): C
   };
 }
 
-/** De slugs die als reserve-inhoud bereikbaar zijn, voor sitemap.xml; leeg zolang de reserve uit staat. */
+/** De slugs die als reserve-inhoud bereikbaar zijn, voor sitemap.xml en generateStaticParams; buiten een migratiefase alleen MIGRATIE_RESERVE. */
 export function reserveSlugs(): string[] {
-  return reserveActief ? CONCEPTEN.map((c) => c.slug).filter((s) => s !== "home") : [];
+  const alle = CONCEPTEN.map((c) => c.slug).filter((s) => s !== "home");
+  return reserveActief ? alle : alle.filter((s) => MIGRATIE_RESERVE.includes(s));
 }
 
 /** Slugs van concepten die nog niet als pagina bestaan, voor generateStaticParams. */

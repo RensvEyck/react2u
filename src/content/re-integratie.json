@@ -1,0 +1,258 @@
+{
+  "_uitleg": "Gids over re-integratie, eerste en tweede spoor (HALO-herstelplan, punt 4; zoekwoord re-integratie, 6.600 per maand). Blokken: zie components/blocks/Gids.tsx; wat de site over de gids weet: lib/gidsen.ts.",
+  "slug": "re-integratie",
+  "title": "Re-integratie",
+  "seo_title": "Re-integratie: eerste en tweede spoor uitgelegd • React2u",
+  "seo_description": "Re-integratie bij ziekte: wat het eerste en tweede spoor inhouden, wie wat moet doen, wanneer het tweede spoor moet starten en wat UWV van je verwacht.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Gids · Re-integratie",
+        "kruimel": "Re-integratie",
+        "heading": "Wat is re-integratie en wanneer start het tweede spoor?",
+        "antwoord": "Re-integratie is alles wat werkgever en werknemer doen om een zieke werknemer weer aan het werk te krijgen: eerst in het eigen of ander werk bij jou (het eerste spoor), en als dat niet haalbaar is bij een andere werkgever (het tweede spoor). Het tweede spoor start zodra duidelijk is dat terugkeer bij jou niet lukt, en uiterlijk zes weken na de eerstejaarsevaluatie in week 52.",
+        "text": "Deze gids legt uit wat de wet onder re-integratie verstaat, hoe de twee sporen werken, wie wat moet doen en hoe je op tijd de juiste keuze maakt.",
+        "auteur": { "naam": "Naam collega (invullen)", "functie": "Functie (invullen)" },
+        "gepubliceerd": "2026-11-23",
+        "bijgewerkt": "2026-11-23"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat is re-integratie",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "heading": "Wat re-integratie inhoudt",
+        "tekst": "Zodra een medewerker langer ziek is, verandert de vraag van ‘wanneer ben je beter?’ in ‘wat kun je wél, en hoe krijgen we je daarmee aan het werk?’. Dat tweede is re-integratie. De Wet verbetering poortwachter verplicht jou en je medewerker om daar samen aan te werken, vanaf de eerste week en twee jaar lang.\n\nRe-integratie is dus geen aparte fase aan het eind van het verzuim. Het begint bij de probleemanalyse van de bedrijfsarts in week 6, die beschrijft wat je medewerker nog kan, en bij het plan van aanpak in week 8, waarin jullie afspreken hoe je daar gebruik van maakt. Soms is dat een paar uur per week op therapeutische basis, soms aangepaste taken, soms een andere functie.\n\nDe wet kent drie sporen:\n\n- **Eerste spoor**: terug aan het werk bij jou, in de eigen functie, in de eigen functie met aanpassingen of in een andere functie binnen je organisatie.\n- **Tweede spoor**: werk bij een andere werkgever, als terugkeer bij jou niet haalbaar is.\n- **Derde spoor**: re-integratie ná de WIA-beoordeling, als je eigenrisicodrager bent voor de WGA en je ex-medewerker nog een uitkering van jou ontvangt.\n\nUWV beoordeelt na twee jaar niet alleen óf je medewerker weer werkt, maar vooral of jullie alles hebben gedaan wat redelijk was. Daarom gaat deze gids over de keuzes onderweg: welk spoor, wanneer, en hoe je dat vastlegt.",
+        "kader": {
+          "eyebrow": "Begrip",
+          "titel": "Passende arbeid",
+          "tekst": "Werk dat past bij de krachten en bekwaamheden van je medewerker, en dat je in redelijkheid van hem of haar mag vragen. In het begin betekent dat werk dicht bij de eigen functie; hoe langer het verzuim duurt, hoe breder ‘passend’ wordt. Ook werk met een lager salaris of minder uren kan passend zijn.",
+          "href": "/wet-verbetering-poortwachter",
+          "label": "Alle stappen van de wet"
+        }
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Tijdlijn",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Van week 1 tot week 104",
+        "heading": "Re-integratie in de tijd",
+        "text": "De weken tellen vanaf de eerste ziektedag. De momenten komen uit de Wet verbetering poortwachter; de keuzes ertussen bepaal je samen met de bedrijfsarts en je casemanager.",
+        "items": [
+          {
+            "wanneer": "Week 1",
+            "titel": "Ziekmelding en eerste contact",
+            "wie": "Werkgever",
+            "tekst": "Je meldt je medewerker ziek bij de arbodienst. Het eerste gesprek gaat niet over de diagnose, maar over wat er nodig is om contact te houden en wat je medewerker misschien al wél kan."
+          },
+          {
+            "wanneer": "Week 6",
+            "titel": "Probleemanalyse: wat kan je medewerker nog?",
+            "wie": "Bedrijfsarts",
+            "tekst": "De bedrijfsarts beschrijft de beperkingen en de mogelijkheden voor werk, de verwachte duur en een advies voor de re-integratie. Dit is de basis voor alles wat volgt."
+          },
+          {
+            "wanneer": "Week 8",
+            "titel": "Plan van aanpak",
+            "wie": "Werkgever en werknemer",
+            "tekst": "Jullie spreken af wat het doel is (terug in eigen werk, ander werk, opbouw in uren), welke stappen jullie zetten en wanneer je evalueert. Jij wijst een casemanager aan."
+          },
+          {
+            "wanneer": "Elke 6 weken",
+            "titel": "Evalueren en bijstellen",
+            "wie": "Werkgever en werknemer",
+            "tekst": "Lukt de opbouw? Zijn de aanpassingen genoeg? Elk gesprek leg je kort vast. Verandert het beeld, dan stel je het plan bij."
+          },
+          {
+            "wanneer": "Week 42",
+            "titel": "Melding bij UWV en arbeidsdeskundig onderzoek",
+            "wie": "Werkgever",
+            "tekst": "Je meldt de ziekte bij UWV. Is terugkeer in het eigen werk onzeker, dan laat je rond dit moment een arbeidsdeskundig onderzoek doen: welk werk past er nog bij jou, en zo niet, hoe ziet het tweede spoor eruit?"
+          },
+          {
+            "wanneer": "Week 52",
+            "titel": "Eerstejaarsevaluatie",
+            "wie": "Werkgever en werknemer",
+            "tekst": "Het opschudmoment: is er concreet zicht op terugkeer bij jou? Zo niet, dan moet uiterlijk zes weken na deze evaluatie een tweedespoortraject gestart zijn."
+          },
+          {
+            "wanneer": "Week 52 tot 91",
+            "titel": "Tweede spoor loopt",
+            "wie": "Werknemer en re-integratiebegeleider",
+            "tekst": "Een adequaat tweedespoortraject: loopbaanonderzoek, sollicitatietraining, netwerk, proefplaatsingen. Het eerste spoor blijft ondertussen open als je medewerker herstelt."
+          },
+          {
+            "wanneer": "Week 88 tot 93",
+            "titel": "Re-integratieverslag en WIA-aanvraag",
+            "wie": "Werkgever, werknemer en bedrijfsarts",
+            "tekst": "Jullie leggen in de eindevaluatie vast wat er is gedaan, de bedrijfsarts geeft een actueel oordeel en je medewerker vraagt uiterlijk in week 93 de WIA aan."
+          },
+          {
+            "wanneer": "Week 104",
+            "titel": "Beoordeling door UWV",
+            "wie": "UWV",
+            "tekst": "UWV toetst de re-integratie-inspanningen en beoordeelt daarna de arbeidsongeschiktheid. Voldoende inspanning: einde loondoorbetaling. Onvoldoende: een loonsanctie tot 52 weken."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Eerste spoor",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "heading": "Eerste spoor: terug bij je eigen organisatie",
+        "tekst": "Het eerste spoor is het uitgangspunt van de wet: je medewerker komt terug bij jou. In deze volgorde onderzoek je de mogelijkheden:\n\n- **Eigen functie**, eventueel met een opbouw in uren of taken.\n- **Eigen functie met aanpassingen**: andere werktijden, een aangepaste werkplek, hulpmiddelen, minder fysieke of mentale belasting.\n- **Andere functie** binnen je organisatie, ook een functie die je anders niet open zou stellen, als die passend is.\n\nDe meeste re-integraties slagen in het eerste spoor, vaak met een geleidelijke opbouw. Vroeg beginnen helpt: een paar uur per week op therapeutische basis, zonder productie-eisen, houdt het contact warm en laat zien wat haalbaar is.\n\nWat UWV van je verwacht in het eerste spoor is concreet. Je hebt onderzocht of het eigen werk passend te maken is. Je hebt gekeken naar ander werk bij jou, ook bij andere afdelingen of vestigingen. En je hebt dat onderbouwd: met het advies van de bedrijfsarts, en bij twijfel met een [arbeidsdeskundig onderzoek](/arbeidsdeskundig-onderzoek). Een rapport van de arbeidsdeskundige waarin staat dat er bij jou geen passend werk is, is het bewijs dat je het tweede spoor terecht start.",
+        "kader": {
+          "eyebrow": "Praktisch",
+          "titel": "Opbouwschema",
+          "tekst": "Een goed opbouwschema is concreet: welke dag, hoeveel uur, welke taken, en wanneer de volgende stap. Zet het in het plan van aanpak en evalueer het elke zes weken. Ook een stap terug is een stap, zolang je hem vastlegt."
+        }
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Tweede spoor",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "heading": "Tweede spoor: naar een andere werkgever",
+        "tekst": "Lukt terugkeer bij jou niet, dan verschuift het doel naar passend werk bij een andere werkgever. Dat is het tweede spoor. Het start zodra duidelijk is dat het eerste spoor niet haalbaar is, en in elk geval binnen zes weken na de eerstejaarsevaluatie als er dan geen concreet zicht op terugkeer bij jou is.\n\nEen tweedespoortraject wordt uitgevoerd door een re-integratiebureau of de arbodienst, met een vaste begeleider. Een volwaardig traject bestaat uit:\n\n- een intake en een loopbaanonderzoek: wat kan, wil en weet je medewerker?\n- een zoekprofiel met passende functies en een realistisch zoekgebied\n- sollicitatietraining, cv en netwerk, en hulp bij vacatures\n- proefplaatsingen of detachering bij een andere werkgever\n- rapportages aan jou, die in het re-integratiedossier gaan\n\nUWV noemt dit een adequaat traject: gericht op werk, met concrete activiteiten en rapportages. Een traject dat alleen uit gesprekken bestaat, telt niet. Het duurt doorgaans zes tot twaalf maanden, tot het einde van de loondoorbetaling of tot je medewerker elders aan de slag is.\n\nBelangrijk: het tweede spoor sluit het eerste niet uit. Herstelt je medewerker alsnog, dan keert hij of zij gewoon bij jou terug. Het dienstverband loopt tijdens het tweede spoor door: je blijft loon betalen en je medewerker werkt mee aan beide sporen.",
+        "kader": {
+          "eyebrow": "Veelgemaakte fout",
+          "titel": "Wachten op herstel",
+          "tekst": "Hopen dat het goed komt is menselijk, maar UWV kijkt naar wat je deed, niet naar wat je hoopte. Twijfel bij de eerstejaarsevaluatie? Start het tweede spoor en stop het weer als het niet nodig blijkt. Dat kost een paar weken; een loonsanctie kost een jaar."
+        }
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Drie sporen",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Op een rij",
+        "heading": "Eerste, tweede en derde spoor naast elkaar",
+        "text": "Per spoor: het doel, wanneer het speelt, wie het uitvoert en wat UWV ervan wil zien.",
+        "kolommen": ["Spoor", "Doel", "Wanneer", "Wie voert uit", "Wat UWV wil zien"],
+        "rijen": [
+          ["Eerste spoor", "Terug bij de eigen werkgever: eigen, aangepast of ander werk", "Vanaf week 1, de hele loondoorbetaling", "Werkgever en werknemer, met bedrijfsarts en casemanager", "Opbouwschema, aanpassingen, onderzoek naar ander werk, arbeidsdeskundig advies"],
+          ["Tweede spoor", "Passend werk bij een andere werkgever", "Zodra terugkeer niet haalbaar is; uiterlijk zes weken na de eerstejaarsevaluatie (week 52)", "Re-integratiebureau of arbodienst, in opdracht van de werkgever", "Een adequaat traject: intake, zoekprofiel, sollicitatieactiviteiten, rapportages"],
+          ["Derde spoor", "Werkhervatting na de WIA-beoordeling", "Na week 104, tot maximaal tien jaar bij eigenrisicodragerschap WGA", "Eigenrisicodrager (werkgever) of UWV", "Begeleiding van de ex-werknemer naar werk, om de WGA-lasten te beperken"]
+        ],
+        "noot": "Bij React2u Restart loopt het tweede spoor met een vaste begeleider en rapporteren we elke zes weken aan jou, voor het poortwachterdossier."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Verplichtingen",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "heading": "Wat jij moet doen, en wat je medewerker moet doen",
+        "tekst": "### Als werkgever\n\n- Je zorgt voor de probleemanalyse (week 6) en het plan van aanpak (week 8), en je stelt dat plan bij als de situatie verandert.\n- Je onderzoekt aantoonbaar of het eigen werk passend te maken is en of er ander werk bij jou is.\n- Je biedt passend werk aan als dat er is, en legt vast wat je aanbood.\n- Je start het tweede spoor op tijd en kiest een traject dat echt op werk is gericht.\n- Je betaalt het loon door, minimaal 70 procent en in het eerste jaar minstens het minimumloon.\n- Je houdt een dossier bij met elk gesprek, elke afspraak en elk document.\n\n### Als werknemer\n\n- Meewerken aan herstel: behandelingen volgen, afspraken met de bedrijfsarts nakomen.\n- Passend werk accepteren, ook als dat ander werk is dan de eigen functie.\n- Meewerken aan het plan van aanpak en aan het tweede spoor.\n- Bereikbaar zijn en melden wat verandert.\n\nWerkt je medewerker niet mee, dan mag je het loon opschorten (bij het niet naleven van controlevoorschriften) of stopzetten (bij het weigeren van passend werk of re-integratie). Nooit zonder schriftelijke waarschuwing vooraf, en overleg eerst met je casemanager: een loonstop die niet klopt, keert zich tegen je.\n\nZijn jullie het oneens over wat passend is of over de inspanningen van de ander? Dan vraagt een van jullie een **deskundigenoordeel** aan bij UWV. Dat onafhankelijke oordeel kost een werkgever 400 euro en een werknemer 100 euro, en geeft houvast voor de rest van het traject."
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over re-integratie",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Wanneer moet het tweede spoor uiterlijk starten?",
+            "answer": "Zodra duidelijk is dat terugkeer bij jou niet haalbaar is, en in elk geval binnen zes weken na de eerstejaarsevaluatie in week 52. Is al in week 30 duidelijk dat het eigen werk niet meer gaat lukken, dan start je dus eerder."
+          },
+          {
+            "question": "Mag ik het tweede spoor stoppen als mijn medewerker herstelt?",
+            "answer": "Ja. Het tweede spoor is een inspanning naast het eerste, geen eindstation. Kan je medewerker terug in passend werk bij jou, dan rond je het tweede spoor af en leg je dat vast in het plan van aanpak."
+          },
+          {
+            "question": "Moet ik een andere functie creëren voor mijn zieke medewerker?",
+            "answer": "Je hoeft geen nieuwe functie te bedenken, maar je moet wel serieus onderzoeken of bestaand werk passend te maken is, ook door taken te herschikken. Van een grote organisatie verwacht UWV meer dan van een klein bedrijf; een arbeidsdeskundig onderzoek onderbouwt wat redelijk is."
+          },
+          {
+            "question": "Wat is het verschil tussen loonopschorting en loonstop?",
+            "answer": "Loonopschorting gebruik je als je medewerker controlevoorschriften niet naleeft, bijvoorbeeld niet verschijnt bij de bedrijfsarts; het loon volgt alsnog zodra hij of zij weer meewerkt. Een loonstop gebruik je bij het weigeren van passend werk of re-integratie; dat loon vervalt. Beide vragen om een schriftelijke waarschuwing vooraf."
+          },
+          {
+            "question": "Wie betaalt het tweedespoortraject?",
+            "answer": "Jij als werkgever; de kosten horen bij je re-integratieverplichting. Soms draagt een verzuimverzekering bij. Een loonsanctie is vrijwel altijd duurder dan een goed traject."
+          },
+          {
+            "question": "Kan ik mijn medewerker tijdens de re-integratie ontslaan?",
+            "answer": "In de eerste twee ziektejaren geldt een opzegverbod. Na 104 weken, zonder loonsanctie, kun je het dienstverband beëindigen met een ontslagvergunning van UWV of een vaststellingsovereenkomst. Voor de transitievergoeding kun je compensatie aanvragen bij UWV."
+          },
+          {
+            "question": "Wat als mijn medewerker zelf ergens anders wil gaan werken?",
+            "answer": "Dat mag, en het is vaak een goed resultaat van het tweede spoor. Een proefplaatsing of detachering bij de nieuwe werkgever kan een tussenstap zijn, met behoud van het dienstverband bij jou tot het zeker is. Leg de afspraken vast in het dossier."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#F19001",
+        "tint": "#FEF3E3",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Op tijd de juiste keuze, en een traject dat echt naar werk leidt",
+        "tekst": "Met React2u Restart kijken we naar wat iemand nog wél kan. Een arbeidsdeskundige onderbouwt welk spoor passend is, een vaste begeleider voert het tweede spoor uit en je casemanager zorgt dat elk verslag in het poortwachterdossier komt. Zo voldoe je aan je re-integratieverplichting én krijgt je medewerker echt perspectief.",
+        "punten": [
+          "Arbeidsdeskundig onderzoek en advies over het juiste spoor",
+          "Tweede spoor met een vaste begeleider en rapportage elke zes weken",
+          "Loopbaancoaching en outplacement als dat beter past",
+          "Alles afgestemd met je casemanager en de bedrijfsarts"
+        ],
+        "dienst": {
+          "naam": "Restart",
+          "wat": "Re-integratie eerste en tweede spoor",
+          "tekst": "Tweede spoor, arbeidsdeskundig onderzoek, loopbaanbegeleiding en coaching.",
+          "href": "/restart",
+          "label": "Meer over React2u Restart"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: Wet verbetering poortwachter", "href": "/wet-verbetering-poortwachter" },
+          { "label": "Gids: arbeidsdeskundig onderzoek", "href": "/arbeidsdeskundig-onderzoek" },
+          { "label": "Gids: de bedrijfsarts", "href": "/bedrijfsarts" },
+          { "label": "Medewerker langdurig ziek? Dit moet je weten", "href": "/blog/medewerker-langdurig-ziek" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

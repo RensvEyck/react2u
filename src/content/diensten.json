@@ -252,6 +252,17 @@
       }
     },
     {
+      "type": "gidsenKaarten",
+      "label": "Gidsen",
+      "data": {
+        "eyebrow": "Eerst lezen, dan kiezen",
+        "heading": "De vragen achter onze diensten",
+        "text": "Vijf gidsen over re-integratie, de Wet verbetering poortwachter, de bedrijfsarts, het arbeidsdeskundig onderzoek en de preventiemedewerker.",
+        "link": { "label": "Alle gidsen en artikelen", "href": "/blog" },
+        "bg": "#F6F5FB"
+      }
+    },
+    {
       "type": "homeContact",
       "label": "Contact",
       "data": {

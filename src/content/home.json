@@ -122,6 +122,17 @@
       }
     },
     {
+      "type": "gidsenKaarten",
+      "label": "Gidsen",
+      "data": {
+        "eyebrow": "Verdieping",
+        "heading": "Verzuim, helder uitgelegd",
+        "text": "De onderwerpen waar werkgevers het vaakst naar zoeken, met stappen, termijnen en antwoorden op de vragen die erbij horen.",
+        "link": { "label": "Alle gidsen en artikelen", "href": "/blog" },
+        "bg": "#ffffff"
+      }
+    },
+    {
       "type": "homeContact",
       "label": "Contact",
       "data": {
