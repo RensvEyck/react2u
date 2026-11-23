@@ -360,7 +360,8 @@ export function GidsKaart({ gids, compact = false }: { gids: Gids; compact?: boo
       <span className="relative flex items-center gap-2.5 text-[13px] font-bold" style={{ color: inkt(c) }}>
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: c }} />Gids · {gids.naam}
       </span>
-      <span className={`${kop} relative ${compact ? "text-[19px]" : "text-[21px] md:text-[22px]"} leading-[1.22] tracking-[-0.3px]`}>{gids.vraag}</span>
+      {/* Vijf kaarten op een rij (1400px) zijn smal: lange woorden als "preventiemedewerker" afbreken in plaats van uit de kaart laten lopen. */}
+      <span lang="nl" className={`${kop} relative ${compact ? "text-[19px]" : "text-[21px] md:text-[22px] min-[87.5rem]:text-[20px]"} leading-[1.22] tracking-[-0.3px] hyphens-auto [overflow-wrap:anywhere]`}>{gids.vraag}</span>
       {!compact && <span className="relative text-[15px] leading-[1.55]" style={{ color: BODY }}>{gids.kort}</span>}
       <span className="relative mt-auto flex items-center justify-between gap-3 pt-2 text-[14.5px] font-bold">
         <span>Lees de gids</span>
