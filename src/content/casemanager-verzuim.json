@@ -182,6 +182,31 @@
       }
     },
     {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Wet verbetering poortwachter",
+            "href": "https://wetten.overheid.nl/BWBR0013063",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "UWV: Werkwijzer Poortwachter, WIA en het deskundigenoordeel",
+            "href": "https://www.uwv.nl/",
+            "uitgever": "UWV"
+          },
+          {
+            "titel": "Autoriteit Persoonsgegevens: wat een werkgever mag vastleggen bij ziekte",
+            "href": "https://www.autoriteitpersoonsgegevens.nl/",
+            "uitgever": "Autoriteit Persoonsgegevens"
+          }
+        ]
+      }
+    },
+    {
       "type": "gidsHelpt",
       "label": "Zo helpt React2u",
       "data": {

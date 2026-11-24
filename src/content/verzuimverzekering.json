@@ -172,6 +172,31 @@
       }
     },
     {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Burgerlijk Wetboek Boek 7, titel 10 (arbeidsovereenkomst, loondoorbetaling bij ziekte)",
+            "href": "https://wetten.overheid.nl/BWBR0005290",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Verbond van Verzekeraars: de mkb verzuim-ontzorgverzekering",
+            "href": "https://www.verzekeraars.nl/",
+            "uitgever": "Verbond van Verzekeraars"
+          },
+          {
+            "titel": "Rijksoverheid: ziekteverzuim en re-integratie",
+            "href": "https://www.rijksoverheid.nl/onderwerpen/ziekteverzuim-van-het-werk",
+            "uitgever": "Rijksoverheid"
+          }
+        ]
+      }
+    },
+    {
       "type": "gidsHelpt",
       "label": "Zo helpt React2u",
       "data": {

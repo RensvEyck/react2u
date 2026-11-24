@@ -178,6 +178,31 @@
       }
     },
     {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Ziektewet",
+            "href": "https://wetten.overheid.nl/BWBR0001888",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "UWV: Ziektewet en eigenrisicodragerschap",
+            "href": "https://www.uwv.nl/",
+            "uitgever": "UWV"
+          },
+          {
+            "titel": "Belastingdienst: eigenrisicodragerschap en de gedifferentieerde premie Whk",
+            "href": "https://www.belastingdienst.nl/",
+            "uitgever": "Belastingdienst"
+          }
+        ]
+      }
+    },
+    {
       "type": "gidsHelpt",
       "label": "Zo helpt React2u",
       "data": {

@@ -170,6 +170,36 @@
       }
     },
     {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Wet werk en inkomen naar arbeidsvermogen (WIA)",
+            "href": "https://wetten.overheid.nl/BWBR0019057",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Burgerlijk Wetboek Boek 7, titel 10 (arbeidsovereenkomst, loondoorbetaling bij ziekte)",
+            "href": "https://wetten.overheid.nl/BWBR0005290",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "UWV: Werkwijzer Poortwachter, WIA en het deskundigenoordeel",
+            "href": "https://www.uwv.nl/",
+            "uitgever": "UWV"
+          },
+          {
+            "titel": "Rijksoverheid: ziekteverzuim en re-integratie",
+            "href": "https://www.rijksoverheid.nl/onderwerpen/ziekteverzuim-van-het-werk",
+            "uitgever": "Rijksoverheid"
+          }
+        ]
+      }
+    },
+    {
       "type": "gidsHelpt",
       "label": "Zo helpt React2u",
       "data": {

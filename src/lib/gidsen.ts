@@ -35,6 +35,8 @@ export type Gids = {
   dienst: GidsDienst;
   /** Het onderwerp in de kennisbank (/kennis/<onderwerp>). */
   onderwerp: OnderwerpSlug;
+  /** De auteur (slug uit lib/auteurs.ts); dezelfde naam staat in de kop van de gids. */
+  auteur: string;
 };
 
 /** De labeltint per dienst, dezelfde als op de dienstpagina (src/content/<label>.json). */
@@ -78,6 +80,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "re-integratie",
     dienst: "restart",
     onderwerp: "re-integratie",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "arbodienst",
@@ -87,6 +90,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "arbodienst",
     dienst: "recover",
     onderwerp: "verzuim",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "wet-verbetering-poortwachter",
@@ -96,6 +100,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "wet verbetering poortwachter",
     dienst: "recover",
     onderwerp: "wet-en-regels",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "bedrijfsarts",
@@ -105,6 +110,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "bedrijfsarts",
     dienst: "recover",
     onderwerp: "verzuim",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "arbeidsdeskundig-onderzoek",
@@ -114,6 +120,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "arbeidsdeskundig onderzoek",
     dienst: "restart",
     onderwerp: "re-integratie",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "preventiemedewerker",
@@ -123,6 +130,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "preventiemedewerker",
     dienst: "resist",
     onderwerp: "preventie",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "zieke-werknemer",
@@ -132,6 +140,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "zieke werknemer",
     dienst: "recover",
     onderwerp: "verzuim",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "verzuimverzekering",
@@ -141,6 +150,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "verzuimverzekering",
     dienst: "recover",
     onderwerp: "verzuim",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "casemanager-verzuim",
@@ -150,6 +160,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "casemanager verzuim",
     dienst: "recover",
     onderwerp: "verzuim",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "loonsanctie",
@@ -159,6 +170,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "loonsanctie",
     dienst: "recover",
     onderwerp: "wet-en-regels",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "rie",
@@ -168,6 +180,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "ri&e",
     dienst: "resist",
     onderwerp: "preventie",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "eigenrisicodrager-ziektewet",
@@ -177,6 +190,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "eigenrisicodrager ziektewet",
     dienst: "reflex",
     onderwerp: "wet-en-regels",
+    auteur: "rens-van-eyck",
   },
   {
     slug: "twee-jaar-ziek",
@@ -186,6 +200,7 @@ export const GIDSEN: Gids[] = [
     zoekwoord: "twee jaar ziek",
     dienst: "ready",
     onderwerp: "wet-en-regels",
+    auteur: "rens-van-eyck",
   },
 ];
 
@@ -201,6 +216,20 @@ export function gidsVoor(padOfSlug: string): Gids | null {
 /** De gidsen bij een dienst, voor de strook "Lees ook" op een dienstpagina. */
 export function gidsenBij(dienst: string): Gids[] {
   return GIDSEN.filter((g) => g.dienst === dienst);
+}
+
+/**
+ * Wanneer een gids voor het laatst is bijgewerkt: de datum in de kop, of de
+ * laatste wijziging van de pagina in de database als die later is. Zo klopt
+ * "bijgewerkt op" ook als een collega in het beheer een alinea aanpast
+ * zonder de datum in de kop te verzetten.
+ */
+export function bijgewerktOp(inKop: string | null | undefined, uitDatabase: string | null | undefined): string | null {
+  const geldig = (s: string | null | undefined) => (s && /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null);
+  const a = geldig(inKop);
+  const b = geldig(uitDatabase);
+  if (a && b) return a > b ? a : b;
+  return a ?? b;
 }
 
 /** Alle gidspaden, voor doelgroepVoorPad (een gids is voor werkgevers geschreven). */
@@ -252,7 +281,7 @@ function tekstUit(v: unknown, sleutel?: string): string {
  */
 export function gidsWoorden(blocks: { type: string; data: unknown }[]): number {
   return blocks
-    .filter((b) => b.type.startsWith("gids") && b.type !== "gidsenKaarten")
+    .filter((b) => b.type.startsWith("gids") && b.type !== "gidsenKaarten" && b.type !== "gidsBronnen")
     .map((b) => tekstUit(b.data).split(/\s+/).filter(Boolean).length)
     .reduce((a, b) => a + b, 0);
 }
