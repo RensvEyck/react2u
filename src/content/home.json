@@ -128,7 +128,8 @@
         "eyebrow": "Verdieping",
         "heading": "Verzuim, helder uitgelegd",
         "text": "De onderwerpen waar werkgevers het vaakst naar zoeken, met stappen, termijnen en antwoorden op de vragen die erbij horen.",
-        "link": { "label": "Alle gidsen en artikelen", "href": "/blog" },
+        "slugs": ["re-integratie", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker"],
+        "link": { "label": "Naar de kennisbank", "href": "/kennis" },
         "bg": "#ffffff"
       }
     },

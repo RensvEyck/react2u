@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { GIDSEN, GIDS_VAN_ARTIKEL, gidsAnker, gidsVoor, gidsWoorden, gidsenBij } from "./gidsen";
+import { EERSTE_REEKS, GIDSEN, GIDS_VAN_ARTIKEL, gidsAnker, gidsVoor, gidsWoorden, gidsenBij } from "./gidsen";
 import { crumbsVoor, doelgroepVoorPad } from "./nav";
 import { GIDS_REDIRECTS, coveredByWordpress, createsLoop, VASTE_REDIRECTS } from "./redirects";
 import { DESC_MAX, TITLE_MAX } from "./seo";
@@ -26,20 +26,25 @@ const alleTekst = (v: unknown): string =>
   typeof v === "string" ? v : Array.isArray(v) ? v.map(alleTekst).join(" ") : v && typeof v === "object" ? Object.values(v).map(alleTekst).join(" ") : "";
 
 describe("de vijf gidsen", () => {
-  it("zijn de vijf uit het herstelplan, elk met een conceptbestand op dezelfde slug", () => {
+  it("zijn de vijf uit het herstelplan plus de tweede reeks, elk met een conceptbestand op dezelfde slug", () => {
+    expect(EERSTE_REEKS).toEqual(["re-integratie", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker"]);
     expect(GIDSEN.map((g) => g.slug)).toEqual([
-      "re-integratie", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker",
+      "re-integratie", "arbodienst", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker",
+      "zieke-werknemer", "verzuimverzekering", "casemanager-verzuim", "loonsanctie", "rie", "eigenrisicodrager-ziektewet", "twee-jaar-ziek",
     ]);
+    expect(new Set(GIDSEN.map((g) => g.slug)).size).toBe(GIDSEN.length);
     for (const g of GIDSEN) expect(concept(g.slug).slug).toBe(g.slug);
     expect(gidsVoor("/bedrijfsarts")?.naam).toBe("Bedrijfsarts");
     expect(gidsVoor("/bedrijfsarts/")?.slug).toBe("bedrijfsarts");
     expect(gidsVoor("/recover")).toBeNull();
   });
 
-  it("verwijzen naar de passende dienst: Restart, Recover of Resist", () => {
+  it("verwijzen naar de passende dienst", () => {
     expect(gidsenBij("restart").map((g) => g.slug)).toEqual(["re-integratie", "arbeidsdeskundig-onderzoek"]);
-    expect(gidsenBij("recover").map((g) => g.slug)).toEqual(["wet-verbetering-poortwachter", "bedrijfsarts"]);
-    expect(gidsenBij("resist").map((g) => g.slug)).toEqual(["preventiemedewerker"]);
+    expect(gidsenBij("recover").map((g) => g.slug)).toEqual(["arbodienst", "wet-verbetering-poortwachter", "bedrijfsarts", "zieke-werknemer", "verzuimverzekering", "casemanager-verzuim", "loonsanctie"]);
+    expect(gidsenBij("resist").map((g) => g.slug)).toEqual(["preventiemedewerker", "rie"]);
+    expect(gidsenBij("reflex").map((g) => g.slug)).toEqual(["eigenrisicodrager-ziektewet"]);
+    expect(gidsenBij("ready").map((g) => g.slug)).toEqual(["twee-jaar-ziek"]);
     for (const g of GIDSEN) {
       const helpt = blok(concept(g.slug), "gidsHelpt")?.data as { dienst?: { href?: string; naam?: string; wat?: string }; kennismaken?: { href?: string } };
       expect(helpt?.dienst?.href).toBe(`/${g.dienst}`);
@@ -128,14 +133,21 @@ describe("de vijf gidsen", () => {
     expect(doelgroepVoorPad("/re-integratie")).toBe("werkgever");
     expect(crumbsVoor("/re-integratie", "Re-integratie")).toEqual([
       { label: "Werkgevers", href: "/werkgevers" },
-      { label: "Kennis", href: "/blog" },
+      { label: "Kennis", href: "/kennis" },
       { label: "Re-integratie", href: "/re-integratie" },
     ]);
+    expect(doelgroepVoorPad("/kennis/wet-en-regels")).toBe("werkgever");
   });
 
-  it("stuurt het oude Poortwachter-artikel met een vaste 301 naar de gids, zonder lus", () => {
-    expect(GIDS_VAN_ARTIKEL).toEqual([{ artikel: "wet-verbetering-poortwachter-stappen", gids: "wet-verbetering-poortwachter" }]);
-    expect(GIDS_REDIRECTS).toEqual([{ source: "/blog/wet-verbetering-poortwachter-stappen", destination: "/wet-verbetering-poortwachter" }]);
+  it("stuurt de artikelen die een gids werden met een vaste 301 naar de gids, zonder lus", () => {
+    expect(GIDS_VAN_ARTIKEL).toEqual([
+      { artikel: "wet-verbetering-poortwachter-stappen", gids: "wet-verbetering-poortwachter" },
+      { artikel: "loonsanctie-uwv", gids: "loonsanctie" },
+    ]);
+    expect(GIDS_REDIRECTS).toEqual([
+      { source: "/blog/wet-verbetering-poortwachter-stappen", destination: "/wet-verbetering-poortwachter" },
+      { source: "/blog/loonsanctie-uwv", destination: "/loonsanctie" },
+    ]);
     expect(coveredByWordpress("/blog/wet-verbetering-poortwachter-stappen")?.destination).toBe("/wet-verbetering-poortwachter");
     expect(coveredByWordpress("/wet-verbetering-poortwachter")).toBeNull();
     const regels = VASTE_REDIRECTS.map((r) => ({ ...r, permanent: true }));

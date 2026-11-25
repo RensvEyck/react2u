@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePerm } from "@/lib/admin";
-import { updatePageMeta, addBlock, deletePage, restoreRevision } from "@/app/admin/actions";
-import { BLOCK_TEMPLATES } from "@/lib/blockTemplates";
+import { updatePageMeta, addBlock, deletePage, restoreRevision, vulMetSjabloon } from "@/app/admin/actions";
+import { BLOCK_TEMPLATES, PAGINA_SJABLONEN } from "@/lib/blockTemplates";
 import ConfirmButton from "@/components/admin/ConfirmButton";
 import BlockList from "@/components/admin/BlockList";
 import VersionHistory from "@/components/admin/VersionHistory";
@@ -71,6 +71,20 @@ export default async function PageAdmin({ params }: { params: Promise<{ slug: st
           }))}
         />
 
+        {blocks.length === 0 && (
+          <div className="mt-3 rounded-2xl border border-black/[0.08] bg-white p-5">
+            <p className="text-[14px] font-semibold text-[#1c1a4e]">Begin met een sjabloon</p>
+            <p className="mt-0.5 text-[13px] text-black/45">Alle blokken van een pagina in één keer, met voorbeeldteksten om te vervangen.</p>
+            <form action={vulMetSjabloon.bind(null, slug)} className="mt-3 flex flex-wrap gap-2">
+              {Object.entries(PAGINA_SJABLONEN).map(([key, t]) => (
+                <button key={key} name="sjabloon" value={key} title={t.uitleg}
+                  className="rounded-xl border border-black/[0.08] bg-[#fafafd] px-4 py-3 text-left text-[13.5px] font-semibold text-[#1c1a4e] transition hover:border-[#e75387]/50 hover:bg-white hover:text-[#e75387]">
+                  {t.label}
+                </button>
+              ))}
+            </form>
+          </div>
+        )}
         <details className="group mt-3 rounded-2xl border border-dashed border-black/15 bg-white/50 open:border-solid open:bg-white">
           <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-3.5 text-[14px] font-semibold text-[#312e82] transition hover:text-[#e75387] [&::-webkit-details-marker]:hidden">
             <LuPlus className="text-[16px]" /> Blok toevoegen

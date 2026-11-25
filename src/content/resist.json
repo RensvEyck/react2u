@@ -122,7 +122,7 @@
             "tekst": "We spreken vooraf doelen af en laten zien wat het oplevert."
           }
         ],
-        "gidsen": ["preventiemedewerker"],
+        "gidsen": ["preventiemedewerker", "rie"],
         "ook": [
           {
             "naam": "Recover",

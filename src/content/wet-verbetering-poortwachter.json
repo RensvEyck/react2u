@@ -165,7 +165,7 @@
         "kleur": "#E61674",
         "tint": "#FDECF4",
         "heading": "Vijf fouten die we het vaakst zien",
-        "tekst": "- **Te laat ziekmelden bij de arbodienst.** Een melding in week 3 betekent een probleemanalyse die al krap zit. Meld op dag één.\n- **Het plan van aanpak niet bijstellen.** Een plan uit week 8 dat in week 60 nog hetzelfde is, zegt UWV dat er niets is gebeurd. Elk voortgangsgesprek is een reden om iets te veranderen, of vast te leggen dat er niets verandert.\n- **De 42e-weeksmelding vergeten.** Een klein formulier met grote gevolgen: te laat melden kan een boete opleveren.\n- **Het tweede spoor uitstellen.** Hopen op herstel is menselijk, maar de wet vraagt om handelen. Twijfel je bij de eerstejaarsevaluatie, start dan en stop weer als het niet nodig blijkt.\n- **Afspraken niet vastleggen.** Een telefoontje dat niet in het dossier staat, heeft voor UWV niet plaatsgevonden.\n\nLees ook: [7 veelgemaakte fouten in het Poortwachter-traject](/blog/fouten-wet-verbetering-poortwachter) en [Wat is een loonsanctie en wanneer krijg je die?](/blog/loonsanctie-uwv)",
+        "tekst": "- **Te laat ziekmelden bij de arbodienst.** Een melding in week 3 betekent een probleemanalyse die al krap zit. Meld op dag één.\n- **Het plan van aanpak niet bijstellen.** Een plan uit week 8 dat in week 60 nog hetzelfde is, zegt UWV dat er niets is gebeurd. Elk voortgangsgesprek is een reden om iets te veranderen, of vast te leggen dat er niets verandert.\n- **De 42e-weeksmelding vergeten.** Een klein formulier met grote gevolgen: te laat melden kan een boete opleveren.\n- **Het tweede spoor uitstellen.** Hopen op herstel is menselijk, maar de wet vraagt om handelen. Twijfel je bij de eerstejaarsevaluatie, start dan en stop weer als het niet nodig blijkt.\n- **Afspraken niet vastleggen.** Een telefoontje dat niet in het dossier staat, heeft voor UWV niet plaatsgevonden.\n\nLees ook: [7 veelgemaakte fouten in het Poortwachter-traject](/blog/fouten-wet-verbetering-poortwachter) en [de gids over de loonsanctie](/loonsanctie)",
         "kader": {
           "eyebrow": "Werkgevers",
           "titel": "Wat jij doet en wat wij doen",
@@ -212,6 +212,36 @@
           {
             "question": "Wat is een deskundigenoordeel en wanneer vraag ik dat aan?",
             "answer": "Een onafhankelijk oordeel van UWV over een vraag in het traject: zijn de re-integratie-inspanningen voldoende, is het aangeboden werk passend, is de werknemer arbeidsongeschikt? Vraag het aan als jij en je medewerker het oneens zijn, of als je zeker wilt weten dat je op koers ligt. Het kost een werkgever 400 euro."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Wet verbetering poortwachter",
+            "href": "https://wetten.overheid.nl/BWBR0013063",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Burgerlijk Wetboek Boek 7, titel 10 (arbeidsovereenkomst, loondoorbetaling bij ziekte)",
+            "href": "https://wetten.overheid.nl/BWBR0005290",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "UWV: Werkwijzer Poortwachter, WIA en het deskundigenoordeel",
+            "href": "https://www.uwv.nl/",
+            "uitgever": "UWV"
+          },
+          {
+            "titel": "Rijksoverheid: ziekteverzuim en re-integratie",
+            "href": "https://www.rijksoverheid.nl/onderwerpen/ziekteverzuim-van-het-werk",
+            "uitgever": "Rijksoverheid"
           }
         ]
       }

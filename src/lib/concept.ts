@@ -27,6 +27,14 @@ import wetVerbeteringPoortwachter from "@/content/wet-verbetering-poortwachter.j
 import bedrijfsarts from "@/content/bedrijfsarts.json";
 import arbeidsdeskundigOnderzoek from "@/content/arbeidsdeskundig-onderzoek.json";
 import preventiemedewerker from "@/content/preventiemedewerker.json";
+import arbodienst from "@/content/arbodienst.json";
+import ziekeWerknemer from "@/content/zieke-werknemer.json";
+import verzuimverzekering from "@/content/verzuimverzekering.json";
+import casemanagerVerzuim from "@/content/casemanager-verzuim.json";
+import loonsanctie from "@/content/loonsanctie.json";
+import rie from "@/content/rie.json";
+import eigenrisicodragerZiektewet from "@/content/eigenrisicodrager-ziektewet.json";
+import tweeJaarZiek from "@/content/twee-jaar-ziek.json";
 import enHome from "@/content/en/home.json";
 import enEmployees from "@/content/en/employees.json";
 import enSickWhatNow from "@/content/en/sick-what-now.json";
@@ -61,8 +69,9 @@ type ConceptBestand = {
 
 const CONCEPTEN: ConceptBestand[] = [
   home, werkgevers, werknemers, verzuimprotocol, diensten, tarieven, contact, resist, recover, restart, reflex, ready, reward, overReact2u, kennismaken, jeRechten, jeCasemanager, inloggen, juridisch, sitemap, certificeringen, partners,
-  // De gidsen (HALO-herstelplan, november 2026; lib/gidsen.ts).
+  // De gidsen (HALO-herstelplan, november 2026; lib/gidsen.ts): de eerste reeks (0060) en de tweede (0061).
   reIntegratie, wetVerbeteringPoortwachter, bedrijfsarts, arbeidsdeskundigOnderzoek, preventiemedewerker,
+  arbodienst, ziekeWerknemer, verzuimverzekering, casemanagerVerzuim, loonsanctie, rie, eigenrisicodragerZiektewet, tweeJaarZiek,
 ];
 
 /**
@@ -124,9 +133,13 @@ export const reserveActief = false;
  * pagina dus uit de database komt). De vijf gidsen stonden hier van de merge
  * van PR #115 tot migratie 0060 op productie draaide (23 november 2026): de
  * 301 van het oude blogartikel naar /wet-verbetering-poortwachter mocht niet
- * op een 404 uitkomen. Sindsdien is de lijst leeg en de database weer leidend.
+ * op een 404 uitkomen. De tweede reeks gidsen (de kennisbank, migratie 0061)
+ * staat er nu in, om dezelfde reden: /blog/loonsanctie-uwv gaat met een 301
+ * naar /loonsanctie. Leeg maken zodra 0061 op productie gedraaid is.
  */
-export const MIGRATIE_RESERVE: string[] = [];
+export const MIGRATIE_RESERVE: string[] = [
+  "arbodienst", "zieke-werknemer", "verzuimverzekering", "casemanager-verzuim", "loonsanctie", "rie", "eigenrisicodrager-ziektewet", "twee-jaar-ziek",
+];
 
 /** Het concept als reserve voor een pagina die niet gepubliceerd is; null zolang de reserve voor die pagina uit staat. */
 export function reserveConcept(slug: string): Concept | null {

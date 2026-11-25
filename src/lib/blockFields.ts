@@ -45,6 +45,13 @@ export const FIELD_LABELS: Record<string, string> = {
   verhaal: "Verhaal (alinea's)", uitspraak: "Uitspraak (uitgelicht)", slot: "Slotalinea", foto: "Foto", fotoAlt: "Alt-tekst foto", fotoFocus: "Beeldfocus foto",
   fotoLabel: "Label op de foto", mvKop: "Kop missie en visie", missie: "Missie", visie: "Visie", waardenKop: "Kop waarden", waardenTekst: "Tekst bij de waarden",
   waarden: "Waarden",
+  // Gidsen in de kennisbank (components/blocks/Gids.tsx; de opbouw van HALO).
+  antwoord: "Direct antwoord (twee zinnen, onder de vraag)", kruimel: "Korte naam (kruimelpad)", auteur: "Auteur", functie: "Functie",
+  gepubliceerd: "Gepubliceerd op (JJJJ-MM-DD)", bijgewerkt: "Bijgewerkt op (JJJJ-MM-DD)", controle: "Gecontroleerd door (naam, functie, datum)",
+  datum: "Datum (JJJJ-MM-DD)", kader: "Kader in de zijkolom", wanneer: "Wanneer (week of stap)", wie: "Wie", kolommen: "Kolomkoppen",
+  rijen: "Rijen (een cel per kolom)", onderschrift: "Onderschrift (schermlezer)", punten: "Punten (vinkjes)", dienst: "Dienst (naam, wat, tekst, link)",
+  kennismaken: "Knop kennismaken", belTekst: "Belregel onder de knoppen", verwant: "Lees ook (links)", slugs: "Gidsen (slugs, leeg = de eerste vijf)",
+  bronnen: "Bronnen", uitgever: "Uitgever van de bron",
 };
 
 /** Welke velden van de blokdata verschillen tussen twee versies. */

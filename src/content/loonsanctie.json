@@ -1,0 +1,269 @@
+{
+  "_uitleg": "Gids over de loonsanctie (kennisbank, tweede reeks; zoekwoord loonsanctie, 260 per maand met hoge intentie). Het artikel /blog/loonsanctie-uwv is hierin opgegaan (301); de artikelen over voorkomen en bekorten blijven als verdieping. Blokken: zie components/blocks/Gids.tsx; registratie in lib/gidsen.ts.",
+  "slug": "loonsanctie",
+  "title": "Loonsanctie",
+  "seo_title": "Loonsanctie: wanneer, kosten en voorkomen • React2u",
+  "seo_description": "Wanneer UWV een loonsanctie oplegt, hoe lang hij duurt, wat hij kost, hoe je hem voorkomt met een compleet dossier en hoe je hem laat bekorten.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Gids · Loonsanctie",
+        "kruimel": "Loonsanctie",
+        "heading": "Wat is een loonsanctie en hoe voorkom je die?",
+        "antwoord": "Een loonsanctie is de verplichting om na twee jaar ziekte het loon van je werknemer maximaal 52 weken langer door te betalen, omdat UWV bij de WIA-aanvraag vindt dat je te weinig aan re-integratie hebt gedaan. Je voorkomt hem met een dossier dat laat zien dat elke stap van de Wet verbetering poortwachter op tijd is gezet, onderbouwd en vastgelegd.",
+        "text": "Deze gids legt uit wanneer UWV een loonsanctie oplegt, wat hij kost, hoe je hem voorkomt, wat je doet als je er een krijgt en hoe je hem laat bekorten.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-24",
+        "bijgewerkt": "2026-11-24"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wanneer",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "Wanneer legt UWV een loonsanctie op?",
+        "tekst": "Na twee jaar ziekte vraagt je werknemer een WIA-uitkering aan. UWV kijkt dan eerst niet naar de ziekte, maar naar het re-integratieverslag: wat hebben werkgever en werknemer in 104 weken gedaan om terugkeer naar werk mogelijk te maken? Is dat te weinig, en heb je daar geen goede reden voor, dan krijg je een loonsanctie. UWV stelt de WIA-beoordeling uit, je betaalt het loon door en je werknemer blijft in dienst.\n\nUWV maakt onderscheid tussen twee soorten:\n\n- **De administratieve loonsanctie**: het re-integratieverslag is niet compleet. UWV vraagt eerst om de ontbrekende stukken; lever je die niet op tijd, dan volgt de sanctie. Dit is de makkelijkste om te voorkomen, en ook om op te heffen.\n- **De inhoudelijke loonsanctie**: het verslag is compleet, maar de inspanningen waren onvoldoende. Te laat gestart met het tweede spoor, een plan van aanpak dat nooit is bijgesteld, geen onderzoek naar passend werk, of een advies van de bedrijfsarts dat niet is opgevolgd. Dit is de sanctie die het meeste voorkomt en het meeste kost.\n\nUWV beoordeelt eerst het **resultaat**: is je werknemer weer aan het werk, in een functie die past en ten minste 65 procent van het oude loon oplevert? Dan is de re-integratie geslaagd en komt er geen sanctie, wat er ook in het dossier ontbreekt. Is dat resultaat er niet, dan beoordeelt UWV de **inspanningen** aan de hand van de Werkwijzer Poortwachter: wat mocht van een redelijk handelend werkgever worden verwacht?\n\nEen loonsanctie is dus geen boete voor een vormfout. Het is het oordeel dat er een kans op werk is gemist. Precies daarom is hij te voorkomen.",
+        "kader": {
+          "eyebrow": "Begrip",
+          "titel": "Deugdelijke grond",
+          "tekst": "Had je een goede reden om iets niet te doen, bijvoorbeeld omdat de bedrijfsarts zei dat je werknemer geen enkele mogelijkheid had, dan is dat een deugdelijke grond en volgt geen sanctie. Zet die reden dan wel in het dossier, met het advies erbij.",
+          "href": "/wet-verbetering-poortwachter",
+          "label": "Alle stappen van de wet"
+        }
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Wat het kost",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Kosten en termijnen",
+        "heading": "Wat een loonsanctie kost en hoe lang hij duurt",
+        "text": "De termijnen en bedragen rond de loonsanctie, van de WIA-aanvraag tot het einde van de sanctie.",
+        "kolommen": ["Onderwerp", "Termijn of bedrag", "Toelichting"],
+        "rijen": [
+          ["Duur van de loonsanctie", "Maximaal 52 weken", "Gerekend vanaf het einde van de 104 weken; korter als je de tekortkoming eerder herstelt"],
+          ["Loon tijdens de sanctie", "Minimaal 70 procent van het loon", "Dezelfde verplichting als in het tweede ziektejaar; de cao kan meer voorschrijven"],
+          ["Opzegverbod", "Verlengd met de duur van de sanctie", "Je kunt het dienstverband niet beëindigen zolang de sanctie loopt"],
+          ["Ontbrekende stukken aanvullen", "Binnen de termijn die UWV noemt, meestal een week", "Daarna volgt een administratieve loonsanctie"],
+          ["Bezwaar tegen de sanctie", "Binnen 6 weken na de beslissing", "Schriftelijk bij UWV; de sanctie loopt ondertussen door"],
+          ["Verzoek om bekorting", "Zodra de tekortkoming hersteld is", "UWV beslist binnen 3 weken; de sanctie eindigt 6 weken na een positieve beslissing"],
+          ["WIA-uitkering werknemer", "Pas na afloop van de sanctie", "Tot die tijd loon van de werkgever in plaats van een uitkering"],
+          ["Compensatie transitievergoeding", "Niet over de sanctieperiode", "UWV compenseert maximaal het bedrag dat verschuldigd was aan het einde van de 104 weken"]
+        ],
+        "noot": "Reken het zelf uit: een werknemer met een jaarsalaris van 45.000 euro kost bij een volledige loonsanctie minstens 31.500 euro aan loon, plus werkgeverslasten, plus het werk dat niet gedaan wordt."
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Voorkomen",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Stappenplan",
+        "heading": "Zo voorkom je een loonsanctie",
+        "text": "De momenten waarop UWV terugkijkt, en wat je op elk moment vastlegt. De weken tellen vanaf de eerste ziektedag.",
+        "items": [
+          {
+            "wanneer": "Week 1 tot 8",
+            "titel": "Begin op tijd en leg vast",
+            "wie": "Werkgever",
+            "tekst": "Ziekmelding binnen een week bij de arbodienst, de probleemanalyse in week 6, het plan van aanpak in week 8 met een casemanager. Elk document op datum in het dossier."
+          },
+          {
+            "wanneer": "Elke 6 weken",
+            "titel": "Evalueer en stel bij",
+            "wie": "Werkgever en werknemer",
+            "tekst": "Een plan uit week 8 dat in week 60 nog hetzelfde is, zegt UWV dat er niets is gebeurd. Leg elk gesprek vast, ook als de conclusie is dat er niets verandert."
+          },
+          {
+            "wanneer": "Zodra het eigen werk onzeker is",
+            "titel": "Onderzoek passend werk",
+            "wie": "Werkgever, met de arbeidsdeskundige",
+            "tekst": "Eigen werk met aanpassingen, ander werk bij jou, en als dat niet kan: welk werk elders. Een arbeidsdeskundig onderzoek is de onderbouwing die UWV wil zien."
+          },
+          {
+            "wanneer": "Week 42",
+            "titel": "Meld bij UWV",
+            "wie": "Werkgever",
+            "tekst": "De 42e-weeksmelding, op tijd, met de bevestiging in het dossier."
+          },
+          {
+            "wanneer": "Week 52",
+            "titel": "Kies het spoor, onderbouwd",
+            "wie": "Werkgever en werknemer",
+            "tekst": "De eerstejaarsevaluatie met een conclusie: concreet zicht op terugkeer bij jou, of niet? Zo niet: start het tweede spoor binnen zes weken. De meest voorkomende reden voor een loonsanctie is een tweede spoor dat te laat begon."
+          },
+          {
+            "wanneer": "Week 52 tot 91",
+            "titel": "Voer het tweede spoor echt uit",
+            "wie": "Re-integratiebegeleider",
+            "tekst": "Een traject dat alleen uit gesprekken bestaat, telt niet. Intake, zoekprofiel, sollicitatieactiviteiten en rapportages elke zes weken, allemaal in het dossier."
+          },
+          {
+            "wanneer": "Week 88 tot 93",
+            "titel": "Maak het re-integratieverslag compleet",
+            "wie": "Werkgever, werknemer en bedrijfsarts",
+            "tekst": "Eindevaluatie, actueel oordeel van de bedrijfsarts, alle documenten op datum en de reactie van je werknemer. Loop de checklist poortwachterdossier na vóór je werknemer de WIA aanvraagt."
+          }
+        ],
+        "noot": "Twijfel je onderweg? Vraag een deskundigenoordeel bij UWV over de re-integratie-inspanningen: 400 euro voor een werkgever. Een positief oordeel is geen garantie, maar een negatief oordeel geeft je nog tijd om bij te sturen."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Gekregen",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "Loonsanctie gekregen: wat nu?",
+        "tekst": "De beslissing van UWV noemt precies wat er ontbreekt of tekortschiet. Dat is je werklijst. In deze volgorde:\n\n### 1. Lees de beslissing en bel je casemanager\n\nUWV beschrijft de tekortkoming en wat je moet doen om die te herstellen. Vaak is dat concreter dan je denkt: een arbeidsdeskundig onderzoek laten doen, het tweede spoor alsnog inzetten, een advies van de bedrijfsarts opvolgen. Begin dezelfde week.\n\n### 2. Herstel de tekortkoming\n\nDoe wat UWV vraagt, en doe het volledig. Een tweede spoor van zes weken telt niet als een adequaat traject; UWV wil zien dat het echt loopt, met een plan, activiteiten en rapportages. Dateer alles eerlijk: wat je nu doet, doe je nu.\n\n### 3. Vraag bekorting aan\n\nIs de tekortkoming hersteld, dan meld je dat schriftelijk bij UWV met de bewijsstukken. UWV beslist binnen drie weken. Is UWV akkoord, dan eindigt de loonsanctie zes weken na die beslissing en start de WIA-beoordeling alsnog. Elke week eerder is een week loon.\n\n### 4. Overweeg bezwaar, maar niet in plaats van herstel\n\nVind je de beslissing onterecht, dan kun je binnen zes weken bezwaar maken. Doe dat alleen met een goede reden, bijvoorbeeld een advies van de bedrijfsarts dat UWV over het hoofd zag, en doe het naast het herstellen, niet in plaats daarvan: de sanctie loopt door zolang het bezwaar loopt.\n\nLees ook: [Loonsanctie gekregen: wat nu? Zo verkort je hem](/blog/loonsanctie-bekorten) en [Loonsanctie voorkomen: checklist voor een compleet re-integratiedossier](/blog/loonsanctie-voorkomen).",
+        "kader": {
+          "eyebrow": "Hulpmiddel",
+          "titel": "Hoe groot is je risico?",
+          "tekst": "Twaalf vragen over je dossier, meteen de zwakke plekken en wat je nog kunt herstellen. Niets wordt opgeslagen.",
+          "href": "/kennis/loonsanctie-check",
+          "label": "Doe de loonsanctie-check"
+        }
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Fouten",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "heading": "De vijf redenen die we het vaakst in een loonsanctie zien",
+        "tekst": "- **Het tweede spoor te laat gestart.** Hopen op herstel na de eerstejaarsevaluatie, terwijl de bedrijfsarts al aangaf dat het eigen werk niet meer zou lukken. UWV ziet de datum van de evaluatie en de datum van de opdracht aan het re-integratiebureau, en rekent.\n- **Geen onderzoek naar ander werk bij de eigen werkgever.** Zeker van een grotere organisatie verwacht UWV dat er serieus is gekeken naar andere functies en afdelingen, en dat dat onderbouwd is.\n- **Adviezen niet opgevolgd.** De bedrijfsarts adviseert een opbouw, een aanpassing of een onderzoek, en in het dossier gebeurt er niets mee. Een advies dat je niet opvolgt, moet je uitleggen.\n- **Een tweede spoor dat geen traject was.** Drie gesprekken met een coach, zonder zoekprofiel, zonder sollicitaties, zonder rapportages. UWV noemt dat geen adequaat traject.\n- **Niets vastgelegd.** De gesprekken waren er wel, de afspraken ook, maar niemand schreef het op. Voor UWV bestaat wat niet in het dossier staat niet.\n\nGeen van deze vijf vraagt om een jurist. Ze vragen om een casemanager die de termijnen bewaakt, een bedrijfsarts die op tijd adviseert en een werkgever die het dossier bijhoudt."
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over de loonsanctie",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Hoe lang duurt een loonsanctie?",
+            "answer": "Maximaal 52 weken na het einde van de 104 weken loondoorbetaling. Herstel je de tekortkoming eerder en is UWV daarmee akkoord, dan eindigt de sanctie zes weken na die beslissing."
+          },
+          {
+            "question": "Hoeveel loon moet ik doorbetalen tijdens de loonsanctie?",
+            "answer": "Minimaal 70 procent van het loon, zoals in het tweede ziektejaar. Schrijft je cao voor het derde jaar iets anders voor, dan geldt dat. Je werknemer krijgt in die periode nog geen WIA-uitkering."
+          },
+          {
+            "question": "Kan ik mijn werknemer ontslaan tijdens de loonsanctie?",
+            "answer": "Nee. Het opzegverbod bij ziekte wordt verlengd met de duur van de loonsanctie. Pas daarna kun je het dienstverband beëindigen, met een ontslagvergunning van UWV of een vaststellingsovereenkomst."
+          },
+          {
+            "question": "Krijg ik een loonsanctie als mijn werknemer niet meewerkt?",
+            "answer": "Niet als je daar iets aan hebt gedaan. UWV verwacht dat je een werknemer die niet meewerkt aanspreekt, waarschuwt en zo nodig het loon opschort of stopt, en dat je dat vastlegt. Een werknemer die niet meewerkt zonder dat jij ingreep, is wél jouw tekortkoming."
+          },
+          {
+            "question": "Dekt mijn verzuimverzekering de loonsanctie?",
+            "answer": "Meestal niet. Alleen de mkb verzuim-ontzorgverzekering neemt het risico over, en dan alleen als je de adviezen van de arbodienst hebt opgevolgd. Lees de gids over de verzuimverzekering."
+          },
+          {
+            "question": "Kan ik de loonsanctie laten bekorten?",
+            "answer": "Ja. Herstel de tekortkoming die UWV noemt, stuur de bewijsstukken en vraag om bekorting. UWV beslist binnen drie weken; bij akkoord eindigt de sanctie zes weken later."
+          },
+          {
+            "question": "Wat is het verschil tussen een loonsanctie en een boete?",
+            "answer": "Een loonsanctie is geen boete maar een verlenging van je loondoorbetalingsplicht, omdat de re-integratie nog niet af is. Een boete kan UWV apart opleggen, bijvoorbeeld voor een te late 42e-weeksmelding."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Wet verbetering poortwachter",
+            "href": "https://wetten.overheid.nl/BWBR0013063",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Wet werk en inkomen naar arbeidsvermogen (WIA)",
+            "href": "https://wetten.overheid.nl/BWBR0019057",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "UWV: Werkwijzer Poortwachter, WIA en het deskundigenoordeel",
+            "href": "https://www.uwv.nl/",
+            "uitgever": "UWV"
+          },
+          {
+            "titel": "Rijksoverheid: ziekteverzuim en re-integratie",
+            "href": "https://www.rijksoverheid.nl/onderwerpen/ziekteverzuim-van-het-werk",
+            "uitgever": "Rijksoverheid"
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#E61674",
+        "tint": "#FDECF4",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Een dossier dat klaar is voor UWV, elke week",
+        "tekst": "Een loonsanctie ontstaat zelden door onwil, bijna altijd door een gemiste stap. Bij React2u bewaakt je vaste casemanager elke termijn, adviseert de bedrijfsarts op tijd en staat elk document op datum in het dossier. Heb je al een loonsanctie, dan helpen we die te bekorten: eerst herstellen, dan het verzoek aan UWV.",
+        "punten": [
+          "Elke termijn bewaakt, elk document op tijd in het dossier",
+          "Arbeidsdeskundig onderzoek en tweede spoor op het juiste moment",
+          "Dossiercheck vóór de WIA-aanvraag, ook voor niet-klanten",
+          "Hulp bij het bekorten van een opgelegde loonsanctie"
+        ],
+        "dienst": {
+          "naam": "Recover",
+          "wat": "Verzuimbegeleiding voor werkgevers",
+          "tekst": "Casemanagement, bedrijfsarts en taakdelegatie, poortwachterdossier en UWV.",
+          "href": "/recover",
+          "label": "Meer over React2u Recover"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Loonsanctie-check", "href": "/kennis/loonsanctie-check" },
+          { "label": "Checklist poortwachterdossier", "href": "/kennis/checklist-poortwachterdossier" },
+          { "label": "Gids: Wet verbetering poortwachter", "href": "/wet-verbetering-poortwachter" },
+          { "label": "Gids: re-integratie", "href": "/re-integratie" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

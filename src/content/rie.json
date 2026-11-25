@@ -1,0 +1,253 @@
+{
+  "_uitleg": "Gids over de RI&E, de risico-inventarisatie en -evaluatie (kennisbank, tweede reeks; zoekwoord ri&e). Blokken: zie components/blocks/Gids.tsx; registratie in lib/gidsen.ts.",
+  "slug": "rie",
+  "title": "RI&E",
+  "seo_title": "RI&E: verplicht, toetsing en plan van aanpak • React2u",
+  "seo_description": "Wat de risico-inventarisatie en -evaluatie is, voor wie hij verplicht is, wanneer toetsing nodig is, het plan van aanpak en hoe je de RI&E actueel houdt.",
+  "blocks": [
+    {
+      "type": "gidsKop",
+      "label": "Kop",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Gids · RI&E",
+        "kruimel": "RI&E",
+        "heading": "Is een RI&E verplicht en hoe maak je er een?",
+        "antwoord": "Ja: de Arbowet verplicht elke werkgever met personeel om een risico-inventarisatie en -evaluatie te hebben, met een plan van aanpak. Je brengt de risico’s voor gezondheid en veiligheid in kaart, weegt ze, legt vast welke maatregelen je neemt en wanneer, en laat het geheel toetsen door een gecertificeerde deskundige, tenzij je 25 werknemers of minder hebt en een erkend branche-instrument gebruikt.",
+        "text": "Deze gids legt uit wat de RI&E is, wat erin moet, wie hem toetst, hoe je het plan van aanpak maakt, wat de preventiemedewerker en de OR ermee doen en hoe je de RI&E actueel houdt.",
+        "auteur": { "naam": "Rens van Eyck", "functie": "Bestuurder van React2u" },
+        "gepubliceerd": "2026-11-24",
+        "bijgewerkt": "2026-11-24"
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Wat is een RI&E",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "heading": "Wat de RI&E is, en waarom de wet hem vraagt",
+        "tekst": "De risico-inventarisatie en -evaluatie staat in artikel 5 van de Arbowet en is de basis van al je arbobeleid. Het idee is eenvoudig: je kunt pas iets doen aan risico’s als je weet welke er zijn. Daarom vraagt de wet van elke werkgever drie dingen:\n\n- **Inventariseren**: welke risico’s voor gezondheid en veiligheid zijn er in je organisatie? Fysieke belasting, beeldschermwerk, gevaarlijke stoffen, machines, werkdruk, agressie, thuiswerken.\n- **Evalueren**: hoe groot is elk risico? Hoe vaak komt het voor, hoe ernstig is het gevolg, hoeveel mensen raakt het? Zo weet je waar je begint.\n- **Een plan van aanpak**: welke maatregelen neem je, wie doet het, wanneer is het klaar en wat kost het.\n\nDe RI&E is geen document voor de Arbeidsinspectie, al controleert die erop. Het is de lijst waar de preventiemedewerker mee werkt, de bedrijfsarts naar kijkt bij het preventief medisch onderzoek en de ondernemingsraad over meepraat. En het is het bewijs, als er toch een ongeval of een ziekte door het werk ontstaat, dat je de risico’s kende en er iets aan deed.\n\nWat moet erin? Alles wat in jouw organisatie een risico is. Voor een kantoor zijn dat beeldschermwerk, werkdruk en de inrichting van de werkplek, ook thuis. Voor een productiebedrijf komen machines, geluid, tillen en stoffen erbij. Voor de zorg fysieke belasting, agressie en infectierisico’s. Een RI&E die voor elke organisatie hetzelfde is, is geen RI&E.",
+        "kader": {
+          "eyebrow": "Begrip",
+          "titel": "Psychosociale arbeidsbelasting",
+          "tekst": "Werkdruk, agressie, pesten, discriminatie en seksuele intimidatie horen verplicht in de RI&E (Arbobesluit, artikel 2.15). Voor de meeste kantoororganisaties is werkdruk het grootste risico, en de belangrijkste oorzaak van langdurig verzuim.",
+          "href": "/resist",
+          "label": "Preventie met React2u Resist"
+        }
+      }
+    },
+    {
+      "type": "gidsTijdlijn",
+      "label": "Stappenplan",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Stappenplan",
+        "heading": "Zo maak je een RI&E",
+        "text": "Van de eerste inventarisatie tot een plan van aanpak dat wordt uitgevoerd. Voor een kleine organisatie is dit een paar dagen werk, verspreid over een paar weken.",
+        "items": [
+          {
+            "wanneer": "Stap 1",
+            "titel": "Kies een instrument",
+            "wie": "Werkgever en preventiemedewerker",
+            "tekst": "Veel branches hebben een erkend RI&E-instrument: een vragenlijst die bij jouw sector past. Met zo’n instrument én 25 werknemers of minder hoef je de RI&E niet te laten toetsen. Kijk op rie.nl welke er voor jouw branche zijn."
+          },
+          {
+            "wanneer": "Stap 2",
+            "titel": "Inventariseer de risico’s",
+            "wie": "Preventiemedewerker",
+            "tekst": "Loop de werkplekken langs, praat met medewerkers en leidinggevenden, kijk naar de ongevallen, klachten en het verzuim van de afgelopen jaren. Een risico dat je alleen vanachter een bureau inventariseert, mis je."
+          },
+          {
+            "wanneer": "Stap 3",
+            "titel": "Evalueer: hoe groot is elk risico?",
+            "wie": "Preventiemedewerker, met de deskundige",
+            "tekst": "Per risico: kans, ernst en aantal mensen. Zo ontstaat een volgorde. Begin bij wat het vaakst misgaat of het ernstigst kan aflopen, niet bij wat het makkelijkst is op te lossen."
+          },
+          {
+            "wanneer": "Stap 4",
+            "titel": "Maak het plan van aanpak",
+            "wie": "Werkgever en preventiemedewerker",
+            "tekst": "Per risico een maatregel, een verantwoordelijke en een datum. Volg de arbeidshygiënische strategie: eerst de bron wegnemen, dan afschermen, dan organisatorisch, en pas als laatste persoonlijke beschermingsmiddelen."
+          },
+          {
+            "wanneer": "Stap 5",
+            "titel": "Laat toetsen als dat moet",
+            "wie": "Gecertificeerde arbokerndeskundige",
+            "tekst": "Meer dan 25 werknemers, of geen erkend instrument: een veiligheidskundige, arbeidshygiënist, arbeids- en organisatiedeskundige of bedrijfsarts toetst of de RI&E volledig en betrouwbaar is en of het plan van aanpak klopt."
+          },
+          {
+            "wanneer": "Stap 6",
+            "titel": "Leg voor aan de OR of PVT",
+            "wie": "Werkgever en OR",
+            "tekst": "De ondernemingsraad of personeelsvertegenwoordiging heeft instemmingsrecht op de RI&E en het plan van aanpak. Zonder OR of PVT bespreek je het met het personeel."
+          },
+          {
+            "wanneer": "Stap 7",
+            "titel": "Voer uit en houd bij",
+            "wie": "Preventiemedewerker",
+            "tekst": "Het plan van aanpak is een werklijst: vink af wat gedaan is, en pas de RI&E aan bij een verbouwing, nieuwe machines, een nieuwe werkwijze of thuiswerken. Minstens eens per jaar bespreken."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsTabel",
+      "label": "Toetsing",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Op een rij",
+        "heading": "Wanneer moet een RI&E getoetst worden?",
+        "text": "De toetsingsplicht hangt af van je omvang en van het instrument dat je gebruikt.",
+        "kolommen": ["Situatie", "Toetsing", "Door wie", "Let op"],
+        "rijen": [
+          ["Meer dan 25 werknemers", "Volledige toetsing verplicht", "Gecertificeerde arbokerndeskundige: veiligheidskundige, arbeidshygiënist, A&O-deskundige of bedrijfsarts", "De deskundige beoordeelt volledigheid, betrouwbaarheid en het plan van aanpak"],
+          ["25 werknemers of minder, erkend branche-instrument", "Geen toetsing nodig", "Niet van toepassing", "Het instrument moet erkend zijn door het Steunpunt RI&E; kijk op rie.nl"],
+          ["25 werknemers of minder, geen erkend instrument", "Lichte toets", "Eén gecertificeerde arbokerndeskundige", "Een beperkte controle op volledigheid en betrouwbaarheid"],
+          ["Alleen inhuur, in totaal 40 uur per jaar of minder", "Geen RI&E, wel een checklist gezondheidsrisico’s", "Werkgever zelf", "Geldt voor werkgevers zonder personeel in dienst die wel incidenteel mensen inhuren"],
+          ["Vrijwilligers", "Alleen een RI&E bij bijzondere risico’s", "Werkgever zelf", "Zoals gevaarlijke stoffen, biologische agentia of werken op hoogte"]
+        ],
+        "noot": "Het aantal werknemers telt in personen, niet in fte, en inclusief uitzendkrachten en stagiairs. De Nederlandse Arbeidsinspectie kan bij het ontbreken van een RI&E of een plan van aanpak een boete opleggen die in de duizenden euro’s loopt."
+      }
+    },
+    {
+      "type": "gidsTekst",
+      "label": "Plan van aanpak en actueel houden",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "heading": "Het plan van aanpak, en de RI&E actueel houden",
+        "tekst": "Het plan van aanpak is het deel van de RI&E dat het verschil maakt. Een goed plan van aanpak is kort, concreet en leesbaar voor iedereen die ermee moet werken:\n\n- per risico **één maatregel** die het risico echt verkleint, in de volgorde van de arbeidshygiënische strategie\n- een **verantwoordelijke** met naam, geen afdeling\n- een **datum** waarop het klaar is, en een datum waarop je controleert of het werkt\n- de **kosten** of de uren, zodat het in de begroting komt\n- een kolom **gedaan**, die je echt bijhoudt\n\nDe wet noemt geen houdbaarheidsdatum voor de RI&E, maar hij moet actueel zijn. Dat betekent: aanpassen zodra er iets verandert dat de risico’s raakt. Een verbouwing, nieuwe machines, een reorganisatie, thuiswerken, een nieuwe vestiging, meer dan 25 werknemers worden. En los daarvan jaarlijks bespreken met de preventiemedewerker en de OR: zijn er ongevallen of klachten geweest, is het verzuim veranderd, is het plan van aanpak uitgevoerd?\n\n### Wie doet wat\n\n- **De preventiemedewerker** werkt mee aan het opstellen en uitvoeren van de RI&E; dat is een van de drie wettelijke taken. Lees de [gids over de preventiemedewerker](/preventiemedewerker).\n- **De bedrijfsarts** adviseert over de RI&E en gebruikt hem als basis voor het preventief medisch onderzoek.\n- **De ondernemingsraad** stemt in met de RI&E en het plan van aanpak, en mag de uitvoering volgen.\n- **De arbokerndeskundige** toetst, en adviseert bij risico’s waar specialistische kennis voor nodig is: gevaarlijke stoffen, geluid, trillingen, werkdruk.\n\nJe kunt de RI&E zelf maken met een branche-instrument, of hem laten maken en toetsen door een arbodienst. Dat laatste is vooral verstandig bij grotere risico’s of als niemand in de organisatie er tijd voor heeft: een RI&E die niet af komt, is ook geen RI&E.",
+        "kader": {
+          "eyebrow": "Goed om te weten",
+          "titel": "RI&E en verzuim",
+          "tekst": "De RI&E en het verzuim horen bij elkaar. Drie ziekmeldingen door rugklachten op dezelfde afdeling zijn een signaal voor de RI&E; een hoog risico op werkdruk in de RI&E is een signaal voor de bedrijfsarts. Bij React2u kijken de casemanager en de preventiemedewerker samen naar beide."
+        }
+      }
+    },
+    {
+      "type": "gidsVragen",
+      "label": "Veelgestelde vragen",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Veelgestelde vragen",
+        "heading": "Vragen over de RI&E",
+        "text": "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.",
+        "items": [
+          {
+            "question": "Is een RI&E verplicht voor een klein bedrijf?",
+            "answer": "Ja, vanaf de eerste werknemer. Heb je 25 werknemers of minder en gebruik je een erkend branche-instrument, dan hoef je de RI&E niet te laten toetsen; maken en bijhouden moet je hem wel."
+          },
+          {
+            "question": "Hoe vaak moet de RI&E vernieuwd worden?",
+            "answer": "De wet noemt geen termijn, maar de RI&E moet actueel zijn. Pas hem aan bij elke verandering die de risico’s raakt en bespreek hem minstens jaarlijks. Een RI&E van vijf jaar oud zonder wijzigingen zal de Arbeidsinspectie niet als actueel zien."
+          },
+          {
+            "question": "Wat kost een RI&E?",
+            "answer": "Met een erkend branche-instrument vooral eigen tijd. Laat je de RI&E maken of toetsen door een arbodienst, dan hangt de prijs af van de omvang en de risico’s. Bij React2u is de RI&E op aanvraag; je krijgt binnen twee werkdagen een offerte."
+          },
+          {
+            "question": "Moet thuiswerken in de RI&E?",
+            "answer": "Ja. De Arbowet geldt ook voor de thuiswerkplek, met een lichter regime: je moet zorgen voor een goede werkplek en voorlichting. Beeldschermwerk en werkdruk thuis horen in de RI&E."
+          },
+          {
+            "question": "Wat gebeurt er als ik geen RI&E heb?",
+            "answer": "De Nederlandse Arbeidsinspectie kan een boete opleggen die in de duizenden euro’s loopt, en bij een ongeval weegt het ontbreken van een RI&E zwaar mee. Belangrijker: je kent je risico’s niet, en dat zie je terug in het verzuim."
+          },
+          {
+            "question": "Wie mag de RI&E toetsen?",
+            "answer": "Een gecertificeerde arbokerndeskundige: een hogere veiligheidskundige, een arbeidshygiënist, een arbeids- en organisatiedeskundige of een bedrijfsarts. Een arbodienst heeft deze deskundigen in huis of werkt ermee samen."
+          },
+          {
+            "question": "Wat is het verschil tussen de RI&E en het PMO?",
+            "answer": "De RI&E kijkt naar het werk: welke risico’s zijn er. Het preventief medisch onderzoek kijkt naar de mensen: welke gevolgen hebben die risico’s voor hun gezondheid. Het PMO is verplicht om aan te bieden en hoort op de RI&E gebaseerd te zijn."
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Arbeidsomstandighedenwet (Arbowet)",
+            "href": "https://wetten.overheid.nl/BWBR0010346",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Arbeidsomstandighedenbesluit",
+            "href": "https://wetten.overheid.nl/BWBR0008498",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Steunpunt RI&E: erkende branche-instrumenten en de toetsing",
+            "href": "https://www.rie.nl/",
+            "uitgever": "Steunpunt RI&E"
+          },
+          {
+            "titel": "Nederlandse Arbeidsinspectie: toezicht op de Arbowet",
+            "href": "https://www.nlarbeidsinspectie.nl/",
+            "uitgever": "Nederlandse Arbeidsinspectie"
+          }
+        ]
+      }
+    },
+    {
+      "type": "gidsHelpt",
+      "label": "Zo helpt React2u",
+      "data": {
+        "kleur": "#00A098",
+        "tint": "#E5F5F4",
+        "eyebrow": "Zo helpt React2u",
+        "heading": "Een RI&E die af komt, en een plan van aanpak dat je uitvoert",
+        "tekst": "Met React2u Resist maken of toetsen we je RI&E met gecertificeerde deskundigen, maken we een plan van aanpak dat past bij je organisatie en trainen we je preventiemedewerker om het bij te houden. En omdat we ook je verzuim begeleiden, zien we wat de RI&E in de praktijk oplevert.",
+        "punten": [
+          "RI&E opstellen of toetsen door een gecertificeerde arbokerndeskundige",
+          "Plan van aanpak met maatregelen, verantwoordelijken en datums",
+          "Werkdruk en psychosociale belasting als vast onderdeel",
+          "Preventiemedewerker getraind, PMO en werkplekonderzoek onder hetzelfde label"
+        ],
+        "dienst": {
+          "naam": "Resist",
+          "wat": "Preventie en preventiemedewerker",
+          "tekst": "RI&E, PMO, training voor leidinggevenden, vertrouwenspersoon en vitaliteit.",
+          "href": "/resist",
+          "label": "Meer over React2u Resist"
+        },
+        "kennismaken": { "label": "Kennismaken", "href": "/kennismaken" },
+        "belTekst": "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.",
+        "verwant": [
+          { "label": "Gids: de preventiemedewerker", "href": "/preventiemedewerker" },
+          { "label": "Gids: de bedrijfsarts", "href": "/bedrijfsarts" },
+          { "label": "Gids: de arbodienst", "href": "/arbodienst" },
+          { "label": "Verzuimkosten verlagen: 6 knoppen", "href": "/blog/verzuimkosten-verlagen" }
+        ]
+      }
+    },
+    {
+      "type": "homeContact",
+      "label": "Contact",
+      "data": {
+        "eyebrow": "Contact",
+        "heading": "Een vraag?\nBel gewoon even.",
+        "text": "Bel van maandag tot en met vrijdag tussen 9.00 en 17.00 uur, dan neemt een van ons op.",
+        "image": "/beeld/home/even-bellen.webp",
+        "alt": "Een vrouw belt ontspannen met React2u",
+        "focus": "52% 22%",
+        "routes": [
+          { "icon": "phone", "label": "Bellen · ma t/m vr 9.00 tot 17.00 uur", "value": "085 620 58 00", "href": "tel:+31856205800" },
+          { "icon": "mail", "label": "Mailen", "value": "info@react2u.nl", "href": "mailto:info@react2u.nl" },
+          { "icon": "clock", "label": "Liever teruggebeld?", "value": "Plan een terugbelmoment", "href": "/contact" }
+        ],
+        "bg": "#ffffff"
+      }
+    }
+  ]
+}

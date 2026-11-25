@@ -32,8 +32,40 @@ function werkgevers(type: string): any {
   return werkgeversPagina.blocks.find((b) => b.type === type)?.data ?? {};
 }
 
+/* ---------- Gidsen in de kennisbank ---------- */
+
+const GIDS_KLEUR = { kleur: "#E61674", tint: "#FDECF4" };
+
+/**
+ * De blokken van een gids, in de opbouw van HALO (zie docs/adr/0002): de
+ * vraag als kop met direct antwoord en auteur, hoofdstukken, een tijdlijn, een
+ * tabel, vragen, bronnen en "Zo helpt React2u". Dezelfde kleur als Recover;
+ * een gids bij Restart of Resist krijgt in het beheer de kleur van dat label.
+ */
+export const GIDS_BLOKKEN: { type: string; label: string; data: any }[] = [
+  { type: "gidsKop", label: "Gids: kop", data: { ...GIDS_KLEUR, eyebrow: "Gids · Onderwerp", kruimel: "Onderwerp", heading: "Wat is …?", antwoord: "Eerste zin met het antwoord. Tweede zin met wat de lezer moet doen of weten.", text: "Deze gids legt uit …", auteur: { naam: "Rens van Eyck", functie: "Bestuurder van React2u" }, controle: { naam: "", functie: "", datum: "" }, gepubliceerd: new Date().toISOString().slice(0, 10), bijgewerkt: new Date().toISOString().slice(0, 10) } },
+  { type: "gidsTekst", label: "Gids: hoofdstuk", data: { ...GIDS_KLEUR, heading: "Wat het inhoudt", tekst: "Eerste alinea.\n\nTweede alinea, met een [link naar een dienst](/recover).\n\n- Een punt\n- Nog een punt", kader: { eyebrow: "Goed om te weten", titel: "Kop van het kader", tekst: "Korte toelichting in de zijkolom.", href: "", label: "" } } },
+  { type: "gidsTijdlijn", label: "Gids: tijdlijn of stappenplan", data: { ...GIDS_KLEUR, eyebrow: "Stappenplan", heading: "Zo verloopt het", text: "Een regel over de volgorde.", items: [{ wanneer: "Week 1", titel: "Eerste stap", wie: "Werkgever", tekst: "Wat er gebeurt." }, { wanneer: "Week 6", titel: "Tweede stap", wie: "Bedrijfsarts", tekst: "Wat er gebeurt." }], noot: "" } },
+  { type: "gidsTabel", label: "Gids: tabel met termijnen of kosten", data: { ...GIDS_KLEUR, eyebrow: "Op een rij", heading: "Termijnen en kosten", text: "Een regel boven de tabel.", kolommen: ["Moment", "Wat", "Wie"], rijen: [["Week 1", "Ziekmelding", "Werkgever"], ["Week 6", "Probleemanalyse", "Bedrijfsarts"]], noot: "" } },
+  { type: "gidsVragen", label: "Gids: veelgestelde vragen", data: { ...GIDS_KLEUR, eyebrow: "Veelgestelde vragen", heading: "Vragen over …", text: "Staat je vraag er niet bij? Bel ons gerust, ook als je nog geen klant bent.", items: [{ question: "Eerste vraag?", answer: "Het antwoord." }, { question: "Tweede vraag?", answer: "Het antwoord." }, { question: "Derde vraag?", answer: "Het antwoord." }, { question: "Vierde vraag?", answer: "Het antwoord." }, { question: "Vijfde vraag?", answer: "Het antwoord." }] } },
+  { type: "gidsBronnen", label: "Gids: bronnen", data: { heading: "Bronnen", items: [{ titel: "Wet verbetering poortwachter", href: "https://wetten.overheid.nl/BWBR0013063", uitgever: "wetten.overheid.nl" }, { titel: "UWV voor werkgevers", href: "https://www.uwv.nl/", uitgever: "UWV" }] } },
+  { type: "gidsHelpt", label: "Gids: Zo helpt React2u", data: { ...GIDS_KLEUR, eyebrow: "Zo helpt React2u", heading: "Wat React2u hierin doet", tekst: "Twee of drie zinnen over wat React2u regelt.", punten: ["Eerste punt", "Tweede punt", "Derde punt"], dienst: { naam: "Recover", wat: "Verzuimbegeleiding voor werkgevers", tekst: "Casemanagement, bedrijfsarts en taakdelegatie, poortwachterdossier en UWV.", href: "/recover", label: "Meer over React2u Recover" }, kennismaken: { label: "Kennismaken", href: "/kennismaken" }, belTekst: "Of bel 085 620 58 00, ma t/m vr 9.00 tot 17.00 uur.", verwant: [{ label: "Gids: Wet verbetering poortwachter", href: "/wet-verbetering-poortwachter" }] } },
+  { type: "homeContact", label: "Contact", data: uit(dienstenPagina, "homeContact") },
+];
+
+/** Paginasjablonen: een hele pagina in één keer, voor "Begin met een sjabloon" op een lege pagina. */
+export const PAGINA_SJABLONEN: Record<string, { label: string; uitleg: string; blokken: { type: string; label: string; data: any }[] }> = {
+  gids: {
+    label: "Gids",
+    uitleg: "De opbouw van een gids in de kennisbank: vraag als kop, direct antwoord, hoofdstuk, tijdlijn, tabel, vragen, bronnen en Zo helpt React2u. Zet de slug ook in lib/gidsen.ts, dan verschijnt de gids in de kennisbank.",
+    blokken: GIDS_BLOKKEN,
+  },
+};
+
 // Default data per bloktype — gebruikt bij "Blok toevoegen" in het admin-paneel.
 export const BLOCK_TEMPLATES: Record<string, { label: string; data: any }> = {
+  ...Object.fromEntries(GIDS_BLOKKEN.filter((b) => b.type.startsWith("gids")).map((b) => [b.type, { label: b.label, data: b.data }])),
+  gidsenKaarten: { label: "Kaarten naar de gidsen (kennisbank)", data: uit(dienstenPagina, "gidsenKaarten") },
   homeSplit: {
     label: "Startpagina: Splitscreen werkgever | werknemer",
     data: {"heading": "React2u, de persoonlijke arbodienst voor werkgevers en werknemers", "choices": [{"doelgroep": "werkgever", "eyebrow": "Voor werkgevers", "title": "Ik ben werkgever", "text": "Grip op verzuim, van preventie tot re-integratie.", "short": "Grip op verzuim", "button": "Naar de werkgeverssite", "href": "/werkgevers", "image": "/beeld/home/samen-leren.webp", "alt": "Vier collega’s lachen samen aan een ronde tafel", "focus": "46% 30%"}, {"doelgroep": "werknemer", "eyebrow": "Voor werknemers", "title": "Ik ben werknemer", "text": "Ziek of vastgelopen? We helpen je weer verder.", "short": "Ziek of vastgelopen?", "button": "Naar de werknemerssite", "href": "/werknemers", "image": "/beeld/home/samen-buiten.webp", "alt": "Een vrouw en een man wandelen samen in het park", "focus": "50% 20%"}]},

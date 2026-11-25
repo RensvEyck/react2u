@@ -24,8 +24,9 @@ import { SitemapOverzicht } from "./Werkgebied";
 import { DgKop, DgLabels, DgFotoLijst, DgPoortwachter, DgPrijzen, DgStarten, DgVragen, DgTarieven, DgCertificeringen, DgSituaties } from "./Doelgroep";
 import { WnKop, WnStappen, WnKaarten, WnTekstKaart, WnChecklist, WnVragenLijst, WnWaarden, WnContactStrook, Inloggen, JuridischeDocumenten } from "./WnPaginas";
 import { Kennismaken } from "./Kennismaken";
-import { GidsKop, GidsTekst, GidsTijdlijn, GidsTabel, GidsVragen, GidsHelpt, GidsenKaarten, type GidsCtx } from "./Gids";
-import { gidsAnker, gidsWoorden } from "@/lib/gidsen";
+import { GidsKop, GidsTekst, GidsTijdlijn, GidsTabel, GidsVragen, GidsHelpt, GidsBronnen, GidsenKaarten, type GidsCtx } from "./Gids";
+import { auteurVoorNaam } from "@/lib/auteurs";
+import { bijgewerktOp, gidsAnker, gidsWoorden } from "@/lib/gidsen";
 import { organisatieRef, WEBSITE_ID } from "@/lib/organisatie";
 import { PtKop, PtRekenhulp, PtQuotes, PtAanmelden } from "./Partners";
 import { KlantenStrook, KlantenAanHetWoord, Keurmerken } from "./Gedeeld";
@@ -77,6 +78,8 @@ export type BlockCtx = {
   pad?: string;
   /** De inhoudsopgave en leestijd van een gids; BlockRenderer rekent ze uit, de kop toont ze. */
   gids?: GidsCtx;
+  /** De laatste wijziging van de pagina in de database (JJJJ-MM-DD), voor "bijgewerkt op" en dateModified van een gids. */
+  bijgewerkt?: string | null;
 };
 
 type BlockProps = {
@@ -1173,6 +1176,7 @@ const REGISTRY: Record<string, (p: BlockProps) => React.ReactNode> = {
   gidsTabel: GidsTabel,
   gidsVragen: GidsVragen,
   gidsHelpt: GidsHelpt,
+  gidsBronnen: GidsBronnen,
   gidsenKaarten: GidsenKaarten,
   ptKop: PtKop,
   ptRekenhulp: PtRekenhulp,
@@ -1258,7 +1262,7 @@ function collectFaq(blocks: Block[]): { question: string; answer: string }[] {
 
 /* ---------- Gidsen (components/blocks/Gids.tsx) ---------- */
 
-const GIDS_HOOFDSTUKKEN = new Set(["gidsTekst", "gidsTijdlijn", "gidsTabel", "gidsVragen", "gidsHelpt"]);
+const GIDS_HOOFDSTUKKEN = new Set(["gidsTekst", "gidsTijdlijn", "gidsTabel", "gidsVragen", "gidsHelpt", "gidsBronnen"]);
 
 /**
  * De inhoudsopgave ("In deze gids") en de leestijd van een gids: de koppen
@@ -1281,16 +1285,30 @@ function gidsCtx(blocks: Block[]): GidsCtx | undefined {
  * AI-zoekmachines zien dan wie het schreef en wanneer het is bijgewerkt
  * (HALO-herstelplan, punt 4). Null zonder gidsKop of zonder pad.
  */
-export function gidsLd(blocks: Pick<Block, "type" | "data">[], pad: string | undefined) {
+export function gidsLd(blocks: Pick<Block, "type" | "data">[], pad: string | undefined, uitDatabase?: string | null) {
   const kop = blocks.find((b) => b.type === "gidsKop")?.data as
-    | { heading?: string; antwoord?: string; auteur?: { naam?: string; functie?: string }; gepubliceerd?: string; bijgewerkt?: string }
+    | { heading?: string; antwoord?: string; auteur?: { naam?: string; functie?: string }; controle?: { naam?: string; functie?: string; datum?: string }; gepubliceerd?: string; bijgewerkt?: string }
     | undefined;
   if (!kop || !pad) return null;
   const site = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";
   const url = `${site}${pad}`;
-  const auteur = kop.auteur?.naam
-    ? { "@type": "Person", name: kop.auteur.naam, ...(kop.auteur.functie ? { jobTitle: kop.auteur.functie } : {}), worksFor: organisatieRef() }
-    : organisatieRef();
+  // De auteur als Person, met de auteurspagina als adres (lib/auteurs.ts) zodat Google de naam kan volgen.
+  const persoon = (naam: string | undefined, functie: string | undefined) => {
+    if (!naam) return null;
+    const a = auteurVoorNaam(naam);
+    return {
+      "@type": "Person",
+      ...(a ? { "@id": `${site}/auteur/${a.slug}#persoon`, url: `${site}/auteur/${a.slug}` } : {}),
+      name: naam,
+      ...(functie ? { jobTitle: functie } : {}),
+      worksFor: organisatieRef(),
+    };
+  };
+  const auteur = persoon(kop.auteur?.naam, kop.auteur?.functie) ?? organisatieRef();
+  const controle = persoon(kop.controle?.naam, kop.controle?.functie);
+  const bijgewerkt = bijgewerktOp(kop.bijgewerkt, uitDatabase);
+  // De bronnen onder de gids als citaties.
+  const bronnen = blocks.filter((b) => b.type === "gidsBronnen").flatMap((b) => ((b.data as { items?: { href?: string }[] }).items ?? []).map((x) => x.href).filter(Boolean));
   return {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -1299,9 +1317,11 @@ export function gidsLd(blocks: Pick<Block, "type" | "data">[], pad: string | und
     ...(kop.antwoord ? { description: kop.antwoord } : {}),
     inLanguage: "nl",
     ...(kop.gepubliceerd ? { datePublished: kop.gepubliceerd } : {}),
-    ...(kop.bijgewerkt ? { dateModified: kop.bijgewerkt } : {}),
+    ...(bijgewerkt ? { dateModified: bijgewerkt } : {}),
     author: auteur,
+    ...(controle ? { reviewedBy: controle } : {}),
     publisher: organisatieRef(),
+    ...(bronnen.length ? { citation: bronnen } : {}),
     isPartOf: { "@id": WEBSITE_ID },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
@@ -1329,7 +1349,7 @@ export default function BlockRenderer({ blocks, ctx = {} }: { blocks: Block[]; c
   const h1Index = blocks.findIndex(rendersPageHeading);
   const faq = collectFaq(blocks);
   const gids = gidsCtx(blocks);
-  const gidsArtikel = gids ? gidsLd(blocks, ctx.pad) : null;
+  const gidsArtikel = gids ? gidsLd(blocks, ctx.pad, ctx.bijgewerkt) : null;
   const ctxMetGids = gids ? { ...ctx, gids } : ctx;
   return (
     <>

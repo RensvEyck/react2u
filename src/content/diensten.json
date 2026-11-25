@@ -258,7 +258,8 @@
         "eyebrow": "Eerst lezen, dan kiezen",
         "heading": "De vragen achter onze diensten",
         "text": "Vijf gidsen over re-integratie, de Wet verbetering poortwachter, de bedrijfsarts, het arbeidsdeskundig onderzoek en de preventiemedewerker.",
-        "link": { "label": "Alle gidsen en artikelen", "href": "/blog" },
+        "slugs": ["re-integratie", "wet-verbetering-poortwachter", "bedrijfsarts", "arbeidsdeskundig-onderzoek", "preventiemedewerker"],
+        "link": { "label": "Naar de kennisbank", "href": "/kennis" },
         "bg": "#F6F5FB"
       }
     },

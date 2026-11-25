@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { concept, conceptEn, MIGRATIE_RESERVE, reserveActief, reserveConcept, reserveSlugs } from "./concept";
-import { GIDSEN } from "./gidsen";
+import { EERSTE_REEKS, GIDSEN } from "./gidsen";
 
 describe("reserve-inhoud", () => {
   it("staat buiten een migratiefase uit: een verborgen pagina komt niet via het concept terug", () => {
@@ -13,11 +13,13 @@ describe("reserve-inhoud", () => {
     expect(MIGRATIE_RESERVE).not.toContain("contact");
   });
 
-  it("is leeg sinds migratie 0060 op productie draaide: ook de gidsen komen weer uit de database", () => {
-    // Tussen de merge van PR #115 en de SQL stonden de vijf gidsen hier, zodat
-    // de 301 van /blog/wet-verbetering-poortwachter-stappen niet op een 404 uitkwam.
-    expect(MIGRATIE_RESERVE).toEqual([]);
-    for (const g of GIDSEN) expect(reserveConcept(g.slug)).toBeNull();
+  it("houdt alleen de tweede reeks gidsen als reserve tot migratie 0061 gedraaid is; de eerste reeks komt uit de database", () => {
+    // Tussen de merge van PR #115 en migratie 0060 stonden de eerste vijf hier; sinds 0061
+    // in de maak is de tweede reeks, zodat de 301 van /blog/loonsanctie-uwv niet op een 404 uitkomt.
+    const tweede = GIDSEN.map((g) => g.slug).filter((s) => !EERSTE_REEKS.includes(s));
+    expect(MIGRATIE_RESERVE).toEqual(tweede);
+    for (const s of EERSTE_REEKS) expect(reserveConcept(s)).toBeNull();
+    for (const s of tweede) expect(reserveConcept(s)?.slug).toBe(s);
   });
 
   it("laat de concepten zelf met rust: lokaal (zonder VERCEL_ENV=preview) zijn ze uit, Engels is er altijd", () => {

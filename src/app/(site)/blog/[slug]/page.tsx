@@ -76,7 +76,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE },
-      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE}/blog` },
+      { "@type": "ListItem", position: 2, name: "Kennis", item: `${SITE}/kennis` },
       { "@type": "ListItem", position: 3, name: p.title, item: `${SITE}/blog/${p.slug}` },
     ],
   };
@@ -95,7 +95,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   return (
     <>
-      <PageHeader crumbs={[{ label: "Blog", href: "/blog" }, { label: p.title, href: `/blog/${p.slug}` }]}
+      <PageHeader crumbs={[{ label: "Kennis", href: "/kennis" }, { label: p.title, href: `/blog/${p.slug}` }]}
         eyebrow="Blog" title={p.title} narrow>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-[16px] text-primary/80">
           {date && <span className="flex items-center gap-2"><LuCalendar aria-hidden /> {date}</span>}
@@ -114,7 +114,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <div className="container-site max-w-[760px]">
           {p.excerpt && <p className="mb-8 text-[21px] leading-relaxed text-primary/85">{p.excerpt}</p>}
           <MiniMarkdown text={p.body_md || ""} className="text-[18.5px]" />
-          <Link href="/blog" className="link-arrow mt-12"><LuArrowLeft aria-hidden /> Alle artikelen</Link>
+          <Link href="/kennis" className="link-arrow mt-12"><LuArrowLeft aria-hidden /> Naar de kennisbank</Link>
         </div>
       </article>
 

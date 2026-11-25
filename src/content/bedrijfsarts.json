@@ -201,6 +201,36 @@
       }
     },
     {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Arbeidsomstandighedenwet (Arbowet)",
+            "href": "https://wetten.overheid.nl/BWBR0010346",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Arbeidsomstandighedenbesluit",
+            "href": "https://wetten.overheid.nl/BWBR0008498",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Arboportaal: Arbowet, RI&E, preventiemedewerker en basiscontract",
+            "href": "https://www.arboportaal.nl/",
+            "uitgever": "Ministerie van Sociale Zaken en Werkgelegenheid"
+          },
+          {
+            "titel": "Autoriteit Persoonsgegevens: wat een werkgever mag vastleggen bij ziekte",
+            "href": "https://www.autoriteitpersoonsgegevens.nl/",
+            "uitgever": "Autoriteit Persoonsgegevens"
+          }
+        ]
+      }
+    },
+    {
       "type": "gidsHelpt",
       "label": "Zo helpt React2u",
       "data": {

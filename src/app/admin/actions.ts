@@ -391,6 +391,25 @@ export async function addBlock(pageSlug: string, formData: FormData) {
   redirect(`/admin/paginas/${pageSlug}`);
 }
 
+/**
+ * "Begin met een sjabloon" op een pagina zonder blokken: zet alle blokken van
+ * het sjabloon (lib/blockTemplates.ts, PAGINA_SJABLONEN) in één keer neer.
+ * Alleen op een lege pagina, zodat niets overschreven wordt.
+ */
+export async function vulMetSjabloon(pageSlug: string, formData: FormData) {
+  const { sb } = await requirePerm("paginas");
+  const sleutel = String(formData.get("sjabloon") || "");
+  const { PAGINA_SJABLONEN } = await import("@/lib/blockTemplates");
+  const sjabloon = PAGINA_SJABLONEN[sleutel];
+  const { data: page } = await sb.from("pages").select("id").eq("slug", pageSlug).single();
+  if (!sjabloon || !page) redirect(`/admin/paginas/${pageSlug}`);
+  const { count } = await sb.from("blocks").select("id", { count: "exact", head: true }).eq("page_id", page.id);
+  if (count) redirect(`/admin/paginas/${pageSlug}?fout=niet-leeg`);
+  await sb.from("blocks").insert(sjabloon.blokken.map((b, i) => ({ page_id: page.id, type: b.type, label: b.label, sort: i, data: b.data })));
+  revalidateSite();
+  redirect(`/admin/paginas/${pageSlug}?opgeslagen=sjabloon`);
+}
+
 export async function deleteBlock(blockId: string, pageSlug: string) {
   const { sb } = await requirePerm("paginas");
   await sb.from("blocks").delete().eq("id", blockId);

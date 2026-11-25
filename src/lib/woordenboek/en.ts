@@ -225,6 +225,7 @@ export const en: Woordenboek = {
       telefoonOngeldig: "Please check your phone number.",
       terugbelAlgemeen: "Something went wrong. Feel free to call us directly.",
       contactVerplicht: "Please fill in your name, email address, phone number and message.",
+      checklistVerplicht: "Please fill in your name and email address.",
       herkomstVerplicht: "Please tell us how you found us.",
       algemeen: "Something went wrong. Please try again later.",
       sollicitatieVerplicht: "Please fill in at least your name and email address.",

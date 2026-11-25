@@ -3,6 +3,8 @@ import { requirePerm } from "@/lib/admin";
 import { saveSeoSettings } from "@/app/admin/actions";
 import ImageField from "@/components/admin/ImageField";
 import SeoTabs from "@/components/admin/SeoTabs";
+import GidsControles, { type GidsBlok } from "@/components/admin/GidsControles";
+import { GIDS_BLOKTYPES } from "@/lib/gidsSeo";
 import type { Page, Post, Vacancy } from "@/lib/types";
 import {
   analysePage, analysePost, analyseVacancy, countIssues, normalizeSeoSettings,
@@ -63,12 +65,14 @@ function Row({ r }: { r: SeoRow }) {
 
 export default async function SeoAdmin() {
   const { sb } = await requirePerm("seo");
-  const [pagesRes, postsRes, vacanciesRes, seoRes, missingRes] = await Promise.all([
+  const [pagesRes, postsRes, vacanciesRes, seoRes, missingRes, gidsRes] = await Promise.all([
     sb.from("pages").select("*").order("sort"),
     sb.from("posts").select("*").order("created_at", { ascending: false }),
     sb.from("vacancies").select("*").order("created_at", { ascending: false }),
     sb.from("site_settings").select("value").eq("key", "seo").maybeSingle(),
     sb.from("missing_paths").select("path", { count: "exact", head: true }).eq("ignored", false),
+    // De blokken van de gidsen, voor de controles op de opbouw (lib/gidsSeo.ts).
+    sb.from("blocks").select("page_id,type,sort,data").in("type", GIDS_BLOKTYPES),
   ]);
 
   const seo = normalizeSeoSettings(seoRes.data?.value);
@@ -135,6 +139,8 @@ export default async function SeoAdmin() {
           )}
         </div>
       </div>
+
+      <GidsControles pages={(pagesRes.data as Page[]) || []} blocks={(gidsRes.data as GidsBlok[]) || []} />
 
       <form action={saveSeoSettings} className="acard p-6">
         <h2 className="mb-1 font-heading text-[16px] font-bold text-[#312e82]">Standaardwaarden</h2>

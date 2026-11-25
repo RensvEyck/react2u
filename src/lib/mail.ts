@@ -568,6 +568,42 @@ export async function notifyTerugbel(t: {
   );
 }
 
+/**
+ * De checklist poortwachterdossier (/kennis/checklist-poortwachterdossier)
+ * naar de aanvrager, met de pdf als bijlage. Antwoorden komt bij het team
+ * uit. Zonder mailconfiguratie gebeurt er niets; de pagina biedt de pdf dan
+ * nog steeds als download aan.
+ */
+export async function mailChecklist(m: { to: string; naam: string; pdf: Buffer; site: string }): Promise<Verzonden> {
+  const voornaam = m.naam.trim().split(/\s+/)[0] || "";
+  const planner = `${m.site}/kennis/poortwachter-planner`;
+  const gids = `${m.site}/wet-verbetering-poortwachter`;
+  const html = [
+    `<div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1c1a4e;line-height:1.6">`,
+    `<p style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#d4136a;font-weight:700;margin:0 0 8px">Checklist poortwachterdossier</p>`,
+    `<h1 style="font-size:22px;margin:0 0 16px">Hier is je checklist${voornaam ? `, ${esc(voornaam)}` : ""}</h1>`,
+    `<p style="font-size:15px;margin:0 0 12px">In de bijlage staan de 24 punten die UWV bij de WIA-aanvraag in het re-integratieverslag verwacht, per fase van week 1 tot week 104. Vink af wat in het dossier zit; wat ontbreekt, herstel je alsnog.</p>`,
+    `<p style="font-size:15px;margin:0 0 12px">Handig erbij: de <a href="${planner}" style="color:#322e83">Poortwachter-planner</a> rekent alle datums uit vanaf de eerste ziektedag, en de <a href="${gids}" style="color:#322e83">gids over de Wet verbetering poortwachter</a> legt elke stap uit.</p>`,
+    `<p style="font-size:15px;margin:0 0 12px">Twijfel je over een dossier? Beantwoord deze mail of bel 085 620 58 00. We kijken mee, ook als je nog geen klant bent.</p>`,
+    `<p style="font-size:15px;margin:16px 0 0">Met vriendelijke groet,<br>Team React2u</p>`,
+    `</div>`,
+  ].join("");
+  return verstuur([m.to], "Je checklist poortwachterdossier", html, adressen(process.env.NOTIFY_TO)[0], [{ filename: "checklist-poortwachterdossier-react2u.pdf", content: m.pdf }]);
+}
+
+/** Een aanvraag van de checklist: een melding naar het team, net als een terugbelverzoek. */
+export async function notifyChecklist(c: { name: string; email: string; company: string | null; path: string; gemaild: boolean }) {
+  await send(
+    `Checklist aangevraagd: ${c.name}${c.company ? ` (${c.company})` : ""}`,
+    render("Checklist poortwachterdossier aangevraagd", `Via ${c.path}. ${c.gemaild ? "De pdf is naar de aanvrager gemaild." : "De pdf kon niet gemaild worden; de aanvrager kon hem wel downloaden."}`, [
+      { label: "Naam", value: c.name },
+      { label: "Bedrijf", value: c.company },
+      { label: "E-mail", value: c.email },
+    ]),
+    process.env.NOTIFY_OFFERTE_TO || "sales@react2u.nl"
+  );
+}
+
 /** Aanmelding voor het partnerprogramma (/partners): naar sales, net als offertes. */
 export async function notifyPartner(p: {
   name: string; company: string; email: string; phone: string; soort: string; omvang: string | null; path: string;
