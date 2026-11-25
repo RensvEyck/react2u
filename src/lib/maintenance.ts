@@ -1,4 +1,4 @@
-import { CONTACT_FALLBACK, type ContactInfo } from "./content";
+import { CONTACT_FALLBACK, type ContactInfo } from "./contact";
 import { FAVICON_URL, LOGO_SVG_URL } from "./nav";
 import { DOT_R, LOGO_DOTS } from "./brand";
 

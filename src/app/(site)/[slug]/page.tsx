@@ -10,7 +10,7 @@ import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
 import { conceptSlugs, reserveSlugs } from "@/lib/concept";
 import { inhoud } from "@/lib/pagina";
-import { isGeindexeerd, plaatsVoorSlug, provincieHref, provincieVoorSlug } from "@/lib/gemeenten";
+import { isGeindexeerd, plaatsVoorSlug, provincieHref, provincieVoorSlug, werkgebiedSlugs } from "@/lib/gemeenten";
 import { plaatsTekst } from "@/lib/plaatsteksten";
 import { PlaatsPagina, ProvinciePagina } from "@/components/blocks/PlaatsPagina";
 import { hreflangVoor } from "@/lib/taal";
@@ -35,13 +35,15 @@ function werkgebied(slug: string) {
 // Welke inhoud een pagina toont (concept, database of reserve) staat in
 // lib/pagina.ts, samen met de regel dat de publicatiestatus leidend is.
 
-export const revalidate = 300;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const pages = await getPublishedPages();
-  // Reserve-inhoud (een nieuw concept vóór de SQL, lib/concept.ts) hoort ook voorgebouwd.
-  const slugs = new Set([...pages.map((p) => p.slug), ...conceptSlugs(), ...reserveSlugs()]);
+  // Reserve-inhoud (een nieuw concept vóór de SQL, lib/concept.ts) hoort ook
+  // voorgebouwd, net als de 354 provincie- en gemeentepagina's (werkgebiedSlugs):
+  // anders kost elke eerste aanvraag een render (CONTEXT.md, *Vercel-verbruik*).
+  const slugs = new Set([...pages.map((p) => p.slug), ...conceptSlugs(), ...reserveSlugs(), ...werkgebiedSlugs()]);
   slugs.delete("home");
   // Een pagina met een vaste doorverwijzing (zoals de oude dienstpagina's,
   // nu een label) bereikt niemand: de redirect gaat voor. Niet bouwen.

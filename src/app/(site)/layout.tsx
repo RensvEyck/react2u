@@ -4,7 +4,7 @@ import SiteShell from "@/components/site/SiteShell";
 import { BASIS_METADATA, SITE_URL } from "@/lib/metadata";
 import { deelAfbeelding, seoInstellingen } from "@/lib/og";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 // Zonder deze defaults tonen LinkedIn, WhatsApp en X een kale link zonder
 // titel of afbeelding. Elke pagina zet daarnaast zijn eigen openGraph met zijn

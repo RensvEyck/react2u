@@ -9,7 +9,7 @@ import { vacatureInTaal } from "@/lib/vacatures";
 import { VacatureDetail } from "@/components/blocks/WerkenBij";
 import { woordenboek } from "@/lib/woordenboek";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

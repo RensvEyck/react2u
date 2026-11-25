@@ -13,7 +13,7 @@ import PageHeader from "@/components/site/PageHeader";
 import { nieuwOntwerp } from "@/lib/concept";
 import { BlogArtikel } from "@/components/blocks/Blog";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";

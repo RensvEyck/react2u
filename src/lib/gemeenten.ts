@@ -137,5 +137,18 @@ export function werkgebiedPaden(): string[] {
   ];
 }
 
+/**
+ * De slugs van álle werkgebiedpagina's (zonder schuine streep), voor
+ * generateStaticParams in (site)/[slug]: elke provincie en elke gemeente, ook
+ * de niet-geïndexeerde. Zo bouwt de build ze één keer, in plaats van dat de
+ * eerste aanvraag (meestal een crawler) er een functie-aanroep voor kost.
+ */
+export function werkgebiedSlugs(): string[] {
+  return [
+    ...REGIOS.flatMap((r) => r.provincies.map((p) => provincieHref(p.naam).slice(1))),
+    ...PLAATSEN.map((p) => plaatsHref(p.naam).slice(1)),
+  ];
+}
+
 export const AANTAL_GEMEENTEN = PLAATSEN.length;
 export const AANTAL_PROVINCIES = REGIOS.reduce((n, r) => n + r.provincies.length, 0);

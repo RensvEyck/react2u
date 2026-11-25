@@ -7,7 +7,7 @@ import { hreflangVoor } from "@/lib/taal";
 import { VAKGEBIEDEN, vakgebiedOpSlug } from "@/lib/vakgebieden";
 import { VakgebiedPagina } from "@/components/blocks/WerkenBij";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 export const dynamicParams = false;
 
 export function generateStaticParams() {
