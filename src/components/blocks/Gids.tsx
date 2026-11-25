@@ -3,7 +3,9 @@ import { outfit } from "./HomeVerhaal";
 import { NAVY, BODY, MUTE, LINE, SOFT, LAV, kop, BREED, Eyebrow, Kruimels, Vink, Pijl, Strook } from "./Gedeeld";
 import { MiniMarkdown } from "@/lib/md";
 import { inkt } from "@/lib/kleur";
-import { DIENST_KLEUR, DIENST_TINT, GIDSEN, gidsAnker, gidsVoor, type Gids } from "@/lib/gidsen";
+import { DIENST_KLEUR, DIENST_TINT, GIDSEN, bijgewerktOp, gidsAnker, gidsVoor, type Gids } from "@/lib/gidsen";
+import { auteurVoorNaam } from "@/lib/auteurs";
+import { LuExternalLink } from "react-icons/lu";
 import { DIENSTEN } from "@/lib/organisatie";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -32,13 +34,15 @@ type Ctx = {
   pad?: string;
   /** De inhoudsopgave en de leestijd van de gids, uit alle blokken van de pagina (BlockRenderer). */
   gids?: GidsCtx;
+  /** De datum van de laatste wijziging van de pagina in de database (JJJJ-MM-DD); null voor een concept. */
+  bijgewerkt?: string | null;
 };
 
 export type GidsCtx = { inhoud: { label: string; id: string }[]; leestijd: number };
 
 type Props = { d: any; asH1?: boolean; ctx?: Ctx };
 
-function datumNl(iso: string | undefined): string | null {
+function datumNl(iso: string | null | undefined): string | null {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
 }
@@ -67,9 +71,13 @@ export function GidsKop({ d, asH1, ctx }: Props) {
   const t: string = d.tint || SOFT;
   const tc = inkt(c);
   const auteur = d.auteur || {};
+  // De auteurspagina (lib/auteurs.ts) bij de naam in de kop; zonder pagina alleen de naam.
+  const auteurPagina = auteurVoorNaam(auteur.naam);
+  const controle = d.controle || {};
   const inhoud = ctx?.gids?.inhoud ?? [];
   const leestijd = ctx?.gids?.leestijd;
-  const bijgewerkt = datumNl(d.bijgewerkt);
+  const bijgewerkt = datumNl(bijgewerktOp(d.bijgewerkt, ctx?.bijgewerkt));
+  const gecontroleerd = datumNl(controle.datum);
   return (
     <div className={`hv ${outfit.variable} bg-white`} style={{ color: NAVY }}>
       <section aria-label={d.eyebrow || "Gids"} className="px-[6px] pt-4 md:px-10 md:pt-8 xl:mx-auto xl:max-w-[1280px]">
@@ -95,12 +103,17 @@ export function GidsKop({ d, asH1, ctx }: Props) {
                   <span className="flex items-center gap-3">
                     <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[14px] font-bold text-white" style={{ background: c }}>{initialen(auteur.naam)}</span>
                     <span className="flex flex-col leading-tight">
-                      <span className="text-[15px] font-bold" style={{ color: NAVY }}>{auteur.naam}</span>
+                      {auteurPagina
+                        ? <Link href={`/auteur/${auteurPagina.slug}`} className="text-[15px] font-bold underline-offset-[3px] hover:underline" style={{ color: NAVY }} rel="author">{auteur.naam}</Link>
+                        : <span className="text-[15px] font-bold" style={{ color: NAVY }}>{auteur.naam}</span>}
                       {auteur.functie && <span className="text-[13.5px]" style={{ color: MUTE }}>{auteur.functie}</span>}
                     </span>
                   </span>
                 )}
                 <span className="flex flex-wrap gap-x-4 gap-y-1 text-[13.5px]" style={{ color: MUTE }}>
+                  {controle.naam && (
+                    <span>Gecontroleerd door <span className="font-semibold" style={{ color: NAVY }}>{controle.naam}</span>{controle.functie ? `, ${controle.functie}` : ""}{gecontroleerd ? ` op ${gecontroleerd}` : ""}</span>
+                  )}
                   {bijgewerkt && <span>Bijgewerkt op {bijgewerkt}</span>}
                   {leestijd ? <span>{leestijd} minuten lezen</span> : null}
                 </span>
@@ -283,6 +296,39 @@ export function GidsVragen({ d }: Props) {
             </details>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- 5b. Bronnen ---------- */
+
+/**
+ * De bronnen onder een gids: de wet, UWV, de Arbeidsinspectie. Een lezer (en
+ * een zoekmachine) ziet zo waar de termijnen en bedragen vandaan komen; de
+ * structured data neemt ze op als `citation`.
+ */
+export function GidsBronnen({ d }: Props) {
+  const items: any[] = d.items || [];
+  if (!items.length) return null;
+  return (
+    <section aria-label={d.heading || "Bronnen"} className={`hv ${outfit.variable} bg-white`}>
+      <div className={`${BREED} grid gap-6 border-t py-10 md:py-14 lg:grid-cols-12 lg:gap-6`} style={{ borderColor: LINE }}>
+        <div className="flex flex-col gap-2 lg:col-span-4">
+          <Hoofdstuk titel={d.heading || "Bronnen"} />
+          <p className="m-0 text-[15px] leading-[1.6]" style={{ color: BODY }}>{d.text || "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn."}</p>
+        </div>
+        <ul className="m-0 flex list-none flex-col divide-y p-0 lg:col-span-7 lg:col-start-6" style={{ borderColor: LINE }}>
+          {items.map((b, i) => (
+            <li key={i} className="flex items-start gap-3 py-3" style={{ borderColor: LINE }}>
+              <LuExternalLink aria-hidden className="mt-1 shrink-0 text-[16px]" style={{ color: MUTE }} />
+              <span className="flex flex-col gap-0.5">
+                <a href={b.href} rel="noopener" className="text-[16px] font-bold leading-[1.35] underline-offset-[3px] hover:underline" style={{ color: NAVY }}>{b.titel}</a>
+                {b.uitgever && <span className="text-[13.5px]" style={{ color: MUTE }}>{b.uitgever}</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

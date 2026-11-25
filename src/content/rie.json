@@ -170,6 +170,36 @@
       }
     },
     {
+      "type": "gidsBronnen",
+      "label": "Bronnen",
+      "data": {
+        "heading": "Bronnen",
+        "text": "Waar de termijnen, bedragen en regels in deze gids op gebaseerd zijn.",
+        "items": [
+          {
+            "titel": "Arbeidsomstandighedenwet (Arbowet)",
+            "href": "https://wetten.overheid.nl/BWBR0010346",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Arbeidsomstandighedenbesluit",
+            "href": "https://wetten.overheid.nl/BWBR0008498",
+            "uitgever": "wetten.overheid.nl"
+          },
+          {
+            "titel": "Steunpunt RI&E: erkende branche-instrumenten en de toetsing",
+            "href": "https://www.rie.nl/",
+            "uitgever": "Steunpunt RI&E"
+          },
+          {
+            "titel": "Nederlandse Arbeidsinspectie: toezicht op de Arbowet",
+            "href": "https://www.nlarbeidsinspectie.nl/",
+            "uitgever": "Nederlandse Arbeidsinspectie"
+          }
+        ]
+      }
+    },
+    {
       "type": "gidsHelpt",
       "label": "Zo helpt React2u",
       "data": {

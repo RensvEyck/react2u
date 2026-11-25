@@ -14,11 +14,11 @@ import type { Block, Page } from "./types";
  * De publicatiestatus is leidend: een pagina die een beheerder verbergt of
  * verwijdert is weg, en komt niet via een JSON-bestand terug.
  */
-export type Inhoud = { page: Pick<Page, "title" | "seo_title" | "seo_description" | "og_image">; blocks: Block[] };
+export type Inhoud = { page: Pick<Page, "title" | "seo_title" | "seo_description" | "og_image"> & { updated_at?: string | null }; blocks: Block[] };
 
 function alsInhoud(c: Concept): Inhoud {
   return {
-    page: { title: c.title, seo_title: c.seo_title ?? null, seo_description: c.seo_description ?? null, og_image: null },
+    page: { title: c.title, seo_title: c.seo_title ?? null, seo_description: c.seo_description ?? null, og_image: null, updated_at: null },
     blocks: c.blocks,
   };
 }

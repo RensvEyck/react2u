@@ -123,7 +123,8 @@ export default async function ContentPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven, certificaten, pad: path }} />
+      {/* De datum van de laatste wijziging uit de database: een gids toont "bijgewerkt op" en zet hem in de structured data. */}
+      <BlockRenderer blocks={res.blocks} ctx={{ posts, crumbs, tarieven, certificaten, pad: path, bijgewerkt: res.page.updated_at?.slice(0, 10) ?? null }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd(crumbs)) }} />
       {dienst && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(dienst) }} />}
     </>

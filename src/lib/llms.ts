@@ -6,6 +6,7 @@ import type { Page, Post, Vacancy } from "@/lib/types";
 import { VAKGEBIEDEN } from "@/lib/vakgebieden";
 import { GIDSEN } from "@/lib/gidsen";
 import { HULPMIDDELEN, ONDERWERPEN } from "@/lib/kennis";
+import { AUTEURS } from "@/lib/auteurs";
 
 /**
  * De tekst van /llms.txt (https://llmstxt.org): een Markdown-overzicht van de
@@ -99,6 +100,7 @@ export function llmsTekst({ base, pages, posts, vacancies, contact }: LlmsBron):
       ...ONDERWERPEN.map((o) => item(o.naam, `${base}/kennis/${o.slug}`, o.seo_description)),
       ...HULPMIDDELEN.map((h) => item(h.naam, `${base}/kennis/${h.slug}`, h.seo_description)),
       ...posts.map((p) => item(p.title, `${base}/blog/${p.slug}`, omschrijving(p.seo_description, p.excerpt))),
+      ...AUTEURS.map((a) => item(`${a.naam}, ${a.functie.toLowerCase()}`, `${base}/auteur/${a.slug}`, kort(a.bio[0]))),
     ]),
     ...sectie("Werken bij React2u", [
       item("Vacatures", `${base}/vacatures`, "Alle openstaande vacatures en zzp-opdrachten, te filteren op vakgebied."),

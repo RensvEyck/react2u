@@ -3266,6 +3266,25 @@ onderwerp. Migratie 0061 zet de tweede reeks in de database; tot die tijd
 staan de acht slugs in `MIGRATIE_RESERVE`. Zie
 [docs/adr/0003](docs/adr/0003-kennisbank.md).
 
+**Auteurs, bronnen en de gids in het beheer.** De auteurs van de gidsen staan
+in [`src/lib/auteurs.ts`](src/lib/auteurs.ts), met een pagina `/auteur/<slug>`
+(`ProfilePage` met `Person`); de naam in de kop van een gids koppelt via
+`auteurVoorNaam()` aan die pagina, zodat de byline linkt en de `Article`
+dezelfde `Person` noemt. Alleen onderbouwde feiten: functie, sinds wanneer,
+registraties zoals in het register; geen registratie bekend, dan een lege
+lijst. `controle: { naam, functie, datum }` in de kop is "gecontroleerd door"
+(`reviewedBy`), leeg tot iemand een gids heeft nagelezen. Het blok
+`gidsBronnen` onder een gids noemt de wet, UWV en de Arbeidsinspectie
+(`citation`). "Bijgewerkt op" is de datum in de kop of `pages.updated_at`,
+wat later is (`bijgewerktOp()`). In het beheer: `PAGINA_SJABLONEN`
+(`lib/blockTemplates.ts`) zet op een lege pagina alle gidsblokken neer
+("Begin met een sjabloon"), `FIELD_LABELS` geeft de velden een naam, en
+`/admin/seo` toont per gids de controles uit
+[`lib/gidsSeo.ts`](src/lib/gidsSeo.ts) (dezelfde regels als de test op de
+concepten, op de blokken uit de database). Een gids in het beheer verschijnt
+pas in de kennisbank als de slug ook in `GIDSEN` staat. Zie
+[docs/adr/0004](docs/adr/0004-auteurs-bronnen-gidseneditor.md).
+
 `sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld
 niets zegt. Pagina's zonder item in de database hebben sinds november 2026 ook

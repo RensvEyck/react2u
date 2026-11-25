@@ -6,6 +6,7 @@ import { coveredByWordpress } from "@/lib/redirects";
 import { VAKGEBIEDEN, vakgebiedVan } from "@/lib/vakgebieden";
 import { OPEN_SOLLICITATIE, heeftVertaling, vertaalPad } from "@/lib/taal";
 import { HULPMIDDELEN, ONDERWERPEN } from "@/lib/kennis";
+import { AUTEURS } from "@/lib/auteurs";
 
 export const revalidate = 3600;
 
@@ -84,6 +85,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/kennis`, lastModified: newest([...pages.map((p) => p.updated_at), ...posts.map((p) => p.updated_at)]), priority: 0.8 },
     ...ONDERWERPEN.map((o) => ({ url: `${base}/kennis/${o.slug}`, lastModified: newest([...pages.map((p) => p.updated_at), ...posts.map((p) => p.updated_at)]), priority: 0.7 })),
     ...HULPMIDDELEN.map((h) => ({ url: `${base}/kennis/${h.slug}`, lastModified: newest(pages.map((p) => p.updated_at)), priority: 0.7 })),
+    // De auteurs van de gidsen (lib/auteurs.ts).
+    ...AUTEURS.map((a) => ({ url: `${base}/auteur/${a.slug}`, lastModified: newest(pages.map((p) => p.updated_at)), priority: 0.5 })),
     ...posts.map((p) => ({
       url: `${base}/blog/${p.slug}`,
       lastModified: new Date(p.updated_at),
