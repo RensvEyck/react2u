@@ -3076,17 +3076,19 @@ een link én bij navigeren via het commandopalet
   [`docs/dns-omzetting.md`](docs/dns-omzetting.md): het TXT-record
   `MS=ms23148887` (Microsoft 365) is daarbij verdwenen, en de oude
   WordPress-hosting kan pas weg als de nieuwe site een paar dagen goed draait.
-- **E-mailnotificaties zijn gebouwd maar staan uit.** De code staat er
-  (zie *E-mail vanuit het systeem*, en Instellingen → E-mail met testmail);
-  zolang `RESEND_API_KEY`, `NOTIFY_TO` en `NOTIFY_FROM`
-  niet in Vercel staan, wordt er niets verstuurd en mist wie niet inlogt nog
-  steeds inzendingen. Stand 6 oktober 2026: in Production ontbreken
-  `RESEND_API_KEY`, `NOTIFY_FROM`, `NOTIFY_TO`, `NOTIFY_OFFERTE_TO`
-  (sales@react2u.nl) en `NEXT_PUBLIC_SITE_URL` (https://react2u.nl; de code valt
-  daar zelf op terug). In DNS staat niets van Resend (geen
-  `resend._domainkey`, geen `send.`-subdomein, SPF zonder amazonses) en DMARC
-  staat op `p=reject`: zonder DKIM via Resend wordt mail namens @react2u.nl
-  geweigerd. Eerst het domein in Resend verifiëren, dan de sleutels zetten.
+- **E-mailnotificaties staan aan sinds 27 oktober 2026.** react2u.nl is in Resend
+  geverifieerd (TXT `resend._domainkey`, MX en SPF op `send.react2u.nl`; de records
+  staan bij Hostnet, gezet via Theiner ICT) en in Vercel staan `RESEND_API_KEY`,
+  `NOTIFY_FROM` (`React2u <noreply@react2u.nl>`) en `NOTIFY_TO` (info@react2u.nl)
+  voor Production én Preview, plus `NEXT_PUBLIC_SITE_URL` voor Production.
+  `NOTIFY_OFFERTE_TO` is niet gezet: offertes en terugbelverzoeken gaan naar
+  sales@react2u.nl. Productie is daarna opnieuw gedeployd (redeploy van 03d56dd).
+  Op de live site getest met één gelabeld contactbericht ("Test mailkoppeling",
+  rens@react2u.nl): bedankmelding, geen `[mail]`-fouten in de logboeken. De
+  sollicitatiestroom (melding naar info@ plus ontvangstbewijs aan de sollicitant)
+  loopt via dezelfde `post()`, maar is op 27 oktober niet met een testsollicitatie
+  nagelopen. Dezelfde vier waarden staan lokaal in `.env.local`. Nog open:
+  Resend als verwerker opnemen in de privacyverklaring-PDF.
 - **Toegang.** Het adminwachtwoord en een Vercel-token zijn buiten de repo gedeeld;
   het wachtwoord moet gewijzigd en het token ingetrokken worden.
 - **Livegang redesign (6 oktober 2026, branch `livegang`, PR #4)**. De
