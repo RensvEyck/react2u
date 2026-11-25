@@ -17,7 +17,7 @@ import { hreflangVoor, vertaalPad } from "@/lib/taal";
  * (services/recover), daarom een catch-all; een onbekend adres onder /en komt
  * zo ook hier uit en wordt de Engelse 404 (en/not-found.tsx).
  */
-export const revalidate = 300;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 export function generateStaticParams() {

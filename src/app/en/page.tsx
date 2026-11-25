@@ -11,7 +11,7 @@ import { metOmschrijving, omschrijving } from "@/lib/seo";
 import { hreflangVoor } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 /**
  * Het Engelse startscherm (/en): het splitscreen werkgever | werknemer en de

@@ -951,7 +951,9 @@ uit). Welke inhoud een pagina toont (staging het concept,
 anders de database, anders de reserve) staat op één plek,
 [`src/lib/pagina.ts`](src/lib/pagina.ts); de Engelse route gebruikt dezelfde
 regel om alleen een hreflang naar een Nederlandse pagina te zetten die echt
-publiek is. De publieke pagina's zijn 5 minuten gecachet.
+publiek is. De publieke pagina's zijn een dag gecachet (`revalidate = 86400`)
+en worden bij elke wijziging in de admin opnieuw opgebouwd (`revalidateSite()`
+in `admin/actions.ts`); zie *Vercel-verbruik*.
 
 ## Tarieven
 
@@ -996,6 +998,65 @@ database gaat zoals bij de andere concepten (`node scripts/concept-naar-sql.mjs 
   Resend-configuratie staat hij alleen in het Postvak IN, net als een
   contactbericht.
 
+## Vercel-verbruik
+
+De site draait in het Vercel-team *FlexHero's projects*, samen met de andere
+sites. Op 24 november 2026 pauzeerde Vercel het hele team (elk domein toonde
+"This deployment is temporarily paused"): de fair-use-limiet van het
+Hobby-plan voor *Fluid Active CPU* (4 uur per maand) was overschreden, en
+react2u was daar met 5,5 van de 6,3 uur de oorzaak van. Bijna al dat werk
+kwam van crawlers, niet van bezoekers: 1,1 miljoen CDN-verzoeken en 494.000
+ISR-writes in een maand tegenover zo'n 5.800 geregistreerde paginaweergaven.
+Zie [ADR 0003](docs/adr/0003-dagcache-en-lichte-middleware.md). De regels die
+daaruit volgen:
+
+- **Een dag cache, verversen bij wijziging.** Elke publieke pagina staat op
+  `revalidate = 86400`. Vijf minuten (de oude stand) betekende dat elke pagina
+  die een crawler aanraakte om de vijf minuten opnieuw werd gebouwd — een
+  functie-aanroep plus een ISR-write per keer. Inhoud verandert alleen via de
+  admin, en elke actie daar roept `revalidateSite()` aan (`revalidatePath("/",
+  "layout")`), dus een bezoeker ziet een wijziging even snel als voorheen. Zet
+  nooit meer een korte `revalidate` op een publieke pagina; wie iets vers wil,
+  ververst bij het opslaan.
+- **Werkgebiedpagina's bij de build.** De 354 provincie- en gemeentepagina's
+  staan in `generateStaticParams` van `(site)/[slug]` (`werkgebiedSlugs()`),
+  zodat niet elke eerste aanvraag een render kost.
+- **De vangnetten blijven dynamisch.** `(site)/[...rest]` en `en/[...slug]`
+  houden `dynamicParams = true`, zodat een onbekend adres de 404 binnen de
+  sitelayout krijgt (zie ADR 0001). Zo'n 404 wordt met dezelfde `revalidate`
+  gecachet: elk uniek verzonnen adres kost één render per dag, niet één per
+  vijf minuten.
+- **De middleware is licht.** Hij draait vóór elke publieke pagina en telt
+  als CPU-tijd (`middleware` was 42% van het totaal). Daarom laadt het
+  publieke pad geen supabase-js: de onderhoudsstand en de doorverwijzingen
+  komen met een kale `fetch` uit PostgREST, een minuut onthouden per
+  instantie. `@supabase/ssr` wordt pas geladen (`await import`) voor `/admin`
+  en voor de doorlaat van beheerders tijdens onderhoud. `lib/contact.ts` staat
+  los van `lib/content.ts` om dezelfde reden: `maintenance.ts` mag geen
+  supabase-js meeslepen. Voeg aan de middleware niets toe dat per verzoek een
+  client opbouwt of een bibliotheek laadt.
+- **Vercel Firewall houdt het ergste tegen vóór de middleware.** Sinds 25
+  november 2026 (team op Pro) staan er twee deny-regels op het project: één op
+  user-agent *group.one uptime-monitor* (een monitor van de oude hoster die de
+  site elke paar minuten pollde, bijna 10.000 verzoeken per week) en één op de
+  paden `/php-fpm-status`, `/.well-known/wp-cloud` en `/xmlrpc.php` (scanners
+  op de oude WordPress-site; samen ruim 2.000 renders per week). Een 403 van de
+  firewall kost geen CPU. Beheer onder Project → Firewall; de managed ruleset
+  *Bot Protection* staat bewust uit, omdat die ook de crawlers van
+  vacaturebanken kan raken die `/vacatures/feed.xml` en
+  `/vacatures/linkedin.xml` ophalen.
+- **Het plan.** Het Hobby-plan is voor niet-commercieel gebruik en blokkeert
+  bij overschrijding een maand lang het hele team; sinds 25 november 2026
+  staat het team op Pro. Zet daar een limiet in *Spend Management*.
+
+Het verbruik per project staat in het Vercel-dashboard onder *Usage*
+(Fluid Active CPU, ISR Writes, CDN Requests, elk met een tab *Projects*). Per
+pad en per user-agent, voor de laatste dagen:
+
+```bash
+vercel --scope flex-hero-s-projects metrics vercel.function_invocation.function_cpu_time_ms -p react2u -a sum --since 7d -g 1d --group-by request_path --order-by value
+```
+
 ## Onderhoudsmodus
 
 Een schakelaar op `/admin/instellingen` (recht `instellingen`), opgeslagen als
@@ -1019,7 +1080,7 @@ cirkels overgenomen (`LOGO_DOTS` in `src/lib/brand.ts`), met de kop op de plek v
 statische pagina's blijven in de cache staan en zijn meteen terug zodra de
 schakelaar uit gaat.
 
-Wat de poort doorlaat: `/admin`, `/api/` (bezoekregistratie), `/_next/` en alles
+Wat de poort doorlaat: `/admin`, `/api/` (bezoekregistratie), `/_next/`, `/_vercel/` en alles
 met een bestandsextensie (`robots.txt`, `sitemap.xml`, favicon). Op een
 preview-deploy (staging, `VERCEL_ENV=preview`) staat de poort helemaal uit:
 die deelt de database en dus de schakelaar met productie, en staging is er juist
@@ -1035,9 +1096,11 @@ overgeslagen. Controleer onderhoud daarom in een privévenster.
 **De site gaat open bij twijfel.** Omdat de middleware nu vóór élke publieke
 pagina draait, zou een haperend Supabase de hele site laten hangen. Daarom:
 
-- de stand wordt 15 seconden per instantie onthouden (best effort — Next belooft
+- de stand wordt een minuut per instantie onthouden (best effort — Next belooft
   niets over globals in middleware, maar het scheelt een query per weergave);
   een wijziging is dus niet op de seconde overal zichtbaar;
+- de queries gaan als kale `fetch` naar PostgREST, met de publieke sleutel
+  (dus dezelfde RLS), zonder supabase-js: zie *Vercel-verbruik*;
 - elke query heeft een timeout van 1 seconde;
 - bij een fout geldt de laatst bekende stand, en zonder die: open.
 
@@ -2853,7 +2916,7 @@ Onder **SEO → Doorverwijzingen**. Twee lagen, en de volgorde telt:
    daarvoor een gewone `URL`, geen `nextUrl.clone()`: NextURL onthoudt de
    streep en zet hem terug.
 2. De tabel `redirects` — toegepast door de middleware, met dezelfde
-   voorzorgen als de onderhoudsmodus: 15 seconden onthouden, 1 seconde timeout,
+   voorzorgen als de onderhoudsmodus: een minuut onthouden, 1 seconde timeout,
    bij een storing de laatst bekende lijst. Faalt alleen die query (bijvoorbeeld
    vóór migratie 0007), dan werkt de onderhoudsmodus gewoon door.
 

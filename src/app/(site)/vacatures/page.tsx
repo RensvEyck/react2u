@@ -10,7 +10,7 @@ import { WerkenBijPagina } from "@/components/blocks/WerkenBij";
 import { hreflangVoor } from "@/lib/taal";
 import { openGraphVoor } from "@/lib/og";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {

@@ -9,7 +9,7 @@ import { HOME_TITEL, metOmschrijving, omschrijving } from "@/lib/seo";
 import { openGraphVoor } from "@/lib/og";
 import { hreflangVoor } from "@/lib/taal";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   const res = await getPage("home");

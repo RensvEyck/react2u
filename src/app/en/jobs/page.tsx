@@ -5,7 +5,7 @@ import { hreflangVoor } from "@/lib/taal";
 import { woordenboek } from "@/lib/woordenboek";
 import { openGraphVoor } from "@/lib/og";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 const t = woordenboek("en").vacatures.seo;
 

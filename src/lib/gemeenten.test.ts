@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AANTAL_GEMEENTEN, AANTAL_PROVINCIES, KERNGEMEENTEN, WERKGEBIED_BIJGEWERKT, geindexeerdePlaatsen, isGeindexeerd, kernProvincies,
-  plaatsVoorSlug, slugVan, werkgebiedPaden,
+  plaatsVoorSlug, provincieVoorSlug, slugVan, werkgebiedPaden, werkgebiedSlugs,
 } from "./gemeenten";
 import { slugsMetTekst } from "./plaatsteksten";
 
@@ -46,5 +46,24 @@ describe("geïndexeerde gemeenten", () => {
     expect(slugVan("Nuenen c.a.")).toBe("nuenen-ca");
     expect(slugVan("'s-Hertogenbosch")).toBe("s-hertogenbosch");
     expect(isGeindexeerd("nuenen-ca")).toBe(true);
+  });
+});
+
+describe("werkgebiedpagina's voor de build", () => {
+  it("werkgebiedSlugs levert elke provincie en elke gemeente precies één keer, als bestaand adres", () => {
+    const slugs = werkgebiedSlugs();
+    expect(slugs).toHaveLength(AANTAL_PROVINCIES + AANTAL_GEMEENTEN);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    // Dezelfde regel als werkgebied() in (site)/[slug]/page.tsx: elke slug
+    // moet daar op een provincie of gemeente uitkomen, anders bouwt de build
+    // een 404.
+    for (const slug of slugs) {
+      const bestaat = slug.startsWith("arbodienst-provincie-")
+        ? provincieVoorSlug(slug.slice("arbodienst-provincie-".length)) !== null
+        : plaatsVoorSlug(slug.slice("arbodienst-".length)) !== null;
+      expect(bestaat, slug).toBe(true);
+    }
+    // sitemap.xml (alle provincies, de geïndexeerde gemeenten) is een deelverzameling.
+    for (const pad of werkgebiedPaden()) expect(slugs).toContain(pad.slice(1));
   });
 });

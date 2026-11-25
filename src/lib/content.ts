@@ -104,14 +104,6 @@ export async function getPost(slug: string): Promise<Post | null> {
   return (data as Post) || null;
 }
 
-export const CONTACT_FALLBACK = {
-  phone: "0856205800",
-  phoneDisplay: "085 - 620 58 00",
-  email: "info@react2u.nl",
-  addressLine1: "Stratumsedijk 29",
-  addressLine2: "5611 NB Eindhoven",
-  kvk: "95076824",
-  btw: "NL866991906B01",
-  iban: "NL67INGB0107832259",
-};
-export type ContactInfo = typeof CONTACT_FALLBACK;
+// De terugvalwaarden staan in lib/contact.ts (zonder supabase-js, voor de
+// middleware); hier opnieuw aangeboden zodat bestaande imports blijven werken.
+export { CONTACT_FALLBACK, type ContactInfo } from "./contact";

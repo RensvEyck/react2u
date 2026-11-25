@@ -1,12 +1,46 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
-import { supabasePublic } from "@/lib/supabase/public";
-import type { ContactInfo } from "@/lib/content";
+import type { ContactInfo } from "@/lib/contact";
 import { maintenancePage, normalizeMaintenance, type Maintenance } from "@/lib/maintenance";
 import { matchRedirect, targetUrl, type RedirectRule } from "@/lib/redirects";
 import { ADMIN_PAD_HEADER } from "@/lib/terug";
 
-function sessionClient(request: NextRequest, extraHeaders?: Record<string, string>) {
+/* ---------- Supabase zonder supabase-js ---------- */
+
+// Deze middleware draait vóór elke publieke pagina, ook de statische, en elke
+// milliseconde telt bij Vercel als CPU-tijd (Fluid Active CPU; zie CONTEXT.md,
+// *Vercel-verbruik*). Daarom geen supabase-js op het publieke pad: een client
+// opbouwen voor twee simpele selects was het zwaarste wat hier gebeurde. Een
+// kale fetch naar PostgREST doet hetzelfde met dezelfde publieke sleutel, dus
+// met dezelfde RLS-policies.
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const TIMEOUT_MS = 1_000;
+
+function rest(pad: string, init: { method?: string; body?: string } = {}): Promise<Response> {
+  return fetch(`${SUPABASE_URL}/rest/v1/${pad}`, {
+    ...init,
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "content-type": "application/json",
+    },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+}
+
+async function select<T>(pad: string): Promise<T> {
+  const res = await rest(pad);
+  if (!res.ok) throw new Error(`PostgREST ${res.status} op ${pad}`);
+  return (await res.json()) as T;
+}
+
+/**
+ * De sessieclient van @supabase/ssr, pas geladen als een verzoek hem nodig
+ * heeft: het adminpaneel, en de doorlaat voor beheerders tijdens onderhoud.
+ * Zo blijft die bibliotheek (met supabase-js erin) buiten het publieke pad.
+ */
+async function sessionClient(request: NextRequest, extraHeaders?: Record<string, string>) {
+  const { createServerClient } = await import("@supabase/ssr");
   // De headers pas opbouwen als de response gemaakt wordt: setAll hieronder
   // zet ververste cookies op `request`, en die moeten mee naar de pagina.
   const next = () => {
@@ -16,20 +50,16 @@ function sessionClient(request: NextRequest, extraHeaders?: Record<string, strin
     return NextResponse.next({ request: { headers } });
   };
   let response = next();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (toSet) => {
-          toSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = next();
-          toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-        },
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll: (toSet) => {
+        toSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        response = next();
+        toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
-    }
-  );
+    },
+  });
   return { supabase, response: () => response };
 }
 
@@ -44,43 +74,35 @@ type GateSettings = {
 const OFF: GateSettings = { maintenance: { enabled: false, message: "" }, contact: null, redirects: [] };
 
 // Deze poort draait vóór elke publieke pagina, ook de statische. Daarom:
-// - kort onthouden per instantie, zodat niet elke paginaweergave een query kost
-//   (best effort — een koude instantie vraagt het gewoon opnieuw op);
+// - een minuut onthouden per instantie, zodat niet elke paginaweergave een
+//   query kost (best effort — een koude instantie vraagt het gewoon opnieuw op);
 // - een harde timeout, en bij een fout of storing gaat de site open. Zonder dat
 //   zou een haperend Supabase de hele site laten hangen, terwijl de pagina's
 //   zelf gewoon uit de cache kunnen komen.
-const CACHE_MS = 15_000;
-const TIMEOUT_MS = 1_000;
+const CACHE_MS = 60_000;
 let cached: { at: number; settings: GateSettings } | null = null;
+
+type SettingRij = { key: string; value: unknown };
 
 async function gateSettings(): Promise<GateSettings> {
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.settings;
-  const sb = supabasePublic();
-  const [settingsRes, redirectsRes] = await Promise.all([
-    sb.from("site_settings")
-      .select("key, value")
-      .in("key", ["maintenance", "contact"])
-      .abortSignal(AbortSignal.timeout(TIMEOUT_MS)),
-    sb.from("redirects")
-      .select("source, destination, permanent")
-      .abortSignal(AbortSignal.timeout(TIMEOUT_MS)),
+  const [settingsRes, redirectsRes] = await Promise.allSettled([
+    select<SettingRij[]>("site_settings?select=key,value&key=in.(maintenance,contact)"),
+    select<RedirectRule[]>("redirects?select=source,destination,permanent"),
   ]);
-  const { data, error } = settingsRes;
   // Bij een fout de laatst bekende stand aanhouden, anders open. Ook die
   // uitkomst onthouden: tijdens een storing wacht dan niet élk verzoek de
   // volle timeout af. Doorverwijzingen staan los daarvan: faalt alleen die
   // query (bijvoorbeeld omdat migratie 0007 nog niet gedraaid is), dan blijft
   // de onderhoudsmodus gewoon werken.
   const settings: GateSettings = {
-    ...(error
+    ...(settingsRes.status === "rejected"
       ? cached?.settings ?? OFF
       : {
-          maintenance: normalizeMaintenance(data?.find((r) => r.key === "maintenance")?.value),
-          contact: (data?.find((r) => r.key === "contact")?.value as Partial<ContactInfo>) ?? null,
+          maintenance: normalizeMaintenance(settingsRes.value.find((r) => r.key === "maintenance")?.value),
+          contact: (settingsRes.value.find((r) => r.key === "contact")?.value as Partial<ContactInfo>) ?? null,
         }),
-    redirects: redirectsRes.error
-      ? cached?.settings.redirects ?? []
-      : ((redirectsRes.data as RedirectRule[]) || []),
+    redirects: redirectsRes.status === "rejected" ? cached?.settings.redirects ?? [] : redirectsRes.value || [],
   };
   cached = { at: Date.now(), settings };
   return settings;
@@ -98,7 +120,7 @@ async function adminPassThrough(request: NextRequest): Promise<NextResponse | nu
   // Geen sessiecookie, geen beheerder — scheelt bezoekers een query.
   const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
   if (!hasSession) return null;
-  const { supabase, response } = sessionClient(request);
+  const { supabase, response } = await sessionClient(request);
   const { data } = await supabase
     .from("admins")
     .select("user_id")
@@ -117,7 +139,7 @@ async function publicGate(request: NextRequest, event: NextFetchEvent) {
     // De teller mag de bezoeker niet ophouden; waitUntil laat hem na het
     // antwoord afmaken. Mislukt hij, dan is er alleen een tel minder.
     event.waitUntil(
-      Promise.resolve(supabasePublic().rpc("redirect_hit", { p_source: rule.source })).then(() => {}, () => {})
+      rest("rpc/redirect_hit", { method: "POST", body: JSON.stringify({ p_source: rule.source }) }).then(() => {}, () => {})
     );
     return NextResponse.redirect(targetUrl(rule.destination, request.nextUrl), rule.permanent ? 308 : 307);
   }
@@ -171,7 +193,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     // Het pad gaat mee naar de pagina: verloopt de sessie, dan stuurt
     // requireAdmin() na het inloggen hierheen terug. Altijd overschrijven, zodat
     // een meegestuurde header van de browser niets doet.
-    const { supabase, response } = sessionClient(request, {
+    const { supabase, response } = await sessionClient(request, {
       [ADMIN_PAD_HEADER]: `${pathname}${request.nextUrl.search}`,
     });
     await supabase.auth.getUser();
@@ -184,6 +206,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   return publicGate(request, event);
 }
 
-// Alles behalve Next's eigen bestanden, de API (bezoekregistratie) en losse
-// bestanden met een extensie (robots.txt, sitemap.xml, favicon, afbeeldingen).
-export const config = { matcher: ["/((?!_next/|api/|.*\\.\\w+$).*)"] };
+// Alles behalve Next's eigen bestanden, Vercel's eigen paden (analytics), de
+// API (bezoekregistratie) en losse bestanden met een extensie (robots.txt,
+// sitemap.xml, favicon, afbeeldingen).
+export const config = { matcher: ["/((?!_next/|_vercel/|api/|.*\\.\\w+$).*)"] };

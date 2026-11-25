@@ -11,11 +11,11 @@ import { nieuwOntwerp } from "@/lib/concept";
 import { BlogOverzicht } from "@/components/blocks/Blog";
 import { openGraphVoor } from "@/lib/og";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 // Zolang er geen artikelen zijn, hoort de lege blogpagina niet in Google:
 // noindex, en sitemap.ts laat hem dan ook weg. Verschijnt het eerste artikel,
-// dan verdwijnt de noindex vanzelf (na de revalidatie van vijf minuten).
+// dan verdwijnt de noindex vanzelf: publiceren ververst de site (revalidateSite).
 export async function generateMetadata(): Promise<Metadata> {
   const posts = await getPublishedPosts();
   return {

@@ -5,7 +5,7 @@ import { BASIS_METADATA, SITE_URL } from "@/lib/metadata";
 import { deelAfbeelding } from "@/lib/og";
 import { woordenboek } from "@/lib/woordenboek";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 /**
  * De Engelse site onder /en: dezelfde deelafbeelding als de Nederlandse, een
