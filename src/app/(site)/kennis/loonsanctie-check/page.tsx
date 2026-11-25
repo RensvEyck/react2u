@@ -5,7 +5,7 @@ import { hulpmiddelVoor } from "@/lib/kennis";
 import { HulpmiddelKop, HulpmiddelVoet } from "@/components/kennis/Hulpmiddel";
 import LoonsanctieCheck from "@/components/kennis/LoonsanctieCheck";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 const h = hulpmiddelVoor("loonsanctie-check")!;
 

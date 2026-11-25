@@ -1,4 +1,4 @@
--- 0062: het blok Bronnen onder elke gids (november 2026, docs/adr/0004-auteurs-bronnen-gidseneditor.md).
+-- 0062: het blok Bronnen onder elke gids (november 2026, docs/adr/0005-auteurs-bronnen-gidseneditor.md).
 --
 -- De gidsen van 0060 staan in de database zonder het blok gidsBronnen, en de SQL van 0061
 -- is gegenereerd vóór dat blok bestond. Dit zet onder elke gids het bronnenblok uit

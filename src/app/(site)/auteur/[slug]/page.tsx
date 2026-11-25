@@ -8,7 +8,7 @@ import { AUTEURS, auteurVoor, gidsenVan } from "@/lib/auteurs";
 import { ONDERWERPEN } from "@/lib/kennis";
 import AuteurPagina from "@/components/kennis/AuteurPagina";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 export const dynamicParams = false;
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://react2u.nl";

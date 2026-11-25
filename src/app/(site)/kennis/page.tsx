@@ -4,7 +4,7 @@ import { breadcrumbLd, jsonLd } from "@/lib/jsonld";
 import { openGraphVoor } from "@/lib/og";
 import KennisHub from "@/components/kennis/KennisHub";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 
 /**
  * De kennisbank: de gidsen, hulpmiddelen en artikelen op één plek (lib/kennis.ts).

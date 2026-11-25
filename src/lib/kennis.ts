@@ -8,7 +8,7 @@ import { GIDSEN, gidsenBijOnderwerp, type Gids, type GidsDienst, type OnderwerpS
  * vooral naar plaatsnamen gingen en de onderwerppagina's weinig kracht
  * kregen. Nu hangt elk stuk inhoud onder één van vier onderwerpen, met een
  * eigen pagina (/kennis/<onderwerp>) die naar de gidsen, de hulpmiddelen en de
- * artikelen linkt, en terug naar de dienst. Zie docs/adr/0003.
+ * artikelen linkt, en terug naar de dienst. Zie docs/adr/0004.
  *
  * Wat hier staat is wat de site over de kennisbank moet weten; de inhoud zelf
  * staat in de gidsen (src/content/<slug>.json), de artikelen (tabel posts) en

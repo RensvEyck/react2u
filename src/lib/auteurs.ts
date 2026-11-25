@@ -8,7 +8,7 @@ import { GIDSEN, type Gids, type OnderwerpSlug } from "./gidsen";
  *
  * Alleen feiten die React2u zelf kan onderbouwen: functie, sinds wanneer, en
  * registraties zoals ze in het register staan. Geen registratie bekend? Dan
- * blijft de lijst leeg, liever dan een verzonnen titel. Zie docs/adr/0004.
+ * blijft de lijst leeg, liever dan een verzonnen titel. Zie docs/adr/0005.
  */
 
 export type Auteur = {

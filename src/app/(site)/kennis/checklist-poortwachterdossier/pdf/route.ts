@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { checklistPoortwachterPdf } from "@/lib/checklistPdf";
 import { offerteHuisstijl } from "@/lib/offerteHuisstijl";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 /**
  * De checklist poortwachterdossier als pdf (lib/checklistPdf.tsx). Eén

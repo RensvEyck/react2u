@@ -7,7 +7,7 @@ import { HulpmiddelKop, HulpmiddelVoet } from "@/components/kennis/Hulpmiddel";
 import ChecklistAanvraag from "@/components/kennis/ChecklistAanvraag";
 import { NAVY, BODY, MUTE, LINE, SOFT, kop } from "@/components/blocks/Gedeeld";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 const h = hulpmiddelVoor("checklist-poortwachterdossier")!;
 const PDF = "/kennis/checklist-poortwachterdossier/pdf?download=1";

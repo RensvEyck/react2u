@@ -1,4 +1,4 @@
-# ADR 0003: Een kennisbank met onderwerpen, hulpmiddelen en een tweede reeks gidsen
+# ADR 0004: Een kennisbank met onderwerpen, hulpmiddelen en een tweede reeks gidsen
 
 Datum: 2026-11-24 · Status: aangenomen
 

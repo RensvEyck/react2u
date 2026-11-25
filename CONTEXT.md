@@ -3329,7 +3329,7 @@ dezelfde opbouw; het loonsanctie-artikel is in de gids opgegaan (301). De
 strook op een dienstpagina toont hooguit vier gidsen met een link naar het
 onderwerp. Migratie 0061 zet de tweede reeks in de database; tot die tijd
 staan de acht slugs in `MIGRATIE_RESERVE`. Zie
-[docs/adr/0003](docs/adr/0003-kennisbank.md).
+[docs/adr/0004](docs/adr/0004-kennisbank.md).
 
 **Auteurs, bronnen en de gids in het beheer.** De auteurs van de gidsen staan
 in [`src/lib/auteurs.ts`](src/lib/auteurs.ts), met een pagina `/auteur/<slug>`
@@ -3348,7 +3348,7 @@ wat later is (`bijgewerktOp()`). In het beheer: `PAGINA_SJABLONEN`
 [`lib/gidsSeo.ts`](src/lib/gidsSeo.ts) (dezelfde regels als de test op de
 concepten, op de blokken uit de database). Een gids in het beheer verschijnt
 pas in de kennisbank als de slug ook in `GIDSEN` staat. Zie
-[docs/adr/0004](docs/adr/0004-auteurs-bronnen-gidseneditor.md).
+[docs/adr/0005](docs/adr/0005-auteurs-bronnen-gidseneditor.md).
 
 `sitemap.ts` zet op overzichtspagina's de `lastModified` van het nieuwste item.
 Altijd `new Date()` melden is een leeg signaal: crawlers leren dan dat het veld

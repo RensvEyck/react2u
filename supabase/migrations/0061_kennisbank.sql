@@ -1,4 +1,4 @@
--- 0061: de kennisbank en de tweede reeks gidsen (november 2026, docs/adr/0003-kennisbank.md).
+-- 0061: de kennisbank en de tweede reeks gidsen (november 2026, docs/adr/0004-kennisbank.md).
 --
 -- Wat dit doet, in één transactie:
 --   1. de acht gidsen van de tweede reeks als gepubliceerde pagina's met hun blokken

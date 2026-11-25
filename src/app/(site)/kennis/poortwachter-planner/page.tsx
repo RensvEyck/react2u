@@ -6,7 +6,7 @@ import { hulpmiddelVoor } from "@/lib/kennis";
 import { HulpmiddelKop, HulpmiddelVoet } from "@/components/kennis/Hulpmiddel";
 import PoortwachterPlanner from "@/components/kennis/PoortwachterPlanner";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 const h = hulpmiddelVoor("poortwachter-planner")!;
 

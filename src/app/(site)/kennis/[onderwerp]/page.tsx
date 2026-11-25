@@ -6,7 +6,7 @@ import { openGraphVoor } from "@/lib/og";
 import { ONDERWERPEN, onderwerpVoor } from "@/lib/kennis";
 import OnderwerpPagina from "@/components/kennis/OnderwerpPagina";
 
-export const revalidate = 300;
+export const revalidate = 86400;
 export const dynamicParams = false;
 
 /** Een onderwerp van de kennisbank: /kennis/verzuim, /kennis/re-integratie, /kennis/preventie, /kennis/wet-en-regels. */

@@ -1,4 +1,4 @@
-# ADR 0004: Auteurspagina's, bronnen en de gids als sjabloon in het beheer
+# ADR 0005: Auteurspagina's, bronnen en de gids als sjabloon in het beheer
 
 Datum: 2026-11-24 · Status: aangenomen
 
