@@ -1,20 +1,32 @@
 /**
  * Goed om te weten in Mijn React2u (Rens, 26 nov 2026: "zet ook in mijn
  * react2u voor de werknemers"): tegels per onderwerp met uitleg en vragen en
- * antwoorden, nu voor de collega's. Acht onderwerpen over hoe wij werken, van
- * de ziekmelding tot het portaal zelf; daarnaast leest een collega hier wat
- * de klant in zijn onboarding leest (lib/onboardingWeten.ts, WETEN).
+ * antwoorden, nu voor de collega's. Dertien onderwerpen over hoe wij werken,
+ * van de ziekmelding tot het portaal zelf; daarnaast leest een collega hier
+ * wat de klant in zijn onboarding leest (lib/onboardingWeten.ts, WETEN).
  *
  * Puur, zonder database. De teksten volgen wat er al vastligt: het
  * Welkom-document en het protocol van de onboarding, het basiscontract
  * (lib/contractTekst.ts), de termijnen in lib/poortwachter.ts, de gidsen op
- * de site en de opzet van het portaal in CONTEXT.md. Teksten voor collega's
- * noemen geen namen en niets medisch (zie Weekevaluatie en Waarneming).
+ * de site en de opzet van het portaal in CONTEXT.md. Sinds 26 nov 2026 ook
+ * het document "Terminologie en afkortingen" van het team (Rens: "bekijk dit
+ * feitelijk en belscript hoeft er niet in"): de tabellen staan in
+ * lib/portaalTermen.ts, feitelijk nagelopen, zonder het belspiekbriefje en
+ * het voicemailscript. Teksten voor collega's noemen geen namen, geen
+ * bedragen en niets over een persoon (zie Weekevaluatie en Waarneming); de
+ * anamnesevragen zijn een werkwijze, geen dossier.
  */
+
+import {
+  AFED_AANVALLEN, AFED_FYSIEK, AFED_PSYCHISCH, AFED_UNIVERSEEL, AFKORTINGEN, BA_VRAGEN, TERMINOLOGIE, TIJDLIJN, WIA_KLASSEN, WOORDEN_EN,
+  type PortaalTabel,
+} from "./portaalTermen";
 
 export type PortaalVraag = { vraag: string; antwoord: string };
 
-export type PortaalIcoon = "telefoon" | "agenda" | "slot" | "handdruk" | "labels" | "route" | "wissel" | "portaal";
+export type PortaalIcoon =
+  | "telefoon" | "agenda" | "slot" | "handdruk" | "labels" | "route" | "wissel" | "portaal"
+  | "stappen" | "stethoscoop" | "anamnese" | "procent" | "woordenboek";
 
 export type PortaalOnderwerp = {
   /** Het adres: /admin/weten/<slug>. */
@@ -28,6 +40,8 @@ export type PortaalOnderwerp = {
   icoon: PortaalIcoon;
   uitleg: string[];
   kern: string[];
+  /** Tabellen tussen de uitleg en de vragen (lib/portaalTermen.ts). */
+  tabellen?: PortaalTabel[];
   vragen: PortaalVraag[];
   /** Het onderwerp uit de onboarding van de klant dat hierbij hoort (slug uit lib/onboardingWeten.ts). */
   klant?: string;
@@ -89,6 +103,121 @@ export const PORTAAL_WETEN: PortaalOnderwerp[] = [
       { vraag: "Welke weken staan er in het Welkom-document van de klant?", antwoord: "De tijdlijn in de onboarding noemt ruimere weken: probleemanalyse in week 6 tot 12, plan van aanpak in week 8 tot 13. Dat document is bewust zo gelaten. Werk zelf naar de uiterste momenten uit de wet, dan zit de klant altijd goed." },
     ],
     klant: "poortwachter",
+  },
+  {
+    slug: "eerste-ziektejaar",
+    titel: "Jouw stappen in het eerste ziektejaar",
+    kort: "Wat jij als casemanager of taakgedelegeerde doet van dag 1 tot week 52, en wie wat doet bij elke stap.",
+    kleur: "#3AA5DD", tint: "#E8F4FB",
+    icoon: "stappen",
+    uitleg: [
+      "De termijnen van de wet staan bij De termijnen die wij bewaken; hier staat wat jij bij elke stap doet. Als casemanager (CM) stuur je het proces: je pakt de melding op, belt de medewerker, plant spreekuren, herinnert werkgever en medewerker aan hun stukken en controleert of alles op tijd in het dossier staat. Als taakgedelegeerde (TD) doe je daarnaast wat de bedrijfsarts aan jou heeft gedelegeerd, zoals de medische anamnese en het nabellen na een afspraak bij een arts.",
+      "Het ritme is: dag 1 de melding, binnen drie werkdagen het eerste contact, in week 1 tot 3 het tweede contact, uiterlijk week 6 de probleemanalyse, uiterlijk week 8 het plan van aanpak, daarna elke zes weken evalueren, week 42 de melding bij UWV, tussen week 42 en 52 de belastbaarheid en het arbeidsdeskundig onderzoek, rond week 52 de eerstejaarsevaluatie. Alles in XpertSuite, met de datum erbij.",
+      "Twee begrippen uit het tweede halfjaar. De FML (of het inzetbaarheidsprofiel) beschrijft wat iemand aankan, bijvoorbeeld bij lopen, schrijven of concentreren; bij het arbeidsdeskundig onderzoek kijkt de arbeidsdeskundige welk werk daarbij past. Spoor 1 is terugkeer bij de eigen werkgever, spoor 2 is passend werk bij een andere werkgever. Is al eerder duidelijk dat duurzame terugkeer bij de eigen werkgever niet in zicht is, dan kan spoor 2 al vóór week 52 starten.",
+    ],
+    kern: [
+      "CM stuurt het proces; TD doet wat de bedrijfsarts heeft gedelegeerd.",
+      "Dag 1 melding, binnen drie werkdagen bellen, week 6 PA, week 8 PvA, elke zes weken evalueren.",
+      "Week 42 melding bij UWV; week 42 tot 52 FML en ADO; rond week 52 de eerstejaarsevaluatie.",
+      "FML zegt wat iemand aankan, de arbeidsdeskundige welk werk past; spoor 2 kan vóór week 52.",
+    ],
+    tabellen: [TIJDLIJN],
+    vragen: [
+      { vraag: "Wat is het verschil tussen CM en TD?", antwoord: "Casemanager is je rol in het proces: contact, termijnen, dossier, spreekuren plannen. Taakgedelegeerde ben je alleen als de bedrijfsarts taken aan jou heeft gedelegeerd en dat is vastgelegd; dan mag je bijvoorbeeld de medische anamnese afnemen en medische informatie vastleggen, onder zijn verantwoordelijkheid en beroepsgeheim. Zonder taakdelegatie vraag je alleen functioneel: wat kan wel, wat kan niet, hoe lang." },
+      { vraag: "Wanneer neem ik de medische anamnese af?", antwoord: "Bij het eerste of tweede contact, alleen als TD. Je legt hem vast in het medische dossier in XpertSuite met het MA-formulier en vult hem aan als er iets verandert. Hoe je doorvraagt staat bij Medische anamnese volgens AFED." },
+      { vraag: "Wat doe ik als de probleemanalyse niet op tijd klaar kan zijn?", antwoord: "Plan het spreekuur zo vroeg dat de bedrijfsarts vóór het einde van week 6 kan rapporteren, en zet die datum in je agenda zodra het verzuim langer lijkt te duren. Lukt het toch niet, leg dan in het dossier vast waarom en wanneer de PA er wel is; UWV kijkt bij de WIA-aanvraag naar de data in het re-integratieverslag." },
+      { vraag: "Wat doe ik rond week 42?", antwoord: "Je geeft de werkgever vooraf een seintje dat de 42e-weeksmelding bij UWV eraan komt en controleert daarna of hij is gedaan: uiterlijk op de eerste werkdag nadat de medewerker 42 weken ziek is, ook als hij al gedeeltelijk werkt. Tegelijk kijk je met de bedrijfsarts of terugkeer in het eigen werk nog realistisch is; zo niet, dan zijn de FML en het arbeidsdeskundig onderzoek de volgende stap." },
+      { vraag: "Wanneer meld ik aan voor een arbeidsdeskundig onderzoek?", antwoord: "Zodra de bedrijfsarts aangeeft dat het eigen werk onzeker is, meestal tussen week 42 en 52 en in elk geval vóór de eerstejaarsevaluatie, zodat werkgever en medewerker daar een onderbouwde keuze voor het spoor kunnen maken. De vraag aan de arbeidsdeskundige is: eigen werk, eigen werk met aanpassingen, ander werk bij de eigen werkgever, of spoor 2. Het onderzoek valt onder Restart." },
+      { vraag: "Wat gebeurt er bij de eerstejaarsevaluatie?", antwoord: "Werkgever en medewerker vullen het formulier samen in, rond week 52: wat is gedaan, wat ging goed, wat kan beter, en welke afspraken gelden voor het tweede jaar. Dit is het opschudmoment: is er concreet zicht op terugkeer bij de eigen werkgever? Zo niet, dan start spoor 2 uiterlijk zes weken later. Jij zet de evaluatie uit en bewaakt dat ze er is en dat de conclusie in het dossier staat." },
+      { vraag: "Mag spoor 2 al vóór week 52 starten?", antwoord: "Ja. Zodra duidelijk is dat duurzame terugkeer bij de eigen werkgever niet in zicht is, kan spoor 2 starten, ook in het eerste jaar. Wachten tot na de eerstejaarsevaluatie terwijl de bedrijfsarts al eerder zei dat het eigen werk niet meer zou lukken, is de meest voorkomende reden voor een loonsanctie." },
+    ],
+    klant: "re-integratie",
+  },
+  {
+    slug: "bedrijfsarts",
+    titel: "Advies vragen aan de bedrijfsarts",
+    kort: "De vraagstelling die je vóór het spreekuur stuurt, de vragen die je kunt stellen en wat je met het advies doet.",
+    kleur: "#CA152A", tint: "#FBEAEC",
+    icoon: "stethoscoop",
+    uitleg: [
+      "Heb je advies nodig over wat de medewerker aankan en hoe hij weer kan beginnen met werken, stuur de bedrijfsarts dan vóór het spreekuur een korte vraagstelling. Vermeld wat voor werk de medewerker doet, welke taken of uren nu lastig zijn en wat je precies wilt weten. Zo komt er een advies waar werkgever en medewerker mee verder kunnen, in plaats van een algemeen verslag.",
+      "De vragen gaan over belastbaarheid en werk: beperkingen bij het eigen werk, gedeeltelijk hervatten, aanpassingen, ander werk binnen de organisatie, het moment om opnieuw te beoordelen. Niet over diagnose of behandeling; dat is aan de bedrijfsarts en blijft in het medische dossier. Zijn advies gaat functioneel naar de werkgever en wordt de basis voor het plan van aanpak of de bijstelling ervan.",
+      "Is de medewerker het niet eens met het advies, dan kan hij eerst het gesprek met de bedrijfsarts aangaan en daarna een second opinion vragen bij een bedrijfsarts van een andere arbodienst; werkgever en medewerker kunnen bij UWV een deskundigenoordeel vragen. Die mogelijkheden staan in het basiscontract en bij De termijnen die wij bewaken.",
+    ],
+    kern: [
+      "Vóór het spreekuur een korte vraagstelling: het werk, wat lastig is, wat je wilt weten.",
+      "Vraag naar belastbaarheid en werk, nooit naar diagnose of behandeling.",
+      "Het advies gaat functioneel naar de werkgever en voedt het plan van aanpak.",
+      "Niet eens met het advies: gesprek, second opinion, deskundigenoordeel.",
+    ],
+    tabellen: [BA_VRAGEN],
+    vragen: [
+      { vraag: "Wanneer stuur ik een vraagstelling?", antwoord: "Als je advies nodig hebt over wat de medewerker aankan of hoe hij kan hervatten: vóór de probleemanalyse, bij een vervolgspreekuur als de re-integratie stokt, als werkgever en medewerker het niet eens zijn over passend werk, en vóór de FML in de aanloop naar het arbeidsdeskundig onderzoek. Kort en concreet; de bedrijfsarts leest hem vóór het spreekuur." },
+      { vraag: "Wat zet ik erin?", antwoord: "Drie dingen: wat voor werk de medewerker doet (functie, taken, uren), wat nu niet of moeilijk lukt, en de vragen waarop je antwoord wilt. Kies uit de lijst de vragen die bij deze casus passen; drie goede vragen werken beter dan alle zeven." },
+      { vraag: "Mag ik de bedrijfsarts vragen wat de medewerker heeft?", antwoord: "Nee, en je hebt het ook niet nodig voor de begeleiding. Je vraagt wat iemand kan en niet kan, hoe lang, en wat er nodig is om weer te beginnen. Werk je onder taakdelegatie, dan zie je medische informatie in het medische dossier; die deel je nooit met de werkgever." },
+      { vraag: "Wat doe ik met het advies?", antwoord: "Je legt het functionele advies bij de werkgever en de medewerker neer en bespreekt wat het betekent voor de werkafspraken: taken, uren, opbouw, aanpassingen. Dat komt in het plan van aanpak of de bijstelling ervan, met een datum om opnieuw te kijken. Je legt in het dossier vast dat het is besproken." },
+      { vraag: "De werkgever is het niet eens met het advies. Wat dan?", antwoord: "Hij kan het bespreken met de bedrijfsarts en zijn vraag toelichten, en als dat niet helpt een deskundigenoordeel bij UWV vragen, bijvoorbeeld over de passendheid van het werk. Zolang er geen ander oordeel is, volgen werkgever en medewerker het advies van de bedrijfsarts; UWV toetst daar later aan." },
+      { vraag: "De medewerker is het niet eens met het advies. Wat dan?", antwoord: "Eerst het gesprek met de bedrijfsarts. Dan een second opinion bij een bedrijfsarts van een andere arbodienst; dat recht staat in het basiscontract en de kosten zijn voor de werkgever. Ook hij kan een deskundigenoordeel bij UWV vragen. Leg uit dat het advies over werk gaat, niet over of hij 'echt ziek' is." },
+      { vraag: "Wat is het verschil tussen de FML en het inzetbaarheidsprofiel?", antwoord: "Beide beschrijven de belastbaarheid: wat iemand aankan bij bijvoorbeeld zitten, tillen, concentreren en omgaan met werkdruk. De FML is de lijst die UWV zelf gebruikt; het inzetbaarheidsprofiel (IZP) is de variant die veel bedrijfsartsen opstellen voor de arbeidsdeskundige. De arbeidsdeskundige vertaalt ze naar werk." },
+    ],
+    klant: "bedrijfsarts",
+  },
+  {
+    slug: "anamnese",
+    titel: "Medische anamnese volgens AFED",
+    kort: "Alleen onder taakdelegatie: hoe je doorvraagt op aard, frequentie, ernst en duur, met voorbeeldvragen in het Nederlands en het Engels.",
+    kleur: "#F19001", tint: "#FEF3E2",
+    icoon: "anamnese",
+    uitleg: [
+      "De medische anamnese neem je alleen af als taakgedelegeerde, als de bedrijfsarts die taak aan jou heeft gedelegeerd. Je vraagt naar de belemmeringen, het werk, de behandeling en de afspraken met een arts of specialist, en je legt het vast in het medische dossier in XpertSuite, met het MA-formulier. De werkgever ziet daar niets van; wat hij hoort is functioneel. Zonder taakdelegatie stel je deze vragen niet.",
+      "AFED is de kapstok: Aard (wat gebeurt er precies), Frequentie (hoe vaak), Ernst (hoeveel hinder, wat kan niet meer) en Duur (sinds wanneer, hoe lang per keer, hoe lang herstel). De vier universele vragen passen bij vrijwel elke anamnese; de drie tabellen geven voorbeeldvragen voor aanvallen, fysieke klachten en psychische klachten, ook in het Engels voor een medewerker die geen Nederlands spreekt.",
+      "In het gesprek mag je gewoon 'klachten' zeggen; in wat je vastlegt en rapporteert gebruik je de taal uit Termen en afkortingen: belemmeringen en beperkingen, functioneel. Zeg vooraf dat alles wat de medewerker over zijn gezondheid vertelt vertrouwelijk is en alleen met de bedrijfsarts wordt besproken, en vraag of hij vrijuit kan praten. Wil hij iets niet vertellen, dan hoeft dat niet; dan is het spreekuur bij de bedrijfsarts de plek.",
+    ],
+    kern: [
+      "Alleen als TD, alleen na delegatie door de bedrijfsarts; vastleggen in het medische dossier.",
+      "AFED: aard, frequentie, ernst, duur. Vier universele vragen die altijd kunnen.",
+      "Vraag eerst of iemand vrijuit kan praten en zeg dat het vertrouwelijk is.",
+      "In het gesprek 'klachten'; in het dossier belemmeringen en beperkingen.",
+    ],
+    tabellen: [AFED_UNIVERSEEL, AFED_AANVALLEN, AFED_FYSIEK, AFED_PSYCHISCH],
+    vragen: [
+      { vraag: "Mag ik als casemanager zonder taakdelegatie naar klachten vragen?", antwoord: "Nee. Zonder taakdelegatie vraag je alleen functioneel: wat lukt wel en niet, hoe lang verwacht iemand weg te zijn, zijn er afspraken met een arts, is er werk dat kan. Vertelt de medewerker uit zichzelf meer, dan leg je dat niet vast en zeg je dat de bedrijfsarts dat met hem bespreekt." },
+      { vraag: "Waar leg ik de anamnese vast?", antwoord: "In het medische dossier in XpertSuite, met het MA-formulier, onder de bedrijfsarts. Nooit in notities of rapportages die de werkgever kan zien, en nooit in gewone e-mail. De bedrijfsarts leest mee en bepaalt wat er functioneel naar de werkgever gaat." },
+      { vraag: "Wanneer neem ik hem af en wanneer vul ik aan?", antwoord: "Bij het eerste of tweede contact, zodra duidelijk is dat het verzuim langer duurt dan een paar dagen. Daarna vul je aan als er iets verandert: een nieuwe afspraak, een andere behandeling, meer of minder belemmeringen. Zo heeft de bedrijfsarts een actueel beeld vóór het spreekuur." },
+      { vraag: "De medewerker wil niet over zijn klachten praten. Wat dan?", antwoord: "Dat mag. Hij hoeft alleen te zeggen wat hij wel en niet kan en wanneer hij denkt weer te kunnen werken; medische informatie geeft hij aan de bedrijfsarts. Noteer dat hij het liever met de bedrijfsarts bespreekt en plan het spreekuur. Geen druk, en geen aannames in het dossier." },
+      { vraag: "Wat vraag ik bij een bedrijfsongeval?", antwoord: "Wat er is gebeurd, wanneer, en of de werkgever het heeft gemeld: een arbeidsongeval met ziekenhuisopname, blijvend letsel of overlijden moet de werkgever direct melden bij de Nederlandse Arbeidsinspectie. Noteer het als arbeidsongeval in het dossier. Is het letsel veroorzaakt door een derde, dan kan de werkgever de loonkosten op die derde verhalen (regres); noteer dat dus ook." },
+      { vraag: "Hoe stel ik de vragen in het Engels?", antwoord: "Gebruik de Engelse kolom van de tabellen; de woorden voor arbodienst, bedrijfsarts en de stappen staan bij Termen en afkortingen. Zeg aan het begin wie je bent en dat alles over gezondheid vertrouwelijk is en niet naar de werkgever gaat. Spreekt iemand ook geen Engels, overleg dan met de bedrijfsarts over een tolk of iemand die het woord voert, en leg vast wie dat was." },
+      { vraag: "Wat noteer ik over medicijnen en behandelaren?", antwoord: "Dat de medewerker de voorschriften van zijn eigen behandelaar of specialist volgt en wanneer zijn volgende afspraak is, niet welke medicijnen. Welke interventie loopt en hoe lang die naar verwachting duurt, is voor de bedrijfsarts relevant voor de prognose; leg het vast als interventie met looptijd, zoals in Termen en afkortingen." },
+    ],
+    klant: "privacy",
+  },
+  {
+    slug: "wia",
+    titel: "WIA: wat het is en hoe UWV rekent",
+    kort: "Na 104 weken: hoe UWV het percentage arbeidsongeschiktheid bepaalt, en wanneer het WGA of IVA wordt.",
+    kleur: "#0A7A4B", tint: "#E3F6ED",
+    icoon: "procent",
+    uitleg: [
+      "De WIA, de Wet werk en inkomen naar arbeidsvermogen, regelt de uitkering na twee jaar ziekte (104 weken) voor wie door ziekte minder kan verdienen. UWV kijkt niet naar de ziekte zelf maar naar het loonverlies: wat kon iemand vóór zijn ziekte verdienen, en wat kan hij nu nog verdienen met werk dat hij aankan. Het verschil, in procenten, is het arbeidsongeschiktheidspercentage. Kon iemand eerst 100 verdienen en nu nog 60, dan is hij 40 procent arbeidsongeschikt.",
+      "Onder 35 procent is er geen WIA-uitkering. Van 35 tot 80 procent is het WGA, de regeling Werkhervatting gedeeltelijk arbeidsgeschikten: werken loont, en werk zoeken is een plicht. Vanaf 80 procent hangt het af van de duurzaamheid: WGA als UWV verwacht dat het nog kan verbeteren, IVA, de Inkomensvoorziening volledig arbeidsongeschikten, als de kans op verbetering klein is.",
+      "De aanvraag doet de medewerker zelf, uiterlijk in week 93; UWV stuurt hem rond week 88 een brief. Bij de aanvraag levert hij het re-integratieverslag in, met onder meer de probleemanalyse, het plan van aanpak, de evaluaties en het actueel oordeel van de bedrijfsarts. UWV toetst eerst of werkgever en medewerker genoeg aan re-integratie hebben gedaan; pas daarna volgt de beoordeling. Voor de werkgever telt mee: de WGA-uitkering van een ex-medewerker werkt tot tien jaar door in zijn premie of, als eigenrisicodrager WGA, in zijn eigen kosten.",
+    ],
+    kern: [
+      "Na 104 weken; UWV rekent met loonverlies, niet met de ziekte.",
+      "Onder 35 procent geen WIA; 35 tot 80 procent WGA; vanaf 80 procent WGA of IVA.",
+      "IVA alleen bij volledig én duurzaam: kans op verbetering klein.",
+      "Aanvraag door de medewerker uiterlijk week 93, met het re-integratieverslag.",
+    ],
+    tabellen: [WIA_KLASSEN],
+    vragen: [
+      { vraag: "Wat betekent 40 procent arbeidsongeschikt?", antwoord: "Dat iemand met het werk dat hij nog aankan 40 procent minder kan verdienen dan vóór zijn ziekte. UWV vergelijkt het oude loon met wat hij in theorie nog kan verdienen in functies die bij zijn belastbaarheid passen; het gaat om kunnen verdienen, niet om wat iemand feitelijk verdient." },
+      { vraag: "Wat is het verschil tussen WGA en IVA?", antwoord: "Beide zijn WIA. WGA is voor wie 35 procent of meer arbeidsongeschikt is en nog kan werken of mogelijk herstelt; werken naast de uitkering loont. IVA is voor wie voor 80 procent of meer én duurzaam arbeidsongeschikt is: de kans op verbetering is klein. De IVA-uitkering is hoger en kent geen sollicitatieplicht." },
+      { vraag: "Wat als de medewerker minder dan 35 procent arbeidsongeschikt is?", antwoord: "Dan is er geen WIA-uitkering en blijft de opdracht aan werkgever en medewerker om passend werk te vinden, bij de eigen werkgever of elders; de loondoorbetalingsplicht stopt na 104 weken. Vaak houdt de werkgever hem in dienst in aangepast werk; zo niet, dan loopt een ontslag via UWV en komt eventueel de WW in beeld." },
+      { vraag: "Wat doet UWV eerst bij de aanvraag?", antwoord: "De poortwachtertoets: hebben werkgever en medewerker genoeg gedaan aan re-integratie? Dat beoordeelt UWV aan het re-integratieverslag. Is het onvoldoende, dan krijgt de werkgever een loonsanctie van maximaal 52 weken en schuift de beoordeling op. Pas als het verslag voldoende is, beoordelen de verzekeringsarts en de arbeidsdeskundige van UWV de belastbaarheid en het loonverlies." },
+      { vraag: "Wanneer en hoe vraagt de medewerker de WIA aan?", antwoord: "Rond week 88 krijgt hij een brief van UWV; de aanvraag doet hij zelf uiterlijk in week 93, online met zijn DigiD. Wij helpen hem en de werkgever het re-integratieverslag compleet te maken: het actueel oordeel van de bedrijfsarts (week 91), de eindevaluatie en de stukken uit het dossier. Een onvolledig verslag is de meest voorkomende reden voor vertraging." },
+      { vraag: "Wat merkt de werkgever van een WGA-uitkering?", antwoord: "Veel. De werkgever betaalt tot tien jaar mee aan de WGA-uitkering van een ex-medewerker, via de gedifferentieerde premie Werkhervattingskas of, als hij eigenrisicodrager WGA is, rechtstreeks. Een IVA-uitkering telt daar niet in mee. Een geslaagde re-integratie scheelt hem dus veel; daarom is spoor 2 op tijd starten ook financieel belangrijk." },
+      { vraag: "Hoe leg ik het uit aan een medewerker die het spannend vindt?", antwoord: "Zeg wat UWV doet en in welke volgorde: eerst het verslag, dan de beoordeling; dat de beoordeling gaat over wat hij nog kan, niet over of hij ziek genoeg is; en dat werken naast een WGA-uitkering loont. Noem geen bedragen en voorspel geen uitkomst; dat is aan UWV. Voor zijn financiële vragen verwijs je naar UWV." },
+    ],
   },
   {
     slug: "privacy",
@@ -226,6 +355,34 @@ export const PORTAAL_WETEN: PortaalOnderwerp[] = [
     klant: "bedrijfsarts",
   },
   {
+    slug: "termen",
+    titel: "Termen en afkortingen",
+    kort: "Wat CM, TD, PA, PvA, FML en ADO betekenen, hoe je een belemmering benoemt en dezelfde woorden in het Engels.",
+    kleur: "#322E83", tint: "#ECEBF5",
+    icoon: "woordenboek",
+    uitleg: [
+      "In het dossier, in het overleg en richting UWV gebruiken we veel afkortingen. De lijst hieronder geeft de betekenis van elke afkorting zoals wij hem gebruiken; een paar zijn eigen aan React2u (STAVAZA, MTBVZ, SOBA), de meeste komen uit de wet en van UWV.",
+      "Daarnaast is er onze taal voor wat een medewerker heeft: we schrijven niet over klachten maar over belemmeringen en beperkingen, en we benoemen wat iemand niet kan in plaats van wat hij heeft. De tabel geeft per situatie de formulering voor je notities en rapportages. Richting de werkgever ga je nog een stap verder: die krijgt alleen wat iemand wel en niet kan en hoe lang, zonder aard of oorzaak, ook niet omschreven.",
+      "Voor een medewerker die geen Nederlands spreekt staan de belangrijkste woorden ook in het Engels; de Engelse voorbeeldvragen voor de anamnese staan bij Medische anamnese volgens AFED.",
+    ],
+    kern: [
+      "Belemmeringen en beperkingen, geen klachten; benoem wat iemand niet kan.",
+      "Richting de werkgever alleen functioneel: wat kan wel, wat niet, hoe lang.",
+      "PA in week 6, PvA in week 8; FML zegt wat iemand aankan, ADO welk werk past.",
+      "ERD is er voor de Ziektewet én de WGA; PMO is preventief, PAGO periodiek.",
+    ],
+    tabellen: [AFKORTINGEN, TERMINOLOGIE, WOORDEN_EN],
+    vragen: [
+      { vraag: "Waarom belemmeringen en niet klachten?", antwoord: "Omdat een belemmering zegt wat iemand niet kan, en dat is waar de begeleiding over gaat: werk, uren, taken. 'Klachten' nodigt uit tot medische details die niet in rapportages horen en die de werkgever niet mag weten. Zo blijft wat je vastlegt functioneel en bruikbaar voor het plan van aanpak." },
+      { vraag: "Geldt dat ook in het gesprek met de medewerker?", antwoord: "Nee, in het gesprek praat je gewoon; 'welke klachten heeft u' is een normale vraag, onder taakdelegatie. De tabel gaat over wat je opschrijft en rapporteert. Wat de werkgever leest is nog strikter: alleen functioneel, zonder omschrijving van de oorzaak." },
+      { vraag: "Wat is het verschil tussen de PA en het PvA?", antwoord: "De probleemanalyse (PA) is van de bedrijfsarts, uiterlijk in week 6: wat kan de medewerker, wat is de verwachting, welk advies voor terugkeer. Het plan van aanpak (PvA) is van werkgever en medewerker samen, binnen twee weken na de PA en uiterlijk in week 8: de afspraken over taken, uren en evaluatie, met een casemanager." },
+      { vraag: "Wat is het verschil tussen PMO en PAGO?", antwoord: "Het PAGO, het periodiek arbeidsgezondheidskundig onderzoek, is het onderzoek dat de Arbowet de werkgever verplicht aan te bieden, gericht op de risico's uit de RI&E. Het PMO, preventief medisch onderzoek, is de bredere variant die daarbovenop kijkt naar leefstijl en gezondheid. Beide bieden we aan onder Resist." },
+      { vraag: "ERD: Ziektewet of WGA?", antwoord: "Beide bestaan. Een eigenrisicodrager Ziektewet betaalt zelf de Ziektewet-uitkering van wie ziek uit dienst gaat en regelt de re-integratie; daar is Reflex voor. Een eigenrisicodrager WGA draagt zelf de WGA-uitkering van ex-medewerkers, tot tien jaar. Vraag bij een klant dus welke van de twee hij bedoelt." },
+      { vraag: "Wat is GBM en wie stelt het vast?", antwoord: "Geen benutbare mogelijkheden: UWV gebruikt dat voor situaties waarin iemand helemaal niet kan werken, zoals opname in een ziekenhuis of instelling, bedlegerigheid, afhankelijkheid bij de dagelijkse verzorging, of ernstig psychisch niet kunnen functioneren. Dat oordeel is aan de bedrijfsarts; dat iemand anders het woord voert voor de medewerker is op zichzelf geen GBM." },
+      { vraag: "Wat is het verschil tussen EJA en EZWb?", antwoord: "De eerstejaarsevaluatie (EJA) is het moment rond week 52 waarop werkgever en medewerker het eerste ziektejaar evalueren en het spoor kiezen. De eerstejaars Ziektewet-beoordeling (EZWb) is iets anders: de toets van UWV na een jaar Ziektewet-uitkering, voor wie geen werkgever meer heeft, of hij met ander werk nog ten minste 65 procent van zijn oude loon kan verdienen." },
+    ],
+  },
+  {
     slug: "portaal",
     titel: "Mijn React2u: weekevaluatie, overleg, ideeën en waarneming",
     kort: "Wat je hier invult, wie het ziet, en hoe het overleg, het ideeënbord en de waarneming werken.",
@@ -275,10 +432,16 @@ export function portaalWetenVoorgaand(slug: string): PortaalOnderwerp | null {
   return i > 0 ? PORTAAL_WETEN[i - 1] : null;
 }
 
-/** Hoe lang lezen ongeveer duurt, in hele minuten (zo'n 200 woorden per minuut), minstens 1. Ook voor de onderwerpen van de klant. */
-export function leesTijd(w: { uitleg: string[]; kern: string[]; vragen: { vraag: string; antwoord: string }[] }): number {
-  const woorden = [...w.uitleg, ...w.kern, ...w.vragen.flatMap((v) => [v.vraag, v.antwoord])].join(" ").split(/\s+/).filter(Boolean).length;
+/** Hoe lang lezen ongeveer duurt, in hele minuten (zo'n 200 woorden per minuut), minstens 1. Ook voor de onderwerpen van de klant; tabellen tellen mee. */
+export function leesTijd(w: { uitleg: string[]; kern: string[]; tabellen?: { rijen: string[][] }[]; vragen: { vraag: string; antwoord: string }[] }): number {
+  const cellen = (w.tabellen ?? []).flatMap((t) => t.rijen.flat());
+  const woorden = [...w.uitleg, ...w.kern, ...cellen, ...w.vragen.flatMap((v) => [v.vraag, v.antwoord])].join(" ").split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(woorden / 200));
+}
+
+/** Alle tabellen van alle onderwerpen, voor de test en het overzicht. */
+export function portaalTabellen(): PortaalTabel[] {
+  return PORTAAL_WETEN.flatMap((w) => w.tabellen ?? []);
 }
 
 export function portaalVragen(): number {

@@ -509,13 +509,25 @@ regels in [`lib/ideeen.ts`](src/lib/ideeen.ts), ophalen in
 
 **Goed om te weten in Mijn React2u** (Rens, 26 nov 2026: "zet ook in mijn
 react2u voor de werknemers", na de tegels in de onboarding van de klant).
-[`/admin/weten`](src/app/admin/(panel)/weten/page.tsx): acht onderwerpen voor
+[`/admin/weten`](src/app/admin/(panel)/weten/page.tsx): dertien onderwerpen voor
 collega's als tegels, elk met uitleg, *In het kort* en vragen en antwoorden
 ([`lib/portaalWeten.ts`](src/lib/portaalWeten.ts), `PORTAAL_WETEN`; bouwstenen
 in `components/admin/weten/Weten.tsx`): zo loopt een ziekmelding bij ons, de
-termijnen die wij bewaken, privacy en medische gegevens, wat we de werkgever
-beloven (het basiscontract), onze zes diensten, een nieuwe klant van offerte
-tot live, overstap van een andere arbodienst, en het portaal zelf. Daaronder
+termijnen die wij bewaken, jouw stappen in het eerste ziektejaar, advies vragen
+aan de bedrijfsarts, de medische anamnese volgens AFED, de WIA, privacy en
+medische gegevens, wat we de werkgever beloven (het basiscontract), onze zes
+diensten, een nieuwe klant van offerte tot live, overstap van een andere
+arbodienst, termen en afkortingen, en het portaal zelf. Vijf daarvan komen uit
+het document *Terminologie en afkortingen* van het team (Rens, 26 nov 2026:
+"bekijk dit feitelijk en belscript hoeft er niet in"): de tabellen staan in
+[`lib/portaalTermen.ts`](src/lib/portaalTermen.ts) (`PortaalTabel`, met een
+`vorm` voor de kolombreedtes; `PortaalTabelWeergave` tekent ze tussen de uitleg
+en de vragen), feitelijk nagelopen (PAGO, WW, UWV, ERD en IZP verbeterd; GBM
+is een oordeel van de bedrijfsarts, geen synoniem voor "iemand anders voert
+het woord"); het belspiekbriefje en het voicemailscript staan er bewust niet
+in (de test bewaakt dat). De anamnesevragen zijn een werkwijze onder
+taakdelegatie, geen dossier; de WIA-klassen staan in procenten, zonder
+bedragen. Daaronder
 *Wat de klant leest*: de negen onderwerpen uit de onboarding, woord voor woord
 (`/admin/weten/klant/<slug>`, met `WetenInhoud` uit de onboarding). Geen eigen
 recht (wie is ingelogd mag lezen, `requireAdmin`); het menu-item staat alleen in
