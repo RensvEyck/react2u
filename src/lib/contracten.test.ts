@@ -88,6 +88,16 @@ describe("de tekst van één contract", () => {
     expect(offerteKenmerk({ nummer: "2026-0012", getekend_at: "2026-11-03T10:00:00Z" })).toBe("Offerte 2026-0012 van 3 november 2026");
     expect(offerteKenmerk({ nummer: "2026-0012" })).toBe("Offerte 2026-0012");
   });
+
+  it("in het kort: een offertekenmerk leest als 'offerte …', een los kenmerk als 'de offerte met kenmerk …'", () => {
+    const basis = { tekst: CONTRACT_STANDAARD, ingangsdatum: "2026-12-01", einddatum: "2027-11-30" };
+    const tarieven = (kenmerk?: string) => contractKort({ ...basis, offerte_kenmerk: kenmerk })[2];
+    expect(tarieven("Offerte 2026-0012 van 3 november 2026")).toBe("Tarieven zoals in offerte 2026-0012 van 3 november 2026; facturen digitaal, betaling binnen 30 dagen");
+    expect(tarieven("50470965")).toBe("Tarieven zoals in de offerte met kenmerk 50470965; facturen digitaal, betaling binnen 30 dagen");
+    expect(tarieven("Bakkerij Jansen B.V., KvK 12345678")).toBe("Tarieven zoals in de offerte met kenmerk Bakkerij Jansen B.V., KvK 12345678; facturen digitaal, betaling binnen 30 dagen");
+    expect(tarieven(" ")).toBe("Tarieven zoals in de offerte; facturen digitaal, betaling binnen 30 dagen");
+    expect(tarieven()).toBe("Tarieven zoals in de offerte; facturen digitaal, betaling binnen 30 dagen");
+  });
 });
 
 describe("partijen", () => {

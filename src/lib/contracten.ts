@@ -431,10 +431,23 @@ export function contractKort(c: { soort?: ContractSoort; ingangsdatum: string | 
   return [
     looptijd,
     "Daarna telkens 12 maanden verlengd; opzeggen kan tot 3 maanden vóór de einddatum, per aangetekende brief",
-    `Tarieven zoals in ${c.offerte_kenmerk?.trim() ? c.offerte_kenmerk.trim().replace(/^Offerte/, "offerte") : "de offerte"}; facturen digitaal, betaling binnen 30 dagen`,
+    `Tarieven zoals in ${offerteVerwijzing(c.offerte_kenmerk)}; facturen digitaal, betaling binnen 30 dagen`,
     "Je medewerkers kunnen anoniem bij de bedrijfsarts terecht en een second opinion vragen",
     "Persoonsgegevens en medische gegevens volgens de AVG en ons privacyreglement",
   ];
+}
+
+/**
+ * De offerte in gewone woorden voor "In het kort". Het kenmerk is vrije tekst:
+ * "Offerte 2026-0012 van 3 november 2026" wordt "offerte 2026-0012 van 3 november
+ * 2026", maar een KvK-nummer of eigen kenmerk mag niet lezen als "zoals in
+ * 50470965" en wordt "de offerte met kenmerk 50470965". Zonder kenmerk "de offerte".
+ */
+function offerteVerwijzing(kenmerk: string | null | undefined): string {
+  const k = kenmerk?.trim();
+  if (!k) return "de offerte";
+  if (/^offerte/i.test(k)) return k.replace(/^offerte/i, "offerte");
+  return `de offerte met kenmerk ${k}`;
 }
 
 /** De resellerovereenkomst in het kort: de vergoeding uit 3.1 (die van de partner), de rest alleen bij de standaardtekst. */

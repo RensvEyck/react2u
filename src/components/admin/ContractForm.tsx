@@ -135,7 +135,7 @@ function BasisForm({ begin, nieuw, offertes }: { begin: ContractBegin; nieuw: bo
           </div>
           <div>
             <label className="alabel" htmlFor="ct-kenmerk">Kenmerk in het contract (overweging D)</label>
-            <input id="ct-kenmerk" className="ainput" name="offerte_kenmerk" value={kenmerk} onChange={(e) => setKenmerk(e.target.value)} maxLength={200} placeholder="Leeg: naam en KvK-nummer van de klant" />
+            <input id="ct-kenmerk" className="ainput" name="offerte_kenmerk" value={kenmerk} onChange={(e) => setKenmerk(e.target.value)} maxLength={200} placeholder="Bijv. Offerte 2026-0012 van 3 november 2026; leeg = naam en KvK-nummer van de klant" />
           </div>
         </div>
       </section>
