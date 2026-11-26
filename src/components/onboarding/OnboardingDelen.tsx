@@ -48,6 +48,7 @@ export const PAGINA_CSS = `
 .onboarding-stip { transform: translate(-50%, -50%) scale(0); opacity: 0; animation: onboarding-stip 1000ms cubic-bezier(.2,.8,.2,1) forwards; }
 @keyframes onboarding-stip { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1); opacity: 0; } }
 .onboarding-vink { animation: onboarding-vink 520ms cubic-bezier(.2,1.4,.4,1) both; }
+.onboarding-doc summary::-webkit-details-marker { display: none; }
 @keyframes onboarding-vink { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .onboarding-doc *, .onboarding-doc *::before, .onboarding-doc *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }

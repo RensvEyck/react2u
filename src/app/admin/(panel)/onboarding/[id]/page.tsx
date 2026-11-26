@@ -20,8 +20,9 @@ import { momentLang } from "@/lib/offertes";
 import {
   LuArrowLeft, LuEye, LuBan, LuTrash2, LuRotateCcw, LuLink, LuSend, LuBellRing, LuFilePlus, LuPencil, LuStickyNote, LuFileDown, LuCircleCheck,
   LuCircle, LuPencilLine, LuBookOpenCheck, LuFlag, LuEraser, LuFileSpreadsheet, LuBuilding2, LuSquareCheckBig, LuPartyPopper, LuClock, LuSignature,
-  LuForward, LuRocket,
+  LuForward, LuRocket, LuBookOpen,
 } from "react-icons/lu";
+import { aantalVragen, WETEN } from "@/lib/onboardingWeten";
 
 /**
  * Eén onboarding: het hele traject op één scherm. Links wat de klant doet
@@ -273,6 +274,11 @@ export default async function OnboardingAdmin({ params, searchParams }: { params
               );
             })}
           </ul>
+          <p className="mt-4 flex items-center gap-3 border-t border-black/[0.05] pt-4 text-[12.5px] text-black/45">
+            <LuBookOpen className="shrink-0 text-[16px] text-black/30" />
+            <span className="min-w-0 flex-1">Daarnaast staat op de klantpagina <span className="font-semibold text-[#1c1a4e]">Goed om te weten</span>: {WETEN.length} onderwerpen met uitleg en {aantalVragen()} vragen en antwoorden, van ziekmelden tot de factuur.</span>
+            <Link href={`${basis}#weten`} target="_blank" className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-[#312e82] hover:underline"><LuEye /> Bekijk</Link>
+          </p>
         </section>
       </div>
 

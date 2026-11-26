@@ -1968,6 +1968,29 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   het token als sleutel); Next controleert de vorm van de invoer, de database
   of het mag en hoe groot het is. Is alles gedaan, dan zet `onboarding_afronden`
   de status op `afgerond`.
+- **Goed om te weten** (Rens, 26 nov 2026: "de onboarding van react2u moet ook
+  uit tegels bestaan per onderwerp met uitleg en vragen en antwoorden"): naast
+  de stappen heeft de hub een band met negen onderwerpen als tegels
+  ([`lib/onboardingWeten.ts`](src/lib/onboardingWeten.ts), `WETEN`;
+  [`OnboardingWeten.tsx`](src/components/onboarding/OnboardingWeten.tsx)):
+  ziek- en herstelmelden, de casemanager, de bedrijfsarts, XpertSuite,
+  privacy, de Wet verbetering poortwachter, re-integratie, preventie, en
+  facturen en afspraken. Elk onderwerp heeft een eigen pagina
+  (`/onboarding/<token>/weten/<slug>`, ook als voorbeeld in het beheer;
+  [`OnboardingWetenPagina.tsx`](src/components/onboarding/OnboardingWetenPagina.tsx))
+  in de opzet van een stappagina: links de vaste kolom met het pictogram, de
+  titel, de leestijd en *Lees ook* (de stap van de onboarding die erbij hoort
+  en de gids op de site), rechts de uitleg, *In het kort* en de vragen en
+  antwoorden als `<details>` zoals in de gidsen (zonder JavaScript, één open
+  tegelijk via `name`); onderaan de andere onderwerpen en vorige/volgende. De
+  teksten volgen Welkom, het protocol, *Wat je wél mag vragen*, het
+  basiscontract en de gidsen (één verhaal), noemen geen bedragen en houden de
+  weken uit het Welkom-document aan; "binnen één tot drie werkdagen contact" is
+  de formulering uit Welkom (de site zegt op /werkgevers "binnen één werkdag").
+  De XpertSuite-antwoorden over inloggegevens, toegang voor collega's en het
+  toevoegen van een medewerker zijn nog niet door Rens bevestigd. De tegels
+  tellen niet mee in de voortgang; de kopbalk en de kaart in de opening
+  linken ernaar, het beheer noemt het onder *Wat de klant doet*.
 - **Privacy**: het werknemersbestand bevat burgerservicenummers. Daarom alleen
   achter `bellijst`, BSN's gemaskeerd in het beheer, de knop *Wissen na import*
   (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar
