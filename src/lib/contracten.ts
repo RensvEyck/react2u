@@ -446,7 +446,7 @@ export function contractKort(c: { soort?: ContractSoort; ingangsdatum: string | 
 function offerteVerwijzing(kenmerk: string | null | undefined): string {
   const k = kenmerk?.trim();
   if (!k) return "de offerte";
-  if (/^offerte/i.test(k)) return k.replace(/^offerte/i, "offerte");
+  if (/^offerte/i.test(k)) return "offerte" + k.slice("offerte".length);
   return `de offerte met kenmerk ${k}`;
 }
 
