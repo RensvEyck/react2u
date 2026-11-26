@@ -9,8 +9,7 @@ import { DOCUMENTEN as SITE_DOCUMENTEN } from "@/lib/documenten";
 import { datumLang } from "@/lib/offertes";
 import {
   documentInfo, documentKlaar, INRICHTING, ONBOARDING_EMAIL, taakKan, takenVoor, VERZUIMPROTOCOL, VRAGEN, vultIn, WELKOM,
-  type DocumentInfo, type OnboardingPubliek, type TijdlijnStap, type Werknemer,
-} from "@/lib/onboarding";
+  type DocumentInfo, type OnboardingPubliek, type TijdlijnStap, type Werknemer, REACT2U } from "@/lib/onboarding";
 import { AfvinkKnop, VeldenFormulier, WerknemersFormulier, type Modus } from "./OnboardingActies";
 
 /*
@@ -223,33 +222,116 @@ export function WelkomInhoud({ tint }: { tint: boolean }) {
 }
 
 /**
- * Het verzuimprotocol zoals de poster: de letters R-E-A-C-T-2U in witte rondjes
- * op de indigo lijn die slingert, met een stippellijn naar het kaartje in de
- * kleur van de stap en een schaduw die iets verschoven staat.
+ * Het verzuimprotocol als poster op het scherm (Rens, 17 nov 2026: "design -
+ * interface verzuimprotocol moet wel echt beter", daarna "niet goed genoeg"):
+ * een acrostichon. Bovenaan de posterkop met de zes letters als tegels; dan
+ * per stap de letter groot in zijn eigen kleur in de linkerkolom, zodat de
+ * kolom van boven naar beneden R-E-A-C-T-2U leest, met rechts wie aan zet is
+ * en wanneer, de titel en de tekst. Onderaan in het kort (dag 1, binnen 1 tot
+ * 3 werkdagen, daarna) en hoe de werkgever het doorgeeft. Dezelfde taal als de
+ * site: ronde vormen, zachte tinten, grote Outfit-letters, geen harde schaduw.
  */
-export function ProtocolInhoud({ tint }: { tint: boolean }) {
-  const ring = tint ? LAV : "#ffffff";
+export function ProtocolInhoud({ tint, bedrijf }: { tint: boolean; bedrijf?: string }) {
+  const rand = tint ? "rgba(50,46,131,0.14)" : LINE;
+  const stappen = VERZUIMPROTOCOL.stappen;
+  const chip = "inline-flex items-center rounded-full px-2.5 py-1 text-[12.5px] font-bold";
   return (
-    <div className="flex flex-col gap-6">
-      <p className="m-0 text-[16.5px] leading-[1.75] md:text-[18px]" style={{ color: BODY }}>{VERZUIMPROTOCOL.intro} Deel het met je medewerkers, of hang de pdf op een plek waar iedereen hem ziet.</p>
-      <ol className="relative m-0 flex list-none flex-col gap-3 p-0 md:gap-4">
-        <span aria-hidden className="absolute bottom-8 left-[29px] top-8 w-[6px] rounded-full md:left-[41px]" style={{ background: NAVY, opacity: 0.92 }} />
-        {VERZUIMPROTOCOL.stappen.map((st, i) => (
-          <li key={st.letter} className="relative grid grid-cols-[64px_minmax(0,1fr)] items-center gap-x-4 md:grid-cols-[88px_minmax(0,1fr)] md:gap-x-5" data-reveal style={{ ["--ri" as string]: i % 3 }}>
-            <span
-              className={`${kop} relative z-[1] grid h-[64px] w-[64px] place-items-center rounded-full bg-white md:h-[76px] md:w-[76px] ${st.letter.length > 1 ? "text-[22px] md:text-[26px]" : "text-[30px] md:text-[36px]"} ${i % 2 ? "md:translate-x-3" : ""}`}
-              style={{ color: st.kleur, boxShadow: `0 0 0 5px ${ring}, 0 14px 28px -18px rgba(50,46,131,0.5)` }}
-            >
-              {st.letter}
+    <div className="flex flex-col gap-6 md:gap-8">
+      {/* De posterkop */}
+      <div className="relative overflow-clip rounded-[28px] md:rounded-[32px]" style={{ background: tint ? "#ffffff" : LAV }}>
+        <span aria-hidden className="absolute right-[-110px] top-[-130px] h-[300px] w-[300px] rounded-full" style={{ background: "#3AA5DD", opacity: 0.12 }} />
+        <span aria-hidden className="absolute bottom-[-140px] left-[30%] h-[260px] w-[260px] rounded-full" style={{ background: PINK, opacity: 0.09 }} />
+        <div className="relative flex flex-col gap-6 px-6 py-8 md:px-10 md:py-10">
+          <Label kleur={PINK}>Voor je medewerkers · verzuimprotocol</Label>
+          <h2 className={`${kop} m-0 max-w-[12ch] text-[34px] leading-[1.02] tracking-[-1.2px] md:text-[52px]`} style={{ color: NAVY }}>
+            Ziek? Zo pak je het aan.
+          </h2>
+          <p className="m-0 max-w-[520px] text-[16px] leading-[1.7] md:text-[17.5px]" style={{ color: BODY }}>
+            Zes stappen, van je eerste telefoontje tot je terugkeer op het werk. Elke letter van React2u is er één.
+          </p>
+          <ol className="m-0 flex list-none flex-wrap gap-1.5 p-0 md:gap-2" aria-label="De zes letters">
+            {stappen.map((st) => (
+              <li key={st.letter} className={`${kop} grid h-11 min-w-11 place-items-center rounded-[13px] px-2 text-[19px] text-white md:h-14 md:min-w-14 md:rounded-[16px] md:px-3 md:text-[26px]`} style={{ background: st.kleur }} title={st.kop}>
+                {st.letter}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+
+      {/* Het acrostichon: de letters lezen van boven naar beneden React2u */}
+      <ol className="m-0 flex list-none flex-col p-0">
+        {stappen.map((st, i) => (
+          <li
+            key={st.letter}
+            className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-4 border-t py-6 first:border-t-0 first:pt-0 md:grid-cols-[150px_minmax(0,1fr)] md:gap-x-8 md:py-8"
+            style={{ borderColor: rand, ["--ri" as string]: i % 3 }}
+            data-reveal
+          >
+            <span className="flex items-start">
+              <span
+                className={`${kop} block select-none leading-[0.85] tracking-[-0.04em] ${st.letter.length > 1 ? "text-[46px] md:text-[86px]" : "text-[60px] md:text-[112px]"}`}
+                style={{ color: st.kleur }}
+                aria-hidden="true"
+              >
+                {st.letter}
+              </span>
             </span>
-            <span aria-hidden className={`absolute top-1/2 hidden w-5 border-t-2 border-dotted md:block ${i % 2 ? "left-[100px]" : "left-[88px]"}`} style={{ borderColor: NAVY }} />
-            <div className="rounded-[18px] border-[2px] bg-white p-5 md:ml-6 md:p-6" style={{ borderColor: st.kleur, boxShadow: `6px 6px 0 0 ${NAVY}` }}>
-              <span className={`${kop} block text-[17px] uppercase tracking-[1.2px] md:text-[18px]`} style={{ color: st.kleur }}>{st.kop}</span>
-              <span className="mt-1.5 block text-[15px] leading-[1.65]" style={{ color: BODY }}>{st.tekst}</span>
+            <div className="flex min-w-0 flex-col gap-2.5 md:gap-3">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className={chip} style={{ background: st.tint, color: st.kleur }}>Stap {i + 1}</span>
+                <span className={chip} style={{ background: tint ? "#ffffff" : SOFT, color: NAVY }}>{st.wie}</span>
+                <span className={chip} style={{ background: tint ? "#ffffff" : SOFT, color: MUTE }}>{st.wanneer}</span>
+              </div>
+              <h3 className={`${kop} m-0 text-[22px] leading-[1.15] tracking-[-0.4px] md:text-[27px]`} style={{ color: NAVY }}>
+                <span className="sr-only">{st.letter}: </span>{st.kop}
+              </h3>
+              <p className="m-0 max-w-[620px] text-[15.5px] leading-[1.7] md:text-[16.5px]" style={{ color: BODY }}>{st.tekst}</p>
             </div>
           </li>
         ))}
       </ol>
+
+      {/* In het kort, en hoe je het doorgeeft */}
+      <div className="relative overflow-clip rounded-[26px] px-6 py-7 md:rounded-[30px] md:px-9 md:py-9" style={{ background: NAVY }} data-reveal>
+        <span aria-hidden className="absolute right-[-90px] top-[-120px] h-[260px] w-[260px] rounded-full" style={{ background: NAVY_LICHT }} />
+        <div className="relative flex flex-col gap-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <span className={`${kop} text-[22px] text-white md:text-[26px]`}>In het kort</span>
+            <span className="text-[14px] font-semibold" style={{ color: "#F7A8CB" }}>React2u · {REACT2U.telefoon}</span>
+          </div>
+          <ol className="m-0 grid list-none gap-4 p-0 md:grid-cols-3 md:gap-6">
+            {[
+              { kop: "Dag 1", tekst: `Bel je leidinggevende${bedrijf ? ` bij ${bedrijf.replace(/\.$/, "")}` : ""}. Zeg hoe lang je verwacht ziek te zijn en waar je bereikbaar bent.` },
+              { kop: "Binnen 1 tot 3 werkdagen", tekst: "React2u neemt contact met je op. Wat je ons vertelt, blijft bij ons." },
+              { kop: "Daarna", tekst: "Samen met de bedrijfsarts een plan van aanpak, tot je weer aan het werk bent." },
+            ].map((r, i) => (
+              <li key={r.kop} className="flex flex-col gap-2 border-t pt-4 md:border-t-0 md:border-l md:pl-5 md:pt-0" style={{ borderColor: "rgba(255,255,255,0.18)" }}>
+                <span className="flex items-center gap-2.5">
+                  <span className={`${kop} grid h-7 w-7 place-items-center rounded-full text-[13px]`} style={{ background: "#ffffff", color: NAVY }}>{i + 1}</span>
+                  <span className="text-[14px] font-bold" style={{ color: "#F7A8CB" }}>{r.kop}</span>
+                </span>
+                <span className="text-[15px] leading-[1.65] text-white">{r.tekst}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-[26px] border bg-white px-6 py-6 md:flex-row md:items-start md:gap-10 md:px-8" style={{ borderColor: rand }} data-reveal>
+        <div className="flex shrink-0 flex-col gap-1 md:w-[220px]">
+          <span className="text-[12.5px] font-bold uppercase tracking-[1.3px]" style={{ color: PINK }}>Zo deel je het</span>
+          <span className="text-[15px] leading-[1.6]" style={{ color: MUTE }}>De pdf staat klaar bij de acties van deze stap.</span>
+        </div>
+        <ul className="m-0 grid list-none gap-2.5 p-0 sm:grid-cols-3 sm:gap-4">
+          {VERZUIMPROTOCOL.delen.map((d) => (
+            <li key={d} className="flex gap-3 text-[15px] leading-[1.6]" style={{ color: BODY }}>
+              <span aria-hidden className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: PINK }} />
+              {d}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -428,7 +510,7 @@ export function Stap({ d, n, o, token, basis, modus, tint, eerste, volgende }: {
   let acties: React.ReactNode = null;
   let formulier = false;
   if (d.sleutel === "welkom") inhoud = <WelkomInhoud tint={tint} />;
-  if (d.sleutel === "verzuimprotocol") inhoud = <ProtocolInhoud tint={tint} />;
+  if (d.sleutel === "verzuimprotocol") inhoud = <ProtocolInhoud tint={tint} bedrijf={o.bedrijf} />;
   if (d.sleutel === "vragen") inhoud = <VragenInhoud tint={tint} />;
 
   if (invul && d.sleutel === "inrichting") {

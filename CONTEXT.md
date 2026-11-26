@@ -1943,8 +1943,15 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   tijdlijn als één reis en "Wij bewaken dit" bij elke stap van React2u of de
   bedrijfsarts), 2 *Wat we van jullie nodig hebben* (inrichting, werknemers,
   machtiging: dat is wat de klant voor ons doet, dus direct na het welkom), 3
-  *Delen met je team* (het verzuimprotocol als de poster, de letters
-  R-E-A-C-T-2U op de slingerende indigo lijn, en *Wat je wél mag vragen* met de
+  *Delen met je team* (het verzuimprotocol als poster op het scherm, sinds 17
+  nov 2026 opnieuw ontworpen op Rens' "design - interface verzuimprotocol moet
+  wel echt beter", daarna "niet goed genoeg": een acrostichon. De posterkop met
+  de zes letters als tegels, dan per stap de letter groot in zijn eigen kleur in
+  de linkerkolom (van boven naar beneden leest de kolom R-E-A-C-T-2U) met rechts
+  de chips wie en wanneer (`ProtocolStap.wie`, `wanneer`, `tint`, `kort`), de
+  titel en de tekst; daaronder de indigo band *In het kort* (dag 1, binnen 1 tot
+  3 werkdagen, daarna) en *Zo deel je het* (`VERZUIMPROTOCOL.delen`); en *Wat
+  je wél mag vragen* met de
   samenvattingstabel en het belscript: materiaal om door te geven). Een
   hoofdstuk zonder gekozen documenten valt weg; het beheer, de mail en de
   stapnummers volgen dezelfde volgorde. Formulieren: een balkje "Verplichte
