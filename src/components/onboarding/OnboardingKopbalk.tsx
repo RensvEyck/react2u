@@ -79,8 +79,9 @@ export default function OnboardingKopbalk({
       <div className={`${BREED} flex h-[72px] items-center justify-between gap-4 md:h-[88px]`}>
         <div className="flex min-w-0 items-center gap-4">
           <Logo className="h-9 w-auto shrink-0 md:h-11" />
-          <span className="hidden h-8 w-px sm:block" style={{ background: LINE }} aria-hidden="true" />
-          <span className="hidden truncate text-[15px] font-bold sm:block" style={{ color: NAVY }}>{titel} {nummer}</span>
+          {/* Het nummer wijkt op een laptop voor de vijf onderdelen in het menu (en op een stappagina voor Overzicht); vanaf 1400 px past alles. */}
+          <span className={`hidden h-8 w-px sm:block xl:hidden ${terug ? "" : "min-[87.5rem]:block"}`} style={{ background: LINE }} aria-hidden="true" />
+          <span className={`hidden truncate text-[15px] font-bold sm:block xl:hidden ${terug ? "" : "min-[87.5rem]:block"}`} style={{ color: NAVY }}>{titel} {nummer}</span>
           {terug && (
             <a href={terug.href} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[14px] font-bold transition-colors hover:bg-[#F6F5FB]" style={{ color: NAVY }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
@@ -93,7 +94,7 @@ export default function OnboardingKopbalk({
             {onderdelen.map((o) => {
               const hier = o.id === actief;
               return (
-                <a key={o.id} href={o.href ?? `#${o.id}`} aria-current={hier ? "true" : undefined} className="relative py-2 text-[15px] font-bold transition-colors" style={{ color: hier ? PINK : NAVY }}>
+                <a key={o.id} href={o.href ?? `#${o.id}`} aria-current={hier ? "true" : undefined} className="relative whitespace-nowrap py-2 text-[15px] font-bold transition-colors" style={{ color: hier ? PINK : NAVY }}>
                   {o.label}
                   <span aria-hidden className="absolute inset-x-0 -bottom-0.5 h-[2px] rounded-full transition-opacity" style={{ background: PINK, opacity: hier ? 1 : 0 }} />
                 </a>

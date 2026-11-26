@@ -40,6 +40,7 @@ export default function OnboardingStapPagina({
   const mail = o.afzender_email || ONBOARDING_EMAIL;
   const onderdelen = [
     ...hoofdstukken.map((x) => ({ id: `hoofdstuk-${x.id}`, label: x.label, href: `${basis}#hoofdstuk-${x.id}` })),
+    { id: "weten", label: "Goed om te weten", href: `${basis}#weten` },
     { id: "verder", label: "Verder", href: `${basis}#verder` },
   ];
   const knopNav = "inline-flex h-[52px] items-center justify-center gap-2.5 rounded-full px-6 text-[15px] font-bold";

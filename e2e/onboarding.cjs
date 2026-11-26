@@ -114,7 +114,9 @@ async function teken(pagina, selector) {
   check(await vb.locator(`text=Fijn dat we voor ${BEDRIJF} aan de slag gaan`).count(), "{bedrijf} ingevuld in het persoonlijke woord");
   check((await vb.locator("section[id^=hoofdstuk-]").count()) === 3, "drie hoofdstukken op de hub");
   check((await vb.locator("section[id^=hoofdstuk-] ol > li > a").count()) === 5, "vijf stappen als kaarten, elk naar een eigen pagina");
-  check((await vb.locator('nav[aria-label="Hoofdstukken van de onboarding"] a').count()) === 4, "drie hoofdstukken en het vervolg in de kopbalk");
+  check((await vb.locator('nav[aria-label="Hoofdstukken van de onboarding"] a').count()) === 5, "drie hoofdstukken, goed om te weten en het vervolg in de kopbalk");
+  check((await vb.locator("#weten ul > li > a").count()) === 9, "goed om te weten: negen onderwerpen als tegels, elk naar een eigen pagina");
+  check(await vb.locator("#weten >> text=Ziek- en herstelmelden").count() && (await vb.locator("#weten >> text=Facturen, tarieven en afspraken").count()), "van ziekmelden tot de factuur");
   check(await vb.locator("#verder >> text=Zo gaat het verder").count(), "het vervolg: wat React2u daarna doet");
   check(await vb.locator("text=Handig om bij de hand te hebben").count() && (await vb.locator("text=KvK-nummer").count()), "wat je bij de hand moet hebben");
   check((await vb.locator("text=IBAN").count()) === 0, "geen IBAN meer: React2u incasseert niet");
@@ -128,6 +130,18 @@ async function teken(pagina, selector) {
   check((await vb.locator("#ob-inrichting-iban").count()) === 0, "geen IBAN-veld");
   check(await vb.locator("a:has-text('Volgende stap: Werknemersbestand')").count(), "volgende stap onderaan");
   await shot(vb, "04b-voorbeeld-stap");
+  await vb.goto(`${BASIS}${vbLink}/weten/ziekmelden`);
+  await vb.waitForSelector("h1");
+  check(await vb.locator("h1:has-text('Ziek- en herstelmelden')").count(), "onderwerppagina: de titel als kop");
+  check(await vb.locator("text=Onderwerp 1 van 9").count(), "onderwerppagina: waar je bent");
+  check((await vb.locator("#weten-ziekmelden details").count()) === 8 && (await vb.locator("#weten-ziekmelden details[open]").count()) === 1, "acht vragen, de eerste staat open");
+  check(await vb.locator("#weten-ziekmelden >> text=In het kort").count(), "de punten in het kort");
+  check(await vb.locator("a:has-text('In deze onboarding: Verzuimprotocol')").count(), "lees ook: de stap die erbij hoort");
+  check((await vb.locator("#andere ul > li > a").count()) === 8, "de acht andere onderwerpen eronder");
+  check(await vb.locator("a:has-text('Volgende: Je vaste casemanager')").count(), "volgende onderwerp onderaan");
+  const r404 = await page.request.get(`${BASIS}${vbLink}/weten/onbekend`);
+  check(r404.status() === 404, `onbekend onderwerp geeft 404 (${r404.status()})`);
+  await shot(vb, "04c-voorbeeld-weten");
   await vb.close();
   for (const d of ["welkom", "verzuimprotocol", "vragen", "inrichting"]) {
     const r = await page.request.get(`${BASIS}/admin/onboardingvoorbeeld/${id}/pdf/${d}?download=1`);

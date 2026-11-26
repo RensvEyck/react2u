@@ -1,6 +1,6 @@
 import type { ContactInfo } from "@/lib/content";
 import type { Certificate } from "@/lib/nav";
-import { kop, LAV, LINE, NAVY, PINK, Pijl, Vink } from "@/components/blocks/Gedeeld";
+import { kop, LAV, LINE, NAVY, PINK, Pijl, SOFT, Vink } from "@/components/blocks/Gedeeld";
 import { BODY } from "@/components/blocks/Gedeeld";
 import { datumLang, momentLang, vulIn } from "@/lib/offertes";
 import {
@@ -13,6 +13,8 @@ import {
 } from "./OnboardingDelen";
 import OnboardingKopbalk, { VolgendeBalk } from "./OnboardingKopbalk";
 import OnboardingReveal from "./OnboardingReveal";
+import { WetenIcoon, WetenTegels } from "./OnboardingWeten";
+import { aantalVragen, WETEN, WETEN_ICOON } from "@/lib/onboardingWeten";
 
 /*
  * De hub van de onboarding (/onboarding/<token>, migratie 0037), en hetzelfde
@@ -29,6 +31,9 @@ import OnboardingReveal from "./OnboardingReveal";
  *    stappen als kaarten die naar hun eigen pagina gaan
  *    (OnboardingStapPagina.tsx): zo werken we samen, jullie gegevens, delen
  *    met je team;
+ *  - de band "Goed om te weten": negen onderwerpen als tegels, elk met uitleg
+ *    en vragen en antwoorden op een eigen pagina (OnboardingWeten.tsx,
+ *    lib/onboardingWeten.ts);
  *  - de indigo band "Zo gaat het verder" en de voet van de site.
  *
  * Modus: klant (de echte link), collega (een beheerder opent de link: het
@@ -73,7 +78,8 @@ export default function OnboardingPagina({
     ...(compleet ? [] : [{ label: "Samen ongeveer", waarde: `${minuten} minuten` }]),
     { label: "Je aanspreekpunt", waarde: o.afzender_naam || "Team React2u" },
   ];
-  const onderdelen = [...hoofdstukken.map((h) => ({ id: `hoofdstuk-${h.id}`, label: h.label })), { id: "verder", label: "Verder" }];
+  const onderdelen = [...hoofdstukken.map((h) => ({ id: `hoofdstuk-${h.id}`, label: h.label })), { id: "weten", label: "Goed om te weten" }, { id: "verder", label: "Verder" }];
+  const wetenTint = hoofdstukken.length % 2 === 1;
   const startHref = `${basis}/${(volgende || docs[0])?.sleutel}`;
 
   return (
@@ -189,6 +195,14 @@ export default function OnboardingPagina({
                   </li>
                 ))}
               </ol>
+              <a href="#weten" className="flex items-center gap-3 rounded-[14px] px-2 py-2 transition-colors hover:bg-[#F6F5FB]" style={{ background: SOFT }}>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full" style={{ background: LAV, color: NAVY }}><WetenIcoon d={WETEN_ICOON} size={14} /></span>
+                <span className="flex flex-1 flex-col leading-tight">
+                  <span className="text-[15px] font-semibold" style={{ color: NAVY }}>Goed om te weten</span>
+                  <span className="text-[12.5px]" style={{ color: MUTE }}>{WETEN.length} onderwerpen, {aantalVragen()} vragen en antwoorden</span>
+                </span>
+                <Pijl size={14} />
+              </a>
               <div className="flex items-center gap-3 border-t pt-5" style={{ borderColor: LINE }}>
                 <span className={`${kop} flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full text-[15px] text-white`} style={{ background: NAVY }} aria-hidden="true">{initialen(o.afzender_naam)}</span>
                 <span className="flex min-w-0 flex-1 flex-col leading-tight">
@@ -234,6 +248,15 @@ export default function OnboardingPagina({
             </Band>
           );
         })}
+
+        <Band id="weten" tint={wetenTint} label="Goed om te weten">
+          <SectieKop
+            eyebrow="Goed om te weten"
+            titel="Alles over werken met React2u, per onderwerp."
+            tekst={`${WETEN.length} onderwerpen, elk met uitleg en de vragen die werkgevers ons het vaakst stellen. Lees nu wat je nodig hebt; de rest staat hier als je het later zoekt.`}
+          />
+          <WetenTegels basis={basis} tint={wetenTint} />
+        </Band>
 
         <Verder o={o} tel={tel} telTekst={telTekst} mail={mail} />
       </main>
