@@ -13,13 +13,12 @@ describe("reserve-inhoud", () => {
     expect(MIGRATIE_RESERVE).not.toContain("contact");
   });
 
-  it("houdt alleen de tweede reeks gidsen als reserve tot migratie 0061 gedraaid is; de eerste reeks komt uit de database", () => {
-    // Tussen de merge van PR #115 en migratie 0060 stonden de eerste vijf hier; sinds 0061
-    // in de maak is de tweede reeks, zodat de 301 van /blog/loonsanctie-uwv niet op een 404 uitkomt.
-    const tweede = GIDSEN.map((g) => g.slug).filter((s) => !EERSTE_REEKS.includes(s));
-    expect(MIGRATIE_RESERVE).toEqual(tweede);
-    for (const s of EERSTE_REEKS) expect(reserveConcept(s)).toBeNull();
-    for (const s of tweede) expect(reserveConcept(s)?.slug).toBe(s);
+  it("houdt geen gids meer als reserve: 0060 en 0061 staan op productie, alle gidsen komen uit de database", () => {
+    // Tussen de merge van PR #115 en migratie 0060 stonden de eerste vijf hier, tussen PR #117 en 0061
+    // de tweede reeks, zodat de 301 van een oud blogartikel niet op een 404 uitkwam. Sinds 25 november 2026 leeg.
+    expect(MIGRATIE_RESERVE).toEqual([]);
+    expect(EERSTE_REEKS.length).toBeLessThan(GIDSEN.length);
+    for (const g of GIDSEN) expect(reserveConcept(g.slug)).toBeNull();
   });
 
   it("laat de concepten zelf met rust: lokaal (zonder VERCEL_ENV=preview) zijn ze uit, Engels is er altijd", () => {

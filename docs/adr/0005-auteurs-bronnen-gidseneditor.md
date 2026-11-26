@@ -78,6 +78,7 @@ in de database staan. Een gids is een pagina die met het blok Gids: kop begint.
 - De gidsen die al in de database staan krijgen het bronnenblok via migratie
   0062 (`supabase/migrations/0062_gidsen_bronnen.sql`): het blok uit het concept,
   direct vóór "Zo helpt React2u"; een gids die het al heeft of nog niet bestaat
-  wordt overgeslagen, zodat de migratie vóór of ná 0061 kan draaien, en vaker.
+  wordt overgeslagen, zodat de migratie vóór of ná 0061 kan draaien, en vaker
+  (op productie gedraaid op 25 november 2026, direct na 0061).
 - `/auteur/*` is vrij: de oude WordPress-adressen onder `/author/*` en
   `/team/*` gaan met een 301 naar de homepage en Over React2u.

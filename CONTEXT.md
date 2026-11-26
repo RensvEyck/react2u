@@ -3327,8 +3327,9 @@ reeks gidsen (arbodienst, zieke werknemer, verzuimverzekering, casemanager
 verzuim, loonsanctie, RI&E, eigenrisicodrager Ziektewet, twee jaar ziek) volgt
 dezelfde opbouw; het loonsanctie-artikel is in de gids opgegaan (301). De
 strook op een dienstpagina toont hooguit vier gidsen met een link naar het
-onderwerp. Migratie 0061 zet de tweede reeks in de database; tot die tijd
-staan de acht slugs in `MIGRATIE_RESERVE`. Zie
+onderwerp. Migratie 0061 zette de tweede reeks op 25 november 2026 in de
+database; tot die tijd stonden de acht slugs in `MIGRATIE_RESERVE`, sinds de
+merge van PR #117 twee uur eerder. De lijst is weer leeg. Zie
 [docs/adr/0004](docs/adr/0004-kennisbank.md).
 
 **Auteurs, bronnen en de gids in het beheer.** De auteurs van de gidsen staan

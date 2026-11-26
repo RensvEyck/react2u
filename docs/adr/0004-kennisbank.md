@@ -76,6 +76,6 @@ Daaruit volgt:
   kruimelpad en de kaarten volgen vanzelf.
 - Migratie 0061 zet de tweede reeks gidsen in de database, het loonsanctie-
   artikel op concept, de kaarten op home en /diensten naar de kennisbank en de
-  gidsen op de dienstpagina's; tot die tijd staan de acht slugs in
-  `MIGRATIE_RESERVE`.
+  gidsen op de dienstpagina's; tot die tijd stonden de acht slugs in
+  `MIGRATIE_RESERVE` (gedraaid op 25 november 2026, de lijst is sindsdien leeg).
 - `/blog` als adres bestaat niet meer; wie ernaar linkte, komt op de kennisbank.
