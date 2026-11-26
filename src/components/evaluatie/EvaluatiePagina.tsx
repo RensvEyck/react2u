@@ -73,7 +73,7 @@ export default function EvaluatiePagina({
     <div className={`hv ${outfit.variable} onboarding-doc min-h-screen bg-white`}>
       <style>{PAGINA_CSS}</style>
       <OnboardingReveal />
-      <OnboardingKopbalk titel="Klantevaluatie" navLabel="Delen van de evaluatie" nummer={e.nummer} onderdelen={onderdelen} klaar={v.klaar} totaal={v.totaal} tel={tel} telNaam={voornaam(e.afzender_naam) || "ons"} />
+      <OnboardingKopbalk titel="Klantevaluatie" navLabel="Delen van de evaluatie" nummer={e.nummer} onderdelen={onderdelen} klaar={v.klaar} totaal={v.totaal} tel={tel} telNaam="ons" />
       {modus !== "klant" && (
         <div className="geen-print bg-[#FFF4E5] text-[14px] text-[#7A4A06]">
           <p className={`${BREED} m-0 py-2.5`}>
@@ -125,7 +125,7 @@ export default function EvaluatiePagina({
                 <a href="#checklist" className={knop.roze}>
                   {ingevuld ? "Bekijk of pas aan" : v.klaar ? "Ga verder met de checklist" : "Begin met de checklist"} <Pijl size={14} />
                 </a>
-                <a href={tel} className={knop.rand}><Icoon d={TELEFOON} size={15} /> Bel {voornaam(e.afzender_naam) || "ons"}</a>
+                <a href={tel} className={knop.rand}><Icoon d={TELEFOON} size={15} /> Bel ons</a>
               </div>
             </div>
 
@@ -176,7 +176,7 @@ export default function EvaluatiePagina({
                   <span className="truncate text-[13.5px]" style={{ color: MUTE }}>{e.afzender_functie ? `${e.afzender_functie}, React2u` : "Je aanspreekpunt bij React2u"}</span>
                   <a href={`mailto:${mail}`} className="truncate text-[13.5px] font-bold hover:underline" style={{ color: NAVY }}>{mail}</a>
                 </span>
-                <a href={tel} aria-label={`Bel ${e.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                <a href={tel} aria-label="Bel React2u" className="hv-btn hv-btn-rand flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
                   <Icoon d={TELEFOON} size={16} />
                 </a>
               </div>
@@ -231,12 +231,12 @@ export default function EvaluatiePagina({
               <div className="flex flex-col gap-2">
                 <p className={`${kop} m-0 text-[24px] text-white md:text-[28px]`}>Liever eerst even bellen?</p>
                 <p className="m-0 max-w-[560px] text-[16px] leading-[1.7]" style={{ color: "rgba(255,255,255,0.75)" }}>
-                  Bel of mail {voornaam(e.afzender_naam) || "ons"} gerust, ook als je de evaluatie liever samen invult tijdens ons gesprek.
+                  Bel of mail ons gerust, ook als je de evaluatie liever samen invult tijdens ons gesprek.
                 </p>
               </div>
               <div className="geen-print flex flex-wrap gap-3">
                 <a href={tel} className={knop.wit}><Icoon d={TELEFOON} size={15} /> Bel {telTekst}</a>
-                <a href={`mailto:${mail}?subject=${encodeURIComponent(`Klantevaluatie ${e.bedrijf}`)}`} className={`hv-btn ${KNOP} border-[1.5px] border-white/40 text-white hover:bg-white/10`}><Icoon d={MAIL} size={15} /> Mail {voornaam(e.afzender_naam) || "ons"}</a>
+                <a href={`mailto:${mail}?subject=${encodeURIComponent(`Klantevaluatie ${e.bedrijf}`)}`} className={`hv-btn ${KNOP} border-[1.5px] border-white/40 text-white hover:bg-white/10`}><Icoon d={MAIL} size={15} /> Mail ons</a>
               </div>
             </div>
           </div>
