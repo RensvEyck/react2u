@@ -28,6 +28,7 @@ import {
 } from "@/lib/weekevaluatie";
 import MijnVerloop from "@/components/admin/MijnVerloop";
 import { InwerkreisKaart } from "@/components/admin/inwerk/Reis";
+import { WetenKaart } from "@/components/admin/weten/Weten";
 import { haalEigenReis } from "@/lib/inwerkreisDb";
 import { reisStand } from "@/lib/inwerkreis";
 import OverlegKaart from "@/components/admin/overleg/OverlegKaart";
@@ -286,6 +287,9 @@ export default async function AdminDashboard() {
       {toonWaarneming && waarneming && <WaarnemingKaart kort={waarneming} vandaag={datumOver(0, now)} userId={admin.userId} />}
 
       {mijnLijnen && <MijnVerloop kwartaal={verloopKwartaal} lijnen={mijnLijnen} />}
+
+      {/* Goed om te weten (26 nov 2026): alleen in Mijn React2u, de ingang naar de uitleg en de vragen per onderwerp. */}
+      {mijn && <WetenKaart />}
 
       {werven?.soort === "werven" && (
         <Link href="/admin/prognose" id="prognose-advies" className="acard flex flex-wrap items-center gap-4 border-l-[3px] border-l-[#e75387] px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-lg">

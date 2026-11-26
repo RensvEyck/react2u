@@ -56,7 +56,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       roleLabel={admin.roleLabel}
       permissions={rechten}
       counts={{ apps: appCount, msgs: msgCount, inbox: appCount + msgCount, leads: leadCount }}
-      vlaggen={{ inwerkreis: Boolean(inwerkreis.data) }}
+      vlaggen={{ inwerkreis: Boolean(inwerkreis.data), weten: mijn }}
       maintenance={normalizeMaintenance(maintenance.data?.value).enabled}
       signOut={signOutAction}
       wissel={kanWisselen(admin.permissions) ? (mijn ? "beheer" : "mijn") : null}
