@@ -1990,7 +1990,10 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   De XpertSuite-antwoorden over inloggegevens, toegang voor collega's en het
   toevoegen van een medewerker zijn nog niet door Rens bevestigd. De tegels
   tellen niet mee in de voortgang; de kopbalk en de kaart in de opening
-  linken ernaar, het beheer noemt het onder *Wat de klant doet*.
+  linken ernaar, het beheer noemt het onder *Wat de klant doet*. De bel- en
+  mailknoppen van de onboarding zeggen *Bel ons* en *Mail ons*, niet de
+  voornaam van de afzender (Rens, 26 nov 2026: "niet bel rens"); de knop belt
+  nog wel het nummer van de afzender, en de voet noemt het aanspreekpunt.
 - **Privacy**: het werknemersbestand bevat burgerservicenummers. Daarom alleen
   achter `bellijst`, BSN's gemaskeerd in het beheer, de knop *Wissen na import*
   (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar

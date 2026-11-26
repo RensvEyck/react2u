@@ -572,12 +572,12 @@ export function Verder({ o, tel, telTekst, mail }: { o: OnboardingPubliek; tel: 
           <div className="flex flex-col gap-2">
             <p className={`${kop} m-0 text-[24px] text-white md:text-[28px]`}>Vragen? We helpen je graag op weg.</p>
             <p className="m-0 max-w-[560px] text-[16px] leading-[1.7]" style={{ color: "rgba(255,255,255,0.75)" }}>
-              Bel of mail {voornaam(o.afzender_naam) || "ons"} gerust, ook tussendoor. Wil je wegwijs worden in het verzuimsysteem? Plan een afspraak op kantoor of online.
+              Bel of mail ons gerust, ook tussendoor. Wil je wegwijs worden in het verzuimsysteem? Plan een afspraak op kantoor of online.
             </p>
           </div>
           <div className="geen-print flex flex-wrap gap-3">
             <a href={tel} className={knop.wit}><Icoon d={TELEFOON} size={15} /> Bel {telTekst}</a>
-            <a href={`mailto:${mail}?subject=${encodeURIComponent(`Onboarding ${o.bedrijf}`)}`} className={`hv-btn ${KNOP} border-[1.5px] border-white/40 text-white hover:bg-white/10`}><Icoon d={MAIL} size={15} /> Mail {voornaam(o.afzender_naam) || "ons"}</a>
+            <a href={`mailto:${mail}?subject=${encodeURIComponent(`Onboarding ${o.bedrijf}`)}`} className={`hv-btn ${KNOP} border-[1.5px] border-white/40 text-white hover:bg-white/10`}><Icoon d={MAIL} size={15} /> Mail ons</a>
           </div>
         </div>
       </div>
