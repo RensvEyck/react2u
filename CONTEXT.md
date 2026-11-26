@@ -1991,9 +1991,11 @@ token in de link, statussen, tijdlijn, alles achter het salesrecht `bellijst`.
   toevoegen van een medewerker zijn nog niet door Rens bevestigd. De tegels
   tellen niet mee in de voortgang; de kopbalk en de kaart in de opening
   linken ernaar, het beheer noemt het onder *Wat de klant doet*. De bel- en
-  mailknoppen van de onboarding zeggen *Bel ons* en *Mail ons*, niet de
-  voornaam van de afzender (Rens, 26 nov 2026: "niet bel rens"); de knop belt
-  nog wel het nummer van de afzender, en de voet noemt het aanspreekpunt.
+  mailknoppen van alle klantpagina's (offerte, contract, checklist, brochure,
+  evaluatie, onboarding) zeggen *Bel ons* en *Mail ons*, niet de voornaam van
+  de afzender (Rens, 26 nov 2026: "niet bel rens", daarna "breid uit"); de
+  knop belt nog wel het nummer van de afzender, en de voet en het
+  aanspreekpunt noemen de naam gewoon.
 - **Privacy**: het werknemersbestand bevat burgerservicenummers. Daarom alleen
   achter `bellijst`, BSN's gemaskeerd in het beheer, de knop *Wissen na import*
   (het document telt daarna als afgehandeld) en de hele onboarding gaat een jaar

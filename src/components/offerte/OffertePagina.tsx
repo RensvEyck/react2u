@@ -430,7 +430,7 @@ function Kopbalk({ offerte, actie, onderdelen = [] }: { offerte: OffertePubliek;
         <div className="flex shrink-0 items-center gap-5">
           {tel && (
             <a href={tel} className="inline-flex items-center gap-2 text-[15px] font-bold print:hidden" style={{ color: NAVY }}>
-              <Telefoon size={15} /> <span className="hidden md:inline">Bel {voornaam(offerte.afzender_naam) || "ons"}</span><span className="md:hidden">Bellen</span>
+              <Telefoon size={15} /> <span className="hidden md:inline">Bel ons</span><span className="md:hidden">Bellen</span>
             </a>
           )}
           {/* Op de telefoon staat de actie in de balk onderaan */}
@@ -620,7 +620,7 @@ function VoorstelKaart({ offerte, totalen, open, heeftKeuze }: { offerte: Offert
           <p className="m-0 truncate text-[13.5px]" style={{ color: MUTE }}>Je contactpersoon bij React2u</p>
         </div>
         {tel && (
-          <a href={tel} aria-label={`Bel ${offerte.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
+          <a href={tel} aria-label="Bel React2u" className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
             <Telefoon size={16} />
           </a>
         )}
@@ -725,7 +725,7 @@ function Document({ offerte, token, modus, voorwaarden, huis }: { offerte: Offer
           knoppen={
             <>
               <a href="#keuze" className={knop.roze}>{heeftKeuze ? "Stel je offerte samen" : "Bekijk de offerte"}<Pijl /></a>
-              {tel && <a href={tel} className={knop.rand}>Bel {voornaam(offerte.afzender_naam) || "ons"}<Pijl /></a>}
+              {tel && <a href={tel} className={knop.rand}>Bel ons<Pijl /></a>}
             </>
           }
           kaart={<VoorstelKaart offerte={offerte} totalen={totalen} open={open} heeftKeuze={heeftKeuze} />}
@@ -860,7 +860,7 @@ function ContactRijen({ offerte, huis }: { offerte: OffertePubliek; huis: Huis }
   const telTekst = offerte.afzender_telefoon || telefoonTekst(huis.contact);
   const mail = offerte.afzender_email || OFFERTE_EMAIL;
   const rijen = [
-    { href: tel, icoon: <Telefoon size={18} />, klein: `Bel ${voornaam(offerte.afzender_naam) || "ons"}, ma t/m vr 9.00 tot 17.00 uur`, groot: telTekst },
+    { href: tel, icoon: <Telefoon size={18} />, klein: "Bel ons, ma t/m vr 9.00 tot 17.00 uur", groot: telTekst },
     { href: `mailto:${mail}?subject=${encodeURIComponent(`Vraag over offerte ${offerte.nummer}`)}`, icoon: <Mail size={18} />, klein: "Mailen", groot: mail },
   ];
   return (
@@ -932,7 +932,7 @@ function Overzicht({ offerte, totalen, open, heeftKeuze, bijAkkoord, naarAkkoord
             <p className="m-0 truncate text-[13.5px]" style={{ color: MUTE }}>{offerte.afzender_naam || "React2u"} denkt graag mee</p>
           </div>
           {tel && (
-            <a href={tel} aria-label={`Bel ${offerte.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
+            <a href={tel} aria-label="Bel React2u" className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
               <Telefoon size={16} />
             </a>
           )}
@@ -2136,7 +2136,6 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
   const t = berekenTotalen(regels, inhoud.keuze, inhoud.medewerkers);
   const tarieven = regels.filter((r) => r.soort === "tarief");
   const vorm: Vorm = inhoud.vorm && VORMEN[inhoud.vorm] ? inhoud.vorm : "verzuimbegeleiding";
-  const afzender = inhoud.afzender_naam || offerte.afzender_naam || "React2u";
   const metTekst = Boolean(inhoud.inhoud?.trim());
   return (
     <>
@@ -2170,7 +2169,7 @@ function Getekend({ offerte, token, voorwaarden, modus, vers, huis }: { offerte:
           stappen={inhoud.vervolg ?? offerte.vervolg}
           klaar={1}
           titel="De eerste stap is gezet"
-          tekst={offerte.afzender_telefoon ? <>Vragen over de start? Bel {voornaam(afzender) || "ons"} op <span className="whitespace-nowrap">{offerte.afzender_telefoon}</span>.</> : undefined}
+          tekst={offerte.afzender_telefoon ? <>Vragen over de start? Bel ons op <span className="whitespace-nowrap">{offerte.afzender_telefoon}</span>.</> : undefined}
         />
 
         <Band tint label="Wat je hebt afgenomen">

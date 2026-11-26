@@ -379,7 +379,7 @@ export function Kopbalk({ contract, actie, onderdelen = [], terug }: { contract:
         <div className="flex shrink-0 items-center gap-5">
           {tel && (
             <a href={tel} className="inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: NAVY }}>
-              <Icoon d={TELEFOON} size={15} /> <span className="hidden md:inline">Bel {voornaam(contract.afzender_naam) || "ons"}</span><span className="md:hidden">Bellen</span>
+              <Icoon d={TELEFOON} size={15} /> <span className="hidden md:inline">Bel ons</span><span className="md:hidden">Bellen</span>
             </a>
           )}
           {actie && <div className="hidden sm:block">{actie}</div>}
@@ -526,7 +526,7 @@ function KortKaart({ contract }: { contract: ContractPubliek }) {
           <p className="m-0 truncate text-[13.5px]" style={{ color: MUTE }}>Je contactpersoon bij React2u</p>
         </div>
         {tel && (
-          <a href={tel} aria-label={`Bel ${contract.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
+          <a href={tel} aria-label="Bel React2u" className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
             <Icoon d={TELEFOON} size={16} />
           </a>
         )}

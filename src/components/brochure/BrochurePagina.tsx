@@ -227,7 +227,6 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
   const c = huis.contact;
   const tel = telLink(b.afzender_telefoon);
   const mail = b.afzender_email || BROCHURE_EMAIL;
-  const naam = voornaam(b.afzender_naam);
   const bericht = vulIn(b.bericht || BERICHT_STANDAARD, { bedrijf: b.bedrijf, contactpersoon: b.contactpersoon })
     .split(/\n\s*\n/)
     .map((a) => a.trim())
@@ -257,7 +256,7 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
             <a href="#tarieven" className="hidden text-[15px] font-bold hover:underline lg:inline" style={{ color: NAVY }}>Tarieven {prijslijst.jaar}</a>
             {tel && (
               <a href={tel} className="inline-flex items-center gap-2 text-[15px] font-bold" style={{ color: NAVY }}>
-                <Telefoon size={15} /> <span className="hidden md:inline">Bel {naam || "ons"}</span><span className="md:hidden">Bellen</span>
+                <Telefoon size={15} /> <span className="hidden md:inline">Bel ons</span><span className="md:hidden">Bellen</span>
               </a>
             )}
             <a href={kennismaken} className={`${knop.roze} !h-11 hidden px-5 text-[14.5px] sm:inline-flex`}>Kennismaken <Pijl size={14} /></a>
@@ -403,7 +402,7 @@ export default function BrochurePagina({ brochure: b, diensten, prijslijst, huis
             </p>
           </div>
           <div className="relative flex flex-col gap-3 lg:col-span-4 lg:col-start-9">
-            {tel && <a href={tel} className={knop.wit}><Telefoon size={15} /> Bel {b.afzender_naam || "ons"}</a>}
+            {tel && <a href={tel} className={knop.wit}><Telefoon size={15} /> Bel ons</a>}
             <a href={kennismaken} className={knop.roze}>Plan een kennismaking <Pijl size={14} /></a>
             <a href={offerte} className="inline-flex items-center justify-center gap-2 text-[15px] font-bold text-white hover:underline">Of vraag direct een offerte aan <Pijl size={14} /></a>
           </div>

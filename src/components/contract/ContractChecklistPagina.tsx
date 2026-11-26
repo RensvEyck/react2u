@@ -352,7 +352,7 @@ function ZoWerktHet({ contract, tel }: { contract: ContractPubliek; tel: string 
           <p className="m-0 truncate text-[13.5px]" style={{ color: MUTE }}>Je contactpersoon bij React2u</p>
         </div>
         {tel && (
-          <a href={tel} aria-label={`Bel ${contract.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
+          <a href={tel} aria-label="Bel React2u" className="hv-btn hv-btn-rand flex h-10 w-10 items-center justify-center rounded-full">
             <Icoon d={TELEFOON} size={16} />
           </a>
         )}
