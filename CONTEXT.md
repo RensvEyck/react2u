@@ -530,7 +530,7 @@ ruimere weken noemt. Vier antwoorden zijn aannames over de praktijk die nog
 niet bevestigd zijn: inloggegevens XpertSuite na het aanmaken, wie de instructie
 geeft, "informeer de werkgever functioneel" bij een medewerker die niet
 meewerkt, en de afhandeling van een factuur van de vorige arbodienst.
-`e2e/inwerkreis.cjs` verwacht het item als laatste in het menu van een werknemer.
+`e2e/inwerkreis.cjs`, `e2e/overleg.cjs` en `e2e/weekevaluatie.cjs` verwachten het item als laatste in het menu van een werknemer.
 
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de
