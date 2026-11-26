@@ -1,18 +1,20 @@
 import Link from "next/link";
 import type { IconType } from "react-icons";
 import {
-  LuArrowLeftRight, LuArrowRight, LuBookOpen, LuCalendarCheck, LuHandshake, LuLayoutDashboard, LuLock, LuPhone, LuRoute, LuTags,
+  LuArrowLeftRight, LuArrowRight, LuBookA, LuBookOpen, LuCalendarCheck, LuClipboardList, LuHandshake, LuLayoutDashboard, LuListChecks, LuLock, LuPercent, LuPhone, LuRoute, LuStethoscope, LuTags,
 } from "react-icons/lu";
 import { WetenIcoon } from "@/components/onboarding/OnboardingWeten";
 import { WETEN, type WetenOnderwerp } from "@/lib/onboardingWeten";
+import type { PortaalTabel } from "@/lib/portaalTermen";
 import { leesTijd, PORTAAL_WETEN, portaalVragen, type PortaalIcoon, type PortaalOnderwerp } from "@/lib/portaalWeten";
 
 /*
  * Goed om te weten in Mijn React2u: de tegels per onderwerp, de inhoud van een
- * onderwerp (uitleg, in het kort, vragen en antwoorden) en de kaart op het
- * dashboard. In de vormgeving van het beheer (acard, font-heading), met de
- * kleur van het onderwerp als accent. De onderwerpen staan in
- * lib/portaalWeten.ts; wat de klant leest komt uit lib/onboardingWeten.ts.
+ * onderwerp (uitleg, tabellen, in het kort, vragen en antwoorden) en de kaart
+ * op het dashboard. In de vormgeving van het beheer (acard, font-heading), met
+ * de kleur van het onderwerp als accent. De onderwerpen staan in
+ * lib/portaalWeten.ts, de tabellen in lib/portaalTermen.ts; wat de klant leest
+ * komt uit lib/onboardingWeten.ts.
  */
 
 const ICOON: Record<PortaalIcoon, IconType> = {
@@ -24,7 +26,70 @@ const ICOON: Record<PortaalIcoon, IconType> = {
   route: LuRoute,
   wissel: LuArrowLeftRight,
   portaal: LuLayoutDashboard,
+  stappen: LuListChecks,
+  stethoscoop: LuStethoscope,
+  anamnese: LuClipboardList,
+  procent: LuPercent,
+  woordenboek: LuBookA,
 };
+
+const EYEBROW = "text-[11.5px] font-semibold uppercase tracking-[0.06em]";
+
+/** De kolombreedtes per vorm (zie PortaalTabel.vorm); zonder vorm twee kolommen die op een telefoon onder elkaar staan. */
+const KOLOMMEN: Record<NonNullable<PortaalTabel["vorm"]> | "twee", string> = {
+  compact: "grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)] gap-3",
+  tijdlijn: "gap-1 md:grid-cols-[minmax(0,8rem)_minmax(0,11rem)_minmax(0,1fr)] md:gap-5",
+  vertaling: "gap-1 md:grid-cols-[minmax(0,6.5rem)_minmax(0,1fr)_minmax(0,1fr)] md:gap-5",
+  twee: "gap-1 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] md:gap-5",
+};
+
+function tabelId(t: PortaalTabel): string {
+  return "tabel-" + t.titel.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+/** Eén tabel uit lib/portaalTermen.ts als kaart: één kolom wordt een genummerde lijst, meer kolommen een rooster met de kopjes erboven (op een telefoon per cel). */
+export function PortaalTabelWeergave({ t, kleur }: { t: PortaalTabel; kleur: string }) {
+  const id = tabelId(t);
+  const n = t.kolommen.length;
+  const vorm = t.vorm ?? "twee";
+  const compact = vorm === "compact";
+  return (
+    <section className="acard p-6" aria-labelledby={id} data-tabel={id}>
+      <h2 id={id} className="font-heading text-[19px] font-bold text-[#312e82]">{t.titel}</h2>
+      {t.toelichting && <p className="mt-1.5 max-w-[680px] text-[14px] leading-[1.6] text-black/55">{t.toelichting}</p>}
+      {n === 1 ? (
+        <ol className="mt-4 space-y-2.5">
+          {t.rijen.map((r, i) => (
+            <li key={r[0]} className="flex items-start gap-3 text-[14.5px] leading-[1.55] text-[#1c1a4e]">
+              <span className="mt-[2px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" style={{ background: kleur }}>{i + 1}</span>
+              <span>{r[0]}</span>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <div role="table" aria-labelledby={id} className="mt-4 text-[14px] leading-[1.55]">
+          <div role="rowgroup">
+            <div role="row" className={`${compact ? "grid" : "hidden md:grid"} border-b border-black/[0.1] pb-2 ${KOLOMMEN[vorm]}`}>
+              {t.kolommen.map((k) => <span key={k} role="columnheader" className={EYEBROW} style={{ color: kleur }}>{k}</span>)}
+            </div>
+          </div>
+          <div role="rowgroup" className="divide-y divide-black/[0.06]">
+            {t.rijen.map((r) => (
+              <div role="row" key={r.join("|")} className={`grid py-3 ${KOLOMMEN[vorm]}`}>
+                {r.map((c, j) => (
+                  <div role="cell" key={t.kolommen[j]} className={`min-w-0 ${j === 0 ? "font-semibold text-[#1c1a4e]" : "text-black/65"} ${j === 0 && compact ? "break-words" : ""}`}>
+                    {!compact && j > 0 && <span className={`${EYEBROW} block text-[10.5px] text-black/40 md:hidden`}>{t.kolommen[j]}</span>}
+                    {c}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
 
 export function PortaalIcoonVan({ icoon, className }: { icoon: PortaalIcoon; className?: string }) {
   const I = ICOON[icoon];
@@ -84,6 +149,7 @@ export function PortaalInhoud({ w }: { w: PortaalOnderwerp }) {
           {w.uitleg.map((a) => <p key={a}>{a}</p>)}
         </div>
       </section>
+      {(w.tabellen ?? []).map((t) => <PortaalTabelWeergave key={t.titel} t={t} kleur={w.kleur} />)}
       <section className="acard p-6" aria-labelledby={`vragen-${w.slug}`}>
         <p className="text-[11.5px] font-semibold uppercase tracking-[0.06em]" style={{ color: w.kleur }}>Vragen en antwoorden</p>
         <h2 id={`vragen-${w.slug}`} className="mt-1 font-heading text-[19px] font-bold text-[#312e82]">Wat collega&apos;s hierover vragen</h2>
