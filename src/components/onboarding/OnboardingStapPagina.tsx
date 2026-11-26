@@ -2,7 +2,7 @@ import type { ContactInfo } from "@/lib/content";
 import { kop, LAV, NAVY, Pijl } from "@/components/blocks/Gedeeld";
 import { documentInfo, gekozen, hoofdstukkenVoor, ONBOARDING_EMAIL, stapNa, stapVoor, voortgang, type DocumentSleutel, type OnboardingPubliek } from "@/lib/onboarding";
 import { StapDoorsturen, type Modus } from "./OnboardingActies";
-import { Band, Icoon, knop, Melding, MUTE, outfit, PAGINA_CSS, Stap, TELEFOON, telLink, Voet, voornaam } from "./OnboardingDelen";
+import { Band, Icoon, knop, Melding, MUTE, outfit, PAGINA_CSS, Stap, TELEFOON, telLink, Voet } from "./OnboardingDelen";
 import OnboardingKopbalk from "./OnboardingKopbalk";
 import OnboardingReveal from "./OnboardingReveal";
 
@@ -55,7 +55,7 @@ export default function OnboardingStapPagina({
         klaar={v.klaar}
         totaal={v.totaal}
         tel={tel}
-        telNaam={voornaam(o.afzender_naam) || "ons"}
+        telNaam="ons"
         terug={{ href: basis, label: "Overzicht" }}
       />
       <Melding modus={modus} status={o.status} />
@@ -81,7 +81,7 @@ export default function OnboardingStapPagina({
               <span>Stap {n} van {docs.length}</span>
               <span aria-hidden>·</span>
               <span>{v.klaar} van {v.totaal} klaar</span>
-              <a href={tel} className="inline-flex items-center gap-1.5 font-bold" style={{ color: NAVY }}><Icoon d={TELEFOON} size={14} /> Bel {voornaam(o.afzender_naam) || "ons"}</a>
+              <a href={tel} className="inline-flex items-center gap-1.5 font-bold" style={{ color: NAVY }}><Icoon d={TELEFOON} size={14} /> Bel ons</a>
             </div>
           </div>
         </section>

@@ -86,7 +86,7 @@ export default function OnboardingPagina({
     <div className={`hv ${outfit.variable} onboarding-doc min-h-screen bg-white`}>
       <style>{PAGINA_CSS}</style>
       <OnboardingReveal />
-      <OnboardingKopbalk nummer={o.nummer} onderdelen={onderdelen} klaar={v.klaar} totaal={v.totaal} tel={tel} telNaam={voornaam(o.afzender_naam) || "ons"} />
+      <OnboardingKopbalk nummer={o.nummer} onderdelen={onderdelen} klaar={v.klaar} totaal={v.totaal} tel={tel} telNaam="ons" />
       <Melding modus={modus} status={o.status} />
 
       <main>
@@ -143,7 +143,7 @@ export default function OnboardingPagina({
                 <a href={startHref} className={knop.roze}>
                   {compleet ? "Bekijk je documenten" : v.klaar ? `Ga verder met stap ${nummerVan(volgende!)}` : "Begin met stap 1"} <Pijl size={14} />
                 </a>
-                <a href={tel} className={knop.rand}><Icoon d={TELEFOON} size={15} /> Bel {voornaam(o.afzender_naam) || "ons"}</a>
+                <a href={tel} className={knop.rand}><Icoon d={TELEFOON} size={15} /> Bel ons</a>
               </div>
             </div>
 
@@ -210,7 +210,7 @@ export default function OnboardingPagina({
                   <span className="truncate text-[13.5px]" style={{ color: MUTE }}>{o.afzender_functie ? `${o.afzender_functie}, React2u` : "Je aanspreekpunt bij React2u"}</span>
                   <a href={`mailto:${mail}`} className="truncate text-[13.5px] font-bold hover:underline" style={{ color: NAVY }}>{mail}</a>
                 </span>
-                <a href={tel} aria-label={`Bel ${o.afzender_naam || "React2u"}`} className="hv-btn hv-btn-rand flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                <a href={tel} aria-label="Bel React2u" className="hv-btn hv-btn-rand flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
                   <Icoon d={TELEFOON} size={16} />
                 </a>
               </div>

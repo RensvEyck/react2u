@@ -5,7 +5,7 @@ import { inkt } from "@/lib/kleur";
 import { documentInfo, gekozen, hoofdstukkenVoor, ONBOARDING_EMAIL, voortgang, type OnboardingPubliek } from "@/lib/onboarding";
 import { leesMinuten, WETEN, wetenNa, wetenNummer, wetenVoor, wetenVoorgaand } from "@/lib/onboardingWeten";
 import type { Modus } from "./OnboardingActies";
-import { Band, Icoon, knop, Label, Melding, MUTE, outfit, PAGINA_CSS, SectieKop, TELEFOON, telLink, Voet, voornaam } from "./OnboardingDelen";
+import { Band, Icoon, knop, Label, Melding, MUTE, outfit, PAGINA_CSS, SectieKop, TELEFOON, telLink, Voet } from "./OnboardingDelen";
 import OnboardingKopbalk from "./OnboardingKopbalk";
 import OnboardingReveal from "./OnboardingReveal";
 import { WetenIcoon, WetenInhoud, WetenTegels } from "./OnboardingWeten";
@@ -56,7 +56,7 @@ export default function OnboardingWetenPagina({ o, basis, contact, modus, slug }
         klaar={v.klaar}
         totaal={v.totaal}
         tel={tel}
-        telNaam={voornaam(o.afzender_naam) || "ons"}
+        telNaam="ons"
         terug={{ href: basis, label: "Overzicht" }}
       />
       <Melding modus={modus} status={o.status} />
@@ -80,7 +80,7 @@ export default function OnboardingWetenPagina({ o, basis, contact, modus, slug }
               <span>{w.vragen.length} vragen</span>
               <span aria-hidden>·</span>
               <span>± {leesMinuten(w)} min lezen</span>
-              <a href={tel} className="inline-flex items-center gap-1.5 font-bold" style={{ color: NAVY }}><Icoon d={TELEFOON} size={14} /> Bel {voornaam(o.afzender_naam) || "ons"}</a>
+              <a href={tel} className="inline-flex items-center gap-1.5 font-bold" style={{ color: NAVY }}><Icoon d={TELEFOON} size={14} /> Bel ons</a>
             </div>
           </div>
         </section>
