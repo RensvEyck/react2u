@@ -17,8 +17,8 @@ import type { IconType } from "react-icons";
 
 export type Counts = { apps: number; msgs: number; inbox: number; leads: number };
 
-/** Wat per collega aan of uit staat, los van rechten: heeft deze collega een inwerkreis (0050)? */
-export type NavVlaggen = { inwerkreis: boolean };
+/** Wat per collega aan of uit staat, los van rechten: heeft deze collega een inwerkreis (0050)? Kijkt hij in Mijn React2u (Goed om te weten)? */
+export type NavVlaggen = { inwerkreis: boolean; weten: boolean };
 
 export type NavItem = {
   label: string;
@@ -76,6 +76,8 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Ideeënbord", href: "/admin/ideeen", icon: LuLightbulb, keywords: "ideeen ideeënbord idee melden delen verbetering compliment stemmen reageren status ingediend opgepakt gedaan" },
   { label: "Waarneming", href: "/admin/waarneming", icon: LuUserRoundCheck, keywords: "waarneming waarnemen afwezig vakantie vrij er niet overnemen klanten collega vervanging wie neemt waar" },
   { label: "Inwerkreis", href: "/admin/inwerkreis", icon: LuRoute, keywords: "inwerken nieuwe collega eerste 90 dagen buddy taken oefencasussen mijlpalen", alleenMet: "inwerkreis" },
+  // Goed om te weten (26 nov 2026): uitleg en vragen per onderwerp voor collega's, alleen in Mijn React2u; geen eigen recht.
+  { label: "Goed om te weten", href: "/admin/weten", icon: LuBookOpen, keywords: "goed om te weten uitleg vragen antwoorden onderwerpen hoe werken we ziekmelding poortwachter privacy basiscontract diensten", alleenMet: "weten" },
   { label: "Kwartaaloverzicht weekevaluaties", href: "/admin/weekevaluatie/team", icon: LuChartColumn, keywords: "kwartaalmeeting kwartaal team gemiddelden trend gemist export excel weekevaluaties", paletteOnly: true },
   { label: "Verkoop", href: "/admin/verkoop", icon: LuTrendingUp, keywords: "sales dashboard pijplijn trechter hitrate conversie verkopers doorlooptijd opvolgen", groep: "cijfers" },
   { label: "Losse klanten en opdrachten", href: "/admin/verkoop/los", icon: LuPlus, keywords: "los opvoeren bestaande klant abonnement opdracht eenmalig handmatig invoeren zonder offerte", paletteOnly: true },
@@ -138,5 +140,6 @@ export const CRUMBS: Record<string, string> = {
   documenten: "Documenten", evaluaties: "Klantevaluaties",
   offertes: "Offertes", contracten: "Contracten", onboarding: "Onboarding", werknemers: "Werknemers", verkoop: "Verkoop", los: "Los opgevoerd", omzet: "Omzet", uren: "Uren", partners: "Partners", voorbeeld: "Voorbeeld", sjablonen: "Sjablonen",
   weekevaluatie: "Weekevaluatie", team: "Kwartaaloverzicht", prognose: "Prognose", inwerkreis: "Inwerkreis", inwerken: "Inwerken", sjabloon: "Sjabloon", overleg: "CM-overleg", ideeen: "Ideeënbord", waarneming: "Waarneming",
+  weten: "Goed om te weten", klant: "Wat de klant leest",
   nieuw: "Nieuw", blok: "Blok", doorverwijzingen: "Doorverwijzingen", prullenbak: "Prullenbak", bedrijven: "Bedrijven",
 };

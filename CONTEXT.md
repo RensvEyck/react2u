@@ -507,6 +507,31 @@ regels in [`lib/ideeen.ts`](src/lib/ideeen.ts), ophalen in
   Let op: een nieuw los menu-item raakt de menutelling in `e2e/evaluatie.cjs`
   (nu dertien regels voor een beheerder).
 
+**Goed om te weten in Mijn React2u** (Rens, 26 nov 2026: "zet ook in mijn
+react2u voor de werknemers", na de tegels in de onboarding van de klant).
+[`/admin/weten`](src/app/admin/(panel)/weten/page.tsx): acht onderwerpen voor
+collega's als tegels, elk met uitleg, *In het kort* en vragen en antwoorden
+([`lib/portaalWeten.ts`](src/lib/portaalWeten.ts), `PORTAAL_WETEN`; bouwstenen
+in `components/admin/weten/Weten.tsx`): zo loopt een ziekmelding bij ons, de
+termijnen die wij bewaken, privacy en medische gegevens, wat we de werkgever
+beloven (het basiscontract), onze zes diensten, een nieuwe klant van offerte
+tot live, overstap van een andere arbodienst, en het portaal zelf. Daaronder
+*Wat de klant leest*: de negen onderwerpen uit de onboarding, woord voor woord
+(`/admin/weten/klant/<slug>`, met `WetenInhoud` uit de onboarding). Geen eigen
+recht (wie is ingelogd mag lezen, `requireAdmin`); het menu-item staat alleen in
+Mijn React2u (`NavVlaggen.weten`, gezet door de layout op `mijn`), zodat het
+zijmenu van het beheer kort blijft; het dashboard van Mijn React2u heeft de
+kaart `WetenKaart`. De teksten volgen Welkom, het protocol, het basiscontract,
+`lib/poortwachter.ts`, de gidsen en de opzet van het portaal hierboven; geen
+namen, niets medisch, geen bedragen (de test bewaakt dat). De
+poortwachtertekst voor collega's noemt de wettelijke uiterste weken (6, 8,
+42, 52, 58, 88, 91, 93, 104) en legt uit dat het Welkom-document van de klant
+ruimere weken noemt. Vier antwoorden zijn aannames over de praktijk die nog
+niet bevestigd zijn: inloggegevens XpertSuite na het aanmaken, wie de instructie
+geeft, "informeer de werkgever functioneel" bij een medewerker die niet
+meewerkt, en de afhandeling van een factuur van de vorige arbodienst.
+`e2e/inwerkreis.cjs` verwacht het item als laatste in het menu van een werknemer.
+
 **Een `"use server"`-bestand mag alleen async functies exporteren.** Een
 constante of gewone functie exporteren uit `app/(site)/actions.ts` breekt de
 build. Pure hulpjes voor de formulieren staan daarom in `src/lib/formulier.ts`.
